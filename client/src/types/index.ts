@@ -27,6 +27,7 @@ export interface JourneyStep {
 
 export interface Product {
   id: string;
+  slug: string;
   name: string;
   brand: string;
   price: number;
@@ -38,7 +39,7 @@ export interface Product {
   specs: string;
   isNew?: boolean;
   isBestSeller?: boolean;
-  
+
   // Phase 0 Updates
   difficulty?: DifficultyLevel;
   ecoFriendly?: boolean;

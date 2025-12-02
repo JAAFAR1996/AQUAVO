@@ -158,7 +158,7 @@ class MockStorage implements IStorage {
       id: randomUUID(),
       username: user.username,
       password: user.password,
-      email: user.email,
+      email: user.email ?? null,
       createdAt: new Date(),
     };
     this.users.push(newUser);
@@ -173,8 +173,8 @@ class MockStorage implements IStorage {
     if (filters?.brand) results = results.filter((p) => p.brand === filters.brand);
     if (filters?.isNew !== undefined) results = results.filter((p) => p.isNew === filters.isNew);
     if (filters?.isBestSeller !== undefined) results = results.filter((p) => p.isBestSeller === filters.isBestSeller);
-    if (filters?.minPrice !== undefined) results = results.filter((p) => Number(p.price) >= filters.minPrice);
-    if (filters?.maxPrice !== undefined) results = results.filter((p) => Number(p.price) <= filters.maxPrice);
+    if (filters?.minPrice !== undefined) results = results.filter((p) => Number(p.price) >= filters.minPrice!);
+    if (filters?.maxPrice !== undefined) results = results.filter((p) => Number(p.price) <= filters.maxPrice!);
     if (filters?.search) {
       const term = filters.search.toLowerCase();
       results = results.filter(
@@ -214,18 +214,18 @@ class MockStorage implements IStorage {
       category: product.category || "general",
       subcategory: product.subcategory || "general",
       description: product.description || "",
-      price: product.price || 0,
-      originalPrice: product.originalPrice,
+      price: product.price || "0",
+      originalPrice: product.originalPrice ?? null,
       currency: product.currency || "IQD",
       images: product.images || [],
       thumbnail: product.thumbnail || product.images?.[0] || "",
-      rating: product.rating ?? 0,
+      rating: product.rating ?? "0",
       reviewCount: product.reviewCount ?? 0,
       stock: product.stock ?? 0,
       lowStockThreshold: product.lowStockThreshold ?? 0,
       isNew: product.isNew ?? false,
       isBestSeller: product.isBestSeller ?? false,
-      specifications: product.specifications || {},
+      specifications: product.specifications ?? {},
       createdAt: product.createdAt || new Date(),
       updatedAt: product.updatedAt || new Date(),
     };
@@ -252,11 +252,11 @@ class MockStorage implements IStorage {
   async createOrder(order: Partial<Order>): Promise<Order> {
     const newOrder: Order = {
       id: order.id || randomUUID(),
-      userId: order.userId,
+      userId: order.userId ?? null,
       status: order.status || "pending",
-      total: order.total || 0,
+      total: order.total || "0",
       items: order.items || [],
-      shippingAddress: order.shippingAddress,
+      shippingAddress: order.shippingAddress ?? null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -279,10 +279,10 @@ class MockStorage implements IStorage {
     const newReview: Review = {
       id: review.id || randomUUID(),
       productId: review.productId as string,
-      userId: review.userId,
+      userId: review.userId ?? null,
       rating: review.rating ?? 0,
-      comment: review.comment,
-      images: review.images,
+      comment: review.comment ?? null,
+      images: review.images ?? null,
       createdAt: new Date(),
     };
     this.reviews.push(newReview);

@@ -3,6 +3,7 @@ import { Product } from "@/types";
 
 export const products: Product[] = mockProducts.map((product) => ({
   id: product.id,
+  slug: product.slug,
   name: product.name,
   brand: product.brand,
   price: Number(product.price),
