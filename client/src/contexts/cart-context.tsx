@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { Product } from "@/types";
 
 export interface CartItem {
@@ -43,35 +43,49 @@ function saveCartToStorage(items: CartItem[]): void {
 
   try {
     localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(items));
+    // Dispatch a custom event to notify other tabs
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: CART_STORAGE_KEY,
+      newValue: JSON.stringify(items),
+    }));
   } catch (error) {
     console.error("Failed to save cart to localStorage:", error);
   }
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false);
+  const [items, setItems] = useState<CartItem[]>(loadCartFromStorage);
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const loadedItems = loadCartFromStorage();
-    setItems(loadedItems);
-    setIsInitialized(true);
+  const handleStorageChange = useCallback((event: StorageEvent) => {
+    if (event.key === CART_STORAGE_KEY && event.newValue) {
+      try {
+        const newItems = JSON.parse(event.newValue);
+        setItems(newItems);
+      } catch (error) {
+        console.error("Failed to parse cart data from storage event:", error);
+      }
+    }
   }, []);
 
-  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    if (isInitialized) {
-      saveCartToStorage(items);
-    }
-  }, [items, isInitialized]);
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [handleStorageChange]);
+
+  const syncAndSetItems = (newItems: CartItem[] | ((prevItems: CartItem[]) => CartItem[])) => {
+    const updatedItems = typeof newItems === 'function' ? newItems(items) : newItems;
+    setItems(updatedItems);
+    saveCartToStorage(updatedItems);
+  };
+
 
   const addItem = (product: Product) => {
-    setItems((currentItems) => {
+    syncAndSetItems((currentItems) => {
       const existingItem = currentItems.find((item) => item.id === product.id);
 
       if (existingItem) {
-        // Increment quantity if item already exists
         return currentItems.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -79,7 +93,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Add new item to cart
       const newItem: CartItem = {
         id: product.id,
         name: product.name,
@@ -88,30 +101,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
         image: product.image,
         slug: product.slug,
       };
-
       return [...currentItems, newItem];
     });
   };
 
   const removeItem = (id: string) => {
-    setItems((currentItems) => currentItems.filter((item) => item.id !== id));
+    syncAndSetItems((currentItems) => currentItems.filter((item) => item.id !== id));
   };
 
   const updateQuantity = (id: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeItem(id);
-      return;
-    }
-
-    setItems((currentItems) =>
-      currentItems.map((item) =>
+    syncAndSetItems((currentItems) => {
+      if (quantity <= 0) {
+        return currentItems.filter((item) => item.id !== id);
+      }
+      return currentItems.map((item) =>
         item.id === id ? { ...item, quantity } : item
-      )
-    );
+      );
+    });
   };
 
   const clearCart = () => {
-    setItems([]);
+    syncAndSetItems([]);
   };
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

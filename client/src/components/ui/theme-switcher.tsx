@@ -45,12 +45,9 @@ export function ThemeSwitcher() {
           variant="ghost"
           size="icon"
           className="rounded-full border-2 border-primary/20 bg-primary/5 hover:bg-primary/10 hover:border-primary/40 transition-all"
+          aria-label="تغيير السمة"
         >
-          {theme === "light" && <Sun className="h-5 w-5 text-yellow-500" />}
-          {theme === "dark" && <Moon className="h-5 w-5 text-slate-400" />}
-          {theme === "neon-ocean" && <Zap className="h-5 w-5 text-cyan-400" />}
-          {theme === "pastel" && <Palette className="h-5 w-5 text-pink-400" />}
-          {theme === "monochrome" && <div className="h-5 w-5 rounded-full border-2 border-current bg-zinc-500" />}
+          <Palette className="h-5 w-5" />
           <span className="sr-only">تغيير السمة</span>
         </Button>
       </DropdownMenuTrigger>
