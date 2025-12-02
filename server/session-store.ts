@@ -1,5 +1,5 @@
 import { Store } from "express-session";
-import { db } from "./db.js";
+import { getDb } from "./db.js";
 import { sessions } from "../shared/schema.js";
 import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
 
@@ -8,12 +8,16 @@ import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
  * Provides persistent session storage across server restarts
  */
 export class DrizzleSessionStore extends Store {
+  private db = getDb();
   private cleanupInterval?: NodeJS.Timeout;
   private lastCleanupCheck = 0;
   private readonly cleanupIntervalMs = 1000 * 60 * 60; // 1 hour
 
   constructor() {
     super();
+    if (!this.db) {
+      throw new Error("DATABASE_URL is required for persistent session storage");
+    }
   }
 
   startCleanupTimer(intervalMs = this.cleanupIntervalMs) {
@@ -46,7 +50,7 @@ export class DrizzleSessionStore extends Store {
     try {
       await this.maybeCleanup();
 
-      const result = await db
+      const result = await this.db!
         .select()
         .from(sessions)
         .where(eq(sessions.sid, sid))
@@ -85,7 +89,7 @@ export class DrizzleSessionStore extends Store {
       const expire = this.getExpireDate(session);
 
       // Upsert session
-      await db
+      await this.db!
         .insert(sessions)
         .values({
           sid,
@@ -111,7 +115,7 @@ export class DrizzleSessionStore extends Store {
    */
   async destroy(sid: string, callback?: (err?: any) => void): Promise<void> {
     try {
-      await db.delete(sessions).where(eq(sessions.sid, sid));
+      await this.db!.delete(sessions).where(eq(sessions.sid, sid));
       if (callback) callback(null);
     } catch (error) {
       if (callback) callback(error);
@@ -125,7 +129,7 @@ export class DrizzleSessionStore extends Store {
     try {
       await this.maybeCleanup();
       const now = new Date();
-      const result = await db
+      const result = await this.db!
         .select({
           sid: sessions.sid,
           sess: sessions.sess,
@@ -157,7 +161,7 @@ export class DrizzleSessionStore extends Store {
     try {
       await this.maybeCleanup();
       const now = new Date();
-      const result = await db
+      const result = await this.db!
         .select({ value: sql<number>`count(*)` })
         .from(sessions)
         .where(
@@ -179,7 +183,7 @@ export class DrizzleSessionStore extends Store {
   async clear(callback?: (err?: any) => void): Promise<void> {
     try {
       await this.maybeCleanup();
-      await db.delete(sessions);
+      await this.db!.delete(sessions);
       if (callback) callback(null);
     } catch (error) {
       if (callback) callback(error);
@@ -194,7 +198,7 @@ export class DrizzleSessionStore extends Store {
       await this.maybeCleanup();
       const expire = this.getExpireDate(session);
 
-      await db
+      await this.db!
         .update(sessions)
         .set({ expire })
         .where(eq(sessions.sid, sid));
@@ -210,7 +214,7 @@ export class DrizzleSessionStore extends Store {
    */
   async cleanup(): Promise<void> {
     try {
-      await db
+      await this.db!
         .delete(sessions)
         .where(
           and(
