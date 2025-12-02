@@ -39,7 +39,7 @@ async function buildApp() {
     }),
   );
 
-  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+  app.use((req, res, next) => {
     const start = Date.now();
 
     res.on("finish", () => {
@@ -64,5 +64,5 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     appPromise = buildApp();
   }
   const app = await appPromise;
-  return app(req as any, res as any);
+  return (app as any)(req, res);
 }
