@@ -24,6 +24,26 @@ export function createProductRouter() {
             };
 
             const products = await storage.getProducts(filters);
+            res.json({ products });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Top selling (Specific route BEFORE :idOrSlug)
+    router.get("/top-selling", async (req, res, next) => {
+        try {
+            const result = await storage.getTopSellingProducts();
+            res.json(result);
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Trending (Specific route BEFORE :idOrSlug)
+    router.get("/info/trending", async (req, res, next) => {
+        try {
+            const products = await storage.getTrendingProducts();
             res.json(products);
         } catch (err) {
             next(err);
@@ -56,12 +76,7 @@ export function createProductRouter() {
         }
     });
 
-
-
-    // ============ REVIEWS ============
-
     // ============ DISCOUNTS ============
-
     // Get Discounts
     router.get("/:productId/discounts", async (req, res, next) => {
         try {
@@ -73,7 +88,6 @@ export function createProductRouter() {
     });
 
     // ============ RECOMMENDATIONS ============
-
     router.get("/:id/similar", async (req, res, next) => {
         try {
             const products = await storage.getSimilarProducts(req.params.id);
@@ -86,15 +100,6 @@ export function createProductRouter() {
     router.get("/:id/frequently-bought-together", async (req, res, next) => {
         try {
             const products = await storage.getFrequentlyBoughtTogether(req.params.id);
-            res.json(products);
-        } catch (err) {
-            next(err);
-        }
-    });
-
-    router.get("/info/trending", async (req, res, next) => {
-        try {
-            const products = await storage.getTrendingProducts();
             res.json(products);
         } catch (err) {
             next(err);
