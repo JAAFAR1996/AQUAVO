@@ -163,11 +163,16 @@ export class ProductStorage {
             product.slug = await this.ensureUniqueSlug(product.slug);
         }
 
-        const newProduct = {
+        // Sanitize numeric fields - convert empty strings to undefined
+        const sanitizedProduct = {
             ...product,
             id: product.id || randomUUID(),
+            price: product.price === '' ? undefined : product.price,
+            originalPrice: product.originalPrice === '' ? undefined : product.originalPrice,
+            rating: product.rating === '' ? '0' : product.rating,
         };
-        const result = await db.insert(products).values(newProduct as any).returning();
+
+        const result = await db.insert(products).values(sanitizedProduct as any).returning();
         return result[0];
     }
 
@@ -186,7 +191,13 @@ export class ProductStorage {
             updates.slug = await this.ensureUniqueSlug(updates.slug, id);
         }
 
-        const result = await db.update(products).set({ ...updates, updatedAt: new Date() }).where(eq(products.id, id)).returning();
+        // Sanitize numeric fields - convert empty strings to undefined
+        const sanitizedUpdates = { ...updates };
+        if (sanitizedUpdates.price === '') sanitizedUpdates.price = undefined;
+        if (sanitizedUpdates.originalPrice === '') sanitizedUpdates.originalPrice = undefined;
+        if (sanitizedUpdates.rating === '') sanitizedUpdates.rating = '0';
+
+        const result = await db.update(products).set({ ...sanitizedUpdates, updatedAt: new Date() }).where(eq(products.id, id)).returning();
         return result[0];
     }
 

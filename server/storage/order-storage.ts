@@ -331,17 +331,17 @@ export class OrderStorage {
 
         if (existingVote.length > 0) return false;
 
-        await db.transaction(async (tx) => {
-            await tx.insert(galleryVotes).values({
-                galleryId: id,
-                userId: userId || null,
-                ipAddress
-            });
-
-            await tx.update(gallerySubmissions)
-                .set({ likes: sql`${gallerySubmissions.likes} + 1` })
-                .where(eq(gallerySubmissions.id, id));
+        // Note: neon-http driver doesn't support transactions
+        // Execute operations sequentially
+        await db.insert(galleryVotes).values({
+            galleryId: id,
+            userId: userId || null,
+            ipAddress
         });
+
+        await db.update(gallerySubmissions)
+            .set({ likes: sql`${gallerySubmissions.likes} + 1` })
+            .where(eq(gallerySubmissions.id, id));
 
         return true;
     }
