@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { saveBase64Image } from "../middleware/upload.js";
@@ -9,7 +9,7 @@ const getSessionHelper = (req: express.Request) => (req as any).session;
 export function createGalleryRouter() {
     const router = Router();
 
-    const getSubmissions = async (req, res, next) => {
+    const getSubmissions = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const submissions = await storage.getGallerySubmissions(true);
             res.json(submissions);
