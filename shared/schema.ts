@@ -437,6 +437,9 @@ export const insertProductSchema = createInsertSchema(products).omit({
   createdAt: true,
   updatedAt: true,
   deletedAt: true
+}).extend({
+  images: z.array(z.string()),
+  specifications: z.record(z.string(), z.any()),
 });
 export const insertOrderSchema = createInsertSchema(orders);
 export const insertReviewSchema = createInsertSchema(reviews).extend({

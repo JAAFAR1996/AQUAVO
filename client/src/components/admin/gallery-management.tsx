@@ -21,7 +21,7 @@ interface GallerySubmission {
   winnerMonth?: string;
   prize?: string;
   submittedAt: Date;
-  approved: boolean;
+  isApproved: boolean;
 }
 
 interface GalleryPrize {
@@ -116,8 +116,8 @@ export function GalleryManagement() {
     }
   });
 
-  const pending = submissions.filter(s => !s.approved && !s.isWinner);
-  const approved = submissions.filter(s => s.approved && !s.isWinner);
+  const pending = submissions.filter(s => !s.isApproved && !s.isWinner);
+  const approved = submissions.filter(s => s.isApproved && !s.isWinner);
   const winner = submissions.find(s => s.isWinner);
 
   return (
