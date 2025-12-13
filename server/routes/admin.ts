@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAdmin, getSession } from "../middleware/auth.js";
+import { insertProductSchema } from "../../shared/schema.js";
 import express from "express";
 
 export function createAdminRouter() {
@@ -154,9 +155,6 @@ export function createAdminRouter() {
 
     router.post("/products", async (req, res, next) => {
         try {
-            const { insertProductSchema } = await import("../../shared/schema.js");
-            const { getSession } = await import("../middleware/auth.js");
-
             const parsed = insertProductSchema.parse(req.body);
             const product = await storage.createProduct(parsed as any);
 
@@ -175,7 +173,6 @@ export function createAdminRouter() {
 
     router.patch("/products/:id", async (req, res, next) => {
         try {
-            const { getSession } = await import("../middleware/auth.js");
             const updates = req.body;
             const product = await storage.updateProduct(req.params.id, updates);
 
@@ -199,7 +196,6 @@ export function createAdminRouter() {
 
     router.delete("/products/:id", async (req, res, next) => {
         try {
-            const { getSession } = await import("../middleware/auth.js");
             const success = await storage.deleteProduct(req.params.id);
             if (!success) {
                 res.status(404).json({ message: "Product not found" });

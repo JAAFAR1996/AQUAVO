@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { IStorage } from "../storage/index.js";
+import { freshwaterFish } from "../../shared/initial-fish-data.js";
 
 export function createFishRouter(storage: IStorage) {
   const router = Router();
@@ -16,7 +17,6 @@ export function createFishRouter(storage: IStorage) {
       // If database is empty, use fallback data
       if (!fish || fish.length === 0) {
         console.warn("⚠️ Database empty, using fallback fish data");
-        const { freshwaterFish } = await import("../../shared/initial-fish-data.js");
         fish = freshwaterFish as any[];
       }
 
@@ -25,14 +25,8 @@ export function createFishRouter(storage: IStorage) {
     } catch (err) {
       console.error("❌ Error fetching fish species:", err);
       // Fallback to static data if database fails
-      try {
-        const { freshwaterFish } = await import("../../shared/initial-fish-data.js");
-        console.log(`⚠️ Using fallback: ${freshwaterFish.length} fish species`);
-        res.json(freshwaterFish);
-      } catch (fallbackErr) {
-        console.error("❌ Fallback also failed:", fallbackErr);
-        next(err);
-      }
+      console.log(`⚠️ Using fallback: ${freshwaterFish.length} fish species`);
+      res.json(freshwaterFish);
     }
   });
 
@@ -47,7 +41,6 @@ export function createFishRouter(storage: IStorage) {
 
       // Fallback to static data if not found in database
       if (!fish) {
-        const { freshwaterFish } = await import("../../shared/initial-fish-data.js");
         fish = freshwaterFish.find((f: any) => f.id === id) as any;
       }
 
@@ -59,13 +52,10 @@ export function createFishRouter(storage: IStorage) {
     } catch (err) {
       console.error("Error fetching fish species:", err);
       // Final fallback
-      try {
-        const { freshwaterFish } = await import("../../shared/initial-fish-data.js");
-        const fish = freshwaterFish.find((f: any) => f.id === req.params.id);
-        if (fish) {
-          return res.json(fish);
-        }
-      } catch { }
+      const fish = freshwaterFish.find((f: any) => f.id === req.params.id);
+      if (fish) {
+        return res.json(fish);
+      }
       next(err);
     }
   });
