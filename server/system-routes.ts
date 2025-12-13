@@ -1,6 +1,6 @@
 import type { Application } from "express";
-import { storage } from "./storage";
-import { getDb } from "./db";
+import { storage } from "./storage/index.js";
+import { getDb } from "./db.js";
 import { sql } from "drizzle-orm";
 // import { getSession } from "./utils/auth-helpers"; // Ensure this path is valid
 
