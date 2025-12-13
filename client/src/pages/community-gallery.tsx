@@ -65,7 +65,16 @@ export default function CommunityGallery() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      if (!res.ok) throw new Error("Failed to submit");
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        let errorMessage = "Failed to submit";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.message || errorMessage;
+        } catch { }
+        throw new Error(errorMessage);
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -84,10 +93,11 @@ export default function CommunityGallery() {
       setImagePreview("");
       queryClient.invalidateQueries({ queryKey: ["/api/gallery/submissions"] });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Gallery Upload Error:", error);
       toast({
         title: "❌ خطأ",
-        description: "حدث خطأ أثناء إرسال الصورة. حاول مرة أخرى.",
+        description: error instanceof Error ? error.message : "حدث خطأ أثناء إرسال الصورة. حاول مرة أخرى.",
         variant: "destructive"
       });
     }

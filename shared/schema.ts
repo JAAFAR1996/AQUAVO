@@ -404,7 +404,12 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertUserAddressSchema = createInsertSchema(userAddresses);
 
-export const insertProductSchema = createInsertSchema(products);
+export const insertProductSchema = createInsertSchema(products).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  deletedAt: true
+});
 export const insertOrderSchema = createInsertSchema(orders);
 export const insertReviewSchema = createInsertSchema(reviews).extend({
   rating: z.number().min(1).max(5),
