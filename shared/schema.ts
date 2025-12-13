@@ -62,6 +62,12 @@ export const products = pgTable("products", {
   // Optimized Indexing
   slugIdx: index("products_slug_idx").on(table.slug),
   categoryIdx: index("products_category_idx").on(table.category), // Keeping legacy for now
+
+  // New optimizations
+  categoryIdIdx: index("products_category_id_idx").on(table.categoryId),
+  isNewIdx: index("products_is_new_idx").on(table.isNew),
+  isBestSellerIdx: index("products_is_best_seller_idx").on(table.isBestSeller),
+
   createdAtIdx: index("products_created_at_idx").on(table.createdAt),
   ratingIdx: index("products_rating_idx").on(table.rating),
 }));
@@ -107,6 +113,8 @@ export const reviews = pgTable("reviews", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   productIdx: index("reviews_product_id_idx").on(table.productId),
+  userIdIdx: index("reviews_user_id_idx").on(table.userId),
+  statusIdx: index("reviews_status_idx").on(table.status),
   createdAtIndex: index("reviews_created_at_idx").on(table.createdAt),
 }));
 
@@ -177,7 +185,9 @@ export const cartItems = pgTable("cart_items", {
   quantity: integer("quantity").notNull().default(1),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  userProductIdx: index("cart_items_user_product_idx").on(table.userId, table.productId),
+}));
 
 export const favorites = pgTable("favorites", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -241,7 +251,9 @@ export const gallerySubmissions = pgTable("gallery_submissions", {
   isApproved: boolean("is_approved").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  isApprovedIdx: index("gallery_submissions_is_approved_idx").on(table.isApproved),
+}));
 
 // Gallery votes (to prevent multiple votes from same IP/User)
 export const galleryVotes = pgTable("gallery_votes", {
