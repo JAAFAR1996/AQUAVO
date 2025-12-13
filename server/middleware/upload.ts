@@ -19,41 +19,38 @@ export function handleImageUpload(req: any, res: any, next: any) {
 }
 
 /**
- * Saves a base64 image string to either Cloudinary (production) or local storage (development)
+ * Saves a base64 image string to Cloudinary
+ * @throws Error if Cloudinary credentials are not configured
  */
 export async function saveBase64Image(base64Data: string, folder: string = "products"): Promise<string> {
   try {
-    // Check if Cloudinary is configured
-    const useCloudinary = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY;
-
-    if (useCloudinary) {
-      return await saveToCloudinary(base64Data, folder);
-    } else {
-      return saveToLocal(base64Data, folder);
+    // Verify Cloudinary is configured - REQUIRED
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY) {
+      throw new Error('Cloudinary credentials not configured. Please set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in your environment.');
     }
+
+    return await saveToCloudinary(base64Data, folder);
   } catch (error) {
-    console.error("Error saving image:", error);
-    throw new Error("Failed to save image");
+    console.error("Error saving image to Cloudinary:", error);
+    throw error;
   }
 }
 
 /**
- * Deletes an image from either Cloudinary or local storage
+ * Deletes an image from Cloudinary
+ * Only supports Cloudinary URLs
  */
 export async function deleteImage(imageUrl: string): Promise<boolean> {
   try {
-    // Check if it's a Cloudinary URL
-    if (imageUrl.includes('cloudinary.com')) {
-      return await deleteFromCloudinary(imageUrl);
-    } 
-    // Check if it's a local URL
-    else if (imageUrl.startsWith("/uploads/")) {
-      return deleteFromLocal(imageUrl);
+    // Only support Cloudinary URLs
+    if (!imageUrl.includes('cloudinary.com')) {
+      console.warn('Non-Cloudinary URL provided for deletion. Only Cloudinary URLs are supported:', imageUrl);
+      return false;
     }
-    
-    return false;
+
+    return await deleteFromCloudinary(imageUrl);
   } catch (error) {
-    console.error("Error deleting image:", error);
+    console.error("Error deleting image from Cloudinary:", error);
     return false;
   }
 }
@@ -65,7 +62,7 @@ async function saveToCloudinary(base64Data: string, folder: string): Promise<str
   return new Promise((resolve, reject) => {
     // Cloudinary expects: "data:image/png;base64,....." or just base64? 
     // It handles data URI automatically.
-    
+
     const uploadOptions = {
       folder: `fishweb/${folder}`,
       public_id: randomUUID(),
@@ -91,16 +88,16 @@ async function deleteFromCloudinary(imageUrl: string): Promise<boolean> {
     // Extract public_id from URL: 
     // Example: https://res.cloudinary.com/demo/image/upload/v12345/fishweb/products/sample.jpg
     // public_id needs to be: fishweb/products/sample
-    
+
     const parts = imageUrl.split('/');
     const versionIndex = parts.findIndex(p => p.startsWith('v') && !isNaN(Number(p.substring(1))));
-    
+
     // Safety check just in case URL structure differs
     const startIndex = versionIndex !== -1 ? versionIndex + 1 : parts.indexOf('fishweb');
-    
+
     if (startIndex === -1) {
-       console.warn('Could not parse Cloudinary public_id from URL:', imageUrl);
-       return false;
+      console.warn('Could not parse Cloudinary public_id from URL:', imageUrl);
+      return false;
     }
 
     const publicIdWithExt = parts.slice(startIndex).join('/');
@@ -114,33 +111,20 @@ async function deleteFromCloudinary(imageUrl: string): Promise<boolean> {
   }
 }
 
-// Save to Local Filesystem
+// Local storage functions removed - Cloudinary-only storage enforced
+// If you need to test locally without Cloudinary, configure free Cloudinary account
+
+/**
+ * @deprecated Local file storage is no longer supported. Use Cloudinary.
+ */
 function saveToLocal(base64Data: string, folder: string): string {
-    // Remove data:image/xxx;base64, prefix if present for FS write
-    const base64Image = base64Data.replace(/^data:image\/\w+;base64,/, "");
-    const buffer = Buffer.from(base64Image, "base64");
-
-    const filename = `${randomUUID()}.jpg`;
-    const uploadDir = path.join(process.cwd(), "uploads", folder);
-
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-
-    const filepath = path.join(uploadDir, filename);
-    fs.writeFileSync(filepath, buffer);
-
-    return `/uploads/${folder}/${filename}`;
+  throw new Error('Local file storage is deprecated. Please configure Cloudinary credentials.');
 }
 
-// Delete from Local Filesystem
+/**
+ * @deprecated Local file storage is no longer supported. Use Cloudinary.
+ */
 function deleteFromLocal(imageUrl: string): boolean {
-  if (imageUrl.startsWith("/uploads/")) {
-    const filepath = path.join(process.cwd(), imageUrl);
-    if (fs.existsSync(filepath)) {
-      fs.unlinkSync(filepath);
-      return true;
-    }
-  }
+  console.warn('Local file deletion attempted but local storage is deprecated.');
   return false;
 }
