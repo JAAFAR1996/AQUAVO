@@ -93,25 +93,33 @@ export default function CommunityGallery() {
     }
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
+      if (!file.type.startsWith('image/')) {
         toast({
-          title: "حجم الصورة كبير جداً",
-          description: "الحد الأقصى 5MB",
+          title: "نوع الملف غير مدعوم",
+          description: "الرجاء رفع ملف صورة.",
           variant: "destructive"
         });
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
+      try {
+        const { compressImage } = await import("@/lib/image-utils");
+        // Compress to 4MB max for Vercel
+        const base64 = await compressImage(file, 4);
+
         setImagePreview(base64);
         setFormData(prev => ({ ...prev, imageUrl: base64 }));
-      };
-      reader.readAsDataURL(file);
+      } catch (error) {
+        console.error("Error processing image:", error);
+        toast({
+          title: "خطأ في معالجة الصورة",
+          description: "لم نتمكن من معالجة الصورة. يرجى المحاولة مرة أخرى.",
+          variant: "destructive"
+        });
+      }
     }
   };
 

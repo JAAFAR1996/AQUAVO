@@ -14,24 +14,23 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
       alert('الرجاء اختيار صورة فقط');
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('حجم الصورة كبير جداً (الحد الأقصى 5 ميجابايت)');
-      return;
-    }
+    try {
+      // Use the utility to compress/resize the image to safe limits (4MB)
+      const { compressImage } = await import("@/lib/image-utils");
+      const base64 = await compressImage(file, 4);
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64 = reader.result as string;
       setPreview(base64);
       onChange(base64);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      alert('حدث خطأ أثناء معالجة الصورة. يرجى المحاولة مرة أخرى.');
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -78,11 +77,10 @@ export function ImageUpload({ value, onChange, onRemove }: ImageUploadProps) {
         </div>
       ) : (
         <div
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragging
+          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragging
               ? 'border-primary bg-primary/10'
               : 'border-gray-300 hover:border-primary'
-          }`}
+            }`}
           onDrop={handleDrop}
           onDragOver={(e) => {
             e.preventDefault();
