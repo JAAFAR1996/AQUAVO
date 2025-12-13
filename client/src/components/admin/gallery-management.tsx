@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Check, X, Crown, Heart, Trophy, Tag, Percent } from "lucide-react";
 
 interface GallerySubmission {
-  id: number;
+  id: string;
   customerName: string;
   customerPhone: string;
   imageUrl: string;
@@ -20,7 +20,7 @@ interface GallerySubmission {
   isWinner: boolean;
   winnerMonth?: string;
   prize?: string;
-  submittedAt: Date;
+  createdAt: string;
   isApproved: boolean;
 }
 
@@ -50,7 +50,7 @@ export function GalleryManagement() {
   });
 
   const approveMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/approve/${id}`, {
         method: "POST",
         credentials: "include"
@@ -65,7 +65,7 @@ export function GalleryManagement() {
   });
 
   const rejectMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/reject/${id}`, {
         method: "POST",
         credentials: "include"
@@ -80,7 +80,7 @@ export function GalleryManagement() {
   });
 
   const setWinnerMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/set-winner/${id}`, {
         method: "POST",
         credentials: "include"

@@ -109,7 +109,7 @@ export class OrderStorage {
                 total: finalTotal.toString(),
                 status: 'pending',
                 paymentStatus: 'pending',
-                address: customerInfo.address,
+                shippingAddress: customerInfo.address,
                 customerName: customerInfo.name, // Use name from customerInfo
                 customerEmail: customerInfo.email, // Use email from customerInfo
                 customerPhone: customerInfo.phone, // Use phone from customerInfo

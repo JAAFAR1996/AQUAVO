@@ -15,7 +15,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { Link } from "wouter";
 
 interface GallerySubmission {
-  id: number;
+  id: string;
   customerName: string;
   customerPhone: string;
   imageUrl: string;
@@ -25,8 +25,8 @@ interface GallerySubmission {
   isWinner: boolean;
   winnerMonth?: string;
   prize?: string;
-  submittedAt: Date;
-  approved: boolean;
+  createdAt: string; // Changed from submittedAt to match schema
+  isApproved: boolean; // Changed from approved to match schema
 }
 
 export default function CommunityGallery() {
@@ -48,7 +48,7 @@ export default function CommunityGallery() {
   });
 
   const likeMutation = useMutation({
-    mutationFn: async (id: number) => {
+    mutationFn: async (id: string) => {
       const res = await fetch(`/api/gallery/${id}/like`, { method: "POST" });
       if (!res.ok) throw new Error("Failed to like");
       return res.json();
@@ -153,8 +153,8 @@ export default function CommunityGallery() {
     submitMutation.mutate(formData);
   };
 
-  const winner = submissions.find(s => s.isWinner && s.approved);
-  const approvedSubmissions = submissions.filter(s => s.approved && !s.isWinner);
+  const winner = submissions.find(s => s.isWinner && s.isApproved);
+  const approvedSubmissions = submissions.filter(s => s.isApproved && !s.isWinner);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -420,7 +420,7 @@ export default function CommunityGallery() {
                       <span>{submission.likes}</span>
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      {new Date(submission.submittedAt).toLocaleDateString('ar-IQ')}
+                      {new Date(submission.createdAt).toLocaleDateString('ar-IQ')}
                     </span>
                   </CardFooter>
                 </Card>
