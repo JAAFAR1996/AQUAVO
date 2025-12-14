@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;900&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -48,7 +49,8 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
-  --font-sans: 'Cairo', sans-serif;
+  --font-sans: "Tajawal", "Cairo", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Animations */
   --animate-wave: wave 2s ease-in-out infinite;

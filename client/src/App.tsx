@@ -33,6 +33,7 @@ const Calculators = lazy(() => import("@/pages/calculators"));
 const FishHealthDiagnosis = lazy(() => import("@/pages/fish-health-diagnosis"));
 const FishFinder = lazy(() => import("@/pages/fish-finder"));
 const Blog = lazy(() => import("@/pages/blog"));
+const BlogPost = lazy(() => import("@/pages/blog-post"));
 const OrderConfirmation = lazy(() => import("@/pages/order-confirmation"));
 const Register = lazy(() => import("@/pages/register"));
 
@@ -203,6 +204,15 @@ function Router() {
         {() => (
           <Suspense fallback={<PageLoader />}>
             <Blog />
+          </Suspense>
+        )}
+      </Route>
+
+      {/* Blog Post Detail */}
+      <Route path="/blog/:id">
+        {() => (
+          <Suspense fallback={<PageLoader />}>
+            <BlogPost />
           </Suspense>
         )}
       </Route>

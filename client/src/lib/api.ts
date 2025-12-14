@@ -24,8 +24,21 @@ async function getJson<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 // Core functions that throw errors (used by tests and internal logic)
-export async function fetchProductsCore(): Promise<{ products: Product[] }> {
-  return await getJson<{ products: Product[] }>("/api/products");
+export async function fetchProductsCore(params?: Record<string, any>): Promise<{ products: Product[] }> {
+  const query = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        // Handle arrays (like categories) if backend supports it, but currently backend expects single values for simple filters
+        // If backend supports ?category=a&category=b, append multiple. 
+        // Our backend filter logic in product-storage checks `req.query.category as string`. So single value.
+        // We will assume single value for now or comma separated if needed.
+        query.append(key, String(value));
+      }
+    });
+  }
+  const queryString = query.toString() ? `?${query.toString()}` : "";
+  return await getJson<{ products: Product[] }>(`/api/products${queryString}`);
 }
 
 export async function fetchProductCore(id: string): Promise<Product> {
@@ -37,12 +50,21 @@ export async function fetchProductBySlugCore(slug: string): Promise<Product> {
 }
 
 // Production functions with fallback to mock data
-export async function fetchProducts(): Promise<{ products: Product[] }> {
+export async function fetchProducts(params?: Record<string, any>): Promise<{ products: Product[] }> {
   try {
-    return await fetchProductsCore();
+    return await fetchProductsCore(params);
   } catch (err) {
     console.warn("Falling back to bundled products because API call failed.", err);
     return { products: mockProducts };
+  }
+}
+
+export async function fetchProductAttributes(): Promise<{ categories: string[]; brands: string[] }> {
+  try {
+    return await getJson<{ categories: string[]; brands: string[] }>("/api/products/attributes");
+  } catch (err) {
+    console.warn("Failed to fetch product attributes", err);
+    return { categories: [], brands: [] }; // Fallback
   }
 }
 

@@ -7,6 +7,7 @@ import { Link, useLocation } from "wouter";
 import { BubbleTrail } from "@/components/effects/bubble-trail";
 import { ProductOfTheWeek } from "@/components/home/product-of-the-week";
 import { MasonryGalleryGrid } from "@/components/gallery/masonry-gallery-grid";
+import { AquascapeStyles } from "@/components/home/aquascape-styles";
 import { WaterRippleButton } from "@/components/effects/water-ripple-button";
 import { ProductCard } from "@/components/products/product-card";
 import { WaveScrollEffect } from "@/components/effects/wave-scroll-effect";
@@ -210,16 +211,7 @@ export default function Home() {
       */}
 
       {/* Existing Sections Refined */}
-      <section className="py-20 bg-card/50">
-        <div className="container mx-auto px-4">
-          {/* Reusing Masonry Gallery */}
-          <div className="text-right mb-12">
-            <h2 className="text-5xl font-extrabold mb-4 font-heading text-transparent bg-clip-text bg-gradient-to-l from-primary to-accent">إلهام من مجتمعنا</h2>
-            <p className="text-xl text-muted-foreground">شاهد ماذا صنع الآخرون بأدواتنا</p>
-          </div>
-          <MasonryGalleryGrid />
-        </div>
-      </section>
+      <AquascapeStyles />
 
       <WhatsAppWidget />
       <BackToTop />

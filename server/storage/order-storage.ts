@@ -79,40 +79,61 @@ export class OrderStorage {
                     .where(eq(products.id, product.id));
             }
 
-            // 2. Apply Coupon
+            // 2. Calculate Delivery Fee (Logic must match frontend: 5000 if < 100000, else 0)
+            let deliveryFee = subtotal > 100000 ? 0 : 5000;
+
+            // 3. Apply Coupon
             let discount = 0;
-            let finalTotal = subtotal;
+            let couponId = null;
+
             if (couponCode) {
                 const [coupon] = await tx.select().from(coupons)
                     .where(and(eq(sql`lower(${coupons.code})`, couponCode.toLowerCase()), eq(coupons.isActive, true)))
                     .limit(1);
 
                 if (coupon) {
-                    if (coupon.type === 'percentage') {
-                        discount = (subtotal * Number(coupon.value)) / 100;
-                    } else {
-                        discount = Number(coupon.value);
-                    }
-                    finalTotal = Math.max(0, subtotal - discount);
+                    // Check logic validity again (expiry, etc) just to be safe, though UI checks it too
+                    const now = new Date();
+                    const isValidDate = (!coupon.startDate || new Date(coupon.startDate) <= now) &&
+                        (!coupon.endDate || new Date(coupon.endDate) >= now);
+                    const isValidAmount = !coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount);
 
-                    // Increment usage count
-                    await tx.update(coupons)
-                        .set({ usedCount: (coupon.usedCount || 0) + 1 })
-                        .where(eq(coupons.id, coupon.id));
+                    if (isValidDate && isValidAmount) {
+                        couponId = coupon.id;
+                        if (coupon.type === 'percentage') {
+                            discount = Math.round((subtotal * Number(coupon.value)) / 100);
+                        } else if (coupon.type === 'fixed') {
+                            discount = Number(coupon.value);
+                        } else if (coupon.type === 'free_shipping') {
+                            deliveryFee = 0; // Override delivery fee
+                            discount = 0; // No product discount
+                        }
+
+                        // Increment usage count
+                        await tx.update(coupons)
+                            .set({ usedCount: (coupon.usedCount || 0) + 1 })
+                            .where(eq(coupons.id, coupon.id));
+                    }
                 }
             }
 
-            // 3. Create Order
+            // 4. Calculate Final Total
+            const finalTotal = Math.max(0, subtotal + deliveryFee - discount);
+
+            // 5. Create Order
             const [newOrder] = await tx.insert(orders).values({
                 userId: userId ? userId : undefined,
                 items: items, // Legacy JSON column
                 total: finalTotal.toString(),
+                shippingCost: deliveryFee.toString(),
+                discountTotal: discount.toString(),
+                couponId: couponId,
                 status: 'pending',
                 paymentStatus: 'pending',
                 shippingAddress: customerInfo.address,
-                customerName: customerInfo.name, // Use name from customerInfo
-                customerEmail: customerInfo.email, // Use email from customerInfo
-                customerPhone: customerInfo.phone, // Use phone from customerInfo
+                customerName: customerInfo.name,
+                customerEmail: customerInfo.email,
+                customerPhone: customerInfo.phone,
             } as any).returning();
 
             return newOrder;

@@ -50,6 +50,16 @@ export function createProductRouter() {
         }
     });
 
+    // Attributes (Categories & Brands)
+    router.get("/attributes", async (req, res, next) => {
+        try {
+            const attributes = await storage.getProductAttributes();
+            res.json(attributes);
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Get single product (by ID or Slug)
     router.get("/:idOrSlug", async (req, res, next) => {
         try {

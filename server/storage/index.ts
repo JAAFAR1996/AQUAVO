@@ -10,6 +10,7 @@ export interface IStorage {
     createUser(user: InsertUser): Promise<User>;
     updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
     getProducts(filters?: ProductFilters): Promise<Product[]>;
+    getProductAttributes(): Promise<{ categories: string[], brands: string[] }>;
     getProduct(id: string): Promise<Product | undefined>;
     getProductBySlug(slug: string): Promise<Product | undefined>;
     createProduct(product: Partial<Product>): Promise<Product>;
@@ -99,6 +100,7 @@ export interface IStorage {
     // Newsletter
     getNewsletterSubscriptionByEmail(email: string): Promise<NewsletterSubscription | undefined>;
     createNewsletterSubscription(subscription: Partial<NewsletterSubscription>): Promise<NewsletterSubscription>;
+    getNewsletterSubscriptions(): Promise<NewsletterSubscription[]>;
 
     seedGalleryIfNeeded(): Promise<void>;
 }
@@ -126,9 +128,11 @@ class CombinedStorage implements IStorage {
     processPasswordReset = this.userStorage.processPasswordReset.bind(this.userStorage);
     getNewsletterSubscriptionByEmail = this.userStorage.getNewsletterSubscriptionByEmail.bind(this.userStorage);
     createNewsletterSubscription = this.userStorage.createNewsletterSubscription.bind(this.userStorage);
+    getNewsletterSubscriptions = this.userStorage.getNewsletterSubscriptions.bind(this.userStorage);
 
     // Product Delegation
     getProducts = this.productStorage.getProducts.bind(this.productStorage);
+    getProductAttributes = this.productStorage.getProductAttributes.bind(this.productStorage);
     getProduct = this.productStorage.getProduct.bind(this.productStorage);
     getProductBySlug = this.productStorage.getProductBySlug.bind(this.productStorage);
     createProduct = this.productStorage.createProduct.bind(this.productStorage);

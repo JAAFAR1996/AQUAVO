@@ -32,6 +32,7 @@ export class ProductStorage {
         return this.db;
     }
 
+
     async getProducts(filters?: ProductFilters): Promise<Product[]> {
         const db = this.ensureDb();
         let query = db.select().from(products);
@@ -82,6 +83,26 @@ export class ProductStorage {
         }
 
         return await query;
+    }
+
+    async getProductAttributes(): Promise<{ categories: string[], brands: string[] }> {
+        const db = this.ensureDb();
+
+        // Fetch categories from the dedicated table
+        const categoryResults = await db.select({ name: categories.name })
+            .from(categories)
+            .orderBy(categories.name);
+
+        // Fetch unique brands from products table
+        const brandResults = await db.selectDistinct({ brand: products.brand })
+            .from(products)
+            .where(isNull(products.deletedAt))
+            .orderBy(products.brand);
+
+        return {
+            categories: categoryResults.map(c => c.name).filter(Boolean),
+            brands: brandResults.map(b => b.brand).filter(Boolean)
+        };
     }
 
     async getProduct(id: string): Promise<Product | undefined> {

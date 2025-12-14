@@ -91,6 +91,12 @@ export class UserStorage {
         return result[0];
     }
 
+    async getNewsletterSubscriptions(): Promise<NewsletterSubscription[]> {
+        const db = this.ensureDb();
+        // Only active subscriptions
+        return await db.select().from(newsletterSubscriptions).where(eq(newsletterSubscriptions.isActive, true));
+    }
+
     async createNewsletterSubscription(subscription: InsertNewsletterSubscription): Promise<NewsletterSubscription> {
         const db = this.ensureDb();
         const result = await db.insert(newsletterSubscriptions).values(subscription).returning();

@@ -93,6 +93,128 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
   }
 }
 
+export async function sendWelcomeEmail(email: string): Promise<boolean> {
+  const html = `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', Arial, sans-serif; background-color: #f0fdf4; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 20px; text-align: center; color: white; }
+        .content { padding: 40px 30px; color: #334155; line-height: 1.8; }
+        .welcome-text { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; text-align: center; }
+        .message { font-size: 16px; color: #475569; margin-bottom: 30px; text-align: center; }
+        .features { background-color: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
+        .feature-item { display: flex; align-items: center; margin-bottom: 12px; color: #0f172a; font-weight: 500; }
+        .feature-icon { margin-left: 10px; color: #10b981; }
+        .btn { display: block; width: fit-content; margin: 0 auto; background-color: #10b981; color: white; padding: 14px 32px; border-radius: 99px; text-decoration: none; font-weight: bold; transition: transform 0.2s; }
+        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 style="margin:0; font-size: 28px;">أهلاً بك في عائلتنا! 🌿</h1>
+        </div>
+        <div class="content">
+            <div class="welcome-text">سعداء جداً بانضمامك إلينا</div>
+            <div class="message">
+                مرحباً بك في مجتمع فيش ويب. لم تقم بمجرد الاشتراك في نشرة بريدية، بل انضممت إلى عائلة شغوفة بكل ما يتعلق بعالم الأحواض والأسماك.
+                <br><br>
+                نعدك بأن تكون رحلتك معنا مليئة بالإلهام، المعلومات القيمة، وأفضل العروض الحصرية التي نختارها بعناية لأجلك.
+            </div>
+
+            <div class="features">
+                <div style="text-align:center; margin-bottom:15px; font-weight:700;">ماذا ستجد في رسائلنا؟</div>
+                <div class="feature-item">✨ نصائح حصرية للعناية بأسماكك</div>
+                <div class="feature-item">🎁 عروض وتخفيضات خاصة للمشتركين فقط</div>
+                <div class="feature-item">🆕 أحدث المنتجات قبل الجميع</div>
+            </div>
+
+            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}" class="btn">اكتشف منتجاتنا المميزة</a>
+        </div>
+        <div class="footer">
+            <p>© ${new Date().getFullYear()} فيش ويب. جميع الحقوق محفوظة.</p>
+            <p>صنع بحب 💚 لأجل هواة الأسماك في العراق</p>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: "أهلاً بك في عائلة فيش ويب! 🌿",
+    html,
+    text: "مرحباً بك في عائلة فيش ويب! نحن سعداء جداً بانضمامك إلينا. ستصلك قريباً أفضل العروض والنصائح."
+  });
+}
+
+export async function sendProductDiscountEmail(email: string, product: { name: string, price: string, originalPrice?: string, slug: string, image: string }): Promise<boolean> {
+  const discount = product.originalPrice
+    ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
+    : 0;
+
+  const html = `
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        body { font-family: 'Tajawal', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .header { background: #1e293b; padding: 30px; text-align: center; }
+        .badge { background-color: #ef4444; color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
+        .product-img { width: 100%; height: 300px; object-fit: cover; background-color: #f1f5f9; }
+        .content { padding: 30px; }
+        .product-title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; }
+        .price-container { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+        .current-price { color: #059669; font-size: 24px; font-weight: 800; }
+        .old-price { color: #94a3b8; text-decoration: line-through; font-size: 16px; }
+        .description-box { background-color: #f8fafc; border-right: 4px solid #3b82f6; padding: 15px; margin: 20px 0; color: #475569; }
+        .btn { display: block; width: 100%; text-align: center; background-color: #3b82f6; color: white; padding: 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 25px; transition: background-color 0.2s; }
+        .btn:hover { background-color: #2563eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            ${discount > 0 ? `<div class="badge">تخفيض ${discount}% 🔥</div>` : '<div class="badge">منتج مميز ✨</div>'}
+            <h1 style="color:white; margin:0; font-size:24px;">فرصة لا تفوت!</h1>
+        </div>
+        <img src="${product.image}" alt="${product.name}" class="product-img">
+        <div class="content">
+            <h2 class="product-title">${product.name}</h2>
+            <div class="price-container">
+                <span class="current-price">${parseFloat(product.price).toLocaleString()} د.ع</span>
+                ${product.originalPrice ? `<span class="old-price">${parseFloat(product.originalPrice).toLocaleString()} د.ع</span>` : ''}
+            </div>
+            
+            <div class="description-box">
+                لأنك من عائلتنا المميزة، أردنا أن تكون أول من يعلم بهذا العرض الخاص. الكمية محدودة، لا تضيع الفرصة!
+            </div>
+
+            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}/product/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
+        </div>
+    </div>
+</body>
+</html>
+  `;
+
+  return sendEmail({
+    to: email,
+    subject: `فرصة خاصة لك: تخفيض على ${product.name} 🔥`,
+    html,
+    text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL}/product/${product.slug}`
+  });
+}
+
 export async function sendPasswordResetEmail(email: string, resetToken: string, baseUrl: string): Promise<boolean> {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   const userName = email.split('@')[0]; // Extract name from email
