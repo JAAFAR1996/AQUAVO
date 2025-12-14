@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Phone, User, MapPin, CheckCircle2, AlertCircle, Tag, Info, Sparkles } from "lucide-react";
@@ -17,6 +18,7 @@ import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 interface CustomerInfo {
   name: string;
   phone: string;
+  governorate: string;
   address: string;
   notes: string;
 }
@@ -35,6 +37,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
     phone: '',
+    governorate: '',
     address: '',
     notes: ''
   });
@@ -59,6 +62,32 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [couponSuccess, setCouponSuccess] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
 
+  const governorates = [
+    { value: "baghdad", label: "بغداد" },
+    { value: "basra", label: "البصرة" },
+    { value: "ninawa", label: "نينوى" },
+    { value: "erbil", label: "أربيل" },
+    { value: "duhok", label: "دهوك" },
+    { value: "sulaymaniyah", label: "السليمانية" },
+    { value: "kirkuk", label: "كركوك" },
+    { value: "anbar", label: "الأنبار" },
+    { value: "diyala", label: "ديالى" },
+    { value: "babil", label: "بابل" },
+    { value: "karbala", label: "كربلاء" },
+    { value: "najaf", label: "النجف" },
+    { value: "wasit", label: "واسط" },
+    { value: "qadisiyah", label: "القادسية" },
+    { value: "maysan", label: "ميسان" },
+    { value: "dhi_qar", label: "ذي قار" },
+    { value: "muthanna", label: "المثنى" },
+    { value: "saladin", label: "صلاح الدين" }
+  ];
+
+  const getDeliveryEstimate = () => {
+    if (customerInfo.governorate === "baghdad") return "خلال 24 - 48 ساعة";
+    return "خلال 2 - 4 أيام عمل";
+  };
+
   const validatePhone = (phone: string): boolean => {
     const cleanPhone = phone.replace(/\s/g, '');
     const iraqiPhoneRegex = /^(\+964|964|0)?7[3-9]\d{8}$/;
@@ -76,6 +105,10 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       newErrors.phone = 'رقم الهاتف مطلوب';
     } else if (!validatePhone(customerInfo.phone)) {
       newErrors.phone = 'رقم الهاتف غير صحيح (مثال: 07801234567)';
+    }
+
+    if (!customerInfo.governorate) {
+      newErrors.governorate = 'يرجى اختيار المحافظة';
     }
 
     if (!customerInfo.address.trim()) {
@@ -103,7 +136,10 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customerInfo,
+          customerInfo: {
+            ...customerInfo,
+            address: `${governorates.find(g => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`
+          },
           items: cartItems.map(item => ({
             ...item,
             productId: item.id
@@ -129,7 +165,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       });
 
       setStep('info');
-      setCustomerInfo({ name: '', phone: '', address: '', notes: '' });
+      setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });
       setAgreed(false);
       onOpenChange(false);
 
@@ -303,13 +339,41 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="governorate" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                المحافظة
+              </Label>
+              <Select
+                value={customerInfo.governorate}
+                onValueChange={(value) => setCustomerInfo({ ...customerInfo, governorate: value })}
+              >
+                <SelectTrigger className={errors.governorate ? 'border-red-500 text-right' : 'text-right'}>
+                  <SelectValue placeholder="اختر المحافظة" />
+                </SelectTrigger>
+                <SelectContent dir="rtl">
+                  {governorates.map((gov) => (
+                    <SelectItem key={gov.value} value={gov.value} className="text-right">
+                      {gov.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.governorate && (
+                <p className="text-sm text-red-500 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  {errors.governorate}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="address" className="flex items-center gap-2">
                 <MapPin className="h-4 w-4" />
                 العنوان
               </Label>
               <Input
                 id="address"
-                placeholder="المحافظة، المنطقة، الشارع..."
+                placeholder="المنطقة، الشارع، أقرب نقطة دالة..."
                 value={customerInfo.address}
                 onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
                 className={errors.address ? 'border-red-500' : ''}
@@ -332,41 +396,48 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               />
             </div>
 
-            {/* Coupon Code - Enhanced UI with Distinct Color */}
-            <div className="space-y-2 bg-indigo-50 dark:bg-indigo-950/20 p-3 rounded-lg border border-indigo-200 dark:border-indigo-800">
-              <Label className="flex items-center gap-2 text-indigo-700 dark:text-indigo-400 font-bold">
-                <Tag className="h-4 w-4" />
-                هل لديك كوبون خصم؟
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="أدخل الكود هنا (مثال: WELCOME3)"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  className="flex-1 bg-background"
-                  dir="ltr"
-                />
-                <Button type="button" className="min-w-[80px] bg-indigo-600 hover:bg-indigo-700 text-white">
-                  تطبيق
-                </Button>
-              </div>
-              {couponError && (
-                <p className="text-sm text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <AlertCircle className="h-3 w-3" />
-                  {couponError}
-                </p>
-              )}
-              {couponSuccess && (
-                <p className="text-sm text-green-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
-                  <CheckCircle2 className="h-3 w-3" />
-                  {couponSuccess}
-                </p>
-              )}
-            </div>
-
             <Separator className="my-4" />
 
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+              {/* Coupon Code - Premium Golden Theme */}
+              <div className="space-y-2 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/30 dark:to-orange-950/30 p-4 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700 shadow-sm">
+                <Label className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-base">
+                  <span className="text-lg">🎁</span>
+                  <Tag className="h-4 w-4" />
+                  هل لديك كوبون خصم؟
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="أدخل كود الخصم هنا..."
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value)}
+                    className="flex-1 bg-white dark:bg-background border-amber-200 dark:border-amber-800 focus:border-amber-400 focus:ring-amber-400"
+                    dir="ltr"
+                  />
+                  <Button
+                    type="button"
+                    onClick={applyCoupon}
+                    className="min-w-[90px] bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-md hover:shadow-lg transition-all"
+                  >
+                    تطبيق ✨
+                  </Button>
+                </div>
+                {couponError && (
+                  <p className="text-sm text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 bg-red-50 dark:bg-red-950/30 p-2 rounded-lg">
+                    <AlertCircle className="h-3 w-3" />
+                    {couponError}
+                  </p>
+                )}
+                {couponSuccess && (
+                  <p className="text-sm text-green-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 bg-green-50 dark:bg-green-950/30 p-2 rounded-lg font-medium">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {couponSuccess}
+                  </p>
+                )}
+              </div>
+
+              <Separator />
+
               <div className="flex justify-between text-sm">
                 <span>المجموع الفرعي:</span>
                 <span>{formatIQD(cartTotal)}</span>
@@ -402,6 +473,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
               <div className="mt-2 text-center bg-green-50 text-green-700 py-2 rounded-md text-sm font-bold border border-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
                 💰 طريقة الدفع: الدفع عند الاستلام
+                <div className="text-xs font-normal mt-1 opacity-90">
+                  ⏱️ التوصيل المتوقع: {getDeliveryEstimate()}
+                </div>
               </div>
             </div>
 
@@ -424,7 +498,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">العنوان:</span>
-                  <span className="font-medium">{customerInfo.address}</span>
+                  <span className="font-medium">
+                    {governorates.find(g => g.value === customerInfo.governorate)?.label} - {customerInfo.address}
+                  </span>
                 </div>
                 {customerInfo.notes && (
                   <div className="flex justify-between">
@@ -468,6 +544,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
               <div className="mt-2 text-center bg-blue-50 text-blue-700 py-2 rounded-md text-sm font-medium border border-blue-100">
                 💰 طريقة الدفع: الدفع عند الاستلام
+                <div className="text-xs font-normal mt-1 opacity-90">
+                  ⏱️ التوصيل المتوقع: {getDeliveryEstimate()}
+                </div>
               </div>
             </div>
 

@@ -11,6 +11,15 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
+const getDeliveryEstimate = (address: string) => {
+    if (!address) return "خلال 2-4 أيام عمل";
+    // Assuming "Baghdad - ..." or "بغداد - ..." format or just checking for the word
+    if (address.includes("بغداد") || address.toLowerCase().includes("baghdad")) {
+        return "خلال 24 - 48 ساعة";
+    }
+    return "خلال 2 - 4 أيام عمل";
+};
+
 export default function OrderConfirmation() {
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
@@ -97,11 +106,12 @@ export default function OrderConfirmation() {
             orderId={orderId || "unknown"}
             total={orderData.total}
             itemsCount={orderData.items?.length || 0}
+            address={orderData.shippingAddress?.address || ""}
         />
     );
 }
 
-function ConfirmationContent({ orderId, total, itemsCount }: { orderId: string, total: number, itemsCount?: number }) {
+function ConfirmationContent({ orderId, total, itemsCount, address }: { orderId: string, total: number, itemsCount?: number, address?: string }) {
     const [copied, setCopied] = useState(false);
 
     const copyOrderNumber = () => {
@@ -170,7 +180,7 @@ function ConfirmationContent({ orderId, total, itemsCount }: { orderId: string, 
                                     </div>
                                     <div className="flex-1 text-right">
                                         <h4 className="font-semibold text-slate-900">التوصيل المتوقع</h4>
-                                        <p className="text-sm text-slate-500">خلال 2-4 أيام عمل</p>
+                                        <p className="text-sm text-slate-500">{getDeliveryEstimate(address || "")}</p>
                                     </div>
                                 </div>
                             </div>

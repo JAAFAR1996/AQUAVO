@@ -180,32 +180,32 @@ export default function OrderTracking() {
             className="max-w-2xl mx-auto mb-12"
           >
             <Card className="p-6">
-              <form onSubmit={handleSearch} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">رقم الطلب</label>
-                  <div className="relative">
-                    <Package className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+              <form onSubmit={handleSearch} className="space-y-6">
+                <div className="space-y-3">
+                  <label className="text-base font-medium text-foreground/80">رقم الطلب</label>
+                  <div className="relative group">
+                    <Package className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
                     <Input
                       type="text"
                       placeholder="مثال: ORD-X1Y2Z3"
                       value={orderNumber}
                       onChange={(e) => setOrderNumber(e.target.value)}
-                      className="pr-10 py-6 text-lg"
+                      className="pr-12 py-6 text-lg border-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all shadow-sm"
                       data-testid="input-order-number"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">رقم الهاتف (اختياري)</label>
-                  <div className="relative">
-                    <Phone className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+                <div className="space-y-3">
+                  <label className="text-base font-medium text-foreground/80">رقم الهاتف (اختياري)</label>
+                  <div className="relative group">
+                    <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
                     <Input
                       type="tel"
                       placeholder="للتحقق الإضافي"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="pr-10"
+                      className="pr-12 py-5 border-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all shadow-sm"
                       dir="ltr"
                       data-testid="input-phone-number"
                     />
@@ -213,15 +213,16 @@ export default function OrderTracking() {
                 </div>
 
                 {error && (
-                  <div className="flex items-center gap-2 text-red-500 bg-red-500/10 p-3 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-100 p-4 rounded-lg animate-in fade-in slide-in-from-top-2">
                     <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                    <p className="text-sm">{error}</p>
+                    <p className="text-sm font-medium">{error}</p>
                   </div>
                 )}
 
                 <Button
                   type="submit"
-                  className="w-full py-6 text-lg"
+                  className="w-full py-6 text-lg font-bold shadow-md hover:shadow-lg transition-all"
+                  size="lg"
                   disabled={isSearching}
                   data-testid="button-track-order"
                 >
