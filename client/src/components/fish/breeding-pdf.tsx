@@ -150,7 +150,7 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
         <Page size="A4" style={styles.page}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.title}>خطة التكاثر - Fish Web</Text>
+                <Text style={styles.title}>خطة التكاثر - AQUAVO</Text>
             </View>
 
             {/* Species Info */}
@@ -177,6 +177,10 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
                     </Text>
                     <Text style={styles.label}>:الصعوبة</Text>
                 </View>
+                <View style={styles.row}>
+                    <Text style={styles.value}>{species.avgFryCount.min} - {species.avgFryCount.max}</Text>
+                    <Text style={styles.label}>:صغار لكل دورة</Text>
+                </View>
             </View>
 
             {/* User Inputs */}
@@ -194,6 +198,10 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
                     <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
                         <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>الحرارة الحالية</Text>
                         <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.temp}°C</Text>
+                    </View>
+                    <View style={{ backgroundColor: "#eff6ff", padding: 8, borderRadius: 4 }}>
+                        <Text style={{ fontSize: 10, color: "#1e40af", textAlign: "center" }}>pH الحالي</Text>
+                        <Text style={{ fontSize: 12, fontWeight: "bold", textAlign: "center" }}>{inputData.ph}</Text>
                     </View>
                 </View>
             </View>
@@ -216,7 +224,7 @@ export const BreedingPlanPDF = ({ species, timeline, inputData }: BreedingPlanPD
 
             {/* Footer */}
             <View style={styles.footer}>
-                <Text>تم الإنشاء بواسطة Fish Web - {new Date().toLocaleDateString()}</Text>
+                <Text>تم الإنشاء بواسطة AQUAVO - {new Date().toLocaleDateString()}</Text>
                 <Text>نتمنى لك تكاثراً ناجحاً!</Text>
             </View>
         </Page>

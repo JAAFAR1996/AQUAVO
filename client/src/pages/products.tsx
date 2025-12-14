@@ -5,7 +5,7 @@ import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
-import { ProductComparisonTable as ProductComparison, ComparisonDrawer } from "@/components/products/product-comparison";
+import { ProductComparisonTable as ProductComparison, ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
 import { ProductCard } from "@/components/products/product-card";
 import { ProductFilters, FilterState } from "@/components/products/product-filters";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -54,6 +54,14 @@ export default function Products() {
     initialSort === 'best-selling' ? "rating-desc" : "default"
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+
+  // Comparison - user-initiated
+  const { compareIds, removeFromCompare } = useComparison();
+
+  // Get only products that user added to comparison
+  const comparedProducts = useMemo(() => {
+    return finalProducts.filter(p => compareIds.includes(p.id));
+  }, [finalProducts, compareIds]);
 
   // Update filters when URL params change
   useEffect(() => {
@@ -285,7 +293,10 @@ export default function Products() {
 
           <TabsContent value="compare">
             <div className="animate-in fade-in slide-in-from-bottom-4">
-              <ProductComparison products={finalProducts} />
+              <ProductComparison
+                products={comparedProducts}
+                onRemove={removeFromCompare}
+              />
             </div>
           </TabsContent>
         </Tabs>

@@ -62,10 +62,6 @@ export default function FishBreedingCalculator() {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const species = breedingSpecies.find(s => s.id === selectedSpecies);
-  
-  // Debug logging
-  console.log('Selected Species ID:', selectedSpecies);
-  console.log('Found Species:', species);
 
   // Calculate breeding timeline
   const calculateTimeline = () => {
@@ -190,14 +186,28 @@ export default function FishBreedingCalculator() {
         },
         body: JSON.stringify({
           email: emailAddress,
-          speciesId: species.id, // Send ID, server fetches full data
+          speciesId: species.id,
+          speciesData: {
+            id: species.id,
+            name: species.name,
+            arabicName: species.arabicName,
+            type: species.type,
+            method: species.method,
+            difficulty: species.difficulty,
+            optimalTemp: species.optimalTemp,
+            optimalPH: species.optimalPH,
+            minTankSize: species.minTankSize,
+            avgFryCount: species.avgFryCount,
+            breedingInterval: species.breedingInterval,
+            sexualMaturityWeeks: species.sexualMaturityWeeks,
+          },
           inputData: {
             pairs: numberOfPairs,
             startDate: startDate,
             temp: currentTemp,
             ph: currentPH
           },
-          // We send simplified timeline data
+          yearlyProduction: calculateYearlyProduction(),
           timeline: timeline.map(e => ({
             date: e.date.toISOString(),
             eventAr: e.eventAr,
@@ -408,7 +418,7 @@ export default function FishBreedingCalculator() {
                       <SelectTrigger>
                         <SelectValue placeholder="اختر النوع (سمكة / حلزون / جمبري)" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[300px] overflow-y-auto">
                         {breedingSpecies.map((s) => (
                           <SelectItem key={s.id} value={s.id}>
                             {s.arabicName} ({s.name}) [{s.type === 'snail' ? 'حلزون' : s.type === 'shrimp' ? 'جمبري' : 'سمكة'}]

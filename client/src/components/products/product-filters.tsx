@@ -120,21 +120,77 @@ export function ProductFilters({
       {/* Price Range */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">السعر</CardTitle>
+          <CardTitle className="text-base">نطاق السعر</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Slider
-            min={0}
-            max={maxPrice}
-            step={1000}
-            value={localFilters.priceRange}
-            onValueChange={handlePriceChange}
-            onValueCommit={handlePriceCommit}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-muted-foreground">
-            <span>{localFilters.priceRange[0].toLocaleString()} د.ع</span>
-            <span>{localFilters.priceRange[1].toLocaleString()} د.ع</span>
+          {/* Price Input Fields */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <Label htmlFor="min-price" className="text-xs text-muted-foreground mb-1 block">الحد الأدنى</Label>
+              <div className="relative">
+                <input
+                  id="min-price"
+                  type="number"
+                  min={0}
+                  max={localFilters.priceRange[1]}
+                  value={localFilters.priceRange[0]}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(Number(e.target.value) || 0, localFilters.priceRange[1]));
+                    handlePriceChange([val, localFilters.priceRange[1]]);
+                  }}
+                  onBlur={() => handlePriceCommit(localFilters.priceRange)}
+                  className="w-full h-10 px-3 pr-10 text-sm border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  placeholder="0"
+                />
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">د.ع</span>
+              </div>
+            </div>
+            <span className="text-muted-foreground mt-5">—</span>
+            <div className="flex-1">
+              <Label htmlFor="max-price" className="text-xs text-muted-foreground mb-1 block">الحد الأقصى</Label>
+              <div className="relative">
+                <input
+                  id="max-price"
+                  type="number"
+                  min={localFilters.priceRange[0]}
+                  max={maxPrice}
+                  value={localFilters.priceRange[1]}
+                  onChange={(e) => {
+                    const val = Math.min(maxPrice, Math.max(Number(e.target.value) || maxPrice, localFilters.priceRange[0]));
+                    handlePriceChange([localFilters.priceRange[0], val]);
+                  }}
+                  onBlur={() => handlePriceCommit(localFilters.priceRange)}
+                  className="w-full h-10 px-3 pr-10 text-sm border rounded-lg bg-background focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+                  placeholder={maxPrice.toLocaleString()}
+                />
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">د.ع</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Slider */}
+          <div className="pt-2 pb-1">
+            <Slider
+              min={0}
+              max={maxPrice}
+              step={Math.max(500, Math.floor(maxPrice / 200))} // Dynamic step for smooth movement
+              value={localFilters.priceRange}
+              onValueChange={handlePriceChange}
+              onValueCommit={handlePriceCommit}
+              className="w-full"
+            />
+          </div>
+
+          {/* Price Display */}
+          <div className="flex justify-between text-xs">
+            <div className="bg-primary/10 px-3 py-1.5 rounded-full">
+              <span className="font-semibold text-primary">{localFilters.priceRange[0].toLocaleString()}</span>
+              <span className="text-muted-foreground mr-1">د.ع</span>
+            </div>
+            <div className="bg-primary/10 px-3 py-1.5 rounded-full">
+              <span className="font-semibold text-primary">{localFilters.priceRange[1].toLocaleString()}</span>
+              <span className="text-muted-foreground mr-1">د.ع</span>
+            </div>
           </div>
         </CardContent>
       </Card>
