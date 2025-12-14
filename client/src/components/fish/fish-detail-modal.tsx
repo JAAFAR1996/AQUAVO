@@ -209,7 +209,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
               معايير المياه
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
+              <div className="bg-card border border-border/50 shadow-sm rounded-xl p-4 hover:border-orange-200 dark:hover:border-orange-900 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <Thermometer className="w-5 h-5 text-orange-500" />
                   <span className="font-bold">درجة الحرارة</span>
@@ -218,7 +218,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                   {fish.waterParameters.tempMin}°س - {fish.waterParameters.tempMax}°س
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div className="bg-card border border-border/50 shadow-sm rounded-xl p-4 hover:border-blue-200 dark:hover:border-blue-900 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <Droplets className="w-5 h-5 text-blue-500" />
                   <span className="font-bold">الحموضة (pH)</span>
@@ -227,7 +227,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                   {fish.waterParameters.phMin} - {fish.waterParameters.phMax}
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950 dark:to-pink-950 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
+              <div className="bg-card border border-border/50 shadow-sm rounded-xl p-4 hover:border-purple-200 dark:hover:border-purple-900 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <svg className="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -238,7 +238,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                   {fish.minTankSize} لتر
                 </p>
               </div>
-              <div className="bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-950 dark:to-teal-950 border border-cyan-200 dark:border-cyan-800 rounded-lg p-4">
+              <div className="bg-card border border-border/50 shadow-sm rounded-xl p-4 hover:border-cyan-200 dark:hover:border-cyan-900 transition-colors group">
                 <div className="flex items-center gap-2 mb-2">
                   <Droplets className="w-5 h-5 text-cyan-500" />
                   <span className="font-bold">صلابة المياه</span>
@@ -396,7 +396,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                 {fish.compatibility.goodWith.map((species, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-3"
+                    className="flex items-center gap-2 bg-green-500/5 border border-green-500/20 rounded-lg p-3"
                   >
                     <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
                     <span className="text-sm">{species}</span>
@@ -413,7 +413,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                 {fish.compatibility.avoidWith.map((species, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-2 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3"
+                    className="flex items-center gap-2 bg-red-500/5 border border-red-500/20 rounded-lg p-3"
                   >
                     <XCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
                     <span className="text-sm">{species}</span>
@@ -435,7 +435,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
               {fish.careTips.map((tip, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4"
+                  className="flex items-start gap-3 bg-card border border-border/50 shadow-sm rounded-xl p-4 hover:bg-accent/50 transition-colors"
                 >
                   <Lightbulb className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                   <p className="text-sm leading-relaxed">{tip}</p>
@@ -457,7 +457,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                 href={`/products?category=tanks`}
                 className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 transition-all cursor-pointer"
               >
-                <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
                   <Fish className="w-6 h-6 text-primary" />
                 </div>
                 <div className="flex-1">
@@ -470,7 +470,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                 href={`/products?category=food`}
                 className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 transition-all cursor-pointer"
               >
-                <div className="w-12 h-12 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-orange-500/10 rounded-xl flex items-center justify-center">
                   <Utensils className="w-6 h-6 text-orange-500" />
                 </div>
                 <div className="flex-1">
@@ -483,7 +483,7 @@ export function FishDetailModal({ fish, open, onOpenChange }: FishDetailModalPro
                 href={`/products?category=equipment`}
                 className="flex items-center gap-3 p-4 rounded-lg border-2 border-dashed border-muted hover:border-primary hover:bg-primary/5 transition-all cursor-pointer"
               >
-                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center">
                   <Thermometer className="w-6 h-6 text-blue-500" />
                 </div>
                 <div className="flex-1">

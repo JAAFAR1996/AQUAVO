@@ -249,6 +249,8 @@ export const gallerySubmissions = pgTable("gallery_submissions", {
   isWinner: boolean("is_winner").default(false),
   winnerMonth: text("winner_month"),
   prize: text("prize"),
+  couponCode: text("coupon_code"), // The generated coupon code for the winner
+  hasSeenCelebration: boolean("has_seen_celebration").default(false), // To trigger the animation once
   isApproved: boolean("is_approved").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

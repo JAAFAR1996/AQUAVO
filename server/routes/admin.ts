@@ -143,6 +143,7 @@ export function createAdminRouter() {
 
     router.post("/gallery/set-winner/:id", async (req, res, next) => {
         try {
+            const { nanoid } = await import("nanoid");
             // Logic for winner
             const currentPrize = await storage.getCurrentGalleryPrize();
             if (!currentPrize) {
@@ -150,8 +151,36 @@ export function createAdminRouter() {
                     message: "لا توجد جائزة نشطة للشهر الحالي. يرجى إنشاء جائزة أولاً."
                 });
             }
-            await storage.setGalleryWinner(req.params.id, currentPrize.month, currentPrize.prize);
-            res.json({ message: "Winner set" });
+
+            // Find submission to get userId
+            const submissions = await storage.getGallerySubmissions(false);
+            const submission = submissions.find(s => s.id === req.params.id);
+
+            if (!submission) {
+                return res.status(404).json({ message: "Submission not found" });
+            }
+
+            // Generate Coupon
+            const code = `WINNER-${currentPrize.month.replace('-', '')}-${nanoid(6).toUpperCase()}`;
+
+            // Determine value/type from prize or default
+            const couponValue = currentPrize.discountPercentage ? currentPrize.discountPercentage.toString() : "0";
+            const couponType = currentPrize.discountPercentage ? 'percentage' : 'fixed';
+
+            // Create Coupon
+            await storage.createCoupon({
+                code,
+                type: couponType,
+                value: couponValue,
+                maxUses: 1,
+                maxUsesPerUser: 1,
+                isActive: true,
+                description: `Prize for ${currentPrize.month}: ${currentPrize.prize}`,
+                userId: submission.userId || undefined
+            });
+
+            await storage.setGalleryWinner(req.params.id, currentPrize.month, currentPrize.prize, code);
+            res.json({ message: "Winner set", coupon: code });
         } catch (err) { next(err); }
     });
 

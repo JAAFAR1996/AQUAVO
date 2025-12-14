@@ -72,7 +72,8 @@ export interface IStorage {
     approveGallerySubmission(id: string): Promise<GallerySubmission | undefined>;
     voteGallerySubmission(id: string, ipAddress: string, userId?: string): Promise<boolean>;
     deleteGallerySubmission(id: string): Promise<boolean>;
-    setGalleryWinner(id: string, month: string, prize: string): Promise<void>;
+    setGalleryWinner(id: string, month: string, prize: string, couponCode: string): Promise<void>;
+    markCelebrationSeen(id: string): Promise<void>;
 
     // Gallery Prize methods
     getCurrentGalleryPrize(): Promise<GalleryPrize | null>;
@@ -185,6 +186,7 @@ class CombinedStorage implements IStorage {
     voteGallerySubmission = this.orderStorage.voteGallerySubmission.bind(this.orderStorage);
     deleteGallerySubmission = this.orderStorage.deleteGallerySubmission.bind(this.orderStorage);
     setGalleryWinner = this.orderStorage.setGalleryWinner.bind(this.orderStorage);
+    markCelebrationSeen = this.orderStorage.markCelebrationSeen.bind(this.orderStorage);
     getCurrentGalleryPrize = this.orderStorage.getCurrentGalleryPrize.bind(this.orderStorage);
     createOrUpdateGalleryPrize = this.orderStorage.createOrUpdateGalleryPrize.bind(this.orderStorage);
     getGalleryPrizeByMonth = this.orderStorage.getGalleryPrizeByMonth.bind(this.orderStorage);

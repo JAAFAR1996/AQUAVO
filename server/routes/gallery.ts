@@ -86,5 +86,45 @@ export function createGalleryRouter() {
         }
     });
 
+    // Check for winning submission for celebration
+    router.get("/my-winning-submission", async (req, res, next) => {
+        try {
+            const sess = getSessionHelper(req);
+            if (!sess?.userId) {
+                return res.json(null); // No user, no celebration
+            }
+
+            const submissions = await storage.getGallerySubmissions(false);
+            const winning = submissions.find(s =>
+                s.userId === sess.userId &&
+                s.isWinner &&
+                !s.hasSeenCelebration
+            );
+
+            res.json(winning || null);
+        } catch (err) { next(err); }
+    });
+
+    // Acknowledge celebration
+    router.post("/ack-celebration/:id", async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const sess = getSessionHelper(req);
+
+            const submissions = await storage.getGallerySubmissions(false);
+            const sub = submissions.find(s => s.id === id);
+
+            if (!sub) return res.status(404).json({ message: "Not found" });
+
+            // Security check
+            if (sub.userId && sub.userId !== sess?.userId) {
+                return res.status(403).json({ message: "Forbidden" });
+            }
+
+            await storage.markCelebrationSeen(id);
+            res.json({ success: true });
+        } catch (err) { next(err); }
+    });
+
     return router;
 }

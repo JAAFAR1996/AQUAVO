@@ -395,9 +395,20 @@ export class OrderStorage {
         return res.length > 0;
     }
 
-    async setGalleryWinner(id: string, month: string, prize: string): Promise<void> {
+    async setGalleryWinner(id: string, month: string, prize: string, couponCode: string): Promise<void> {
         const db = this.ensureDb();
-        await db.update(gallerySubmissions).set({ isWinner: true }).where(eq(gallerySubmissions.id, id));
+        await db.update(gallerySubmissions).set({
+            isWinner: true,
+            winnerMonth: month,
+            prize: prize,
+            couponCode: couponCode,
+            hasSeenCelebration: false // Reset so they see the animation
+        }).where(eq(gallerySubmissions.id, id));
+    }
+
+    async markCelebrationSeen(id: string): Promise<void> {
+        const db = this.ensureDb();
+        await db.update(gallerySubmissions).set({ hasSeenCelebration: true }).where(eq(gallerySubmissions.id, id));
     }
 
     // Gallery Prize methods
