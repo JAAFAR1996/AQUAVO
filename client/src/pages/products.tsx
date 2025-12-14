@@ -27,6 +27,7 @@ export default function Products() {
   const searchParams = new URLSearchParams(window.location.search);
   const initialCategory = searchParams.get("category");
   const initialSearch = searchParams.get("search");
+  const initialSort = searchParams.get("sort");
 
   // Fetch dynamic attributes (categories, brands, price range)
   const { data: attributes, isLoading: isAttributesLoading } = useQuery({
@@ -46,21 +47,33 @@ export default function Products() {
     categories: initialCategory ? [initialCategory] : [],
     brands: [],
     difficulties: [],
-    tags: [],
+    tags: initialSort === 'best-selling' ? ["الأكثر مبيعاً"] : [],
   });
 
-  const [sortBy, setSortBy] = useState<SortOption>("default");
+  const [sortBy, setSortBy] = useState<SortOption>(
+    initialSort === 'best-selling' ? "rating-desc" : "default"
+  );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
   // Update filters when URL params change
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const category = params.get("category");
+    const sort = params.get("sort");
+
     if (category) {
       setFilters(prev => ({
         ...prev,
         categories: [category]
       }));
+    }
+
+    if (sort === 'best-selling') {
+      setFilters(prev => ({
+        ...prev,
+        tags: prev.tags.includes("الأكثر مبيعاً") ? prev.tags : [...prev.tags, "الأكثر مبيعاً"]
+      }));
+      setSortBy("rating-desc");
     }
   }, [location]);
 

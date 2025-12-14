@@ -104,7 +104,10 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         },
         body: JSON.stringify({
           customerInfo,
-          items: cartItems,
+          items: cartItems.map(item => ({
+            ...item,
+            productId: item.id
+          })),
           total: cartTotal, // Note: backend might recalculate this for security, but we send it for now
           couponCode: appliedCoupon ? appliedCoupon.code : undefined
         }),

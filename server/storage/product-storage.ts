@@ -1,5 +1,5 @@
-import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories } from "../../shared/schema.js";
-import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray } from "drizzle-orm";
+import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories, orderItems, orders } from "../../shared/schema.js";
+import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray, or } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
 
@@ -58,7 +58,21 @@ export class ProductStorage {
         }
 
         if (filters?.isNew !== undefined) conditions.push(eq(products.isNew, filters.isNew));
-        if (filters?.isBestSeller !== undefined) conditions.push(eq(products.isBestSeller, filters.isBestSeller));
+
+        // Relaxed Best Seller Logic: Include manually flagged OR high rated items OR Top Sales (Smart)
+        if (filters?.isBestSeller === true) {
+            // Fetch real sales data
+            const topSalesIds = await this.getHighSalesProductIds(20);
+
+            conditions.push(or(
+                eq(products.isBestSeller, true),
+                topSalesIds.length > 0 ? inArray(products.id, topSalesIds) : undefined,
+                and(gt(products.rating, '4.0'), gt(products.reviewCount, 0))
+            ));
+        } else if (filters?.isBestSeller === false) {
+            conditions.push(eq(products.isBestSeller, false));
+        }
+
         if (filters?.minPrice) conditions.push(gte(products.price, filters.minPrice.toString()));
         if (filters?.maxPrice) conditions.push(lte(products.price, filters.maxPrice.toString()));
 
@@ -411,36 +425,53 @@ export class ProductStorage {
     async seedFishSpeciesIfNeeded(): Promise<void> {
         // Implementation can be moved here or kept in seed script
     }
+    // Helper to get top selling product IDs from real order data
+    private async getHighSalesProductIds(limit: number = 20): Promise<string[]> {
+        const db = this.ensureDb();
+        try {
+            // Aggregate sales quantity per product
+            const sales = await db.select({
+                productId: orderItems.productId,
+                totalSold: sql<number>`sum(${orderItems.quantity})`
+            })
+                .from(orderItems)
+                .leftJoin(orders, eq(orders.id, orderItems.orderId))
+                .where(
+                    eq(orders.status, 'completed') // Only completed orders
+                )
+                .groupBy(orderItems.productId)
+                .orderBy(desc(sql`sum(${orderItems.quantity})`))
+                .limit(limit);
+
+            return sales.map(s => s.productId);
+        } catch (err) {
+            console.error("Error fetching high sales products:", err);
+            return [];
+        }
+    }
+
     async getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[] }> {
         const db = this.ensureDb();
         try {
-            // Logic:
-            // 1. Get manually flagged best sellers first
-            // 2. Sort them by Rating (High to Low) so the "Best" are truly on top
-            // 3. If less than 10, fill with highest rated products from DB
+            // 1. Get Top Sales IDs (Smart/Automatic)
+            const topSalesIds = await this.getHighSalesProductIds(10);
+
+            // 2. Logic:
+            // - Manual flag is heavily weighted
+            // - Real Sales Data is weighted (Smart)
+            // - High Rating is fallback
+
+            // Base condition for Best Seller
+            const bestSellerCondition = or(
+                eq(products.isBestSeller, true),
+                topSalesIds.length > 0 ? inArray(products.id, topSalesIds) : undefined,
+                and(gt(products.rating, '4.0'), gt(products.reviewCount, 0))
+            );
 
             let bestSellers = await db.select().from(products)
-                .where(and(eq(products.isBestSeller, true), isNull(products.deletedAt)))
-                .orderBy(desc(products.rating), desc(products.reviewCount))
-                .limit(10);
-
-            // Auto-fill if we don't have enough manual best sellers
-            if (bestSellers.length < 10) {
-                const limitNeeded = 10 - bestSellers.length;
-                const existingIds = bestSellers.map(p => p.id);
-
-                // Get top rated products that are NOT already in the list
-                const autoBestSellers = await db.select().from(products)
-                    .where(and(
-                        notInArray(products.id, existingIds.length > 0 ? existingIds : ['placeholder-uuid']),
-                        isNull(products.deletedAt),
-                        gt(products.rating, '0') // Only rated products
-                    ))
-                    .orderBy(desc(products.rating), desc(products.reviewCount))
-                    .limit(limitNeeded);
-
-                bestSellers = [...bestSellers, ...autoBestSellers];
-            }
+                .where(and(bestSellerCondition, isNull(products.deletedAt)))
+                .orderBy(desc(products.isBestSeller), desc(products.rating))
+                .limit(12);
 
             // Fallback if still empty (just get newest)
             if (bestSellers.length === 0) {
@@ -457,16 +488,15 @@ export class ProductStorage {
 
             let productOfWeek = explicitProductOfWeek.length > 0 ? explicitProductOfWeek[0] : null;
 
-            // Fallback: Pick highest rated best seller if no explicit product of week
+            // Fallback: Pick item with max reviews/rating from best sellers
             if (!productOfWeek && bestSellers.length > 0) {
-                // Sort by rating desc to pick the absolute best
-                const sortedForWeek = [...bestSellers].sort((a, b) => Number(b.rating) - Number(a.rating));
-                productOfWeek = sortedForWeek[0];
+                const sorted = [...bestSellers].sort((a, b) => Number(b.reviewCount) - Number(a.reviewCount));
+                productOfWeek = sorted[0];
             }
 
             return {
                 productOfWeek,
-                bestSellers
+                bestSellers: bestSellers.slice(0, 10)
             };
         } catch (error) {
             console.error("Error fetching top selling products:", error);

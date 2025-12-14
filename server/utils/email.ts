@@ -65,6 +65,8 @@ export interface EmailOptions {
   html?: string;
 }
 
+// ... (imports and config)
+
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
   const transport = getTransporter();
   const config = getEmailConfig();
@@ -78,7 +80,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 
   try {
     await transport.sendMail({
-      from: `"فيش ويب" <${config.from}>`,
+      from: `"AQUAVO" <${config.from}>`,
       to: options.to,
       subject: options.subject,
       text: options.text,
@@ -94,6 +96,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 }
 
 export async function sendWelcomeEmail(email: string): Promise<boolean> {
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}/logo_aquavo.png`;
   const html = `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -113,17 +116,19 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
         .feature-icon { margin-left: 10px; color: #10b981; }
         .btn { display: block; width: fit-content; margin: 0 auto; background-color: #10b981; color: white; padding: 14px 32px; border-radius: 99px; text-decoration: none; font-weight: bold; transition: transform 0.2s; }
         .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
+        .logo-img { max-width: 150px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1 style="margin:0; font-size: 28px;">أهلاً بك في عائلتنا! 🌿</h1>
+            <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
+            <h1 style="margin:0; font-size: 28px;">أهلاً بك في عائلة AQUAVO! 🌿</h1>
         </div>
         <div class="content">
             <div class="welcome-text">سعداء جداً بانضمامك إلينا</div>
             <div class="message">
-                مرحباً بك في مجتمع فيش ويب. لم تقم بمجرد الاشتراك في نشرة بريدية، بل انضممت إلى عائلة شغوفة بكل ما يتعلق بعالم الأحواض والأسماك.
+                مرحباً بك في مجتمع AQUAVO. لم تقم بمجرد الاشتراك في نشرة بريدية، بل انضممت إلى عائلة شغوفة بكل ما يتعلق بعالم الأحواض والأسماك.
                 <br><br>
                 نعدك بأن تكون رحلتك معنا مليئة بالإلهام، المعلومات القيمة، وأفضل العروض الحصرية التي نختارها بعناية لأجلك.
             </div>
@@ -138,7 +143,7 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
             <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}" class="btn">اكتشف منتجاتنا المميزة</a>
         </div>
         <div class="footer">
-            <p>© ${new Date().getFullYear()} فيش ويب. جميع الحقوق محفوظة.</p>
+            <p>© ${new Date().getFullYear()} AQUAVO. جميع الحقوق محفوظة.</p>
             <p>صنع بحب 💚 لأجل هواة الأسماك في العراق</p>
         </div>
     </div>
@@ -148,9 +153,9 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
 
   return sendEmail({
     to: email,
-    subject: "أهلاً بك في عائلة فيش ويب! 🌿",
+    subject: "أهلاً بك في عائلة AQUAVO! 🌿",
     html,
-    text: "مرحباً بك في عائلة فيش ويب! نحن سعداء جداً بانضمامك إلينا. ستصلك قريباً أفضل العروض والنصائح."
+    text: "مرحباً بك في عائلة AQUAVO! نحن سعداء جداً بانضمامك إلينا. ستصلك قريباً أفضل العروض والنصائح."
   });
 }
 
@@ -158,6 +163,8 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
   const discount = product.originalPrice
     ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
     : 0;
+
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}/logo_aquavo.png`;
 
   const html = `
 <!DOCTYPE html>
@@ -180,11 +187,13 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
         .description-box { background-color: #f8fafc; border-right: 4px solid #3b82f6; padding: 15px; margin: 20px 0; color: #475569; }
         .btn { display: block; width: 100%; text-align: center; background-color: #3b82f6; color: white; padding: 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 25px; transition: background-color 0.2s; }
         .btn:hover { background-color: #2563eb; }
+        .logo-img { height: 40px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
+            <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
             ${discount > 0 ? `<div class="badge">تخفيض ${discount}% 🔥</div>` : '<div class="badge">منتج مميز ✨</div>'}
             <h1 style="color:white; margin:0; font-size:24px;">فرصة لا تفوت!</h1>
         </div>
@@ -206,6 +215,7 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
 </body>
 </html>
   `;
+  // ...
 
   return sendEmail({
     to: email,
@@ -218,6 +228,8 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
 export async function sendPasswordResetEmail(email: string, resetToken: string, baseUrl: string): Promise<boolean> {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   const userName = email.split('@')[0]; // Extract name from email
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://fishweb.iq'}/logo_aquavo.png`;
+
 
   const html = `
 <!DOCTYPE html>
@@ -263,10 +275,10 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
       0%, 100% { transform: rotate(0deg); }
       50% { transform: rotate(180deg); }
     }
-    .logo { 
-      font-size: 48px; 
+    .logo-img { 
+      max-width: 180px; 
       margin-bottom: 15px;
-      display: inline-block;
+      position: relative;
     }
     .header h1 { 
       color: white; 
@@ -403,10 +415,6 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
       padding: 35px; 
       text-align: center;
     }
-    .footer-logo {
-      font-size: 32px;
-      margin-bottom: 15px;
-    }
     .footer p {
       color: rgba(255,255,255,0.8);
       font-size: 14px;
@@ -433,8 +441,8 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">🐟</div>
-      <h1>فيش ويب</h1>
+      <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
+      <h1>AQUAVO</h1>
       <p>عالمك المائي المتكامل</p>
     </div>
     
@@ -444,7 +452,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
         <span>مرحباً ${userName}!</span>
       </div>
       
-      <p>نأمل أن تكون بخير! تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في فيش ويب.</p>
+      <p>نأمل أن تكون بخير! تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في AQUAVO.</p>
       
       <div class="highlight-box">
         <p>لا تقلق، نحن هنا لمساعدتك! اضغط على الزر أدناه لإنشاء كلمة مرور جديدة وآمنة.</p>
@@ -478,11 +486,10 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
     </div>
     
     <div class="footer">
-      <div class="footer-logo">🐟</div>
-      <p>فيش ويب - متجرك الأول للأسماك والأحواض</p>
+      <p>AQUAVO - متجرك الأول للأسماك والأحواض</p>
       <p class="footer-tagline">✨ نحول حلمك المائي إلى حقيقة ✨</p>
       <div class="social-links">
-        <p>© ${new Date().getFullYear()} فيش ويب - جميع الحقوق محفوظة</p>
+        <p>© ${new Date().getFullYear()} AQUAVO - جميع الحقوق محفوظة</p>
         <p>هذه رسالة آلية، يرجى عدم الرد عليها مباشرة</p>
       </div>
     </div>
@@ -496,7 +503,7 @@ export async function sendPasswordResetEmail(email: string, resetToken: string, 
 
 نأمل أن تكون بخير!
 
-تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في فيش ويب.
+تلقينا طلباً لإعادة تعيين كلمة المرور الخاصة بحسابك في AQUAVO.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -516,13 +523,13 @@ ${resetUrl}
 هل تحتاج مساعدة؟ فريقنا جاهز لخدمتك!
 
 مع أطيب التحيات،
-فريق فيش ويب 🐟
+فريق AQUAVO 🐟
 ✨ نحول حلمك المائي إلى حقيقة ✨
   `.trim();
 
   return sendEmail({
     to: email,
-    subject: "🔐 إعادة تعيين كلمة المرور - فيش ويب",
+    subject: "🔐 إعادة تعيين كلمة المرور - AQUAVO",
     html,
     text,
   });
