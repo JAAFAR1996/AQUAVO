@@ -20,7 +20,7 @@ const defaultConfig: VitalsConfig = {
 function reportMetric(metric: Metric, config: VitalsConfig) {
     const { name, value, rating } = metric;
 
-    if (config.reportToConsole) {
+    if (config.reportToConsole && import.meta.env.DEV) {
         const emoji = rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
         console.log(`${emoji} ${name}:`, {
             value: `${Math.round(value)}ms`,

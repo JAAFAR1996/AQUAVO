@@ -42,7 +42,7 @@ import {
   Snail
 } from "lucide-react";
 import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/data/breeding-data";
-import { PDFDownloadLink } from "@react-pdf/renderer";
+import { pdf } from "@react-pdf/renderer";
 import { BreedingPlanPDF } from "@/components/fish/breeding-pdf";
 import { toast } from "sonner";
 
@@ -57,6 +57,9 @@ export default function FishBreedingCalculator() {
   const [emailOpen, setEmailOpen] = useState(false);
   const [emailAddress, setEmailAddress] = useState("");
   const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // PDF download state
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   const species = breedingSpecies.find(s => s.id === selectedSpecies);
 
@@ -133,6 +136,43 @@ export default function FishBreedingCalculator() {
   };
 
   const timeline = calculateTimeline();
+
+  // Handle PDF download manually for React 19 compatibility
+  const handleDownloadPDF = async () => {
+    if (!species || !timeline) return;
+
+    setIsGeneratingPDF(true);
+    try {
+      const doc = (
+        <BreedingPlanPDF
+          species={species}
+          timeline={timeline}
+          inputData={{
+            pairs: numberOfPairs,
+            startDate,
+            temp: currentTemp,
+            ph: currentPH,
+          }}
+        />
+      );
+
+      const blob = await pdf(doc).toBlob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `breeding-plan-${species.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("تم تحميل الخطة بنجاح!");
+    } catch (error) {
+      console.error('PDF generation error:', error);
+      toast.error("حدث خطأ أثناء إنشاء ملف PDF.");
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const handleSendEmail = async () => {
     if (!emailAddress || !species || !timeline) return;
@@ -567,17 +607,14 @@ export default function FishBreedingCalculator() {
                 </div>
 
                 <div className="flex gap-4 mb-6">
-                  <PDFDownloadLink
-                    document={<BreedingPlanPDF species={species} timeline={timeline} inputData={{ pairs: numberOfPairs, startDate, temp: currentTemp, ph: currentPH }} />}
-                    fileName={`breeding-plan-${species.id}.pdf`}
+                  <Button
+                    onClick={handleDownloadPDF}
+                    disabled={isGeneratingPDF}
+                    className="gap-2"
                   >
-                    {({ blob, url, loading, error }) => (
-                      <Button disabled={loading} className="gap-2">
-                        <Download className="w-4 h-4" />
-                        {loading ? 'جاري التجهيز...' : 'حفظ كملف PDF'}
-                      </Button>
-                    )}
-                  </PDFDownloadLink>
+                    <Download className="w-4 h-4" />
+                    {isGeneratingPDF ? 'جاري التجهيز...' : 'حفظ كملف PDF'}
+                  </Button>
 
                   <Dialog open={emailOpen} onOpenChange={setEmailOpen}>
                     <DialogTrigger asChild>

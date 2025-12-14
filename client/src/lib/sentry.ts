@@ -31,7 +31,9 @@ class ErrorTracker {
     window.addEventListener('error', this.handleError.bind(this));
     window.addEventListener('unhandledrejection', this.handleRejection.bind(this));
 
-    console.log('🔍 Error tracking initialized');
+    if (import.meta.env.DEV) {
+      console.log('🔍 Error tracking initialized');
+    }
   }
 
   private handleError(event: ErrorEvent) {
@@ -89,7 +91,7 @@ class ErrorTracker {
   captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
     if (!this.isInitialized) return;
 
-    if (ENV === 'development') {
+    if (import.meta.env.DEV) {
       console.log(`📝 [${level}] ${message}`);
     }
 
