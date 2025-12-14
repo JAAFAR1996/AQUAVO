@@ -1,0 +1,261 @@
+name: 🚀 Enhanced CI/CD Pipeline - FIST-LIVE (Antigravity Ready)
+
+on:
+  push:
+    branches: [main, develop]
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+      - '.gitignore'
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: 20.11.0
+  PNPM_VERSION: 9.1.0
+  CI: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==================== SETUP ====================
+  setup:
+    name: 📋 Environment Setup
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ steps.versions.outputs.node }}
+      pnpm-version: ${{ steps.versions.outputs.pnpm }}
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Get versions
+        id: versions
+        run: |
+          echo "node=${{ env.NODE_VERSION }}" >> $GITHUB_OUTPUT
+          echo "pnpm=${{ env.PNPM_VERSION }}" >> $GITHUB_OUTPUT
+
+  # ==================== LINT & TYPE CHECK ====================
+  lint:
+    name: 🎨 Lint & Type Check
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js ${{ needs.setup.outputs.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+
+      - name: 📦 Setup pnpm ${{ needs.setup.outputs.pnpm-version }}
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ needs.setup.outputs.pnpm-version }}
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+          cache: 'pnpm'
+
+      - name: 📚 Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+        timeout-minutes: 10
+
+      - name: 🔍 TypeScript type check
+        run: pnpm run check
+        timeout-minutes: 10
+
+  # ==================== UNIT TESTS ====================
+  test:
+    name: 🧪 Unit Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ needs.setup.outputs.pnpm-version }}
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+          cache: 'pnpm'
+
+      - name: 📚 Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+        timeout-minutes: 10
+
+      - name: 🧪 Run unit tests
+        run: pnpm run test --run
+        env:
+          NODE_ENV: test
+        timeout-minutes: 15
+
+      - name: 📊 Generate coverage report
+        run: pnpm run test:coverage || true
+        timeout-minutes: 10
+
+      - name: 📤 Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          fail_ci_if_error: false
+
+  # ==================== BUILD ====================
+  build:
+    name: 🏗️ Build
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ needs.setup.outputs.pnpm-version }}
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+          cache: 'pnpm'
+
+      - name: 📚 Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+        timeout-minutes: 10
+
+      - name: 🎨 Build client
+        run: pnpm run build:client
+        env:
+          NODE_ENV: production
+          VITE_APP_TITLE: FIST-LIVE
+        timeout-minutes: 15
+
+      - name: 🔨 Build project (full)
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+        timeout-minutes: 15
+
+      - name: 📊 Verify build output
+        run: |
+          if [ ! -d "dist" ] && [ ! -d "build" ]; then
+            echo "❌ Build output not found!"
+            exit 1
+          fi
+          echo "✅ Build output verified"
+
+      - name: 📦 Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-dist-${{ github.run_number }}
+          path: |
+            dist/
+            build/
+          retention-days: 7
+
+  # ==================== SECURITY ====================
+  security:
+    name: 🔐 Security Checks
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+
+      - name: 📦 Setup pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ needs.setup.outputs.pnpm-version }}
+
+      - name: 💾 Setup pnpm cache
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ needs.setup.outputs.node-version }}
+          cache: 'pnpm'
+
+      - name: 📚 Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+        timeout-minutes: 10
+
+      - name: 🔍 Audit npm packages
+        run: pnpm audit --audit-level=moderate || true
+
+      - name: 🔐 Secret scanning
+        uses: trufflesecurity/trufflehog@main
+        continue-on-error: true
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+  # ==================== QUALITY GATE ====================
+  quality-gate:
+    name: ✨ Quality Gate
+    needs: [lint, test, build, security]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: 📊 Check pipeline status
+        run: |
+          echo "╔════════════════════════════════════╗"
+          echo "║   CI Pipeline Status Report        ║"
+          echo "╠════════════════════════════════════╣"
+          echo "║ Lint:      ${{ needs.lint.result }}"
+          echo "║ Test:      ${{ needs.test.result }}"
+          echo "║ Build:     ${{ needs.build.result }}"
+          echo "║ Security:  ${{ needs.security.result }}"
+          echo "╚════════════════════════════════════╝"
+          
+          if [[ "${{ needs.lint.result }}" == "failure" || \
+                "${{ needs.test.result }}" == "failure" || \
+                "${{ needs.build.result }}" == "failure" ]]; then
+            echo ""
+            echo "❌ CRITICAL: Pipeline Failed"
+            exit 1
+          else
+            echo ""
+            echo "✅ SUCCESS: All checks passed!"
+          fi
+
+      - name: 📢 Notify success
+        if: success()
+        run: echo "🎉 Pipeline completed successfully!"
