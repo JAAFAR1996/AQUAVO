@@ -126,7 +126,7 @@ export function ProductFilters({
           <Slider
             min={0}
             max={maxPrice}
-            step={10000}
+            step={1000}
             value={localFilters.priceRange}
             onValueChange={handlePriceChange}
             onValueCommit={handlePriceCommit}
