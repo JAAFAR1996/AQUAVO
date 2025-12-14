@@ -17,6 +17,7 @@ export function createOrderRouter() {
 
             const order = await storage.createOrderSecure(
                 userId || null,
+                items,
                 customerInfo,
                 couponCode
             );

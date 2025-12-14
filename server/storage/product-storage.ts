@@ -1,5 +1,5 @@
 import { type Product, type Review, type ReviewRating, type Discount, type FishSpecies, products, reviews, reviewRatings, discounts, fishSpecies, categories } from "../../shared/schema.js";
-import { eq, desc, and, gte, lte, sql, isNull } from "drizzle-orm";
+import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
 
@@ -365,5 +365,67 @@ export class ProductStorage {
 
     async seedFishSpeciesIfNeeded(): Promise<void> {
         // Implementation can be moved here or kept in seed script
+    }
+    async getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[] }> {
+        const db = this.ensureDb();
+        try {
+            // Logic:
+            // 1. Get manually flagged best sellers first
+            // 2. Sort them by Rating (High to Low) so the "Best" are truly on top
+            // 3. If less than 10, fill with highest rated products from DB
+
+            let bestSellers = await db.select().from(products)
+                .where(and(eq(products.isBestSeller, true), isNull(products.deletedAt)))
+                .orderBy(desc(products.rating), desc(products.reviewCount))
+                .limit(10);
+
+            // Auto-fill if we don't have enough manual best sellers
+            if (bestSellers.length < 10) {
+                const limitNeeded = 10 - bestSellers.length;
+                const existingIds = bestSellers.map(p => p.id);
+
+                // Get top rated products that are NOT already in the list
+                const autoBestSellers = await db.select().from(products)
+                    .where(and(
+                        notInArray(products.id, existingIds.length > 0 ? existingIds : ['placeholder-uuid']),
+                        isNull(products.deletedAt),
+                        gt(products.rating, '0') // Only rated products
+                    ))
+                    .orderBy(desc(products.rating), desc(products.reviewCount))
+                    .limit(limitNeeded);
+
+                bestSellers = [...bestSellers, ...autoBestSellers];
+            }
+
+            // Fallback if still empty (just get newest)
+            if (bestSellers.length === 0) {
+                bestSellers = await db.select().from(products)
+                    .where(isNull(products.deletedAt))
+                    .orderBy(desc(products.createdAt))
+                    .limit(10);
+            }
+
+            // Get product of the week: Prefer explicitly marked product
+            const explicitProductOfWeek = await db.select().from(products)
+                .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt)))
+                .limit(1);
+
+            let productOfWeek = explicitProductOfWeek.length > 0 ? explicitProductOfWeek[0] : null;
+
+            // Fallback: Pick highest rated best seller if no explicit product of week
+            if (!productOfWeek && bestSellers.length > 0) {
+                // Sort by rating desc to pick the absolute best
+                const sortedForWeek = [...bestSellers].sort((a, b) => Number(b.rating) - Number(a.rating));
+                productOfWeek = sortedForWeek[0];
+            }
+
+            return {
+                productOfWeek,
+                bestSellers
+            };
+        } catch (error) {
+            console.error("Error fetching top selling products:", error);
+            return { productOfWeek: null, bestSellers: [] };
+        }
     }
 }

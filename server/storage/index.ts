@@ -99,6 +99,8 @@ export interface IStorage {
     // Newsletter
     getNewsletterSubscriptionByEmail(email: string): Promise<NewsletterSubscription | undefined>;
     createNewsletterSubscription(subscription: Partial<NewsletterSubscription>): Promise<NewsletterSubscription>;
+
+    seedGalleryIfNeeded(): Promise<void>;
 }
 import { getDb } from "../db.js";
 
@@ -182,7 +184,7 @@ class CombinedStorage implements IStorage {
     getCurrentGalleryPrize = this.orderStorage.getCurrentGalleryPrize.bind(this.orderStorage);
     createOrUpdateGalleryPrize = this.orderStorage.createOrUpdateGalleryPrize.bind(this.orderStorage);
     getGalleryPrizeByMonth = this.orderStorage.getGalleryPrizeByMonth.bind(this.orderStorage);
-    getTopSellingProducts = this.orderStorage.getTopSellingProducts.bind(this.orderStorage);
+    getTopSellingProducts = this.productStorage.getTopSellingProducts.bind(this.productStorage);
 
     // Missing Stubs - Now Implemented
     seedProductsIfNeeded = async () => {
@@ -261,6 +263,8 @@ class CombinedStorage implements IStorage {
             return [];
         }
     };
+
+    seedGalleryIfNeeded = this.orderStorage.seedGalleryIfNeeded.bind(this.orderStorage);
 }
 
 export const storage = new CombinedStorage();

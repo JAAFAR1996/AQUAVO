@@ -10,6 +10,7 @@ import { createFishRouter } from "./routes/fish.js";
 import { createReviewsRouter } from "./routes/reviews.js";
 import { createCartRouter } from "./routes/cart.js";
 import { createFavoritesRouter } from "./routes/favorites.js";
+import { createCouponRouter } from "./routes/coupons.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -44,6 +45,7 @@ export async function registerRoutes(
   app.use("/api", createReviewsRouter());
   app.use("/api/cart", createCartRouter());
   app.use("/api/favorites", createFavoritesRouter());
+  app.use("/api/coupons", createCouponRouter());
 
   // Error handling middleware
   app.use("/api", (err: any, _req: any, res: any, _next: any) => {

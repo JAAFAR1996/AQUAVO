@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { useToast } from "@/hooks/use-toast";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
@@ -401,10 +402,12 @@ export default function ProductDetails() {
                           </>
                         )}
                       </Button>
-                      <Button size="lg" variant="outline" className="gap-2">
-                        <Heart className="w-5 h-5" />
-                        المفضلة
-                      </Button>
+                      <WishlistButton
+                        product={product}
+                        variant="default"
+                        size="lg"
+                        className="gap-2"
+                      />
                       <Button size="lg" variant="outline" onClick={handleShare}>
                         <Share2 className="w-5 h-5" />
                       </Button>

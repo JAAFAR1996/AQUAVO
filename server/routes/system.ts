@@ -51,6 +51,7 @@ export function createSystemRouter() {
         try {
             await storage.seedProductsIfNeeded();
             await storage.seedFishSpeciesIfNeeded();
+            await storage.seedGalleryIfNeeded();
             res.json({ message: "Seeded" });
         } catch (err: any) {
             res.status(500).json({ error: err.message });

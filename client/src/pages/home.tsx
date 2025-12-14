@@ -151,7 +151,7 @@ export default function Home() {
 
           {/* 3. Product of the Day (Small Box: 4 cols, 1 row) */}
           <div className="lg:col-span-4 lg:row-span-1 rounded-[2.5rem] bg-card dark:bg-[#0a0f1c] border border-border dark:border-border/50 p-6 flex relative overflow-hidden group hover:border-primary/50 transition-colors">
-            <div className="absolute top-0 right-0 bg-accent text-white px-4 py-1 rounded-bl-2xl font-bold text-sm shadow-lg z-10">صفقة اليوم</div>
+            <div className="absolute top-0 right-0 bg-accent text-white px-4 py-1 rounded-bl-2xl font-bold text-sm shadow-lg z-10">صفقة الأسبوع</div>
             {salesIsLoading || !featuredProduct ? (
               <div className="flex w-full gap-4">
                 <Skeleton className="w-24 h-24 rounded-2xl" />

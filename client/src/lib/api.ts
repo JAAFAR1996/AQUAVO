@@ -102,3 +102,16 @@ export async function searchProducts(query: string): Promise<Product[]> {
     );
   }
 }
+
+export async function fetchGallerySubmissions(): Promise<any[]> {
+  try {
+    return await getJson<any[]>("/api/gallery");
+  } catch (err) {
+    console.warn("Failed to fetch gallery submissions", err);
+    return [];
+  }
+}
+
+export async function voteGallerySubmission(id: string): Promise<{ success: boolean }> {
+  return await getJson<{ success: boolean }>(`/api/gallery/${id}/like`, { method: "POST" });
+}

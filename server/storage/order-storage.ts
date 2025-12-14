@@ -430,4 +430,66 @@ export class OrderStorage {
     async getTopSellingProducts(): Promise<{ productOfWeek: any | null; bestSellers: any[] }> {
         return { productOfWeek: null, bestSellers: [] };
     }
+
+    async seedGalleryIfNeeded(): Promise<void> {
+        const db = this.ensureDb();
+        const count = await db.select({ count: sql<number>`count(*)` }).from(gallerySubmissions);
+
+        if (Number(count[0].count) > 0) return;
+
+        console.log("Seeding gallery submissions...");
+
+        const seedItems = [
+            {
+                customerName: "الطراز الهولندي",
+                imageUrl: "/aquarium-styles/dutch-style.png",
+                tankSize: "Dutch Style",
+                description: "حديقة مائية كثيفة بالنباتات. أقدم فنون تنسيق الأحواض، يركز على تنوع النباتات والتباين في الألوان والارتفاعات. يشبه حديقة الزهور ولكن تحت الماء.",
+                likes: 124,
+                isApproved: true,
+                createdAt: new Date()
+            },
+            {
+                customerName: "طراز الطبيعة",
+                imageUrl: "/aquarium-styles/nature-style.png",
+                tankSize: "Nature Style",
+                description: "تقليد المناظر الطبيعية البرية. ابتكره تاكاشي أمانو، يحاكي الغابات والوديان الطبيعية تحت الماء. يهدف إلى خلق شعور بالتدفق والطبيعية.",
+                likes: 156,
+                isApproved: true,
+                createdAt: new Date()
+            },
+            {
+                customerName: "الإيواغومي",
+                imageUrl: "/aquarium-styles/iwagumi-style.png",
+                tankSize: "Iwagumi",
+                description: "بساطة يابانية وتأمل. أسلوب ياباني يعتمد على ترتيب الصخور (بعدد فردي عادة) ونباتات السجاد، بتصميم بسيط يدعو للتأمل والهدوء.",
+                likes: 98,
+                isApproved: true,
+                createdAt: new Date()
+            },
+            {
+                customerName: "البيوتوب",
+                imageUrl: "/aquarium-styles/biotope-style.png",
+                tankSize: "Biotope",
+                description: "بيئة طبيعية أصلية. يعيد إنشاء موطن طبيعي محدد بدقة، مثل نهر الأمازون أو بحيرة أفريقية، مع استخدام نفس الصخور والنباتات والأسماك الموجودة في تلك المنطقة.",
+                likes: 87,
+                isApproved: true,
+                createdAt: new Date()
+            },
+            {
+                customerName: "طراز الغابة",
+                imageUrl: "/aquarium-styles/jungle-style.png",
+                tankSize: "Jungle Style",
+                description: "غابة استوائية كثيفة. يحاكي المظهر الكثيف للغابة الاستوائية بنباتات متشابكة ومظهر بري جميل. يتميز بالجرأة والعشوائية المنظمة.",
+                likes: 142,
+                isApproved: true,
+                createdAt: new Date()
+            },
+        ];
+
+        for (const item of seedItems) {
+            await db.insert(gallerySubmissions).values(item as any);
+        }
+        console.log("Gallery seeded successfully.");
+    }
 }
