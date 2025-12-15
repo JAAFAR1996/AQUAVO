@@ -17,9 +17,31 @@ export function createAdminRouter() {
     // Orders
     router.get("/orders", async (req, res, next) => {
         try {
-            const orders = await storage.getOrders(); // All orders
-            // Transform logic if needed
-            res.json(orders);
+            const orders = await storage.getOrders();
+
+            // Enrich orders with product names
+            const enrichedOrders = await Promise.all(orders.map(async (order) => {
+                if (order.items && Array.isArray(order.items)) {
+                    const enrichedItems = await Promise.all(
+                        (order.items as any[]).map(async (item: any) => {
+                            let productName = item.productName;
+                            if (!productName && item.productId) {
+                                const product = await storage.getProduct(item.productId);
+                                productName = product?.name || `منتج #${item.productId.slice(0, 8)}`;
+                            }
+                            return {
+                                ...item,
+                                productName,
+                                price: item.priceAtPurchase || item.price || 0
+                            };
+                        })
+                    );
+                    return { ...order, items: enrichedItems };
+                }
+                return order;
+            }));
+
+            res.json(enrichedOrders);
         } catch (err) {
             next(err);
         }
