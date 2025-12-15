@@ -31,7 +31,7 @@ export function createCartRouter() {
     });
 
     const addItemSchema = z.object({
-        productId: z.string().uuid(),
+        productId: z.string(),
         quantity: z.number().int().positive()
     });
 
