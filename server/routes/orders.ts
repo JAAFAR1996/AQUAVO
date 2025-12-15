@@ -1,14 +1,13 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { insertOrderSchema } from "../../shared/schema.js";
-import express from "express";
 
 export function createOrderRouter() {
     const router = Router();
 
     // Create Order
-    router.post("/", async (req, res, next) => {
+    router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sess = getSession(req);
             const userId = sess?.userId;
@@ -38,7 +37,7 @@ export function createOrderRouter() {
     });
 
     // Get My Orders
-    router.get("/", requireAuth, async (req, res, next) => {
+    router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sess = getSession(req);
             const orders = await storage.getOrders(sess?.userId);
@@ -49,7 +48,7 @@ export function createOrderRouter() {
     });
 
     // Track Order Publicly
-    router.get("/track/:orderNumber", async (req, res, next) => {
+    router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const order = await storage.getOrder(req.params.orderNumber);
             if (!order) {

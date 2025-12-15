@@ -139,10 +139,14 @@ export default function FishBreedingCalculator() {
 
   // Handle PDF download manually for React 19 compatibility
   const handleDownloadPDF = async () => {
-    if (!species || !timeline) return;
+    if (!species || !timeline) {
+      toast.error("الرجاء اختيار النوع أولاً");
+      return;
+    }
 
     setIsGeneratingPDF(true);
     try {
+      console.log("Starting PDF generation...");
       const doc = (
         <BreedingPlanPDF
           species={species}
@@ -156,19 +160,30 @@ export default function FishBreedingCalculator() {
         />
       );
 
+      console.log("Creating PDF blob...");
       const blob = await pdf(doc).toBlob();
+      console.log("PDF blob created successfully, size:", blob.size);
+
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `breeding-plan-${species.id}.pdf`;
+      link.download = `breeding-plan-${species.id}-${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 100);
+
       toast.success("تم تحميل الخطة بنجاح!");
+      console.log("PDF download completed successfully");
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error("حدث خطأ أثناء إنشاء ملف PDF.");
+      // More detailed error message
+      const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
+      toast.error(`حدث خطأ أثناء إنشاء ملف PDF: ${errorMessage}`);
     } finally {
       setIsGeneratingPDF(false);
     }

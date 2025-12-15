@@ -2,33 +2,36 @@
 import { Document, Page, Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import type { BreedingSpecies } from "@/data/breeding-data";
 
-// Register fonts with error handling
-// Using try-catch to prevent silent failures
+// Register fonts with better error handling
+let fontLoaded = false;
 try {
+    // Register Noto Sans Arabic from a more reliable CDN
     Font.register({
-        family: "Cairo",
+        family: "Arabic",
         fonts: [
             {
-                src: "https://fonts.gstatic.com/s/cairo/v28/SLXgc1nY6HkvangtZmpQdkhzfH5lkSs2SgRjCAGMQ1z0hOA-a1TiKQ.woff2",
+                src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-400-normal.woff",
                 fontWeight: 400,
             },
             {
-                src: "https://fonts.gstatic.com/s/cairo/v28/SLXgc1nY6HkvangtZmpQdkhzfH5lkSs2SgRjCAGMQ1z0hD4-a1TiKQ.woff2",
+                src: "https://cdn.jsdelivr.net/npm/@fontsource/noto-sans-arabic@5.0.13/files/noto-sans-arabic-arabic-700-normal.woff",
                 fontWeight: 700,
             },
         ],
     });
+    fontLoaded = true;
+    console.log("Arabic font loaded successfully for PDF");
 } catch (error) {
-    console.warn("Failed to register Cairo font for PDF, using default font", error);
+    console.warn("Failed to register Arabic font for PDF, falling back to Helvetica", error);
 }
 
-// Fallback font in case Cairo fails
+// Fallback font in case Arabic fails
 Font.registerHyphenationCallback((word) => [word]);
 
 
 const styles = StyleSheet.create({
     page: {
-        fontFamily: "Cairo",
+        fontFamily: "Arabic",
         flexDirection: "column",
         backgroundColor: "#ffffff",
         padding: 30,

@@ -1,14 +1,13 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { insertProductSchema, insertReviewSchema, insertDiscountSchema } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
-import express from "express";
 
 export function createProductRouter() {
     const router = Router();
 
     // Get all products
-    router.get("/", async (req, res, next) => {
+    router.get("/", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const filters = {
                 category: req.query.category as string | string[],
@@ -33,7 +32,7 @@ export function createProductRouter() {
     });
 
     // Top selling (Specific route BEFORE :idOrSlug)
-    router.get("/top-selling", async (req, res, next) => {
+    router.get("/top-selling", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const result = await storage.getTopSellingProducts();
             res.json(result);
@@ -43,7 +42,7 @@ export function createProductRouter() {
     });
 
     // Trending (Specific route BEFORE :idOrSlug)
-    router.get("/info/trending", async (req, res, next) => {
+    router.get("/info/trending", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const products = await storage.getTrendingProducts();
             res.json(products);
@@ -53,7 +52,7 @@ export function createProductRouter() {
     });
 
     // Attributes (Categories & Brands)
-    router.get("/attributes", async (req, res, next) => {
+    router.get("/attributes", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const attributes = await storage.getProductAttributes();
             res.json(attributes);
@@ -63,7 +62,7 @@ export function createProductRouter() {
     });
 
     // Get single product (by ID or Slug)
-    router.get("/:idOrSlug", async (req, res, next) => {
+    router.get("/:idOrSlug", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { idOrSlug } = req.params;
             let product;
@@ -90,7 +89,7 @@ export function createProductRouter() {
 
     // ============ DISCOUNTS ============
     // Get Discounts
-    router.get("/:productId/discounts", async (req, res, next) => {
+    router.get("/:productId/discounts", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const discounts = await storage.getDiscounts(req.params.productId);
             res.json(discounts);
@@ -100,7 +99,7 @@ export function createProductRouter() {
     });
 
     // ============ RECOMMENDATIONS ============
-    router.get("/:id/similar", async (req, res, next) => {
+    router.get("/:id/similar", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const products = await storage.getSimilarProducts(req.params.id);
             res.json(products);
@@ -109,7 +108,7 @@ export function createProductRouter() {
         }
     });
 
-    router.get("/:id/frequently-bought-together", async (req, res, next) => {
+    router.get("/:id/frequently-bought-together", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const products = await storage.getFrequentlyBoughtTogether(req.params.id);
             res.json(products);
