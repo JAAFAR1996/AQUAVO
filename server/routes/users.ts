@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { insertUserSchema, insertUserAddressSchema, insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
@@ -12,7 +12,7 @@ export function createUserRouter() {
     const router = Router();
 
     // Register
-    router.post("/register", authLimiter, async (req, res, next) => {
+    router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password, fullName, phone } = req.body;
             const existingUser = await storage.getUserByEmail(email);
@@ -68,7 +68,7 @@ export function createUserRouter() {
     });
 
     // Login
-    router.post("/login", authLimiter, async (req, res, next) => {
+    router.post("/login", authLimiter, async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password } = req.body;
             const user = await storage.getUserByEmail(email);
@@ -97,7 +97,7 @@ export function createUserRouter() {
     });
 
     // Logout
-    router.post("/logout", async (req, res, next) => {
+    router.post("/logout", async (req: Request, res: Response, next: NextFunction) => {
         if ((req as any).session) {
             (req as any).session.destroy((err: any) => {
                 if (err) return next(err);

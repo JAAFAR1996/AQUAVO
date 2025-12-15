@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import type { IStorage } from "../storage/index.js";
 import { freshwaterFish } from "../../shared/initial-fish-data.js";
 
@@ -9,7 +9,7 @@ export function createFishRouter(storage: IStorage) {
    * GET /api/fish
    * Get all fish species with fallback to static data
    */
-  router.get("/", async (_req, res, next) => {
+  router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
     try {
       // Try to get from database first
       let fish = await storage.getAllFishSpecies();
@@ -34,7 +34,7 @@ export function createFishRouter(storage: IStorage) {
    * GET /api/fish/:id
    * Get a specific fish species by ID
    */
-  router.get("/:id", async (req, res, next) => {
+  router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
       let fish = await storage.getFishSpeciesById(id);
@@ -60,7 +60,7 @@ export function createFishRouter(storage: IStorage) {
     }
   });
 
-  router.post("/breeding-plan/email", async (req, res) => {
+  router.post("/breeding-plan/email", async (req: Request, res: Response) => {
     try {
       const { email, speciesId, speciesData, inputData, timeline, yearlyProduction } = req.body;
 

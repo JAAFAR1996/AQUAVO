@@ -1,8 +1,7 @@
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
-import express from "express";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 
 export function createAdminRouter() {
@@ -432,7 +431,7 @@ export function createAdminRouter() {
     });
 
     // Update settings
-    router.put("/settings", async (req, res, next) => {
+    router.put("/settings", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const updates = req.body;
 

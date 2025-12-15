@@ -1,11 +1,11 @@
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { storage } from "../storage/index.js";
 
 export function createCouponRouter() {
     const router = Router();
 
     // Validate Coupon
-    router.post("/validate", async (req, res) => {
+    router.post("/validate", async (req: Request, res: Response) => {
         try {
             const { code, totalAmount } = req.body;
 

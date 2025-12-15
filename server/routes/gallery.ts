@@ -2,9 +2,8 @@ import { Router, Request, Response, NextFunction } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { saveBase64Image } from "../middleware/upload.js";
-import express from "express";
 
-const getSessionHelper = (req: express.Request) => (req as any).session;
+const getSessionHelper = (req: Request) => (req as any).session;
 
 export function createGalleryRouter() {
     const router = Router();
@@ -23,7 +22,7 @@ export function createGalleryRouter() {
     router.get("/submissions", getSubmissions);
 
     // Submit New
-    router.post("/", async (req, res, next) => {
+    router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { customerName, customerPhone, tankSize, description, imageBase64 } = req.body;
             if (!customerName || !imageBase64) {
@@ -53,7 +52,7 @@ export function createGalleryRouter() {
     });
 
     // Vote/Like
-    router.post("/:id/like", async (req, res, next) => {
+    router.post("/:id/like", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params;
             const ip = req.ip || req.socket.remoteAddress || 'unknown';
@@ -72,7 +71,7 @@ export function createGalleryRouter() {
     });
 
     // Get Current Prize
-    router.get("/prize", async (req, res, next) => {
+    router.get("/prize", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const prize = await storage.getCurrentGalleryPrize();
             res.json(prize);
@@ -82,7 +81,7 @@ export function createGalleryRouter() {
     });
 
     // Get Current Prize (Legacy path)
-    router.get("/current-prize", async (req, res, next) => {
+    router.get("/current-prize", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const prize = await storage.getCurrentGalleryPrize();
             res.json(prize);
@@ -92,7 +91,7 @@ export function createGalleryRouter() {
     });
 
     // Check for winning submission for celebration
-    router.get("/my-winning-submission", async (req, res, next) => {
+    router.get("/my-winning-submission", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const sess = getSessionHelper(req);
             if (!sess?.userId) {
@@ -111,7 +110,7 @@ export function createGalleryRouter() {
     });
 
     // Acknowledge celebration
-    router.post("/ack-celebration/:id", async (req, res, next) => {
+    router.post("/ack-celebration/:id", async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { id } = req.params;
             const sess = getSessionHelper(req);

@@ -1,5 +1,5 @@
 
-import { Router } from "express";
+import { Router, Request, Response } from "express";
 import { type IStorage } from "../storage/index.js";
 import { insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { z } from "zod";
@@ -38,7 +38,7 @@ export async function broadcastDiscountForProduct(storage: IStorage, productId: 
 export function createNewsletterRouter(storage: IStorage) {
     const router = Router();
 
-    router.post("/subscribe", async (req, res) => {
+    router.post("/subscribe", async (req: Request, res: Response) => {
         try {
             const data = insertNewsletterSubscriptionSchema.parse(req.body);
 
@@ -69,7 +69,7 @@ export function createNewsletterRouter(storage: IStorage) {
     });
 
     // Admin only: Broadcast product discount to all subscribers
-    router.post("/broadcast-discount", async (req, res) => {
+    router.post("/broadcast-discount", async (req: Request, res: Response) => {
         try {
             const { productId } = req.body;
             if (!productId) {
