@@ -1,5 +1,5 @@
 import type { Server } from "http";
-import { type Express } from "express";
+import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
 import { createUserRouter } from "./routes/users.js";
@@ -24,7 +24,7 @@ declare module "express-session" {
 
 export async function registerRoutes(
   httpServer: Server,
-  app: Express,
+  app: express.Application,
 ): Promise<Server> {
 
   // API Routes
