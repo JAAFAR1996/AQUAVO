@@ -185,6 +185,49 @@ export function createAdminRouter() {
         } catch (err) { next(err); }
     });
 
+    // Delete a past winner (removes submission and image from Cloudinary)
+    router.delete("/gallery/winner/:id", async (req, res, next) => {
+        try {
+            // Get the submission first to retrieve the image URL
+            const submissions = await storage.getGallerySubmissions(false);
+            const submission = submissions.find(s => s.id === req.params.id);
+
+            if (!submission) {
+                return res.status(404).json({ message: "Submission not found" });
+            }
+
+            // Only allow deletion of winners
+            if (!submission.isWinner) {
+                return res.status(400).json({ message: "This submission is not a winner" });
+            }
+
+            // Delete the image from Cloudinary if it exists and is a Cloudinary URL
+            if (submission.imageUrl && submission.imageUrl.includes('cloudinary.com')) {
+                try {
+                    const { deleteImage } = await import("../utils/cloudinary.js");
+                    await deleteImage(submission.imageUrl);
+                } catch (imgError) {
+                    console.error("Failed to delete image from Cloudinary:", imgError);
+                    // Continue with submission deletion even if image deletion fails
+                }
+            }
+
+            // Delete the submission from database
+            await storage.deleteGallerySubmission(req.params.id);
+
+            // Audit Log
+            await storage.createAuditLog({
+                userId: getSession(req)?.userId || "admin",
+                action: "delete",
+                entityType: "gallery_winner",
+                entityId: req.params.id,
+                changes: { customerName: submission.customerName, winnerMonth: submission.winnerMonth }
+            });
+
+            res.json({ message: "Winner deleted successfully" });
+        } catch (err) { next(err); }
+    });
+
     // ============ PRODUCTS MANAGEMENT ============
 
     router.post("/products", async (req, res, next) => {

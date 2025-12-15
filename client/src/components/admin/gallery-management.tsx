@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Check, X, Crown, Heart, Trophy, Tag, Percent } from "lucide-react";
+import { Check, X, Crown, Heart, Trophy, Tag, Percent, Trash2, Clock } from "lucide-react";
 
 interface GallerySubmission {
   id: string;
@@ -116,9 +117,39 @@ export function GalleryManagement() {
     }
   });
 
+  const deleteWinnerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const res = await fetch(`/api/admin/gallery/winner/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      if (!res.ok) throw new Error("Failed to delete winner");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/gallery/submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery/submissions"] });
+      toast({
+        title: "🗑️ تم حذف الفائز",
+        description: "تم حذف الفائز وصورته بنجاح"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "❌ خطأ",
+        description: "فشل في حذف الفائز",
+        variant: "destructive"
+      });
+    }
+  });
+
   const pending = submissions.filter(s => !s.isApproved && !s.isWinner);
   const approved = submissions.filter(s => s.isApproved && !s.isWinner);
-  const winner = submissions.find(s => s.isWinner);
+  // Get the current month to identify the current winner
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  const winners = submissions.filter(s => s.isWinner);
+  const winner = winners.find(s => s.winnerMonth === currentMonth) || winners[0];
+  const pastWinners = winners.filter(s => s.id !== winner?.id);
 
   return (
     <div className="space-y-6">
@@ -321,6 +352,84 @@ export function GalleryManagement() {
                     <Crown className="h-3 w-3 mr-1" />
                     فائز
                   </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Past Winners Section */}
+      {pastWinners.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            الفائزون السابقون ({pastWinners.length})
+          </h3>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {pastWinners.map((pastWinner) => (
+              <Card key={pastWinner.id} className="overflow-hidden border-muted">
+                <img
+                  src={pastWinner.imageUrl}
+                  alt={pastWinner.customerName}
+                  className="w-full h-32 object-cover opacity-80"
+                />
+                <CardContent className="p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-bold text-sm">{pastWinner.customerName}</p>
+                      {pastWinner.winnerMonth && (
+                        <p className="text-xs text-muted-foreground">{pastWinner.winnerMonth}</p>
+                      )}
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      <Crown className="h-3 w-3 mr-1" />
+                      فائز سابق
+                    </Badge>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                    <Heart className="h-3 w-3 text-red-500" />
+                    <span>{pastWinner.likes}</span>
+                    {pastWinner.prize && (
+                      <>
+                        <span className="mx-1">•</span>
+                        <span>{pastWinner.prize}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        className="w-full mt-3"
+                        disabled={deleteWinnerMutation.isPending}
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        حذف الفائز وصورته
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>هل أنت متأكد؟</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          سيتم حذف الفائز "{pastWinner.customerName}" وصورته نهائياً.
+                          لا يمكن التراجع عن هذا الإجراء.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>إلغاء</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => deleteWinnerMutation.mutate(pastWinner.id)}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          حذف نهائياً
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </CardContent>
               </Card>
             ))}
