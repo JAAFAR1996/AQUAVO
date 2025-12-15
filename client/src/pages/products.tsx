@@ -58,11 +58,6 @@ export default function Products() {
   // Comparison - user-initiated
   const { compareIds, removeFromCompare } = useComparison();
 
-  // Get only products that user added to comparison
-  const comparedProducts = useMemo(() => {
-    return finalProducts.filter(p => compareIds.includes(p.id));
-  }, [finalProducts, compareIds]);
-
   // Update filters when URL params change
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -156,6 +151,11 @@ export default function Products() {
       return true;
     });
   }, [products, filters.difficulties, filters.tags]);
+
+  // Get only products that user added to comparison
+  const comparedProducts = useMemo(() => {
+    return finalProducts.filter(p => compareIds.includes(p.id));
+  }, [finalProducts, compareIds]);
 
   const isLoading = isAttributesLoading || isProductsLoading;
 

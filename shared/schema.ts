@@ -522,6 +522,45 @@ export const insertNewsletterSubscriptionSchema = createInsertSchema(newsletterS
 export type NewsletterSubscription = typeof newsletterSubscriptions.$inferSelect;
 export type InsertNewsletterSubscription = z.infer<typeof insertNewsletterSubscriptionSchema>;
 
+// Journey Plans - for aquarium setup wizard persistence
+export const journeyPlans = pgTable("journey_plans", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+
+  // User reference (optional for guests)
+  userId: text("user_id").references(() => users.id),
+  sessionId: text("session_id"), // For guest users
+
+  // Plan data
+  tankSize: text("tank_size"),
+  tankType: text("tank_type"),
+  location: jsonb("location").$type<string[]>(),
+  filterType: text("filter_type"),
+  heaterWattage: integer("heater_wattage"),
+  lightingType: text("lighting_type"),
+  substrateType: text("substrate_type"),
+  decorations: jsonb("decorations").$type<string[]>(),
+  waterSource: text("water_source"),
+  cyclingMethod: text("cycling_method"),
+  fishTypes: jsonb("fish_types").$type<string[]>(),
+  stockingLevel: text("stocking_level"),
+  maintenancePreference: text("maintenance_preference"),
+
+  // Progress tracking
+  currentStep: integer("current_step").default(0),
+  isCompleted: boolean("is_completed").default(false),
+
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("journey_plans_user_id_idx").on(table.userId),
+  sessionIdIdx: index("journey_plans_session_id_idx").on(table.sessionId),
+}));
+
+export const insertJourneyPlanSchema = createInsertSchema(journeyPlans);
+export type JourneyPlan = typeof journeyPlans.$inferSelect;
+export type InsertJourneyPlan = z.infer<typeof insertJourneyPlanSchema>;
+
 export const insertPasswordResetTokenSchema = createInsertSchema(passwordResetTokens);
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type InsertPasswordResetToken = z.infer<typeof insertPasswordResetTokenSchema>;

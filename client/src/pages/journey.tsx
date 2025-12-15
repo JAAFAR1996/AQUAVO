@@ -1,6 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { WaterRippleButton } from "@/components/effects/water-ripple-button";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +27,9 @@ import {
   TestTube,
   Clock,
   RotateCcw,
-  Save
+  Save,
+  Cloud,
+  CloudOff
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +40,7 @@ import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/cart-context";
@@ -104,14 +106,78 @@ export default function Journey() {
     queryFn: fetchProducts,
   });
 
+  // Fetch saved plan from database
+  const { data: savedPlan } = useQuery({
+    queryKey: ["journey-plan"],
+    queryFn: async () => {
+      const res = await fetch("/api/journey/plans");
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data.data;
+    },
+  });
+
+  // Mutation for saving to database
+  const savePlanMutation = useMutation({
+    mutationFn: async (planData: WizardData & { currentStep: number }) => {
+      const res = await fetch("/api/journey/plans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(planData),
+      });
+      return res.json();
+    },
+  });
+
+  // Delete plan mutation
+  const deletePlanMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch("/api/journey/plans", { method: "DELETE" });
+      return res.json();
+    },
+  });
+
   const { addItem } = useCart();
   const { toast } = useToast();
 
-  // Save to localStorage
+  // Load saved plan from database on mount
+  useEffect(() => {
+    if (savedPlan && !wizardData.tankSize) {
+      setWizardData({
+        tankSize: savedPlan.tankSize || "",
+        tankType: savedPlan.tankType || "",
+        location: savedPlan.location || [],
+        filterType: savedPlan.filterType || "",
+        heaterWattage: savedPlan.heaterWattage || 0,
+        lightingType: savedPlan.lightingType || "",
+        substrateType: savedPlan.substrateType || "",
+        decorations: savedPlan.decorations || [],
+        waterSource: savedPlan.waterSource || "",
+        cyclingMethod: savedPlan.cyclingMethod || "",
+        fishTypes: savedPlan.fishTypes || [],
+        stockingLevel: savedPlan.stockingLevel || "",
+        maintenancePreference: savedPlan.maintenancePreference || "",
+      });
+      setCurrentStep(savedPlan.currentStep || 0);
+    }
+  }, [savedPlan]);
+
+  // Save to localStorage (fallback)
   useEffect(() => {
     localStorage.setItem("wizardStep", currentStep.toString());
     localStorage.setItem("wizardData", JSON.stringify(wizardData));
   }, [currentStep, wizardData]);
+
+  // Auto-save to database with debounce
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (wizardData.tankSize) {
+        savePlanMutation.mutate({ ...wizardData, currentStep });
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, [wizardData, currentStep]);
 
   // Check if user has saved progress
   const hasSavedProgress = currentStep > 0 || wizardData.tankSize !== "";
@@ -136,6 +202,7 @@ export default function Journey() {
     });
     localStorage.removeItem("wizardStep");
     localStorage.removeItem("wizardData");
+    deletePlanMutation.mutate();
   };
 
   const updateData = (field: keyof WizardData, value: any) => {
@@ -189,30 +256,118 @@ export default function Journey() {
     }
   };
 
-  const getRecommendedProducts = () => {
+  const getRecommendedProducts = useCallback(() => {
     if (!productsData?.products) return [];
 
     const products = productsData.products;
     const recommendations: any[] = [];
 
-    // Filter recommendation logic
-    if (wizardData.filterType === "canister") {
-      const canisterFilter = products.find(p => p.name.includes("Eheim") || p.category === "filters");
-      if (canisterFilter) recommendations.push(canisterFilter);
+    // 1. Filter recommendation based on type and tank size
+    if (wizardData.filterType) {
+      const filterProducts = products.filter((p: any) =>
+        p.category?.toLowerCase().includes("filter") ||
+        p.subcategory?.toLowerCase().includes("filter")
+      );
+
+      if (wizardData.filterType === "canister") {
+        const canisterFilter = filterProducts.find((p: any) =>
+          p.name?.toLowerCase().includes("canister") ||
+          p.name?.toLowerCase().includes("eheim") ||
+          p.specifications?.type?.toLowerCase() === "canister"
+        );
+        if (canisterFilter) recommendations.push(canisterFilter);
+      } else if (wizardData.filterType === "hob") {
+        const hobFilter = filterProducts.find((p: any) =>
+          p.name?.toLowerCase().includes("hob") ||
+          p.name?.toLowerCase().includes("hang")
+        );
+        if (hobFilter) recommendations.push(hobFilter);
+      } else {
+        if (filterProducts[0]) recommendations.push(filterProducts[0]);
+      }
     }
 
-    // Water conditioner - essential for everyone
-    const conditioner = products.find(p => p.name.includes("Prime") || p.name.includes("Seachem"));
-    if (conditioner) recommendations.push(conditioner);
-
-    // Plants recommendation
-    if (wizardData.decorations.includes("live-plants")) {
-      const plants = products.find(p => p.category === "plants" || p.name.includes("Anubias"));
-      if (plants) recommendations.push(plants);
+    // 2. Heater based on wattage
+    if (wizardData.heaterWattage > 0) {
+      const heaters = products.filter((p: any) =>
+        p.category?.toLowerCase().includes("heater") ||
+        p.subcategory?.toLowerCase().includes("heater") ||
+        p.name?.toLowerCase().includes("heater")
+      );
+      if (heaters.length) recommendations.push(heaters[0]);
     }
 
-    return recommendations.slice(0, 6);
-  };
+    // 3. Lighting based on type
+    if (wizardData.lightingType && wizardData.lightingType !== "none") {
+      const lights = products.filter((p: any) =>
+        p.category?.toLowerCase().includes("light") ||
+        p.subcategory?.toLowerCase().includes("light") ||
+        p.name?.toLowerCase().includes("led")
+      );
+
+      if (wizardData.lightingType === "planted-led") {
+        const plantLight = lights.find((p: any) =>
+          p.name?.toLowerCase().includes("plant") ||
+          p.specifications?.forPlants
+        );
+        if (plantLight) recommendations.push(plantLight);
+        else if (lights[0]) recommendations.push(lights[0]);
+      } else if (lights[0]) {
+        recommendations.push(lights[0]);
+      }
+    }
+
+    // 4. Substrate based on type
+    if (wizardData.substrateType) {
+      const substrates = products.filter((p: any) =>
+        p.category?.toLowerCase().includes("substrate") ||
+        p.subcategory?.toLowerCase().includes("substrate") ||
+        p.name?.toLowerCase().includes("gravel") ||
+        p.name?.toLowerCase().includes("sand")
+      );
+      if (substrates[0]) recommendations.push(substrates[0]);
+    }
+
+    // 5. Plants for planted tank or live-plants decoration
+    if (wizardData.tankType === "planted" || wizardData.decorations.includes("live-plants")) {
+      const plants = products.filter((p: any) =>
+        p.category?.toLowerCase().includes("plant") ||
+        p.name?.toLowerCase().includes("anubias") ||
+        p.name?.toLowerCase().includes("java")
+      );
+      recommendations.push(...plants.slice(0, 2));
+    }
+
+    // 6. Water conditioner - essential for everyone
+    const conditioners = products.filter((p: any) =>
+      p.category?.toLowerCase().includes("water") ||
+      p.name?.toLowerCase().includes("prime") ||
+      p.name?.toLowerCase().includes("seachem") ||
+      p.name?.toLowerCase().includes("conditioner")
+    );
+    if (conditioners[0]) recommendations.push(conditioners[0]);
+
+    // 7. Decorations
+    if (wizardData.decorations.includes("driftwood")) {
+      const driftwood = products.find((p: any) =>
+        p.name?.toLowerCase().includes("driftwood") ||
+        p.name?.toLowerCase().includes("wood")
+      );
+      if (driftwood) recommendations.push(driftwood);
+    }
+
+    if (wizardData.decorations.includes("rocks")) {
+      const rocks = products.find((p: any) =>
+        p.name?.toLowerCase().includes("rock") ||
+        p.name?.toLowerCase().includes("stone")
+      );
+      if (rocks) recommendations.push(rocks);
+    }
+
+    // Remove duplicates and limit to 8 products
+    const uniqueRecommendations = Array.from(new Map(recommendations.map((p: any) => [p.id, p])).values());
+    return uniqueRecommendations.slice(0, 8);
+  }, [productsData, wizardData]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300" dir="rtl">
@@ -236,8 +391,17 @@ export default function Journey() {
           {hasSavedProgress && (
             <div className="flex items-center justify-center gap-4 mt-4">
               <div className="inline-flex items-center gap-2 bg-green-500/10 text-green-600 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium">
-                <Save className="h-4 w-4" />
-                تقدمك محفوظ تلقائياً
+                {savePlanMutation.isPending ? (
+                  <>
+                    <Cloud className="h-4 w-4 animate-pulse" />
+                    جارٍ الحفظ...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    تقدمك محفوظ في السحابة
+                  </>
+                )}
               </div>
               <Button
                 variant="ghost"

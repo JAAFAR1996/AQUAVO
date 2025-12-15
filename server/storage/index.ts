@@ -1,4 +1,4 @@
-import { User, InsertUser, Product, Order, Review, ReviewRating, Discount, AuditLog, Coupon, CartItem, Favorite, FishSpecies, GallerySubmission, GalleryPrize, NewsletterSubscription, Category, OrderItem, Payment, UserAddress, InsertUserAddress } from "../../shared/schema.js";
+import { User, InsertUser, Product, Order, Review, ReviewRating, Discount, AuditLog, Coupon, CartItem, Favorite, FishSpecies, GallerySubmission, GalleryPrize, NewsletterSubscription, Category, OrderItem, Payment, UserAddress, InsertUserAddress, JourneyPlan } from "../../shared/schema.js";
 import { UserStorage } from "./user-storage.js";
 import { ProductStorage, ProductFilters } from "./product-storage.js";
 import { OrderStorage } from "./order-storage.js";
@@ -102,6 +102,12 @@ export interface IStorage {
     getNewsletterSubscriptionByEmail(email: string): Promise<NewsletterSubscription | undefined>;
     createNewsletterSubscription(subscription: Partial<NewsletterSubscription>): Promise<NewsletterSubscription>;
     getNewsletterSubscriptions(): Promise<NewsletterSubscription[]>;
+
+    // Journey Plans
+    getJourneyPlan(userId?: string, sessionId?: string): Promise<JourneyPlan | undefined>;
+    createJourneyPlan(plan: Partial<JourneyPlan>): Promise<JourneyPlan>;
+    updateJourneyPlan(id: string, updates: Partial<JourneyPlan>): Promise<JourneyPlan | undefined>;
+    deleteJourneyPlan(userId?: string, sessionId?: string): Promise<boolean>;
 
     seedGalleryIfNeeded(): Promise<void>;
 }
@@ -271,6 +277,69 @@ class CombinedStorage implements IStorage {
     };
 
     seedGalleryIfNeeded = this.orderStorage.seedGalleryIfNeeded.bind(this.orderStorage);
+
+    // Journey Plans Methods
+    getJourneyPlan = async (userId?: string, sessionId?: string): Promise<JourneyPlan | undefined> => {
+        const db = getDb();
+        if (!db) return undefined;
+
+        const { journeyPlans } = await import("../../shared/schema.js");
+        const { eq, or } = await import("drizzle-orm");
+
+        // Prioritize userId if available, fall back to sessionId
+        const conditions = [];
+        if (userId) conditions.push(eq(journeyPlans.userId, userId));
+        if (sessionId) conditions.push(eq(journeyPlans.sessionId, sessionId));
+
+        if (conditions.length === 0) return undefined;
+
+        const plans = await db.select().from(journeyPlans).where(
+            userId ? eq(journeyPlans.userId, userId) : eq(journeyPlans.sessionId, sessionId!)
+        ).limit(1);
+
+        return plans[0];
+    };
+
+    createJourneyPlan = async (plan: Partial<JourneyPlan>): Promise<JourneyPlan> => {
+        const db = getDb();
+        if (!db) throw new Error("Database not available");
+
+        const { journeyPlans } = await import("../../shared/schema.js");
+
+        const [newPlan] = await db.insert(journeyPlans).values(plan as any).returning();
+        return newPlan;
+    };
+
+    updateJourneyPlan = async (id: string, updates: Partial<JourneyPlan>): Promise<JourneyPlan | undefined> => {
+        const db = getDb();
+        if (!db) return undefined;
+
+        const { journeyPlans } = await import("../../shared/schema.js");
+        const { eq } = await import("drizzle-orm");
+
+        const [updated] = await db.update(journeyPlans)
+            .set({ ...updates, updatedAt: new Date() })
+            .where(eq(journeyPlans.id, id))
+            .returning();
+
+        return updated;
+    };
+
+    deleteJourneyPlan = async (userId?: string, sessionId?: string): Promise<boolean> => {
+        const db = getDb();
+        if (!db) return false;
+
+        const { journeyPlans } = await import("../../shared/schema.js");
+        const { eq } = await import("drizzle-orm");
+
+        if (userId) {
+            await db.delete(journeyPlans).where(eq(journeyPlans.userId, userId));
+        } else if (sessionId) {
+            await db.delete(journeyPlans).where(eq(journeyPlans.sessionId, sessionId));
+        }
+
+        return true;
+    };
 }
 
 export const storage = new CombinedStorage();

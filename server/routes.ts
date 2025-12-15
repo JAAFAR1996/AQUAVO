@@ -12,6 +12,7 @@ import { createCartRouter } from "./routes/cart.js";
 import { createFavoritesRouter } from "./routes/favorites.js";
 import { createCouponRouter } from "./routes/coupons.js";
 import { createNewsletterRouter } from "./routes/newsletter.js";
+import journeyRoutes from "./routes/journey.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -48,6 +49,9 @@ export async function registerRoutes(
   app.use("/api/favorites", createFavoritesRouter());
   app.use("/api/coupons", createCouponRouter());
   app.use("/api/newsletter", createNewsletterRouter(storage));
+
+  // Journey wizard routes
+  app.use(journeyRoutes);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: any, res: any, _next: any) => {

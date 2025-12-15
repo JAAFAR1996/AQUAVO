@@ -246,7 +246,7 @@ export default function Footer() {
                 لسنا مجرد متجر - نحن عائلة تحب الأسماك مثلك
               </p>
               <p className="text-xs text-slate-500 border-t border-slate-700 pt-2 mt-2">
-                +5000 عائلة عراقية تثق بـ AQUAVO 🇮🇶
+
               </p>
             </div>
           </div>
