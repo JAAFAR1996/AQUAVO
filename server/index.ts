@@ -73,7 +73,7 @@ app.use(sanitizeBody);
 app.use(securityLogger);
 
 // Health check endpoint - BEFORE session middleware
-// This allows Railway to verify the app is running without hitting the database
+// This allows the hosting platform to verify the app is running without hitting the database
 app.get("/health", (_req, res) => {
   res.status(200).json({
     status: "ok",
