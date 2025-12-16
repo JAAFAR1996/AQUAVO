@@ -1,8 +1,24 @@
-import { Router, Request, Response, NextFunction } from "express";
+import express, { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage/index.js";
 
+// Extend express-session types
+declare module "express-session" {
+    interface SessionData {
+        userId?: string;
+    }
+}
+
 const router = Router();
+
+// Helper to get session data safely
+const getSessionUserId = (req: express.Request): string | undefined => {
+    return (req as any).session?.userId;
+};
+
+const getSessionId = (req: express.Request): string => {
+    return (req as any).sessionID || "";
+};
 
 // Validation schema for journey plan data
 const journeyPlanSchema = z.object({
@@ -24,11 +40,11 @@ const journeyPlanSchema = z.object({
 });
 
 // Save or update journey plan
-router.post("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/api/journey/plans", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
         const planData = journeyPlanSchema.parse(req.body);
-        const userId = (req.session as any)?.userId;
-        const sessionId = req.sessionID;
+        const userId = getSessionUserId(req);
+        const sessionId = getSessionId(req);
 
         // Check for existing plan
         const existingPlan = await storage.getJourneyPlan(userId, sessionId);
@@ -61,10 +77,10 @@ router.post("/api/journey/plans", async (req: Request, res: Response, next: Next
 });
 
 // Get journey plan
-router.get("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/api/journey/plans", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-        const userId = (req.session as any)?.userId;
-        const sessionId = req.sessionID;
+        const userId = getSessionUserId(req);
+        const sessionId = getSessionId(req);
 
         const plan = await storage.getJourneyPlan(userId, sessionId);
 
@@ -75,10 +91,10 @@ router.get("/api/journey/plans", async (req: Request, res: Response, next: NextF
 });
 
 // Delete journey plan (reset)
-router.delete("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/api/journey/plans", async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     try {
-        const userId = (req.session as any)?.userId;
-        const sessionId = req.sessionID;
+        const userId = getSessionUserId(req);
+        const sessionId = getSessionId(req);
 
         await storage.deleteJourneyPlan(userId, sessionId);
 
@@ -89,3 +105,4 @@ router.delete("/api/journey/plans", async (req: Request, res: Response, next: Ne
 });
 
 export default router;
+
