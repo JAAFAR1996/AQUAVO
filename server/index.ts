@@ -14,6 +14,18 @@ import { verifyEmailConnection } from "./utils/email.js";
 import { getDb } from "./db.js";
 import { sql } from "drizzle-orm";
 
+// Global error handlers to prevent silent crashes
+process.on('uncaughtException', (error) => {
+  console.error('[FATAL] Uncaught Exception:', error);
+  // Give time for logs to flush
+  setTimeout(() => process.exit(1), 1000);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+  // Don't exit immediately - just log
+});
+
 // Extend express Request type for rawBody
 declare global {
   namespace Express {
