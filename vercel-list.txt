@@ -1,0 +1,75 @@
+﻿node.exe : Vercel CLI 50.0.1
+At C:\Users\jaafa\AppData\Roaming\npm\vercel.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/vercel/dist/vc.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 50.0.1:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Retrieving projectΓÇª
+Fetching deployments in jaafar1996s-projects
+> Deployments for jaafar1996s-projects/fist-live [423ms]
+
+  Age     Deployment                                                      Status      Environment     Duration     
+Username       
+  8m      https://fist-live-tr3fvfew7-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  13m     https://fist-live-d760tl703-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  18m     https://fist-live-3le3tzky7-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  1h      https://fist-live-4c9zoppyt-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  3h      https://fist-live-jkzhwih5f-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  5h      https://fist-live-7a7p871zx-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  5h      https://fist-live-262r797yn-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  6h      https://fist-live-7p3lrep8f-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  6h      https://fist-live-8wryq067u-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  8h      https://fist-live-rh7zq5115-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  11h     https://fist-live-7fnk3cbd0-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  11h     https://fist-live-c6ojreq8i-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  12h     https://fist-live-liryalg43-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  12h     https://fist-live-oeishznjc-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  13h     https://fist-live-jkun7wujq-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  14h     https://fist-live-3e4vulp1b-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  14h     https://fist-live-dvyha5239-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+  14h     https://fist-live-pn4qenhbu-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  14h     https://fist-live-asdkqh3iv-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      2m           
+jaafar1996     
+  14h     https://fist-live-h23l1yfm9-jaafar1996s-projects.vercel.app     ΓùÅ Ready     Production      1m           
+jaafar1996     
+
+> To display the next page, run `vercel ls --next 1765830343052`
+https://fist-live-tr3fvfew7-jaafar1996s-projects.vercel.app
+https://fist-live-d760tl703-jaafar1996s-projects.vercel.app
+https://fist-live-3le3tzky7-jaafar1996s-projects.vercel.app
+https://fist-live-4c9zoppyt-jaafar1996s-projects.vercel.app
+https://fist-live-jkzhwih5f-jaafar1996s-projects.vercel.app
+https://fist-live-7a7p871zx-jaafar1996s-projects.vercel.app
+https://fist-live-262r797yn-jaafar1996s-projects.vercel.app
+https://fist-live-7p3lrep8f-jaafar1996s-projects.vercel.app
+https://fist-live-8wryq067u-jaafar1996s-projects.vercel.app
+https://fist-live-rh7zq5115-jaafar1996s-projects.vercel.app
+https://fist-live-7fnk3cbd0-jaafar1996s-projects.vercel.app
+https://fist-live-c6ojreq8i-jaafar1996s-projects.vercel.app
+https://fist-live-liryalg43-jaafar1996s-projects.vercel.app
+https://fist-live-oeishznjc-jaafar1996s-projects.vercel.app
+https://fist-live-jkun7wujq-jaafar1996s-projects.vercel.app
+https://fist-live-3e4vulp1b-jaafar1996s-projects.vercel.app
+https://fist-live-dvyha5239-jaafar1996s-projects.vercel.app
+https://fist-live-pn4qenhbu-jaafar1996s-projects.vercel.app
+https://fist-live-asdkqh3iv-jaafar1996s-projects.vercel.app
+https://fist-live-h23l1yfm9-jaafar1996s-projects.vercel.app

@@ -1,0 +1,14 @@
+﻿node.exe : Vercel CLI 50.0.1
+At C:\Users\jaafa\AppData\Roaming\npm\vercel.ps1:24 char:5
++     & "node$exe"  "$basedir/node_modules/vercel/dist/vc.js" $args
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Vercel CLI 50.0.1:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Fetching deployment "fist-live-tr3fvfew7-jaafar1996s-projects.vercel.app" in jaafar1996s-projects
+Displaying runtime logs for deployment fist-live-tr3fvfew7-jaafar1996s-projects.vercel.app 
+(dpl_6tR9fvtw8qvbBZduuTjk6wXn2RMr) starting from Dec Tu 14:10:19.70
+
+waiting for new logs...
+WARN! Exceeded query duration limit of 5 minutes
+

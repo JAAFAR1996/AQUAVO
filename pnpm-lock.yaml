@@ -170,6 +170,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.3)
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
       express:
         specifier: ^4.21.2
         version: 4.22.1
@@ -316,9 +319,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.4
         version: 0.31.8
-      esbuild:
-        specifier: ^0.25.0
-        version: 0.25.12
       happy-dom:
         specifier: ^20.0.11
         version: 20.0.11
