@@ -4,7 +4,5 @@ buildCommand = "pnpm install --prod=false && pnpm run build"
 
 [deploy]
 startCommand = "pnpm run start"
-healthcheckPath = "/api/system/seed"
-healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
