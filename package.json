@@ -6,7 +6,7 @@
   "packageManager": "pnpm@10.0.0",
   "engines": {
     "node": "20.x",
-    "pnpm": "9.x"
+    "pnpm": "10.x"
   },
   "scripts": {
     "dev:client": "vite dev --port 5000",
