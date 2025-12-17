@@ -30,6 +30,9 @@
     "baseUrl": ".",
     "types": [
       "node",
+      "express",
+      "express-session",
+      "ws",
       "vite/client"
     ],
     "paths": {
