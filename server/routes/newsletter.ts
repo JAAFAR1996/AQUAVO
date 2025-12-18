@@ -1,12 +1,12 @@
-
-import { Router, Request, Response } from "express";
+import type { Router as RouterType, Request, Response } from "express";
+import { Router } from "express";
 import { type IStorage } from "../storage/index.js";
 import { insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { z } from "zod";
 import { sendWelcomeEmail, sendProductDiscountEmail } from "../utils/email.js";
 
 // Helper function to broadcast discount
-export async function broadcastDiscountForProduct(storage: IStorage, productId: string) {
+export async function broadcastDiscountForProduct(storage: IStorage, productId: string): Promise<number> {
     const product = await storage.getProduct(productId);
     if (!product) {
         throw new Error("Product not found");
@@ -35,17 +35,18 @@ export async function broadcastDiscountForProduct(storage: IStorage, productId: 
     return subscribers.length;
 }
 
-export function createNewsletterRouter(storage: IStorage) {
+export function createNewsletterRouter(storage: IStorage): RouterType {
     const router = Router();
 
-    router.post("/subscribe", async (req: Request, res: Response) => {
+    router.post("/subscribe", async (req: Request, res: Response): Promise<void> => {
         try {
             const data = insertNewsletterSubscriptionSchema.parse(req.body);
 
             // Check if already subscribed
             const existing = await storage.getNewsletterSubscriptionByEmail(data.email);
             if (existing) {
-                return res.status(400).json({ message: "هذا البريد الإلكتروني مشترك بالفعل" });
+                res.status(400).json({ message: "هذا البريد الإلكتروني مشترك بالفعل" });
+                return;
             }
 
             await storage.createNewsletterSubscription(data);
@@ -69,11 +70,12 @@ export function createNewsletterRouter(storage: IStorage) {
     });
 
     // Admin only: Broadcast product discount to all subscribers
-    router.post("/broadcast-discount", async (req: Request, res: Response) => {
+    router.post("/broadcast-discount", async (req: Request, res: Response): Promise<void> => {
         try {
             const { productId } = req.body;
             if (!productId) {
-                return res.status(400).json({ message: "Product ID is required" });
+                res.status(400).json({ message: "Product ID is required" });
+                return;
             }
 
             const count = await broadcastDiscountForProduct(storage, productId);

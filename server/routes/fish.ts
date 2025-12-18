@@ -1,15 +1,16 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import type { IStorage } from "../storage/index.js";
 import { freshwaterFish } from "../../shared/initial-fish-data.js";
 
-export function createFishRouter(storage: IStorage) {
+export function createFishRouter(storage: IStorage): RouterType {
   const router = Router();
 
   /**
    * GET /api/fish
    * Get all fish species with fallback to static data
    */
-  router.get("/", async (_req: Request, res: Response, next: NextFunction) => {
+  router.get("/", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       // Try to get from database first
       let fish = await storage.getAllFishSpecies();
@@ -34,9 +35,9 @@ export function createFishRouter(storage: IStorage) {
    * GET /api/fish/:id
    * Get a specific fish species by ID
    */
-  router.get("/:id", async (req: Request, res: Response, next: NextFunction) => {
+  router.get("/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const { id } = req.params;
+      const { id } = req.params as { id: string };
       let fish = await storage.getFishSpeciesById(id);
 
       // Fallback to static data if not found in database
@@ -45,7 +46,8 @@ export function createFishRouter(storage: IStorage) {
       }
 
       if (!fish) {
-        return res.status(404).json({ message: "Fish species not found" });
+        res.status(404).json({ message: "Fish species not found" });
+        return;
       }
 
       res.json(fish);
@@ -54,13 +56,14 @@ export function createFishRouter(storage: IStorage) {
       // Final fallback
       const fish = freshwaterFish.find((f: any) => f.id === req.params.id);
       if (fish) {
-        return res.json(fish);
+        res.json(fish);
+        return;
       }
       next(err);
     }
   });
 
-  router.post("/breeding-plan/email", async (req: Request, res: Response) => {
+  router.post("/breeding-plan/email", async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, speciesId, speciesData, inputData, timeline, yearlyProduction } = req.body;
 

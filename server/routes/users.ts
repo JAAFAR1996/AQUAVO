@@ -1,4 +1,5 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { insertUserSchema, insertUserAddressSchema, insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
@@ -8,11 +9,11 @@ import { hashPassword, verifyPassword } from "../utils/auth.js";
 import crypto from "crypto";
 
 
-export function createUserRouter() {
+export function createUserRouter(): RouterType {
     const router = Router();
 
     // Register
-    router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, password, fullName, phone } = req.body;
             const existingUser = await storage.getUserByEmail(email);
@@ -68,7 +69,7 @@ export function createUserRouter() {
     });
 
     // Login
-    router.post("/login", authLimiter, async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/login", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, password } = req.body;
             const user = await storage.getUserByEmail(email);
@@ -97,10 +98,13 @@ export function createUserRouter() {
     });
 
     // Logout
-    router.post("/logout", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/logout", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         if ((req as any).session) {
             (req as any).session.destroy((err: any) => {
-                if (err) return next(err);
+                if (err) {
+                    next(err);
+                    return;
+                }
                 res.json({ message: "Logged out" });
             });
         } else {
@@ -109,7 +113,7 @@ export function createUserRouter() {
     });
 
     // Get Current User
-    router.get("/user", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/user", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             if (!sess?.userId) {
@@ -124,7 +128,7 @@ export function createUserRouter() {
     });
 
     // Forgot Password
-    router.post("/auth/forgot-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/auth/forgot-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email } = req.body;
             const user = await storage.getUserByEmail(email);
@@ -143,7 +147,7 @@ export function createUserRouter() {
     });
 
     // Reset Password
-    router.post("/auth/reset-password", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/auth/reset-password", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { token, newPassword } = req.body;
             const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
@@ -165,10 +169,13 @@ export function createUserRouter() {
 
 
     // Addresses
-    router.get("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) return res.sendStatus(401);
+            if (!sess?.userId) {
+                res.sendStatus(401);
+                return;
+            }
             const addresses = await storage.getUserAddresses(sess.userId);
             res.json(addresses);
         } catch (err) {
@@ -176,10 +183,13 @@ export function createUserRouter() {
         }
     });
 
-    router.post("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) return res.sendStatus(401);
+            if (!sess?.userId) {
+                res.sendStatus(401);
+                return;
+            }
             const parsed = insertUserAddressSchema.parse({ ...req.body, userId: sess.userId });
             const address = await storage.createUserAddress(parsed);
             res.status(201).json(address);
@@ -189,10 +199,13 @@ export function createUserRouter() {
     });
 
     // Coupons (My Coupons)
-    router.get("/coupons/my-coupons", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/coupons/my-coupons", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            if (!sess?.userId) return res.sendStatus(401);
+            if (!sess?.userId) {
+                res.sendStatus(401);
+                return;
+            }
             const coupons = await storage.getCouponsByUserId(sess.userId);
             res.json(coupons);
         } catch (err) {
@@ -201,13 +214,18 @@ export function createUserRouter() {
     });
 
     // Validate Coupon Public
-    router.post("/coupons/validate", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/coupons/validate", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { code, totalAmount } = req.body;
             const coupon = await storage.getCouponByCode(code);
-            if (!coupon) { res.status(404).json({ message: "Invalid" }); return; }
+            if (!coupon) {
+                res.status(404).json({ message: "Invalid" });
+                return;
+            }
             res.json(coupon);
-        } catch (err) { next(err); }
+        } catch (err) {
+            next(err);
+        }
     });
 
     return router;

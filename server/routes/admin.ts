@@ -1,10 +1,11 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 
-export function createAdminRouter() {
+export function createAdminRouter(): RouterType {
     const router = Router();
 
     // Apply admin check to all routes in this router
@@ -14,7 +15,7 @@ export function createAdminRouter() {
     // router.get("/stats", ...);
 
     // Orders
-    router.get("/orders", async (req, res, next) => {
+    router.get("/orders", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const orders = await storage.getOrders();
 
@@ -46,9 +47,10 @@ export function createAdminRouter() {
         }
     });
 
-    router.put("/orders/:id", async (req, res, next) => {
+    router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const order = await storage.updateOrder(req.params.id, req.body);
+            const { id } = req.params as { id: string };
+            const order = await storage.updateOrder(id, req.body);
 
             if (order) {
                 await storage.createAuditLog({
@@ -65,7 +67,7 @@ export function createAdminRouter() {
     });
 
     // Users
-    router.get("/users", async (req, res, next) => {
+    router.get("/users", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const users = await storage.getUsers();
             res.json(users);
@@ -75,58 +77,61 @@ export function createAdminRouter() {
     });
 
     // Discounts
-    router.get("/discounts", async (req, res, next) => {
+    router.get("/discounts", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const discounts = await storage.getDiscounts();
             res.json(discounts);
         } catch (err) { next(err); }
     });
 
-    router.post("/discounts", async (req, res, next) => {
+    router.post("/discounts", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const discount = await storage.createDiscount(req.body);
             res.status(201).json(discount);
         } catch (err) { next(err); }
     });
 
-    router.delete("/discounts/:id", async (req, res, next) => {
+    router.delete("/discounts/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            await storage.deleteDiscount(req.params.id);
+            const { id } = req.params as { id: string };
+            await storage.deleteDiscount(id);
             res.json({ message: "Deleted" });
         } catch (err) { next(err); }
     });
 
     // Coupons
-    router.get("/coupons", async (req, res, next) => {
+    router.get("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const coupons = await storage.getCoupons();
             res.json(coupons);
         } catch (err) { next(err); }
     });
 
-    router.post("/coupons", async (req, res, next) => {
+    router.post("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const coupon = await storage.createCoupon(req.body);
             res.status(201).json(coupon);
         } catch (err) { next(err); }
     });
 
-    router.put("/coupons/:id", async (req, res, next) => {
+    router.put("/coupons/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const coupon = await storage.updateCoupon(req.params.id, req.body);
+            const { id } = req.params as { id: string };
+            const coupon = await storage.updateCoupon(id, req.body);
             res.json(coupon);
         } catch (err) { next(err); }
     });
 
-    router.delete("/coupons/:id", async (req, res, next) => {
+    router.delete("/coupons/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            await storage.deleteCoupon(req.params.id);
+            const { id } = req.params as { id: string };
+            await storage.deleteCoupon(id);
             res.json({ message: "Deleted" });
         } catch (err) { next(err); }
     });
 
     // Audit Logs
-    router.get("/audit-logs", async (req, res, next) => {
+    router.get("/audit-logs", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const logs = await storage.getAuditLogs(req.query as any);
             res.json(logs);
@@ -134,7 +139,7 @@ export function createAdminRouter() {
     });
 
     // Gallery Management
-    router.get("/gallery/submissions", async (req, res, next) => {
+    router.get("/gallery/submissions", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             // False = get all (pending + approved)
             const subs = await storage.getGallerySubmissions(false);
@@ -142,44 +147,49 @@ export function createAdminRouter() {
         } catch (err) { next(err); }
     });
 
-    router.post("/gallery/approve/:id", async (req, res, next) => {
+    router.post("/gallery/approve/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const sub = await storage.approveGallerySubmission(req.params.id);
+            const { id } = req.params as { id: string };
+            const sub = await storage.approveGallerySubmission(id);
             res.json(sub);
         } catch (err) { next(err); }
     });
 
-    router.post("/gallery/reject/:id", async (req, res, next) => {
+    router.post("/gallery/reject/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            await storage.deleteGallerySubmission(req.params.id);
+            const { id } = req.params as { id: string };
+            await storage.deleteGallerySubmission(id);
             res.json({ message: "Rejected" });
         } catch (err) { next(err); }
     });
 
-    router.post("/gallery/prize", async (req, res, next) => {
+    router.post("/gallery/prize", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const prize = await storage.createOrUpdateGalleryPrize(req.body);
             res.json(prize);
         } catch (err) { next(err); }
     });
 
-    router.post("/gallery/set-winner/:id", async (req, res, next) => {
+    router.post("/gallery/set-winner/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            const { id } = req.params as { id: string };
             const { nanoid } = await import("nanoid");
             // Logic for winner
             const currentPrize = await storage.getCurrentGalleryPrize();
             if (!currentPrize) {
-                return res.status(400).json({
+                res.status(400).json({
                     message: "لا توجد جائزة نشطة للشهر الحالي. يرجى إنشاء جائزة أولاً."
                 });
+                return;
             }
 
             // Find submission to get userId
             const submissions = await storage.getGallerySubmissions(false);
-            const submission = submissions.find(s => s.id === req.params.id);
+            const submission = submissions.find(s => s.id === id);
 
             if (!submission) {
-                return res.status(404).json({ message: "Submission not found" });
+                res.status(404).json({ message: "Submission not found" });
+                return;
             }
 
             // Use admin-provided coupon code or generate one automatically
@@ -204,25 +214,28 @@ export function createAdminRouter() {
                 userId: submission.userId || undefined
             });
 
-            await storage.setGalleryWinner(req.params.id, currentPrize.month, currentPrize.prize, code);
+            await storage.setGalleryWinner(id, currentPrize.month, currentPrize.prize, code);
             res.json({ message: "Winner set", coupon: code });
         } catch (err) { next(err); }
     });
 
     // Delete a past winner (removes submission and image from Cloudinary)
-    router.delete("/gallery/winner/:id", async (req, res, next) => {
+    router.delete("/gallery/winner/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            const { id } = req.params as { id: string };
             // Get the submission first to retrieve the image URL
             const submissions = await storage.getGallerySubmissions(false);
-            const submission = submissions.find(s => s.id === req.params.id);
+            const submission = submissions.find(s => s.id === id);
 
             if (!submission) {
-                return res.status(404).json({ message: "Submission not found" });
+                res.status(404).json({ message: "Submission not found" });
+                return;
             }
 
             // Only allow deletion of winners
             if (!submission.isWinner) {
-                return res.status(400).json({ message: "This submission is not a winner" });
+                res.status(400).json({ message: "This submission is not a winner" });
+                return;
             }
 
             // Delete the image from Cloudinary if it exists and is a Cloudinary URL
@@ -237,14 +250,14 @@ export function createAdminRouter() {
             }
 
             // Delete the submission from database
-            await storage.deleteGallerySubmission(req.params.id);
+            await storage.deleteGallerySubmission(id);
 
             // Audit Log
             await storage.createAuditLog({
                 userId: getSession(req)?.userId || "admin",
                 action: "delete",
                 entityType: "gallery_winner",
-                entityId: req.params.id,
+                entityId: id,
                 changes: { customerName: submission.customerName, winnerMonth: submission.winnerMonth }
             });
 
@@ -255,7 +268,7 @@ export function createAdminRouter() {
     // ============ REVIEWS MANAGEMENT ============
 
     // Get all reviews for admin
-    router.get("/reviews", async (req, res, next) => {
+    router.get("/reviews", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const reviews = await storage.getAllReviews();
 
@@ -275,21 +288,23 @@ export function createAdminRouter() {
     });
 
     // Delete a review (admin only)
-    router.delete("/reviews/:id", async (req, res, next) => {
+    router.delete("/reviews/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const review = await storage.getReview(req.params.id);
+            const { id } = req.params as { id: string };
+            const review = await storage.getReview(id);
             if (!review) {
-                return res.status(404).json({ message: "المراجعة غير موجودة" });
+                res.status(404).json({ message: "المراجعة غير موجودة" });
+                return;
             }
 
-            await storage.deleteReview(req.params.id);
+            await storage.deleteReview(id);
 
             // Audit Log
             await storage.createAuditLog({
                 userId: getSession(req)?.userId || "admin",
                 action: "delete",
                 entityType: "review",
-                entityId: req.params.id,
+                entityId: id,
                 changes: { comment: review.comment?.substring(0, 50) }
             });
 
@@ -299,7 +314,7 @@ export function createAdminRouter() {
 
     // ============ PRODUCTS MANAGEMENT ============
 
-    router.post("/products", async (req, res, next) => {
+    router.post("/products", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const data = req.body;
 
@@ -340,8 +355,9 @@ export function createAdminRouter() {
         } catch (err) { next(err); }
     });
 
-    router.patch("/products/:id", async (req, res, next) => {
+    router.patch("/products/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
+            const { id } = req.params as { id: string };
             const updates = req.body;
 
             // Handle image upload if provided
@@ -365,7 +381,7 @@ export function createAdminRouter() {
                 delete updates.imageBase64;
             }
 
-            const product = await storage.updateProduct(req.params.id, updates);
+            const product = await storage.updateProduct(id, updates);
 
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
@@ -399,9 +415,10 @@ export function createAdminRouter() {
         } catch (err: any) { next(err); }
     });
 
-    router.delete("/products/:id", async (req, res, next) => {
+    router.delete("/products/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const success = await storage.deleteProduct(req.params.id);
+            const { id } = req.params as { id: string };
+            const success = await storage.deleteProduct(id);
             if (!success) {
                 res.status(404).json({ message: "Product not found" });
                 return;
@@ -412,7 +429,7 @@ export function createAdminRouter() {
                 userId: getSession(req)?.userId || "admin",
                 action: "delete",
                 entityType: "product",
-                entityId: req.params.id,
+                entityId: id,
                 changes: {}
             });
 
@@ -423,7 +440,7 @@ export function createAdminRouter() {
     // ============ SETTINGS MANAGEMENT ============
 
     // Get all settings
-    router.get("/settings", async (req, res, next) => {
+    router.get("/settings", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const allSettings = await storage.getAllSettings();
             res.json(allSettings);

@@ -1,13 +1,14 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { insertOrderSchema } from "../../shared/schema.js";
 
-export function createOrderRouter() {
+export function createOrderRouter(): RouterType {
     const router = Router();
 
     // Create Order
-    router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const userId = sess?.userId;
@@ -37,7 +38,7 @@ export function createOrderRouter() {
     });
 
     // Get My Orders
-    router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const orders = await storage.getOrders(sess?.userId);
@@ -48,9 +49,10 @@ export function createOrderRouter() {
     });
 
     // Track Order Publicly
-    router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const order = await storage.getOrder(req.params.orderNumber);
+            const { orderNumber } = req.params as { orderNumber: string };
+            const order = await storage.getOrder(orderNumber);
             if (!order) {
                 res.status(404).json({ message: "Order not found" });
                 return;

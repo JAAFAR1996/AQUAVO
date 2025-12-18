@@ -1,14 +1,15 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { saveBase64Image } from "../middleware/upload.js";
 
 const getSessionHelper = (req: Request) => (req as any).session;
 
-export function createGalleryRouter() {
+export function createGalleryRouter(): RouterType {
     const router = Router();
 
-    const getSubmissions = async (req: Request, res: Response, next: NextFunction) => {
+    const getSubmissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const submissions = await storage.getGallerySubmissions(true);
             res.json(submissions);
@@ -22,7 +23,7 @@ export function createGalleryRouter() {
     router.get("/submissions", getSubmissions);
 
     // Submit New
-    router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { customerName, customerPhone, tankSize, description, imageBase64 } = req.body;
             if (!customerName || !imageBase64) {
@@ -52,9 +53,9 @@ export function createGalleryRouter() {
     });
 
     // Vote/Like
-    router.post("/:id/like", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/:id/like", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params;
+            const { id } = req.params as { id: string };
             const ip = req.ip || req.socket.remoteAddress || 'unknown';
             const sess = getSessionHelper(req);
 
@@ -71,7 +72,7 @@ export function createGalleryRouter() {
     });
 
     // Get Current Prize
-    router.get("/prize", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/prize", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const prize = await storage.getCurrentGalleryPrize();
             res.json(prize);
@@ -81,7 +82,7 @@ export function createGalleryRouter() {
     });
 
     // Get Current Prize (Legacy path)
-    router.get("/current-prize", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/current-prize", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const prize = await storage.getCurrentGalleryPrize();
             res.json(prize);
@@ -91,11 +92,12 @@ export function createGalleryRouter() {
     });
 
     // Check for winning submission for celebration
-    router.get("/my-winning-submission", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/my-winning-submission", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSessionHelper(req);
             if (!sess?.userId) {
-                return res.json(null); // No user, no celebration
+                res.json(null); // No user, no celebration
+                return;
             }
 
             const submissions = await storage.getGallerySubmissions(false);
@@ -110,19 +112,23 @@ export function createGalleryRouter() {
     });
 
     // Acknowledge celebration
-    router.post("/ack-celebration/:id", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/ack-celebration/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { id } = req.params;
+            const { id } = req.params as { id: string };
             const sess = getSessionHelper(req);
 
             const submissions = await storage.getGallerySubmissions(false);
             const sub = submissions.find(s => s.id === id);
 
-            if (!sub) return res.status(404).json({ message: "Not found" });
+            if (!sub) {
+                res.status(404).json({ message: "Not found" });
+                return;
+            }
 
             // Security check
             if (sub.userId && sub.userId !== sess?.userId) {
-                return res.status(403).json({ message: "Forbidden" });
+                res.status(403).json({ message: "Forbidden" });
+                return;
             }
 
             await storage.markCelebrationSeen(id);

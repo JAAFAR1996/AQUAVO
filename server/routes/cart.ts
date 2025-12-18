@@ -1,8 +1,9 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { z } from "zod";
 
-export function createCartRouter() {
+export function createCartRouter(): RouterType {
     const router = Router();
 
     const getSessionUserId = (req: Request): string | undefined => {
@@ -10,17 +11,18 @@ export function createCartRouter() {
     };
 
     // Middleware to ensure user is logged in
-    const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+    const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
         const userId = getSessionUserId(req);
         if (!userId) {
-            return res.status(401).json({ message: "Unauthorized" });
+            res.status(401).json({ message: "Unauthorized" });
+            return;
         }
         next();
     };
 
     router.use(requireAuth);
 
-    router.get("/", async (req: Request, res: Response, next: NextFunction) => {
+    router.get("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
             const items = await storage.getCartItems(userId);
@@ -35,11 +37,14 @@ export function createCartRouter() {
         quantity: z.number().int().positive()
     });
 
-    router.post("/", async (req: Request, res: Response, next: NextFunction) => {
+    router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
             const user = await storage.getUser(userId);
-            if (!user) return res.status(401).json({ message: "User not found" });
+            if (!user) {
+                res.status(401).json({ message: "User not found" });
+                return;
+            }
 
             const data = addItemSchema.parse(req.body);
             const item = await storage.addToCart(userId, data.productId, data.quantity);
@@ -53,13 +58,16 @@ export function createCartRouter() {
         quantity: z.number().int().min(0)
     });
 
-    router.put("/:productId", async (req: Request, res: Response, next: NextFunction) => {
+    router.put("/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
             const user = await storage.getUser(userId);
-            if (!user) return res.status(401).json({ message: "User not found" });
+            if (!user) {
+                res.status(401).json({ message: "User not found" });
+                return;
+            }
 
-            const { productId } = req.params;
+            const { productId } = req.params as { productId: string };
             const data = updateItemSchema.parse(req.body);
 
             if (data.quantity === 0) {
@@ -74,10 +82,10 @@ export function createCartRouter() {
         }
     });
 
-    router.delete("/:productId", async (req: Request, res: Response, next: NextFunction) => {
+    router.delete("/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
-            const { productId } = req.params;
+            const { productId } = req.params as { productId: string };
             await storage.removeFromCart(userId, productId);
             res.status(204).end();
         } catch (err) {
@@ -85,7 +93,7 @@ export function createCartRouter() {
         }
     });
 
-    router.delete("/", async (req: Request, res: Response, next: NextFunction) => {
+    router.delete("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
             await storage.clearCart(userId);

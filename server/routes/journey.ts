@@ -1,4 +1,5 @@
-import { Router, Request, Response, NextFunction } from "express";
+import type { Router as RouterType, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 import { z } from "zod";
 import { storage } from "../storage/index.js";
 
@@ -9,7 +10,7 @@ declare module "express-session" {
     }
 }
 
-const router = Router();
+const router: RouterType = Router();
 
 // Helper to get session data safely
 const getSessionUserId = (req: Request): string | undefined => {
@@ -40,7 +41,7 @@ const journeyPlanSchema = z.object({
 });
 
 // Save or update journey plan
-router.post("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.post("/api/journey/plans", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const planData = journeyPlanSchema.parse(req.body);
         const userId = getSessionUserId(req);
@@ -54,7 +55,8 @@ router.post("/api/journey/plans", async (req: Request, res: Response, next: Next
                 ...planData,
                 updatedAt: new Date(),
             });
-            return res.json({ success: true, data: updated });
+            res.json({ success: true, data: updated });
+            return;
         }
 
         const plan = await storage.createJourneyPlan({
@@ -66,18 +68,19 @@ router.post("/api/journey/plans", async (req: Request, res: Response, next: Next
         res.json({ success: true, data: plan });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return res.status(400).json({
+            res.status(400).json({
                 success: false,
                 error: "Invalid plan data",
                 details: error.errors,
             });
+            return;
         }
         next(error);
     }
 });
 
 // Get journey plan
-router.get("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.get("/api/journey/plans", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = getSessionUserId(req);
         const sessionId = getSessionId(req);
@@ -91,7 +94,7 @@ router.get("/api/journey/plans", async (req: Request, res: Response, next: NextF
 });
 
 // Delete journey plan (reset)
-router.delete("/api/journey/plans", async (req: Request, res: Response, next: NextFunction) => {
+router.delete("/api/journey/plans", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const userId = getSessionUserId(req);
         const sessionId = getSessionId(req);
