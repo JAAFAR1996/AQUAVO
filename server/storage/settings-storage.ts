@@ -43,10 +43,10 @@ export class SettingsStorage {
     async updateSetting(key: string, value: string): Promise<void> {
         const db = this.ensureDb();
         await db.insert(settings)
-            .values({ key, value, updatedAt: new Date() })
+            .values({ key, value } as any)
             .onConflictDoUpdate({
                 target: settings.key,
-                set: { value, updatedAt: new Date() }
+                set: { value, updatedAt: sql`now()` }
             });
     }
 
@@ -58,10 +58,10 @@ export class SettingsStorage {
 
         for (const [key, value] of Object.entries(settingsData)) {
             await db.insert(settings)
-                .values({ key, value, updatedAt: new Date() })
+                .values({ key, value } as any)
                 .onConflictDoUpdate({
                     target: settings.key,
-                    set: { value, updatedAt: new Date() }
+                    set: { value, updatedAt: sql`now()` }
                 });
         }
     }

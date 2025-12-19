@@ -43,14 +43,14 @@ export class UserStorage {
 
     async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
         const db = this.ensureDb();
-        const result = await db.update(users).set({ ...updates, updatedAt: new Date() }).where(eq(users.id, id)).returning();
+        const result = await db.update(users).set({ ...updates, updatedAt: new Date() } as any).where(eq(users.id, id)).returning();
         return result[0];
     }
 
     // Address Methods
     async createUserAddress(address: InsertUserAddress): Promise<UserAddress> {
         const db = this.ensureDb();
-        const result = await db.insert(userAddresses).values(address).returning();
+        const result = await db.insert(userAddresses).values(address as any).returning();
         return result[0];
     }
 
@@ -99,7 +99,7 @@ export class UserStorage {
 
     async createNewsletterSubscription(subscription: InsertNewsletterSubscription): Promise<NewsletterSubscription> {
         const db = this.ensureDb();
-        const result = await db.insert(newsletterSubscriptions).values(subscription).returning();
+        const result = await db.insert(newsletterSubscriptions).values(subscription as any).returning();
         return result[0];
     }
 

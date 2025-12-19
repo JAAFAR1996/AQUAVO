@@ -256,7 +256,7 @@ export class ProductStorage {
         if (sanitizedUpdates.originalPrice === '') sanitizedUpdates.originalPrice = undefined;
         if (sanitizedUpdates.rating === '') sanitizedUpdates.rating = '0';
 
-        const result = await db.update(products).set({ ...sanitizedUpdates, updatedAt: new Date() }).where(eq(products.id, id)).returning();
+        const result = await db.update(products).set({ ...sanitizedUpdates, updatedAt: new Date() } as any).where(eq(products.id, id)).returning();
         return result[0];
     }
 
@@ -264,7 +264,7 @@ export class ProductStorage {
         const db = this.ensureDb();
         // Soft delete
         const result = await db.update(products)
-            .set({ deletedAt: new Date(), updatedAt: new Date() })
+            .set({ deletedAt: new Date(), updatedAt: new Date() } as any)
             .where(eq(products.id, id))
             .returning();
         return result.length > 0;
@@ -309,7 +309,7 @@ export class ProductStorage {
     async updateReview(id: string, updates: Partial<Review>): Promise<Review | undefined> {
         const db = this.ensureDb();
         const result = await db.update(reviews)
-            .set({ ...updates, updatedAt: new Date() })
+            .set({ ...updates, updatedAt: new Date() } as any)
             .where(eq(reviews.id, id))
             .returning();
         return result[0];
@@ -355,7 +355,7 @@ export class ProductStorage {
 
         // Increment helpful count
         await db.update(reviews)
-            .set({ helpfulCount: sql`COALESCE(${reviews.helpfulCount}, 0) + 1` })
+            .set({ helpfulCount: sql`COALESCE(${reviews.helpfulCount}, 0) + 1` } as any)
             .where(eq(reviews.id, reviewId));
 
         return true;
@@ -380,7 +380,7 @@ export class ProductStorage {
                 rating: avgRating,
                 reviewCount: reviewCount,
                 updatedAt: new Date()
-            })
+            } as any)
             .where(eq(products.id, productId));
     }
 
@@ -407,7 +407,7 @@ export class ProductStorage {
 
     async updateDiscount(id: string, updates: Partial<Discount>): Promise<Discount | undefined> {
         const db = this.ensureDb();
-        const result = await db.update(discounts).set({ ...updates, updatedAt: new Date() }).where(eq(discounts.id, id)).returning();
+        const result = await db.update(discounts).set({ ...updates, updatedAt: new Date() } as any).where(eq(discounts.id, id)).returning();
         return result[0];
     }
 

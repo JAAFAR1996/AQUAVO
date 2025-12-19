@@ -54,7 +54,7 @@ export async function registerRoutes(
   app.use(journeyRoutes);
 
   // Error handling middleware
-  app.use("/api", (err: any, _req: any, res: any, _next: any) => {
+  app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error("API Error:", err);
     const status = err.status || 500;
     const message = err.message || "Internal server error";
@@ -70,7 +70,7 @@ export async function registerRoutes(
     res.status(status).json({ message });
   });
 
-  app.use("/api", (_req: any, res: any) => {
+  app.use("/api", (_req: express.Request, res: express.Response) => {
     res.status(404).json({ message: "Not Found" });
   });
 

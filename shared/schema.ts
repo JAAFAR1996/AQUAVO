@@ -419,13 +419,8 @@ export const favoritesRelations = relations(favorites, ({ one }) => ({
   }),
 }));
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  email: true,
-  passwordHash: true,
-  fullName: true,
-  role: true,
-  phone: true,
-}).extend({
+// Explicit Zod schema to avoid drizzle-zod type inference issues
+export const insertUserSchema = z.object({
   email: z.string().email("Valid email is required"),
   passwordHash: z.string().min(1, "Password is required"),
   fullName: z.string().optional(),
@@ -435,21 +430,43 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export const insertUserAddressSchema = createInsertSchema(userAddresses);
 
-export const insertProductSchema = createInsertSchema(products).omit({
-  createdAt: true,
-  updatedAt: true,
-  deletedAt: true
-}).extend({
+// Explicit Zod schema to avoid drizzle-zod type inference issues with boolean columns
+export const insertProductSchema = z.object({
   id: z.string().min(1, "Product ID is required"),
+  slug: z.string().min(1),
+  name: z.string().min(1),
+  brand: z.string().min(1),
+  category: z.string().min(1),
+  categoryId: z.string().optional(),
+  subcategory: z.string().min(1),
+  description: z.string().min(1),
+  price: z.string(),
+  originalPrice: z.string().optional(),
+  currency: z.string().optional(),
   images: z.array(z.string()),
+  thumbnail: z.string(),
+  rating: z.string().optional(),
+  reviewCount: z.number().optional(),
+  stock: z.number().optional(),
+  lowStockThreshold: z.number().optional(),
+  isNew: z.boolean().optional(),
+  isBestSeller: z.boolean().optional(),
+  isProductOfWeek: z.boolean().optional(),
   specifications: z.record(z.string(), z.any()),
 });
 export const insertOrderSchema = createInsertSchema(orders);
-export const insertReviewSchema = createInsertSchema(reviews).extend({
+// Explicit Zod schema to avoid drizzle-zod type inference issues
+export const insertReviewSchema = z.object({
+  productId: z.string().min(1),
+  userId: z.string().optional(),
   rating: z.number().min(1).max(5),
   title: z.string().max(100).optional(),
   comment: z.string().max(2000).optional(),
   images: z.array(z.string()).max(5).optional(),
+  status: z.string().optional(),
+  ipAddress: z.string().optional(),
+  helpfulCount: z.number().optional(),
+  verifiedPurchase: z.boolean().optional(),
 });
 export const insertReviewRatingSchema = createInsertSchema(reviewRatings);
 export const insertDiscountSchema = createInsertSchema(discounts);
@@ -458,15 +475,16 @@ export const insertCouponSchema = createInsertSchema(coupons);
 export const insertCartItemSchema = createInsertSchema(cartItems);
 export const insertFavoriteSchema = createInsertSchema(favorites);
 export const insertFishSpeciesSchema = createInsertSchema(fishSpecies);
-export const insertGallerySubmissionSchema = createInsertSchema(gallerySubmissions).omit({
-  id: true,
-  isWinner: true,
-  winnerMonth: true,
-  prize: true,
-  isApproved: true,
-  likes: true,
-  createdAt: true,
-  updatedAt: true
+// Explicit Zod schema to avoid drizzle-zod type inference issues with boolean columns
+export const insertGallerySubmissionSchema = z.object({
+  userId: z.string().optional(),
+  customerName: z.string().min(1),
+  customerPhone: z.string().optional(),
+  imageUrl: z.string().min(1),
+  tankSize: z.string().optional(),
+  description: z.string().optional(),
+  couponCode: z.string().optional(),
+  hasSeenCelebration: z.boolean().optional(),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -513,9 +531,8 @@ export const newsletterSubscriptions = pgTable("newsletter_subscriptions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-export const insertNewsletterSubscriptionSchema = createInsertSchema(newsletterSubscriptions).pick({
-  email: true,
-}).extend({
+// Explicit Zod schema to avoid drizzle-zod type inference issues
+export const insertNewsletterSubscriptionSchema = z.object({
   email: z.string().email("Valid email is required"),
 });
 
@@ -573,3 +590,8 @@ export const settings = pgTable("settings", {
 });
 
 export type Setting = typeof settings.$inferSelect;
+export const insertSettingSchema = z.object({
+  key: z.string().min(1),
+  value: z.string(),
+});
+export type InsertSetting = z.infer<typeof insertSettingSchema>;

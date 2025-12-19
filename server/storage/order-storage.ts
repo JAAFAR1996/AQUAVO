@@ -75,7 +75,7 @@ export class OrderStorage {
 
                 // Decrease stock
                 await tx.update(products)
-                    .set({ stock: (product.stock || 0) - item.quantity })
+                    .set({ stock: (product.stock || 0) - item.quantity } as any)
                     .where(eq(products.id, product.id));
             }
 
@@ -111,7 +111,7 @@ export class OrderStorage {
 
                         // Increment usage count
                         await tx.update(coupons)
-                            .set({ usedCount: (coupon.usedCount || 0) + 1 })
+                            .set({ usedCount: (coupon.usedCount || 0) + 1 } as any)
                             .where(eq(coupons.id, coupon.id));
                     }
                 }
@@ -350,7 +350,7 @@ export class OrderStorage {
 
     async approveGallerySubmission(id: string): Promise<GallerySubmission | undefined> {
         const db = this.ensureDb();
-        const [res] = await db.update(gallerySubmissions).set({ isApproved: true }).where(eq(gallerySubmissions.id, id)).returning();
+        const [res] = await db.update(gallerySubmissions).set({ isApproved: true } as any).where(eq(gallerySubmissions.id, id)).returning();
         return res;
     }
 
@@ -380,10 +380,10 @@ export class OrderStorage {
             galleryId: id,
             userId: userId || null,
             ipAddress
-        });
+        } as any);
 
         await db.update(gallerySubmissions)
-            .set({ likes: sql`${gallerySubmissions.likes} + 1` })
+            .set({ likes: sql`${gallerySubmissions.likes} + 1` } as any)
             .where(eq(gallerySubmissions.id, id));
 
         return true;
@@ -402,7 +402,7 @@ export class OrderStorage {
         // This ensures only ONE winner exists at a time in the gallery
         await db.update(gallerySubmissions).set({
             isWinner: false
-        }).where(eq(gallerySubmissions.isWinner, true));
+        } as any).where(eq(gallerySubmissions.isWinner, true));
 
         // Now set the new winner
         await db.update(gallerySubmissions).set({
@@ -411,12 +411,12 @@ export class OrderStorage {
             prize: prize,
             couponCode: couponCode,
             hasSeenCelebration: false // Reset so they see the animation
-        }).where(eq(gallerySubmissions.id, id));
+        } as any).where(eq(gallerySubmissions.id, id));
     }
 
     async markCelebrationSeen(id: string): Promise<void> {
         const db = this.ensureDb();
-        await db.update(gallerySubmissions).set({ hasSeenCelebration: true }).where(eq(gallerySubmissions.id, id));
+        await db.update(gallerySubmissions).set({ hasSeenCelebration: true } as any).where(eq(gallerySubmissions.id, id));
     }
 
     // Gallery Prize methods
@@ -447,7 +447,7 @@ export class OrderStorage {
 
         if (existing) {
             const [updated] = await db.update(galleryPrizes)
-                .set({ ...prizeData, updatedAt: new Date() })
+                .set({ ...prizeData, updatedAt: new Date() } as any)
                 .where(eq(galleryPrizes.id, existing.id))
                 .returning();
             return updated;
