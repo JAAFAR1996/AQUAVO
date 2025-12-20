@@ -49,7 +49,7 @@ export default function ForgotPassword() {
                 title: "تم إرسال الرابط",
                 description: "تحقق من بريدك الإلكتروني",
             });
-        } catch (err: any) {
+        } catch (err: unknown) {
             // For security, always show success even if email doesn't exist
             setIsSubmitted(true);
         } finally {

@@ -105,22 +105,29 @@ export class UserStorage {
 
     async processPasswordReset(tokenHash: string, newPasswordHash: string): Promise<boolean> {
         const db = this.ensureDb();
-        // Atomic operation: Delete token and update user in one go using CTE
-        // This prevents race conditions where a token could be used multiple times
-        const result = await db.execute(sql`
-             WITH deleted_token AS (
-                 DELETE FROM password_reset_tokens
-                 WHERE token = ${tokenHash}
-                 AND expires_at > NOW()
-                 RETURNING user_id
-             )
-             UPDATE users
-             SET password_hash = ${newPasswordHash}, updated_at = NOW()
-             WHERE id = (SELECT user_id FROM deleted_token)
-             RETURNING id
-         `);
-        // In neon-http, we might need to check rows array length instead of rowCount depending on version
-        // But usually rows.length > 0 if RETURNING is used
-        return result.rows.length > 0;
+
+        try {
+            // Atomic operation: Delete token and update user in one go using CTE
+            // This prevents race conditions where a token could be used multiple times
+            const result = await db.execute(sql`
+                 WITH deleted_token AS (
+                     DELETE FROM password_reset_tokens
+                     WHERE token = ${tokenHash}
+                     AND expires_at > NOW()
+                     RETURNING user_id
+                 )
+                 UPDATE users
+                 SET password_hash = ${newPasswordHash}, updated_at = NOW()
+                 WHERE id = (SELECT user_id FROM deleted_token)
+                 RETURNING id
+             `);
+            // In neon-http, we might need to check rows array length instead of rowCount depending on version
+            // But usually rows.length > 0 if RETURNING is used
+            return result.rows.length > 0;
+        } catch (error) {
+            // Log error for debugging but don't expose to user (2025 Security Best Practice)
+            console.error("processPasswordReset database error:", error);
+            return false; // Return false instead of throwing - safer UX
+        }
     }
 }

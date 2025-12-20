@@ -14,6 +14,22 @@ export interface WishlistItem {
   category: string;
 }
 
+// Type for server favorite response
+interface ServerFavorite {
+  product: {
+    id: string;
+    name: string;
+    price: string | number;
+    originalPrice?: string | number;
+    thumbnail?: string;
+    images?: string[];
+    slug: string;
+    brand: string;
+    rating: string | number;
+    category: string;
+  };
+}
+
 interface WishlistContextType {
   items: WishlistItem[];
   addItem: (product: Product) => void;
@@ -54,7 +70,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         .then((res) => res.json())
         .then((favorites) => {
           if (Array.isArray(favorites)) {
-            const mappedItems = favorites.map((fav: any) => ({
+            const mappedItems = favorites.map((fav: ServerFavorite) => ({
               id: fav.product.id,
               name: fav.product.name,
               price: Number(fav.product.price),

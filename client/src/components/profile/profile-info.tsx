@@ -5,8 +5,15 @@ import { Label } from "@/components/ui/label";
 import { Edit, Save } from "lucide-react";
 import { UserProfileExtra } from "@/lib/types";
 
+// Type for auth user
+interface AuthUser {
+    fullName?: string;
+    email: string;
+    phone?: string;
+}
+
 interface ProfileInfoProps {
-    user: any; // Using any for auth user for now to avoid strict conflict with auth context type, can be tightened later
+    user: AuthUser;
     extraData: UserProfileExtra;
     isEditing: boolean;
     setIsEditing: (editing: boolean) => void;

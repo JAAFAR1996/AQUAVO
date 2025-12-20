@@ -48,7 +48,7 @@ export default function Home() {
     }
   });
 
-  const winner = gallerySubmissions?.find((s: any) => s.isWinner);
+  const winner = gallerySubmissions?.find((s: { isWinner?: boolean }) => s.isWinner);
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">

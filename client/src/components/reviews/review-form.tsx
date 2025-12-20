@@ -64,10 +64,11 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
             setComment("");
 
             onReviewSubmitted?.();
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "حدث خطأ أثناء إرسال المراجعة";
             toast({
                 title: "خطأ",
-                description: error.message || "حدث خطأ أثناء إرسال المراجعة",
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -97,8 +98,8 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
                                 >
                                     <Star
                                         className={`w-8 h-8 transition-colors ${star <= (hoverRating || rating)
-                                                ? "fill-amber-400 text-amber-400"
-                                                : "text-muted-foreground"
+                                            ? "fill-amber-400 text-amber-400"
+                                            : "text-muted-foreground"
                                             }`}
                                     />
                                 </button>

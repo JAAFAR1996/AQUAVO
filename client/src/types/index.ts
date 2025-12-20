@@ -41,6 +41,7 @@ export interface Product {
   image?: string; // Shorthand for thumbnail or first image
   images: string[];
   category: string;
+  subcategory?: string;
   specs?: string;
   specifications?: Record<string, any>;
   isNew?: boolean;

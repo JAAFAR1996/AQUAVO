@@ -51,8 +51,19 @@ export function MasonryGalleryGrid() {
     );
   }
 
+  // GalleryItem interface
+  interface GalleryItem {
+    id: string;
+    customerName: string;
+    description: string;
+    imageUrl: string;
+    tankSize: string;
+    likes: number;
+    tags?: string[];
+  }
+
   // Helper to fallback tags if missing (since DB might not have them)
-  const getTags = (item: any) => {
+  const getTags = (item: GalleryItem) => {
     if (item.tags && Array.isArray(item.tags)) return item.tags;
     // Generate some dummy tags based on style if empty
     const defaultTags: Record<string, string[]> = {
@@ -71,7 +82,7 @@ export function MasonryGalleryGrid() {
       className="flex w-auto -ml-6"
       columnClassName="pl-6 bg-clip-padding"
     >
-      {galleryItems.map((item: any) => (
+      {galleryItems.map((item: GalleryItem) => (
         <div
           key={item.id}
           className="mb-6 group relative overflow-hidden rounded-2xl bg-muted shadow-md hover:shadow-xl transition-all duration-300 card-hover-lift gpu-accelerate"

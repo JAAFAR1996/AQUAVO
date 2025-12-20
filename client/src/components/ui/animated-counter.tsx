@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface AnimatedCounterProps {
@@ -17,12 +17,22 @@ export function AnimatedCounter({
   decimals = 0,
 }: AnimatedCounterProps) {
   const [count, setCount] = useState(0);
+  const previousEndRef = useRef(end);
 
   useEffect(() => {
+    // Reset count if end value changed significantly
+    if (previousEndRef.current !== end) {
+      setCount(0);
+      previousEndRef.current = end;
+    }
+
     let startTime: number;
     let animationFrame: number;
+    let isCancelled = false;
 
     const animate = (currentTime: number) => {
+      if (isCancelled) return;
+
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
 
@@ -40,7 +50,10 @@ export function AnimatedCounter({
 
     animationFrame = requestAnimationFrame(animate);
 
-    return () => cancelAnimationFrame(animationFrame);
+    return () => {
+      isCancelled = true;
+      cancelAnimationFrame(animationFrame);
+    };
   }, [end, duration]);
 
   return (

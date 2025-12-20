@@ -18,6 +18,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { BackToTop } from "@/components/back-to-top";
 import { QuickViewModal } from "@/components/products/quick-view-modal";
+import { CategoryCardsGrid } from "@/components/products/category-cards";
 import type { Product } from "@/types";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
@@ -183,6 +184,20 @@ export default function Products() {
           <h1 className="text-4xl font-bold text-foreground">جميع المنتجات</h1>
           <p className="text-xl text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>
         </div>
+
+        {/* Category Cards Grid */}
+        <CategoryCardsGrid
+          categories={availableCategories}
+          selectedCategories={filters.categories}
+          onCategoryToggle={(category) => {
+            setFilters(prev => ({
+              ...prev,
+              categories: prev.categories.includes(category)
+                ? prev.categories.filter(c => c !== category)
+                : [...prev.categories, category]
+            }));
+          }}
+        />
 
         <Tabs defaultValue="grid" className="mb-12">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">

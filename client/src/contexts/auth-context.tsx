@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("✅ Login successful:", userData);
       }
       setUser(userData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Login error:", error);
       throw error;
     }
@@ -121,7 +121,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Automatically login after register (server handles session)
       const userData = await response.json();
       setUser(userData);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("❌ Register error:", error);
       throw error;
     }

@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { BackToTop } from "@/components/back-to-top";
+import { Product } from "@/types";
 
 export default function Deals() {
   const { data, isLoading } = useQuery({
@@ -25,7 +26,7 @@ export default function Deals() {
 
   // Filter products with discounts
   const dealsProducts = data?.products?.filter(
-    (p: any) => p.originalPrice && Number(p.originalPrice) > Number(p.price)
+    (p: Product) => p.originalPrice && Number(p.originalPrice) > Number(p.price)
   ) || [];
 
   // Calculate discount percentage
@@ -33,7 +34,7 @@ export default function Deals() {
     return Math.round(((original - current) / original) * 100);
   };
 
-  const handleAddToCart = (product: any) => {
+  const handleAddToCart = (product: Product) => {
     addItem(product);
 
     toast({
@@ -148,7 +149,7 @@ export default function Deals() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {dealsProducts.map((product: any) => {
+              {dealsProducts.map((product: Product) => {
                 const discountPercent = getDiscountPercentage(
                   Number(product.originalPrice),
                   Number(product.price)

@@ -128,6 +128,9 @@ importers:
       '@types/nodemailer':
         specifier: ^7.0.4
         version: 7.0.4
+      '@types/react-window':
+        specifier: ^2.0.0
+        version: 2.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@types/ws':
         specifier: ^8.5.13
         version: 8.18.1
@@ -233,6 +236,9 @@ importers:
       react-resizable-panels:
         specifier: ^2.1.9
         version: 2.1.9(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      react-window:
+        specifier: ^2.2.3
+        version: 2.2.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       recharts:
         specifier: ^2.15.4
         version: 2.15.4(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -281,10 +287,6 @@ importers:
       zod-validation-error:
         specifier: ^3.4.0
         version: 3.5.4(zod@3.25.76)
-    optionalDependencies:
-      bufferutil:
-        specifier: ^4.0.8
-        version: 4.0.9
     devDependencies:
       '@testing-library/dom':
         specifier: ^10.4.1
@@ -331,6 +333,10 @@ importers:
       vitest:
         specifier: ^4.0.15
         version: 4.0.15(@edge-runtime/vm@3.2.0)(@types/node@20.19.27)(@vitest/ui@4.0.15)(happy-dom@20.0.11)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.21.0)
+    optionalDependencies:
+      bufferutil:
+        specifier: ^4.0.8
+        version: 4.0.9
 
 packages:
 
@@ -2548,6 +2554,10 @@ packages:
     peerDependencies:
       '@types/react': ^19.2.0
 
+  '@types/react-window@2.0.0':
+    resolution: {integrity: sha512-E8hMDtImEpMk1SjswSvqoSmYvk7GEtyVaTa/GJV++FdDNuMVVEzpAClyJ0nqeKYBrMkGiyH6M1+rPLM0Nu1exQ==}
+    deprecated: This is a stub types definition. react-window provides its own type definitions, so you do not need this installed.
+
   '@types/react@19.2.7':
     resolution: {integrity: sha512-MWtvHrGZLFttgeEj28VXHxpmwYbor/ATPYbBfSFZEIRK0ecCFLl2Qo55z52Hss+UV9CRN7trSeq1zbgx7YDWWg==}
 
@@ -4114,6 +4124,12 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-window@2.2.3:
+    resolution: {integrity: sha512-gTRqQYC8ojbiXyd9duYFiSn2TJw0ROXCgYjenOvNKITWzK0m0eCvkUsEUM08xvydkMh7ncp+LE0uS3DeNGZxnQ==}
+    peerDependencies:
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
 
   react@19.2.3:
     resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
@@ -7027,6 +7043,13 @@ snapshots:
     dependencies:
       '@types/react': 19.2.7
 
+  '@types/react-window@2.0.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      react-window: 2.2.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+    transitivePeerDependencies:
+      - react
+      - react-dom
+
   '@types/react@19.2.7':
     dependencies:
       csstype: 3.2.3
@@ -8462,6 +8485,11 @@ snapshots:
       dom-helpers: 5.2.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  react-window@2.2.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
 

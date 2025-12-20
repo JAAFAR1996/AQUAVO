@@ -80,8 +80,9 @@ export default function ResetPassword() {
                 title: "تم إعادة تعيين كلمة المرور",
                 description: "يمكنك الآن تسجيل الدخول بكلمة المرور الجديدة",
             });
-        } catch (err: any) {
-            setError(err.message || "فشل إعادة تعيين كلمة المرور. الرابط قد يكون منتهي الصلاحية.");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "فشل إعادة تعيين كلمة المرور. الرابط قد يكون منتهي الصلاحية.";
+            setError(message);
         } finally {
             setIsLoading(false);
         }

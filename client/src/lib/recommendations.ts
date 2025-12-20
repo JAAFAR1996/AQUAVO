@@ -1,7 +1,31 @@
 import { type Product } from "@/types";
 import { apiRequest } from "./queryClient";
 
-function mapToClientProduct(p: any): Product {
+// Type for raw server response
+interface ServerProduct {
+    id: string;
+    slug: string;
+    name: string;
+    brand: string;
+    price: string | number;
+    originalPrice?: string | number;
+    description?: string;
+    rating?: string | number;
+    reviewCount?: string | number;
+    thumbnail: string;
+    image?: string;
+    images: string[];
+    category: string;
+    subcategory?: string;
+    specifications?: Record<string, unknown>;
+    stock?: string | number;
+    lowStockThreshold?: string | number;
+    isNew?: boolean;
+    isBestSeller?: boolean;
+    isProductOfWeek?: boolean;
+}
+
+function mapToClientProduct(p: ServerProduct): Product {
     return {
         ...p,
         price: Number(p.price),
@@ -11,7 +35,7 @@ function mapToClientProduct(p: any): Product {
         stock: Number(p.stock || 0),
         lowStockThreshold: Number(p.lowStockThreshold || 0),
         specs: p.specifications ? JSON.stringify(p.specifications) : p.description || "", // Fallback
-        specifications: p.specifications
+        specifications: p.specifications as Record<string, unknown>
     };
 }
 

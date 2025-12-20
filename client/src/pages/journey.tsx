@@ -45,6 +45,7 @@ import { fetchProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
+import { Product } from "@/types";
 
 // Wizard data types
 interface WizardData {
@@ -205,7 +206,7 @@ export default function Journey() {
     deletePlanMutation.mutate();
   };
 
-  const updateData = (field: keyof WizardData, value: any) => {
+  const updateData = (field: keyof WizardData, value: WizardData[keyof WizardData]) => {
     setWizardData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -260,24 +261,24 @@ export default function Journey() {
     if (!productsData?.products) return [];
 
     const products = productsData.products;
-    const recommendations: any[] = [];
+    const recommendations: Product[] = [];
 
     // 1. Filter recommendation based on type and tank size
     if (wizardData.filterType) {
-      const filterProducts = products.filter((p: any) =>
+      const filterProducts = products.filter((p: Product) =>
         p.category?.toLowerCase().includes("filter") ||
         p.subcategory?.toLowerCase().includes("filter")
       );
 
       if (wizardData.filterType === "canister") {
-        const canisterFilter = filterProducts.find((p: any) =>
+        const canisterFilter = filterProducts.find((p: Product) =>
           p.name?.toLowerCase().includes("canister") ||
           p.name?.toLowerCase().includes("eheim") ||
           p.specifications?.type?.toLowerCase() === "canister"
         );
         if (canisterFilter) recommendations.push(canisterFilter);
       } else if (wizardData.filterType === "hob") {
-        const hobFilter = filterProducts.find((p: any) =>
+        const hobFilter = filterProducts.find((p: Product) =>
           p.name?.toLowerCase().includes("hob") ||
           p.name?.toLowerCase().includes("hang")
         );
@@ -289,7 +290,7 @@ export default function Journey() {
 
     // 2. Heater based on wattage
     if (wizardData.heaterWattage > 0) {
-      const heaters = products.filter((p: any) =>
+      const heaters = products.filter((p: Product) =>
         p.category?.toLowerCase().includes("heater") ||
         p.subcategory?.toLowerCase().includes("heater") ||
         p.name?.toLowerCase().includes("heater")
@@ -299,14 +300,14 @@ export default function Journey() {
 
     // 3. Lighting based on type
     if (wizardData.lightingType && wizardData.lightingType !== "none") {
-      const lights = products.filter((p: any) =>
+      const lights = products.filter((p: Product) =>
         p.category?.toLowerCase().includes("light") ||
         p.subcategory?.toLowerCase().includes("light") ||
         p.name?.toLowerCase().includes("led")
       );
 
       if (wizardData.lightingType === "planted-led") {
-        const plantLight = lights.find((p: any) =>
+        const plantLight = lights.find((p: Product) =>
           p.name?.toLowerCase().includes("plant") ||
           p.specifications?.forPlants
         );
@@ -319,7 +320,7 @@ export default function Journey() {
 
     // 4. Substrate based on type
     if (wizardData.substrateType) {
-      const substrates = products.filter((p: any) =>
+      const substrates = products.filter((p: Product) =>
         p.category?.toLowerCase().includes("substrate") ||
         p.subcategory?.toLowerCase().includes("substrate") ||
         p.name?.toLowerCase().includes("gravel") ||
@@ -330,7 +331,7 @@ export default function Journey() {
 
     // 5. Plants for planted tank or live-plants decoration
     if (wizardData.tankType === "planted" || wizardData.decorations.includes("live-plants")) {
-      const plants = products.filter((p: any) =>
+      const plants = products.filter((p: Product) =>
         p.category?.toLowerCase().includes("plant") ||
         p.name?.toLowerCase().includes("anubias") ||
         p.name?.toLowerCase().includes("java")
@@ -339,7 +340,7 @@ export default function Journey() {
     }
 
     // 6. Water conditioner - essential for everyone
-    const conditioners = products.filter((p: any) =>
+    const conditioners = products.filter((p: Product) =>
       p.category?.toLowerCase().includes("water") ||
       p.name?.toLowerCase().includes("prime") ||
       p.name?.toLowerCase().includes("seachem") ||
@@ -349,7 +350,7 @@ export default function Journey() {
 
     // 7. Decorations
     if (wizardData.decorations.includes("driftwood")) {
-      const driftwood = products.find((p: any) =>
+      const driftwood = products.find((p: Product) =>
         p.name?.toLowerCase().includes("driftwood") ||
         p.name?.toLowerCase().includes("wood")
       );
@@ -357,7 +358,7 @@ export default function Journey() {
     }
 
     if (wizardData.decorations.includes("rocks")) {
-      const rocks = products.find((p: any) =>
+      const rocks = products.find((p: Product) =>
         p.name?.toLowerCase().includes("rock") ||
         p.name?.toLowerCase().includes("stone")
       );
@@ -365,7 +366,7 @@ export default function Journey() {
     }
 
     // Remove duplicates and limit to 8 products
-    const uniqueRecommendations = Array.from(new Map(recommendations.map((p: any) => [p.id, p])).values());
+    const uniqueRecommendations = Array.from(new Map(recommendations.map((p: Product) => [p.id, p])).values());
     return uniqueRecommendations.slice(0, 8);
   }, [productsData, wizardData]);
 

@@ -12,6 +12,19 @@ export interface CartItem {
   slug: string;
 }
 
+// Type for server cart item response
+interface ServerCartItem {
+  product: {
+    id: string;
+    name: string;
+    price: string | number;
+    thumbnail?: string;
+    images?: string[];
+    slug: string;
+  };
+  quantity: number;
+}
+
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product) => void;
@@ -46,34 +59,85 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, isInitialized]);
 
-  // Sync with Server on Login
+  // Sync with Server on Login - MERGE local cart with server cart
   useEffect(() => {
     if (user) {
-      // 1. Fetch server cart
-      fetch("/api/cart", { credentials: "include" })
-        .then((res) => res.json())
-        .then((serverItems) => {
-          if (Array.isArray(serverItems)) {
-            // Transform server items to match CartItem interface
-            const mappedItems = serverItems.map((item: any) => ({
-              id: item.product.id,
-              name: item.product.name,
-              price: Number(item.product.price),
-              quantity: item.quantity,
-              image: item.product.thumbnail || item.product.images?.[0] || '',
-              slug: item.product.slug,
-            }));
+      const mergeGuestCartWithServer = async () => {
+        try {
+          // 1. Get local cart BEFORE we replace it
+          const localCartStr = localStorage.getItem(CART_STORAGE_KEY);
+          const localItems: CartItem[] = localCartStr ? JSON.parse(localCartStr) : [];
 
-            // Merge logic could go here, for now simpler to just use server state
-            // or if we have local items, push them to server?
-            // Let's implement a simple "Push local to server" if we have local items just after login
-            // But to avoid complexity loops, let's just trust server source of truth for logged in users
-            // unless the server cart is empty and local is not.
+          // 2. If we have local items, push them to server first
+          if (localItems.length > 0) {
+            const pushPromises = localItems.map(item =>
+              fetch("/api/cart", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                  productId: item.id,
+                  quantity: item.quantity,
+                }),
+              }).catch(err => {
+                console.error(`Failed to push item ${item.id} to server:`, err);
+                return null; // Don't fail the whole merge
+              })
+            );
 
-            setItems(mappedItems);
+            await Promise.all(pushPromises);
+
+            // Clear local storage after successful push
+            localStorage.removeItem(CART_STORAGE_KEY);
+
+            toast({
+              title: "تم دمج سلتك ✨",
+              description: `تمت إضافة ${localItems.length} منتج من سلتك السابقة`,
+            });
           }
-        })
-        .catch((err) => console.error("Failed to fetch cart", err));
+
+          // 3. Fetch the merged cart from server
+          const cartRes = await fetch("/api/cart", { credentials: "include" });
+          if (cartRes.ok) {
+            const serverItems = await cartRes.json();
+            if (Array.isArray(serverItems)) {
+              const mappedItems = serverItems.map((item: ServerCartItem) => ({
+                id: item.product.id,
+                name: item.product.name,
+                price: Number(item.product.price),
+                quantity: item.quantity,
+                image: item.product.thumbnail || item.product.images?.[0] || '',
+                slug: item.product.slug,
+              }));
+              setItems(mappedItems);
+            }
+          }
+        } catch (err) {
+          console.error("Failed to merge cart:", err);
+          // On error, try to at least fetch server cart
+          try {
+            const cartRes = await fetch("/api/cart", { credentials: "include" });
+            if (cartRes.ok) {
+              const serverItems = await cartRes.json();
+              if (Array.isArray(serverItems)) {
+                const mappedItems = serverItems.map((item: ServerCartItem) => ({
+                  id: item.product.id,
+                  name: item.product.name,
+                  price: Number(item.product.price),
+                  quantity: item.quantity,
+                  image: item.product.thumbnail || item.product.images?.[0] || '',
+                  slug: item.product.slug,
+                }));
+                setItems(mappedItems);
+              }
+            }
+          } catch (e) {
+            console.error("Failed to fetch cart:", e);
+          }
+        }
+      };
+
+      mergeGuestCartWithServer();
     }
   }, [user]);
 
@@ -110,7 +174,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const newItem = await res.json();
           const cartRes = await fetch("/api/cart", { credentials: "include" });
           const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map((item: any) => ({
+          const mappedItems = serverItems.map((item: ServerCartItem) => ({
             id: item.product.id,
             name: item.product.name,
             price: Number(item.product.price),
@@ -168,48 +232,118 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const removeItem = async (id: string) => {
+  const removeItem = useCallback(async (id: string) => {
     if (user) {
+      // Optimistic update first
+      setItems(prev => prev.filter((item) => item.id !== id));
+
       try {
-        await fetch(`/api/cart/${id}`, { method: "DELETE", credentials: "include" });
-        setItems(items.filter((item) => item.id !== id));
+        const res = await fetch(`/api/cart/${id}`, { method: "DELETE", credentials: "include" });
+        if (!res.ok) {
+          // Rollback on failure - refetch from server
+          const cartRes = await fetch("/api/cart", { credentials: "include" });
+          const serverItems = await cartRes.json();
+          if (Array.isArray(serverItems)) {
+            const mappedItems = serverItems.map((item: ServerCartItem) => ({
+              id: item.product.id,
+              name: item.product.name,
+              price: Number(item.product.price),
+              quantity: item.quantity,
+              image: item.product.thumbnail || item.product.images?.[0] || '',
+              slug: item.product.slug,
+            }));
+            setItems(mappedItems);
+          }
+          toast({
+            title: "فشل حذف المنتج",
+            description: "يرجى المحاولة مرة أخرى",
+            variant: "destructive",
+          });
+        }
       } catch (err) {
         console.error("Failed to remove from server cart", err);
+        toast({
+          title: "فشل حذف المنتج",
+          variant: "destructive",
+        });
       }
     } else {
-      const newItems = items.filter((item) => item.id !== id);
-      saveCart(newItems);
+      // Use functional update to avoid stale closure
+      setItems(prev => {
+        const newItems = prev.filter((item) => item.id !== id);
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: CART_STORAGE_KEY,
+          newValue: JSON.stringify(newItems),
+        }));
+        return newItems;
+      });
     }
-  };
+  }, [user]);
 
-  const updateQuantity = async (id: string, quantity: number) => {
+  const updateQuantity = useCallback(async (id: string, quantity: number) => {
     if (quantity <= 0) {
       removeItem(id);
       return;
     }
 
+    // Store old quantity for potential rollback
+    let oldQuantity = 0;
+
+    // Optimistic update using functional form
+    setItems(prev => {
+      const item = prev.find(i => i.id === id);
+      if (item) oldQuantity = item.quantity;
+      return prev.map((item) =>
+        item.id === id ? { ...item, quantity } : item
+      );
+    });
+
     if (user) {
       try {
-        await fetch(`/api/cart/${id}`, {
+        const res = await fetch(`/api/cart/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({ quantity }),
         });
-        // Optimistic update
-        setItems(items.map((item) =>
-          item.id === id ? { ...item, quantity } : item
-        ));
+
+        if (!res.ok) {
+          // Rollback on failure
+          setItems(prev => prev.map((item) =>
+            item.id === id ? { ...item, quantity: oldQuantity } : item
+          ));
+          toast({
+            title: "فشل تحديث الكمية",
+            variant: "destructive",
+          });
+        }
       } catch (err) {
         console.error("Failed to update server cart", err);
+        // Rollback on error
+        setItems(prev => prev.map((item) =>
+          item.id === id ? { ...item, quantity: oldQuantity } : item
+        ));
+        toast({
+          title: "فشل تحديث الكمية",
+          variant: "destructive",
+        });
       }
     } else {
-      const newItems = items.map((item) =>
-        item.id === id ? { ...item, quantity } : item
-      );
-      saveCart(newItems);
+      // For guest users, persist to localStorage
+      setItems(prev => {
+        const newItems = prev.map((item) =>
+          item.id === id ? { ...item, quantity } : item
+        );
+        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: CART_STORAGE_KEY,
+          newValue: JSON.stringify(newItems),
+        }));
+        return newItems;
+      });
     }
-  };
+  }, [user, removeItem]);
 
   const clearCart = async () => {
     if (user) {

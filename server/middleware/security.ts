@@ -42,17 +42,34 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   // Referrer policy
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
-  // Content Security Policy - Improved security without unsafe directives
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; " +
-    "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
-    "img-src 'self' data: https: blob:; " +
-    "font-src 'self' data: https://fonts.gstatic.com; " +
-    "connect-src 'self' https://api.unsplash.com; " +
-    "frame-ancestors 'none';"
-  );
+  // Content Security Policy - Different for development vs production
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+
+  if (isDevelopment) {
+    // Development: Allow Vite's inline scripts, eval, and HMR websockets
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "img-src 'self' data: https: blob:; " +
+      "font-src 'self' data: https://fonts.gstatic.com; " +
+      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com; " +
+      "frame-ancestors 'none';"
+    );
+  } else {
+    // Production: Strict CSP without unsafe directives
+    res.setHeader(
+      'Content-Security-Policy',
+      "default-src 'self'; " +
+      "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com; " +
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+      "img-src 'self' data: https: blob:; " +
+      "font-src 'self' data: https://fonts.gstatic.com; " +
+      "connect-src 'self' https://api.unsplash.com; " +
+      "frame-ancestors 'none';"
+    );
+  }
 
   next();
 }

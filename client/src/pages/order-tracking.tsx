@@ -83,18 +83,30 @@ export default function OrderTracking() {
 
       const data = await response.json();
 
+      // Type-safe parsing of shippingAddress (can be string or object)
+      let shippingInfo: { name?: string; address?: string; phone?: string } = {};
+      if (typeof data.shippingAddress === 'string') {
+        try {
+          shippingInfo = JSON.parse(data.shippingAddress);
+        } catch {
+          shippingInfo = { address: data.shippingAddress };
+        }
+      } else if (data.shippingAddress && typeof data.shippingAddress === 'object') {
+        shippingInfo = data.shippingAddress;
+      }
+
       const mappedOrder: OrderDetails = {
         orderNumber: data.orderNumber || data.id,
         orderDate: new Date(data.createdAt).toLocaleDateString("ar-IQ"),
         estimatedDelivery: "قريباً",
         status: data.status,
-        customerName: data.shippingAddress?.name || "عميل",
-        shippingAddress: data.shippingAddress?.address || "العنوان غير متوفر",
-        phone: data.shippingAddress?.phone || "",
+        customerName: shippingInfo.name || "عميل",
+        shippingAddress: shippingInfo.address || "العنوان غير متوفر",
+        phone: shippingInfo.phone || "",
         courier: "خدمة التوصيل",
         trackingNumber: "---",
         shippingMethod: "قياسي",
-        items: data.items.map((item: any) => ({
+        items: data.items.map((item: { name: string; quantity: number; price: number | string }) => ({
           name: item.name,
           quantity: item.quantity,
           price: item.price + " د.ع",
@@ -123,8 +135,9 @@ export default function OrderTracking() {
       };
 
       setOrderDetails(mappedOrder);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "حدث خطأ";
+      setError(message);
     } finally {
       setIsSearching(false);
     }

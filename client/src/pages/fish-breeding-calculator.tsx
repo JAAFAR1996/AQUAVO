@@ -146,7 +146,7 @@ export default function FishBreedingCalculator() {
 
     setIsGeneratingPDF(true);
     try {
-      console.log("Starting PDF generation...");
+      // PDF generation started
       const doc = (
         <BreedingPlanPDF
           species={species}
@@ -160,9 +160,7 @@ export default function FishBreedingCalculator() {
         />
       );
 
-      console.log("Creating PDF blob...");
       const blob = await pdf(doc).toBlob();
-      console.log("PDF blob created successfully, size:", blob.size);
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -178,7 +176,7 @@ export default function FishBreedingCalculator() {
       }, 100);
 
       toast.success("تم تحميل الخطة بنجاح!");
-      console.log("PDF download completed successfully");
+      // PDF download completed
     } catch (error) {
       console.error('PDF generation error:', error);
       // More detailed error message

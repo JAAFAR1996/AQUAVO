@@ -1,14 +1,22 @@
 // Google Analytics 4 Integration
 // To use: Add VITE_GA_ID to your .env file
 
+// Cart item interface for analytics
+interface AnalyticsCartItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+}
+
 declare global {
   interface Window {
     gtag?: (
       command: 'config' | 'event' | 'js',
       targetId: string | Date,
-      config?: Record<string, any>
+      config?: Record<string, unknown>
     ) => void;
-    dataLayer?: any[];
+    dataLayer?: unknown[];
   }
 }
 
@@ -107,7 +115,7 @@ export function trackRemoveFromCart(product: {
   });
 }
 
-export function trackBeginCheckout(cartItems: any[], total: number) {
+export function trackBeginCheckout(cartItems: AnalyticsCartItem[], total: number) {
   if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
 
   window.gtag('event', 'begin_checkout', {
@@ -125,7 +133,7 @@ export function trackBeginCheckout(cartItems: any[], total: number) {
 export function trackPurchase(orderData: {
   orderId: string;
   total: number;
-  items: any[];
+  items: AnalyticsCartItem[];
 }) {
   if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
 

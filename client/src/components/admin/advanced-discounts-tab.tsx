@@ -57,8 +57,17 @@ export function AdvancedDiscountsTab() {
     // Extract products array from the response
     const products = productsData?.products || [];
 
+    // Discount input interface
+    interface DiscountInput {
+        productId: number;
+        type: string;
+        value: number;
+        startDate: string;
+        endDate?: string;
+    }
+
     const createMutation = useMutation({
-        mutationFn: async (discountData: any) => {
+        mutationFn: async (discountData: DiscountInput) => {
             const res = await fetch("/api/admin/discounts", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

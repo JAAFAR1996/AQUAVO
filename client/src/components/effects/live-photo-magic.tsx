@@ -47,9 +47,14 @@ export function LivePhotoMagic({
     const [ripples, setRipples] = useState<{ id: number; x: number; y: number }[]>([]);
     const containerRef = useRef<HTMLDivElement>(null);
     const bubbleIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const timeoutIdsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
     // Generate bubbles on hover
     useEffect(() => {
+        // Clear any pending timeouts from previous render
+        timeoutIdsRef.current.forEach(clearTimeout);
+        timeoutIdsRef.current = [];
+
         if (isHovered) {
             const createBubble = () => {
                 const newBubble: Bubble = {
@@ -62,13 +67,19 @@ export function LivePhotoMagic({
                 setBubbles(prev => [...prev.slice(-bubbleCount * 2), newBubble]);
             };
 
+            // Track all initial timeouts
             for (let i = 0; i < bubbleCount; i++) {
-                setTimeout(createBubble, i * 150);
+                const timeoutId = setTimeout(createBubble, i * 150);
+                timeoutIdsRef.current.push(timeoutId);
             }
 
             bubbleIntervalRef.current = setInterval(createBubble, 400);
 
             return () => {
+                // Clear all tracked timeouts
+                timeoutIdsRef.current.forEach(clearTimeout);
+                timeoutIdsRef.current = [];
+
                 if (bubbleIntervalRef.current) {
                     clearInterval(bubbleIntervalRef.current);
                 }

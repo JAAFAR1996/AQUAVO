@@ -9,7 +9,7 @@ const ENV = import.meta.env.MODE;
 
 interface ErrorContext {
   tags?: Record<string, string>;
-  extra?: Record<string, any>;
+  extra?: Record<string, unknown>;
   user?: {
     id?: string;
     email?: string;
@@ -17,9 +17,30 @@ interface ErrorContext {
   };
 }
 
+interface Breadcrumb {
+  message: string;
+  category?: string;
+  level?: 'info' | 'warning' | 'error';
+  data?: Record<string, unknown>;
+  timestamp?: string;
+}
+
+interface ErrorReport {
+  message: string;
+  stack?: string;
+  context?: ErrorContext;
+  breadcrumbs?: Breadcrumb[];
+  user?: ErrorContext['user'] | null;
+  environment?: string;
+  timestamp?: string;
+  url?: string;
+  userAgent?: string;
+  level?: 'info' | 'warning' | 'error';
+}
+
 class ErrorTracker {
   private isInitialized = false;
-  private breadcrumbs: any[] = [];
+  private breadcrumbs: Breadcrumb[] = [];
   private user: ErrorContext['user'] | null = null;
 
   init() {
@@ -104,12 +125,7 @@ class ErrorTracker {
     });
   }
 
-  addBreadcrumb(breadcrumb: {
-    message: string;
-    category?: string;
-    level?: 'info' | 'warning' | 'error';
-    data?: Record<string, any>;
-  }) {
+  addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'>) {
     this.breadcrumbs.push({
       ...breadcrumb,
       timestamp: new Date().toISOString(),
@@ -129,7 +145,7 @@ class ErrorTracker {
     this.user = null;
   }
 
-  private async sendErrorReport(report: any) {
+  private async sendErrorReport(report: ErrorReport) {
     // Filter out non-critical errors
     if (this.shouldIgnoreError(report.message)) {
       return;
@@ -184,12 +200,7 @@ export function captureMessage(
   errorTracker.captureMessage(message, level);
 }
 
-export function addBreadcrumb(breadcrumb: {
-  message: string;
-  category?: string;
-  level?: 'info' | 'warning' | 'error';
-  data?: Record<string, any>;
-}) {
+export function addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'>) {
   errorTracker.addBreadcrumb(breadcrumb);
 }
 

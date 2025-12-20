@@ -20,9 +20,13 @@ try {
         ],
     });
     fontLoaded = true;
-    console.log("Arabic font loaded successfully for PDF");
+    if (import.meta.env.DEV) {
+        console.log("Arabic font loaded successfully for PDF");
+    }
 } catch (error) {
-    console.warn("Failed to register Arabic font for PDF, falling back to Helvetica", error);
+    if (import.meta.env.DEV) {
+        console.warn("Failed to register Arabic font for PDF, falling back to Helvetica", error);
+    }
 }
 
 // Fallback font in case Arabic fails
@@ -152,9 +156,16 @@ const styles = StyleSheet.create({
     },
 });
 
+// Timeline event interface
+interface TimelineEvent {
+    date: string | Date;
+    eventAr: string;
+    description: string;
+}
+
 interface BreedingPlanPDFProps {
     species: BreedingSpecies;
-    timeline: any[]; // Using existing timeline structure
+    timeline: TimelineEvent[];
     inputData: {
         pairs: number;
         startDate: string;

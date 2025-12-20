@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
-import { useWishlist } from "@/contexts/wishlist-context";
+import { useWishlist, WishlistItem } from "@/contexts/wishlist-context";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -34,8 +34,21 @@ export default function Wishlist() {
     });
   };
 
-  const handleAddToCart = (item: any) => {
-    addToCart(item);
+  const handleAddToCart = (item: WishlistItem) => {
+    // Convert WishlistItem to Product-like object for cart
+    addToCart({
+      id: item.id,
+      slug: item.slug,
+      name: item.name,
+      brand: item.brand,
+      price: item.price,
+      originalPrice: item.originalPrice,
+      rating: item.rating,
+      reviewCount: 0,
+      thumbnail: item.image,
+      images: [item.image],
+      category: item.category,
+    });
     toast({
       title: "تمت الإضافة للسلة ✓",
       description: `تم إضافة ${item.name} إلى سلة المشتريات`,

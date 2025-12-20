@@ -1,14 +1,40 @@
 import type { Product } from "@/types";
 import { buildApiUrl } from "./config/env";
 
-async function getJson<T>(path: string, options?: RequestInit): Promise<T> {
+// Default timeout for API requests (30 seconds)
+const DEFAULT_TIMEOUT_MS = 30000;
+
+/**
+ * Fetch with timeout protection using AbortController
+ * Prevents indefinite hanging requests
+ */
+async function fetchWithTimeout(
+  url: string,
+  options?: RequestInit,
+  timeoutMs: number = DEFAULT_TIMEOUT_MS
+): Promise<Response> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function getJson<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
   const targetUrl = buildApiUrl(path);
   try {
-    const res = await fetch(targetUrl, {
+    const res = await fetchWithTimeout(targetUrl, {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       ...options,
-    });
+    }, timeoutMs);
 
     if (!res.ok) {
       const text = await res.text();
@@ -17,6 +43,9 @@ async function getJson<T>(path: string, options?: RequestInit): Promise<T> {
 
     return res.json() as Promise<T>;
   } catch (e: unknown) {
+    if (e instanceof Error && e.name === 'AbortError') {
+      throw new Error("انتهت مهلة الطلب - يرجى المحاولة مرة أخرى");
+    }
     const message = e instanceof Error ? e.message : "Unknown fetch error";
     throw new Error(message);
   }
@@ -112,5 +141,10 @@ export async function fetchGallerySubmissions(): Promise<any[]> {
 }
 
 export async function voteGallerySubmission(id: string): Promise<{ success: boolean }> {
-  return await getJson<{ success: boolean }>(`/api/gallery/${id}/like`, { method: "POST" });
+  try {
+    return await getJson<{ success: boolean }>(`/api/gallery/${id}/like`, { method: "POST" });
+  } catch (err) {
+    console.error("Gallery vote failed:", err);
+    return { success: false };
+  }
 }

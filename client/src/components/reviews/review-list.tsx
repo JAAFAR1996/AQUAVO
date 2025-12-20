@@ -60,7 +60,19 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 }
                 const data = await response.json();
                 // Transform data to match our interface
-                const transformedReviews = data.map((review: any) => ({
+                interface ServerReview {
+                    id: string;
+                    author?: string;
+                    avatar?: string;
+                    rating: number;
+                    title?: string;
+                    comment: string;
+                    images?: string[];
+                    verifiedPurchase?: boolean;
+                    helpfulCount?: number;
+                    createdAt: string;
+                }
+                const transformedReviews = data.map((review: ServerReview) => ({
                     id: review.id,
                     author: review.author || "زائر",
                     avatar: review.avatar,
@@ -76,8 +88,9 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                     createdAt: review.createdAt,
                 }));
                 setReviews(transformedReviews);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err: unknown) {
+                const message = err instanceof Error ? err.message : "حدث خطأ";
+                setError(message);
             } finally {
                 setIsLoading(false);
             }

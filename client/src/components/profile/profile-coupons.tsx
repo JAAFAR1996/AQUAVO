@@ -65,7 +65,8 @@ export function ProfileCoupons({ userId }: ProfileCouponsProps) {
             </CardHeader>
             <CardContent>
                 <div className="grid md:grid-cols-2 gap-4">
-                    {coupons.map((coupon: any) => (
+                    {/* Coupon interface */}
+                    {coupons.map((coupon: { id: string; code: string; description: string; type: string; value: number; usedCount: number }) => (
                         <div key={coupon.id} className="border-2 border-dashed border-primary/30 bg-primary/5 rounded-lg p-4 relative overflow-hidden group">
                             <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-background rounded-full border border-primary/30" />
                             <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-background rounded-full border border-primary/30" />

@@ -60,7 +60,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
 
   const governorates = [
     { value: "baghdad", label: "بغداد" },
@@ -171,10 +171,10 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
       // Navigate to confirmation page
       window.location.href = `/order-confirmation/${orderData.id}`;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Checkout error:", error);
-      // Show error to user (you might want to add an error state/UI for this)
-      alert(error.message);
+      const message = error instanceof Error ? error.message : "حدث خطأ";
+      alert(message);
     } finally {
       setIsSubmitting(false);
     }

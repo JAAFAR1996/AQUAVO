@@ -49,8 +49,9 @@ export default function Login() {
                 description: "مرحباً بك في AQUAVO",
             });
             setLocation("/");
-        } catch (err: any) {
-            setError(err.message || "فشل تسجيل الدخول. يرجى التحقق من البيانات.");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "فشل تسجيل الدخول. يرجى التحقق من البيانات.";
+            setError(message);
         } finally {
             setIsLoading(false);
         }

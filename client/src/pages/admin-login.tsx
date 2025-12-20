@@ -24,8 +24,9 @@ export default function AdminLogin() {
     try {
       await login(email, password);
       setLocation("/admin");
-    } catch (err: any) {
-      setError(err.message || "فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "فشل تسجيل الدخول. تحقق من البريد الإلكتروني وكلمة المرور.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }

@@ -57,8 +57,8 @@ export default function Register() {
             return;
         }
 
-        if (formData.password.length < 6) {
-            setError("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
+        if (!isPasswordStrong(formData.password)) {
+            setError("كلمة المرور ضعيفة جداً. يرجى اختيار كلمة مرور أقوى تتضمن حروف كبيرة وصغيرة وأرقام ورموز");
             return;
         }
 
@@ -76,8 +76,9 @@ export default function Register() {
                 description: "مرحباً بك في عائلة AQUAVO.",
             });
             setLocation("/");
-        } catch (err: any) {
-            setError(err.message || "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.");
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : "فشل إنشاء الحساب. يرجى المحاولة مرة أخرى.";
+            setError(message);
         } finally {
             setIsLoading(false);
         }

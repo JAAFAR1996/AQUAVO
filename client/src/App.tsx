@@ -15,6 +15,7 @@ import { initGA, trackPageView } from "@/lib/analytics";
 import "@/lib/sentry"; // Auto-initializes on import
 import { CelebrationOverlay } from "@/components/gallery/celebration-overlay";
 import { WinnerNotificationBanner } from "@/components/notifications/winner-notification-banner";
+import { ShrimpProvider } from "@/contexts/shrimp-context";
 
 // Direct imports for critical pages (needed for fast first paint)
 import Home from "@/pages/home";
@@ -271,20 +272,22 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <WishlistProvider>
-            <TooltipProvider>
-              <PageViewTracker />
-              {/* Skip to main content for keyboard navigation */}
-              <a href="#main-content" className="skip-to-main">
-                الانتقال إلى المحتوى الرئيسي
-              </a>
-              <ScrollProgress />
-              <FloatingActionButton />
-              <BubbleTrail />
-              <WinnerNotificationBanner />
-              <CelebrationOverlay />
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+            <ShrimpProvider>
+              <TooltipProvider>
+                <PageViewTracker />
+                {/* Skip to main content for keyboard navigation */}
+                <a href="#main-content" className="skip-to-main">
+                  الانتقال إلى المحتوى الرئيسي
+                </a>
+                <ScrollProgress />
+                <FloatingActionButton />
+                <BubbleTrail />
+                <WinnerNotificationBanner />
+                <CelebrationOverlay />
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </ShrimpProvider>
           </WishlistProvider>
         </CartProvider>
       </AuthProvider>

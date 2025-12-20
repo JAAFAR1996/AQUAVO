@@ -150,6 +150,24 @@ export function createUserRouter(): RouterType {
     router.post("/auth/reset-password", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { token, newPassword } = req.body;
+
+            // Input validation (2025 Best Practice: Validate before processing)
+            if (!token || typeof token !== 'string') {
+                res.status(400).json({ message: "Token is required" });
+                return;
+            }
+
+            if (!newPassword || typeof newPassword !== 'string') {
+                res.status(400).json({ message: "New password is required" });
+                return;
+            }
+
+            // Password strength validation
+            if (newPassword.length < 8) {
+                res.status(400).json({ message: "Password must be at least 8 characters" });
+                return;
+            }
+
             const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
             // Atomic reset to prevent race conditions
@@ -162,10 +180,10 @@ export function createUserRouter(): RouterType {
 
             res.json({ message: "Password reset successful" });
         } catch (err) {
+            console.error("Password reset error:", err);
             next(err);
         }
     });
-
 
 
     // Addresses

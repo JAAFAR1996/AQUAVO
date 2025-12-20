@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Bubble {
@@ -10,10 +10,15 @@ interface Bubble {
 
 export function BubbleTrail() {
   const [bubbles, setBubbles] = useState<Bubble[]>([]);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
+    isMountedRef.current = true;
+
     // Create automatic floating bubbles
     const createAutoBubble = () => {
+      if (!isMountedRef.current) return;
+
       const newBubble = {
         id: Date.now() + Math.random(),
         x: Math.random() * window.innerWidth,
@@ -28,6 +33,8 @@ export function BubbleTrail() {
 
     // Create bubbles on mouse move
     const handleMouseMove = (e: MouseEvent) => {
+      if (!isMountedRef.current) return;
+
       if (Math.random() > 0.3) { // Higher chance to create bubbles (70%)
         const newBubble = {
           id: Date.now() + Math.random(),
@@ -41,10 +48,17 @@ export function BubbleTrail() {
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => {
+      isMountedRef.current = false;
       window.removeEventListener("mousemove", handleMouseMove);
       clearInterval(autoInterval);
     };
   }, []);
+
+  const handleAnimationComplete = (bubbleId: number) => {
+    if (isMountedRef.current) {
+      setBubbles(prev => prev.filter(b => b.id !== bubbleId));
+    }
+  };
 
   return (
     <div className="fixed inset-0 pointer-events-none z-40 overflow-hidden">
@@ -70,12 +84,11 @@ export function BubbleTrail() {
               boxShadow: "0 0 30px rgba(6, 182, 212, 0.8), inset 0 0 20px rgba(255, 255, 255, 0.5), 0 8px 32px rgba(6, 182, 212, 0.4)",
               backdropFilter: "blur(4px)"
             }}
-            onAnimationComplete={() => {
-              setBubbles(prev => prev.filter(b => b.id !== bubble.id));
-            }}
+            onAnimationComplete={() => handleAnimationComplete(bubble.id)}
           />
         ))}
       </AnimatePresence>
     </div>
   );
 }
+

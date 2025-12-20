@@ -357,7 +357,7 @@ export function CouponsManagement() {
                                 <Label htmlFor="type">نوع الخصم</Label>
                                 <Select
                                     value={formData.type}
-                                    onValueChange={(val: any) => setFormData({ ...formData, type: val })}
+                                    onValueChange={(val: Coupon['type']) => setFormData({ ...formData, type: val })}
                                 >
                                     <SelectTrigger>
                                         <SelectValue />
