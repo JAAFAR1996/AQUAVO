@@ -94,7 +94,7 @@ export default function Products() {
 
   // Prepare query params for backend
   const queryParams = useMemo(() => {
-    const params: Record<string, any> = {};
+    const params: import("@/types").ProductQueryParams = {};
 
     // Filters
     if (filters.categories.length > 0) params.category = filters.categories;

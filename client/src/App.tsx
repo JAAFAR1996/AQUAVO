@@ -16,6 +16,7 @@ import "@/lib/sentry"; // Auto-initializes on import
 import { CelebrationOverlay } from "@/components/gallery/celebration-overlay";
 import { WinnerNotificationBanner } from "@/components/notifications/winner-notification-banner";
 import { ShrimpProvider } from "@/contexts/shrimp-context";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Direct imports for critical pages (needed for fast first paint)
 import Home from "@/pages/home";
@@ -89,9 +90,11 @@ function Router() {
       {/* Lazy loaded product details */}
       <Route path="/products/:slug">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <ProductDetails />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <ProductDetails />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -100,18 +103,22 @@ function Router() {
       {/* Lazy loaded calculators */}
       <Route path="/calculators">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <Calculators />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Calculators />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Lazy loaded routes */}
       <Route path="/journey">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <Journey />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Journey />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -122,17 +129,21 @@ function Router() {
       {/* Lazy loaded fish encyclopedia */}
       <Route path="/fish-encyclopedia">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FishEncyclopedia />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishEncyclopedia />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
       {/* Alias for /encyclopedia */}
       <Route path="/encyclopedia">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FishEncyclopedia />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishEncyclopedia />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -143,36 +154,44 @@ function Router() {
       {/* Lazy loaded community gallery */}
       <Route path="/community-gallery">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <CommunityGallery />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CommunityGallery />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Lazy loaded fish health diagnosis */}
       <Route path="/fish-health-diagnosis">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FishHealthDiagnosis />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishHealthDiagnosis />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Lazy loaded fish finder */}
       <Route path="/fish-finder">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FishFinder />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishFinder />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Lazy loaded fish breeding calculator */}
       <Route path="/fish-breeding-calculator">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FishBreedingCalculator />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishBreedingCalculator />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -186,17 +205,21 @@ function Router() {
       {/* Lazy loaded FAQ */}
       <Route path="/faq">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <FAQ />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FAQ />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       <Route path="/order-confirmation/:id">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <OrderConfirmation />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <OrderConfirmation />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -205,18 +228,22 @@ function Router() {
       {/* Lazy loaded blog */}
       <Route path="/blog">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <Blog />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Blog />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Blog Post Detail */}
       <Route path="/blog/:id">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <BlogPost />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BlogPost />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
@@ -226,18 +253,22 @@ function Router() {
       {/* Lazy loaded register */}
       <Route path="/register">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <Register />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Register />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 
       {/* Lazy loaded profile */}
       <Route path="/profile">
         {() => (
-          <Suspense fallback={<PageLoader />}>
-            <Profile />
-          </Suspense>
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Profile />
+            </Suspense>
+          </ErrorBoundary>
         )}
       </Route>
 

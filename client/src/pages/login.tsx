@@ -17,7 +17,6 @@ import {
     Fish,
     Sparkles,
     AlertCircle,
-    CheckCircle,
     Loader2
 } from "lucide-react";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";

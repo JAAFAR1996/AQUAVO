@@ -23,7 +23,7 @@ import { motion } from "framer-motion";
 import { blogPosts } from "@/lib/blog-data";
 
 // Map icon strings to components
-const iconMap: Record<string, any> = {
+const iconMap: Record<string, React.ReactNode> = {
     Fish: <Fish className="w-5 h-5" />,
     AlertTriangle: <AlertTriangle className="w-5 h-5" />,
     Heart: <Heart className="w-5 h-5" />,
@@ -86,8 +86,8 @@ export default function Blog() {
                                 key={cat.name}
                                 variant="ghost"
                                 className={`rounded-full px-6 py-6 border transition-all duration-300 ${cat.name === "الكل"
-                                        ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
-                                        : "bg-card hover:bg-muted border-border hover:border-primary/50"
+                                    ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-lg shadow-primary/20"
+                                    : "bg-card hover:bg-muted border-border hover:border-primary/50"
                                     }`}
                             >
                                 <span className="font-bold text-base">{cat.name}</span>

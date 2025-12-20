@@ -104,7 +104,7 @@ export default function Journey() {
 
   const { data: productsData } = useQuery({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts(),
   });
 
   // Fetch saved plan from database
@@ -274,7 +274,7 @@ export default function Journey() {
         const canisterFilter = filterProducts.find((p: Product) =>
           p.name?.toLowerCase().includes("canister") ||
           p.name?.toLowerCase().includes("eheim") ||
-          p.specifications?.type?.toLowerCase() === "canister"
+          (typeof p.specifications?.type === 'string' && p.specifications.type.toLowerCase() === "canister")
         );
         if (canisterFilter) recommendations.push(canisterFilter);
       } else if (wizardData.filterType === "hob") {

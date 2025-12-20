@@ -11,6 +11,29 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 
+// Proper interface for order data - replacing 'any' type
+interface OrderItem {
+    id: string;
+    productId: string;
+    quantity: number;
+    price: number;
+}
+
+interface ShippingAddress {
+    address: string;
+    city?: string;
+    phone?: string;
+}
+
+interface OrderData {
+    id: string;
+    total: number;
+    status?: string;
+    items?: OrderItem[];
+    shippingAddress?: ShippingAddress;
+    createdAt?: string;
+}
+
 const getDeliveryEstimate = (address: string) => {
     if (!address) return "خلال 2-4 أيام عمل";
     // Assuming "Baghdad - ..." or "بغداد - ..." format or just checking for the word
@@ -58,7 +81,7 @@ export default function OrderConfirmation() {
         enabled: !!orderId,
     });
 
-    const orderData = order as any;
+    const orderData = order as OrderData | undefined;
 
     const copyOrderNumber = () => {
         if (orderId) {
@@ -104,9 +127,9 @@ export default function OrderConfirmation() {
     return (
         <ConfirmationContent
             orderId={orderId || "unknown"}
-            total={orderData.total}
-            itemsCount={orderData.items?.length || 0}
-            address={orderData.shippingAddress?.address || ""}
+            total={orderData?.total ?? 0}
+            itemsCount={orderData?.items?.length ?? 0}
+            address={orderData?.shippingAddress?.address ?? ""}
         />
     );
 }

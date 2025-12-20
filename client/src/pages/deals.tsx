@@ -16,9 +16,9 @@ import { BackToTop } from "@/components/back-to-top";
 import { Product } from "@/types";
 
 export default function Deals() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading } = useQuery<{ products: Product[] }>({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts(),
   });
 
   const { addItem } = useCart();

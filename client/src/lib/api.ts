@@ -1,4 +1,4 @@
-import type { Product } from "@/types";
+import type { Product, ProductQueryParams, GallerySubmission } from "@/types";
 import { buildApiUrl } from "./config/env";
 
 // Default timeout for API requests (30 seconds)
@@ -52,7 +52,7 @@ async function getJson<T>(path: string, options?: RequestInit, timeoutMs?: numbe
 }
 
 // Core functions that throw errors (used by tests and internal logic)
-export async function fetchProductsCore(params?: Record<string, any>): Promise<{ products: Product[] }> {
+export async function fetchProductsCore(params?: ProductQueryParams): Promise<{ products: Product[] }> {
   const query = new URLSearchParams();
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
@@ -78,7 +78,7 @@ export async function fetchProductBySlugCore(slug: string): Promise<Product> {
 }
 
 // Production functions - NO fallback to mock data (real database only)
-export async function fetchProducts(params?: Record<string, any>): Promise<{ products: Product[] }> {
+export async function fetchProducts(params?: ProductQueryParams): Promise<{ products: Product[] }> {
   try {
     return await fetchProductsCore(params);
   } catch (err) {
@@ -131,9 +131,9 @@ export async function searchProducts(query: string): Promise<Product[]> {
   }
 }
 
-export async function fetchGallerySubmissions(): Promise<any[]> {
+export async function fetchGallerySubmissions(): Promise<GallerySubmission[]> {
   try {
-    return await getJson<any[]>("/api/gallery");
+    return await getJson<GallerySubmission[]>("/api/gallery");
   } catch (err) {
     console.warn("Failed to fetch gallery submissions", err);
     return [];

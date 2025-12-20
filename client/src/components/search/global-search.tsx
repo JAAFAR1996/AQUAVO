@@ -85,7 +85,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { data } = useQuery<{ products: Product[] }>({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts(),
   });
 
   // Load recent searches

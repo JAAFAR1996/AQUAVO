@@ -10,6 +10,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchGallerySubmissions, voteGallerySubmission } from "@/lib/api";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { GallerySubmission } from "@/types";
 
 export function MasonryGalleryGrid() {
   const [activeItem, setActiveItem] = useState<string | null>(null);
@@ -51,29 +52,10 @@ export function MasonryGalleryGrid() {
     );
   }
 
-  // GalleryItem interface
-  interface GalleryItem {
-    id: string;
-    customerName: string;
-    description: string;
-    imageUrl: string;
-    tankSize: string;
-    likes: number;
-    tags?: string[];
-  }
-
-  // Helper to fallback tags if missing (since DB might not have them)
-  const getTags = (item: GalleryItem) => {
-    if (item.tags && Array.isArray(item.tags)) return item.tags;
-    // Generate some dummy tags based on style if empty
-    const defaultTags: Record<string, string[]> = {
-      "Dutch Style": ["نباتات كثيفة", "ألوان زاهية", "بدون صخور"],
-      "Nature Style": ["أمانو", "صخور", "خشب", "طبيعي"],
-      "Iwagumi": ["صخور", "بساطة", "زن", "عشب"],
-      "Biotope": ["نهر", "طبيعة", "سمك بري", "حقيقي"],
-      "Jungle Style": ["وحشي", "كثيف", "سهل", "أخضر"]
-    };
-    return defaultTags[item.tankSize] || ["حوض سمك", "تصميم"];
+  // Helper to get default tags for gallery submissions
+  const getTags = (item: GallerySubmission) => {
+    // Default tags for gallery submissions
+    return ["حوض سمك", "تصميم", "معرض"];
   };
 
   return (
@@ -82,7 +64,7 @@ export function MasonryGalleryGrid() {
       className="flex w-auto -ml-6"
       columnClassName="pl-6 bg-clip-padding"
     >
-      {galleryItems.map((item: GalleryItem) => (
+      {galleryItems.map((item: GallerySubmission) => (
         <div
           key={item.id}
           className="mb-6 group relative overflow-hidden rounded-2xl bg-muted shadow-md hover:shadow-xl transition-all duration-300 card-hover-lift gpu-accelerate"
@@ -92,13 +74,13 @@ export function MasonryGalleryGrid() {
               <div
                 className="cursor-pointer relative"
                 role="button"
-                aria-label={`عرض ${item.customerName}`}
+                aria-label={`عرض ${item.userName || 'مستخدم'}`}
                 onClick={() => setActiveItem(item.id)}
               >
                 <div className="relative overflow-hidden rounded-2xl">
                   <OptimizedImage
                     src={item.imageUrl}
-                    alt={item.customerName}
+                    alt={item.userName || 'معرض العملاء'}
                     className="w-full h-auto transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 33vw"
                   />
@@ -117,8 +99,8 @@ export function MasonryGalleryGrid() {
                 <div className="p-4 bg-card border-t border-border/50">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-bold text-lg leading-none mb-2 group-hover:text-primary transition-colors">{item.customerName}</h3>
-                      <p className="text-sm text-muted-foreground line-clamp-1">{item.description}</p>
+                      <h3 className="font-bold text-lg leading-none mb-2 group-hover:text-primary transition-colors">{item.userName || 'مستخدم'}</h3>
+                      <p className="text-sm text-muted-foreground line-clamp-1">{item.description || 'حوض أسماك رائع'}</p>
                     </div>
                     <Button
                       variant="ghost"
@@ -140,7 +122,7 @@ export function MasonryGalleryGrid() {
               <div className="relative w-full md:w-2/3 bg-black/5 dark:bg-black/40 flex items-center justify-center p-4 md:p-8 h-[40vh] md:h-full">
                 <OptimizedImage
                   src={item.imageUrl}
-                  alt={item.customerName}
+                  alt={item.userName || 'معرض العملاء'}
                   className="w-full h-full object-contain rounded-lg shadow-lg"
                   priority={true}
                 />
@@ -153,10 +135,10 @@ export function MasonryGalleryGrid() {
                     {/* Header */}
                     <div>
                       <h2 className="text-3xl font-extrabold text-foreground mb-2 flex items-center gap-2">
-                        {item.customerName}
+                        {item.userName || 'مستخدم'}
                         <Badge variant="secondary" className="text-xs font-normal px-2 bg-primary/10 text-primary border-primary/20">رائج</Badge>
                       </h2>
-                      <p className="text-muted-foreground text-lg font-medium">{item.tankSize}</p>
+                      <p className="text-muted-foreground text-lg font-medium">حوض أسماك</p>
                     </div>
 
                     {/* Tags */}
@@ -169,7 +151,7 @@ export function MasonryGalleryGrid() {
                     {/* Detailed Description */}
                     <div className="bg-muted/30 p-4 rounded-xl border border-border/50">
                       <p className="text-foreground/90 leading-relaxed text-sm md:text-base whitespace-pre-line">
-                        {item.description}
+                        {item.description || 'حوض أسماك جميل من معرض العملاء'}
                       </p>
                     </div>
 

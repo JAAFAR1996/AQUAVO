@@ -139,7 +139,7 @@ export function RecommendedForYou({
 
     const { data, isLoading } = useQuery({
         queryKey: ["products"],
-        queryFn: fetchProducts,
+        queryFn: () => fetchProducts(),
     });
 
     const recommendations = useMemo(() => {
@@ -227,7 +227,7 @@ export function SimilarProducts({
 }: SimilarProductsProps) {
     const { data, isLoading } = useQuery({
         queryKey: ["products"],
-        queryFn: fetchProducts,
+        queryFn: () => fetchProducts(),
     });
 
     const similarProducts = useMemo(() => {
@@ -294,7 +294,7 @@ export function RecentlyViewed({
 
     const { data, isLoading } = useQuery({
         queryKey: ["products"],
-        queryFn: fetchProducts,
+        queryFn: () => fetchProducts(),
     });
 
     const recentProducts = useMemo(() => {
@@ -351,7 +351,7 @@ export function RecentlyViewedCompact({ className }: { className?: string }) {
 
     const { data } = useQuery({
         queryKey: ["products"],
-        queryFn: fetchProducts,
+        queryFn: () => fetchProducts(),
     });
 
     const recentProducts = useMemo(() => {

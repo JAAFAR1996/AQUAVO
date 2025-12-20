@@ -93,13 +93,13 @@ export default function ProductDetails() {
     enabled: !!slug,
   });
 
-  const { data: allProductsData } = useQuery({
+  const { data: allProductsData } = useQuery<{ products: Product[] }>({
     queryKey: ["products"],
-    queryFn: fetchProducts,
+    queryFn: () => fetchProducts(),
   });
 
   const relatedProducts = allProductsData?.products
-    ?.filter((p) => p.id !== product?.id && p.category === product?.category)
+    ?.filter((p: Product) => p.id !== product?.id && p.category === product?.category)
     ?.slice(0, 4) || [];
 
   const handleAddToCart = () => {
@@ -188,7 +188,6 @@ export default function ProductDetails() {
   const productRating = Number(product.rating || 0);
   const reviewCount = product.reviewCount || 0;
   const inStock = (product.stock ?? 0) > 0;
-  const formattedPrice = new Intl.NumberFormat('ar-IQ').format(product.price);
 
   const breadcrumbItems = [
     { name: "الرئيسية", url: "https://aquavo.iq/" },
@@ -223,7 +222,7 @@ export default function ProductDetails() {
       <main id="main-content" className="flex-1 py-8 md:py-12">
         <div className="container mx-auto px-4">
           <>
-// Breadcrumbs Refactored
+            {/* Breadcrumbs */}
             <Breadcrumb className="mb-6">
               <BreadcrumbList>
                 <BreadcrumbItem>
@@ -762,17 +761,3 @@ function RecommendationsSection({ productId, type, title }: { productId: string,
   );
 }
 
-
-const ProductSkeleton = () => (
-  <div className="grid md:grid-cols-2 gap-12">
-    <Skeleton className="w-full h-auto aspect-square rounded-lg" />
-    <div className="space-y-4">
-      <Skeleton className="h-6 w-1/4" />
-      <Skeleton className="h-10 w-3/4" />
-      <Skeleton className="h-6 w-1/3" />
-      <Skeleton className="h-20 w-full" />
-      <Skeleton className="h-10 w-1/2" />
-      <Skeleton className="h-12 w-full md:w-1/2" />
-    </div>
-  </div>
-);

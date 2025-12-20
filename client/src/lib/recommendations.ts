@@ -35,7 +35,7 @@ function mapToClientProduct(p: ServerProduct): Product {
         stock: Number(p.stock || 0),
         lowStockThreshold: Number(p.lowStockThreshold || 0),
         specs: p.specifications ? JSON.stringify(p.specifications) : p.description || "", // Fallback
-        specifications: p.specifications as Record<string, unknown>
+        specifications: p.specifications as unknown as import("@/types").ProductSpecification
     };
 }
 

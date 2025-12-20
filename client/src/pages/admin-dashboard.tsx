@@ -87,7 +87,7 @@ interface Product {
   isNew: boolean;
   isBestSeller: boolean;
   isProductOfWeek: boolean;
-  specifications: Record<string, any>;
+  specifications: import("@/types").ProductSpecification;
   createdAt: string;
   updatedAt: string;
 }

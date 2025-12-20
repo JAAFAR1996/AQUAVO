@@ -14,7 +14,7 @@ interface SearchDialogProps {
 
 export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
   const [query, setQuery] = useState('');
-  const { data } = useQuery<{ products: Product[] }>({ queryKey: ['products'], queryFn: fetchProducts });
+  const { data } = useQuery<{ products: Product[] }>({ queryKey: ['products'], queryFn: () => fetchProducts() });
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
   useEffect(() => {

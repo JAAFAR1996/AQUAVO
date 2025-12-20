@@ -27,6 +27,41 @@ export interface JourneyStep {
   current: boolean;
 }
 
+// Proper type for product specifications instead of Record<string, any>
+export interface ProductSpecification {
+  [key: string]: string | number | boolean | null | undefined;
+}
+
+// Query parameters for fetching products
+export interface ProductQueryParams {
+  category?: string | string[];
+  brand?: string | string[];
+  minPrice?: number;
+  maxPrice?: number;
+  search?: string;
+  sort?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
+  isNew?: boolean;
+  isBestSeller?: boolean;
+}
+
+// Gallery submission type
+export interface GallerySubmission {
+  id: string;
+  userId: string;
+  userName?: string;
+  imageUrl: string;
+  description?: string;
+  likes: number;
+  isWinner?: boolean;
+  prizeCode?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -43,7 +78,7 @@ export interface Product {
   category: string;
   subcategory?: string;
   specs?: string;
-  specifications?: Record<string, any>;
+  specifications?: ProductSpecification;
   isNew?: boolean;
   isBestSeller?: boolean;
   isProductOfWeek?: boolean;
@@ -65,3 +100,4 @@ export interface FishFinderResult {
   fishType: string;
   recommendedProducts: Product[];
 }
+
