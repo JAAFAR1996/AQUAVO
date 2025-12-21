@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,21 @@ import { Product } from "@/types";
 import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 import { ParallaxText } from "@/components/effects/parallax-text";
 
+// Hero images for rotation on page refresh
+const HERO_IMAGES = [
+  "/images/hero/hero-1.png", // Iwagumi Style
+  "/images/hero/hero-2.png", // Planted Paradise
+  "/images/hero/hero-3.png", // Underwater Forest
+];
+
 export default function Home() {
   const [, setLocation] = useLocation();
+
+  // Random hero image selection on page load
+  const heroImage = useMemo(() => {
+    const randomIndex = Math.floor(Math.random() * HERO_IMAGES.length);
+    return HERO_IMAGES[randomIndex];
+  }, []);
 
   // Fetch Top Selling Data (Dynamic based on sales)
   const { data: salesData, isLoading: salesIsLoading } = useQuery({
@@ -70,7 +83,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500 z-10" />
             <div
               className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-              style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1522069169874-c58ec4b76be5?q=80&w=2000&auto=format&fit=crop")' }}
+              style={{ backgroundImage: `url("${heroImage}")` }}
             />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-60"></div>
 
