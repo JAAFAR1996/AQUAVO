@@ -62,7 +62,7 @@ export function ProductImageGallery({
             <div className="relative group">
                 <div
                     ref={imageRef}
-                    className="relative aspect-square bg-black rounded-2xl overflow-hidden cursor-zoom-in"
+                    className="relative aspect-square bg-gradient-to-br from-white/5 to-transparent rounded-2xl overflow-hidden cursor-zoom-in border border-white/10"
                     onMouseMove={handleMouseMove}
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
@@ -153,7 +153,7 @@ export function ProductImageGallery({
                             <img
                                 src={image}
                                 alt={`${productName} - صورة مصغرة ${index + 1}`}
-                                className="w-full h-full object-contain bg-black p-1"
+                                className="w-full h-full object-contain bg-transparent p-1"
                                 loading="lazy"
                             />
                             {selectedIndex === index && (
@@ -223,7 +223,7 @@ export function ProductImageGallery({
                                     <img
                                         src={image}
                                         alt={`صورة ${index + 1}`}
-                                        className="w-full h-full object-contain bg-black"
+                                        className="w-full h-full object-contain bg-transparent"
                                     />
                                 </button>
                             ))}
