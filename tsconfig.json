@@ -1,14 +1,14 @@
 {
   "include": [
     "client/src/**/*",
-    "shared/**/*",
-    "server/**/*",
-    "api/**/*"
+    "shared/**/*"
   ],
   "exclude": [
     "node_modules",
     "build",
-    "dist"
+    "dist",
+    "server/**/*",
+    "api/**/*"
   ],
   "compilerOptions": {
     "incremental": true,
