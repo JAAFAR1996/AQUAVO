@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
-import { X, SlidersHorizontal, Sparkles, Tag, Layers, Star, Leaf, Zap } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { X, SlidersHorizontal, Sparkles, Tag, Layers, Star, Leaf, Zap, DollarSign } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
@@ -71,11 +72,14 @@ function FilterChip({
   );
 }
 
-// Section header
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
+// Section header - elegant without emojis
+function FilterSection({ title, icon: Icon, children }: { title: string; icon?: React.ElementType; children: React.ReactNode }) {
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wide">{title}</h3>
+      <div className="flex items-center gap-2">
+        {Icon && <Icon className="w-4 h-4 text-primary" />}
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      </div>
       {children}
     </div>
   );
@@ -90,9 +94,13 @@ export function ProductFilters({
   activeFiltersCount,
 }: ProductFiltersProps) {
   const [localFilters, setLocalFilters] = useState<FilterState>(filters);
+  const [minPriceInput, setMinPriceInput] = useState(filters.priceRange[0].toString());
+  const [maxPriceInput, setMaxPriceInput] = useState(filters.priceRange[1].toString());
 
   useEffect(() => {
     setLocalFilters(filters);
+    setMinPriceInput(filters.priceRange[0].toString());
+    setMaxPriceInput(filters.priceRange[1].toString());
   }, [filters]);
 
   const difficulties = [
@@ -107,13 +115,20 @@ export function ProductFilters({
     { label: "صديق للبيئة", value: "صديق للبيئة", icon: Leaf, color: "green" as const },
   ];
 
-  // Handlers
-  const handlePriceChange = (value: number[]) => {
-    setLocalFilters(prev => ({ ...prev, priceRange: [value[0], value[1]] as [number, number] }));
+  // Price input handlers
+  const handleMinPriceChange = (value: string) => {
+    setMinPriceInput(value);
   };
 
-  const handlePriceCommit = (value: number[]) => {
-    const newFilters = { ...localFilters, priceRange: [value[0], value[1]] as [number, number] };
+  const handleMaxPriceChange = (value: string) => {
+    setMaxPriceInput(value);
+  };
+
+  const applyPriceFilter = () => {
+    const min = Math.max(0, parseInt(minPriceInput) || 0);
+    const max = Math.min(maxPrice, parseInt(maxPriceInput) || maxPrice);
+    const newFilters = { ...localFilters, priceRange: [min, max] as [number, number] };
+    setLocalFilters(newFilters);
     onFilterChange(newFilters);
   };
 
@@ -136,6 +151,8 @@ export function ProductFilters({
       tags: [],
     };
     setLocalFilters(clearedFilters);
+    setMinPriceInput("0");
+    setMaxPriceInput(maxPrice.toString());
     onFilterChange(clearedFilters);
   };
 
@@ -148,7 +165,7 @@ export function ProductFilters({
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
               <Zap className="w-4 h-4 text-primary" />
             </div>
-            <span className="font-bold text-primary">{activeFiltersCount} فلتر نشط</span>
+            <span className="font-medium text-primary">{activeFiltersCount} فلتر نشط</span>
           </div>
           <Button
             variant="ghost"
@@ -161,38 +178,54 @@ export function ProductFilters({
         </div>
       )}
 
-      {/* Price Range - Modern Slider */}
-      <FilterSection title="💰 السعر">
-        <div className="space-y-4">
-          <div className="px-1">
-            <Slider
-              min={0}
-              max={maxPrice}
-              step={Math.max(1000, Math.floor(maxPrice / 100))}
-              value={localFilters.priceRange}
-              onValueChange={handlePriceChange}
-              onValueCommit={handlePriceCommit}
-              className="w-full"
-            />
-          </div>
-          <div className="flex justify-between items-center">
-            <div className="bg-gradient-to-r from-primary/10 to-primary/5 px-4 py-2 rounded-xl">
-              <span className="text-xs text-muted-foreground">من</span>
-              <span className="font-bold text-primary mr-1">{localFilters.priceRange[0].toLocaleString()}</span>
-              <span className="text-xs">د.ع</span>
+      {/* Price Range - Clean Input Fields */}
+      <FilterSection title="نطاق السعر" icon={DollarSign}>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">من</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={minPriceInput}
+                  onChange={(e) => handleMinPriceChange(e.target.value)}
+                  onBlur={applyPriceFilter}
+                  onKeyDown={(e) => e.key === 'Enter' && applyPriceFilter()}
+                  className="pr-10 text-right"
+                  placeholder="0"
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">د.ع</span>
+              </div>
             </div>
-            <div className="h-px w-4 bg-border" />
-            <div className="bg-gradient-to-l from-primary/10 to-primary/5 px-4 py-2 rounded-xl">
-              <span className="text-xs text-muted-foreground">إلى</span>
-              <span className="font-bold text-primary mr-1">{localFilters.priceRange[1].toLocaleString()}</span>
-              <span className="text-xs">د.ع</span>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">إلى</Label>
+              <div className="relative">
+                <Input
+                  type="number"
+                  value={maxPriceInput}
+                  onChange={(e) => handleMaxPriceChange(e.target.value)}
+                  onBlur={applyPriceFilter}
+                  onKeyDown={(e) => e.key === 'Enter' && applyPriceFilter()}
+                  className="pr-10 text-right"
+                  placeholder={maxPrice.toLocaleString()}
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">د.ع</span>
+              </div>
             </div>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={applyPriceFilter}
+            className="w-full"
+          >
+            تطبيق السعر
+          </Button>
         </div>
       </FilterSection>
 
-      {/* Tags - Quick Filters */}
-      <FilterSection title="⚡ سريع">
+      {/* Quick Tags */}
+      <FilterSection title="تصفية سريعة" icon={Sparkles}>
         <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
             <FilterChip
@@ -209,13 +242,12 @@ export function ProductFilters({
 
       {/* Categories */}
       {availableCategories.length > 0 && (
-        <FilterSection title="📦 الفئات">
+        <FilterSection title="الفئات" icon={Layers}>
           <div className="flex flex-wrap gap-2">
             {availableCategories.map((category) => (
               <FilterChip
                 key={category}
                 label={category}
-                icon={Layers}
                 selected={localFilters.categories.includes(category)}
                 onClick={() => toggleFilter("categories", category)}
               />
@@ -226,13 +258,12 @@ export function ProductFilters({
 
       {/* Brands */}
       {availableBrands.length > 0 && (
-        <FilterSection title="🏷️ العلامات التجارية">
+        <FilterSection title="العلامات التجارية" icon={Tag}>
           <div className="flex flex-wrap gap-2 max-h-[150px] overflow-y-auto custom-scrollbar p-1">
             {availableBrands.map((brand) => (
               <FilterChip
                 key={brand}
                 label={brand}
-                icon={Tag}
                 selected={localFilters.brands.includes(brand)}
                 onClick={() => toggleFilter("brands", brand)}
               />
@@ -242,7 +273,7 @@ export function ProductFilters({
       )}
 
       {/* Difficulty */}
-      <FilterSection title="📊 مستوى الخبرة">
+      <FilterSection title="مستوى الخبرة" icon={Star}>
         <div className="flex flex-wrap gap-2">
           {difficulties.map((diff) => (
             <FilterChip

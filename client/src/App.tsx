@@ -40,6 +40,7 @@ const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const OrderConfirmation = lazy(() => import("@/pages/order-confirmation"));
 const Register = lazy(() => import("@/pages/register"));
+const Compare = lazy(() => import("@/pages/compare"));
 
 
 
@@ -150,6 +151,17 @@ function Router() {
       <Route path="/deals" component={Deals} />
       <Route path="/wishlist" component={Wishlist} />
       <Route path="/search" component={SearchResults} />
+
+      {/* Lazy loaded compare page */}
+      <Route path="/compare">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Compare />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Lazy loaded community gallery */}
       <Route path="/community-gallery">
