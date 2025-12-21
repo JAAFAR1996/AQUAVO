@@ -595,3 +595,91 @@ export const insertSettingSchema = z.object({
   value: z.string(),
 });
 export type InsertSetting = z.infer<typeof insertSettingSchema>;
+
+// ========================================
+// Referral System (نظام دعوة الأصدقاء)
+// ========================================
+
+// Referral Codes - أكواد الدعوة الفريدة لكل مستخدم
+export const referralCodes = pgTable("referral_codes", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  code: text("code").notNull().unique(), // كود فريد مثل "AHMED123"
+  userId: text("user_id").references(() => users.id).notNull(),
+  isActive: boolean("is_active").default(true),
+  totalReferrals: integer("total_referrals").default(0), // عدد الإحالات الناجحة
+  totalPointsEarned: integer("total_points_earned").default(0), // إجمالي النقاط المكتسبة
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  codeIdx: index("referral_codes_code_idx").on(table.code),
+  userIdIdx: index("referral_codes_user_id_idx").on(table.userId),
+}));
+
+// Referrals - تتبع الإحالات
+export const referrals = pgTable("referrals", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  referrerUserId: text("referrer_user_id").references(() => users.id).notNull(), // المُحيل
+  referredUserId: text("referred_user_id").references(() => users.id).notNull(), // الصديق المُحال
+  referralCodeId: text("referral_code_id").references(() => referralCodes.id).notNull(),
+  status: text("status").notNull().default("pending"), // pending, registered, first_purchase, rewarded
+  referralDate: timestamp("referral_date").defaultNow().notNull(), // تاريخ استخدام كود الإحالة
+  signupDate: timestamp("signup_date"), // تاريخ تسجيل الصديق
+  firstOrderId: text("first_order_id").references(() => orders.id), // أول طلب للصديق
+  firstOrderDate: timestamp("first_order_date"), // تاريخ أول شراء
+  referrerPointsAwarded: integer("referrer_points_awarded").default(0), // نقاط المُحيل (50)
+  referredDiscountAwarded: boolean("referred_discount_awarded").default(false), // هل حصل الصديق على خصم 5%
+  referredCouponCode: text("referred_coupon_code"), // كود الكوبون المخصص للصديق
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  referrerIdx: index("referrals_referrer_idx").on(table.referrerUserId),
+  referredIdx: index("referrals_referred_idx").on(table.referredUserId),
+  statusIdx: index("referrals_status_idx").on(table.status),
+}));
+
+// Relations for Referral System
+export const referralCodesRelations = relations(referralCodes, ({ one, many }) => ({
+  user: one(users, {
+    fields: [referralCodes.userId],
+    references: [users.id],
+  }),
+  referrals: many(referrals),
+}));
+
+export const referralsRelations = relations(referrals, ({ one }) => ({
+  referrer: one(users, {
+    fields: [referrals.referrerUserId],
+    references: [users.id],
+    relationName: "referrer",
+  }),
+  referred: one(users, {
+    fields: [referrals.referredUserId],
+    references: [users.id],
+    relationName: "referred",
+  }),
+  referralCode: one(referralCodes, {
+    fields: [referrals.referralCodeId],
+    references: [referralCodes.id],
+  }),
+  firstOrder: one(orders, {
+    fields: [referrals.firstOrderId],
+    references: [orders.id],
+  }),
+}));
+
+// Zod Schemas
+export const insertReferralCodeSchema = z.object({
+  code: z.string().min(4).max(20),
+  userId: z.string().min(1),
+});
+
+export const insertReferralSchema = z.object({
+  referrerUserId: z.string().min(1),
+  referredUserId: z.string().min(1),
+  referralCodeId: z.string().min(1),
+});
+
+// Types
+export type ReferralCode = typeof referralCodes.$inferSelect;
+export type InsertReferralCode = z.infer<typeof insertReferralCodeSchema>;
+export type Referral = typeof referrals.$inferSelect;
+export type InsertReferral = z.infer<typeof insertReferralSchema>;

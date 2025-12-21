@@ -12,7 +12,8 @@ import {
     Package,
     LogOut,
     Crown,
-    Gift
+    Gift,
+    Users
 } from "lucide-react";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { BackToTop } from "@/components/back-to-top";
@@ -28,6 +29,7 @@ import { ProfileOrders } from "@/components/profile/profile-orders";
 import { ProfileAddresses } from "@/components/profile/profile-addresses";
 import { ProfileLoyalty, tierLabels } from "@/components/profile/profile-loyalty";
 import { ProfileCoupons } from "@/components/profile/profile-coupons";
+import { ProfileReferral } from "@/components/profile/profile-referral";
 import { Address, UserProfileExtra } from "@/lib/types";
 
 export default function Profile() {
@@ -163,7 +165,7 @@ export default function Profile() {
                         <TabsList className="grid w-full grid-cols-5 h-auto p-1">
                             <TabsTrigger value="info" className="py-3 gap-2">
                                 <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">المعلومات الشخصية</span>
+                                <span className="hidden sm:inline">المعلومات</span>
                             </TabsTrigger>
                             <TabsTrigger value="orders" className="py-3 gap-2">
                                 <Package className="w-4 h-4" />
@@ -175,7 +177,11 @@ export default function Profile() {
                             </TabsTrigger>
                             <TabsTrigger value="loyalty" className="py-3 gap-2">
                                 <Crown className="w-4 h-4" />
-                                <span className="hidden sm:inline">نقاط الولاء</span>
+                                <span className="hidden sm:inline">الولاء</span>
+                            </TabsTrigger>
+                            <TabsTrigger value="referral" className="py-3 gap-2">
+                                <Users className="w-4 h-4" />
+                                <span className="hidden sm:inline">الدعوة</span>
                             </TabsTrigger>
                         </TabsList>
 
@@ -209,6 +215,11 @@ export default function Profile() {
                         {/* Loyalty Tab */}
                         <TabsContent value="loyalty">
                             <ProfileLoyalty loyaltyPoints={loyaltyPoints} loyaltyTier={loyaltyTier} />
+                        </TabsContent>
+
+                        {/* Referral Tab */}
+                        <TabsContent value="referral">
+                            <ProfileReferral />
                         </TabsContent>
 
                     </Tabs>

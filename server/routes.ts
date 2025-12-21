@@ -12,6 +12,7 @@ import { createCartRouter } from "./routes/cart.js";
 import { createFavoritesRouter } from "./routes/favorites.js";
 import { createCouponRouter } from "./routes/coupons.js";
 import { createNewsletterRouter } from "./routes/newsletter.js";
+import { createReferralRouter } from "./routes/referral.js";
 import journeyRoutes from "./routes/journey.js";
 import { storage } from "./storage/index.js";
 
@@ -34,6 +35,7 @@ export async function registerRoutes(
   app.use("/api/admin", createAdminRouter()); // Contains /admin/orders, /admin/users etc.
   app.use("/api/gallery", createGalleryRouter());
   app.use("/api/system", createSystemRouter()); // For /api/system/seed
+  app.use("/api/referral", createReferralRouter()); // Referral system
 
   // System root routes (sitemap, robots) - Handling mounting inside createSystemRouter
   // But wait, createSystemRouter defines /sitemap.xml.

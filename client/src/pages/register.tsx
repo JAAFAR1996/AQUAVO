@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useState, useEffect } from "react";
+import { Link, useLocation, useSearch } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -19,7 +19,8 @@ import {
     Phone,
     CheckCircle,
     AlertCircle,
-    Sparkles
+    Sparkles,
+    Gift
 } from "lucide-react";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +43,27 @@ export default function Register() {
     const [acceptTerms, setAcceptTerms] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Referral code support
+    const searchString = useSearch();
+    const [referralCode, setReferralCode] = useState<string | null>(null);
+    const [referralValid, setReferralValid] = useState<boolean | null>(null);
+
+    // Extract and validate referral code from URL
+    useEffect(() => {
+        const params = new URLSearchParams(searchString);
+        const ref = params.get('ref');
+        if (ref) {
+            setReferralCode(ref);
+            // Validate the referral code
+            fetch(`/api/referral/validate/${ref}`)
+                .then(res => res.json())
+                .then(data => {
+                    setReferralValid(data.valid);
+                })
+                .catch(() => setReferralValid(false));
+        }
+    }, [searchString]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -133,6 +155,16 @@ export default function Register() {
                                 احصل على <strong>خصم 3%</strong> على طلبك الأول عند التسجيل!
                             </AlertDescription>
                         </Alert>
+
+                        {/* Referral Badge */}
+                        {referralCode && referralValid && (
+                            <Alert className="mt-4 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800">
+                                <Gift className="h-4 w-4 text-green-600" />
+                                <AlertDescription className="text-sm text-green-700 dark:text-green-300">
+                                    🎉 تم استخدام كود دعوة! ستحصل على <strong>خصم 5%</strong> بعد أول عملية شراء.
+                                </AlertDescription>
+                            </Alert>
+                        )}
                     </motion.div>
 
                     {/* Registration Form */}
