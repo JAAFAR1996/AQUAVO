@@ -8,8 +8,7 @@
   "exclude": [
     "node_modules",
     "build",
-    "dist",
-    "**/*.test.ts"
+    "dist"
   ],
   "compilerOptions": {
     "incremental": true,
@@ -33,7 +32,9 @@
       "express",
       "express-session",
       "ws",
-      "vite/client"
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ],
     "paths": {
       "@/*": [

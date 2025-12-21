@@ -10,6 +10,10 @@ export default defineConfig({
     tailwindcss(),
     metaImagesPlugin(),
   ],
+  // Remove console.log and debugger statements in production
+  esbuild: {
+    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
+  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),

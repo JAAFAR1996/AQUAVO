@@ -369,12 +369,13 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                         <Separator className="my-6" />
                         <h4 className="font-medium mb-4 text-right">جدول المقارنة</h4>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table role="table" className="w-full text-sm">
+                                <caption className="sr-only">جدول مقارنة خصائص الأسماك</caption>
                                 <thead>
                                     <tr className="border-b">
-                                        <th className="text-right p-3 font-medium text-muted-foreground">الخاصية</th>
+                                        <th scope="col" className="text-right p-3 font-medium text-muted-foreground">الخاصية</th>
                                         {selectedFish.map((fish) => (
-                                            <th key={fish.id} className="p-3 text-center min-w-[120px]">
+                                            <th key={fish.id} scope="col" className="p-3 text-center min-w-[120px]">
                                                 <div className="flex flex-col items-center gap-2">
                                                     <img
                                                         src={fish.image}

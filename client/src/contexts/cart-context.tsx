@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, ReactNode, useCa
 import { Product } from "@/types";
 import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
+import { addCsrfHeader } from "@/lib/csrf";
+import { syncStorage } from "@/lib/secure-storage";
 
 export interface CartItem {
   id: string;
@@ -27,7 +29,7 @@ interface ServerCartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product) => void;
+  addItem: (product: Product, quantity?: number) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -37,7 +39,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const CART_STORAGE_KEY = "fish-web-cart-v2";
+const CART_STORAGE_KEY = "cart-v2"; // syncStorage automatically adds 'aquavo_' prefix
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -47,10 +49,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // Load from LocalStorage on mount (for guest)
   useEffect(() => {
     if (!user && !isInitialized) {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
+      const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
       if (stored) {
         try {
-          setItems(JSON.parse(stored));
+          setItems(stored);
         } catch (e) {
           console.error("Failed to parse cart", e);
         }
@@ -65,15 +67,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const mergeGuestCartWithServer = async () => {
         try {
           // 1. Get local cart BEFORE we replace it
-          const localCartStr = localStorage.getItem(CART_STORAGE_KEY);
-          const localItems: CartItem[] = localCartStr ? JSON.parse(localCartStr) : [];
+          const localItems: CartItem[] = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY) || [];
 
           // 2. If we have local items, push them to server first
           if (localItems.length > 0) {
             const pushPromises = localItems.map(item =>
               fetch("/api/cart", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 credentials: "include",
                 body: JSON.stringify({
                   productId: item.id,
@@ -88,7 +89,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             await Promise.all(pushPromises);
 
             // Clear local storage after successful push
-            localStorage.removeItem(CART_STORAGE_KEY);
+            syncStorage.removeItem(CART_STORAGE_KEY);
 
             toast({
               title: "تم دمج سلتك ✨",
@@ -152,7 +153,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // So this state-based save is tricky without a diff.
       // We will rely on the add/remove functions to call API directly.
     } else {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+      syncStorage.setItem(CART_STORAGE_KEY, newItems);
       window.dispatchEvent(new StorageEvent('storage', {
         key: CART_STORAGE_KEY,
         newValue: JSON.stringify(newItems),
@@ -160,18 +161,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addItem = async (product: Product) => {
+  const addItem = async (product: Product, quantity: number = 1) => {
     if (user) {
       // Server Side
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: addCsrfHeader({ "Content-Type": "application/json" }),
           credentials: "include",
-          body: JSON.stringify({ productId: product.id, quantity: 1 }),
+          body: JSON.stringify({ productId: product.id, quantity }),
         });
         if (res.ok) {
           const newItem = await res.json();
+          // Ideally rely on the response for the new state, but refreshing full cart ensures sync
           const cartRes = await fetch("/api/cart", { credentials: "include" });
           const serverItems = await cartRes.json();
           const mappedItems = serverItems.map((item: ServerCartItem) => ({
@@ -185,7 +187,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
           setItems(mappedItems);
         } else {
           try {
-            // Fallback to update client side if server fails? No, better warn.
             if (res.status === 401) {
               toast({
                 title: "جلسة منتهية",
@@ -196,7 +197,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               throw new Error("Server responded with " + res.status);
             }
           } catch (e) {
-            throw e; // goes to outer catch
+            throw e;
           }
         }
       } catch (err) {
@@ -214,7 +215,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItem) {
         newItems = items.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
@@ -222,7 +223,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           id: product.id,
           name: product.name,
           price: Number(product.price),
-          quantity: 1,
+          quantity: quantity,
           image: product.thumbnail || product.image || product.images?.[0] || '',
           slug: product.slug,
         };
@@ -238,7 +239,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems(prev => prev.filter((item) => item.id !== id));
 
       try {
-        const res = await fetch(`/api/cart/${id}`, { method: "DELETE", credentials: "include" });
+        const res = await fetch(`/api/cart/${id}`, {
+          method: "DELETE",
+          headers: addCsrfHeader(),
+          credentials: "include"
+        });
         if (!res.ok) {
           // Rollback on failure - refetch from server
           const cartRes = await fetch("/api/cart", { credentials: "include" });
@@ -271,7 +276,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Use functional update to avoid stale closure
       setItems(prev => {
         const newItems = prev.filter((item) => item.id !== id);
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+        syncStorage.setItem(CART_STORAGE_KEY, newItems);
         window.dispatchEvent(new StorageEvent('storage', {
           key: CART_STORAGE_KEY,
           newValue: JSON.stringify(newItems),
@@ -303,7 +308,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         const res = await fetch(`/api/cart/${id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: addCsrfHeader({ "Content-Type": "application/json" }),
           credentials: "include",
           body: JSON.stringify({ quantity }),
         });
@@ -335,7 +340,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const newItems = prev.map((item) =>
           item.id === id ? { ...item, quantity } : item
         );
-        localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
+        syncStorage.setItem(CART_STORAGE_KEY, newItems);
         window.dispatchEvent(new StorageEvent('storage', {
           key: CART_STORAGE_KEY,
           newValue: JSON.stringify(newItems),
@@ -348,7 +353,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCart = async () => {
     if (user) {
       try {
-        await fetch("/api/cart", { method: "DELETE", credentials: "include" });
+        await fetch("/api/cart", {
+          method: "DELETE",
+          headers: addCsrfHeader(),
+          credentials: "include"
+        });
         setItems([]);
       } catch (err) {
         console.error("Failed to clear server cart", err);

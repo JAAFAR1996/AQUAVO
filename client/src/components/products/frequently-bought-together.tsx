@@ -61,7 +61,8 @@ export function FrequentlyBoughtTogether({
 
     const handleAddAllToCart = () => {
         selectedProducts.forEach(product => {
-            addItem(product as any);
+            // Cast to full Product type for cart compatibility
+            addItem(product as import("@/types").Product);
         });
 
         toast({

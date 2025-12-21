@@ -148,13 +148,14 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                 </span>
               </h3>
               <div className="border rounded-xl overflow-hidden">
-                <table className="w-full">
+                <table role="table" className="w-full">
+                  <caption className="sr-only">قائمة منتجات الفاتورة</caption>
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-right py-3 px-4 text-sm font-semibold">المنتج</th>
-                      <th className="text-center py-3 px-2 text-sm font-semibold">الكمية</th>
-                      <th className="text-center py-3 px-2 text-sm font-semibold">السعر</th>
-                      <th className="text-left py-3 px-4 text-sm font-semibold">المجموع</th>
+                      <th scope="col" className="text-right py-3 px-4 text-sm font-semibold">المنتج</th>
+                      <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">الكمية</th>
+                      <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">السعر</th>
+                      <th scope="col" className="text-left py-3 px-4 text-sm font-semibold">المجموع</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">

@@ -13,6 +13,9 @@ interface ShrimpContextType {
 
 const ShrimpContext = createContext<ShrimpContextType | undefined>(undefined);
 
+// Constants for cart value thresholds
+const VIP_CART_THRESHOLD = 100000; // IQD - VIP status threshold
+
 export function ShrimpProvider({ children }: { children: ReactNode }) {
     const { items } = useCart();
     const [stage, setStage] = useState<ShrimpStage>("larva");
@@ -29,17 +32,11 @@ export function ShrimpProvider({ children }: { children: ReactNode }) {
             setStage("larva");
         } else if (totalItems <= 2) {
             setStage("teen");
-        } else if (cartValue > 100000) { // VIP status logic if needed, or stick to item count
+        } else if (cartValue > VIP_CART_THRESHOLD) {
             setStage("whale");
         } else {
             setStage("boss");
         }
-
-        // Override for 404 page
-        if (location === "/404") { // Or however 404 is detected
-            // setStage("glitch"); // Optional: if we want global state to reflect this
-        }
-
     }, [items, location]);
 
     // Golden Shrimp Logic (Run once on mount)

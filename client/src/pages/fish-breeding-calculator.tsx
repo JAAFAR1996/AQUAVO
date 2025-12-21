@@ -45,6 +45,7 @@ import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/da
 import { pdf } from "@react-pdf/renderer";
 import { BreedingPlanPDF } from "@/components/fish/breeding-pdf";
 import { toast } from "sonner";
+import { addCsrfHeader } from "@/lib/csrf";
 
 export default function FishBreedingCalculator() {
   const [selectedSpecies, setSelectedSpecies] = useState<string>("");
@@ -194,9 +195,10 @@ export default function FishBreedingCalculator() {
     try {
       const response = await fetch('/api/fish/breeding-plan/email', {
         method: 'POST',
-        headers: {
+        headers: addCsrfHeader({
           'Content-Type': 'application/json',
-        },
+        }),
+        credentials: 'include',
         body: JSON.stringify({
           email: emailAddress,
           speciesId: species.id,
@@ -394,7 +396,7 @@ export default function FishBreedingCalculator() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero */}
         <section className="py-20 bg-gradient-to-b from-pink-50 to-background dark:from-pink-950/20">
           <div className="container mx-auto px-4 text-center">

@@ -7,6 +7,7 @@ import { Settings, Save, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface SettingsData {
     store_name: string;
@@ -35,7 +36,7 @@ async function fetchSettings(): Promise<SettingsData> {
 async function updateSettings(data: SettingsData): Promise<void> {
     const res = await fetch("/api/admin/settings", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify(data),
     });

@@ -45,6 +45,7 @@ import {
     Users
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface Coupon {
     id: string;
@@ -111,7 +112,7 @@ export function CouponsManagement() {
             const response = await fetch("/api/admin/coupons", {
                 method: "POST",
                 credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 body: JSON.stringify(formData),
             });
 
@@ -134,7 +135,7 @@ export function CouponsManagement() {
             const response = await fetch(`/api/admin/coupons/${selectedCoupon.id}`, {
                 method: "PUT",
                 credentials: "include",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 body: JSON.stringify(formData),
             });
 
@@ -157,6 +158,7 @@ export function CouponsManagement() {
             const response = await fetch(`/api/admin/coupons/${id}`, {
                 method: "DELETE",
                 credentials: "include",
+                headers: addCsrfHeader(),
             });
 
             if (response.ok) {

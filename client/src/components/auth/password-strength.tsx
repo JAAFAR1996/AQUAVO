@@ -13,7 +13,7 @@ interface PasswordRequirement {
 }
 
 const requirements: PasswordRequirement[] = [
-    { label: "6 أحرف على الأقل", test: (p) => p.length >= 6 },
+    { label: "12 حرفاً على الأقل", test: (p) => p.length >= 12 },
     { label: "حرف كبير واحد على الأقل", test: (p) => /[A-Z]/.test(p) },
     { label: "حرف صغير واحد على الأقل", test: (p) => /[a-z]/.test(p) },
     { label: "رقم واحد على الأقل", test: (p) => /[0-9]/.test(p) },

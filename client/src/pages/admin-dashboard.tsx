@@ -66,6 +66,7 @@ import {
   Heart,
   Tag,
 } from "lucide-react";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface Product {
   id: string;
@@ -297,9 +298,9 @@ export default function AdminDashboard() {
 
       const response = await fetch("/api/admin/products", {
         method: "POST",
-        headers: {
+        headers: addCsrfHeader({
           "Content-Type": "application/json",
-        },
+        }),
         credentials: "include",
         body: JSON.stringify(productPayload),
       });
@@ -396,9 +397,9 @@ export default function AdminDashboard() {
 
       const response = await fetch(`/api/admin/products/${selectedProduct.id}`, {
         method: "PUT",
-        headers: {
+        headers: addCsrfHeader({
           "Content-Type": "application/json",
-        },
+        }),
         credentials: "include",
         body: JSON.stringify(productPayload),
       });
@@ -445,6 +446,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "DELETE",
+        headers: addCsrfHeader(),
         credentials: "include",
       });
 

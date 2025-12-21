@@ -68,7 +68,7 @@ export default function Sustainability() {
         </motion.div>
       </section>
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* The Emotional Hook "The Why" */}
         <section className="py-24 md:py-32 relative">
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-900/50 to-transparent" />

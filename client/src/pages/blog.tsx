@@ -77,7 +77,7 @@ export default function Blog() {
                 </div>
             </section>
 
-            <main className="flex-1 pb-24">
+            <main id="main-content" className="flex-1 pb-24">
                 <div className="container mx-auto px-4">
                     {/* Categories Filter - Modern Pill Design */}
                     <div className="flex flex-wrap gap-3 mb-16 justify-center">

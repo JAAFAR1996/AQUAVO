@@ -21,6 +21,7 @@ import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { PasswordStrength, isPasswordStrong } from "@/components/auth/password-strength";
+import { addCsrfHeader } from "@/lib/csrf";
 
 export default function ResetPassword() {
     const [, setLocation] = useLocation();
@@ -65,7 +66,8 @@ export default function ResetPassword() {
         try {
             const response = await fetch("/api/auth/reset-password", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
+                credentials: "include",
                 body: JSON.stringify({ token, password }),
             });
 
@@ -92,7 +94,7 @@ export default function ResetPassword() {
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800" dir="rtl">
             <Navbar />
 
-            <main className="flex-1 flex items-center justify-center py-12 px-4">
+            <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

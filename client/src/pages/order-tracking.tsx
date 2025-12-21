@@ -185,7 +185,7 @@ export default function OrderTracking() {
         </div>
       </section>
 
-      <main className="flex-1 py-16">
+      <main id="main-content" className="flex-1 py-16">
         <div className="container mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

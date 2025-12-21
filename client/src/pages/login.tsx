@@ -76,7 +76,7 @@ export default function Login() {
         <div className="min-h-screen flex flex-col bg-background" dir="rtl">
             <Navbar />
 
-            <main className="flex-1 flex items-center justify-center py-12 px-4">
+            <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <motion.div
                     initial={{ opacity: 1, y: 0 }}
                     animate={{ opacity: 1, y: 0 }}

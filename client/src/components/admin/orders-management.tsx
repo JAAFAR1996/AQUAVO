@@ -26,6 +26,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface OrderItem {
   productId: string;
@@ -113,7 +114,7 @@ export function OrdersManagement() {
     try {
       const response = await fetch(`/api/admin/orders/${orderId}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({ status: newStatus }),
       });

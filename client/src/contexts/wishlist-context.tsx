@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from "react";
 import { Product } from "@/types";
 import { useAuth } from "./auth-context";
+import { addCsrfHeader } from "@/lib/csrf";
+import { syncStorage } from "@/lib/secure-storage";
 
 export interface WishlistItem {
   id: string;
@@ -41,7 +43,7 @@ interface WishlistContextType {
 
 const WishlistContext = createContext<WishlistContextType | undefined>(undefined);
 
-const WISHLIST_STORAGE_KEY = "fish-web-wishlist-v2";
+const WISHLIST_STORAGE_KEY = "wishlist-v2"; // syncStorage automatically adds 'aquavo_' prefix
 
 export function WishlistProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
@@ -51,10 +53,10 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   // Load from LocalStorage on mount (for guest)
   useEffect(() => {
     if (!user && !isInitialized) {
-      const stored = localStorage.getItem(WISHLIST_STORAGE_KEY);
+      const stored = syncStorage.getItem<WishlistItem[]>(WISHLIST_STORAGE_KEY);
       if (stored) {
         try {
-          setItems(JSON.parse(stored));
+          setItems(stored);
         } catch (e) {
           console.error("Failed to parse wishlist", e);
         }
@@ -91,7 +93,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const saveWishlist = (newItems: WishlistItem[]) => {
     setItems(newItems);
     if (!user) {
-      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(newItems));
+      syncStorage.setItem(WISHLIST_STORAGE_KEY, newItems);
       window.dispatchEvent(new StorageEvent('storage', {
         key: WISHLIST_STORAGE_KEY,
         newValue: JSON.stringify(newItems),
@@ -105,7 +107,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
 
     if (user) {
       try {
-        const res = await fetch(`/api/favorites/${product.id}`, { method: "POST", credentials: "include" });
+        const res = await fetch(`/api/favorites/${product.id}`, {
+          method: "POST",
+          headers: addCsrfHeader(),
+          credentials: "include"
+        });
         if (res.ok) {
           // Optimistic Add
           const newItem: WishlistItem = {
@@ -143,7 +149,11 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
   const removeItem = async (id: string) => {
     if (user) {
       try {
-        await fetch(`/api/favorites/${id}`, { method: "DELETE", credentials: "include" });
+        await fetch(`/api/favorites/${id}`, {
+          method: "DELETE",
+          headers: addCsrfHeader(),
+          credentials: "include"
+        });
         setItems(items.filter((item) => item.id !== id));
       } catch (err) {
         console.error("Failed to remove from server wishlist", err);

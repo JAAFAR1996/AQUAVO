@@ -61,7 +61,7 @@ export default function Home() {
       <Navbar />
 
       <SpotlightEffect />
-      <main className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative">
+      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative">
         {/* Bento Grid Layout - Gen Z Style */}
         <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
 

@@ -13,6 +13,7 @@ import { Upload, Heart, Trophy, Camera, Award, Crown, Star, MessageCircle } from
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
 import { Link } from "wouter";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface GallerySubmission {
   id: string;
@@ -49,7 +50,11 @@ export default function CommunityGallery() {
 
   const likeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetch(`/api/gallery/${id}/like`, { method: "POST" });
+      const res = await fetch(`/api/gallery/${id}/like`, {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to like");
       return res.json();
     },
@@ -67,7 +72,8 @@ export default function CommunityGallery() {
 
       const res = await fetch("/api/gallery", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify(payload)
       });
 
@@ -160,7 +166,7 @@ export default function CommunityGallery() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center space-y-4 mb-12">
           <div className="inline-flex items-center gap-2 bg-primary/10 px-6 py-2 rounded-full text-primary font-bold">

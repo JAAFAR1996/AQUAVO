@@ -279,11 +279,13 @@ function Router() {
       {/* Lazy loaded admin dashboard */}
       <Route path="/admin">
         {() => (
-          <RequireAdmin>
-            <Suspense fallback={<PageLoader />}>
-              <AdminDashboard />
-            </Suspense>
-          </RequireAdmin>
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<PageLoader />}>
+                <AdminDashboard />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
         )}
       </Route>
 

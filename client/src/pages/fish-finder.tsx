@@ -15,7 +15,7 @@ export default function FishFinder() {
             />
             <Navbar />
 
-            <main className="flex-1 container mx-auto px-4 py-20 flex items-center justify-center">
+            <main id="main-content" className="flex-1 container mx-auto px-4 py-20 flex items-center justify-center">
                 <div className="max-w-2xl mx-auto w-full text-center space-y-8">
                     <div className="relative flex justify-center">
                         <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full" />

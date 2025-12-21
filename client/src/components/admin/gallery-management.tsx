@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import { Check, X, Crown, Heart, Trophy, Tag, Percent, Trash2, Clock } from "lucide-react";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface GallerySubmission {
   id: string;
@@ -54,6 +55,7 @@ export function GalleryManagement() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/approve/${id}`, {
         method: "POST",
+        headers: addCsrfHeader(),
         credentials: "include"
       });
       if (!res.ok) throw new Error("Failed to approve");
@@ -69,6 +71,7 @@ export function GalleryManagement() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/reject/${id}`, {
         method: "POST",
+        headers: addCsrfHeader(),
         credentials: "include"
       });
       if (!res.ok) throw new Error("Failed to reject");
@@ -84,7 +87,7 @@ export function GalleryManagement() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/set-winner/${id}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           couponCode: currentPrize?.discountCode || ""
         }),
@@ -107,7 +110,7 @@ export function GalleryManagement() {
     mutationFn: async (data: typeof prizeData) => {
       const res = await fetch("/api/admin/gallery/prize", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify(data),
         credentials: "include"
       });
@@ -125,6 +128,7 @@ export function GalleryManagement() {
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/admin/gallery/winner/${id}`, {
         method: "DELETE",
+        headers: addCsrfHeader(),
         credentials: "include"
       });
       if (!res.ok) throw new Error("Failed to delete winner");

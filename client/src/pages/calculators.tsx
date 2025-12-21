@@ -19,7 +19,7 @@ export default function Calculators() {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">حاسبات أحواض الأسماك</h1>

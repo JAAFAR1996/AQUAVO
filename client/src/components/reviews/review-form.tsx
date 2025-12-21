@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface ReviewFormProps {
     productId: string;
@@ -37,7 +38,7 @@ export function ReviewForm({ productId, onReviewSubmitted }: ReviewFormProps) {
         try {
             const response = await fetch("/api/reviews", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 credentials: "include",
                 body: JSON.stringify({
                     productId,

@@ -19,7 +19,7 @@ export default function EcoFriendlyGuide() {
     <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans">
       <Navbar />
 
-      <main className="flex-1">
+      <main id="main-content" className="flex-1">
         {/* Hero Section */}
         <section className="relative py-24 bg-gradient-to-br from-teal-900 via-slate-900 to-black overflow-hidden text-white">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1533240217992-0b7012301f29?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
@@ -203,12 +203,13 @@ export default function EcoFriendlyGuide() {
               <Card>
                 <CardContent className="p-0 overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full text-right">
+                    <table role="table" className="w-full text-right">
+                      <caption className="sr-only">معايير المياه المثالية للأحواض</caption>
                       <thead className="bg-slate-100 dark:bg-slate-900">
                         <tr>
-                          <th className="p-4 font-bold">المعيار</th>
-                          <th className="p-4 font-bold">القيمة المثالية (مياه عذبة)</th>
-                          <th className="p-4 font-bold">الخطر</th>
+                          <th scope="col" className="p-4 font-bold">المعيار</th>
+                          <th scope="col" className="p-4 font-bold">القيمة المثالية (مياه عذبة)</th>
+                          <th scope="col" className="p-4 font-bold">الخطر</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-800">

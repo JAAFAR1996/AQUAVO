@@ -1,6 +1,7 @@
 import { Link } from "wouter";
 import { Facebook, Instagram, Twitter, Phone, Mail, MapPin, Fish, CreditCard, Truck, Shield, Clock, ChevronLeft, Youtube, MessageCircle, Lock, Award, Heart } from "lucide-react";
 import { useState } from "react";
+import { addCsrfHeader } from "@/lib/csrf";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -18,9 +19,10 @@ export default function Footer() {
     try {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
-        headers: {
+        headers: addCsrfHeader({
           'Content-Type': 'application/json',
-        },
+        }),
+        credentials: 'include',
         body: JSON.stringify({ email }),
       });
 

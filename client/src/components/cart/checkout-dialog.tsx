@@ -14,6 +14,8 @@ import { Link } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
 import { useEffect } from "react";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
+import { useToast } from "@/hooks/use-toast";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface CustomerInfo {
   name: string;
@@ -33,6 +35,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [step, setStep] = useState<'info' | 'confirm'>('info');
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
@@ -132,9 +135,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
-        headers: {
+        headers: addCsrfHeader({
           "Content-Type": "application/json",
-        },
+        }),
         body: JSON.stringify({
           customerInfo: {
             ...customerInfo,
@@ -174,7 +177,11 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     } catch (error: unknown) {
       console.error("Checkout error:", error);
       const message = error instanceof Error ? error.message : "حدث خطأ";
-      alert(message);
+      toast({
+        title: "خطأ في الطلب",
+        description: message,
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -206,7 +213,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     try {
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify({ code, totalAmount: cartTotal }),
       });
 

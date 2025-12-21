@@ -113,7 +113,7 @@ export default function Profile() {
         <div className="min-h-screen flex flex-col bg-background">
             <Navbar />
 
-            <main className="flex-1 py-8">
+            <main id="main-content" className="flex-1 py-8">
                 <div className="container mx-auto px-4">
                     {/* Profile Header */}
                     <motion.div

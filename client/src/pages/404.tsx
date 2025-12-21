@@ -16,7 +16,7 @@ export default function NotFound() {
       />
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-20 flex items-center justify-center">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-20 flex items-center justify-center">
         <div className="max-w-2xl mx-auto w-full">
           <ErrorState
             title={errorMessages.notFound.title}

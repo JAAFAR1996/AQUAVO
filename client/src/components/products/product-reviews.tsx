@@ -30,6 +30,7 @@ import {
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface Review {
   id: string;
@@ -132,9 +133,9 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     try {
       const response = await fetch(`/api/reviews`, {
         method: "POST",
-        headers: {
+        headers: addCsrfHeader({
           "Content-Type": "application/json",
-        },
+        }),
         credentials: "include",
         body: JSON.stringify({
           productId,
@@ -182,6 +183,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
     try {
       const response = await fetch(`/api/reviews/${reviewId}/helpful`, {
         method: "POST",
+        headers: addCsrfHeader(),
         credentials: "include",
       });
 

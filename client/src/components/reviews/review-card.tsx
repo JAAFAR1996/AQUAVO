@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { RatingStars } from "./rating-stars";
 import { cn } from "@/lib/utils";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface ReviewProps {
     id: string;
@@ -41,6 +42,7 @@ export function ReviewCard({
             try {
                 const response = await fetch(`/api/reviews/${review.id}/helpful`, {
                     method: "POST",
+                    headers: addCsrfHeader(),
                     credentials: "include",
                 });
                 if (response.ok) {

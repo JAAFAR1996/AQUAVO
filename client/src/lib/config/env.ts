@@ -88,7 +88,7 @@ export function initializeClientEnvSideEffects() {
   }
 
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator && clientEnv.pwa.enabled) {
-    navigator.serviceWorker.register("/service-worker.js").catch(() => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {
       // Swallow errors if service worker is not present; optional feature.
     });
   }

@@ -112,7 +112,7 @@ export default function ReturnPolicy() {
         </div>
       </section>
 
-      <main className="flex-1 py-16">
+      <main id="main-content" className="flex-1 py-16">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-3 gap-8 mb-16">
             <motion.div

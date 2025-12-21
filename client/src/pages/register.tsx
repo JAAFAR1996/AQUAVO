@@ -95,7 +95,7 @@ export default function Register() {
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
             <Navbar />
 
-            <main className="flex-1 flex items-center justify-center py-12 px-4">
+            <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
                     {/* Benefits Section */}
                     <motion.div

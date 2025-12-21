@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 
 interface UseIdleTimerOptions {
   timeout: number; // milliseconds
@@ -15,15 +15,32 @@ interface UseIdleTimerOptions {
   events?: string[]; // DOM events to listen for
 }
 
+// Default events outside component to maintain stable reference
+const DEFAULT_EVENTS = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
+
 export function useIdleTimer({
   timeout = 15000, // Default: 15 seconds
   onIdle,
   onActive,
-  events = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'],
+  events = DEFAULT_EVENTS,
 }: UseIdleTimerOptions) {
   const [isIdle, setIsIdle] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isIdleRef = useRef(false);
+
+  // Store callbacks in refs to avoid dependency issues
+  const onIdleRef = useRef(onIdle);
+  const onActiveRef = useRef(onActive);
+
+  // Update refs when callbacks change
+  useEffect(() => {
+    onIdleRef.current = onIdle;
+    onActiveRef.current = onActive;
+  }, [onIdle, onActive]);
+
+  // Create stable reference for events array
+  const eventsKey = events.join(',');
+  const stableEvents = useMemo(() => events, [eventsKey]);
 
   // Reset the timer
   const resetTimer = useCallback(() => {
@@ -36,23 +53,23 @@ export function useIdleTimer({
     if (isIdleRef.current) {
       isIdleRef.current = false;
       setIsIdle(false);
-      onActive?.();
+      onActiveRef.current?.();
     }
 
     // Set new timer
     timerRef.current = setTimeout(() => {
       isIdleRef.current = true;
       setIsIdle(true);
-      onIdle?.();
+      onIdleRef.current?.();
     }, timeout);
-  }, [timeout, onIdle, onActive]);
+  }, [timeout]);
 
   useEffect(() => {
     // Start timer on mount
     resetTimer();
 
     // Add event listeners
-    events.forEach((event) => {
+    stableEvents.forEach((event) => {
       window.addEventListener(event, resetTimer, { passive: true });
     });
 
@@ -61,11 +78,11 @@ export function useIdleTimer({
       if (timerRef.current) {
         clearTimeout(timerRef.current);
       }
-      events.forEach((event) => {
+      stableEvents.forEach((event) => {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [events, resetTimer]);
+  }, [stableEvents, resetTimer]);
 
   return { isIdle, resetTimer };
 }

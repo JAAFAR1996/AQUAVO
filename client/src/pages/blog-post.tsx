@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, Clock, User, Share2, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import DOMPurify from 'isomorphic-dompurify';
 
 
 export default function BlogPost() {
@@ -27,7 +28,7 @@ export default function BlogPost() {
         <div className="min-h-screen flex flex-col bg-background font-sans">
             <Navbar />
 
-            <main className="flex-1 pb-20">
+            <main id="main-content" className="flex-1 pb-20">
                 {/* Hero Header */}
                 <div className="relative h-[50vh] min-h-[400px]">
                     <div className="absolute inset-0">
@@ -81,7 +82,12 @@ export default function BlogPost() {
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.3 }}
                                 className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-headings:text-primary prose-img:rounded-2xl"
-                                dangerouslySetInnerHTML={{ __html: post.content }}
+                                dangerouslySetInnerHTML={{
+                                    __html: DOMPurify.sanitize(post.content, {
+                                        ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img'],
+                                        ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title', 'target', 'rel']
+                                    })
+                                }}
                             />
 
                             <div className="mt-12 pt-8 border-t flex justify-between items-center">

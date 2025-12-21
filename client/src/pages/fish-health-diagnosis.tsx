@@ -226,7 +226,7 @@ export default function FishHealthDiagnosis() {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-red-100 dark:bg-red-950 px-6 py-2 rounded-full mb-4">

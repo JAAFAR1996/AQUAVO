@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tag, Plus, Trash2, Loader2, Percent } from "lucide-react";
 import { format } from "date-fns";
 import { ar } from "date-fns/locale";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface Discount {
     id: number;
@@ -70,7 +71,8 @@ export function AdvancedDiscountsTab() {
         mutationFn: async (discountData: DiscountInput) => {
             const res = await fetch("/api/admin/discounts", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: addCsrfHeader({ "Content-Type": "application/json" }),
+                credentials: "include",
                 body: JSON.stringify(discountData),
             });
             if (!res.ok) throw new Error("Failed to create discount");
@@ -98,6 +100,8 @@ export function AdvancedDiscountsTab() {
         mutationFn: async (id: number) => {
             const res = await fetch(`/api/admin/discounts/${id}`, {
                 method: "DELETE",
+                headers: addCsrfHeader(),
+                credentials: "include",
             });
             if (!res.ok) throw new Error("Failed to delete discount");
         },

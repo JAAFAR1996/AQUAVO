@@ -1,5 +1,5 @@
 import { mockProducts } from "@shared/mock-products";
-import { Product } from "@/types";
+import { Product, DifficultyLevel, EquipmentPart } from "@/types";
 
 export const products: Product[] = mockProducts.map((product) => ({
   id: product.id,
@@ -17,10 +17,10 @@ export const products: Product[] = mockProducts.map((product) => ({
   specs: product.description,
   isNew: product.isNew,
   isBestSeller: product.isBestSeller,
-  difficulty: (product.specifications as any)?.difficulty,
-  ecoFriendly: (product.specifications as any)?.ecoFriendly,
-  videoUrl: (product.specifications as any)?.videoUrl,
-  bundleProducts: (product.specifications as any)?.bundleProducts,
-  explodedViewParts: (product.specifications as any)?.explodedViewParts,
+  difficulty: product.specifications?.difficulty as DifficultyLevel | undefined,
+  ecoFriendly: product.specifications?.ecoFriendly as boolean | undefined,
+  videoUrl: product.specifications?.videoUrl as string | undefined,
+  bundleProducts: product.specifications?.bundleProducts as string[] | undefined,
+  explodedViewParts: product.specifications?.explodedViewParts as EquipmentPart[] | undefined,
 }));
 

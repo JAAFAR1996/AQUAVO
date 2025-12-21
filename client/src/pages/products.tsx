@@ -179,7 +179,7 @@ export default function Products() {
       />
       <OrganizationSchema />
       <Navbar />
-      <main className="flex-1 container mx-auto px-4 py-12">
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         <div className="text-center space-y-4 mb-12">
           <h1 className="text-4xl font-bold text-foreground">جميع المنتجات</h1>
           <p className="text-xl text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>

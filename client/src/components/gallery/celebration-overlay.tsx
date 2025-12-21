@@ -6,6 +6,7 @@ import confetti from "canvas-confetti";
 import { Copy, PartyPopper, Gift, Sparkles, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { addCsrfHeader } from "@/lib/csrf";
 
 export function CelebrationOverlay() {
     const { toast } = useToast();
@@ -26,7 +27,9 @@ export function CelebrationOverlay() {
     const ackMutation = useMutation({
         mutationFn: async (id: string) => {
             await fetch(`/api/gallery/ack-celebration/${id}`, {
-                method: "POST"
+                method: "POST",
+                headers: addCsrfHeader(),
+                credentials: "include"
             });
         },
         onSuccess: () => {

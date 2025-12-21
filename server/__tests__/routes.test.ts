@@ -312,10 +312,14 @@ describe('API Routes', () => {
     });
 
     it('should handle boolean string parsing', () => {
-      expect('true' === 'true').toBe(true);
-      expect('false' === 'true').toBe(false);
-      expect('True' === 'true').toBe(false);
-      expect('FALSE' === 'true').toBe(false);
+      const trueStr: string = 'true';
+      const falseStr: string = 'false';
+      const trueUpperStr: string = 'True';
+      const falseUpperStr: string = 'FALSE';
+      expect(trueStr === 'true').toBe(true);
+      expect(falseStr === 'true').toBe(false);
+      expect(trueUpperStr === 'true').toBe(false);
+      expect(falseUpperStr === 'true').toBe(false);
     });
 
     it('should handle missing optional parameters', () => {

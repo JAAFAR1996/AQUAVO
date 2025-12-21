@@ -46,7 +46,6 @@ const getDeliveryEstimate = (address: string) => {
 export default function OrderConfirmation() {
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
-    const [copied, setCopied] = useState(false);
 
     // Trigger confetti on mount
     useEffect(() => {
@@ -82,14 +81,6 @@ export default function OrderConfirmation() {
     });
 
     const orderData = order as OrderData | undefined;
-
-    const copyOrderNumber = () => {
-        if (orderId) {
-            navigator.clipboard.writeText(orderId);
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
-        }
-    };
 
     if (isLoading) {
         return (

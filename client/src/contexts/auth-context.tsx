@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useLocation } from "wouter";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface User {
   id: string;
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({
           email,
@@ -92,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await fetch("/api/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
         credentials: "include",
         body: JSON.stringify({
           fullName: name,
@@ -131,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch("/api/logout", {
         method: "POST",
+        headers: addCsrfHeader(),
         credentials: "include",
       });
     } catch (error) {

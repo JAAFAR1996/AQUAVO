@@ -1,4 +1,23 @@
 import { useEffect } from "react";
+import DOMPurify from 'isomorphic-dompurify';
+
+/**
+ * Sanitizes string values for schema.org JSON-LD to prevent XSS
+ */
+function sanitizeSchemaValue(value: unknown): unknown {
+    if (typeof value === 'string') {
+        return DOMPurify.sanitize(value, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+    }
+    if (Array.isArray(value)) {
+        return value.map(sanitizeSchemaValue);
+    }
+    if (value && typeof value === 'object') {
+        return Object.fromEntries(
+            Object.entries(value).map(([k, v]) => [k, sanitizeSchemaValue(v)])
+        );
+    }
+    return value;
+}
 
 interface MetaTagsProps {
     title: string;
@@ -171,7 +190,7 @@ export function ProductSchema({
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -219,7 +238,7 @@ export function ReviewSchema({ reviews, productName }: ReviewSchemaProps) {
                 <script
                     key={index}
                     type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
                 />
             ))}
         </>
@@ -260,7 +279,7 @@ export function OrganizationSchema() {
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -302,7 +321,7 @@ export function LocalBusinessSchema() {
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -329,7 +348,7 @@ export function BreadcrumbSchema({
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -358,7 +377,7 @@ export function FAQSchema({
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -386,7 +405,7 @@ export function WebsiteSchema() {
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }
@@ -434,7 +453,7 @@ export function ArticleSchema({
     return (
         <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
         />
     );
 }

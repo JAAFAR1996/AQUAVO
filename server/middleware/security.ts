@@ -55,10 +55,13 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
       "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com; " +
-      "frame-ancestors 'none';"
+      "frame-ancestors 'none'; " +
+      "object-src 'none'; " +
+      "base-uri 'self'; " +
+      "form-action 'self';"
     );
   } else {
-    // Production: Strict CSP without unsafe directives
+    // Production: Strict CSP following OWASP 2025 best practices
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
@@ -67,7 +70,12 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
       "connect-src 'self' https://api.unsplash.com; " +
-      "frame-ancestors 'none';"
+      "frame-ancestors 'none'; " +
+      "object-src 'none'; " +
+      "base-uri 'self'; " +
+      "form-action 'self'; " +
+      "upgrade-insecure-requests; " +
+      "block-all-mixed-content;"
     );
   }
 

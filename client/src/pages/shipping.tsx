@@ -123,7 +123,7 @@ export default function Shipping() {
                 </div>
             </section>
 
-            <main className="flex-1 py-12">
+            <main id="main-content" className="flex-1 py-12">
                 <div className="container mx-auto px-4">
                     {/* Features */}
                     <div className="grid md:grid-cols-4 gap-6 mb-12">
@@ -162,14 +162,15 @@ export default function Shipping() {
                             </CardHeader>
                             <CardContent>
                                 <div className="overflow-x-auto">
-                                    <table className="w-full">
+                                    <table role="table" className="w-full">
+                                        <caption className="sr-only">مناطق التوصيل والأسعار في العراق</caption>
                                         <thead>
                                             <tr className="border-b bg-muted/50">
-                                                <th className="text-right p-4 font-bold">المنطقة</th>
-                                                <th className="text-right p-4 font-bold">المدن المشمولة</th>
-                                                <th className="text-right p-4 font-bold">سعر التوصيل</th>
-                                                <th className="text-right p-4 font-bold">مدة التوصيل</th>
-                                                <th className="text-right p-4 font-bold">الحالة</th>
+                                                <th scope="col" className="text-right p-4 font-bold">المنطقة</th>
+                                                <th scope="col" className="text-right p-4 font-bold">المدن المشمولة</th>
+                                                <th scope="col" className="text-right p-4 font-bold">سعر التوصيل</th>
+                                                <th scope="col" className="text-right p-4 font-bold">مدة التوصيل</th>
+                                                <th scope="col" className="text-right p-4 font-bold">الحالة</th>
                                             </tr>
                                         </thead>
                                         <tbody>

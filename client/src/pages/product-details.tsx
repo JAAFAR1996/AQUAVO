@@ -104,9 +104,7 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (product) {
-      for (let i = 0; i < quantity; i++) {
-        addItem(product);
-      }
+      addItem(product, quantity);
       setIsAddedToCart(true);
       toast({
         title: "يا سلام! 🦐",

@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { addCsrfHeader } from '@/lib/csrf';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -141,7 +142,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         // Send subscription to server
         await fetch('/api/push/subscribe', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
             body: JSON.stringify(subscription),
             credentials: 'include',
         });

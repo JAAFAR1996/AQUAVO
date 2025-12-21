@@ -1,5 +1,6 @@
 import type { Product, ProductQueryParams, GallerySubmission } from "@/types";
 import { buildApiUrl } from "./config/env";
+import { addCsrfHeader } from "./csrf";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -32,7 +33,7 @@ async function getJson<T>(path: string, options?: RequestInit, timeoutMs?: numbe
   try {
     const res = await fetchWithTimeout(targetUrl, {
       credentials: "include",
-      headers: { "Content-Type": "application/json" },
+      headers: addCsrfHeader({ "Content-Type": "application/json" }),
       ...options,
     }, timeoutMs);
 
@@ -78,14 +79,10 @@ export async function fetchProductBySlugCore(slug: string): Promise<Product> {
 }
 
 // Production functions - NO fallback to mock data (real database only)
+// Production functions - NO fallback to mock data (real database only)
 export async function fetchProducts(params?: ProductQueryParams): Promise<{ products: Product[] }> {
-  try {
-    return await fetchProductsCore(params);
-  } catch (err) {
-    console.error("Failed to fetch products from API:", err);
-    // Return empty array instead of mock data to avoid showing fake products
-    return { products: [] };
-  }
+  // Let errors propagate to useQuery
+  return await fetchProductsCore(params);
 }
 
 export async function fetchProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
