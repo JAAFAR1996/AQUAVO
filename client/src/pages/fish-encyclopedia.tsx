@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { MetaTags } from "@/components/seo/meta-tags";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { FishCard } from "@/components/fish/fish-card";
@@ -133,6 +134,11 @@ export default function FishEncyclopedia() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
+      <MetaTags
+        title="موسوعة الأسماك"
+        description="موسوعة شاملة لأنواع أسماك المياه العذبة مع معلومات تفصيلية عن الرعاية والتغذية والتكاثر"
+        keywords={["أسماك", "موسوعة", "أحواض", "رعاية الأسماك", "أسماك المياه العذبة"]}
+      />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-600 via-cyan-600 to-teal-600 dark:from-blue-900 dark:via-cyan-900 dark:to-teal-900 py-20 overflow-hidden">

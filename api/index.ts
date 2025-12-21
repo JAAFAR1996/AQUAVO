@@ -1,10 +1,12 @@
 import express from "express";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import session from "express-session";
+import helmet from "helmet";
 import { createServer } from "http";
 import type { IncomingMessage, ServerResponse } from "http";
 import { registerRoutes } from "../server/routes.js";
 import { buildSessionSecret, createSessionStore } from "../server/session-config.js";
+import { corsConfig, sanitizeBody, securityHeaders } from "../server/middleware/security.js";
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
@@ -16,6 +18,19 @@ async function buildApp() {
   // Trust proxy for Vercel/production deployments to correctly identify protocol (http vs https)
   app.set("trust proxy", 1);
 
+  // Security: Helmet for comprehensive HTTP security headers
+  app.use(helmet({
+    contentSecurityPolicy: false, // Using custom CSP from securityHeaders middleware
+    crossOriginEmbedderPolicy: false, // Allow embedding resources
+    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources
+  }));
+
+  // Security: Custom security headers with CSP
+  app.use(securityHeaders);
+
+  // Security: CORS configuration
+  app.use(corsConfig);
+
   app.use(
     express.json({
       limit: '50mb',
@@ -26,6 +41,9 @@ async function buildApp() {
   );
 
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
+
+  // Security: Request body sanitization (must be AFTER parsing)
+  app.use(sanitizeBody);
 
   console.log("📦 Creating session store...");
   // Use persistent PostgreSQL session store in production

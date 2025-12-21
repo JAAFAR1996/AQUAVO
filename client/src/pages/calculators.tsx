@@ -1,4 +1,5 @@
 import Navbar from "@/components/navbar";
+import { MetaTags } from "@/components/seo/meta-tags";
 import Footer from "@/components/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +20,11 @@ export default function Calculators() {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans">
       <Navbar />
+      <MetaTags
+        title="حاسبات أحواض الأسماك"
+        description="أدوات دقيقة لحساب حجم الحوض والسخان والفلتر والملوحة وجداول الصيانة لأحواض الأسماك"
+        keywords={["حاسبة", "أحواض", "أسماك", "سخان", "فلتر", "صيانة"]}
+      />
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
