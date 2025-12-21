@@ -339,6 +339,20 @@ export function createAdminRouter(): RouterType {
             // Clean up imageBase64 before validation
             delete data.imageBase64;
 
+            // Auto-generate ID if not provided
+            if (!data.id) {
+                data.id = crypto.randomUUID();
+            }
+
+            // Auto-generate slug from name if not provided
+            if (!data.slug && data.name) {
+                data.slug = data.name
+                    .toLowerCase()
+                    .replace(/[^\w\s\u0621-\u064A-]/g, '')
+                    .replace(/\s+/g, '-')
+                    .substring(0, 100);
+            }
+
             const parsed = insertProductSchema.parse(data);
             const product = await storage.createProduct(parsed);
 
