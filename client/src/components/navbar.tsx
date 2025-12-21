@@ -131,7 +131,7 @@ export default function Navbar() {
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="relative">
                 <img
-                  src="/logo_aquavo_icon.png"
+                  src="/logo_aquavo_icon.webp"
                   alt="AQUAVO Logo"
                   className="h-10 w-10 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md"
                 />

@@ -3,7 +3,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { checkRateLimit, getClientIP } from '../utils/validation';
+import { checkRateLimit, getClientIP } from '../utils/validation.js';
 
 /**
  * Rate limiting middleware

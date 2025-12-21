@@ -13,7 +13,7 @@ export const aquascapeStyles: AquascapeStyle[] = [
         id: "nature",
         title: "نمط الطبيعة (Nature Style)",
         description: "ابتكره الفنان تاكاشي أمانو، ويهدف إلى محاكاة المناظر الطبيعية الخلابة كالجبال والوديان والغابات داخل حوض السمك. يجمع بين الصخور والأخشاب والنباتات بتناغم تام وفقاً للنسبة الذهبية، ليخلق مشهداً يأسر الألباب وينقلك إلى قلب الطبيعة.",
-        imageUrl: "/images/aquascape-styles/nature.png",
+        imageUrl: "/images/aquascape-styles/nature.webp",
         features: ["محاكاة الطبيعة", "استخدام الصخور والأخشاب", "توازن بصري (النسبة الذهبية)"],
         difficulty: "متقدم"
     },

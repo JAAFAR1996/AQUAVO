@@ -87,7 +87,7 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
-                  <img src="/logo_aquavo_icon.png" alt="Logo" className="h-10 w-10 object-contain" />
+                  <img src="/logo_aquavo_icon.webp" alt="Logo" className="h-10 w-10 object-contain" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">AQUAVO</h1>
