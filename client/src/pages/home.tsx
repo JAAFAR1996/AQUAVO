@@ -136,7 +136,7 @@ export default function Home() {
                   </div>
                 ))
               ) : bestSellers.slice(0, 6).map((product, idx) => (
-                <div key={product.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-border dark:hover:border-white/5" onClick={() => setLocation(`/products/${product.id}`)}>
+                <div key={product.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-border dark:hover:border-white/5" onClick={() => setLocation(`/products/${product.slug}`)}>
                   <div className="text-4xl font-black text-muted-foreground/20 dark:text-white/10 italic w-8 text-center group-hover:text-primary/50 transition-colors">#{idx + 1}</div>
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-muted/20 dark:bg-black/20">
                     <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" />
@@ -175,7 +175,7 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              <div className="flex w-full items-center gap-4 relative z-10 cursor-pointer" onClick={() => setLocation(`/products/${featuredProduct.id}`)}>
+              <div className="flex w-full items-center gap-4 relative z-10 cursor-pointer" onClick={() => setLocation(`/products/${featuredProduct.slug}`)}>
                 <div className="w-28 h-28 p-2 rounded-2xl bg-muted/20 dark:bg-white/5 border border-border dark:border-white/10 group-hover:scale-105 transition-transform duration-300">
                   <img src={featuredProduct.images[0]} alt={featuredProduct.name} className="w-full h-full object-contain" />
                 </div>

@@ -3,6 +3,8 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
 
 // Hook
 import { useJourney } from "@/hooks/use-journey";
@@ -155,9 +157,10 @@ export default function JourneyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20" ref={topRef}>
+    <div className="min-h-screen bg-background" ref={topRef}>
+      <Navbar />
       {/* Header */}
-      <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8">
+      <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
         <div className="container text-center">
           <h1 className="text-3xl md:text-5xl font-black text-primary mb-4">
             رحلة إنشاء حوضك

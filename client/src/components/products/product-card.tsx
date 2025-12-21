@@ -10,6 +10,7 @@ import { FloatingElement } from "@/components/effects/floating-element";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { CompareButton } from "@/components/products/product-comparison";
 import { Link } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
@@ -105,19 +106,11 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <Eye className="w-4 h-4 ml-1" aria-hidden="true" />
                 نظرة سريعة
               </Button>
-              <Button
-                size="sm"
-                variant="secondary"
+              <CompareButton
+                productId={product.id}
+                variant="full"
                 className="rounded-full shadow-md micro-bounce"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onCompare?.(product);
-                }}
-                aria-label={`إضافة ${product.name} للمقارنة`}
-              >
-                مقارنة
-              </Button>
+              />
               <WishlistButton
                 product={product}
                 variant="icon"

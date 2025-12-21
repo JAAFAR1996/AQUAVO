@@ -185,8 +185,8 @@ export default function Products() {
           <p className="text-xl text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>
         </div>
 
-        {/* Category Cards Grid */}
-        <CategoryCardsGrid
+        {/* Category Cards Grid - Removed per user request */}
+        {/* <CategoryCardsGrid
           categories={availableCategories}
           selectedCategories={filters.categories}
           onCategoryToggle={(category) => {
@@ -197,7 +197,7 @@ export default function Products() {
                 : [...prev.categories, category]
             }));
           }}
-        />
+        /> */}
 
         <Tabs defaultValue="grid" className="mb-12">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">

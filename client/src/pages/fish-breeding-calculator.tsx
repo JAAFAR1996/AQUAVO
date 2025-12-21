@@ -146,8 +146,11 @@ export default function FishBreedingCalculator() {
     }
 
     setIsGeneratingPDF(true);
+
     try {
-      // PDF generation started
+      console.log("[PDF] Starting PDF generation for:", species.arabicName);
+
+      // Create PDF document
       const doc = (
         <BreedingPlanPDF
           species={species}
@@ -161,12 +164,26 @@ export default function FishBreedingCalculator() {
         />
       );
 
-      const blob = await pdf(doc).toBlob();
+      console.log("[PDF] Document created, generating blob...");
 
+      // Generate PDF blob
+      const pdfInstance = pdf(doc);
+      const blob = await pdfInstance.toBlob();
+
+      console.log("[PDF] Blob generated, size:", blob.size);
+
+      if (!blob || blob.size === 0) {
+        throw new Error("PDF blob is empty");
+      }
+
+      // Create download link
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.download = `breeding-plan-${species.id}-${new Date().toISOString().split('T')[0]}.pdf`;
+
+      console.log("[PDF] Triggering download:", link.download);
+
       document.body.appendChild(link);
       link.click();
 
@@ -177,12 +194,24 @@ export default function FishBreedingCalculator() {
       }, 100);
 
       toast.success("تم تحميل الخطة بنجاح!");
-      // PDF download completed
+      console.log("[PDF] Download completed successfully");
+
     } catch (error) {
-      console.error('PDF generation error:', error);
-      // More detailed error message
-      const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
-      toast.error(`حدث خطأ أثناء إنشاء ملف PDF: ${errorMessage}`);
+      console.error('[PDF] Generation error:', error);
+
+      // Show specific error message
+      let errorMessage = "خطأ غير معروف";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        // Check for common issues
+        if (error.message.includes("font")) {
+          errorMessage = "خطأ في تحميل الخط العربي";
+        } else if (error.message.includes("network")) {
+          errorMessage = "خطأ في الاتصال بالشبكة";
+        }
+      }
+
+      toast.error(`فشل في إنشاء PDF: ${errorMessage}`);
     } finally {
       setIsGeneratingPDF(false);
     }
