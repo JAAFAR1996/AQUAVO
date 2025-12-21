@@ -1,9 +1,9 @@
 {
-    "extends": "../tsconfig.json",
     "compilerOptions": {
         "moduleResolution": "node",
         "module": "ESNext",
         "target": "ES2022",
+        "lib": ["ES2022"],
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "strict": true,
@@ -11,7 +11,13 @@
         "noEmit": false,
         "outDir": "../dist",
         "rootDir": "..",
-        "baseUrl": ".."
+        "baseUrl": "..",
+        "resolveJsonModule": true,
+        "allowJs": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "@shared/*": ["../shared/*"]
+        }
     },
     "include": [
         "./**/*",
@@ -21,6 +27,11 @@
     "exclude": [
         "../node_modules",
         "../client",
-        "../dist"
+        "../dist",
+        "../**/*.config.ts",
+        "../**/*.test.ts",
+        "../**/*.spec.ts",
+        "../**/vitest.setup.ts",
+        "../server/__tests__"
     ]
 }
