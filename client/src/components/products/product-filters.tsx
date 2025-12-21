@@ -294,14 +294,9 @@ export function ProductFilters({
       {/* Desktop Filters - Clean Sidebar */}
       <div className="hidden lg:block sticky top-24">
         <div className="p-5 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 shadow-xl">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <SlidersHorizontal className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h2 className="font-bold text-lg">تصفية المنتجات</h2>
-              <p className="text-xs text-muted-foreground">اختر ما يناسبك</p>
-            </div>
+          <div className="mb-6">
+            <h2 className="font-bold text-lg">تصفية المنتجات</h2>
+            <p className="text-xs text-muted-foreground">اختر ما يناسبك</p>
           </div>
           <FilterContent />
         </div>

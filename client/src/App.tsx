@@ -16,6 +16,7 @@ import "@/lib/sentry"; // Auto-initializes on import
 import { CelebrationOverlay } from "@/components/gallery/celebration-overlay";
 import { WinnerNotificationBanner } from "@/components/notifications/winner-notification-banner";
 import { ShrimpProvider } from "@/contexts/shrimp-context";
+import { ComparisonProvider } from "@/contexts/comparison-context";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Direct imports for critical pages (needed for fast first paint)
@@ -318,20 +319,22 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <ShrimpProvider>
-              <TooltipProvider>
-                <PageViewTracker />
-                {/* Skip to main content for keyboard navigation */}
-                <a href="#main-content" className="skip-to-main">
-                  الانتقال إلى المحتوى الرئيسي
-                </a>
-                <ScrollProgress />
-                <FloatingActionButton />
-                <BubbleTrail />
-                <WinnerNotificationBanner />
-                <CelebrationOverlay />
-                <Toaster />
-                <Router />
-              </TooltipProvider>
+              <ComparisonProvider>
+                <TooltipProvider>
+                  <PageViewTracker />
+                  {/* Skip to main content for keyboard navigation */}
+                  <a href="#main-content" className="skip-to-main">
+                    الانتقال إلى المحتوى الرئيسي
+                  </a>
+                  <ScrollProgress />
+                  <FloatingActionButton />
+                  <BubbleTrail />
+                  <WinnerNotificationBanner />
+                  <CelebrationOverlay />
+                  <Toaster />
+                  <Router />
+                </TooltipProvider>
+              </ComparisonProvider>
             </ShrimpProvider>
           </WishlistProvider>
         </CartProvider>

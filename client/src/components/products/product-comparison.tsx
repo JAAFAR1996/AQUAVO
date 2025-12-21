@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Link } from "wouter";
 import {
     X,
@@ -34,51 +34,11 @@ import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 
-const COMPARISON_KEY = "aquavo_comparison";
+// Re-export useComparison from context for backward compatibility
+export { useComparison } from "@/contexts/comparison-context";
+import { useComparison } from "@/contexts/comparison-context";
+
 const MAX_COMPARE = 4;
-
-// Hook to manage comparison list
-export function useComparison() {
-    const [compareIds, setCompareIds] = useState<string[]>(() => {
-        if (typeof window === "undefined") return [];
-        const stored = localStorage.getItem(COMPARISON_KEY);
-        return stored ? JSON.parse(stored) : [];
-    });
-
-    const addToCompare = (productId: string) => {
-        setCompareIds((prev) => {
-            if (prev.includes(productId)) return prev;
-            if (prev.length >= MAX_COMPARE) return prev;
-            const updated = [...prev, productId];
-            localStorage.setItem(COMPARISON_KEY, JSON.stringify(updated));
-            return updated;
-        });
-    };
-
-    const removeFromCompare = (productId: string) => {
-        setCompareIds((prev) => {
-            const updated = prev.filter((id) => id !== productId);
-            localStorage.setItem(COMPARISON_KEY, JSON.stringify(updated));
-            return updated;
-        });
-    };
-
-    const clearCompare = () => {
-        localStorage.removeItem(COMPARISON_KEY);
-        setCompareIds([]);
-    };
-
-    const isInCompare = (productId: string) => compareIds.includes(productId);
-
-    return {
-        compareIds,
-        addToCompare,
-        removeFromCompare,
-        clearCompare,
-        isInCompare,
-        canAdd: compareIds.length < MAX_COMPARE,
-    };
-}
 
 // Compare Button for Product Cards
 interface CompareButtonProps {

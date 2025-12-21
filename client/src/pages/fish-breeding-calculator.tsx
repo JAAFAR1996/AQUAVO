@@ -42,8 +42,6 @@ import {
   Snail
 } from "lucide-react";
 import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/data/breeding-data";
-import { pdf } from "@react-pdf/renderer";
-import { BreedingPlanPDF } from "@/components/fish/breeding-pdf";
 import { toast } from "sonner";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -138,7 +136,7 @@ export default function FishBreedingCalculator() {
 
   const timeline = calculateTimeline();
 
-  // Handle PDF download manually for React 19 compatibility
+  // Handle PDF download using jspdf + html2canvas (React 19 compatible)
   const handleDownloadPDF = async () => {
     if (!species || !timeline) {
       toast.error("الرجاء اختيار النوع أولاً");
@@ -148,69 +146,60 @@ export default function FishBreedingCalculator() {
     setIsGeneratingPDF(true);
 
     try {
-      console.log("[PDF] Starting PDF generation for:", species.arabicName);
+      // Dynamically import jspdf and html2canvas
+      const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas')
+      ]);
 
-      // Create PDF document
-      const doc = (
-        <BreedingPlanPDF
-          species={species}
-          timeline={timeline}
-          inputData={{
-            pairs: numberOfPairs,
-            startDate,
-            temp: currentTemp,
-            ph: currentPH,
-          }}
-        />
-      );
-
-      console.log("[PDF] Document created, generating blob...");
-
-      // Generate PDF blob
-      const pdfInstance = pdf(doc);
-      const blob = await pdfInstance.toBlob();
-
-      console.log("[PDF] Blob generated, size:", blob.size);
-
-      if (!blob || blob.size === 0) {
-        throw new Error("PDF blob is empty");
+      // Find the content to capture
+      const element = document.getElementById('breeding-plan-content');
+      if (!element) {
+        throw new Error("لم يتم العثور على محتوى الخطة");
       }
 
-      // Create download link
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `breeding-plan-${species.id}-${new Date().toISOString().split('T')[0]}.pdf`;
+      toast.info("جاري إنشاء PDF...");
 
-      console.log("[PDF] Triggering download:", link.download);
+      // Capture the element as canvas
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#0a0a0a',
+        logging: false,
+      });
 
-      document.body.appendChild(link);
-      link.click();
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
 
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 100);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+
+      // Add title
+      pdf.setFont('helvetica', 'bold');
+      pdf.setFontSize(16);
+      pdf.text(`Breeding Plan - ${species.name}`, pdfWidth / 2, 8, { align: 'center' });
+
+      // Add image
+      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+
+      // Download
+      pdf.save(`breeding-plan-${species.id}-${new Date().toISOString().split('T')[0]}.pdf`);
 
       toast.success("تم تحميل الخطة بنجاح!");
-      console.log("[PDF] Download completed successfully");
 
     } catch (error) {
       console.error('[PDF] Generation error:', error);
-
-      // Show specific error message
-      let errorMessage = "خطأ غير معروف";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        // Check for common issues
-        if (error.message.includes("font")) {
-          errorMessage = "خطأ في تحميل الخط العربي";
-        } else if (error.message.includes("network")) {
-          errorMessage = "خطأ في الاتصال بالشبكة";
-        }
-      }
-
+      const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
       toast.error(`فشل في إنشاء PDF: ${errorMessage}`);
     } finally {
       setIsGeneratingPDF(false);
@@ -521,8 +510,8 @@ export default function FishBreedingCalculator() {
 
             {species && timeline && (
               <>
-                {/* Species Info */}
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                {/* Species Info - PDF Content Wrapper */}
+                <div id="breeding-plan-content" className="grid md:grid-cols-3 gap-6 mb-8">
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
