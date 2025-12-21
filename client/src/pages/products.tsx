@@ -5,9 +5,11 @@ import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
-import { ProductComparisonTable as ProductComparison, ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
+import { ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
 import { ProductCard } from "@/components/products/product-card";
-import { ProductFilters, FilterState } from "@/components/products/product-filters";
+import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
+import { FilterBar } from "@/components/products/filter-bar";
+import { FilterModal, FilterState } from "@/components/products/filter-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +20,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { WhatsAppWidget } from "@/components/whatsapp-widget";
 import { BackToTop } from "@/components/back-to-top";
 import { QuickViewModal } from "@/components/products/quick-view-modal";
-import { CategoryCardsGrid } from "@/components/products/category-cards";
 import type { Product } from "@/types";
 
 type SortOption = "default" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
@@ -55,6 +56,7 @@ export default function Products() {
     initialSort === 'best-selling' ? "rating-desc" : "default"
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   // Comparison - user-initiated
   const { compareIds, addToCompare, removeFromCompare } = useComparison();
@@ -105,16 +107,8 @@ export default function Products() {
     // Search
     if (initialSearch) params.search = initialSearch;
 
-    // Difficulty (Note: Backend might need update if difficulty filter logic strictly requires 'difficulty' param, assumption: it maps to something or we keep client side for some?)
-    // Checking product-storage: it does NOT currently have 'difficulty' filter in the WHERE clause I saw earlier.
-    // It has: category, subcategory, brand, isNew, isBestSeller, minPrice, maxPrice, search.
-    // Difficulty is NOT filtered on backend!
-    // And Tags (isNew, isBestSeller) ARE supported.
-
     if (filters.tags.includes("جديد")) params.isNew = true;
     if (filters.tags.includes("الأكثر مبيعاً")) params.isBestSeller = true;
-    // "صديق للبيئة" mapping? Schema has `ecoFriendly`?
-    // Let's assume tags need partial client side filtering OR updated backend.
 
     // Sorting
     if (sortBy === "price-asc") { params.sortBy = "price"; params.sortOrder = "asc"; }
@@ -136,9 +130,6 @@ export default function Products() {
   const products = data?.products ?? [];
 
   // Client-side filtering for unsupported backend filters (Difficulty, specific tags)
-  // Ideally we should add these to backend, but for now we filter the returned page.
-  // Note: This works correctly only if pagination is not used (fetch all). 
-  // Current fetchProducts fetches ALL by default (no limit).
   const finalProducts = useMemo(() => {
     return products.filter(product => {
       // Difficulty
@@ -153,23 +144,49 @@ export default function Products() {
     });
   }, [products, filters.difficulties, filters.tags]);
 
-  // Get only products that user added to comparison
-  const comparedProducts = useMemo(() => {
-    return finalProducts.filter(p => compareIds.includes(p.id));
-  }, [finalProducts, compareIds]);
-
   const isLoading = isAttributesLoading || isProductsLoading;
 
-  // Active filters count
+  // Calculate category counts from ALL products (not filtered)
+  const categoryCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      if (product.category) {
+        counts.set(product.category, (counts.get(product.category) || 0) + 1);
+      }
+    });
+    return counts;
+  }, [products]);
+
+  // Calculate brand counts from ALL products (not filtered)
+  const brandCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    products.forEach(product => {
+      if (product.brand) {
+        counts.set(product.brand, (counts.get(product.brand) || 0) + 1);
+      }
+    });
+    return counts;
+  }, [products]);
+
+  // Active filters count (excluding categories which are shown in scroll bar)
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (Math.abs(filters.priceRange[0] - minPrice) > 1 || Math.abs(filters.priceRange[1] - maxPrice) > 1) count++;
-    count += filters.categories.length;
     count += filters.brands.length;
     count += filters.difficulties.length;
     count += filters.tags.length;
     return count;
   }, [filters, minPrice, maxPrice]);
+
+  // Toggle category
+  const handleCategoryToggle = (category: string) => {
+    setFilters(prev => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter(c => c !== category)
+        : [...prev.categories, category]
+    }));
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
@@ -179,144 +196,132 @@ export default function Products() {
       />
       <OrganizationSchema />
       <Navbar />
-      <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
-        <div className="text-center space-y-4 mb-12">
+
+      <main id="main-content" className="flex-1 container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="text-center space-y-3 mb-8">
           <h1 className="text-4xl font-bold text-foreground">جميع المنتجات</h1>
-          <p className="text-xl text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>
+          <p className="text-lg text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>
         </div>
 
-        {/* Category Cards Grid - Removed per user request */}
-        {/* <CategoryCardsGrid
-          categories={availableCategories}
-          selectedCategories={filters.categories}
-          onCategoryToggle={(category) => {
-            setFilters(prev => ({
-              ...prev,
-              categories: prev.categories.includes(category)
-                ? prev.categories.filter(c => c !== category)
-                : [...prev.categories, category]
-            }));
-          }}
-        /> */}
+        {/* Airbnb-style Category Scroll Bar */}
+        <div className="border-b border-border mb-4">
+          <CategoryScrollBar
+            categories={availableCategories}
+            selectedCategories={filters.categories}
+            onCategoryToggle={handleCategoryToggle}
+            categoryCounts={categoryCounts}
+          />
+        </div>
 
-        <Tabs defaultValue="grid" className="mb-12">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-            <TabsList>
-              <TabsTrigger value="grid">عرض الشبكة</TabsTrigger>
-              <TabsTrigger value="compare">مقارنة المنتجات</TabsTrigger>
-            </TabsList>
+        {/* Filter Bar with Quick Filters */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <FilterBar
+            filters={filters}
+            onFiltersChange={setFilters}
+            onOpenFilterModal={() => setIsFilterModalOpen(true)}
+            activeFiltersCount={activeFiltersCount}
+            maxPrice={maxPrice}
+            minPrice={minPrice}
+          />
 
-            {/* Sort Dropdown */}
+          {/* Sort & View Toggle */}
+          <div className="flex items-center gap-3">
+            <Tabs defaultValue="grid" className="hidden sm:block">
+              <TabsList className="h-9">
+                <TabsTrigger value="grid" className="text-xs">الشبكة</TabsTrigger>
+                <TabsTrigger value="compare" className="text-xs">المقارنة</TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <div className="flex items-center gap-2">
               <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[160px] h-9 text-sm">
                   <SelectValue placeholder="ترتيب حسب" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">الافتراضي</SelectItem>
-                  <SelectItem value="price-asc">السعر: من الأقل للأعلى</SelectItem>
-                  <SelectItem value="price-desc">السعر: من الأعلى للأقل</SelectItem>
+                  <SelectItem value="price-asc">السعر: الأقل</SelectItem>
+                  <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
                   <SelectItem value="name-asc">الاسم: أ - ي</SelectItem>
                   <SelectItem value="rating-desc">الأعلى تقييماً</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+        </div>
 
-          <TabsContent value="grid">
-            <div className="flex gap-6">
-              {/* Filters Sidebar */}
-              <aside className="w-64 flex-shrink-0">
-                <ProductFilters
-                  filters={filters}
-                  onFilterChange={setFilters}
-                  availableCategories={availableCategories}
-                  availableBrands={availableBrands}
-                  maxPrice={maxPrice}
-                  activeFiltersCount={activeFiltersCount}
-                />
-              </aside>
+        {/* Results Count */}
+        {!isLoading && (
+          <div className="mb-6 text-sm text-muted-foreground">
+            {finalProducts.length > 0 ? (
+              <span>عرض <strong>{finalProducts.length}</strong> منتج</span>
+            ) : null}
+          </div>
+        )}
 
-              {/* Products Grid */}
-              <div className="flex-1">
-                {isLoading && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {Array.from({ length: 9 }).map((_, i) => (
-                      <ProductCardSkeleton key={i} />
-                    ))}
-                  </div>
-                )}
+        {/* Products Grid - Full Width (No Sidebar) */}
+        {isLoading && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+            {Array.from({ length: 10 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        )}
 
-                {!isLoading && (
-                  <>
-                    {/* Results Count */}
-                    <div className="mb-4 text-sm text-muted-foreground">
-                      عرض {finalProducts.length} من {finalProducts.length} منتج
-                    </div>
-
-                    {finalProducts.length > 0 ? (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pb-20 lg:pb-6">
-                        {finalProducts.map((product) => (
-                          <ProductCard
-                            key={product.id}
-                            product={product}
-                            onQuickView={(p) => setQuickViewProduct(p)}
-                            onCompare={(p) => addToCompare(p.id)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-16 bg-muted/30 rounded-xl">
-                        <div className="w-20 h-20 mx-auto bg-muted rounded-full flex items-center justify-center mb-6">
-                          <AlertCircle className="w-10 h-10 text-muted-foreground" />
-                        </div>
-                        <h3 className="text-2xl font-bold mb-3">
-                          لم يتم العثور على منتجات
-                        </h3>
-                        <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                          جرب تغيير أو إزالة بعض الفلاتر للحصول على نتائج أكثر
-                        </p>
-                        <Button
-                          variant="outline"
-                          onClick={() => setFilters({
-                            priceRange: [minPrice, maxPrice],
-                            categories: [],
-                            brands: [],
-                            difficulties: [],
-                            tags: [],
-                          })}
-                        >
-                          مسح جميع الفلاتر
-                        </Button>
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {isError && (
-                  <Alert variant="destructive" className="mt-6">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>خطأ في تحميل المنتجات</AlertTitle>
-                    <AlertDescription>
-                      تعذر تحميل المنتجات. يرجى المحاولة مرة أخرى لاحقاً.
-                    </AlertDescription>
-                  </Alert>
-                )}
+        {!isLoading && (
+          <>
+            {finalProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                {finalProducts.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    product={product}
+                    onQuickView={(p) => setQuickViewProduct(p)}
+                    onCompare={(p) => addToCompare(p.id)}
+                  />
+                ))}
               </div>
-            </div>
-          </TabsContent>
+            ) : (
+              <div className="text-center py-16 bg-muted/30 rounded-xl">
+                <div className="w-20 h-20 mx-auto bg-muted rounded-full flex items-center justify-center mb-6">
+                  <AlertCircle className="w-10 h-10 text-muted-foreground" />
+                </div>
+                <h3 className="text-2xl font-bold mb-3">
+                  لم يتم العثور على منتجات
+                </h3>
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  جرب تغيير أو إزالة بعض الفلاتر للحصول على نتائج أكثر
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setFilters({
+                    priceRange: [minPrice, maxPrice],
+                    categories: [],
+                    brands: [],
+                    difficulties: [],
+                    tags: [],
+                  })}
+                >
+                  مسح جميع الفلاتر
+                </Button>
+              </div>
+            )}
+          </>
+        )}
 
-          <TabsContent value="compare">
-            <div className="animate-in fade-in slide-in-from-bottom-4">
-              <ProductComparison
-                products={comparedProducts}
-                onRemove={removeFromCompare}
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
+        {isError && (
+          <Alert variant="destructive" className="mt-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>خطأ في تحميل المنتجات</AlertTitle>
+            <AlertDescription>
+              تعذر تحميل المنتجات. يرجى المحاولة مرة أخرى لاحقاً.
+            </AlertDescription>
+          </Alert>
+        )}
       </main>
+
       <WhatsAppWidget />
       <BackToTop />
 
@@ -325,6 +330,19 @@ export default function Products() {
         product={quickViewProduct}
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
+      />
+
+      {/* Filter Modal - Airbnb Style */}
+      <FilterModal
+        isOpen={isFilterModalOpen}
+        onClose={() => setIsFilterModalOpen(false)}
+        filters={filters}
+        onApplyFilters={setFilters}
+        availableBrands={availableBrands}
+        maxPrice={maxPrice}
+        minPrice={minPrice}
+        brandCounts={brandCounts}
+        resultCount={finalProducts.length}
       />
 
       <ComparisonDrawer products={finalProducts} />
