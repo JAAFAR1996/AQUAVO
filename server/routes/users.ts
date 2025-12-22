@@ -17,7 +17,8 @@ export function createUserRouter(): RouterType {
     // Register
     router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email, password, fullName, phone, referralCode } = req.body;
+            const { email: rawEmail, password, fullName, phone, referralCode } = req.body;
+            const email = rawEmail?.toLowerCase().trim();
             const existingUser = await storage.getUserByEmail(email);
             if (existingUser) {
                 res.status(400).json({ message: "البريد الإلكتروني مسجل بالفعل" });
@@ -91,7 +92,8 @@ export function createUserRouter(): RouterType {
     // Login
     router.post("/login", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email, password } = req.body;
+            const { email: rawEmail, password } = req.body;
+            const email = rawEmail?.toLowerCase().trim();
             const ipAddress = req.ip || req.headers['x-forwarded-for'] as string || 'unknown';
             const userAgent = req.headers['user-agent'] || 'unknown';
 

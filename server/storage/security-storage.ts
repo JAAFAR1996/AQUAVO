@@ -112,19 +112,37 @@ export class SecurityStorage {
     // Blocked IPs
     // ========================================
 
-    // Check and block IP if needed
+    // Check and block IP if needed - Progressive lockout like Apple
     private async checkAndBlockIP(ipAddress: string): Promise<void> {
         const failedCount = await this.getRecentFailedAttempts(ipAddress);
 
         if (failedCount >= MAX_FAILED_ATTEMPTS) {
             const db = this.ensureDb();
-            const expiresAt = new Date(Date.now() + BLOCK_DURATION_MINUTES * 60 * 1000);
+
+            // Progressive lockout durations (in seconds) - like Apple
+            // 3 attempts = 30s, 4 = 60s, 5 = 5min, 6 = 15min, 7+ = 30min
+            const lockoutDurations = [
+                0,      // 0 attempts - no lockout
+                0,      // 1 attempt
+                0,      // 2 attempts
+                30,     // 3 attempts - 30 seconds
+                60,     // 4 attempts - 1 minute
+                300,    // 5 attempts - 5 minutes
+                900,    // 6 attempts - 15 minutes
+                1800,   // 7+ attempts - 30 minutes
+            ];
+
+            const durationSeconds = failedCount >= lockoutDurations.length
+                ? lockoutDurations[lockoutDurations.length - 1]
+                : lockoutDurations[failedCount];
+
+            const expiresAt = new Date(Date.now() + durationSeconds * 1000);
 
             // Upsert blocked IP
             await db.insert(blockedIPs)
                 .values({
                     ipAddress,
-                    reason: `تجاوز ${MAX_FAILED_ATTEMPTS} محاولات دخول فاشلة`,
+                    reason: `تجاوز ${failedCount} محاولات دخول فاشلة - حظر ${durationSeconds < 60 ? durationSeconds + ' ثانية' : Math.floor(durationSeconds / 60) + ' دقيقة'}`,
                     failedAttempts: failedCount,
                     expiresAt,
                     isActive: true,
