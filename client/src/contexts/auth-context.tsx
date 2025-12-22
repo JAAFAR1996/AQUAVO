@@ -16,7 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  register: (name: string, email: string, password: string, phone: string) => Promise<void>;
+  register: (name: string, email: string, password: string, phone: string, referralCode?: string) => Promise<void>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   logout: () => Promise<void>;
   isAdmin: boolean;
@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const register = async (name: string, email: string, password: string, phone: string) => {
+  const register = async (name: string, email: string, password: string, phone: string, referralCode?: string) => {
     try {
       const response = await fetch("/api/register", {
         method: "POST",
@@ -102,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           password,
           role: "user",
           phone,
+          referralCode: referralCode || undefined,
         }),
       });
 

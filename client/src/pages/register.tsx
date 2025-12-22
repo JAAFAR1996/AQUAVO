@@ -92,7 +92,7 @@ export default function Register() {
         setIsLoading(true);
 
         try {
-            await register(formData.name, formData.email, formData.password, formData.phone);
+            await register(formData.name, formData.email, formData.password, formData.phone, referralCode || undefined);
             toast({
                 title: "تم إنشاء الحساب بنجاح! 🎉",
                 description: "مرحباً بك في عائلة AQUAVO.",
@@ -242,6 +242,34 @@ export default function Register() {
                                                 dir="ltr"
                                             />
                                         </div>
+                                    </div>
+
+                                    {/* Referral Code Input */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="referralCodeInput">كود الدعوة (اختياري)</Label>
+                                        <div className="relative">
+                                            <Gift className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                                            <Input
+                                                id="referralCodeInput"
+                                                placeholder="أدخل كود الدعوة إن وجد"
+                                                className="pr-10"
+                                                value={referralCode || ""}
+                                                onChange={(e) => setReferralCode(e.target.value.toUpperCase() || null)}
+                                                dir="ltr"
+                                            />
+                                        </div>
+                                        {referralCode && referralValid === true && (
+                                            <p className="text-sm text-green-600 flex items-center gap-1">
+                                                <CheckCircle className="w-3 h-3" />
+                                                كود صالح! ستحصل على 5% خصم بعد أول شراء
+                                            </p>
+                                        )}
+                                        {referralCode && referralValid === false && (
+                                            <p className="text-sm text-red-500 flex items-center gap-1">
+                                                <AlertCircle className="w-3 h-3" />
+                                                كود غير صالح
+                                            </p>
+                                        )}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">

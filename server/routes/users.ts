@@ -17,7 +17,7 @@ export function createUserRouter(): RouterType {
     // Register
     router.post("/register", authLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email, password, fullName, phone } = req.body;
+            const { email, password, fullName, phone, referralCode } = req.body;
             const existingUser = await storage.getUserByEmail(email);
             if (existingUser) {
                 res.status(400).json({ message: "البريد الإلكتروني مسجل بالفعل" });
@@ -58,6 +58,24 @@ export function createUserRouter(): RouterType {
 
             } catch (couponErr) {
                 console.error("Failed to create welcome coupon/log:", couponErr);
+            }
+
+            // Process referral code if provided
+            if (referralCode) {
+                try {
+                    const { ReferralStorage } = await import("../storage/referral-storage.js");
+                    const referralStorage = new ReferralStorage();
+
+                    // Get referral code details
+                    const refCode = await referralStorage.getReferralCodeByCode(referralCode);
+                    if (refCode && refCode.isActive) {
+                        // Create referral record (this also awards points to referrer)
+                        await referralStorage.createReferral(refCode.id, refCode.userId, user.id);
+                        console.log(`✅ Referral processed: ${user.email} referred by code ${referralCode}`);
+                    }
+                } catch (refErr) {
+                    console.error("Failed to process referral:", refErr);
+                }
             }
 
             // Login immediately
