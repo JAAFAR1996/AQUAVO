@@ -371,6 +371,13 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                   {errors.governorate}
                 </p>
               )}
+              {/* Show delivery estimate immediately after selecting governorate */}
+              {customerInfo.governorate && (
+                <div className="flex items-center gap-2 text-sm bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-400 p-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <Info className="h-4 w-4" />
+                  <span>⏱️ التوصيل المتوقع: <strong>{getDeliveryEstimate()}</strong></span>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">

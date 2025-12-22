@@ -50,6 +50,7 @@ export function createAdminRouter(): RouterType {
     router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params as { id: string };
+            const previousOrder = await storage.getOrder(id);
             const order = await storage.updateOrder(id, req.body);
 
             if (order) {
@@ -60,6 +61,52 @@ export function createAdminRouter(): RouterType {
                     entityId: order.id,
                     changes: req.body
                 });
+
+                // Send push notification when order status changes to shipped
+                if (req.body.status === "shipped" && previousOrder?.status !== "shipped") {
+                    try {
+                        const webPush = await import("web-push");
+                        const { getDb } = await import("../db.js");
+                        const { pushSubscriptions } = await import("../../shared/schema.js");
+                        const { eq, and } = await import("drizzle-orm");
+
+                        const db = getDb();
+                        const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
+                        const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+
+                        if (db && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && (order as any).userId) {
+                            webPush.default.setVapidDetails(
+                                process.env.VAPID_SUBJECT || "mailto:admin@aquavo.com",
+                                VAPID_PUBLIC_KEY,
+                                VAPID_PRIVATE_KEY
+                            );
+
+                            const subscriptions = await db.select().from(pushSubscriptions).where(
+                                and(eq(pushSubscriptions.isActive, true), eq(pushSubscriptions.userId, (order as any).userId))
+                            );
+
+                            const payload = JSON.stringify({
+                                title: "🚚 طلبك في الطريق إليك!",
+                                body: `تم شحن طلبك #${order.id.slice(0, 8).toUpperCase()}. سيصل قريباً!`,
+                                url: `/order-tracking/${order.id}`,
+                                icon: "/icons/icon-192x192.png"
+                            });
+
+                            for (const sub of subscriptions) {
+                                try {
+                                    await webPush.default.sendNotification(
+                                        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+                                        payload
+                                    );
+                                } catch (sendErr) {
+                                    console.error("Push send error:", sendErr);
+                                }
+                            }
+                        }
+                    } catch (pushErr) {
+                        console.error("Failed to send push notification:", pushErr);
+                    }
+                }
             }
 
             res.json(order);
