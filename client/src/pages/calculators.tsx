@@ -33,30 +33,36 @@ export default function Calculators() {
           </div>
 
           <Tabs defaultValue="tank" className="w-full">
-            <TabsList className="grid w-full grid-cols-6 h-auto p-1 bg-muted/50 rounded-xl">
-              <TabsTrigger value="tank" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Box className="h-5 w-5 ml-2" />
-                حجم الحوض
+            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto p-1 gap-1 bg-muted/50 rounded-xl">
+              <TabsTrigger value="tank" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Box className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">حجم الحوض</span>
+                <span className="sm:hidden text-[10px]">الحوض</span>
               </TabsTrigger>
-              <TabsTrigger value="heater" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Thermometer className="h-5 w-5 ml-2" />
-                حاسبة السخان
+              <TabsTrigger value="heater" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Thermometer className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">حاسبة السخان</span>
+                <span className="sm:hidden text-[10px]">السخان</span>
               </TabsTrigger>
-              <TabsTrigger value="filter" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Droplets className="h-5 w-5 ml-2" />
-                حاسبة الفلترة
+              <TabsTrigger value="filter" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Droplets className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">حاسبة الفلترة</span>
+                <span className="sm:hidden text-[10px]">الفلتر</span>
               </TabsTrigger>
-              <TabsTrigger value="salt" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Waves className="h-5 w-5 ml-2" />
-                حاسبة الملوحة
+              <TabsTrigger value="salt" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Waves className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">حاسبة الملوحة</span>
+                <span className="sm:hidden text-[10px]">الملوحة</span>
               </TabsTrigger>
-              <TabsTrigger value="maintenance" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Calendar className="h-5 w-5 ml-2" />
-                جدول الصيانة
+              <TabsTrigger value="maintenance" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">جدول الصيانة</span>
+                <span className="sm:hidden text-[10px]">الصيانة</span>
               </TabsTrigger>
-              <TabsTrigger value="breeding" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-3 text-sm sm:text-lg rounded-lg">
-                <Fish className="h-5 w-5 ml-2" />
-                حاسبة التكاثر
+              <TabsTrigger value="breeding" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Fish className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">حاسبة التكاثر</span>
+                <span className="sm:hidden text-[10px]">التكاثر</span>
               </TabsTrigger>
             </TabsList>
 
