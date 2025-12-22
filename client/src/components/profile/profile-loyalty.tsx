@@ -54,7 +54,7 @@ export const tierLabels: Record<string, { label: string; color: string; icon: Re
     platinum: { label: "بلاتيني", color: "text-purple-500", icon: <Crown className="w-4 h-4" /> },
 };
 
-function getTierFromPoints(points: number): TierKey {
+export function getTierFromPoints(points: number): TierKey {
     if (points >= 2000) return "platinum";
     if (points >= 1000) return "gold";
     if (points >= 500) return "silver";

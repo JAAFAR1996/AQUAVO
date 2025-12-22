@@ -27,7 +27,7 @@ import { Loader2 } from "lucide-react";
 import { ProfileInfo } from "@/components/profile/profile-info";
 import { ProfileOrders } from "@/components/profile/profile-orders";
 import { ProfileAddresses } from "@/components/profile/profile-addresses";
-import { ProfileLoyalty, tierLabels } from "@/components/profile/profile-loyalty";
+import { ProfileLoyalty, tierLabels, getTierFromPoints } from "@/components/profile/profile-loyalty";
 import { ProfileCoupons } from "@/components/profile/profile-coupons";
 import { ProfileReferral } from "@/components/profile/profile-referral";
 import { Address, UserProfileExtra } from "@/lib/types";
@@ -65,9 +65,9 @@ export default function Profile() {
         addresses: [],
     });
 
-    // Get loyalty points and tier from authenticated user
+    // Get loyalty points and calculate tier based on points
     const loyaltyPoints = user?.loyaltyPoints ?? 0;
-    const loyaltyTier = user?.loyaltyTier ?? "bronze";
+    const loyaltyTier = getTierFromPoints(loyaltyPoints);
 
     if (!user) {
         return (
