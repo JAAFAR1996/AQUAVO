@@ -2,7 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { CompatibilityCalculator } from "@/components/fish/compatibility-calculator";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 
 export default function FishCompatibility() {
@@ -20,7 +20,7 @@ export default function FishCompatibility() {
             </main>
 
             <Footer />
-            <WhatsAppWidget />
+
             <BackToTop />
         </div>
     );

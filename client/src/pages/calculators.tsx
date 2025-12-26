@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Thermometer, Droplets, Waves, Calendar, Fish, Box } from "lucide-react";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { Link } from "wouter";
 
@@ -108,7 +108,7 @@ export default function Calculators() {
           </Tabs>
         </div>
       </main>
-      <WhatsAppWidget />
+
       <BackToTop />
       <Footer />
     </div>

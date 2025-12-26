@@ -15,7 +15,7 @@ import {
     Gift,
     Users
 } from "lucide-react";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
@@ -231,7 +231,7 @@ export default function Profile() {
                 </div>
             </main>
 
-            <WhatsAppWidget />
+
             <BackToTop />
             <Footer />
         </div>

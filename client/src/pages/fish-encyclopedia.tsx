@@ -21,7 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Search, SlidersHorizontal, X, Fish, BookOpen, CheckCircle2 } from "lucide-react";
 import { Link } from "wouter";
 
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 
 export default function FishEncyclopedia() {
@@ -379,7 +379,7 @@ export default function FishEncyclopedia() {
         onOpenChange={setIsModalOpen}
       />
 
-      <WhatsAppWidget />
+
       <BackToTop />
       <Footer />
     </div>

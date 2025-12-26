@@ -50,6 +50,15 @@ ${greeting}
 - منتجات بمخزون منخفض: ${context?.lowStockCount ?? "غير متوفر"}
 - أفضل الفئات: ${context?.topCategories?.join("، ") ?? "أحواض، فلاتر، طعام"}
 
+${context?.availableProducts && context.availableProducts.length > 0 ? `
+## منتجات متاحة ذات صلة بالمحادثة:
+${context.availableProducts.map((p, i) =>
+    `${i + 1}. **${p.name}** - ${p.price} د.ع (${p.category}) ${p.rating ? `⭐ ${p.rating}` : ''}`
+).join('\n')}
+
+**مهم:** عندما توصي بمنتج، اذكر اسمه بالضبط كما ورد أعلاه! هذا يساعد العميل على إيجاده بسهولة.
+` : ''}
+
 ## أمثلة على ردود جيدة:
 ❌ "مرحباً، كيف أساعدك؟"
 ✅ "أهلاً ${userName || "بالحبيب"}! 🐠 شلون أقدر أساعدك اليوم؟"
@@ -74,6 +83,13 @@ export interface ChatContext {
     topCategories?: string[];
     recentOrdersCount?: number;
     userName?: string;
+    availableProducts?: Array<{
+        id: string;
+        name: string;
+        price: string;
+        category: string;
+        rating: number | null;
+    }>;
 }
 
 /**

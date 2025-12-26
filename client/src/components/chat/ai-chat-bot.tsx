@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
 import {
     MessageCircle,
@@ -16,14 +17,27 @@ import {
     Loader2,
     Sparkles,
     Minimize2,
-    Fish
+    Fish,
+    ExternalLink,
+    Star
 } from "lucide-react";
+
 import { cn } from "@/lib/utils";
+
+interface Product {
+    id: string;
+    name: string;
+    price: string;
+    image: string;
+    category: string;
+    rating: number | null;
+}
 
 interface ChatMessage {
     role: "user" | "assistant";
     content: string;
     timestamp: Date;
+    products?: Product[];
 }
 
 async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
@@ -43,11 +57,15 @@ async function sendChatMessage(message: string, history: ChatMessage[], userName
     }
 
     const data = await response.json();
-    return data.data.response;
+    return {
+        response: data.data.response,
+        products: data.data.products || [],
+    };
 }
 
 export function AIChatBot() {
     const { user } = useAuth();
+    const [, setLocation] = useLocation();
     const userName = user?.fullName || user?.email?.split('@')[0];
 
     const [isOpen, setIsOpen] = useState(false);
@@ -79,10 +97,15 @@ export function AIChatBot() {
     // Chat mutation
     const chatMutation = useMutation({
         mutationFn: (message: string) => sendChatMessage(message, messages, userName),
-        onSuccess: (response) => {
+        onSuccess: (data) => {
             setMessages((prev) => [
                 ...prev,
-                { role: "assistant", content: response, timestamp: new Date() },
+                {
+                    role: "assistant",
+                    content: data.response,
+                    products: data.products,
+                    timestamp: new Date()
+                },
             ]);
         },
         onError: (error: Error) => {
@@ -217,17 +240,69 @@ export function AIChatBot() {
                                                             <Bot className="w-3.5 h-3.5" />
                                                         )}
                                                     </div>
-                                                    <div
-                                                        className={cn(
-                                                            "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
-                                                            message.role === "user"
-                                                                ? "bg-primary text-white rounded-tr-none"
-                                                                : "bg-muted rounded-tl-none"
+                                                    <div className="flex-1">
+                                                        <div
+                                                            className={cn(
+                                                                "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                                                                message.role === "user"
+                                                                    ? "bg-primary text-white rounded-tr-none ml-auto"
+                                                                    : "bg-muted rounded-tl-none"
+                                                            )}
+                                                        >
+                                                            <p className="whitespace-pre-wrap leading-relaxed">
+                                                                {message.content}
+                                                            </p>
+                                                        </div>
+
+                                                        {/* Product Cards */}
+                                                        {message.role === "assistant" && message.products && message.products.length > 0 && (
+                                                            <div className="mt-2 space-y-2">
+                                                                {message.products.map((product) => (
+                                                                    <Card
+                                                                        key={product.id}
+                                                                        className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer max-w-[280px]"
+                                                                        onClick={() => {
+                                                                            setLocation(`/products/${product.id}`);
+                                                                            setIsOpen(false);
+                                                                        }}
+                                                                    >
+                                                                        <div className="flex gap-2 p-2">
+                                                                            <img
+                                                                                src={product.image}
+                                                                                alt={product.name}
+                                                                                className="w-16 h-16 object-cover rounded"
+                                                                            />
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <h4 className="text-xs font-medium line-clamp-2 mb-1">
+                                                                                    {product.name}
+                                                                                </h4>
+                                                                                <div className="flex items-center gap-1 mb-1">
+                                                                                    {product.rating && (
+                                                                                        <>
+                                                                                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                                                                                            <span className="text-xs">{product.rating}</span>
+                                                                                        </>
+                                                                                    )}
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between">
+                                                                                    <span className="text-xs font-bold text-primary">
+                                                                                        {product.price} د.ع
+                                                                                    </span>
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="ghost"
+                                                                                        className="h-6 text-xs px-2"
+                                                                                    >
+                                                                                        <ExternalLink className="w-3 h-3 ml-1" />
+                                                                                        عرض
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </Card>
+                                                                ))}
+                                                            </div>
                                                         )}
-                                                    >
-                                                        <p className="whitespace-pre-wrap leading-relaxed">
-                                                            {message.content}
-                                                        </p>
                                                     </div>
                                                 </div>
                                             ))}

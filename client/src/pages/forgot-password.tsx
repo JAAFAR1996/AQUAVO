@@ -15,7 +15,7 @@ import {
     ArrowRight,
     Loader2
 } from "lucide-react";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -182,7 +182,7 @@ export default function ForgotPassword() {
                 </motion.div>
             </main>
 
-            <WhatsAppWidget />
+
             <Footer />
         </div>
     );

@@ -17,7 +17,7 @@ import { fetchProducts, fetchProductAttributes } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { QuickViewModal } from "@/components/products/quick-view-modal";
 import type { Product } from "@/types";
@@ -322,7 +322,7 @@ export default function Products() {
         )}
       </main>
 
-      <WhatsAppWidget />
+
       <BackToTop />
 
       {/* Quick View Modal */}

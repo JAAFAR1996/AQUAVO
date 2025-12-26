@@ -1,6 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -229,7 +229,7 @@ export default function Blog() {
                 </div>
             </main>
 
-            <WhatsAppWidget />
+
             <BackToTop />
             <Footer />
         </div>

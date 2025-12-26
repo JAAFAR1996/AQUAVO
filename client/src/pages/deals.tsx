@@ -11,7 +11,7 @@ import { ShoppingCart, Star, Percent, Tag, TrendingDown, Timer, Sparkles } from 
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { Product } from "@/types";
 
@@ -281,7 +281,7 @@ export default function Deals() {
         </Card>
       </main>
 
-      <WhatsAppWidget />
+
       <BackToTop />
       <Footer />
     </div>

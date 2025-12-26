@@ -15,7 +15,7 @@ import { Testimonials } from "@/components/home/testimonials";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
@@ -236,7 +236,7 @@ export default function Home() {
       {/* Existing Sections Refined */}
       <AquascapeStyles />
 
-      <WhatsAppWidget />
+
       <BackToTop />
 
       <QuickViewModal

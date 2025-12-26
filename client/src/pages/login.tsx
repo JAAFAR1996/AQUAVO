@@ -19,7 +19,7 @@ import {
     AlertCircle,
     Loader2
 } from "lucide-react";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
@@ -234,7 +234,7 @@ export default function Login() {
                 </motion.div>
             </main>
 
-            <WhatsAppWidget />
+
             <Footer />
         </div>
     );

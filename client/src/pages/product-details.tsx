@@ -23,7 +23,7 @@ import { FrequentlyBoughtTogether } from "@/components/products/frequently-bough
 import { ProductSpecificationsTable } from "@/components/products/product-specifications-table";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Link } from "wouter";
-import { WhatsAppWidget } from "@/components/whatsapp-widget";
+
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, ProductSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
@@ -719,7 +719,7 @@ export default function ProductDetails() {
           </>
         </div>
       </main>
-      <WhatsAppWidget />
+
       <BackToTop />
       <Footer />
     </div>
