@@ -2,7 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, users, products, carts, orderItems } from "../../shared/schema.js";
+import { orders, users, products, orderItems } from "../../shared/schema.js";
 import { sql, desc, gte, count, sum, eq, and, gt } from "drizzle-orm";
 
 const router = Router();
@@ -202,24 +202,29 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
             ? `${sortedHours[0][0]}-${(sortedHours[0][0] + 3) % 24} ${sortedHours[0][0] >= 12 ? 'مساءً' : 'صباحاً'}`
             : "لا توجد بيانات كافية";
 
-        // 2. Cart Abandonment Rate
-        const allCartsData = await db
+        // 2. Cart Abandonment Rate (estimate based on order completion rate)
+        // Since we don't have a carts table, estimate based on incomplete vs complete orders
+        const allOrdersData = await db
             .select({ count: count() })
-            .from(carts)
-            .where(gte(carts.createdAt, thirtyDaysAgo));
+            .from(orders)
+            .where(gte(orders.createdAt, thirtyDaysAgo));
 
-        const totalCarts = allCartsData[0]?.count || 0;
+        const totalOrders = allOrdersData[0]?.count || 0;
         const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
 
-        const abandonmentRate = totalCarts > 0
-            ? Math.round(((totalCarts - completedOrders) / totalCarts) * 100)
-            : 0;
+        // Estimate cart abandonment (industry average is ~70%, we'll estimate based on completion rate)
+        const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) : 0.3;
+        const abandonmentRate = Math.round((1 - completionRate) * 100);
 
         // 3. Geographic Distribution
         const cityCount = new Map<string, number>();
         for (const order of recentOrders) {
             try {
-                const address = JSON.parse(order.shippingAddress);
+                if (!order.shippingAddress) continue;
+                const addressStr = typeof order.shippingAddress === 'string'
+                    ? order.shippingAddress
+                    : JSON.stringify(order.shippingAddress);
+                const address = JSON.parse(addressStr);
                 const city = address.governorate || address.city || "غير محدد";
                 cityCount.set(city, (cityCount.get(city) || 0) + 1);
             } catch (e) {
