@@ -146,7 +146,7 @@ export function FrequentlyBoughtTogether({
                                     {/* Price */}
                                     <div className="text-center">
                                         <span className="text-sm font-bold text-primary">
-                                            {product.price.toLocaleString()}
+                                            {Number(product.price).toLocaleString('en-US')}
                                         </span>
                                         <span className="text-[10px] text-muted-foreground mr-1">
                                             د.ع

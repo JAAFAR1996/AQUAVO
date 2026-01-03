@@ -82,7 +82,7 @@ export function EmbeddedVariantSelector({
                 <Tag className="w-4 h-4 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">السعر:</span>
                 <span className="font-bold text-primary">
-                    {selectedVariant.price.toLocaleString()} د.ع
+                    {Number(selectedVariant.price).toLocaleString('en-US')} د.ع
                 </span>
                 {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
                     <>

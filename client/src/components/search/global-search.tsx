@@ -318,7 +318,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                     )}
                     {result.price !== undefined && (
                       <div className="text-xs text-primary font-bold mt-1">
-                        {result.price.toLocaleString()} د.ع
+                        {Number(result.price).toLocaleString('en-US')} د.ع
                       </div>
                     )}
                   </div>

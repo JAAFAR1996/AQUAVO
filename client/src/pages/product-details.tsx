@@ -105,7 +105,7 @@ export default function ProductDetails() {
 
     const shareData = {
       title: product.name,
-      text: `${product.name} - ${product.price.toLocaleString('en-US')} د.ع`,
+      text: `${product.name} - ${Number(product.price).toLocaleString('en-US')} د.ع`,
       url: window.location.href,
     };
 

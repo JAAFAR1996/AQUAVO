@@ -397,7 +397,7 @@ export default function AquariumWizard() {
                                                 <h4 className="font-semibold truncate">{product.name}</h4>
                                                 <p className="text-sm text-muted-foreground">{product.category}</p>
                                                 <p className="text-primary font-bold">
-                                                    {product.price.toLocaleString('en-US')} د.ع
+                                                    {Number(product.price).toLocaleString('en-US')} د.ع
                                                 </p>
                                             </div>
                                         </div>

@@ -306,7 +306,7 @@ export function SearchAutocomplete({
                                             <Badge variant="secondary" className="text-[10px] px-1.5">
                                                 {result.category}
                                             </Badge>
-                                            <span>{result.price.toLocaleString()} د.ع</span>
+                                            <span>{Number(result.price).toLocaleString('en-US')} د.ع</span>
                                         </div>
                                     </div>
                                 </button>

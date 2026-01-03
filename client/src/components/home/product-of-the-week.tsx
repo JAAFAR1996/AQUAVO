@@ -107,7 +107,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
                   {product.originalPrice ? product.originalPrice.toLocaleString() : (product.price * 1.1).toLocaleString()} د.ع
                 </span>
                 <span className="text-4xl font-bold text-primary">
-                  {product.price.toLocaleString()} <span className="text-lg text-foreground">د.ع</span>
+                  {Number(product.price).toLocaleString('en-US')} <span className="text-lg text-foreground">د.ع</span>
                 </span>
               </div>
 

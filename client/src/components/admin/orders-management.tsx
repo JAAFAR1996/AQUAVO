@@ -375,7 +375,7 @@ export function OrdersManagement() {
                         <TableRow key={index}>
                           <TableCell className="font-medium">{item.productName}</TableCell>
                           <TableCell className="text-center">{item.quantity}</TableCell>
-                          <TableCell className="text-center">{item.price.toLocaleString()} د.ع</TableCell>
+                          <TableCell className="text-center">{Number(item.price).toLocaleString('en-US')} د.ع</TableCell>
                           <TableCell className="text-left font-semibold">
                             {(item.price * item.quantity).toLocaleString()} د.ع
                           </TableCell>

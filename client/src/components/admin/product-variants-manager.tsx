@@ -431,7 +431,7 @@ export function ProductVariantsManager({
                               onClick={() => handlePriceClick(variant)}
                               title="اضغط للتعديل"
                             >
-                              {variant.price.toLocaleString()} د.ع
+                              {Number(variant.price).toLocaleString('en-US')} د.ع
                               {variant.originalPrice && (
                                 <span className="text-xs text-muted-foreground line-through mr-2">
                                   {variant.originalPrice.toLocaleString()}

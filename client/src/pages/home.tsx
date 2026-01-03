@@ -154,7 +154,7 @@ export default function Home() {
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-end gap-2 text-sm">
-                      <span className="font-mono font-bold text-accent">{product.price.toLocaleString('en-US')} د.ع</span>
+                      <span className="font-mono font-bold text-accent">{Number(product.price).toLocaleString('en-US')} د.ع</span>
                     </div>
                   </div>
                 </div>
@@ -192,7 +192,7 @@ export default function Home() {
                 <div className="flex-1 text-right space-y-2">
                   <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>
                   <div className="flex gap-2 justify-end items-baseline">
-                    <span className="text-2xl font-black text-primary font-mono">{featuredProduct.price.toLocaleString('en-US')}</span>
+                    <span className="text-2xl font-black text-primary font-mono">{Number(featuredProduct.price).toLocaleString('en-US')}</span>
                     <span className="text-xs text-muted-foreground">د.ع</span>
                   </div>
 

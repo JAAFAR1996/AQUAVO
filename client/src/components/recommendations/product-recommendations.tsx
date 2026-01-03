@@ -70,7 +70,7 @@ function RecommendationCard({ product }: { product: Product }) {
                     </h4>
                     <div className="flex items-center justify-between">
                         <span className="font-bold text-primary">
-                            {product.price.toLocaleString()} <span className="text-xs">د.ع</span>
+                            {Number(product.price).toLocaleString('en-US')} <span className="text-xs">د.ع</span>
                         </span>
                         {product.originalPrice && product.originalPrice > product.price && (
                             <span className="text-xs text-muted-foreground line-through">
@@ -388,7 +388,7 @@ export function RecentlyViewedCompact({ className }: { className?: string }) {
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs font-medium truncate">{product.name}</p>
                                 <p className="text-xs text-primary font-bold">
-                                    {product.price.toLocaleString()} د.ع
+                                    {Number(product.price).toLocaleString('en-US')} د.ع
                                 </p>
                             </div>
                         </div>
