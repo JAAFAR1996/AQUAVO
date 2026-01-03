@@ -1,137 +1,88 @@
-import type { Router as RouterType, Request, Response, NextFunction } from "express";
-import { Router } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { v4 as uuidv4 } from "uuid";
-import { requireAuth, getSession } from "../middleware/auth.js";
 
-const router = Router();
-
-// Cloudflare R2 Client
-const s3Client = new S3Client({
-    region: "auto",
-    endpoint: process.env.CLOUDFLARE_R2_ENDPOINT || "",
-    credentials: {
-        accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID || "",
-        secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY || "",
-    },
-});
-
-const BUCKET_NAME = process.env.CLOUDFLARE_BUCKET_NAME || "aquavo";
-const CDN_URL = process.env.CLOUDFLARE_CDN_URL || "";
-
-// File size limits
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
-
-// Multer config with memory storage
+// Configure multer for memory storage
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: MAX_VIDEO_SIZE,
+        fileSize: 10 * 1024 * 1024, // 10MB max
     },
     fileFilter: (req, file, cb) => {
-        const imageTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
-        const videoTypes = ["video/mp4", "video/webm", "video/quicktime"];
-
-        if ([...imageTypes, ...videoTypes].includes(file.mimetype)) {
+        // Accept only images
+        if (file.mimetype.startsWith('image/')) {
             cb(null, true);
         } else {
-            cb(new Error("نوع الملف غير مدعوم"));
+            cb(new Error('Only image files are allowed'));
         }
     },
 });
 
-// Helper to get file extension
-function getFileExtension(mimetype: string): string {
-    const extensions: Record<string, string> = {
-        "image/jpeg": "jpg",
-        "image/png": "png",
-        "image/webp": "webp",
-        "image/gif": "gif",
-        "video/mp4": "mp4",
-        "video/webm": "webm",
-        "video/quicktime": "mov",
-    };
-    return extensions[mimetype] || "bin";
-}
+export function createUploadRouter() {
+    const router = Router();
 
-// Upload review media
-router.post("/review-media", requireAuth, upload.single("file"), async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const sess = getSession(req);
-        if (!sess?.userId) {
-            res.status(401).json({ message: "غير مصرح" });
-            return;
-        }
+    // Upload single image
+    router.post("/image", upload.single("image"), async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            if (!req.file) {
+                res.status(400).json({ message: "No file uploaded" });
+                return;
+            }
 
-        const file = req.file;
-        if (!file) {
-            res.status(400).json({ message: "لم يتم تحديد ملف" });
-            return;
-        }
+            // Convert to base64 for Cloudinary upload
+            const base64 = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
 
-        const type = req.body.type as "image" | "video";
-
-        // Validate file size based on type
-        if (type === "image" && file.size > MAX_IMAGE_SIZE) {
-            res.status(400).json({ message: "حجم الصورة يجب أن يكون أقل من 5MB" });
-            return;
-        }
-
-        if (type === "video" && file.size > MAX_VIDEO_SIZE) {
-            res.status(400).json({ message: "حجم الفيديو يجب أن يكون أقل من 50MB" });
-            return;
-        }
-
-        // Generate unique filename
-        const extension = getFileExtension(file.mimetype);
-        const filename = `reviews/${sess.userId}/${uuidv4()}.${extension}`;
-
-        // Check if R2 is configured
-        if (!process.env.CLOUDFLARE_R2_ENDPOINT) {
-            // Development mode: return a placeholder URL
-            const placeholderUrl = type === "image"
-                ? `https://via.placeholder.com/400x300?text=Review+Image`
-                : `https://example.com/video-placeholder.mp4`;
+            // Upload to Cloudinary
+            const { uploadImage } = await import("../utils/cloudinary.js");
+            const imageUrl = await uploadImage(base64);
 
             res.json({
-                url: placeholderUrl,
-                filename: filename,
-                size: file.size,
-                type: type,
+                success: true,
+                url: imageUrl,
+                originalName: req.file.originalname,
+                size: req.file.size
             });
-            return;
+        } catch (error) {
+            console.error("Image upload error:", error);
+            next(error);
         }
+    });
 
-        // Upload to Cloudflare R2
-        await s3Client.send(
-            new PutObjectCommand({
-                Bucket: BUCKET_NAME,
-                Key: filename,
-                Body: file.buffer,
-                ContentType: file.mimetype,
-                CacheControl: "public, max-age=31536000",
-            })
-        );
+    // Upload multiple images
+    router.post("/images", upload.array("images", 10), async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const files = req.files as Express.Multer.File[];
 
-        // Generate public URL
-        const url = CDN_URL ? `${CDN_URL}/${filename}` : `https://${BUCKET_NAME}.r2.cloudflarestorage.com/${filename}`;
+            if (!files || files.length === 0) {
+                res.status(400).json({ message: "No files uploaded" });
+                return;
+            }
 
-        res.json({
-            url,
-            filename,
-            size: file.size,
-            type,
-        });
-    } catch (error) {
-        console.error("Upload error:", error);
-        next(error);
-    }
-});
+            const { uploadImage } = await import("../utils/cloudinary.js");
+            const uploadedUrls: string[] = [];
+            const errors: string[] = [];
 
-export function createUploadRouter(): RouterType {
+            for (const file of files) {
+                try {
+                    const base64 = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
+                    const imageUrl = await uploadImage(base64);
+                    uploadedUrls.push(imageUrl);
+                } catch (error) {
+                    console.error(`Failed to upload ${file.originalname}:`, error);
+                    errors.push(file.originalname);
+                }
+            }
+
+            res.json({
+                success: true,
+                urls: uploadedUrls,
+                failedFiles: errors,
+                totalUploaded: uploadedUrls.length
+            });
+        } catch (error) {
+            console.error("Multiple image upload error:", error);
+            next(error);
+        }
+    });
+
     return router;
 }
-
-export default router;
