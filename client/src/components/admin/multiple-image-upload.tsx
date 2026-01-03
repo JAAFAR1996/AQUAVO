@@ -39,7 +39,8 @@ export function MultipleImageUpload({
 
             for (const file of validFiles) {
                 try {
-                    const base64 = await compressImage(file, 4);
+                    // Compress to 1MB max per image to fit within Vercel's 4.5MB request limit
+                    const base64 = await compressImage(file, 1);
                     base64Images.push(base64);
                 } catch (error) {
                     console.error("Error compressing image:", file.name, error);
