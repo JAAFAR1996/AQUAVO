@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
-import { sendMessage, ChatMessage, ChatContext } from "../services/gemini-ai.js";
+import { sendMessage, ChatMessage, ChatContext, recommendProductsForJourney } from "../services/gemini-ai.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { count, lt, and, gt, or, ilike, desc, eq, inArray } from "drizzle-orm";
@@ -242,6 +242,63 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : "حدث خطأ",
+        });
+    }
+});
+
+// POST /api/ai/journey-recommendations
+router.post("/journey-recommendations", aiRateLimiter, async (req: Request, res: Response) => {
+    try {
+        const { wizardData } = req.body;
+        if (!wizardData) {
+            return res.status(400).json({ success: false, error: "Wizard data required" });
+        }
+
+        const db = getDb();
+        if (!db) throw new Error("Database not connected");
+
+        // Fetch all products to give AI the full catalog
+        // Only select necessary fields to minimize data
+        const allProducts = await db
+            .select({
+                id: schema.products.id,
+                name: schema.products.name,
+                category: schema.products.category,
+                price: schema.products.price,
+                stock: schema.products.stock,
+                thumbnail: schema.products.thumbnail, // Use thumbnail
+                slug: schema.products.slug
+            })
+            .from(schema.products)
+            .where(gt(schema.products.stock, 0));
+
+        // Get AI recommendations
+        const aiRecommendations = await recommendProductsForJourney(wizardData, allProducts);
+
+        // Map back to full product objects with the recommendation reason
+        const recommendedProducts = [];
+        for (const rec of aiRecommendations) {
+            // Flexible matching for ID (string or number)
+            const product = allProducts.find(p => String(p.id) === String(rec.productId));
+            if (product) {
+                recommendedProducts.push({
+                    ...product,
+                    image: product.thumbnail, // Map thumbnail to image for frontend
+                    reason: rec.reason // Add the AI reason
+                });
+            }
+        }
+
+        res.json({
+            success: true,
+            data: recommendedProducts
+        });
+
+    } catch (error) {
+        console.error("Journey AI Error:", error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : "Error generating recommendations"
         });
     }
 });

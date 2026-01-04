@@ -1,8 +1,9 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Package, Filter, Mountain, Fish, Clock, ShoppingCart, Sparkles, Leaf, Droplets, TestTube, Calendar } from "lucide-react";
+import { CheckCircle2, Package, Filter, Mountain, Fish, Clock, ShoppingCart, Sparkles, Leaf, Droplets, TestTube, Calendar, Loader2 } from "lucide-react";
 import { WizardData } from "@/types/journey";
 import { Product } from "@/types";
 import { getJourneyRecommendations } from "./utils";
@@ -18,10 +19,43 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
     const { addItem } = useCart();
     const { toast } = useToast();
 
-    const recommendedProducts = getJourneyRecommendations(products, wizardData);
+    const [recommendations, setRecommendations] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchRecommendations = async () => {
+            setIsLoading(true);
+            try {
+                // Fetch AI recommendations
+                const response = await fetch('/api/ai/journey-recommendations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wizardData })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data && data.data.length > 0) {
+                    setRecommendations(data.data);
+                } else {
+                    // Fallback to static logic
+                    console.log("AI returned no results, using static fallback");
+                    setRecommendations(getJourneyRecommendations(products, wizardData));
+                }
+            } catch (error) {
+                console.error("Failed to fetch AI recommendations:", error);
+                // Fallback to static logic
+                setRecommendations(getJourneyRecommendations(products, wizardData));
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchRecommendations();
+    }, [wizardData, products]); // Re-run if wizard data inputs change
 
     const addRecommendedProductsToCart = () => {
-        recommendedProducts.forEach(product => {
+        recommendations.forEach(product => {
             addItem(product);
         });
         toast({
@@ -180,28 +214,55 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                         المنتجات الموصى بها
                     </h3>
 
-                    {products.length > 0 ? (
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-12 text-muted-foreground gap-4">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                            <div className="text-center space-y-2">
+                                <p className="font-bold text-foreground">جاري تحليل بيانات حوضك...</p>
+                                <p className="text-sm">يقوم الذكاء الاصطناعي باختيار أفضل المنتجات خصيصاً لك 🤖🐠</p>
+                            </div>
+                        </div>
+                    ) : recommendations.length > 0 ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {recommendedProducts.map((product) => (
-                                <div key={product.id} className="flex gap-3 p-4 rounded-xl border bg-card hover:border-primary/50 transition-all">
-                                    <img
-                                        src={product.image}
-                                        alt={product.name}
-                                        className="w-20 h-20 object-contain rounded-lg bg-muted"
-                                    />
-                                    <div className="flex-1">
-                                        <h4 className="font-bold text-sm text-foreground mb-1">{product.name}</h4>
-                                        <div className="text-primary font-bold mb-2">
-                                            {Number(product.price).toLocaleString()} د.ع
+                            {recommendations.map((product) => (
+                                <a
+                                    key={product.id}
+                                    href={`/products/${product.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex flex-col gap-3 p-4 rounded-xl border bg-card hover:border-primary/50 hover:shadow-md transition-all cursor-pointer h-full"
+                                >
+                                    <div className="flex gap-3">
+                                        <img
+                                            src={product.image}
+                                            alt={product.name}
+                                            className="w-20 h-20 object-contain rounded-lg bg-muted"
+                                        />
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-2">{product.name}</h4>
+                                            <div className="text-primary font-bold mb-2">
+                                                {Number(product.price).toLocaleString()} د.ع
+                                            </div>
+                                            <Badge variant="outline" className="text-xs">{product.category}</Badge>
                                         </div>
-                                        <Badge variant="outline" className="text-xs">{product.category}</Badge>
                                     </div>
-                                </div>
+
+                                    {/* AI Reason Display */}
+                                    {product.reason && (
+                                        <div className="mt-2 bg-primary/5 p-3 rounded-lg text-xs leading-relaxed border border-primary/10">
+                                            <div className="flex items-center gap-1 mb-1 text-primary font-bold">
+                                                <Sparkles className="w-3 h-3" />
+                                                <span>لماذا يناسبك؟</span>
+                                            </div>
+                                            <p className="text-muted-foreground">{product.reason}</p>
+                                        </div>
+                                    )}
+                                </a>
                             ))}
                         </div>
                     ) : (
                         <div className="text-center py-8 text-muted-foreground">
-                            جاري تحميل المنتجات...
+                            لا توجد توصيات حالياً.
                         </div>
                     )}
 

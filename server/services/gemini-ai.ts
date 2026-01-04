@@ -80,8 +80,8 @@ ${context.salesData.topProducts.length > 0 ? `- أكثر المنتجات مبي
 ${context?.availableProducts && context.availableProducts.length > 0 ? `
 ## منتجات متاحة ذات صلة بالمحادثة:
 ${context.availableProducts.map((p, i) =>
-    `${i + 1}. **${p.name}** - ${p.price} د.ع (${p.category}) ${p.rating ? `⭐ ${p.rating}` : ''}`
-).join('\n')}
+        `${i + 1}. **${p.name}** - ${p.price} د.ع (${p.category}) ${p.rating ? `⭐ ${p.rating}` : ''}`
+    ).join('\n')}
 
 **مهم:** عندما توصي بمنتج، اذكر اسمه بالضبط كما ورد أعلاه! هذا يساعد العميل على إيجاده بسهولة.
 ` : ''}
@@ -266,4 +266,65 @@ export async function getFishCareAdvice(fishName: string, userName?: string): Pr
 5. منتجات AQUAVO المناسبة`;
 
     return sendMessage(prompt, [], { userName });
+}
+
+/**
+ * Generate AI recommendations for Journey Wizard
+ * Returns a JSON string of product IDs and reasons
+ */
+export async function recommendProductsForJourney(
+    wizardData: any,
+    availableProducts: any[]
+): Promise<any[]> {
+    try {
+        // Use a specific model instance for JSON generation to ensure structure
+        const jsonModel = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            generationConfig: { responseMimeType: "application/json" }
+        });
+
+        // Filter products to reduce token usage (send only necessary fields)
+        const productsCatalog = availableProducts.map(p => ({
+            id: p.id,
+            name: p.name,
+            category: p.category,
+            price: p.price,
+            tags: [p.category, p.name].join(" ")
+        }));
+
+        const prompt = `You are an expert aquarist AI for AQUAVO.
+        
+User Tank Profile:
+${JSON.stringify(wizardData, null, 2)}
+
+Available Products Catalog:
+${JSON.stringify(productsCatalog)}
+
+Task:
+1. Analyze the user's tank profile (size, type, fish, etc).
+2. Select the top 6-8 MOST ESSENTIAL products from the catalog for THIS SPECIFIC setup.
+3. For each product, write a short, personalized reason (in Arabic) explaining WHY it is needed for their specific choice (e.g., "Because you chose Angelfish, this heater is needed...").
+4. Return a JSON array.
+
+Format:
+[
+  {
+    "productId": "id",
+    "reason": "السبب بالعربية"
+  }
+]
+`;
+
+        const result = await withTimeout(
+            jsonModel.generateContent(prompt),
+            AI_TIMEOUT_MS,
+            "Timeout generating recommendations"
+        );
+
+        const responseText = result.response.text();
+        return JSON.parse(responseText);
+    } catch (error) {
+        console.error("AI Recommendation Error:", error);
+        return [];
+    }
 }
