@@ -30,6 +30,7 @@ interface ServerCartItem {
 interface CartContextType {
   items: CartItem[];
   addItem: (product: Product, quantity?: number) => void;
+  addItems: (products: Product[]) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
@@ -233,6 +234,81 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const addItems = async (products: Product[]) => {
+    if (user) {
+      // Server Side: Add all concurrently then update state
+      try {
+        const promises = products.map(product =>
+          fetch("/api/cart", {
+            method: "POST",
+            headers: addCsrfHeader({ "Content-Type": "application/json" }),
+            credentials: "include",
+            body: JSON.stringify({ productId: product.id, quantity: 1 }),
+          })
+        );
+
+        await Promise.all(promises);
+
+        // Refresh cart once
+        const cartRes = await fetch("/api/cart", { credentials: "include" });
+        if (cartRes.ok) {
+          const serverItems = await cartRes.json();
+          const mappedItems = serverItems.map((item: ServerCartItem) => ({
+            id: item.product.id,
+            name: item.product.name,
+            price: Number(item.product.price),
+            quantity: item.quantity,
+            image: item.product.thumbnail || item.product.images?.[0] || '',
+            slug: item.product.slug,
+          }));
+          setItems(mappedItems);
+        }
+      } catch (err) {
+        console.error("Failed to add items batch", err);
+        toast({
+          title: "خطأ",
+          description: "حدث خطأ أثناء إضافة المنتجات",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Client Side: Compute new state in one go
+      let currentItems = [...items]; // Copy current state (might be stale? better use functional if possible, but here we can't easily access functional setter inside this logic without refactor. BUT for guest, this function 'addItems' will run once. The problem with 'addItem' loop was re-renders not happening fast enough.)
+      // Wait, inside this function 'items' is const. We should use setItems(prev => ...) to be safe.
+
+      setItems(prev => {
+        let newItems = [...prev];
+        products.forEach(product => {
+          const existingIndex = newItems.findIndex(i => i.id === product.id);
+          if (existingIndex > -1) {
+            newItems[existingIndex] = {
+              ...newItems[existingIndex],
+              quantity: newItems[existingIndex].quantity + 1
+            };
+          } else {
+            newItems.push({
+              id: product.id,
+              name: product.name,
+              price: Number(product.price),
+              quantity: 1,
+              image: product.thumbnail || product.image || product.images?.[0] || '',
+              slug: product.slug,
+            });
+          }
+        });
+
+        // Side effect: Save to local storage
+        syncStorage.setItem(CART_STORAGE_KEY, newItems);
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: CART_STORAGE_KEY,
+          newValue: JSON.stringify(newItems),
+        }));
+
+        return newItems;
+      });
+    }
+  };
+
   const removeItem = useCallback(async (id: string) => {
     if (user) {
       // Optimistic update first
@@ -372,6 +448,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       value={{
         items,
         addItem,
+        addItems,
         removeItem,
         updateQuantity,
         clearCart,

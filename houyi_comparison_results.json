@@ -13,9 +13,9 @@
         "sheet_name": "(13)Tool accessories"
       },
       "db": {
-        "id": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
-        "name": "HOUYI طقم تنظيف 5 في 1",
-        "slug": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
+        "id": "houyi-small-wholesale-aquarium-special-nylon-fishing-net",
+        "name": "HOUYI شبكة أسماك نايلون صغيرة",
+        "slug": "houyi-nylon-fishnet-small",
         "brand": "HOUYI"
       }
     },
@@ -32,9 +32,9 @@
         "sheet_name": "(13)Tool accessories"
       },
       "db": {
-        "id": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
-        "name": "HOUYI طقم تنظيف 5 في 1",
-        "slug": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
+        "id": "houyi-small-wholesale-aquarium-special-nylon-fishing-net",
+        "name": "HOUYI شبكة أسماك نايلون صغيرة",
+        "slug": "houyi-nylon-fishnet-small",
         "brand": "HOUYI"
       }
     },
@@ -51,9 +51,9 @@
         "sheet_name": "(13)Tool accessories"
       },
       "db": {
-        "id": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
-        "name": "HOUYI طقم تنظيف 5 في 1",
-        "slug": "houyi-aquarium-fish-tank-five-in-one-cleaning-tool-fish-net-scraper-algae-knife-aquatic-clip",
+        "id": "houyi-small-wholesale-aquarium-special-nylon-fishing-net",
+        "name": "HOUYI شبكة أسماك نايلون صغيرة",
+        "slug": "houyi-nylon-fishnet-small",
         "brand": "HOUYI"
       }
     },
@@ -129,8 +129,179 @@
       "db": {
         "id": "houyi-dophin-electric-skimmer",
         "name": "HOUYI كاشط سطح كهربائي DoPhin",
-        "slug": "houyi-dophin-electric-skimmer",
+        "slug": "houyi-dophin-skimmer",
         "brand": "HOUYI"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 10,
+        "product_name": "\tRhododendron 40-45cm",
+        "category": "decor",
+        "model_id": "Rhododendron Root  40-45cm",
+        "unit": "pcs",
+        "price_rmb": 32,
+        "price_usd": 4.63768115942029,
+        "qty": 2,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-rhododendron-30-35cm",
+        "name": "جذر الرودودندرون 30-35 سم",
+        "slug": "houyi-rhododendron-30-35cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 11,
+        "product_name": "Rhododendron 50–55cm",
+        "category": "decor",
+        "model_id": "Rhododendron Root  50-55cm",
+        "unit": "pcs",
+        "price_rmb": 50,
+        "price_usd": 7.246376811594202,
+        "qty": 2,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-rhododendron-30-35cm",
+        "name": "جذر الرودودندرون 30-35 سم",
+        "slug": "houyi-rhododendron-30-35cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 12,
+        "product_name": "Rhododendron 30–35cm",
+        "category": "decor",
+        "model_id": "Rhododendron Root  30–35cm",
+        "unit": "pcs",
+        "price_rmb": 28,
+        "price_usd": 4.057971014492753,
+        "qty": 2,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-rhododendron-30-35cm",
+        "name": "جذر الرودودندرون 30-35 سم",
+        "slug": "houyi-rhododendron-30-35cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 13,
+        "product_name": "Rhododendron Root 30–45cm",
+        "category": "decor",
+        "model_id": "Rhododendron Root  40-45cm",
+        "unit": "pcs",
+        "price_rmb": 32,
+        "price_usd": 4.63768115942029,
+        "qty": 3,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-rhododendron-30-35cm",
+        "name": "جذر الرودودندرون 30-35 سم",
+        "slug": "houyi-rhododendron-30-35cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 14,
+        "product_name": "Rhododendron Root 30–45cm",
+        "category": "decor",
+        "model_id": "Rhododendron root+stone tablet base30-45cm",
+        "unit": "pcs",
+        "price_rmb": 36,
+        "price_usd": 5.217391304347826,
+        "qty": 2,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-rhododendron-30-35cm",
+        "name": "جذر الرودودندرون 30-35 سم",
+        "slug": "houyi-rhododendron-30-35cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 16,
+        "product_name": "Polished Driftwood5-8cm",
+        "category": "decor",
+        "model_id": "  Polished Driftwood5-8cm   Driftwood\nRhododendron Root",
+        "unit": "pcs",
+        "price_rmb": 1,
+        "price_usd": 0.14492753623188406,
+        "qty": 5,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-polished-driftwood-10-15cm",
+        "name": "خشب عائم مصقول 10-15 سم",
+        "slug": "houyi-polished-driftwood-10-15cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 17,
+        "product_name": "Polished Driftwood8-10cm",
+        "category": "decor",
+        "model_id": "Polished Driftwood8-10cm   Driftwood\nRhododendron Root",
+        "unit": "pcs",
+        "price_rmb": 1.5,
+        "price_usd": 0.21739130434782608,
+        "qty": 5,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-polished-driftwood-10-15cm",
+        "name": "خشب عائم مصقول 10-15 سم",
+        "slug": "houyi-polished-driftwood-10-15cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 18,
+        "product_name": "Polished Driftwood10-15cm",
+        "category": "decor",
+        "model_id": "Polished Driftwood10-15cm   Driftwood\nRhododendron Root ",
+        "unit": "pcs",
+        "price_rmb": 3.6,
+        "price_usd": 0.5217391304347826,
+        "qty": 5,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-polished-driftwood-10-15cm",
+        "name": "خشب عائم مصقول 10-15 سم",
+        "slug": "houyi-polished-driftwood-10-15cm",
+        "brand": "Houyi"
+      }
+    },
+    {
+      "excel": {
+        "item_no": 19,
+        "product_name": "Polished Driftwood15-20cm",
+        "category": "decor",
+        "model_id": "Polished Driftwood15-20cm    Driftwood\nRhododendron Root",
+        "unit": "pcs",
+        "price_rmb": 6.5,
+        "price_usd": 0.9420289855072463,
+        "qty": 3,
+        "sheet_name": "(3)Landscaping Driftwood"
+      },
+      "db": {
+        "id": "houyi-polished-driftwood-10-15cm",
+        "name": "خشب عائم مصقول 10-15 سم",
+        "slug": "houyi-polished-driftwood-10-15cm",
+        "brand": "Houyi"
       }
     },
     {
@@ -148,7 +319,7 @@
       "db": {
         "id": "houyi-pumice-small-bag3-6mm",
         "name": "HOUYI حجر خفاف 3-م",
-        "slug": "houyi-pumice-small-bag3-6mm",
+        "slug": "houyi-pumice-3-6mm",
         "brand": "HOUYI"
       }
     },
@@ -203,9 +374,9 @@
         "sheet_name": "(1)Water grass mud, bottom sand"
       },
       "db": {
-        "id": "houyi-breathing-ring-white",
-        "name": "HOUYI حلقات تهوية بيولوجية",
-        "slug": "houyi-breathing-ring-white",
+        "id": "houyi-feeding-cup-green-white",
+        "name": "HOUYI كوب تغذية",
+        "slug": "houyi-feeding-cup-green-white",
         "brand": "HOUYI"
       }
     },
@@ -243,7 +414,7 @@
       "db": {
         "id": "houyi-blue-dragon-flake",
         "name": "HOUYI طعام Blue Dragon رقائق",
-        "slug": "houyi-blue-dragon-flake",
+        "slug": "houyi-blue-dragon-stone",
         "brand": "HOUYI"
       }
     },
@@ -262,7 +433,7 @@
       "db": {
         "id": "houyi-volcanic-black-red-35cm",
         "name": "HOUYI صخور بركانية 3-",
-        "slug": "houyi-volcanic-black-red-35cm",
+        "slug": "houyi-volcanic-stone",
         "brand": "HOUYI"
       }
     },
@@ -281,7 +452,7 @@
       "db": {
         "id": "houyi-volcanic-black-red-35cm",
         "name": "HOUYI صخور بركانية 3-",
-        "slug": "houyi-volcanic-black-red-35cm",
+        "slug": "houyi-volcanic-stone",
         "brand": "HOUYI"
       }
     },
@@ -300,7 +471,7 @@
       "db": {
         "id": "houyi-moss-glue-5g-greenwhite-moss-glue-20g-white-glue-white-50g",
         "name": "HOUYI غراء موس",
-        "slug": "houyi-moss-glue-5g-greenwhite-moss-glue-20g-white-glue-white-50g",
+        "slug": "houyi-moss-glue",
         "brand": "HOUYI"
       }
     },
@@ -319,7 +490,7 @@
       "db": {
         "id": "houyi-moss-glue-5g-greenwhite-moss-glue-20g-white-glue-white-50g",
         "name": "HOUYI غراء موس",
-        "slug": "houyi-moss-glue-5g-greenwhite-moss-glue-20g-white-glue-white-50g",
+        "slug": "houyi-moss-glue",
         "brand": "HOUYI"
       }
     },
@@ -376,7 +547,7 @@
       "db": {
         "id": "houyi-breathing-ring-white",
         "name": "HOUYI حلقات تهوية بيولوجية",
-        "slug": "houyi-breathing-ring-white",
+        "slug": "houyi-breathing-ring",
         "brand": "HOUYI"
       }
     },
@@ -414,7 +585,7 @@
       "db": {
         "id": "houyi-medium-cotton-grey-50g-medium-cotton-brown-50g",
         "name": "HOUYI قطن فلتر متعدد الكثافات 50 جرام",
-        "slug": "houyi-medium-cotton-grey-50g-medium-cotton-brown-50g",
+        "slug": "houyi-filter-cotton-medium",
         "brand": "HOUYI"
       }
     },
@@ -471,7 +642,7 @@
       "db": {
         "id": "houyi-check-valve-round-red",
         "name": "HOUYI صمام عدم رجوع دائري",
-        "slug": "houyi-check-valve-round-red",
+        "slug": "houyi-check-valve-red",
         "brand": "HOUYI"
       }
     },
@@ -490,7 +661,7 @@
       "db": {
         "id": "houyi-stainless-steel-shunt-4-6",
         "name": "HOUYI موزع ستانلس ستيل",
-        "slug": "houyi-stainless-steel-shunt-4-6",
+        "slug": "houyi-stainless-shunt",
         "brand": "HOUYI"
       }
     },
@@ -509,7 +680,7 @@
       "db": {
         "id": "houyi-stainless-steel-shunt-4-6",
         "name": "HOUYI موزع ستانلس ستيل",
-        "slug": "houyi-stainless-steel-shunt-4-6",
+        "slug": "houyi-stainless-shunt",
         "brand": "HOUYI"
       }
     },
@@ -528,7 +699,7 @@
       "db": {
         "id": "houyi-155m-double-ended-spring-brush-bluehose-brush",
         "name": "HOUYI فرشاة خرطوم مرنة 1.55 متر",
-        "slug": "houyi-155m-double-ended-spring-brush-bluehose-brush",
+        "slug": "houyi-spring-brush-155m",
         "brand": "HOUYI"
       }
     }
@@ -557,61 +728,6 @@
       "sheet_name": "(13)Tool accessories"
     },
     {
-      "item_no": 10,
-      "product_name": "\tRhododendron 40-45cm",
-      "category": "decor",
-      "model_id": "Rhododendron Root  40-45cm",
-      "unit": "pcs",
-      "price_rmb": 32,
-      "price_usd": 4.63768115942029,
-      "qty": 2,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 11,
-      "product_name": "Rhododendron 50–55cm",
-      "category": "decor",
-      "model_id": "Rhododendron Root  50-55cm",
-      "unit": "pcs",
-      "price_rmb": 50,
-      "price_usd": 7.246376811594202,
-      "qty": 2,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 12,
-      "product_name": "Rhododendron 30–35cm",
-      "category": "decor",
-      "model_id": "Rhododendron Root  30–35cm",
-      "unit": "pcs",
-      "price_rmb": 28,
-      "price_usd": 4.057971014492753,
-      "qty": 2,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 13,
-      "product_name": "Rhododendron Root 30–45cm",
-      "category": "decor",
-      "model_id": "Rhododendron Root  40-45cm",
-      "unit": "pcs",
-      "price_rmb": 32,
-      "price_usd": 4.63768115942029,
-      "qty": 3,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 14,
-      "product_name": "Rhododendron Root 30–45cm",
-      "category": "decor",
-      "model_id": "Rhododendron root+stone tablet base30-45cm",
-      "unit": "pcs",
-      "price_rmb": 36,
-      "price_usd": 5.217391304347826,
-      "qty": 2,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
       "item_no": 15,
       "product_name": "Moss Tree 20-30cm",
       "category": "decor",
@@ -620,50 +736,6 @@
       "price_rmb": 13.2,
       "price_usd": 1.9130434782608694,
       "qty": 5,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 16,
-      "product_name": "Polished Driftwood5-8cm",
-      "category": "decor",
-      "model_id": "  Polished Driftwood5-8cm   Driftwood\nRhododendron Root",
-      "unit": "pcs",
-      "price_rmb": 1,
-      "price_usd": 0.14492753623188406,
-      "qty": 5,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 17,
-      "product_name": "Polished Driftwood8-10cm",
-      "category": "decor",
-      "model_id": "Polished Driftwood8-10cm   Driftwood\nRhododendron Root",
-      "unit": "pcs",
-      "price_rmb": 1.5,
-      "price_usd": 0.21739130434782608,
-      "qty": 5,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 18,
-      "product_name": "Polished Driftwood10-15cm",
-      "category": "decor",
-      "model_id": "Polished Driftwood10-15cm   Driftwood\nRhododendron Root ",
-      "unit": "pcs",
-      "price_rmb": 3.6,
-      "price_usd": 0.5217391304347826,
-      "qty": 5,
-      "sheet_name": "(3)Landscaping Driftwood"
-    },
-    {
-      "item_no": 19,
-      "product_name": "Polished Driftwood15-20cm",
-      "category": "decor",
-      "model_id": "Polished Driftwood15-20cm    Driftwood\nRhododendron Root",
-      "unit": "pcs",
-      "price_rmb": 6.5,
-      "price_usd": 0.9420289855072463,
-      "qty": 3,
       "sheet_name": "(3)Landscaping Driftwood"
     },
     {

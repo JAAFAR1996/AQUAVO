@@ -16,7 +16,7 @@ interface JourneySummaryProps {
 }
 
 export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
-    const { addItem } = useCart();
+    const { addItem, addItems } = useCart();
     const { toast } = useToast();
 
     const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -55,14 +55,13 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
     }, [wizardData, products]); // Re-run if wizard data inputs change
 
     const addRecommendedProductsToCart = () => {
-        recommendations.forEach(product => {
-            addItem(product);
-        });
+        addItems(recommendations);
         toast({
             title: "تمت الإضافة للسلة",
             description: "تم إضافة جميع المنتجات الموصى بها لسلة مشترياتك",
         });
     };
+
 
     return (
         <Card className="border-2">
@@ -101,7 +100,8 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                                 <span className="font-bold">
                                     {wizardData.tankType === "freshwater-community" && "مجتمع مياه عذبة"}
                                     {wizardData.tankType === "planted" && "نباتي"}
-                                    {wizardData.tankType === "species-specific" && "نوع محدد"}
+                                    {wizardData.tankType === "species-specific" && "نوع مخصص (Species Only)"}
+                                    {!wizardData.tankType && "غير محدد"}
                                 </span>
                             </div>
                         </div>
@@ -115,15 +115,17 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                         <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">الفلتر:</span>
-                                <span className="font-bold capitalize">{wizardData.filterType}</span>
+                                <span className="font-bold capitalize">{wizardData.filterType || "غير محدد"}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">السخان:</span>
-                                <span className="font-bold">{wizardData.heaterWattage} واط</span>
+                                <span className="font-bold">
+                                    {wizardData.heaterWattage > 0 ? `${wizardData.heaterWattage} واط` : "غير مطلوب"}
+                                </span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">الإضاءة:</span>
-                                <span className="font-bold capitalize">{wizardData.lightingType}</span>
+                                <span className="font-bold capitalize">{wizardData.lightingType === "none" ? "بدون" : (wizardData.lightingType || "غير محدد")}</span>
                             </div>
                         </div>
                     </div>
@@ -136,7 +138,7 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                         <div className="space-y-1 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">الركيزة:</span>
-                                <span className="font-bold">{wizardData.substrateType}</span>
+                                <span className="font-bold">{wizardData.substrateType || "بدون"}</span>
                             </div>
                             <div>
                                 <span className="text-muted-foreground">العناصر:</span>

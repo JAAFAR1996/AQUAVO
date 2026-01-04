@@ -6,6 +6,19 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+
+// Interface for real insights data from API
+interface RealInsightsData {
+    peakHours: string;
+    cartAbandonment: number;
+    geography: string;
+    forecasts: Array<{
+        category: string;
+        trend: "up" | "down" | "stable";
+        percentage: number;
+        reason: string;
+    }>;
+}
 import {
     TrendingUp,
     TrendingDown,
@@ -48,103 +61,132 @@ export function AIInsightsPanel() {
     const { toast } = useToast();
 
     // Fetch products
-    const { data: productsData, isLoading } = useQuery({
+    const { data: productsData, isLoading: productsLoading } = useQuery({
         queryKey: ["products"],
         queryFn: () => fetchProducts(),
     });
 
+    // Fetch real insights from API (2025 Best Practice: Real-time data)
+    const { data: realInsightsData, isLoading: insightsLoading } = useQuery<{ success: boolean; data: RealInsightsData }>({
+        queryKey: ["admin-insights"],
+        queryFn: async () => {
+            const res = await fetch("/api/analytics/insights", {
+                credentials: "include",
+            });
+            if (!res.ok) throw new Error("Failed to fetch insights");
+            return res.json();
+        },
+        staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+        refetchInterval: 5 * 60 * 1000, // Auto-refresh every 5 minutes
+    });
+
     const products = productsData?.products || [];
+    const realInsights = realInsightsData?.data;
+    const isLoading = productsLoading || insightsLoading;
 
-    // Generate insights based on product data
+    // Generate insights based on product data AND real API data
     const insights = useMemo((): Insight[] => {
-        if (!products.length) return [];
-
         const insights: Insight[] = [];
 
-        // 1. Low stock alerts
-        const lowStockProducts = products.filter((p: Product) => (p.stock ?? 0) > 0 && (p.stock ?? 0) < 5);
-        if (lowStockProducts.length > 0) {
-            insights.push({
-                id: "low-stock",
-                type: "warning",
-                icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
-                title: `${lowStockProducts.length} منتجات مخزونها منخفض`,
-                description: `${lowStockProducts.slice(0, 3).map((p: Product) => p.name).join("، ")}${lowStockProducts.length > 3 ? " وأخرى..." : ""}`,
-                action: {
-                    label: "عرض المنتجات",
-                    href: "/admin?tab=products"
-                }
-            });
-        }
-
-        // 2. Out of stock
-        const outOfStock = products.filter((p: Product) => (p.stock ?? 0) === 0);
-        if (outOfStock.length > 0) {
-            insights.push({
-                id: "out-of-stock",
-                type: "warning",
-                icon: <Package className="w-5 h-5 text-red-500" />,
-                title: `${outOfStock.length} منتجات نفدت من المخزون`,
-                description: "تحتاج إعادة تعبئة فورية",
-                action: {
-                    label: "إدارة المخزون",
-                    href: "/admin?tab=products"
-                }
-            });
-        }
-
-        // 3. High rating products
-        const topRated = products.filter((p: Product) => (p.rating ?? 0) >= 4.5);
-        if (topRated.length > 0) {
-            insights.push({
-                id: "top-rated",
-                type: "success",
-                icon: <TrendingUp className="w-5 h-5 text-green-500" />,
-                title: `${topRated.length} منتجات بتقييم ممتاز`,
-                description: "منتجات مميزة يمكن الترويج لها",
-                action: {
-                    label: "عرض المنتجات",
-                    href: "/admin?tab=products"
-                }
-            });
-        }
-
-        // 4. Peak hours insight (simulated)
-        insights.push({
-            id: "peak-hours",
-            type: "info",
-            icon: <Clock className="w-5 h-5 text-blue-500" />,
-            title: "أفضل أوقات البيع",
-            description: "معظم الطلبات تأتي بين الساعة 7-10 مساءً",
-        });
-
-        // 5. Cart abandonment (simulated)
-        insights.push({
-            id: "cart-abandon",
-            type: "action",
-            icon: <ShoppingCart className="w-5 h-5 text-orange-500" />,
-            title: "سلات متروكة",
-            description: "23% من العملاء يتركون السلة عند الدفع. جرب خصم 5% لتشجيعهم!",
-            action: {
-                label: "إنشاء كوبون",
-                href: "/admin?tab=coupons"
+        // 1. Low stock alerts (from products)
+        if (products.length > 0) {
+            const lowStockProducts = products.filter((p: Product) => (p.stock ?? 0) > 0 && (p.stock ?? 0) < 5);
+            if (lowStockProducts.length > 0) {
+                insights.push({
+                    id: "low-stock",
+                    type: "warning",
+                    icon: <AlertTriangle className="w-5 h-5 text-amber-500" />,
+                    title: `${lowStockProducts.length} منتجات مخزونها منخفض`,
+                    description: `${lowStockProducts.slice(0, 3).map((p: Product) => p.name).join("، ")}${lowStockProducts.length > 3 ? " وأخرى..." : ""}`,
+                    action: {
+                        label: "عرض المنتجات",
+                        href: "/admin?tab=products"
+                    }
+                });
             }
-        });
 
-        // 6. Geographic insight (simulated)
-        insights.push({
-            id: "geography",
-            type: "info",
-            icon: <MapPin className="w-5 h-5 text-purple-500" />,
-            title: "توزيع العملاء",
-            description: "68% من طلباتك من بغداد، 15% من البصرة، 17% من محافظات أخرى",
-        });
+            // 2. Out of stock
+            const outOfStock = products.filter((p: Product) => (p.stock ?? 0) === 0);
+            if (outOfStock.length > 0) {
+                insights.push({
+                    id: "out-of-stock",
+                    type: "warning",
+                    icon: <Package className="w-5 h-5 text-red-500" />,
+                    title: `${outOfStock.length} منتجات نفدت من المخزون`,
+                    description: "تحتاج إعادة تعبئة فورية",
+                    action: {
+                        label: "إدارة المخزون",
+                        href: "/admin?tab=products"
+                    }
+                });
+            }
+
+            // 3. High rating products
+            const topRated = products.filter((p: Product) => (p.rating ?? 0) >= 4.5);
+            if (topRated.length > 0) {
+                insights.push({
+                    id: "top-rated",
+                    type: "success",
+                    icon: <TrendingUp className="w-5 h-5 text-green-500" />,
+                    title: `${topRated.length} منتجات بتقييم ممتاز`,
+                    description: "منتجات مميزة يمكن الترويج لها",
+                    action: {
+                        label: "عرض المنتجات",
+                        href: "/admin?tab=products"
+                    }
+                });
+            }
+        }
+
+        // 4. Peak hours - NOW FROM REAL DATA! 🎉
+        if (realInsights?.peakHours) {
+            insights.push({
+                id: "peak-hours",
+                type: "info",
+                icon: <Clock className="w-5 h-5 text-blue-500" />,
+                title: "⏰ أفضل أوقات البيع",
+                description: `معظم الطلبات تأتي بين الساعة ${realInsights.peakHours}`,
+            });
+        }
+
+        // 5. Cart abandonment - NOW FROM REAL DATA! 🎉
+        if (realInsights?.cartAbandonment !== undefined) {
+            const abandonRate = realInsights.cartAbandonment;
+            insights.push({
+                id: "cart-abandon",
+                type: abandonRate > 50 ? "warning" : "action",
+                icon: <ShoppingCart className="w-5 h-5 text-orange-500" />,
+                title: "🛒 معدل عدم إكمال الطلبات",
+                description: `${abandonRate}% من الطلبات لم تكتمل${abandonRate > 30 ? ". جرب خصم 5% لتشجيعهم!" : ""}`,
+                action: {
+                    label: "إنشاء كوبون",
+                    href: "/admin?tab=coupons"
+                }
+            });
+        }
+
+        // 6. Geographic insight - NOW FROM REAL DATA! 🎉
+        if (realInsights?.geography) {
+            insights.push({
+                id: "geography",
+                type: "info",
+                icon: <MapPin className="w-5 h-5 text-purple-500" />,
+                title: "📍 توزيع الطلبات الجغرافي",
+                description: realInsights.geography,
+            });
+        }
 
         return insights;
-    }, [products]);
+    }, [products, realInsights]);
 
-    // Generate demand forecasts
+    // Generate demand forecasts - NOW FROM REAL DATA! 🎉
     const forecasts = useMemo((): DemandForecast[] => {
+        // Use real forecasts from API if available
+        if (realInsights?.forecasts && realInsights.forecasts.length > 0) {
+            return realInsights.forecasts;
+        }
+
+        // Fallback to seasonal estimates only if no real data
         const now = new Date();
         const month = now.getMonth();
         const isSummer = month >= 5 && month <= 8;
@@ -173,7 +215,7 @@ export function AIInsightsPanel() {
         }
 
         return forecasts;
-    }, []);
+    }, [realInsights]);
 
     const getInsightBg = (type: Insight["type"]) => {
         switch (type) {
