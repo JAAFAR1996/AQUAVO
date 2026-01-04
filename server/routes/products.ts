@@ -20,9 +20,9 @@ export function createProductRouter(): RouterType {
                 isNew: query.isNew !== undefined ? query.isNew === 'true' : undefined,
                 isBestSeller: query.isBestSeller !== undefined ? query.isBestSeller === 'true' : undefined,
                 search: query.search as string,
-                // Default pagination: limit to 50 products for better performance
-                // PageSpeed Insights showed 918KB payload - this reduces it to ~100KB
-                limit: query.limit ? Number(query.limit) : 50,
+                // Default pagination: limit to 500 products
+                // Increased from 50 to show all products (currently ~180)
+                limit: query.limit ? Number(query.limit) : 500,
                 offset: query.offset ? Number(query.offset) : undefined,
                 sortBy: query.sortBy as any,
                 sortOrder: query.sortOrder as 'asc' | 'desc',
