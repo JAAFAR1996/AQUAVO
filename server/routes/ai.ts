@@ -145,6 +145,7 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                 // Base context for all users
                 context = {
                     ...context,
+                    isAdmin, // Pass admin flag to AI prompt
                     productsCount: productsResult?.count ?? 0,
                     lowStockCount: lowStockResult?.count ?? 0,
                     topCategories: ["أحواض", "فلاتر", "طعام"],

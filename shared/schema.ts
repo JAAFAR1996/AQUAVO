@@ -974,7 +974,35 @@ export const searchQueries = pgTable("search_queries", {
   createdAtIdx: index("search_queries_created_at_idx").on(table.createdAt),
 }));
 
+// ==================== Customer Profiles - ملفات العملاء للذكاء الاصطناعي ====================
+
+export const customerProfiles = pgTable("customer_profiles", {
+  userId: text("user_id").primaryKey().references(() => users.id),
+  preferredCategories: jsonb("preferred_categories").$type<string[]>(),
+  preferredBrands: jsonb("preferred_brands").$type<string[]>(),
+  priceRange: jsonb("price_range").$type<{ min: number, max: number }>(),
+  interests: jsonb("interests").$type<string[]>(),
+  averageOrderValue: numeric("average_order_value"),
+  purchaseFrequency: text("purchase_frequency"),
+  totalPurchases: integer("total_purchases").default(0),
+  aiSummary: text("ai_summary"),
+  aiNotes: text("ai_notes"),
+  sentimentScore: numeric("sentiment_score"),
+  engagementLevel: text("engagement_level"),
+  lastViewedProducts: jsonb("last_viewed_products").$type<string[]>(),
+  lastSearchQueries: jsonb("last_search_queries").$type<string[]>(),
+  lastInteractionAt: timestamp("last_interaction_at"),
+  lastAnalyzedAt: timestamp("last_analyzed_at"),
+  expiresAt: timestamp("expires_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  engagementIdx: index("customer_profiles_engagement_idx").on(table.engagementLevel),
+  expiresAtIdx: index("customer_profiles_expires_at_idx").on(table.expiresAt),
+}));
+
 // Zod Schemas for new tables
+
 export const insertChatMessageSchema = z.object({
   conversationId: z.string().min(1),
   userId: z.string().optional(),
@@ -1051,4 +1079,25 @@ export type PriceHistory = typeof priceHistory.$inferSelect;
 export type InsertPriceHistory = z.infer<typeof insertPriceHistorySchema>;
 export type SearchQuery = typeof searchQueries.$inferSelect;
 export type InsertSearchQuery = z.infer<typeof insertSearchQuerySchema>;
+
+// Customer Profile schema and types
+export const insertCustomerProfileSchema = z.object({
+  userId: z.string().min(1),
+  preferredCategories: z.array(z.string()).optional(),
+  preferredBrands: z.array(z.string()).optional(),
+  priceRange: z.object({ min: z.number(), max: z.number() }).optional(),
+  interests: z.array(z.string()).optional(),
+  averageOrderValue: z.string().optional(),
+  purchaseFrequency: z.enum(["weekly", "monthly", "occasional"]).optional(),
+  totalPurchases: z.number().optional(),
+  aiSummary: z.string().optional(),
+  aiNotes: z.string().optional(),
+  sentimentScore: z.string().optional(),
+  engagementLevel: z.enum(["low", "medium", "high"]).optional(),
+  lastViewedProducts: z.array(z.string()).optional(),
+  lastSearchQueries: z.array(z.string()).optional(),
+});
+
+export type CustomerProfile = typeof customerProfiles.$inferSelect;
+export type InsertCustomerProfile = z.infer<typeof insertCustomerProfileSchema>;
 

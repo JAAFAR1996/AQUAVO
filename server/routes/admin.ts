@@ -986,5 +986,134 @@ export function createAdminRouter(): RouterType {
         }
     });
 
+    // ============ CUSTOMER AI INSIGHTS ============
+
+    // Get all customer profiles (للمدير: عرض جميع ملفات العملاء)
+    router.get("/ai/customer-profiles", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { getDb } = await import("../db.js");
+            const { customerProfiles, users } = await import("../../shared/schema.js");
+            const { desc, eq } = await import("drizzle-orm");
+
+            const db = getDb();
+            if (!db) {
+                res.status(500).json({ message: "Database not available" });
+                return;
+            }
+
+            const profiles = await db
+                .select({
+                    userId: customerProfiles.userId,
+                    email: users.email,
+                    fullName: users.fullName,
+                    phone: users.phone,
+                    preferredCategories: customerProfiles.preferredCategories,
+                    preferredBrands: customerProfiles.preferredBrands,
+                    interests: customerProfiles.interests,
+                    engagementLevel: customerProfiles.engagementLevel,
+                    aiSummary: customerProfiles.aiSummary,
+                    totalPurchases: customerProfiles.totalPurchases,
+                    lastInteractionAt: customerProfiles.lastInteractionAt,
+                    lastAnalyzedAt: customerProfiles.lastAnalyzedAt,
+                })
+                .from(customerProfiles)
+                .innerJoin(users, eq(customerProfiles.userId, users.id))
+                .orderBy(desc(customerProfiles.updatedAt))
+                .limit(100);
+
+            res.json({
+                success: true,
+                data: profiles,
+                count: profiles.length,
+            });
+        } catch (err) { next(err); }
+    });
+
+    // Get detailed customer profile (للمدير: ملف عميل كامل)
+    router.get("/ai/customer-profile/:userId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { userId } = req.params;
+            const { customerProfiler } = await import("../services/customer-profiler.js");
+
+            const fullProfile = await customerProfiler.getFullProfile(userId);
+
+            if (!fullProfile || !fullProfile.user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            res.json({
+                success: true,
+                data: fullProfile,
+            });
+        } catch (err) { next(err); }
+    });
+
+    // Analyze customer now (تحليل عميل فوري)
+    router.post("/ai/analyze-customer/:userId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { userId } = req.params;
+            const { customerProfiler } = await import("../services/customer-profiler.js");
+
+            await customerProfiler.analyzeAndUpdateProfile(userId);
+
+            // Get updated profile
+            const fullProfile = await customerProfiler.getFullProfile(userId);
+
+            await storage.createAuditLog({
+                userId: getSession(req)?.userId || "admin",
+                action: "update",
+                entityType: "customer_profile",
+                entityId: userId,
+                changes: { action: "ai_analysis" }
+            });
+
+            res.json({
+                success: true,
+                message: "تم تحليل العميل بنجاح",
+                data: fullProfile,
+            });
+        } catch (err) { next(err); }
+    });
+
+    // Get users list with profile status (لاختيار عميل للتحليل)
+    router.get("/ai/users-with-profiles", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { getDb } = await import("../db.js");
+            const { users, customerProfiles, orders } = await import("../../shared/schema.js");
+            const { sql, eq, desc } = await import("drizzle-orm");
+
+            const db = getDb();
+            if (!db) {
+                res.status(500).json({ message: "Database not available" });
+                return;
+            }
+
+            // Get users with order count and profile status
+            const usersWithData = await db
+                .select({
+                    id: users.id,
+                    email: users.email,
+                    fullName: users.fullName,
+                    phone: users.phone,
+                    createdAt: users.createdAt,
+                    hasProfile: sql<boolean>`${customerProfiles.userId} IS NOT NULL`,
+                    engagementLevel: customerProfiles.engagementLevel,
+                    lastAnalyzedAt: customerProfiles.lastAnalyzedAt,
+                })
+                .from(users)
+                .leftJoin(customerProfiles, eq(users.id, customerProfiles.userId))
+                .where(eq(users.role, "user"))
+                .orderBy(desc(users.createdAt))
+                .limit(100);
+
+            res.json({
+                success: true,
+                data: usersWithData,
+            });
+        } catch (err) { next(err); }
+    });
+
     return router;
 }
+

@@ -1,22 +1,48 @@
+/**
+ * AQUAVO AI Sales Agent - وكيل المبيعات الذكي
+ * Version 2.0 - Gold Level with Function Calling
+ * 
+ * Features:
+ * - Function Calling for autonomous actions
+ * - Customer history awareness
+ * - Personalized recommendations
+ * - Cart and coupon management
+ * - Admin/Public separation
+ * - Chat history saving
+ */
+
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { AI_TOOLS, aiToolsExecutor } from "./ai-tools.js";
+import { customerProfiler } from "./customer-profiler.js";
+import { getDb } from "../db.js";
+import * as schema from "../../shared/schema.js";
 
 // Validate API Key
 if (!process.env.GEMINI_API_KEY) {
     console.warn("⚠️ GEMINI_API_KEY is not set in environment variables");
 }
 
-// Initialize Gemini AI
+// Initialize Gemini AI with Function Calling
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
-// Get the model - Using Gemini 2.5 Flash (stable release June 2025)
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Model with tools for sales agent
+const salesAgentModel = genAI.getGenerativeModel({
+    model: "gemini-2.0-flash",
+    tools: [{
+        functionDeclarations: AI_TOOLS.map(tool => ({
+            name: tool.name,
+            description: tool.description,
+            parameters: tool.parameters as any,
+        }))
+    }]
+});
+
+// Simple model for basic responses
+const simpleModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 // Timeout Configuration
-const AI_TIMEOUT_MS = 30000; // 30 ثانية - الحد الأقصى لانتظار رد الـ AI
+const AI_TIMEOUT_MS = 30000;
 
-/**
- * Wrapper لإضافة timeout لأي Promise
- */
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
     return Promise.race([
         promise,
@@ -26,78 +52,9 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: st
     ]);
 }
 
-// Advanced System Prompt - E-commerce Chatbot Best Practices 2025
-const createSystemPrompt = (userName?: string, context?: ChatContext) => {
-    const greeting = userName ? `اسم العميل الحالي: ${userName}. نادِه باسمه لتجربة شخصية.` : "";
-
-    return `# أنت "أكوا" 🐠 - مساعد AQUAVO الذكي
-
-## هويتك:
-- اسمك "أكوا" وأنت خبير أسماك الزينة والأحواض
-- تعمل لمتجر AQUAVO - أفضل متجر للأحواض والأسماك في العراق
-- شخصيتك: ودود، متحمس، خبير، ومرح
-
-${greeting}
-
-## قواعد التواصل:
-1. **اللغة**: العربية دائماً (لهجة عراقية خفيفة مقبولة)
-2. **الأسلوب**: ودود وشخصي - استخدم اسم العميل
-3. **الإيموجي**: استخدم 1-2 إيموجي مناسب في كل رد 🐠🐟💧
-4. **الطول**: ردود مختصرة ومفيدة (50-150 كلمة)
-5. **التحية**: رحب بالعميل باسمه إن توفر
-
-## خبراتك:
-✅ أنواع الأسماك وتوافقها
-✅ إعداد الأحواض ومعداتها
-✅ تغذية ورعاية الأسماك
-✅ تشخيص أمراض الأسماك
-✅ نصائح للمبتدئين والمحترفين
-✅ توصيات المنتجات
-
-## أهداف المحادثة:
-1. مساعدة العميل بإجابات مفيدة
-2. بناء علاقة شخصية ودية
-3. اقتراح منتجات مناسبة من المتجر
-4. تشجيع العميل على الشراء بطريقة ناعمة
-
-## معلومات المتجر الحالية:
-- عدد المنتجات: ${context?.productsCount ?? "غير متوفر"}
-- منتجات بمخزون منخفض: ${context?.lowStockCount ?? "غير متوفر"}
-- أفضل الفئات: ${context?.topCategories?.join("، ") ?? "أحواض، فلاتر، طعام"}
-
-${context?.salesData ? `
-## بيانات المبيعات (آخر 30 يوم):
-- إجمالي الإيرادات: ${context.salesData.totalRevenue.toLocaleString()} د.ع
-- عدد الطلبات: ${context.salesData.totalOrders}
-- طلبات مكتملة: ${context.salesData.completedOrders}
-- طلبات قيد المعالجة: ${context.salesData.processingOrders}
-- طلبات معلقة: ${context.salesData.pendingOrders}
-${context.salesData.topProducts.length > 0 ? `- أكثر المنتجات مبيعاً: ${context.salesData.topProducts.join("، ")}` : ''}
-
-**استخدم هذه البيانات الحقيقية عند الإجابة عن أسئلة المبيعات!**
-` : ''}
-
-${context?.availableProducts && context.availableProducts.length > 0 ? `
-## منتجات متاحة ذات صلة بالمحادثة:
-${context.availableProducts.map((p, i) =>
-        `${i + 1}. **${p.name}** - ${p.price} د.ع (${p.category}) ${p.rating ? `⭐ ${p.rating}` : ''}`
-    ).join('\n')}
-
-**مهم:** عندما توصي بمنتج، اذكر اسمه بالضبط كما ورد أعلاه! هذا يساعد العميل على إيجاده بسهولة.
-` : ''}
-
-## أمثلة على ردود جيدة:
-❌ "مرحباً، كيف أساعدك؟"
-✅ "أهلاً ${userName || "بالحبيب"}! 🐠 شلون أقدر أساعدك اليوم؟"
-
-❌ "سمكة البيتا تحتاج ماء دافئ"
-✅ "البيتا سمكة رائعة ${userName || ""}! 🐟 تحتاج حوض 10+ لتر، ماء 24-28°، وفلتر خفيف. عندنا أحواض بيتا جاهزة تناسبها!"
-
-## تذكر:
-- كل محادثة فرصة لمساعدة العميل
-- اقترح منتجات AQUAVO عند المناسب
-- اجعل التجربة شخصية وممتعة`;
-};
+// ============================================================
+// TYPE DEFINITIONS
+// ============================================================
 
 export interface ChatMessage {
     role: "user" | "assistant";
@@ -110,6 +67,9 @@ export interface ChatContext {
     topCategories?: string[];
     recentOrdersCount?: number;
     userName?: string;
+    userId?: string;
+    sessionId?: string;
+    isAdmin?: boolean;
     salesData?: {
         totalRevenue: number;
         totalOrders: number;
@@ -125,67 +85,189 @@ export interface ChatContext {
         category: string;
         rating: number | null;
     }>;
+    customerProfile?: any;
 }
 
-/**
- * Send a message to Gemini AI and get a response
- */
+// ============================================================
+// SYSTEM PROMPTS
+// ============================================================
+
+const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmin: boolean = false): string => {
+
+    if (!isAdmin) {
+        // وكيل المبيعات للعملاء
+        let profileContext = "";
+        if (customerProfile) {
+            profileContext = `
+# معلومات العميل:
+- الاهتمامات: ${customerProfile.interests?.join(', ') || 'غير محدد'}
+- الفئات المفضلة: ${customerProfile.preferredCategories?.join(', ') || 'غير محدد'}
+- العلامات المفضلة: ${customerProfile.preferredBrands?.join(', ') || 'غير محدد'}
+- ملاحظات: ${customerProfile.aiNotes || 'عميل جديد'}`;
+        }
+
+        return `أنت "أكوا" - وكيل مبيعات ذكي لمتجر AQUAVO للأسماك والأحواض في العراق.
+
+# مهمتك:
+أنت وكيل مبيعات محترف. هدفك مساعدة العميل وإتمام المبيعات.
+
+# قدراتك:
+1. البحث عن المنتجات (استخدم search_products)
+2. التحقق من المخزون (استخدم check_stock)
+3. تقديم توصيات مخصصة (استخدم get_recommendations)
+4. إضافة منتجات للسلة (استخدم add_to_cart) - لكن اطلب موافقة العميل أولاً
+5. التحقق من الكوبونات (استخدم apply_coupon)
+
+# قواعدك:
+1. ردود قصيرة ومفيدة (1-3 جمل)
+2. استخدم الأدوات للحصول على معلومات حقيقية
+3. لا تختلق معلومات - استخدم الأدوات
+4. كن ودوداً واستخدم الإيموجي 🐠
+5. إذا طلب العميل إضافة للسلة، استخدم add_to_cart
+6. لا تذكر معلومات داخلية (مبيعات، إيرادات)
+
+${userName ? `اسم العميل: ${userName}` : ''}
+${profileContext}
+
+# أسلوبك:
+- ودود ومهني
+- اقترح منتجات ذات صلة
+- اسأل عن احتياجات العميل
+- قدم نصائح عملية`;
+    }
+
+    // للمدير
+    return `أنت مساعد إدارة متجر AQUAVO.
+
+# قدراتك:
+- تحليل البيانات وتقديم تقارير
+- اقتراحات لتحسين المبيعات
+- معلومات عن العملاء والمخزون
+
+# قواعدك:
+1. ردود مختصرة ومحددة
+2. استخدم البيانات الحقيقية فقط
+3. قدم توصيات عملية
+
+${userName ? `المدير: ${userName}` : ''}`;
+};
+
+// ============================================================
+// MAIN CHAT FUNCTION WITH FUNCTION CALLING
+// ============================================================
+
 export async function sendMessage(
     message: string,
     history: ChatMessage[] = [],
     context?: ChatContext
 ): Promise<string> {
+    const db = getDb();
+    const isAdmin = context?.isAdmin ?? false;
+    const userId = context?.userId;
+    const sessionId = context?.sessionId;
+
     try {
-        const systemPrompt = createSystemPrompt(context?.userName, context);
+        // 1. جلب ملف العميل إذا كان مسجلاً
+        let customerProfile = context?.customerProfile;
+        if (userId && !isAdmin && !customerProfile) {
+            const profile = await customerProfiler.getFullProfile(userId);
+            customerProfile = profile?.profile;
+        }
 
-        // Personalized greeting
-        const greeting = context?.userName
-            ? `أهلاً ${context.userName}! 🐠 أنا أكوا، مساعدك الشخصي في AQUAVO. كيف أقدر أساعدك اليوم؟`
-            : "أهلاً! 🐠 أنا أكوا، مساعد AQUAVO الذكي. كيف أقدر أساعدك اليوم؟";
+        // 2. إنشاء الـ prompt
+        const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin);
 
-        // Build chat history
+        // 3. بناء سجل المحادثة
         const chatHistory = history.map((msg) => ({
-            role: msg.role === "user" ? "user" : "model",
+            role: msg.role === "user" ? "user" as const : "model" as const,
             parts: [{ text: msg.content }],
         }));
 
-        // Start chat with history
-        const chat = model.startChat({
+        // 4. بدء المحادثة
+        const chat = salesAgentModel.startChat({
             history: [
-                {
-                    role: "user",
-                    parts: [{ text: systemPrompt }],
-                },
-                {
-                    role: "model",
-                    parts: [{ text: greeting }],
-                },
+                { role: "user", parts: [{ text: systemPrompt }] },
+                { role: "model", parts: [{ text: "مرحباً! 🐠 أنا أكوا، كيف أساعدك اليوم؟" }] },
                 ...chatHistory,
             ],
         });
 
-        // Send message and get response (مع timeout للحماية من التعليق)
-        const result = await withTimeout(
+        // 5. إرسال الرسالة
+        let result = await withTimeout(
             chat.sendMessage(message),
             AI_TIMEOUT_MS,
-            "انتهت مهلة الاتصال بالذكاء الاصطناعي. حاول مرة أخرى."
+            "انتهت مهلة الاتصال"
         );
-        const response = await result.response;
-        const text = response.text();
 
-        return text;
+        let response = result.response;
+        let responseText = response.text();
+
+        // 6. التحقق من طلب أداة (Function Call)
+        const functionCall = response.candidates?.[0]?.content?.parts?.find(
+            (part: any) => part.functionCall
+        );
+
+        if (functionCall?.functionCall) {
+            const { name, args } = functionCall.functionCall;
+            console.log(`🔧 AI calling tool: ${name}`, args);
+
+            // تنفيذ الأداة
+            const toolResult = await aiToolsExecutor.executeTool(name, args);
+            console.log(`✓ Tool result:`, toolResult);
+
+            // إرسال النتيجة للـ AI
+            const toolResponse = await chat.sendMessage([
+                {
+                    functionResponse: {
+                        name,
+                        response: toolResult,
+                    },
+                },
+            ]);
+
+            responseText = toolResponse.response.text();
+        }
+
+        // 7. حفظ المحادثة في قاعدة البيانات
+        if (db) {
+            const conversationId = sessionId || `conv_${Date.now()}`;
+
+            try {
+                // حفظ رسالة المستخدم
+                await db.insert(schema.chatMessages).values({
+                    conversationId,
+                    userId: userId || null,
+                    sessionId,
+                    role: "user",
+                    content: message,
+                });
+
+                // حفظ رد الـ AI
+                await db.insert(schema.chatMessages).values({
+                    conversationId,
+                    userId: userId || null,
+                    sessionId,
+                    role: "assistant",
+                    content: responseText,
+                });
+
+                // تحديث تفاعل العميل
+                if (userId) {
+                    await customerProfiler.trackInteraction(userId, "chat");
+                }
+            } catch (saveError) {
+                console.error("Failed to save chat:", saveError);
+            }
+        }
+
+        return responseText;
+
     } catch (error) {
-        console.error("Gemini AI Error Details:", {
-            message: error instanceof Error ? error.message : "Unknown error",
-            stack: error instanceof Error ? error.stack : undefined,
-            fullError: error,
-        });
+        console.error("Gemini AI Error:", error);
 
-        // Handle specific errors
         if (error instanceof Error) {
-            // Timeout error
-            if (error.message.includes("مهلة الاتصال") || error.message.includes("timeout")) {
-                throw new Error("انتهت مهلة الاتصال بالذكاء الاصطناعي. حاول مرة أخرى.");
+            if (error.message.includes("مهلة") || error.message.includes("timeout")) {
+                throw new Error("انتهت مهلة الاتصال. حاول مرة أخرى.");
             }
             if (error.message.includes("API_KEY") || error.message.includes("API key")) {
                 throw new Error("مفتاح API غير صالح");
@@ -196,21 +278,17 @@ export async function sendMessage(
             if (error.message.includes("SAFETY")) {
                 throw new Error("تم حظر الرسالة لأسباب أمنية");
             }
-            // Network errors
-            if (error.message.includes("fetch") || error.message.includes("network") || error.message.includes("ECONNREFUSED")) {
-                throw new Error("خطأ في الاتصال بالشبكة. تحقق من الإنترنت.");
-            }
-            // Return the actual error message for debugging
-            throw new Error(`خطأ في الذكاء الاصطناعي: ${error.message}`);
+            throw new Error(`خطأ: ${error.message}`);
         }
 
-        throw new Error("حدث خطأ غير متوقع في الذكاء الاصطناعي");
+        throw new Error("حدث خطأ غير متوقع");
     }
 }
 
-/**
- * Generate product recommendations based on preferences
- */
+// ============================================================
+// SPECIALIZED FUNCTIONS
+// ============================================================
+
 export async function generateRecommendations(
     preferences: {
         tankSize?: string;
@@ -220,111 +298,69 @@ export async function generateRecommendations(
     },
     userName?: string
 ): Promise<string> {
-    const prompt = `${userName ? `العميل ${userName} ` : "عميل "}يسأل عن توصيات منتجات:
+    const prompt = `أعطني 3 توصيات منتجات لـ:
 - حجم الحوض: ${preferences.tankSize ?? "غير محدد"}
-- نوع الأسماك المفضل: ${preferences.fishType ?? "غير محدد"}
+- نوع الأسماك: ${preferences.fishType ?? "غير محدد"}
 - الميزانية: ${preferences.budget ?? "غير محدد"}
-- مستوى الخبرة: ${preferences.experience ?? "مبتدئ"}
+- الخبرة: ${preferences.experience ?? "مبتدئ"}
 
-قدم 5 منتجات موصى بها من AQUAVO مع أسعار تقريبية.`;
+ردك قصير ومحدد.`;
 
-    return sendMessage(prompt, [], { userName });
+    return sendMessage(prompt, [], { userName, isAdmin: false });
 }
 
-/**
- * Analyze sales data and provide insights
- */
-export async function analyzeSalesData(
-    salesData: {
-        totalSales: number;
-        ordersCount: number;
-        topProducts: string[];
-        period: string;
-    }
-): Promise<string> {
-    const prompt = `حلل بيانات المبيعات:
-- إجمالي: ${salesData.totalSales.toLocaleString()} د.ع
-- الطلبات: ${salesData.ordersCount}
-- أفضل المنتجات: ${salesData.topProducts.join("، ")}
-- الفترة: ${salesData.period}
-
-قدم تحليل مختصر مع 3 توصيات عملية.`;
-
-    return sendMessage(prompt);
-}
-
-/**
- * Get fish care advice
- */
 export async function getFishCareAdvice(fishName: string, userName?: string): Promise<string> {
-    const prompt = `${userName ? `${userName} يسأل عن ` : "سؤال عن "}رعاية سمكة ${fishName}.
-قدم دليل مختصر يشمل:
-1. الحوض المناسب
-2. درجة الحرارة والـ pH
-3. التغذية
-4. التوافق
-5. منتجات AQUAVO المناسبة`;
-
-    return sendMessage(prompt, [], { userName });
+    const prompt = `معلومات مختصرة عن رعاية ${fishName}: الحوض، الحرارة، التغذية (3 نقاط فقط)`;
+    return sendMessage(prompt, [], { userName, isAdmin: false });
 }
 
-/**
- * Generate AI recommendations for Journey Wizard
- * Returns a JSON string of product IDs and reasons
- */
 export async function recommendProductsForJourney(
     wizardData: any,
     availableProducts: any[]
 ): Promise<any[]> {
     try {
-        // Use a specific model instance for JSON generation to ensure structure
         const jsonModel = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+            model: "gemini-2.0-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
 
-        // Filter products to reduce token usage (send only necessary fields)
-        const productsCatalog = availableProducts.map(p => ({
+        const productsCatalog = availableProducts.slice(0, 50).map(p => ({
             id: p.id,
             name: p.name,
             category: p.category,
-            price: p.price,
-            tags: [p.category, p.name].join(" ")
+            price: p.price
         }));
 
-        const prompt = `You are an expert aquarist AI for AQUAVO.
-        
-User Tank Profile:
+        const prompt = `Based on this tank setup:
 ${JSON.stringify(wizardData, null, 2)}
 
-Available Products Catalog:
+Select 5-6 essential products from:
 ${JSON.stringify(productsCatalog)}
 
-Task:
-1. Analyze the user's tank profile (size, type, fish, etc).
-2. Select the top 6-8 MOST ESSENTIAL products from the catalog for THIS SPECIFIC setup.
-3. For each product, write a short, personalized reason (in Arabic) explaining WHY it is needed for their specific choice (e.g., "Because you chose Angelfish, this heater is needed...").
-4. Return a JSON array.
-
-Format:
-[
-  {
-    "productId": "id",
-    "reason": "السبب بالعربية"
-  }
-]
-`;
+Return JSON array:
+[{"productId": "id", "reason": "سبب قصير بالعربي"}]`;
 
         const result = await withTimeout(
             jsonModel.generateContent(prompt),
             AI_TIMEOUT_MS,
-            "Timeout generating recommendations"
+            "Timeout"
         );
 
-        const responseText = result.response.text();
-        return JSON.parse(responseText);
+        return JSON.parse(result.response.text());
     } catch (error) {
         console.error("AI Recommendation Error:", error);
         return [];
     }
+}
+
+// ============================================================
+// ADMIN CUSTOMER INSIGHTS
+// ============================================================
+
+export async function getCustomerInsights(userId: string): Promise<any> {
+    return customerProfiler.getFullProfile(userId);
+}
+
+export async function analyzeCustomer(userId: string): Promise<void> {
+    return customerProfiler.analyzeAndUpdateProfile(userId);
 }
