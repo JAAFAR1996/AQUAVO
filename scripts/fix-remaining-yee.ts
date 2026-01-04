@@ -1,147 +1,96 @@
-import { neon } from '@neondatabase/serverless';
-import fs from 'fs';
-import path from 'path';
+/**
+ * Script to fix remaining YEE products without image matches
+ * Run with: npx tsx scripts/fix-remaining-yee.ts
+ */
 
-const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+import { drizzle } from "drizzle-orm/neon-serverless";
+import { Pool, neonConfig } from "@neondatabase/serverless";
+import { sql } from "drizzle-orm";
+import ws from "ws";
+import * as fs from "fs";
+import * as path from "path";
 
-const YEE_SOURCE = 'C:/Users/jaafa/Desktop/upload/FishWebClean/yee';
-const YEE_DEST = 'C:/Users/jaafa/Desktop/upload/FishWebClean/client/public/images/products/yee';
+neonConfig.webSocketConstructor = ws;
 
-// Manual mapping for products not in Excel (merged variants and custom products)
-const MANUAL_MAPPING: { [slug: string]: string } = {
-  // Merged variant products
-  'yee-steel-heater': '50W  & 100W&  200Wpure steel heating rod YSH-50',
-  'yee-water-grass-mud': 'Water grass mud fertility upgrade fine grain 1.5L & 3L',
-  'yee-air-tube-reinforced': '【Thickened airbag for durability】1.7 meters & 1.5 metersthickened and lengthened',
-  'yee-anti-stress-water-stabilizer': 'Anti-stress water stabilizer 500ml New style',
-  'yee-glass-tank': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
+const DATABASE_URL = 'postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const pool = new Pool({ connectionString: DATABASE_URL });
+const db = drizzle(pool);
 
-  // Products with custom slugs
-  'yee-all-in-onemicroparticles02mm210g': '【All-in-one】Microparticles0.2mm210g',
-  'yee-new-shelled-eggs-140g-200ml-white-bottle-feeder': 'New Shelled Eggs (140g 200ml) White Bottle + Feeder',
-  'yee-refill9-in-1refill50-pieces': '【Refill】9 in 1Refill50 pieces',
-  'yaa-009': 'High energy culture bricks',
+const YEE_FOLDER = './client/public/images/products/yee';
 
-  // Products that need closest match
-  'c1-1127': 'Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm',
-  'yyh-006': 'Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules', // Use similar
-  'yyh-173': 'Anti-stress water stabilizer 500ml New style',
-  'yyh-216': 'Anti-stress water stabilizer 1000ml New style',
-  'yff-049': 'Water grass mud fertility upgrade fine grain 1.5L & 3L',
-  'yff-052': 'Water grass mud fertility upgrade fine grain 1.5L & 3L',
-  'yee-3006': '50W  & 100W&  200Wpure steel heating rod YSH-50',
-  'yee-3007': '50W  & 100W&  200Wpure steel heating rod YSH-50',
-  'yee-3008': '50W  & 100W&  200Wpure steel heating rod YSH-50',
-  'c5-1144': '【Thickened airbag for durability】1.7 meters & 1.5 metersthickened and lengthened',
-  'yee-3621': '【Thickened airbag for durability】1.7 meters & 1.5 metersthickened and lengthened',
-  'yee-1090': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
-  'ycg-40': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
-  'yxl-003': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
-  'ykk-50': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
-  'ykk-60': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
-  'c5-1062': '35×35×35 6mm thick & 40X40X40cm 6mm thick & 604040cm 8mm & 400x230x250mm 5mm thick & 500x270x300mm 5mm thick & 600x300x350mm 5mm thick',
+// Direct mapping for remaining products
+const remainingProducts: Record<string, { model: string; slug: string }> = {
+  'yee-c1-1066-shrimp-food': { model: 'C1-1066', slug: 'yee-c1-1066' },
+  'yee-yyh-006-antibacterial': { model: 'YYH-006', slug: 'yee-yyh-006' },
+  'yee-c1-1134-ranchu-sinking': { model: 'C1-1134', slug: 'yee-c1-1134' },
+  'yee-c1-1127-ranchu-feed': { model: 'C1-1127', slug: 'yee-c1-1127' },
+  'yee-c1-1069-sample-pack': { model: 'C1-1069', slug: 'yee-c1-1069' },
+  'yee-3656-tubing': { model: 'YEE-3656', slug: 'yee-3656' },
+  'yee-cls-107-magnetic-brush': { model: 'CLS-107', slug: 'yee-cls-107' },
+  'yee-led-318-light': { model: 'LED-318', slug: 'yee-led-318' },
+  'yee-air-tube-reinforced': { model: 'C5-1144', slug: 'yee-c5-1144' },
+  'yee-anti-stress-water-stabilizer': { model: 'YYH-173', slug: 'yee-yyh-173' },
+  'yee-steel-heater': { model: 'YEE-3006', slug: 'yee-steel-heater' },
+  'yee-new-shelled-eggs-140g-200ml-white-bottle-feeder': { model: 'YYY-078', slug: 'yee-yyy-078-shelled-eggs' },
+  'yee-novice-level-50-9-in-1bucketwith-comparison-chart': { model: 'C4-1123-1a', slug: 'yee-c4-1123-1a' },
+  'yee-all-in-onemicroparticles02mm210g': { model: 'C1-1082-2a', slug: 'yee-c1-1082-2a' },
+  'yee-refill9-in-1refill50-pieces': { model: 'C4-1123-2a', slug: 'yee-c4-1123-2a' },
 };
 
-function copyFolder(src: string, destName: string): boolean {
-  const srcPath = path.join(YEE_SOURCE, src);
-  const destPath = path.join(YEE_DEST, destName);
-
-  if (!fs.existsSync(srcPath)) {
-    console.log(`  Source not found: ${src}`);
-    return false;
+function getImagesFromFolder(folderName: string): string[] {
+  const folderPath = path.join(YEE_FOLDER, folderName);
+  try {
+    if (!fs.existsSync(folderPath)) return [];
+    const files = fs.readdirSync(folderPath);
+    return files
+      .filter(f => /\.(jpg|jpeg|png|webp|avif|gif)$/i.test(f))
+      .map(f => `/images/products/yee/${folderName}/${f}`);
+  } catch {
+    return [];
   }
-
-  if (!fs.existsSync(destPath)) {
-    fs.mkdirSync(destPath, { recursive: true });
-  }
-
-  const files = fs.readdirSync(srcPath);
-  for (const file of files) {
-    const srcFile = path.join(srcPath, file);
-    const destFile = path.join(destPath, file);
-    if (fs.statSync(srcFile).isFile()) {
-      fs.copyFileSync(srcFile, destFile);
-    }
-  }
-  return true;
-}
-
-function getImages(folderName: string): string[] {
-  const folderPath = path.join(YEE_DEST, folderName);
-  if (!fs.existsSync(folderPath)) return [];
-
-  return fs.readdirSync(folderPath)
-    .filter(f => /\.(jpg|jpeg|png|gif|webp|avif)$/i.test(f))
-    .slice(0, 6)
-    .map(f => `/images/products/yee/${folderName}/${f}`);
 }
 
 async function main() {
-  console.log('=== FIXING REMAINING YEE PRODUCTS ===\n');
+  console.log('=== Fixing Remaining YEE Products ===\n');
 
-  let fixed = 0;
+  let updated = 0;
+  const noImages: string[] = [];
 
-  for (const [slug, sourceFolder] of Object.entries(MANUAL_MAPPING)) {
-    // Check if product exists in DB
-    const product = await sql`SELECT id, name FROM products WHERE slug = ${slug}`;
-    if (product.length === 0) continue;
+  for (const [productId, mapping] of Object.entries(remainingProducts)) {
+    const images = getImagesFromFolder(mapping.model);
 
-    // Copy folder
-    if (copyFolder(sourceFolder, slug)) {
-      const images = getImages(slug);
+    if (images.length > 0) {
+      await db.execute(sql`
+        UPDATE products 
+        SET slug = ${mapping.slug},
+            images = ${JSON.stringify(images)}::jsonb,
+            thumbnail = ${images[0]},
+            updated_at = NOW()
+        WHERE id = ${productId}
+      `);
 
-      if (images.length > 0) {
-        await sql`
-          UPDATE products
-          SET images = ${JSON.stringify(images)}::jsonb,
-              thumbnail = ${images[0]}
-          WHERE slug = ${slug}
-        `;
-
-        console.log(`✓ ${slug} (${images.length} images)`);
-        fixed++;
-      }
+      console.log(`✅ ${productId} -> ${mapping.slug} (${images.length} images)`);
+      updated++;
+    } else {
+      console.log(`⚠️ ${productId} - No images in ${mapping.model}`);
+      noImages.push(`${productId} -> ${mapping.model}`);
     }
   }
 
-  console.log(`\n=== FIXED: ${fixed} products ===`);
-
-  // Final check
-  console.log('\n=== FINAL STATUS ===');
-  const noImages = await sql`
-    SELECT slug, name FROM products
-    WHERE (brand ILIKE '%yee%' OR slug LIKE 'c1-%' OR slug LIKE 'c2-%'
-           OR slug LIKE 'yee-%' OR slug LIKE 'yyh-%')
-      AND (thumbnail IS NULL OR thumbnail LIKE '%placeholder%' OR thumbnail = '')
-    ORDER BY slug
-  `;
+  console.log(`\n=== Summary ===`);
+  console.log(`Updated: ${updated}`);
+  console.log(`Missing images: ${noImages.length}`);
 
   if (noImages.length > 0) {
-    console.log(`\nProducts still without images: ${noImages.length}`);
-    for (const p of noImages) {
-      console.log(`  - ${p.slug}: ${p.name.substring(0, 40)}`);
-    }
-  } else {
-    console.log('\n✅ All products have images!');
+    console.log(`\nProducts needing images:`);
+    noImages.forEach(p => console.log(`  - ${p}`));
   }
 
-  // Count total
-  const total = await sql`
-    SELECT COUNT(*) as count FROM products
-    WHERE brand ILIKE '%yee%' OR slug LIKE 'c1-%' OR slug LIKE 'c2-%'
-           OR slug LIKE 'yee-%' OR slug LIKE 'yyh-%'
-  `;
-
-  const withImages = await sql`
-    SELECT COUNT(*) as count FROM products
-    WHERE (brand ILIKE '%yee%' OR slug LIKE 'c1-%' OR slug LIKE 'c2-%'
-           OR slug LIKE 'yee-%' OR slug LIKE 'yyh-%')
-      AND thumbnail IS NOT NULL
-      AND thumbnail NOT LIKE '%placeholder%'
-      AND thumbnail != ''
-  `;
-
-  console.log(`\nTotal: ${withImages[0].count}/${total[0].count} products with images`);
+  await pool.end();
+  process.exit(0);
 }
 
-main().catch(console.error);
+main().catch(err => {
+  console.error(err);
+  process.exit(1);
+});
