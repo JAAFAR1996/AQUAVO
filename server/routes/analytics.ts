@@ -87,14 +87,14 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
         // جلب بيانات المبيعات اليومية الحقيقية من قاعدة البيانات
         const dailySalesData = await db
             .select({
-                date: sql<string>`DATE(${orders.createdAt})`,
+                date: sql<string>`(${orders.createdAt})::date::text`,
                 revenue: sum(orders.total),
                 orderCount: count(),
             })
             .from(orders)
             .where(gte(orders.createdAt, startDate))
-            .groupBy(sql`DATE(${orders.createdAt})`)
-            .orderBy(sql`DATE(${orders.createdAt})`);
+            .groupBy(sql`(${orders.createdAt})::date`)
+            .orderBy(sql`(${orders.createdAt})::date`);
 
         // إنشاء خريطة للبيانات اليومية
         const dailyDataMap = new Map<string, { revenue: number; orders: number }>();
