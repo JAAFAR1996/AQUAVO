@@ -108,13 +108,13 @@ async function addYEEGlassTank() {
 
     // صور المنتج - كل حجم له صورة
     const images = [
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/main.jpg',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_35cm.png',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_40cm.png',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_60x40cm.png',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_40x23cm.png',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_50x27cm.png',
-        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_60x30cm.png',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/main.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_35cm.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_40cm.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_60x40cm.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_40x23cm.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_50x27cm.webp',
+        '/images/products/yee/YEE Ultra-Clear Glass Tank/yee_tank_60x30cm.webp',
     ];
 
     const thumbnail = images[0];

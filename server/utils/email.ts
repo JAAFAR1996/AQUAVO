@@ -65,6 +65,47 @@ export interface EmailOptions {
   html?: string;
 }
 
+// Email log types
+type EmailType = "welcome" | "discount" | "password_reset";
+
+interface EmailLogData {
+  emailType: EmailType;
+  recipientEmail: string;
+  productId?: string;
+  productName?: string;
+  discountPercentage?: number;
+  status: "sent" | "failed";
+  errorMessage?: string;
+}
+
+// Log email to database
+async function logEmailToDatabase(data: EmailLogData): Promise<void> {
+  try {
+    const { getDb } = await import("../db.js");
+    const { emailLogs } = await import("../../shared/schema.js");
+
+    const db = getDb();
+    if (!db) {
+      console.warn("[Email] Database not initialized, skipping email log");
+      return;
+    }
+
+    await db.insert(emailLogs).values({
+      emailType: data.emailType,
+      recipientEmail: data.recipientEmail,
+      productId: data.productId,
+      productName: data.productName,
+      discountPercentage: data.discountPercentage,
+      status: data.status,
+      errorMessage: data.errorMessage,
+    });
+
+    console.log(`[Email] Logged ${data.emailType} email to ${data.recipientEmail} (${data.status})`);
+  } catch (error) {
+    console.error("[Email] Failed to log email to database:", error);
+  }
+}
+
 // ... (imports and config)
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
@@ -151,12 +192,21 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
 </html>
   `;
 
-  return sendEmail({
+  const success = await sendEmail({
     to: email,
     subject: "أهلاً بك في عائلة AQUAVO! 🌿",
     html,
     text: "مرحباً بك في عائلة AQUAVO! نحن سعداء جداً بانضمامك إلينا. ستصلك قريباً أفضل العروض والنصائح."
   });
+
+  // Log to database
+  await logEmailToDatabase({
+    emailType: "welcome",
+    recipientEmail: email,
+    status: success ? "sent" : "failed",
+  });
+
+  return success;
 }
 
 export async function sendProductDiscountEmail(email: string, product: { name: string, price: string, originalPrice?: string, slug: string, image: string }): Promise<boolean> {
@@ -215,14 +265,25 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
 </body>
 </html>
   `;
-  // ...
+  // Send email and log to database
 
-  return sendEmail({
+  const success = await sendEmail({
     to: email,
     subject: `فرصة خاصة لك: تخفيض على ${product.name} 🔥`,
     html,
     text: `تخفيض مميز على ${product.name}! السعر الـجديد: ${product.price} د.ع. تسوق الآن: ${process.env.VITE_PUBLIC_BASE_URL}/product/${product.slug}`
   });
+
+  // Log to database
+  await logEmailToDatabase({
+    emailType: "discount",
+    recipientEmail: email,
+    productName: product.name,
+    discountPercentage: discount,
+    status: success ? "sent" : "failed",
+  });
+
+  return success;
 }
 
 export async function sendPasswordResetEmail(email: string, resetToken: string, baseUrl: string): Promise<boolean> {
@@ -527,12 +588,21 @@ ${resetUrl}
 ✨ نحول حلمك المائي إلى حقيقة ✨
   `.trim();
 
-  return sendEmail({
+  const success = await sendEmail({
     to: email,
     subject: "🔐 إعادة تعيين كلمة المرور - AQUAVO",
     html,
     text,
   });
+
+  // Log to database
+  await logEmailToDatabase({
+    emailType: "password_reset",
+    recipientEmail: email,
+    status: success ? "sent" : "failed",
+  });
+
+  return success;
 }
 
 // Verify SMTP connection

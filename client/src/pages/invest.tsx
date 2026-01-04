@@ -81,26 +81,26 @@ export default function InvestPage() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             <Card className="text-center border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                                 <CardContent className="pt-6">
-                                    <div className="text-4xl font-black text-primary mb-2">$60M</div>
-                                    <p className="text-muted-foreground">حجم السوق الكلي (TAM)</p>
+                                    <div className="text-4xl font-black text-primary mb-2">$702M</div>
+                                    <p className="text-muted-foreground">سوق الـ e-commerce العراقي</p>
                                 </CardContent>
                             </Card>
                             <Card className="text-center border-green-500/20 bg-gradient-to-br from-green-500/5 to-transparent">
                                 <CardContent className="pt-6">
-                                    <div className="text-4xl font-black text-green-500 mb-2">500K</div>
-                                    <p className="text-muted-foreground">عائلة تمتلك أحواض في العراق</p>
+                                    <div className="text-4xl font-black text-green-500 mb-2">46M</div>
+                                    <p className="text-muted-foreground">سكان العراق (83% أونلاين)</p>
                                 </CardContent>
                             </Card>
                             <Card className="text-center border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent">
                                 <CardContent className="pt-6">
-                                    <div className="text-4xl font-black text-amber-500 mb-2">40%</div>
-                                    <p className="text-muted-foreground">هامش الربح المتوقع</p>
+                                    <div className="text-4xl font-black text-amber-500 mb-2">+15%</div>
+                                    <p className="text-muted-foreground">نمو سنوي (2025-2026)</p>
                                 </CardContent>
                             </Card>
                             <Card className="text-center border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-transparent">
                                 <CardContent className="pt-6">
-                                    <div className="text-4xl font-black text-blue-500 mb-2">18-24</div>
-                                    <p className="text-muted-foreground">شهر لاسترداد الاستثمار</p>
+                                    <div className="text-4xl font-black text-blue-500 mb-2">$665M</div>
+                                    <p className="text-muted-foreground">سوق الأحواض - الشرق الأوسط</p>
                                 </CardContent>
                             </Card>
                         </div>

@@ -558,6 +558,36 @@ export const insertNewsletterSubscriptionSchema = z.object({
 export type NewsletterSubscription = typeof newsletterSubscriptions.$inferSelect;
 export type InsertNewsletterSubscription = z.infer<typeof insertNewsletterSubscriptionSchema>;
 
+// Email Logs - Track all sent emails
+export const emailLogs = pgTable("email_logs", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  emailType: text("email_type").notNull(), // 'welcome', 'discount', 'password_reset'
+  recipientEmail: text("recipient_email").notNull(),
+  productId: text("product_id").references(() => products.id), // For discount emails
+  productName: text("product_name"),
+  discountPercentage: integer("discount_percentage"),
+  status: text("status").notNull().default("sent"), // 'sent', 'failed'
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  emailTypeIdx: index("email_logs_email_type_idx").on(table.emailType),
+  recipientIdx: index("email_logs_recipient_idx").on(table.recipientEmail),
+  createdAtIdx: index("email_logs_created_at_idx").on(table.createdAt),
+}));
+
+export const insertEmailLogSchema = z.object({
+  emailType: z.enum(["welcome", "discount", "password_reset"]),
+  recipientEmail: z.string().email(),
+  productId: z.string().optional(),
+  productName: z.string().optional(),
+  discountPercentage: z.number().optional(),
+  status: z.enum(["sent", "failed"]).optional(),
+  errorMessage: z.string().optional(),
+});
+
+export type EmailLog = typeof emailLogs.$inferSelect;
+export type InsertEmailLog = z.infer<typeof insertEmailLogSchema>;
+
 // Journey Plans - for aquarium setup wizard persistence
 export const journeyPlans = pgTable("journey_plans", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),

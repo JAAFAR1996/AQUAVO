@@ -132,23 +132,34 @@ export class EmbeddingGenerator {
         return null;
       }
 
-      // حفظ في قاعدة البيانات
-      await this.db
-        .insert(schema.productEmbeddings)
-        .values({
-          productId,
-          embedding: JSON.stringify(embedding),
-          model: 'text-embedding-004',
-          createdAt: new Date(),
-        })
-        .onConflictDoUpdate({
-          target: schema.productEmbeddings.productId,
-          set: {
+      // Check if embedding already exists for this product
+      const existingEmbedding = await this.db
+        .select()
+        .from(schema.productEmbeddings)
+        .where(eq(schema.productEmbeddings.productId, productId))
+        .limit(1);
+
+      if (existingEmbedding.length > 0) {
+        // Update existing embedding
+        await this.db
+          .update(schema.productEmbeddings)
+          .set({
             embedding: JSON.stringify(embedding),
             model: 'text-embedding-004',
             updatedAt: new Date(),
-          },
-        });
+          })
+          .where(eq(schema.productEmbeddings.productId, productId));
+      } else {
+        // Insert new embedding
+        await this.db
+          .insert(schema.productEmbeddings)
+          .values({
+            productId,
+            embedding: JSON.stringify(embedding),
+            model: 'text-embedding-004',
+            createdAt: new Date(),
+          });
+      }
 
       console.log(`[Embeddings] ✅ Generated embedding (${embedding.length} dimensions) for: ${productId}`);
       return embedding;

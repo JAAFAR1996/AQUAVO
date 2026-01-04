@@ -300,14 +300,18 @@ export default function Shipping() {
                                     فريقنا جاهز للإجابة على أي سؤال
                                 </p>
                                 <div className="flex flex-wrap gap-4 justify-center">
-                                    <Button size="lg" className="gap-2">
-                                        <MessageCircle className="w-5 h-5" />
-                                        تواصل عبر واتساب
-                                    </Button>
-                                    <Button size="lg" variant="outline" className="gap-2">
-                                        <Phone className="w-5 h-5" />
-                                        اتصل بنا
-                                    </Button>
+                                    <a href="https://wa.me/9647700000000?text=مرحباً، عندي استفسار عن التوصيل" target="_blank" rel="noopener noreferrer">
+                                        <Button size="lg" className="gap-2">
+                                            <MessageCircle className="w-5 h-5" />
+                                            تواصل عبر واتساب
+                                        </Button>
+                                    </a>
+                                    <a href="tel:+9647700000000">
+                                        <Button size="lg" variant="outline" className="gap-2">
+                                            <Phone className="w-5 h-5" />
+                                            اتصل بنا
+                                        </Button>
+                                    </a>
                                 </div>
                             </CardContent>
                         </Card>

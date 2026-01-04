@@ -15,9 +15,11 @@ export default function ComparePage() {
     const { data: allProducts = [] } = useQuery<Product[]>({
         queryKey: ["/api/products"],
         queryFn: async () => {
-            const res = await fetch("/api/products");
+            const res = await fetch("/api/products?limit=200");
             if (!res.ok) throw new Error("Failed to fetch products");
-            return res.json();
+            const data = await res.json();
+            // API returns { products: [...] }, extract the array
+            return data.products || [];
         },
     });
 

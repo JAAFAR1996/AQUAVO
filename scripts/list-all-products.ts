@@ -1,55 +1,15 @@
-/**
- * List All Products in Database
- */
+import { neon } from '@neondatabase/serverless';
 
-import { getDb } from "../server/db";
-import { products } from "../shared/schema";
+const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
-const db = getDb();
-if (!db) {
-    console.error("❌ Database connection failed.");
-    process.exit(1);
+async function main() {
+  const products = await sql`SELECT id, name, slug FROM products ORDER BY slug`;
+  console.log('=== ALL DATABASE PRODUCTS ===');
+  console.log(`Total: ${products.length}`);
+  console.log();
+  products.forEach((p: any, i: number) => {
+    console.log(`${i+1}. ${p.slug}`);
+  });
 }
 
-async function listProducts() {
-    console.log("\n📦 قائمة جميع المنتجات في قاعدة البيانات:\n");
-    console.log("━".repeat(80));
-
-    try {
-        const allProducts = await db.select({
-            id: products.id,
-            name: products.name,
-            brand: products.brand,
-            category: products.category,
-            price: products.price,
-            stock: products.stock,
-            hasVariants: products.hasVariants
-        }).from(products).orderBy(products.brand, products.name);
-
-        console.log(`\n📊 إجمالي المنتجات: ${allProducts.length}\n`);
-
-        // Group by brand
-        const brands: Record<string, typeof allProducts> = {};
-        for (const p of allProducts) {
-            if (!brands[p.brand]) brands[p.brand] = [];
-            brands[p.brand].push(p);
-        }
-
-        for (const [brand, prods] of Object.entries(brands)) {
-            console.log(`\n🏷️ ${brand} (${prods.length} منتج):`);
-            console.log("-".repeat(60));
-            for (const p of prods) {
-                const variantTag = p.hasVariants ? "📦" : "  ";
-                console.log(`${variantTag} ${p.name}`);
-                console.log(`   💰 ${p.price} IQD | 📊 مخزون: ${p.stock} | 📁 ${p.category}`);
-            }
-        }
-
-    } catch (error: any) {
-        console.error("❌ خطأ:", error.message);
-    }
-
-    console.log("\n" + "━".repeat(80));
-}
-
-listProducts().catch(console.error);
+main().catch(console.error);

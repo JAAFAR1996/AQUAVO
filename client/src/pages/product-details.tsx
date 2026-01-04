@@ -83,11 +83,22 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (product) {
-      addItem(product, quantity);
+      // Create a modified product with variant info in the name
+      const productToAdd = selectedVariant
+        ? {
+          ...product,
+          name: `${product.name} (${selectedVariant.label})`,
+          price: selectedVariant.price,
+          // Use variant-specific ID if available to track separately in cart
+          id: `${product.id}-${selectedVariant.id}`,
+        }
+        : product;
+
+      addItem(productToAdd, quantity);
       setIsAddedToCart(true);
       toast({
         title: "يا سلام! 🦐",
-        description: `خيار رهيب! ضفنا ${quantity} قطع من ${product.name} للكيس.`,
+        description: `خيار رهيب! ضفنا ${quantity} قطع من ${productToAdd.name} للكيس.`,
       });
       setTimeout(() => setIsAddedToCart(false), 2000);
     }

@@ -1,0 +1,463 @@
+{
+  "totalInExcel": 65,
+  "totalInDatabase": 108,
+  "matched": 2,
+  "missing": 63,
+  "matchedProducts": [
+    {
+      "model": "YAN-915",
+      "excelName": "500G Multivitamin Salt Box YAN-915",
+      "dbSlug": "yee-500g-multivitamin-salt-box-yan-915",
+      "dbId": "yee-500g-multivitamin-salt-box-yan-915"
+    },
+    {
+      "model": "YTZ-300",
+      "excelName": "Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300",
+      "dbSlug": "yee-xiaobai-single-hole-oxygen-pump-3w-non-adjustable-ytz-300",
+      "dbId": "yee-xiaobai-single-hole-oxygen-pump-3w-non-adjustable-ytz-300"
+    }
+  ],
+  "missingProducts": [
+    {
+      "model": "C1-1113",
+      "businessCode": "C1-1113-2",
+      "englishName": "Yee Small Fish Feed All-in-One 0.6mm 75g",
+      "chineseName": "Yee小型鱼配合饲料全效合一0.6mm75g",
+      "price": 0.63
+    },
+    {
+      "model": "C1-1127",
+      "businessCode": "C1-1127-1",
+      "englishName": "Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm",
+      "chineseName": "金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm",
+      "price": 1.8
+    },
+    {
+      "model": "C1-1073",
+      "businessCode": "C1-1073-1a",
+      "englishName": "Betta fish food 0.8mm 130g New",
+      "chineseName": "Yee斗鱼配合饲料0.8mm130g新更换条码",
+      "price": 0.97
+    },
+    {
+      "model": "C1-1082",
+      "businessCode": "C1-1082-5",
+      "englishName": "Imitation red worm feed 0.5mm 115g",
+      "chineseName": "Imitation red worm feed 0.5mm 115g",
+      "price": 1.35
+    },
+    {
+      "model": "C1-1065",
+      "businessCode": "C1-1065-1",
+      "englishName": "Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag",
+      "chineseName": "Yee蝴蝶鲤配合饲料1.5mm300g袋装",
+      "price": 0.86
+    },
+    {
+      "model": "C1-1066",
+      "businessCode": "C1-1066-2",
+      "englishName": "【40% High Protein】Special Food for Ornamental Shrimp 260g",
+      "chineseName": "Yee水族观赏虾专用粮260g",
+      "price": 1.7
+    },
+    {
+      "model": "YYY-078",
+      "businessCode": "03446a",
+      "englishName": "New Shelled Eggs (80g 150ml) White Bottle + Feeder",
+      "chineseName": "新款脱壳卵(80g150ml)白瓶+喂食器SJ",
+      "price": 1.65
+    },
+    {
+      "model": "C1-1125",
+      "businessCode": "C1-1125-1",
+      "englishName": "Yee Aqua-Hermit Crab Freeze-Dried Feast 55g",
+      "chineseName": "Yee水族-寄居蟹冻干盛宴55g55g",
+      "price": 1.27
+    },
+    {
+      "model": "C1-1069",
+      "businessCode": "C1-1069-1",
+      "englishName": "Fish feed with coated paper hanger",
+      "chineseName": "鱼粮连包铜版纸吊卡DJ",
+      "price": 0.62
+    },
+    {
+      "model": "C1-1082",
+      "businessCode": "C1-1082-2a",
+      "englishName": "【All-in-one】Microparticles/0.2mm/210g",
+      "chineseName": "Yee小型鱼配合饲料全效合一0.2mm210g更换条码",
+      "price": 1.04
+    },
+    {
+      "model": "C1-1134",
+      "businessCode": "C1-1134-6",
+      "englishName": "Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag.",
+      "chineseName": "金鱼兰寿配合饲料1.5mm下沉500g袋装",
+      "price": 1.69
+    },
+    {
+      "model": "C1-1086",
+      "businessCode": "C1-1086-1",
+      "englishName": "Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml",
+      "chineseName": "Yee水族冻干丰年虾块18g",
+      "price": 0.9
+    },
+    {
+      "model": "C1-1124",
+      "businessCode": "C1-1124-1",
+      "englishName": "Yee Brand 3-in-1 Betta Fish Food 15g",
+      "chineseName": "Yee意牌水族三合一斗鱼配合饲料15g",
+      "price": 0.48
+    },
+    {
+      "model": "YYH-125",
+      "businessCode": "12420",
+      "englishName": "White Spot Cleaner 300ml",
+      "chineseName": "白点净300ml",
+      "price": 0.71830985915493
+    },
+    {
+      "model": "YYH-207",
+      "businessCode": "19768a",
+      "englishName": "Methylene blue solution 600ml",
+      "chineseName": "亚甲基蓝溶液 600ml",
+      "price": 0.93
+    },
+    {
+      "model": "YYH-006",
+      "businessCode": "02856a",
+      "englishName": "Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box]",
+      "chineseName": "杀菌/抑菌/速溶粉末2g/袋×10袋[1盒]",
+      "price": 1.13
+    },
+    {
+      "model": "c2-1016",
+      "businessCode": "c2-1016-2",
+      "englishName": "Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml",
+      "chineseName": "Yee意牌水族净氨系列活性益生菌760ml",
+      "price": 2.34
+    },
+    {
+      "model": "c2-1016",
+      "businessCode": "c2-1016-1a",
+      "englishName": "Yee Aquarium Cleansing Ammonia Series Active Probiotics 400ml",
+      "chineseName": "Yee意牌水族净氨系列活性益生菌400ml",
+      "price": 1.38
+    },
+    {
+      "model": "YYH-039",
+      "businessCode": "02924",
+      "englishName": "Yee Blue Classic-Chlorine Removal Water Stabilizer 535ml",
+      "chineseName": "yee蓝色经典-除氯水质稳定剂535ml",
+      "price": 0.72
+    },
+    {
+      "model": "YYH-173",
+      "businessCode": "16940",
+      "englishName": "Anti-stress water stabilizer 500ml New style",
+      "chineseName": "抗应激水质稳定剂 500ml  新风格",
+      "price": 0.915492957746479
+    },
+    {
+      "model": "C3-1010",
+      "businessCode": "C3-1010-3",
+      "englishName": "【Ammonia nitrogen tester】can test about 60 times/accurate and fast",
+      "chineseName": "【氨氮测试剂】可测约60次/精准快速",
+      "price": 2.87
+    },
+    {
+      "model": "C3-1010",
+      "businessCode": "C3-1010-1",
+      "englishName": "【Nitrite test kit】can test about 100 times/accurate and fast",
+      "chineseName": "【亚硝酸盐测试剂】可测约100次/精准快速",
+      "price": 2.87
+    },
+    {
+      "model": "C4-1123",
+      "businessCode": "C4-1123-1a",
+      "englishName": "[Novice Level 50] 9-in-1/Bucket/With Comparison Chart",
+      "chineseName": "【新手级50条】9合1/桶装/带对比表",
+      "price": 1.62
+    },
+    {
+      "model": "C2-1005",
+      "businessCode": "C2-1005-1",
+      "englishName": "Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules",
+      "chineseName": "Yee意牌水族硝化菌+益生菌胶囊50粒",
+      "price": 0.85
+    },
+    {
+      "model": "C2-1005",
+      "businessCode": "C2-1005-2",
+      "englishName": "Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 100 Capsules",
+      "chineseName": "Yee意牌水族硝化菌+益生菌胶囊100粒",
+      "price": 1.27
+    },
+    {
+      "model": "YYH-189",
+      "businessCode": "19429",
+      "englishName": "Algaecide 500ml New Style",
+      "chineseName": "除藻剂 500ml 新风格",
+      "price": 0.915492957746479
+    },
+    {
+      "model": "YYH-216",
+      "businessCode": "19939",
+      "englishName": "Anti-stress water stabilizer 1000ml New style",
+      "chineseName": "抗应激水质稳定剂 1000ml  新风格",
+      "price": 1.12676056338028
+    },
+    {
+      "model": "YAN-804",
+      "businessCode": "06834",
+      "englishName": "Multivitamin mineral salt 500g",
+      "chineseName": "多维矿物盐500克",
+      "price": 0.2
+    },
+    {
+      "model": "YYH-053",
+      "businessCode": "02938a",
+      "englishName": "Yee Blue Classic-Methylene Blue Solution 235ml",
+      "chineseName": "yee蓝色经典-亚甲基蓝溶液235ml",
+      "price": 0.45
+    },
+    {
+      "model": "C4-1123",
+      "businessCode": "C4-1123-2a",
+      "englishName": "【Refill】9 in 1/Refill/50 pieces",
+      "chineseName": "【补充装】9合1/补充装/50条",
+      "price": 1.06
+    },
+    {
+      "model": "YEE-3006",
+      "businessCode": "1.5.1.7",
+      "englishName": "50W pure steel heating rod YSH-50",
+      "chineseName": "50W纯钢加热棒 YSH-50",
+      "price": 2.47887323943662
+    },
+    {
+      "model": "YEE-3007",
+      "businessCode": "1.5.1.8",
+      "englishName": "100W pure steel heating rod YSH-100",
+      "chineseName": "100W纯钢加热棒 YSH-100",
+      "price": 2.56338028169014
+    },
+    {
+      "model": "YEE-3008",
+      "businessCode": "1.5.1.9",
+      "englishName": "200W pure steel heating rod YSH-200",
+      "chineseName": "200W纯钢加热棒 YSH-200",
+      "price": 2.57746478873239
+    },
+    {
+      "model": "C4-1432",
+      "businessCode": "C4-1432-1",
+      "englishName": "Yee brand aquarium quartz heating rod, 100W",
+      "chineseName": "Yee意牌水族皓源石英加热棒 100W",
+      "price": 9.76
+    },
+    {
+      "model": "C4-1103",
+      "businessCode": "C4-1103-4",
+      "englishName": "YEE Black Warrior Heater 100W",
+      "chineseName": "YEE黑武士加热棒  100W",
+      "price": 3.52112676056338
+    },
+    {
+      "model": "YFF-049",
+      "businessCode": "07509",
+      "englishName": "Water grass mud fertility upgrade fine grain 1.5L",
+      "chineseName": "水草泥肥力升级款细粒 1.5L",
+      "price": 1.23
+    },
+    {
+      "model": "YFF-052",
+      "businessCode": "07512",
+      "englishName": "Water grass mud fertility upgrade coarse grain 3L",
+      "chineseName": "水草泥肥力升级款 粗粒 3L",
+      "price": 2.39
+    },
+    {
+      "model": "YGG-135",
+      "businessCode": "07154",
+      "englishName": "YEE 50mm Ball Mineral Bubble Diffuser",
+      "chineseName": "YEE 50mm 球形矿物质气泡扩散器",
+      "price": 1.56
+    },
+    {
+      "model": "C5-1144",
+      "businessCode": "C5-1144-1a",
+      "englishName": "Enhanced version 1.5 meters/thickened and lengthened",
+      "chineseName": "加强版1.5米/加厚加长",
+      "price": 0.366197183098592
+    },
+    {
+      "model": "YEE-3621",
+      "businessCode": "1.8.3.2",
+      "englishName": "【Thickened airbag for durability】1.7 meters",
+      "chineseName": "【加厚气囊 经久耐用】1.7米",
+      "price": 0.915492957746479
+    },
+    {
+      "model": "C4-1117",
+      "businessCode": "C4-1117-1",
+      "englishName": "High configuration 30W low water level",
+      "chineseName": "高配30W 低水位",
+      "price": 8.28169014084507
+    },
+    {
+      "model": "C4-1008",
+      "businessCode": "C4-1008-1",
+      "englishName": "Large suspended isolation box",
+      "chineseName": "悬浮隔离盒大号",
+      "price": 2.67605633802817
+    },
+    {
+      "model": "YSL-506",
+      "businessCode": "02517",
+      "englishName": "Large pneumatic incubator (double room)",
+      "chineseName": "大号气动孵化盒（双房）",
+      "price": 0.99
+    },
+    {
+      "model": "YKL-018",
+      "businessCode": "02771",
+      "englishName": "Acrylic incubator 20*10*10",
+      "chineseName": "亚克力培养箱 20*10*10",
+      "price": 2.86
+    },
+    {
+      "model": "YLL-087",
+      "businessCode": "05617a",
+      "englishName": "(Blue) New upgraded 6D filter cotton 50*40 two pieces",
+      "chineseName": "（蓝色）新升级6D 过滤棉 50*40 两片装",
+      "price": 3.04225352112676
+    },
+    {
+      "model": "PYD-200",
+      "businessCode": "13343",
+      "englishName": "Fish tank descaling agent 200ml",
+      "chineseName": "鱼缸除垢剂  200ml",
+      "price": 0.76056338028169
+    },
+    {
+      "model": "YFF-042",
+      "businessCode": "07116",
+      "englishName": "Nano Culture Ring Mixed Pack",
+      "chineseName": "纳米培养环混合装",
+      "price": 1.31
+    },
+    {
+      "model": "YAA-009.",
+      "businessCode": "17699a",
+      "englishName": "High energy culture bricks",
+      "chineseName": "高能量培菌砖",
+      "price": 0.83
+    },
+    {
+      "model": "NYH-006",
+      "businessCode": "11578",
+      "englishName": "3D filter material",
+      "chineseName": "Nepall 3D曲奇滤材 500g",
+      "price": 1.67
+    },
+    {
+      "model": "YLC-410",
+      "businessCode": "71934",
+      "englishName": "16-in-1 filter material 2.5kg",
+      "chineseName": "十六合一滤材 2.5kg",
+      "price": 2.6056338028169
+    },
+    {
+      "model": "YLC-409",
+      "businessCode": "17831",
+      "englishName": "Six-in-one filter material 500g",
+      "chineseName": "六合一滤材 500g",
+      "price": 0.971830985915493
+    },
+    {
+      "model": "C4-1067",
+      "businessCode": "C4-1067-1",
+      "englishName": "3W oil film processor",
+      "chineseName": "3W 油膜处理器",
+      "price": 2.61
+    },
+    {
+      "model": "YEE-3606",
+      "businessCode": "00340",
+      "englishName": "External electronic thermometer",
+      "chineseName": "外贴电子温度计",
+      "price": 1.1
+    },
+    {
+      "model": "LED-318",
+      "businessCode": "08116",
+      "englishName": "Yee three-color adjustable 3.5W double-row wide-angle light, 27cm",
+      "chineseName": "yee三色可调 3.5W 双排广角灯27cm",
+      "price": 0
+    },
+    {
+      "model": "CLS-107",
+      "businessCode": "07140",
+      "englishName": "Aquarium magnetic cleaning brush, large size, blue, strong magnet.",
+      "chineseName": "鱼缸磁力刷  大号 蓝色强磁",
+      "price": 0
+    },
+    {
+      "model": "YEE-3656",
+      "businessCode": "1.15.60",
+      "englishName": "1.0 meter of 16mm reinforced plastic tubing",
+      "chineseName": "16mm牛筋管1.0米 ",
+      "price": 0
+    },
+    {
+      "model": "YXL-003",
+      "businessCode": "06255",
+      "englishName": "400x230x250mm 5mm thick",
+      "chineseName": "400x230x250mm 5mm厚",
+      "price": 6.28169014084507
+    },
+    {
+      "model": "YKK-50",
+      "businessCode": "05380",
+      "englishName": "500x270x300mm 5mm thick",
+      "chineseName": "500x270x300mm 5mm厚",
+      "price": 9.73239436619718
+    },
+    {
+      "model": "YKK-60",
+      "businessCode": "05381",
+      "englishName": "600x300x350mm 5mm thick",
+      "chineseName": "600x300x350mm 5mm厚",
+      "price": 12.5211267605634
+    },
+    {
+      "model": "YEE-1090",
+      "businessCode": "16932",
+      "englishName": "35×35×35 6mm thick",
+      "chineseName": "35×35×35  6mm 厚",
+      "price": 8.59154929577465
+    },
+    {
+      "model": "YCG-40",
+      "businessCode": "05662",
+      "englishName": "40X40X40cm 6mm thick",
+      "chineseName": "40X40X40cm 6mm厚",
+      "price": 11.5492957746479
+    },
+    {
+      "model": "C5-1062",
+      "businessCode": "C5-1062-1",
+      "englishName": "60*40*40cm 8mm",
+      "chineseName": "60*40*40cm 8mm",
+      "price": 18.169014084507
+    },
+    {
+      "model": "C5-1123",
+      "businessCode": "C5-1123-2",
+      "englishName": "Bare side stream tank 60*15*15cm 6mm water pump",
+      "chineseName": "裸缸侧虑溪流缸60*15*15cm 6mm送水泵",
+      "price": 17.2957746478873
+    }
+  ]
+}
