@@ -84,7 +84,7 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
     }
 
     // Keys to exclude from technical specifications (shown elsewhere)
-    const excludeKeys = ['benefits', 'difficulty', 'ecoFriendly', 'videoUrl', 'explodedViewParts'];
+    const excludeKeys = ['benefits', 'difficulty', 'ecoFriendly', 'videoUrl', 'explodedViewParts', 'brand'];
 
     // Convert object to array, filtering out excluded keys and arrays
     return Object.entries(specs)

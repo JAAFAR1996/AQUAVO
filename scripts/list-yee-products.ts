@@ -1,21 +1,30 @@
-import { getDb } from '../server/db.js';
-import { products } from '../shared/schema.js';
-import { like } from 'drizzle-orm';
+
+import { neon } from '@neondatabase/serverless';
+import dotenv from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load env from root
+dotenv.config({ path: resolve(__dirname, '../.env') });
+// fallback if not found
+if (!process.env.DATABASE_URL) dotenv.config();
+
+const sql = neon(process.env.DATABASE_URL!);
 
 async function listYeeProducts() {
-    const db = getDb();
-    const results = await db
-        .select({ slug: products.slug, name: products.name, brand: products.brand })
-        .from(products)
-        .where(like(products.slug, '%yee%'));
+    console.log("🔍 Searching for YEE products...\n");
 
-    console.log(`Found ${results.length} YEE products:\n`);
-    results.forEach((p, i) => {
-        console.log(`${i + 1}. ${p.slug}`);
-        console.log(`   → ${p.name}`);
-        console.log(`   → Brand: ${p.brand}\n`);
-    });
-    process.exit(0);
+    const products = await sql`
+        SELECT id, name, description, brand, images, thumbnail, specifications 
+        FROM products 
+        WHERE name ILIKE '%YEE%' OR brand = 'YEE'
+    `;
+
+    console.log(`Found ${products.length} products:`);
+    console.log(JSON.stringify(products, null, 2));
 }
 
-listYeeProducts();
+listYeeProducts().catch(console.error);

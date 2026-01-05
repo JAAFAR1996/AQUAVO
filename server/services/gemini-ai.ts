@@ -27,7 +27,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 // Model with tools for sales agent
 const salesAgentModel = genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
+    model: "gemini-2.5-flash",
     tools: [{
         functionDeclarations: AI_TOOLS.map(tool => ({
             name: tool.name,
@@ -38,7 +38,7 @@ const salesAgentModel = genAI.getGenerativeModel({
 });
 
 // Simple model for basic responses
-const simpleModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const simpleModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
@@ -320,7 +320,7 @@ export async function recommendProductsForJourney(
 ): Promise<any[]> {
     try {
         const jsonModel = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
             generationConfig: { responseMimeType: "application/json" }
         });
 

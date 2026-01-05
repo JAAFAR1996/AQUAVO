@@ -586,12 +586,6 @@ export default function ProductDetails() {
                           </div>
                         </dl>
                       </div>
-                      <div>
-                        <h4 className="font-semibold mb-2">الوصف</h4>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {product.description}
-                        </p>
-                      </div>
                     </div>
 
                     {/* Custom Specifications Table */}
