@@ -1,6 +1,7 @@
 import cron from "node-cron";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { churnDetector } from "../services/churn-detector.js";
+import { autoBlogGenerator } from "../services/auto-blog-generator.js";
 
 /**
  * Scheduled Jobs Service
@@ -13,6 +14,7 @@ const jobStatus = {
     churnRunning: false,
     inventoryRunning: false,
     autoOrdersRunning: false,
+    autoBlogRunning: false,
 };
 
 /**
@@ -83,10 +85,37 @@ export function initializeScheduledJobs(): void {
         timezone: "Asia/Riyadh",
     });
 
+    // ==================== Weekly Auto-Blog at 5:00 AM Sunday (Baghdad) ====================
+    cron.schedule("0 5 * * 0", async () => {
+        if (jobStatus.autoBlogRunning) {
+            console.log("[ScheduledJobs] Auto-blog job already running, skipping...");
+            return;
+        }
+
+        console.log("[ScheduledJobs] 📝 Starting weekly auto-blog generation...");
+        jobStatus.autoBlogRunning = true;
+
+        try {
+            const result = await autoBlogGenerator.runWeeklyBlogGeneration();
+            if (result.success) {
+                console.log(`[ScheduledJobs] ✅ Auto-blog created: ${result.blogGenerated?.title}`);
+            } else {
+                console.log(`[ScheduledJobs] ⚠️ Auto-blog failed: ${result.error}`);
+            }
+        } catch (error) {
+            console.error("[ScheduledJobs] Auto-blog job failed:", error);
+        } finally {
+            jobStatus.autoBlogRunning = false;
+        }
+    }, {
+        timezone: "Asia/Baghdad",
+    });
+
     console.log("[ScheduledJobs] Cron jobs initialized successfully");
     console.log("  - Daily Predictions: 2:00 AM (Asia/Riyadh)");
     console.log("  - Churn Analysis: 3:00 AM (Asia/Riyadh)");
     console.log("  - Conversions Check: 4:00 AM (Asia/Riyadh)");
+    console.log("  - 📝 Weekly Auto-Blog: Sunday 5:00 AM (Asia/Baghdad)");
 }
 
 /**
@@ -100,7 +129,7 @@ export function getJobStatus(): typeof jobStatus {
  * Manually trigger a job (for testing/admin)
  */
 export async function triggerJob(
-    jobName: "predictions" | "churn" | "conversions"
+    jobName: "predictions" | "churn" | "conversions" | "autoblog"
 ): Promise<{ success: boolean; message: string; result?: unknown }> {
     try {
         switch (jobName) {
@@ -126,15 +155,30 @@ export async function triggerJob(
                 const convResult = await predictiveAnalytics.checkConversions();
                 return { success: true, message: "Conversions check completed", result: convResult };
 
+            case "autoblog":
+                if (jobStatus.autoBlogRunning) {
+                    return { success: false, message: "Auto-blog job already running" };
+                }
+                jobStatus.autoBlogRunning = true;
+                const blogResult = await autoBlogGenerator.runWeeklyBlogGeneration();
+                jobStatus.autoBlogRunning = false;
+                return {
+                    success: blogResult.success,
+                    message: blogResult.success ? "Auto-blog created successfully" : blogResult.error || "Failed",
+                    result: blogResult.blogGenerated
+                };
+
             default:
                 return { success: false, message: `Unknown job: ${jobName}` };
         }
     } catch (error) {
         jobStatus.predictionsRunning = false;
         jobStatus.churnRunning = false;
+        jobStatus.autoBlogRunning = false;
         return {
             success: false,
             message: error instanceof Error ? error.message : "Job failed",
         };
     }
 }
+

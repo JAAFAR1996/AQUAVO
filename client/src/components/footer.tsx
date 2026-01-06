@@ -66,7 +66,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gradient-to-b from-slate-900 to-slate-950 text-slate-200 mt-auto relative overflow-hidden">
+    <footer className="bg-slate-900 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 text-slate-200 mt-auto relative overflow-hidden">
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-primary rounded-full blur-3xl" />
         <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl" />
@@ -394,7 +394,7 @@ export default function Footer() {
                     <span>📊</span> العرض التقديمي
                   </button>
                 </Link>
-                <a href="https://wa.me/9647721307847?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/9647716666543?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
                   <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
                     <MessageCircle className="w-4 h-4" /> تواصل معنا
                   </button>

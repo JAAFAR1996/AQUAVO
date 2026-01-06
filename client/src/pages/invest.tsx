@@ -276,10 +276,10 @@ export default function InvestPage() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                            <a href="https://wa.me/9647721307847?text=مرحباً، أريد معرفة المزيد عن فرصة الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
+                            <a href="https://wa.me/9647716666543?text=مرحباً، أريد معرفة المزيد عن فرصة الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
                                 <Button size="lg" className="gap-2 text-lg px-8 py-6 bg-green-600 hover:bg-green-700">
                                     <MessageCircle className="w-5 h-5" />
-                                    واتساب: +964 772 130 7847
+                                    واتساب: 077 166 66543
                                 </Button>
                             </a>
                             <a href="mailto:invest@aquavo.iq">
