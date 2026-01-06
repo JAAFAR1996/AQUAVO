@@ -8,7 +8,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getDb } from "../db.js";
 import { productViews, searchQueries, products, blogPosts } from "@shared/schema.js";
-import { desc, sql, count } from "drizzle-orm";
+import { desc, sql, count, eq } from "drizzle-orm";
 
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -24,13 +24,27 @@ interface BlogTopicSuggestion {
 interface GeneratedBlog {
     id: string;
     title: string;
+    slug: string;
     excerpt: string;
     content: string;
     category: string;
     readTime: string;
     author: string;
-    date: string;
     iconName: string;
+}
+
+/**
+ * Generate slug from Arabic title
+ */
+function generateSlug(title: string): string {
+    const timestamp = Date.now();
+    const cleanTitle = title
+        .replace(/[^\u0600-\u06FFa-zA-Z0-9\s]/g, '') // Keep Arabic, English, numbers
+        .trim()
+        .replace(/\s+/g, '-')
+        .toLowerCase()
+        .slice(0, 50);
+    return `${cleanTitle}-${timestamp}`;
 }
 
 /**
@@ -39,6 +53,11 @@ interface GeneratedBlog {
 async function analyzeUserBehavior(): Promise<BlogTopicSuggestion[]> {
     const db = getDb();
     const suggestions: BlogTopicSuggestion[] = [];
+
+    if (!db) {
+        console.error("[AutoBlog] Database not initialized");
+        return suggestions;
+    }
 
     try {
         // 1. تحليل المنتجات الأكثر مشاهدة
@@ -54,20 +73,20 @@ async function analyzeUserBehavior(): Promise<BlogTopicSuggestion[]> {
 
         if (topViewedProducts.length > 0) {
             // جلب تفاصيل المنتجات
-            const productIds = topViewedProducts.map(p => p.productId);
-            const productDetails = await db.query.products.findMany({
-                where: sql`id IN (${productIds.join(',')})`,
-            });
-
-            // اقتراح مواضيع بناءً على المنتجات الشائعة
-            for (const product of productDetails) {
-                if (product.category) {
-                    suggestions.push({
-                        topic: `دليل شامل عن ${product.category}`,
-                        category: product.category,
-                        reason: `المنتجات في هذه الفئة تحظى باهتمام كبير`,
-                        priority: 8,
+            for (const item of topViewedProducts) {
+                if (item.productId) {
+                    const product = await db.query.products.findFirst({
+                        where: eq(products.id, item.productId),
                     });
+
+                    if (product?.category) {
+                        suggestions.push({
+                            topic: `دليل شامل عن ${product.category}`,
+                            category: product.category,
+                            reason: `المنتجات في هذه الفئة تحظى باهتمام كبير (${item.viewCount} مشاهدة)`,
+                            priority: 8,
+                        });
+                    }
                 }
             }
         }
@@ -88,7 +107,7 @@ async function analyzeUserBehavior(): Promise<BlogTopicSuggestion[]> {
                 suggestions.push({
                     topic: `كل ما تحتاج معرفته عن ${search.query}`,
                     category: "نصائح",
-                    reason: `"${search.query}" من أكثر عمليات البحث شيوعاً`,
+                    reason: `"${search.query}" من أكثر عمليات البحث شيوعاً (${search.searchCount} بحث)`,
                     priority: 7,
                 });
             }
@@ -114,11 +133,34 @@ async function analyzeUserBehavior(): Promise<BlogTopicSuggestion[]> {
             });
         }
 
-        // ترتيب حسب الأولوية
-        suggestions.sort((a, b) => b.priority - a.priority);
+        // 4. مواضيع عامة دائمة (إذا لم تكن هناك بيانات كافية)
+        if (suggestions.length < 3) {
+            const everGreenTopics = [
+                { topic: "أخطاء شائعة يرتكبها المبتدئين في تربية الأسماك", category: "للمبتدئين", priority: 6 },
+                { topic: "كيف تختار أول حوض لك - دليل شامل", category: "للمبتدئين", priority: 6 },
+                { topic: "الدورة البيولوجية للحوض - ما يجب أن تعرفه", category: "علوم الأحواض", priority: 7 },
+                { topic: "توافق الأسماك - من يعيش مع من؟", category: "أنواع الأسماك", priority: 7 },
+                { topic: "أفضل النباتات المائية للمبتدئين", category: "نباتات", priority: 6 },
+            ];
 
-        console.log(`[AutoBlog] تم تحليل سلوك المستخدمين: ${suggestions.length} اقتراحات`);
-        return suggestions.slice(0, 5);
+            for (const t of everGreenTopics) {
+                suggestions.push({
+                    topic: t.topic,
+                    category: t.category,
+                    reason: "موضوع دائم الطلب",
+                    priority: t.priority,
+                });
+            }
+        }
+
+        // ترتيب حسب الأولوية وإزالة التكرارات
+        suggestions.sort((a, b) => b.priority - a.priority);
+        const uniqueSuggestions = suggestions.filter((s, index, self) =>
+            index === self.findIndex(t => t.topic === s.topic)
+        );
+
+        console.log(`[AutoBlog] تم تحليل سلوك المستخدمين: ${uniqueSuggestions.length} اقتراحات`);
+        return uniqueSuggestions.slice(0, 5);
 
     } catch (error) {
         console.error("[AutoBlog] خطأ في تحليل السلوك:", error);
@@ -176,26 +218,19 @@ async function generateBlogContent(topic: BlogTopicSuggestion): Promise<Generate
 
         const blogData = JSON.parse(jsonMatch[0]);
 
-        // إنشاء ID فريد
-        const id = `auto-${Date.now()}-${topic.category.replace(/\s+/g, '-').toLowerCase()}`;
-
-        // تنسيق التاريخ
-        const now = new Date();
-        const arabicMonths = [
-            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
-            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
-        ];
-        const dateStr = `${now.getDate()} ${arabicMonths[now.getMonth()]} ${now.getFullYear()}`;
+        // إنشاء ID و slug
+        const id = `auto-${Date.now()}`;
+        const slug = generateSlug(blogData.title);
 
         return {
             id,
+            slug,
             title: blogData.title,
             excerpt: blogData.excerpt,
             content: blogData.content,
             category: topic.category,
             readTime: blogData.readTime || "5 دقائق",
             author: "شريمب 🦐",
-            date: dateStr,
             iconName: blogData.iconName || "Fish",
         };
 
@@ -211,23 +246,30 @@ async function generateBlogContent(topic: BlogTopicSuggestion): Promise<Generate
 async function saveBlogToDatabase(blog: GeneratedBlog): Promise<boolean> {
     const db = getDb();
 
+    if (!db) {
+        console.error("[AutoBlog] Database not initialized");
+        return false;
+    }
+
     try {
         await db.insert(blogPosts).values({
             id: blog.id,
             title: blog.title,
+            slug: blog.slug,
             excerpt: blog.excerpt,
             content: blog.content,
             category: blog.category,
             readTime: blog.readTime,
             author: blog.author,
-            publishedAt: new Date(),
-            imageUrl: "/images/blog/blog_planted_tank.png",
             iconName: blog.iconName,
+            imageUrl: "/images/blog/blog_planted_tank.png",
             isPublished: true,
             isFeatured: false,
+            isAutoGenerated: true,
+            publishedAt: new Date(),
         });
 
-        console.log(`[AutoBlog] ✅ تم حفظ المدونة: ${blog.title}`);
+        console.log(`[AutoBlog] ✅ تم حفظ المدونة في قاعدة البيانات: ${blog.title}`);
         return true;
     } catch (error) {
         console.error("[AutoBlog] خطأ في حفظ المدونة:", error);
@@ -241,6 +283,7 @@ async function saveBlogToDatabase(blog: GeneratedBlog): Promise<boolean> {
 export async function runWeeklyBlogGeneration(): Promise<{
     success: boolean;
     blogGenerated?: GeneratedBlog;
+    savedToDb?: boolean;
     error?: string;
 }> {
     console.log("[AutoBlog] 📝 بدء توليد المدونة الأسبوعية...");
@@ -259,6 +302,7 @@ export async function runWeeklyBlogGeneration(): Promise<{
         // 2. اختيار أفضل موضوع
         const topSuggestion = suggestions[0];
         console.log(`[AutoBlog] الموضوع المختار: ${topSuggestion.topic}`);
+        console.log(`[AutoBlog] السبب: ${topSuggestion.reason}`);
 
         // 3. توليد المحتوى
         const generatedBlog = await generateBlogContent(topSuggestion);
@@ -273,16 +317,16 @@ export async function runWeeklyBlogGeneration(): Promise<{
         // 4. حفظ في قاعدة البيانات
         const saved = await saveBlogToDatabase(generatedBlog);
 
-        if (!saved) {
-            // إذا فشل الحفظ في DB، يمكن إضافته للملف المحلي
-            console.log("[AutoBlog] ⚠️ فشل الحفظ في DB، المدونة متاحة للمراجعة");
-        }
-
         console.log("[AutoBlog] ✅ تم توليد المدونة الأسبوعية بنجاح!");
+        console.log(`  - العنوان: ${generatedBlog.title}`);
+        console.log(`  - الفئة: ${generatedBlog.category}`);
+        console.log(`  - وقت القراءة: ${generatedBlog.readTime}`);
+        console.log(`  - محفوظ في DB: ${saved ? 'نعم' : 'لا'}`);
 
         return {
             success: true,
             blogGenerated: generatedBlog,
+            savedToDb: saved,
         };
 
     } catch (error) {
@@ -301,7 +345,33 @@ export async function analyzeBlogTopics(): Promise<BlogTopicSuggestion[]> {
     return analyzeUserBehavior();
 }
 
+/**
+ * جلب جميع المدونات المنشورة
+ */
+export async function getPublishedBlogs() {
+    const db = getDb();
+    if (!db) return [];
+    return await db.query.blogPosts.findMany({
+        where: eq(blogPosts.isPublished, true),
+        orderBy: desc(blogPosts.publishedAt),
+    });
+}
+
+/**
+ * جلب المدونات المُولدة تلقائياً
+ */
+export async function getAutoGeneratedBlogs() {
+    const db = getDb();
+    if (!db) return [];
+    return await db.query.blogPosts.findMany({
+        where: eq(blogPosts.isAutoGenerated, true),
+        orderBy: desc(blogPosts.createdAt),
+    });
+}
+
 export const autoBlogGenerator = {
     runWeeklyBlogGeneration,
     analyzeBlogTopics,
+    getPublishedBlogs,
+    getAutoGeneratedBlogs,
 };
