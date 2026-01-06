@@ -19,6 +19,7 @@ import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createNotificationsRouter } from "./routes/notifications.js";
 import journeyRoutes from "./routes/journey.js";
 import aiRoutes from "./routes/ai.js";
+import aiAdvancedRoutes from "./routes/ai-advanced.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import { storage } from "./storage/index.js";
@@ -68,6 +69,9 @@ export async function registerRoutes(
 
   // AI routes (Gemini)
   app.use("/api/ai", aiRoutes);
+
+  // Advanced AI routes (Visual AI, Sentiment, Predictive, etc.)
+  app.use("/api/ai-advanced", aiAdvancedRoutes);
 
   // Pricing AI routes
   app.use("/api/pricing", pricingRoutes);

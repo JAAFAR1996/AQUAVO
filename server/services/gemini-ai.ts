@@ -14,6 +14,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AI_TOOLS, aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
+import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 
@@ -192,7 +193,20 @@ export async function sendMessage(
             ],
         });
 
-        // 5. إرسال الرسالة
+        // 5. تحليل مشاعر الرسالة (Sentiment Analysis)
+        let sentimentResult;
+        try {
+            sentimentResult = await sentimentAnalyzer.analyzeSentiment(
+                message,
+                userId,
+                sessionId
+            );
+            console.log(`💭 Sentiment: ${sentimentResult.sentiment} (${sentimentResult.score.toFixed(2)})`);
+        } catch (sentError) {
+            console.error("Sentiment analysis failed:", sentError);
+        }
+
+        // 6. إرسال الرسالة
         let result = await withTimeout(
             chat.sendMessage(message),
             AI_TIMEOUT_MS,
@@ -228,7 +242,19 @@ export async function sendMessage(
             responseText = toolResponse.response.text();
         }
 
-        // 7. حفظ المحادثة في قاعدة البيانات
+        // 7. تعديل الرد بناءً على المشاعر (Sentiment Adjustment)
+        if (sentimentResult && !isAdmin) {
+            try {
+                responseText = await sentimentAnalyzer.adjustResponseForSentiment(
+                    responseText,
+                    sentimentResult
+                );
+            } catch (adjustError) {
+                console.error("Failed to adjust response for sentiment:", adjustError);
+            }
+        }
+
+        // 8. حفظ المحادثة في قاعدة البيانات
         if (db) {
             const conversationId = sessionId || `conv_${Date.now()}`;
 

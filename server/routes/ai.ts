@@ -18,10 +18,7 @@ const aiRateLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
-    keyGenerator: (req) => {
-        // استخدام userId إذا متوفر، وإلا IP
-        return req.body?.userId || req.ip || 'anonymous';
-    },
+    validate: false, // Disable IPv6 validation warning
 });
 
 // Rate Limiter أقوى للـ health check (منع الإساءة)
@@ -154,7 +151,7 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                         name: p.name,
                         price: p.price,
                         category: p.category,
-                        rating: p.rating,
+                        rating: p.rating ? parseFloat(p.rating) : null,
                     })),
                 };
 
@@ -231,9 +228,9 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                     id: p.id,
                     name: p.name,
                     price: p.price,
-                    image: p.image,
+                    image: (p.images && p.images.length > 0) ? p.images[0] : null,
                     category: p.category,
-                    rating: p.rating,
+                    rating: p.rating ? parseFloat(p.rating) : null,
                 })),
                 timestamp: new Date().toISOString(),
             },

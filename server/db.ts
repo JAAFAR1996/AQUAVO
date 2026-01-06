@@ -23,3 +23,6 @@ if (!databaseUrl) {
 export function getDb(): DbClient | null {
   return db;
 }
+
+// Export db directly for services
+export { db };

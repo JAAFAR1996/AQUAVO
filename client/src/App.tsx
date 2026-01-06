@@ -50,6 +50,7 @@ const AquariumWizard = lazy(() => import("@/pages/aquarium-wizard"));
 const FishCompatibility = lazy(() => import("@/pages/fish-compatibility"));
 const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const InvestPage = lazy(() => import("@/pages/invest"));
+const AITools = lazy(() => import("@/pages/ai-tools"));
 
 
 // Medium-weight pages (direct imports for faster navigation)
@@ -135,6 +136,17 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <Journey />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* AI Tools - Visual Analyzer */}
+      <Route path="/ai-tools">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <AITools />
             </Suspense>
           </ErrorBoundary>
         )}

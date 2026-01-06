@@ -14,6 +14,7 @@ import { errorHandler } from "./middleware/error-handler.js";
 import { verifyEmailConnection } from "./utils/email.js";
 import { getDb } from "./db.js";
 import { sql } from "drizzle-orm";
+import { initializeScheduledJobs } from "./cron/scheduled-jobs.js";
 
 // Global error handlers to prevent silent crashes
 process.on('uncaughtException', (error) => {
@@ -276,6 +277,9 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
   // Verify Email Connection on Startup
   verifyEmailConnection().catch(err => console.error("Email verification error:", err));
+
+  // Initialize Scheduled Jobs (Cron)
+  initializeScheduledJobs();
 
   httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);

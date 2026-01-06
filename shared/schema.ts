@@ -1001,6 +1001,341 @@ export const customerProfiles = pgTable("customer_profiles", {
   expiresAtIdx: index("customer_profiles_expires_at_idx").on(table.expiresAt),
 }));
 
+// ==================== Advanced AI Features Tables ====================
+
+// 1. Image Analyses - تحليل الصور بالذكاء الاصطناعي
+export const imageAnalyses = pgTable("image_analyses", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id),
+  sessionId: text("session_id"), // For anonymous users
+  imageUrl: text("image_url").notNull(),
+  analysisType: text("analysis_type").notNull(), // fish, tank, problem, health
+  aiAnalysis: jsonb("ai_analysis").$type<{
+    detected: string[];
+    confidence: number;
+    suggestions: string[];
+    details?: Record<string, any>;
+  }>(),
+  recommendedProducts: jsonb("recommended_products").$type<string[]>(),
+  processingTimeMs: integer("processing_time_ms"), // Track AI performance
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("image_analyses_user_idx").on(table.userId),
+  typeIdx: index("image_analyses_type_idx").on(table.analysisType),
+  createdAtIdx: index("image_analyses_created_at_idx").on(table.createdAt),
+}));
+
+// 2. Sentiment History - تاريخ تحليل المشاعر
+export const sentimentHistory = pgTable("sentiment_history", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id),
+  conversationId: text("conversation_id"),
+  sessionId: text("session_id"),
+  sentiment: text("sentiment").notNull(), // very_positive, positive, neutral, negative, very_negative
+  score: numeric("score").notNull(), // -2 to +2
+  confidence: numeric("confidence"), // 0 to 1
+  message: text("message"),
+  aiResponse: text("ai_response"),
+  indicators: jsonb("indicators").$type<string[]>(), // What triggered the sentiment
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("sentiment_history_user_idx").on(table.userId),
+  conversationIdx: index("sentiment_history_conversation_idx").on(table.conversationId),
+  sentimentIdx: index("sentiment_history_sentiment_idx").on(table.sentiment),
+  createdAtIdx: index("sentiment_history_created_at_idx").on(table.createdAt),
+}));
+
+// 3. Predicted Needs - احتياجات العملاء المتوقعة
+export const predictedNeeds = pgTable("predicted_needs", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  productId: text("product_id").references(() => products.id).notNull(),
+  probability: numeric("probability").notNull(), // 0-100
+  predictedDate: timestamp("predicted_date").notNull(),
+  reason: text("reason"), // AI explanation
+  category: text("category"), // replenishment, upgrade, seasonal, complementary
+  basedOn: jsonb("based_on").$type<{
+    lastPurchaseDate?: string;
+    consumptionRate?: number;
+    similarUsersPattern?: boolean;
+  }>(),
+  notified: boolean("notified").default(false),
+  notifiedAt: timestamp("notified_at"),
+  converted: boolean("converted").default(false), // Did user actually buy?
+  convertedAt: timestamp("converted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userProductIdx: index("predicted_needs_user_product_idx").on(table.userId, table.productId),
+  dateIdx: index("predicted_needs_date_idx").on(table.predictedDate),
+  notifiedIdx: index("predicted_needs_notified_idx").on(table.notified),
+  probabilityIdx: index("predicted_needs_probability_idx").on(table.probability),
+}));
+
+// 4. Churn Predictions - توقع فقدان العملاء
+export const churnPredictions = pgTable("churn_predictions", {
+  userId: text("user_id").primaryKey().references(() => users.id),
+  churnScore: numeric("churn_score").notNull(), // 0-100
+  riskLevel: text("risk_level").notNull(), // low, medium, high, critical
+  indicators: jsonb("indicators").$type<{
+    daysSinceLastPurchase: number;
+    engagementDrop: number;
+    negativeSentiment: boolean;
+    unsubscribed: boolean;
+    cartAbandonments: number;
+  }>(),
+  contributingFactors: jsonb("contributing_factors").$type<Array<{
+    factor: string;
+    weight: number;
+    description: string;
+  }>>(),
+  actionPlan: text("action_plan"), // email_campaign, special_offer, personal_call
+  actionTaken: boolean("action_taken").default(false),
+  actionDate: timestamp("action_date"),
+  actionResult: text("action_result"), // engaged, converted, still_churned
+  lastAnalyzedAt: timestamp("last_analyzed_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  riskIdx: index("churn_predictions_risk_idx").on(table.riskLevel),
+  scoreIdx: index("churn_predictions_score_idx").on(table.churnScore),
+  actionTakenIdx: index("churn_predictions_action_taken_idx").on(table.actionTaken),
+}));
+
+// 5. AI Email Metrics - مقاييس البريد الإلكتروني الذكي
+export const aiEmailMetrics = pgTable("ai_email_metrics", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  emailType: text("email_type").notNull(), // welcome, reengagement, prediction, churn_prevention, promotional
+  subject: text("subject").notNull(),
+  personalizedContent: boolean("personalized_content").default(true),
+  aiGenerated: boolean("ai_generated").default(false), // Was content AI-generated?
+  opened: boolean("opened").default(false),
+  clicked: boolean("clicked").default(false),
+  converted: boolean("converted").default(false), // Resulted in purchase
+  revenue: numeric("revenue").default("0"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
+  convertedAt: timestamp("converted_at"),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userTypeIdx: index("ai_email_metrics_user_type_idx").on(table.userId, table.emailType),
+  openedIdx: index("ai_email_metrics_opened_idx").on(table.opened),
+  convertedIdx: index("ai_email_metrics_converted_idx").on(table.converted),
+  sentAtIdx: index("ai_email_metrics_sent_at_idx").on(table.sentAt),
+}));
+
+// 6. Inventory Recommendations - توصيات المخزون الذكية
+export const inventoryRecommendations = pgTable("inventory_recommendations", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: text("product_id").references(() => products.id).notNull(),
+  currentStock: integer("current_stock").notNull(),
+  suggestedOrderQuantity: integer("suggested_order_quantity").notNull(),
+  urgency: text("urgency").notNull(), // low, medium, high, critical
+  estimatedRunoutDate: timestamp("estimated_runout_date"),
+  expectedDemand: jsonb("expected_demand").$type<{
+    next7Days: number;
+    next30Days: number;
+    seasonal: boolean;
+    trend: string; // increasing, stable, decreasing
+  }>(),
+  aiReason: text("ai_reason"),
+  estimatedCost: numeric("estimated_cost"),
+  potentialRevenueLoss: numeric("potential_revenue_loss"), // If we run out
+  status: text("status").default("pending"), // pending, ordered, dismissed, completed
+  orderedQuantity: integer("ordered_quantity"),
+  orderedAt: timestamp("ordered_at"),
+  dismissedReason: text("dismissed_reason"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  productIdx: index("inventory_recommendations_product_idx").on(table.productId),
+  urgencyIdx: index("inventory_recommendations_urgency_idx").on(table.urgency),
+  statusIdx: index("inventory_recommendations_status_idx").on(table.status),
+  runoutDateIdx: index("inventory_recommendations_runout_date_idx").on(table.estimatedRunoutDate),
+}));
+
+// 7. Auto Orders - الطلبات التلقائية (Subscriptions)
+export const autoOrders = pgTable("auto_orders", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  productId: text("product_id").references(() => products.id).notNull(),
+  frequency: text("frequency").notNull(), // weekly, biweekly, monthly, custom_30, custom_60
+  quantity: integer("quantity").notNull(),
+  nextScheduledDate: timestamp("next_scheduled_date").notNull(),
+  lastOrderDate: timestamp("last_order_date"),
+  lastOrderId: text("last_order_id").references(() => orders.id),
+  status: text("status").default("active"), // active, paused, cancelled
+  aiSuggestedQuantity: integer("ai_suggested_quantity"), // AI may suggest adjustments
+  aiReason: text("ai_reason"), // Why AI suggests change
+  pausedUntil: timestamp("paused_until"),
+  pauseReason: text("pause_reason"),
+  cancelledAt: timestamp("cancelled_at"),
+  cancelReason: text("cancel_reason"),
+  totalOrdersPlaced: integer("total_orders_placed").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("auto_orders_user_idx").on(table.userId),
+  productIdx: index("auto_orders_product_idx").on(table.productId),
+  scheduledIdx: index("auto_orders_scheduled_idx").on(table.nextScheduledDate),
+  statusIdx: index("auto_orders_status_idx").on(table.status),
+}));
+
+// 8. Return Requests - طلبات الإرجاع والاسترجاع
+export const returnRequests = pgTable("return_requests", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  userId: text("user_id").references(() => users.id).notNull(),
+  productId: text("product_id").references(() => products.id).notNull(),
+  quantity: integer("quantity").default(1),
+  reason: text("reason").notNull(),
+  reasonCategory: text("reason_category"), // damaged, wrong_item, not_satisfied, changed_mind, defective, size_issue
+  detailedDescription: text("detailed_description"),
+  status: text("status").default("pending"), // pending, approved, rejected, processing, completed, cancelled
+  aiDecision: text("ai_decision"), // auto_approved, auto_rejected, needs_review, escalated
+  aiConfidence: numeric("ai_confidence"), // 0-1
+  aiReasoning: text("ai_reasoning"),
+  refundAmount: numeric("refund_amount"),
+  refundMethod: text("refund_method"), // original_payment, store_credit, exchange
+  restockingFee: numeric("restocking_fee").default("0"),
+  images: jsonb("images").$type<string[]>(), // Customer uploaded images
+  adminNotes: text("admin_notes"),
+  processedBy: text("processed_by").references(() => users.id),
+  fraudScore: numeric("fraud_score"), // 0-100, AI fraud detection
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  processedAt: timestamp("processed_at"),
+  completedAt: timestamp("completed_at"),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("return_requests_order_idx").on(table.orderId),
+  userIdx: index("return_requests_user_idx").on(table.userId),
+  statusIdx: index("return_requests_status_idx").on(table.status),
+  aiDecisionIdx: index("return_requests_ai_decision_idx").on(table.aiDecision),
+  createdAtIdx: index("return_requests_created_at_idx").on(table.createdAt),
+}));
+
+// 9. Competitor Prices - أسعار المنافسين
+export const competitorPrices = pgTable("competitor_prices", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: text("product_id").references(() => products.id).notNull(),
+  competitorName: text("competitor_name").notNull(),
+  competitorPrice: numeric("competitor_price").notNull(),
+  competitorUrl: text("competitor_url"),
+  ourPrice: numeric("our_price").notNull(),
+  priceDifference: numeric("price_difference").notNull(), // absolute
+  priceDifferencePercent: numeric("price_difference_percent"), // percentage
+  competitive: boolean("competitive"), // Are we cheaper?
+  aiSuggestedPrice: numeric("ai_suggested_price"),
+  aiReason: text("ai_reason"),
+  lastCheckedAt: timestamp("last_checked_at").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  productIdx: index("competitor_prices_product_idx").on(table.productId),
+  competitorIdx: index("competitor_prices_competitor_idx").on(table.competitorName),
+  lastCheckedIdx: index("competitor_prices_last_checked_idx").on(table.lastCheckedAt),
+  competitiveIdx: index("competitor_prices_competitive_idx").on(table.competitive),
+}));
+
+// 10. Pricing Rules - قواعد التسعير التلقائي
+export const pricingRules = pgTable("pricing_rules", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: text("product_id").references(() => products.id),
+  categoryId: text("category_id").references(() => categories.id),
+  strategy: text("strategy").notNull(), // match_lowest, undercut_by_5%, premium_10%, dynamic, cost_plus
+  parameters: jsonb("parameters").$type<{
+    percentage?: number;
+    fixedAmount?: number;
+    minMargin?: number;
+    maxDiscount?: number;
+  }>(),
+  minPrice: numeric("min_price"), // Never go below this
+  maxPrice: numeric("max_price"), // Never go above this
+  targetMargin: numeric("target_margin"), // Desired profit margin %
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(1), // Higher = more important
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  productIdx: index("pricing_rules_product_idx").on(table.productId),
+  categoryIdx: index("pricing_rules_category_idx").on(table.categoryId),
+  activeIdx: index("pricing_rules_active_idx").on(table.isActive),
+}));
+
+// 11. Generated Content - المحتوى المولد بالذكاء الاصطناعي
+export const generatedContent = pgTable("generated_content", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: text("product_id").references(() => products.id),
+  contentType: text("content_type").notNull(), // description, seo_meta, email, social_post, blog, ad_copy
+  generatedText: text("generated_text").notNull(),
+  prompt: text("prompt"), // The prompt used to generate
+  metadata: jsonb("metadata").$type<{
+    keywords?: string[];
+    tone?: string;
+    length?: number;
+    language?: string;
+    targetAudience?: string;
+  }>(),
+  status: text("status").default("draft"), // draft, approved, published, archived
+  qualityScore: numeric("quality_score"), // 0-100 (AI self-assessment)
+  humanReviewed: boolean("human_reviewed").default(false),
+  feedback: text("feedback"), // Admin feedback
+  publishedAt: timestamp("published_at"),
+  generatedBy: text("generated_by").default("gemini-2.5-flash"), // Track model
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  productIdx: index("generated_content_product_idx").on(table.productId),
+  typeIdx: index("generated_content_type_idx").on(table.contentType),
+  statusIdx: index("generated_content_status_idx").on(table.status),
+  publishedAtIdx: index("generated_content_published_at_idx").on(table.publishedAt),
+}));
+
+// 12. Aquarium Designs - تصاميم الأحواض (Virtual Advisor)
+export const aquariumDesigns = pgTable("aquarium_designs", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id),
+  sessionId: text("session_id"), // For anonymous users
+  name: text("name").notNull(),
+  tankSize: text("tank_size").notNull(), // "50L", "100L", "200L+", etc
+  tankType: text("tank_type"), // freshwater, marine, planted, brackish
+  budget: numeric("budget"),
+  selectedFish: jsonb("selected_fish").$type<Array<{
+    fishId: string;
+    quantity: number;
+    reason?: string;
+  }>>(),
+  selectedEquipment: jsonb("selected_equipment").$type<Array<{
+    productId: string;
+    quantity: number;
+    category: string;
+  }>>(),
+  selectedDecor: jsonb("selected_decor").$type<Array<{
+    productId: string;
+    quantity: number;
+  }>>(),
+  compatibilityScore: numeric("compatibility_score"), // 0-100 (fish compatibility)
+  aiNotes: text("ai_notes"), // AI advice for this design
+  aiWarnings: jsonb("ai_warnings").$type<string[]>(), // Potential issues
+  shoppingList: jsonb("shopping_list").$type<Array<{
+    productId: string;
+    quantity: number;
+    reason: string;
+    priority: string; // essential, recommended, optional
+  }>>(),
+  estimatedCost: numeric("estimated_cost"),
+  status: text("status").default("draft"), // draft, finalized, ordered, completed
+  imageUrl: text("image_url"), // Screenshot or render of the design
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("aquarium_designs_user_idx").on(table.userId),
+  statusIdx: index("aquarium_designs_status_idx").on(table.status),
+  createdAtIdx: index("aquarium_designs_created_at_idx").on(table.createdAt),
+}));
+
 // Zod Schemas for new tables
 
 export const insertChatMessageSchema = z.object({
@@ -1100,4 +1435,202 @@ export const insertCustomerProfileSchema = z.object({
 
 export type CustomerProfile = typeof customerProfiles.$inferSelect;
 export type InsertCustomerProfile = z.infer<typeof insertCustomerProfileSchema>;
+
+// Advanced AI Features Schemas and Types
+
+export const insertImageAnalysisSchema = z.object({
+  userId: z.string().optional(),
+  sessionId: z.string().optional(),
+  imageUrl: z.string().url(),
+  analysisType: z.enum(["fish", "tank", "problem", "health"]),
+  aiAnalysis: z.object({
+    detected: z.array(z.string()),
+    confidence: z.number().min(0).max(1),
+    suggestions: z.array(z.string()),
+    details: z.record(z.any()).optional(),
+  }).optional(),
+  recommendedProducts: z.array(z.string()).optional(),
+  processingTimeMs: z.number().optional(),
+});
+
+export type ImageAnalysis = typeof imageAnalyses.$inferSelect;
+export type InsertImageAnalysis = z.infer<typeof insertImageAnalysisSchema>;
+
+export const insertSentimentHistorySchema = z.object({
+  userId: z.string().optional(),
+  conversationId: z.string().optional(),
+  sessionId: z.string().optional(),
+  sentiment: z.enum(["very_positive", "positive", "neutral", "negative", "very_negative"]),
+  score: z.string(), // numeric as string
+  confidence: z.string().optional(),
+  message: z.string().optional(),
+  aiResponse: z.string().optional(),
+  indicators: z.array(z.string()).optional(),
+});
+
+export type SentimentHistory = typeof sentimentHistory.$inferSelect;
+export type InsertSentimentHistory = z.infer<typeof insertSentimentHistorySchema>;
+
+export const insertPredictedNeedSchema = z.object({
+  userId: z.string().min(1),
+  productId: z.string().min(1),
+  probability: z.string(), // numeric as string
+  predictedDate: z.string().or(z.date()),
+  reason: z.string().optional(),
+  category: z.enum(["replenishment", "upgrade", "seasonal", "complementary"]).optional(),
+  basedOn: z.object({
+    lastPurchaseDate: z.string().optional(),
+    consumptionRate: z.number().optional(),
+    similarUsersPattern: z.boolean().optional(),
+  }).optional(),
+});
+
+export type PredictedNeed = typeof predictedNeeds.$inferSelect;
+export type InsertPredictedNeed = z.infer<typeof insertPredictedNeedSchema>;
+
+export const insertChurnPredictionSchema = z.object({
+  userId: z.string().min(1),
+  churnScore: z.string(), // numeric
+  riskLevel: z.enum(["low", "medium", "high", "critical"]),
+  indicators: z.object({
+    daysSinceLastPurchase: z.number(),
+    engagementDrop: z.number(),
+    negativeSentiment: z.boolean(),
+    unsubscribed: z.boolean(),
+    cartAbandonments: z.number(),
+  }).optional(),
+  actionPlan: z.string().optional(),
+  lastAnalyzedAt: z.string().or(z.date()),
+});
+
+export type ChurnPrediction = typeof churnPredictions.$inferSelect;
+export type InsertChurnPrediction = z.infer<typeof insertChurnPredictionSchema>;
+
+export const insertAIEmailMetricSchema = z.object({
+  userId: z.string().min(1),
+  emailType: z.enum(["welcome", "reengagement", "prediction", "churn_prevention", "promotional"]),
+  subject: z.string().min(1),
+  personalizedContent: z.boolean().optional(),
+  aiGenerated: z.boolean().optional(),
+});
+
+export type AIEmailMetric = typeof aiEmailMetrics.$inferSelect;
+export type InsertAIEmailMetric = z.infer<typeof insertAIEmailMetricSchema>;
+
+export const insertInventoryRecommendationSchema = z.object({
+  productId: z.string().min(1),
+  currentStock: z.number(),
+  suggestedOrderQuantity: z.number(),
+  urgency: z.enum(["low", "medium", "high", "critical"]),
+  estimatedRunoutDate: z.string().or(z.date()).optional(),
+  aiReason: z.string().optional(),
+});
+
+export type InventoryRecommendation = typeof inventoryRecommendations.$inferSelect;
+export type InsertInventoryRecommendation = z.infer<typeof insertInventoryRecommendationSchema>;
+
+export const insertAutoOrderSchema = z.object({
+  userId: z.string().min(1),
+  productId: z.string().min(1),
+  frequency: z.enum(["weekly", "biweekly", "monthly", "custom_30", "custom_60"]),
+  quantity: z.number().min(1),
+  nextScheduledDate: z.string().or(z.date()),
+});
+
+export type AutoOrder = typeof autoOrders.$inferSelect;
+export type InsertAutoOrder = z.infer<typeof insertAutoOrderSchema>;
+
+export const insertReturnRequestSchema = z.object({
+  orderId: z.string().min(1),
+  userId: z.string().min(1),
+  productId: z.string().min(1),
+  quantity: z.number().min(1).optional(),
+  reason: z.string().min(1),
+  reasonCategory: z.enum(["damaged", "wrong_item", "not_satisfied", "changed_mind", "defective", "size_issue"]).optional(),
+  detailedDescription: z.string().optional(),
+  images: z.array(z.string()).optional(),
+});
+
+export type ReturnRequest = typeof returnRequests.$inferSelect;
+export type InsertReturnRequest = z.infer<typeof insertReturnRequestSchema>;
+
+export const insertCompetitorPriceSchema = z.object({
+  productId: z.string().min(1),
+  competitorName: z.string().min(1),
+  competitorPrice: z.string(), // numeric
+  competitorUrl: z.string().url().optional(),
+  ourPrice: z.string(), // numeric
+  priceDifference: z.string(), // numeric
+  lastCheckedAt: z.string().or(z.date()),
+});
+
+export type CompetitorPrice = typeof competitorPrices.$inferSelect;
+export type InsertCompetitorPrice = z.infer<typeof insertCompetitorPriceSchema>;
+
+export const insertPricingRuleSchema = z.object({
+  productId: z.string().optional(),
+  categoryId: z.string().optional(),
+  strategy: z.enum(["match_lowest", "undercut_by_5%", "premium_10%", "dynamic", "cost_plus"]),
+  parameters: z.object({
+    percentage: z.number().optional(),
+    fixedAmount: z.number().optional(),
+    minMargin: z.number().optional(),
+    maxDiscount: z.number().optional(),
+  }).optional(),
+  minPrice: z.string().optional(), // numeric
+  maxPrice: z.string().optional(), // numeric
+  targetMargin: z.string().optional(), // numeric
+  isActive: z.boolean().optional(),
+  priority: z.number().optional(),
+});
+
+export type PricingRule = typeof pricingRules.$inferSelect;
+export type InsertPricingRule = z.infer<typeof insertPricingRuleSchema>;
+
+export const insertGeneratedContentSchema = z.object({
+  productId: z.string().optional(),
+  contentType: z.enum(["description", "seo_meta", "email", "social_post", "blog", "ad_copy"]),
+  generatedText: z.string().min(1),
+  prompt: z.string().optional(),
+  metadata: z.object({
+    keywords: z.array(z.string()).optional(),
+    tone: z.string().optional(),
+    length: z.number().optional(),
+    language: z.string().optional(),
+    targetAudience: z.string().optional(),
+  }).optional(),
+  status: z.enum(["draft", "approved", "published", "archived"]).optional(),
+  qualityScore: z.string().optional(), // numeric
+  feedback: z.string().optional(),
+});
+
+export type GeneratedContent = typeof generatedContent.$inferSelect;
+export type InsertGeneratedContent = z.infer<typeof insertGeneratedContentSchema>;
+
+export const insertAquariumDesignSchema = z.object({
+  userId: z.string().optional(),
+  sessionId: z.string().optional(),
+  name: z.string().min(1),
+  tankSize: z.string().min(1),
+  tankType: z.enum(["freshwater", "marine", "planted", "brackish"]).optional(),
+  budget: z.string().optional(), // numeric
+  selectedFish: z.array(z.object({
+    fishId: z.string(),
+    quantity: z.number(),
+    reason: z.string().optional(),
+  })).optional(),
+  selectedEquipment: z.array(z.object({
+    productId: z.string(),
+    quantity: z.number(),
+    category: z.string(),
+  })).optional(),
+  selectedDecor: z.array(z.object({
+    productId: z.string(),
+    quantity: z.number(),
+  })).optional(),
+  status: z.enum(["draft", "finalized", "ordered", "completed"]).optional(),
+});
+
+export type AquariumDesign = typeof aquariumDesigns.$inferSelect;
+export type InsertAquariumDesign = z.infer<typeof insertAquariumDesignSchema>;
 

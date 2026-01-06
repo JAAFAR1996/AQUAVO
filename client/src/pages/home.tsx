@@ -79,7 +79,7 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
 
           {/* 1. Hero & Video Section (Wide Box: 8 cols, 2 rows) */}
-          <div className="lg:col-span-8 lg:row-span-2 rounded-[2.5rem] overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-white/5 backdrop-blur-md min-h-[400px] md:min-h-[500px]">
+          <div className="lg:col-span-8 lg:row-span-2 rounded-2xl overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-black min-h-[400px] md:min-h-[500px]">
             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500 z-10" />
             {/* Video Background */}
             <video
@@ -87,7 +87,8 @@ export default function Home() {
               loop
               muted
               playsInline
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105"
+              style={{ objectFit: 'cover', objectPosition: 'center' }}
               poster={heroImage}
             >
               <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.mp4" type="video/mp4" />
