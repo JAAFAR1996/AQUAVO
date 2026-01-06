@@ -79,8 +79,8 @@ export function AIChatBot() {
     // Initialize with personalized greeting
     useEffect(() => {
         const greeting = userName
-            ? `أهلاً ${userName}! 🐠 أنا أكوا، مساعدك الشخصي في AQUAVO.\n\nكيف أقدر أساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات`
-            : "مرحباً! 🐠 أنا أكوا، مساعد AQUAVO الذكي.\n\nكيف يمكنني مساعدتك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات";
+            ? `أهلاً ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nكيف أقدر أساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات`
+            : "مرحباً! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nكيف يمكنني مساعدتك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات";
 
         setMessages([{
             role: "assistant",
@@ -183,7 +183,7 @@ export function AIChatBot() {
                                             <Fish className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-sm font-bold">مساعد AQUAVO</CardTitle>
+                                            <CardTitle className="text-sm font-bold">شريمب 🦐</CardTitle>
                                             <div className="flex items-center gap-1">
                                                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
                                                 <span className="text-xs opacity-80">متصل الآن</span>

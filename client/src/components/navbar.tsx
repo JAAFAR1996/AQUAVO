@@ -157,9 +157,9 @@ export default function Navbar() {
             </Sheet>
           </div>
 
-          {/* Logo */}
+          {/* Logo - Hidden on very small screens */}
           <Link href="/" aria-label="الصفحة الرئيسية - AQUAVO">
-            <div className="nav-logo flex items-center gap-2 sm:gap-3 cursor-pointer group">
+            <div className="nav-logo hidden xs:flex items-center gap-2 sm:gap-3 cursor-pointer group">
               <img
                 src="/logo_aquavo_icon.png"
                 alt="AQUAVO Logo"
@@ -193,10 +193,8 @@ export default function Navbar() {
 
           {/* Actions - Mobile Optimized: Only essential icons on mobile */}
           <div className="nav-actions flex items-center gap-1 xs:gap-1.5 sm:gap-3">
-            {/* Hide theme switcher on very small screens */}
-            <div className="hidden xs:block">
-              <ThemeSwitcher />
-            </div>
+            {/* Theme switcher - Always visible */}
+            <ThemeSwitcher />
             {/* Hide on mobile to prevent icon overlap */}
             <div className="hidden sm:block">
               <NavbarStyleSwitcher />

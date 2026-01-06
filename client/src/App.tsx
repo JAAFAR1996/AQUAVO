@@ -427,7 +427,6 @@ function App() {
                   <WinnerNotificationBanner />
 
                   <Toaster />
-                  <LiveChatWidget />
                   <AIChatBot />
                   <Router />
                 </TooltipProvider>
