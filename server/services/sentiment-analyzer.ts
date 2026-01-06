@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from "../db";
-import { sentimentHistory, type InsertSentimentHistory } from "../../shared/schema";
+import { db } from "../db.js";
+import { sentimentHistory, type InsertSentimentHistory } from "../../shared/schema.js";
 import { eq, desc, and, gte } from "drizzle-orm";
 
 // Initialize Gemini AI

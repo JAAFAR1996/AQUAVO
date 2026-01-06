@@ -1,4 +1,4 @@
-import { db } from "../db";
+import { db } from "../db.js";
 import {
     autoOrders,
     products,
@@ -6,7 +6,7 @@ import {
     orders,
     orderItems,
     type InsertAutoOrder,
-} from "../../shared/schema";
+} from "../../shared/schema.js";
 import { eq, and, lte, gte, sql } from "drizzle-orm";
 
 /**

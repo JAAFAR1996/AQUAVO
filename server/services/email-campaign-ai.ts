@@ -1,13 +1,13 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from "../db";
+import { db } from "../db.js";
 import {
     aiEmailMetrics,
     churnPredictions,
     users,
     type InsertAIEmailMetric,
-} from "../../shared/schema";
+} from "../../shared/schema.js";
 import { eq, desc, and, gte, sql } from "drizzle-orm";
-import { contentGenerator } from "./content-generator";
+import { contentGenerator } from "./content-generator.js";
 
 // Initialize Gemini AI
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);

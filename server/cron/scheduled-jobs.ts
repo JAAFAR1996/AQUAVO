@@ -1,6 +1,6 @@
 import cron from "node-cron";
-import { predictiveAnalytics } from "../services/predictive-analytics";
-import { churnDetector } from "../services/churn-detector";
+import { predictiveAnalytics } from "../services/predictive-analytics.js";
+import { churnDetector } from "../services/churn-detector.js";
 
 /**
  * Scheduled Jobs Service

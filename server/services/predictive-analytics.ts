@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from "../db";
+import { db } from "../db.js";
 import {
     predictedNeeds,
     orders,
@@ -7,7 +7,7 @@ import {
     products,
     users,
     type InsertPredictedNeed,
-} from "../../shared/schema";
+} from "../../shared/schema.js";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
 
 // Initialize Gemini AI

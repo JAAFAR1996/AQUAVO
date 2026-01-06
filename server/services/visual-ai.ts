@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { db } from "../db";
-import { imageAnalyses, products, type InsertImageAnalysis } from "../../shared/schema";
+import { db } from "../db.js";
+import { imageAnalyses, products, type InsertImageAnalysis } from "../../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
 // Node.js 22+ has native fetch
 
