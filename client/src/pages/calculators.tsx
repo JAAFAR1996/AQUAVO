@@ -4,7 +4,7 @@ import Footer from "@/components/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Thermometer, Droplets, Waves, Calendar, Fish, Box } from "lucide-react";
+import { Thermometer, Droplets, Waves, Calendar, Fish, Box, Beaker } from "lucide-react";
 
 import { BackToTop } from "@/components/back-to-top";
 import { Link } from "wouter";
@@ -15,6 +15,7 @@ import { HeaterCalculator } from "@/components/calculators/heater-calculator";
 import { FilterCalculator } from "@/components/calculators/filter-calculator";
 import { SaltCalculator } from "@/components/calculators/salt-calculator";
 import { MaintenanceCalculator } from "@/components/calculators/maintenance-calculator";
+import { WaterParametersCalculator } from "@/components/calculators/water-parameters-calculator";
 
 export default function Calculators() {
   return (
@@ -33,7 +34,7 @@ export default function Calculators() {
           </div>
 
           <Tabs defaultValue="tank" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 sm:grid-cols-6 h-auto p-1 gap-1 bg-muted/50 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto p-1 gap-1 bg-muted/50 rounded-xl">
               <TabsTrigger value="tank" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
                 <Box className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
                 <span className="hidden sm:inline">حجم الحوض</span>
@@ -59,6 +60,11 @@ export default function Calculators() {
                 <span className="hidden sm:inline">جدول الصيانة</span>
                 <span className="sm:hidden text-[10px]">الصيانة</span>
               </TabsTrigger>
+              <TabsTrigger value="water" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
+                <Beaker className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
+                <span className="hidden sm:inline">معايير المياه</span>
+                <span className="sm:hidden text-[10px]">المياه</span>
+              </TabsTrigger>
               <TabsTrigger value="breeding" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
                 <Fish className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
                 <span className="hidden sm:inline">حاسبة التكاثر</span>
@@ -81,6 +87,9 @@ export default function Calculators() {
             </TabsContent>
             <TabsContent value="maintenance" className="mt-8">
               <MaintenanceCalculator />
+            </TabsContent>
+            <TabsContent value="water" className="mt-8">
+              <WaterParametersCalculator />
             </TabsContent>
             <TabsContent value="breeding" className="mt-8">
               <Card>

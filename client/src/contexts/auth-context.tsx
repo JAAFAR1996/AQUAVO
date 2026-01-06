@@ -70,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if response is HTML (server error or not JSON)
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        console.error("Server returned non-JSON response:", await response.text());
-        throw new Error("خطأ في الخادم. تأكد من تشغيل السيرفر (pnpm run dev)");
+        const text = await response.text();
+        console.error("Server returned non-JSON response:", text);
+        // More user-friendly error message for production
+        throw new Error("حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى بعد قليل.");
       }
 
       if (!response.ok) {
@@ -115,8 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Check if response is HTML (server error or not JSON)
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        console.error("Server returned non-JSON response:", await response.text());
-        throw new Error("خطأ في الخادم. تأكد من تشغيل السيرفر (pnpm run dev)");
+        const text = await response.text();
+        console.error("Server returned non-JSON response:", text);
+        // More user-friendly error message for production
+        throw new Error("حدث خطأ في الاتصال بالخادم. يرجى المحاولة مرة أخرى بعد قليل.");
       }
 
       if (!response.ok) {

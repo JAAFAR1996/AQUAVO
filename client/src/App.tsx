@@ -51,6 +51,7 @@ const FishCompatibility = lazy(() => import("@/pages/fish-compatibility"));
 const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
+const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 
 
 // Medium-weight pages (direct imports for faster navigation)
@@ -118,6 +119,17 @@ function Router() {
       </Route>
 
       <Route path="/guides/eco-friendly" component={EcoFriendlyGuide} />
+
+      {/* Beginner Guide */}
+      <Route path="/beginner-guide">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BeginnerGuide />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Lazy loaded calculators */}
       <Route path="/calculators">
