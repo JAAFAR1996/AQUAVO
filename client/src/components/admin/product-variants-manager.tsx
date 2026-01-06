@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 interface ProductVariantsManagerProps {
   productId: string;
   productName: string;
+  productImages?: string[]; // Images passed directly from parent
   variants: ProductVariant[] | null;
   hasVariants: boolean;
   onUpdate: () => void;
@@ -42,6 +43,7 @@ interface ProductVariantsManagerProps {
 export function ProductVariantsManager({
   productId,
   productName,
+  productImages: initialProductImages,
   variants: initialVariants,
   hasVariants: initialHasVariants,
   onUpdate,
@@ -52,7 +54,7 @@ export function ProductVariantsManager({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [productImages, setProductImages] = useState<string[]>([]);
+  const [productImages, setProductImages] = useState<string[]>(initialProductImages || []);
 
   // Drag & Drop state
   const [draggedImage, setDraggedImage] = useState<string | null>(null);
@@ -74,16 +76,23 @@ export function ProductVariantsManager({
     specifications: {},
   });
 
-  // Fetch product images when component mounts
+  // Always fetch product images from API to ensure we have the latest
   useEffect(() => {
     const fetchProductImages = async () => {
       try {
+        console.log('[ProductVariantsManager] Fetching images for product:', productId);
         const response = await fetch(`/api/products/${productId}`);
         if (!response.ok) throw new Error("Failed to fetch product");
         const product = await response.json();
-        setProductImages(product.images || []);
+        const images = product.images || [];
+        console.log('[ProductVariantsManager] Got images:', images.length);
+        setProductImages(images);
       } catch (error) {
         console.error("Error fetching product images:", error);
+        // Fallback to prop if API fails
+        if (initialProductImages && initialProductImages.length > 0) {
+          setProductImages(initialProductImages);
+        }
       }
     };
 

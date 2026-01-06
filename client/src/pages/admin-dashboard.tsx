@@ -1559,6 +1559,7 @@ export default function AdminDashboard() {
             <ProductVariantsManager
               productId={variantsProduct.id}
               productName={variantsProduct.name}
+              productImages={(variantsProduct as any).images || []}
               variants={(variantsProduct as any).variants || null}
               hasVariants={(variantsProduct as any).hasVariants || false}
               onUpdate={() => {
