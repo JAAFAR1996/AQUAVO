@@ -75,14 +75,8 @@ async function findRelevantProducts(message: string, limit: number = 5) {
             return products;
         }
 
-        // Otherwise, return popular products
-        const products = await db
-            .select()
-            .from(schema.products)
-            .orderBy(desc(schema.products.rating))
-            .limit(limit);
-
-        return products;
+        // No keywords matched - return empty array (don't suggest products without request)
+        return [];
     } catch (error) {
         console.error("Error finding products:", error);
         return [];
@@ -226,9 +220,10 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                 response,
                 products: relevantProducts.map(p => ({
                     id: p.id,
+                    slug: p.slug, // Add slug for navigation
                     name: p.name,
                     price: p.price,
-                    image: (p.images && p.images.length > 0) ? p.images[0] : null,
+                    image: (p.images && p.images.length > 0) ? p.images[0] : p.thumbnail,
                     category: p.category,
                     rating: p.rating ? parseFloat(p.rating) : null,
                 })),

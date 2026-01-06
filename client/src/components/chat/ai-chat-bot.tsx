@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 
 interface Product {
     id: string;
+    slug?: string; // Add slug for navigation
     name: string;
     price: string;
     image: string;
@@ -266,7 +267,9 @@ export function AIChatBot() {
                                                                         key={product.id}
                                                                         className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer max-w-[280px]"
                                                                         onClick={() => {
-                                                                            setLocation(`/products/${product.id}`);
+                                                                            // Use slug if available, otherwise fall back to id
+                                                                            const productPath = product.slug || product.id;
+                                                                            setLocation(`/products/${productPath}`);
                                                                             setIsOpen(false);
                                                                         }}
                                                                     >

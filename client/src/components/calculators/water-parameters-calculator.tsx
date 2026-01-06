@@ -211,17 +211,17 @@ export function WaterParametersCalculator() {
 
     const getStatusColor = (status: ParameterStatus) => {
         switch (status) {
-            case "safe": return "text-green-600 bg-green-50 border-green-200";
-            case "warning": return "text-yellow-600 bg-yellow-50 border-yellow-200";
-            case "danger": return "text-red-600 bg-red-50 border-red-200";
+            case "safe": return "text-primary bg-primary/10 border-primary/30";
+            case "warning": return "text-amber-500 bg-amber-500/10 border-amber-500/30";
+            case "danger": return "text-destructive bg-destructive/10 border-destructive/30";
         }
     };
 
     const getStatusIcon = (status: ParameterStatus) => {
         switch (status) {
-            case "safe": return <CheckCircle2 className="w-5 h-5 text-green-600" />;
-            case "warning": return <AlertTriangle className="w-5 h-5 text-yellow-600" />;
-            case "danger": return <XCircle className="w-5 h-5 text-red-600" />;
+            case "safe": return <CheckCircle2 className="w-5 h-5 text-primary" />;
+            case "warning": return <AlertTriangle className="w-5 h-5 text-amber-500" />;
+            case "danger": return <XCircle className="w-5 h-5 text-destructive" />;
         }
     };
 
@@ -291,15 +291,15 @@ export function WaterParametersCalculator() {
                         {/* Overall Status */}
                         <Card className={cn(
                             "border-2",
-                            overallStatus === "safe" && "border-green-500 bg-green-50",
-                            overallStatus === "warning" && "border-yellow-500 bg-yellow-50",
-                            overallStatus === "danger" && "border-red-500 bg-red-50"
+                            overallStatus === "safe" && "border-primary bg-primary/10",
+                            overallStatus === "warning" && "border-amber-500 bg-amber-500/10",
+                            overallStatus === "danger" && "border-destructive bg-destructive/10"
                         )}>
                             <CardContent className="p-6 text-center">
                                 <div className="flex items-center justify-center gap-3 mb-2">
-                                    {overallStatus === "safe" && <CheckCircle2 className="w-10 h-10 text-green-600" />}
-                                    {overallStatus === "warning" && <AlertTriangle className="w-10 h-10 text-yellow-600" />}
-                                    {overallStatus === "danger" && <XCircle className="w-10 h-10 text-red-600" />}
+                                    {overallStatus === "safe" && <CheckCircle2 className="w-10 h-10 text-primary" />}
+                                    {overallStatus === "warning" && <AlertTriangle className="w-10 h-10 text-amber-500" />}
+                                    {overallStatus === "danger" && <XCircle className="w-10 h-10 text-destructive" />}
                                 </div>
                                 <h3 className="text-xl font-bold">
                                     {overallStatus === "safe" && "✅ جميع المعايير ممتازة!"}
