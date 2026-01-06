@@ -62,7 +62,7 @@ export default function Blog() {
                     >
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary mb-8 backdrop-blur-md">
                             <Sparkles className="h-4 w-4 animate-pulse" />
-                            <span className="font-bold text-sm tracking-wide">أحدث مقالات 2025</span>
+                            <span className="font-bold text-sm tracking-wide">أحدث مقالات 2026</span>
                         </div>
 
                         <h1 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-b from-foreground to-foreground/50">
