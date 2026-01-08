@@ -2,12 +2,13 @@
  * Early Access Routes - مسارات الحجز المبكر
  * 
  * API endpoints for early access landing page
+ * With spam protection and Iraqi phone validation
  */
 
 import { Router, Request, Response } from "express";
 import { getDb } from "../db.js";
 import { earlyAccessLeads, insertEarlyAccessLeadSchema, coupons } from "../../shared/schema.js";
-import { count } from "drizzle-orm";
+import { count, eq, and, gte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 const router = Router();
@@ -16,6 +17,41 @@ const router = Router();
 const MAX_SPOTS = 30;
 const INITIAL_DISPLAY_OFFSET = 6; // Start showing 24/30 (30 - 6 = 24)
 const DISCOUNT_PERCENTAGE = 20; // 20% discount
+const MAX_REGISTRATIONS_PER_IP = 2; // Max registrations per IP in 24 hours
+const RATE_LIMIT_HOURS = 24;
+
+// Iraqi phone number regex (07xx-xxx-xxxx format)
+const IRAQI_PHONE_REGEX = /^07[3-9]\d{8}$/;
+
+/**
+ * Validate Iraqi phone number format
+ */
+function isValidIraqiPhone(phone: string): boolean {
+    // Remove all non-digits
+    const digitsOnly = phone.replace(/\D/g, "");
+    // Check if matches Iraqi mobile format (07xxxxxxxxx - 11 digits starting with 07)
+    return IRAQI_PHONE_REGEX.test(digitsOnly);
+}
+
+/**
+ * Normalize phone number to standard format
+ */
+function normalizePhone(phone: string): string {
+    // Remove all non-digits
+    let digits = phone.replace(/\D/g, "");
+
+    // Remove country code if present (964)
+    if (digits.startsWith("964")) {
+        digits = "0" + digits.slice(3);
+    }
+
+    // Ensure it starts with 0
+    if (!digits.startsWith("0")) {
+        digits = "0" + digits;
+    }
+
+    return digits;
+}
 
 /**
  * Generate unique coupon code
@@ -61,6 +97,7 @@ router.get("/spots", async (req: Request, res: Response) => {
 /**
  * POST /api/early-access/register
  * Register a new early access lead with unique coupon code
+ * Protected against spam with rate limiting and phone validation
  */
 router.post("/register", async (req: Request, res: Response) => {
     try {
@@ -74,12 +111,15 @@ router.post("/register", async (req: Request, res: Response) => {
             });
         }
 
+        // Get client IP
+        const clientIp = (req.headers["x-forwarded-for"]?.toString().split(",")[0] || req.ip || "unknown").trim();
+
         // Validate input
         const validation = insertEarlyAccessLeadSchema.safeParse({
             phone: req.body.phone,
             name: req.body.name,
             source: req.body.source || "landing_page",
-            ipAddress: req.ip || req.headers["x-forwarded-for"]?.toString(),
+            ipAddress: clientIp,
             userAgent: req.headers["user-agent"],
         });
 
@@ -87,6 +127,41 @@ router.post("/register", async (req: Request, res: Response) => {
             return res.status(400).json({
                 success: false,
                 message: validation.error.errors[0]?.message || "Invalid input",
+                spotsRemaining: 0,
+            });
+        }
+
+        // Normalize and validate phone number
+        const cleanPhone = normalizePhone(validation.data.phone);
+
+        if (!isValidIraqiPhone(cleanPhone)) {
+            return res.status(400).json({
+                success: false,
+                message: "يرجى إدخال رقم عراقي صحيح (مثال: 07701234567)",
+                spotsRemaining: 0,
+            });
+        }
+
+        // Check rate limiting by IP (max registrations per IP in 24 hours)
+        const rateLimitTime = new Date(Date.now() - RATE_LIMIT_HOURS * 60 * 60 * 1000);
+
+        const ipRegistrations = await db
+            .select({ count: count() })
+            .from(earlyAccessLeads)
+            .where(
+                and(
+                    eq(earlyAccessLeads.ipAddress, clientIp),
+                    gte(earlyAccessLeads.createdAt, rateLimitTime)
+                )
+            );
+
+        const ipCount = ipRegistrations[0]?.count || 0;
+
+        if (ipCount >= MAX_REGISTRATIONS_PER_IP) {
+            console.log(`[EarlyAccess] ⚠️ Rate limit exceeded for IP: ${clientIp} (${ipCount} registrations)`);
+            return res.status(429).json({
+                success: false,
+                message: "تم تجاوز الحد المسموح للتسجيلات. يرجى المحاولة لاحقاً.",
                 spotsRemaining: 0,
             });
         }
@@ -105,9 +180,6 @@ router.post("/register", async (req: Request, res: Response) => {
                 spotsRemaining: 0,
             });
         }
-
-        // Clean phone number
-        const cleanPhone = validation.data.phone.replace(/\s/g, "").replace(/^00/, "+");
 
         // Check if phone already registered
         const existingLead = await db.query.earlyAccessLeads?.findFirst({
@@ -159,7 +231,7 @@ router.post("/register", async (req: Request, res: Response) => {
             phone: cleanPhone,
             name: validation.data.name,
             source: validation.data.source,
-            ipAddress: validation.data.ipAddress,
+            ipAddress: clientIp,
             userAgent: validation.data.userAgent,
             notes: `Coupon: ${couponCode}`, // Store coupon reference
         });
@@ -167,7 +239,7 @@ router.post("/register", async (req: Request, res: Response) => {
         const newCount = currentCount + 1;
         const spotsRemaining = Math.max(0, MAX_SPOTS - newCount - INITIAL_DISPLAY_OFFSET);
 
-        console.log(`[EarlyAccess] ✅ New lead registered: ${cleanPhone} with coupon ${couponCode} (${newCount + INITIAL_DISPLAY_OFFSET}/${MAX_SPOTS})`);
+        console.log(`[EarlyAccess] ✅ New lead registered: ${cleanPhone} with coupon ${couponCode} from IP ${clientIp} (${newCount + INITIAL_DISPLAY_OFFSET}/${MAX_SPOTS})`);
 
         res.json({
             success: true,
@@ -233,6 +305,77 @@ router.get("/leads", async (req: Request, res: Response) => {
         res.status(500).json({
             success: false,
             message: "Error fetching leads",
+        });
+    }
+});
+
+/**
+ * DELETE /api/early-access/leads/:id (Admin only)
+ * Delete a fake/spam lead and deactivate its coupon
+ */
+router.delete("/leads/:id", async (req: Request, res: Response) => {
+    try {
+        // Check if user is admin
+        if (!req.user || (req.user as any).role !== "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+
+        const db = getDb();
+        if (!db) {
+            return res.status(500).json({
+                success: false,
+                message: "Database not available",
+            });
+        }
+
+        const { id } = req.params;
+
+        // Find the lead
+        const lead = await db.query.earlyAccessLeads?.findFirst({
+            where: (leads, { eq }) => eq(leads.id, id),
+        });
+
+        if (!lead) {
+            return res.status(404).json({
+                success: false,
+                message: "Lead not found",
+            });
+        }
+
+        // Extract coupon code from notes
+        const couponMatch = lead.notes?.match(/Coupon:\s*(\S+)/);
+        const couponCode = couponMatch ? couponMatch[1] : null;
+
+        // Deactivate the coupon if exists
+        if (couponCode) {
+            await db
+                .update(coupons)
+                .set({ isActive: false })
+                .where(eq(coupons.code, couponCode));
+
+            console.log(`[EarlyAccess] 🗑️ Deactivated coupon: ${couponCode}`);
+        }
+
+        // Delete the lead
+        await db
+            .delete(earlyAccessLeads)
+            .where(eq(earlyAccessLeads.id, id));
+
+        console.log(`[EarlyAccess] 🗑️ Deleted lead: ${lead.phone} by admin`);
+
+        res.json({
+            success: true,
+            message: "تم حذف السجل بنجاح",
+        });
+
+    } catch (error) {
+        console.error("[EarlyAccess] Error deleting lead:", error);
+        res.status(500).json({
+            success: false,
+            message: "Error deleting lead",
         });
     }
 });

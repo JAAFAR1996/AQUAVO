@@ -43,7 +43,9 @@ import {
     MessageCircle,
     Ticket,
     Copy,
-    Check
+    Check,
+    Trash2,
+    AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -67,8 +69,44 @@ export function EarlyAccessManagement() {
     const [searchQuery, setSearchQuery] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
     const [copiedId, setCopiedId] = useState<string | null>(null);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
     const { toast } = useToast();
     const queryClient = useQueryClient();
+
+    // Delete mutation
+    const deleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const response = await fetch(`/api/early-access/leads/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!response.ok) throw new Error("Failed to delete lead");
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["/api/early-access/leads"] });
+            toast({
+                title: "تم الحذف",
+                description: "تم حذف السجل وإلغاء كود الخصم",
+            });
+            setDeletingId(null);
+        },
+        onError: () => {
+            toast({
+                title: "خطأ",
+                description: "فشل حذف السجل",
+                variant: "destructive",
+            });
+            setDeletingId(null);
+        },
+    });
+
+    const handleDelete = (id: string, phone: string) => {
+        if (confirm(`هل أنت متأكد من حذف الرقم ${phone}?\nسيتم إلغاء كود الخصم المرتبط به.`)) {
+            setDeletingId(id);
+            deleteMutation.mutate(id);
+        }
+    };
 
     // Fetch leads
     const { data, isLoading, error, refetch } = useQuery({
@@ -380,21 +418,37 @@ export function EarlyAccessManagement() {
                                                     </p>
                                                 </TableCell>
                                                 <TableCell>
-                                                    <Button
-                                                        variant="outline"
-                                                        size="sm"
-                                                        asChild
-                                                        className="gap-2"
-                                                    >
-                                                        <a
-                                                            href={getWhatsAppLink(lead.phone)}
-                                                            target="_blank"
-                                                            rel="noopener noreferrer"
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            asChild
+                                                            className="gap-2"
                                                         >
-                                                            <MessageCircle className="w-4 h-4 text-green-500" />
-                                                            واتساب
-                                                        </a>
-                                                    </Button>
+                                                            <a
+                                                                href={getWhatsAppLink(lead.phone)}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                <MessageCircle className="w-4 h-4 text-green-500" />
+                                                                واتساب
+                                                            </a>
+                                                        </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="gap-2 text-red-400 hover:text-red-500 hover:bg-red-500/10"
+                                                            onClick={() => handleDelete(lead.id, lead.phone)}
+                                                            disabled={deletingId === lead.id}
+                                                        >
+                                                            {deletingId === lead.id ? (
+                                                                <RefreshCw className="w-4 h-4 animate-spin" />
+                                                            ) : (
+                                                                <Trash2 className="w-4 h-4" />
+                                                            )}
+                                                            حذف
+                                                        </Button>
+                                                    </div>
                                                 </TableCell>
                                             </TableRow>
                                         );
