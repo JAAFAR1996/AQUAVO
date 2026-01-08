@@ -22,6 +22,7 @@ import aiRoutes from "./routes/ai.js";
 import aiAdvancedRoutes from "./routes/ai-advanced.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
+import earlyAccessRoutes from "./routes/early-access.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -78,6 +79,9 @@ export async function registerRoutes(
 
   // Metadata routes (categories, brands, specs)
   app.use("/api/metadata", metadataRoutes);
+
+  // Early Access Landing Page routes
+  app.use("/api/early-access", earlyAccessRoutes);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

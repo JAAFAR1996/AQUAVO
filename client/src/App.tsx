@@ -53,6 +53,7 @@ const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
+const EarlyAccess = lazy(() => import("@/pages/early-access"));
 
 
 // Medium-weight pages (direct imports for faster navigation)
@@ -389,6 +390,17 @@ function Router() {
                 <AdminAI />
               </Suspense>
             </RequireAdmin>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* Early Access Landing Page - No navbar/footer */}
+      <Route path="/early-access">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EarlyAccess />
+            </Suspense>
           </ErrorBoundary>
         )}
       </Route>

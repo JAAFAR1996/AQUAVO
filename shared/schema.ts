@@ -1686,3 +1686,35 @@ export const blogPosts = pgTable("blog_posts", {
 export const insertBlogPostSchema = createInsertSchema(blogPosts);
 export type BlogPost = typeof blogPosts.$inferSelect;
 export type InsertBlogPost = typeof blogPosts.$inferInsert;
+
+// ========================================
+// Early Access Leads (قائمة الحجز المبكر)
+// ========================================
+export const earlyAccessLeads = pgTable("early_access_leads", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  phone: text("phone").notNull().unique(), // رقم الواتساب
+  name: text("name"), // اسم اختياري
+  source: text("source").default("landing_page"), // مصدر التسجيل
+  status: text("status").default("pending"), // pending, contacted, converted
+  notes: text("notes"), // ملاحظات للأدمن
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  contactedAt: timestamp("contacted_at"),
+  convertedAt: timestamp("converted_at"),
+}, (table) => ({
+  phoneIdx: index("early_access_leads_phone_idx").on(table.phone),
+  statusIdx: index("early_access_leads_status_idx").on(table.status),
+  createdAtIdx: index("early_access_leads_created_at_idx").on(table.createdAt),
+}));
+
+export const insertEarlyAccessLeadSchema = z.object({
+  phone: z.string().min(10, "رقم الهاتف مطلوب").max(20),
+  name: z.string().optional(),
+  source: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+});
+
+export type EarlyAccessLead = typeof earlyAccessLeads.$inferSelect;
+export type InsertEarlyAccessLead = z.infer<typeof insertEarlyAccessLeadSchema>;
