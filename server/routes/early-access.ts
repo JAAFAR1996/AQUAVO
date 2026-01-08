@@ -6,15 +6,25 @@
 
 import { Router, Request, Response } from "express";
 import { getDb } from "../db.js";
-import { earlyAccessLeads, insertEarlyAccessLeadSchema } from "../../shared/schema.js";
+import { earlyAccessLeads, insertEarlyAccessLeadSchema, coupons } from "../../shared/schema.js";
 import { count } from "drizzle-orm";
-import { z } from "zod";
+import { nanoid } from "nanoid";
 
 const router = Router();
 
 // Maximum spots available
 const MAX_SPOTS = 30;
 const INITIAL_DISPLAY_OFFSET = 6; // Start showing 24/30 (30 - 6 = 24)
+const DISCOUNT_PERCENTAGE = 20; // 20% discount
+
+/**
+ * Generate unique coupon code
+ */
+function generateCouponCode(): string {
+    // Format: AQUA-XXXX (8 characters total, easy to type)
+    const randomPart = nanoid(6).toUpperCase().replace(/[^A-Z0-9]/g, 'X');
+    return `AQUA-${randomPart}`;
+}
 
 /**
  * GET /api/early-access/spots
@@ -50,7 +60,7 @@ router.get("/spots", async (req: Request, res: Response) => {
 
 /**
  * POST /api/early-access/register
- * Register a new early access lead
+ * Register a new early access lead with unique coupon code
  */
 router.post("/register", async (req: Request, res: Response) => {
     try {
@@ -113,24 +123,57 @@ router.post("/register", async (req: Request, res: Response) => {
             });
         }
 
-        // Insert new lead
+        // Generate unique coupon code
+        let couponCode = generateCouponCode();
+        let attempts = 0;
+        const maxAttempts = 5;
+
+        // Ensure coupon code is unique
+        while (attempts < maxAttempts) {
+            const existingCoupon = await db.query.coupons?.findFirst({
+                where: (c, { eq }) => eq(c.code, couponCode),
+            });
+
+            if (!existingCoupon) break;
+
+            couponCode = generateCouponCode();
+            attempts++;
+        }
+
+        // Create coupon in database (single use, 20% discount)
+        await db.insert(coupons).values({
+            code: couponCode,
+            type: "percentage",
+            value: DISCOUNT_PERCENTAGE.toString(),
+            maxUses: 1,
+            usedCount: 0,
+            maxUsesPerUser: 1,
+            isActive: true,
+            description: `كود خصم الحجز المبكر - ${cleanPhone}`,
+            // Set expiry to 90 days from now
+            endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        });
+
+        // Insert new lead with coupon code reference
         await db.insert(earlyAccessLeads).values({
             phone: cleanPhone,
             name: validation.data.name,
             source: validation.data.source,
             ipAddress: validation.data.ipAddress,
             userAgent: validation.data.userAgent,
+            notes: `Coupon: ${couponCode}`, // Store coupon reference
         });
 
         const newCount = currentCount + 1;
         const spotsRemaining = Math.max(0, MAX_SPOTS - newCount - INITIAL_DISPLAY_OFFSET);
 
-        console.log(`[EarlyAccess] ✅ New lead registered: ${cleanPhone} (${newCount + INITIAL_DISPLAY_OFFSET}/${MAX_SPOTS})`);
+        console.log(`[EarlyAccess] ✅ New lead registered: ${cleanPhone} with coupon ${couponCode} (${newCount + INITIAL_DISPLAY_OFFSET}/${MAX_SPOTS})`);
 
         res.json({
             success: true,
-            message: "تم الحجز بنجاح! سنتواصل معك قريباً",
+            message: "تم التسجيل بنجاح!",
             spotsRemaining,
+            couponCode, // Return coupon code to display
         });
 
     } catch (error: any) {

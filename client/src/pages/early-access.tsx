@@ -32,12 +32,14 @@ interface RegistrationResponse {
     success: boolean;
     message: string;
     spotsRemaining: number;
+    couponCode?: string;
 }
 
 export default function EarlyAccessPage() {
     const [phone, setPhone] = useState('');
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [spotsRemaining, setSpotsRemaining] = useState(INITIAL_DISPLAY_SPOTS);
+    const [couponCode, setCouponCode] = useState<string | null>(null);
     const { toast } = useToast();
 
     // Set page title
@@ -77,6 +79,9 @@ export default function EarlyAccessPage() {
             if (data.success) {
                 setIsSubmitted(true);
                 setSpotsRemaining(data.spotsRemaining);
+                if (data.couponCode) {
+                    setCouponCode(data.couponCode);
+                }
             } else {
                 toast({
                     title: 'خطأ',
@@ -205,25 +210,22 @@ export default function EarlyAccessPage() {
                                         <p className="text-slate-300 text-lg leading-relaxed">
                                             كن من أول <span className="text-cyan-400 font-bold">30</span> شخص
                                             <br />
-                                            واحصل على <span className="text-amber-400 font-bold">خصم 20%</span> + <span className="text-pink-400 font-bold">هدية حصرية</span>
+                                            واحصل على <span className="text-amber-400 font-bold">خصم 20%</span>
                                             <br />
-                                            مع طلبك الأول.
+                                            على طلبك الأول!
                                         </p>
                                     </div>
 
                                     {/* Benefits */}
-                                    <div className="grid grid-cols-2 gap-3 mb-8">
-                                        <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-3">
-                                            <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center">
-                                                <Percent className="w-5 h-5 text-cyan-400" />
+                                    <div className="flex justify-center mb-8">
+                                        <div className="flex items-center gap-3 bg-slate-800/50 rounded-xl p-4">
+                                            <div className="w-12 h-12 bg-gradient-to-br from-amber-500/30 to-orange-500/30 rounded-xl flex items-center justify-center">
+                                                <Percent className="w-6 h-6 text-amber-400" />
                                             </div>
-                                            <span className="text-slate-300 text-sm">خصم 20%</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 bg-slate-800/50 rounded-xl p-3">
-                                            <div className="w-10 h-10 bg-pink-500/20 rounded-lg flex items-center justify-center">
-                                                <Gift className="w-5 h-5 text-pink-400" />
+                                            <div>
+                                                <span className="text-white font-bold text-lg">خصم 20%</span>
+                                                <p className="text-slate-400 text-sm">على طلبك الأول</p>
                                             </div>
-                                            <span className="text-slate-300 text-sm">هدية مجانية</span>
                                         </div>
                                     </div>
 
@@ -244,10 +246,10 @@ export default function EarlyAccessPage() {
                                                 animate={{ width: `${spotsPercentage}%` }}
                                                 transition={{ delay: 0.5, duration: 1 }}
                                                 className={`h-full rounded-full ${spotsRemaining <= 5
-                                                        ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                                                        : spotsRemaining <= 10
-                                                            ? 'bg-gradient-to-r from-amber-500 to-yellow-500'
-                                                            : 'bg-gradient-to-r from-cyan-500 to-teal-500'
+                                                    ? 'bg-gradient-to-r from-red-500 to-orange-500'
+                                                    : spotsRemaining <= 10
+                                                        ? 'bg-gradient-to-r from-amber-500 to-yellow-500'
+                                                        : 'bg-gradient-to-r from-cyan-500 to-teal-500'
                                                     }`}
                                             />
                                         </div>
@@ -342,10 +344,19 @@ export default function EarlyAccessPage() {
                                             🎉 مبروك!
                                         </h2>
                                         <p className="text-slate-300 text-lg leading-relaxed mb-6">
-                                            تم استلام طلبك بنجاح.
-                                            <br />
-                                            سيتم التواصل معك عبر واتساب لتأكيد الحجز.
+                                            تم تسجيلك بنجاح!
                                         </p>
+
+                                        {/* Coupon Code Display */}
+                                        {couponCode && (
+                                            <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-xl p-5 mb-6">
+                                                <p className="text-amber-400 text-sm mb-2">كود الخصم الخاص بك:</p>
+                                                <div className="bg-slate-900/80 rounded-lg p-3 flex items-center justify-center gap-3">
+                                                    <span className="text-2xl font-mono font-bold text-white tracking-wider">{couponCode}</span>
+                                                </div>
+                                                <p className="text-slate-400 text-xs mt-3">⚠️ هذا الكود صالح لمرة واحدة فقط</p>
+                                            </div>
+                                        )}
 
                                         <div className="bg-slate-800/50 rounded-xl p-4 mb-6">
                                             <div className="flex items-center justify-center gap-3 text-amber-400">
@@ -356,7 +367,7 @@ export default function EarlyAccessPage() {
                                         </div>
 
                                         <p className="text-slate-500 text-sm">
-                                            تابعنا على وسائل التواصل لآخر الأخبار والعروض
+                                            سنتواصل معك عبر واتساب قريباً
                                         </p>
                                     </motion.div>
 
