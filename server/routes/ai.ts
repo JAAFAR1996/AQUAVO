@@ -1,6 +1,7 @@
 import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import { sendMessage, ChatMessage, ChatContext, recommendProductsForJourney } from "../services/gemini-ai.js";
+import { groqClient } from "../services/groq-client.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { count, lt, and, gt, or, ilike, desc, eq, inArray } from "drizzle-orm";
@@ -83,6 +84,39 @@ async function findRelevantProducts(message: string, limit: number = 5) {
     }
 }
 
+
+// Helper: Detect User Intent
+async function detectUserIntent(message: string): Promise<"INFORMATIONAL" | "SHOPPING" | "COMMERCIAL"> {
+    try {
+        if (!groqClient.hasKeys()) return "SHOPPING"; // Default to shopping to be safe if AI fails
+
+        const prompt = `Classify user intent into one of these categories:
+1. INFORMATIONAL: asking about general knowledge, care tips, how-to, advice (e.g., "how to clean tank", "best fish for beginners", "why is my fish sick?")
+2. SHOPPING: explicit intent to buy, asking for price, availability, or specific product recommendation (e.g., "I want to buy fish", "price of heater", "suggest a filter for my tank", "do you have neon tetra?")
+3. COMMERCIAL: asking about store policies, shipping, location, or bulk orders.
+
+Message: "${message}"
+
+Return ONLY the category name.`;
+
+        const result = await groqClient.chat([{ role: "user", content: prompt }], {
+            temperature: 0.1,
+            maxTokens: 10,
+            model: "llama-3.1-8b-instant"
+        });
+
+        const intent = result.trim().toUpperCase();
+        if (["INFORMATIONAL", "SHOPPING", "COMMERCIAL"].includes(intent)) {
+            return intent as "INFORMATIONAL" | "SHOPPING" | "COMMERCIAL";
+        }
+        return "SHOPPING"; // Default
+
+    } catch (error) {
+        console.error("Intent detection failed:", error);
+        return "SHOPPING"; // Fallback
+    }
+}
+
 // POST /api/ai/chat - Chat with Gemini AI
 router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
     try {
@@ -116,11 +150,26 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
             }
         }
 
-        // Find relevant products based on user message
-        const relevantProducts = await findRelevantProducts(message, 5);
+        // 1. Detect Intent
+        const intent = await detectUserIntent(message);
+        console.log(`🤖 User Intent: ${intent} for message: "${message}"`);
+
+        // 2. Find relevant products ONLY if intent is SHOPPING/COMMERCIAL
+        let relevantProducts: any[] = [];
+        let searchPerformed = false;
+
+        if (intent === "SHOPPING" || intent === "COMMERCIAL") {
+            relevantProducts = await findRelevantProducts(message, 5);
+            searchPerformed = true;
+        }
 
         // Get context from database
-        let context: ChatContext = { userName };
+        let context: ChatContext = {
+            userName,
+            searchPerformed,
+            productsFound: relevantProducts.length
+        };
+
         if (db) {
             try {
                 // Get product counts

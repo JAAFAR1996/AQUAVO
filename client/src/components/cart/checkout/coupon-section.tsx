@@ -13,8 +13,8 @@ interface CouponSectionProps {
 
 export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponError, couponSuccess }: CouponSectionProps) {
     return (
-        <div className="space-y-2 bg-gradient-to-r from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/30 dark:to-orange-950/30 p-4 rounded-xl border-2 border-dashed border-amber-300 dark:border-amber-700 shadow-sm">
-            <Label className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold text-base">
+        <div className="space-y-2 bg-gradient-to-r from-cyan-50 via-teal-50 to-emerald-50 dark:from-cyan-950/30 dark:via-teal-950/30 dark:to-emerald-950/30 p-4 rounded-xl border-2 border-dashed border-cyan-300 dark:border-cyan-700 shadow-sm">
+            <Label className="flex items-center gap-2 text-cyan-700 dark:text-cyan-400 font-bold text-base">
                 <span className="text-lg">🎁</span>
                 <Tag className="h-4 w-4" />
                 هل لديك كوبون خصم؟
@@ -24,13 +24,13 @@ export function CouponSection({ couponCode, setCouponCode, applyCoupon, couponEr
                     placeholder="أدخل كود الخصم هنا..."
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
-                    className="flex-1 bg-white dark:bg-background border-amber-200 dark:border-amber-800 focus:border-amber-400 focus:ring-amber-400"
+                    className="flex-1 bg-white dark:bg-background border-cyan-200 dark:border-cyan-800 focus:border-cyan-400 focus:ring-cyan-400"
                     dir="ltr"
                 />
                 <Button
                     type="button"
                     onClick={applyCoupon}
-                    className="min-w-[90px] bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-md hover:shadow-lg transition-all"
+                    className="min-w-[90px] bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white font-bold shadow-md hover:shadow-lg transition-all"
                 >
                     تطبيق ✨
                 </Button>

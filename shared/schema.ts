@@ -1723,3 +1723,64 @@ export const insertEarlyAccessLeadSchema = z.object({
 
 export type EarlyAccessLead = typeof earlyAccessLeads.$inferSelect;
 export type InsertEarlyAccessLead = z.infer<typeof insertEarlyAccessLeadSchema>;
+
+// ============================================================
+// AI AGENT SETTINGS - إعدادات وكلاء الذكاء الاصطناعي
+// ============================================================
+
+export const aiAgentSettings = pgTable("ai_agent_settings", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  agentName: text("agent_name").notNull().unique(), // sales, inventory, pricing, marketing, sentiment, visual
+  displayName: text("display_name").notNull(), // اسم العرض بالعربي
+  description: text("description"), // وصف الوكيل
+  isEnabled: boolean("is_enabled").default(true),
+  autoRun: boolean("auto_run").default(false), // تشغيل تلقائي
+  runFrequency: text("run_frequency").default("manual"), // manual, hourly, daily, weekly
+  config: jsonb("config").$type<{
+    maxActionsPerDay?: number;
+    priority?: number;
+    fallbackMessage?: string;
+    customSettings?: Record<string, any>;
+  }>(),
+  lastRunAt: timestamp("last_run_at"),
+  lastRunStatus: text("last_run_status"), // success, failed, partial
+  actionsToday: integer("actions_today").default(0),
+  totalActions: integer("total_actions").default(0),
+  updatedBy: text("updated_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  agentNameIdx: index("ai_agent_settings_agent_name_idx").on(table.agentName),
+  isEnabledIdx: index("ai_agent_settings_is_enabled_idx").on(table.isEnabled),
+}));
+
+export const insertAIAgentSettingSchema = z.object({
+  agentName: z.enum(["sales", "inventory", "pricing", "marketing", "sentiment", "visual", "content", "aquarium"]),
+  displayName: z.string().min(1),
+  description: z.string().optional(),
+  isEnabled: z.boolean().optional(),
+  autoRun: z.boolean().optional(),
+  runFrequency: z.enum(["manual", "hourly", "daily", "weekly"]).optional(),
+  config: z.object({
+    maxActionsPerDay: z.number().optional(),
+    priority: z.number().optional(),
+    fallbackMessage: z.string().optional(),
+    customSettings: z.record(z.any()).optional(),
+  }).optional(),
+});
+
+export const updateAIAgentSettingSchema = z.object({
+  isEnabled: z.boolean().optional(),
+  autoRun: z.boolean().optional(),
+  runFrequency: z.enum(["manual", "hourly", "daily", "weekly"]).optional(),
+  config: z.object({
+    maxActionsPerDay: z.number().optional(),
+    priority: z.number().optional(),
+    fallbackMessage: z.string().optional(),
+    customSettings: z.record(z.any()).optional(),
+  }).optional(),
+});
+
+export type AIAgentSetting = typeof aiAgentSettings.$inferSelect;
+export type InsertAIAgentSetting = z.infer<typeof insertAIAgentSettingSchema>;
+export type UpdateAIAgentSetting = z.infer<typeof updateAIAgentSettingSchema>;

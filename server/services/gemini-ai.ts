@@ -67,6 +67,8 @@ export interface ChatContext {
         rating: number | null;
     }>;
     customerProfile?: any;
+    searchPerformed?: boolean;
+    productsFound?: number;
 }
 
 // ============================================================
@@ -107,7 +109,13 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 - ودود 🦐🐠
 - مختصر ومفيد
 - لا تقل "لا أستطيع" - أنت خبير!
+- لا تقل "لا أستطيع" - أنت خبير!
 - لا تذكر أي بيانات داخلية (مبيعات، أرباح)
+
+# 📦 حالة توفر المنتجات:
+إذا قمنا بالبحث عن منتج (searchPerformed = true) ولم نجد أي نتائج (productsFound = 0):
+يجب أن تقول بالضبط: "عذراً، هذا المنتج غير متوفر حالياً، سوف نوفره قريباً إن شاء الله 🙏"
+ولا تقترح أي منتجات بديلة إلا إذا كانت قريبة جداً من نفس الفئة.
 
 ${userName ? `اسم العميل: ${userName}` : ''}
 ${profileContext}`;

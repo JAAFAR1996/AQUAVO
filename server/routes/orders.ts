@@ -7,7 +7,7 @@ import { z } from "zod";
 
 // Order validation schema
 const createOrderItemSchema = z.object({
-    productId: z.string().uuid("Invalid product ID format"),
+    productId: z.string().min(1, "Product ID is required"),
     quantity: z.number().int().positive("Quantity must be positive").max(100, "Maximum 100 items per product")
 });
 
