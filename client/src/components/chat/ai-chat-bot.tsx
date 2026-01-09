@@ -53,9 +53,22 @@ async function sendChatMessage(message: string, history: ChatMessage[], userName
         }),
     });
 
+    // Handle non-OK responses
     if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "فشل الاتصال");
+        let errorMessage = "فشل الاتصال";
+        try {
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const error = await response.json();
+                errorMessage = error.error || errorMessage;
+            } else {
+                const text = await response.text();
+                errorMessage = text.slice(0, 100) || errorMessage;
+            }
+        } catch {
+            // Ignore parse errors
+        }
+        throw new Error(errorMessage);
     }
 
     const data = await response.json();
