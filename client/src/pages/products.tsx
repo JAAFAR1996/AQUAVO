@@ -227,7 +227,7 @@ export default function Products() {
         </div>
 
         {/* Filter Bar with Quick Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
           <FilterBar
             filters={filters}
             onFiltersChange={setFilters}
@@ -287,13 +287,14 @@ export default function Products() {
             {finalProducts.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                  {displayedProducts.map((product) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      onQuickView={(p) => setQuickViewProduct(p)}
-                      onCompare={(p) => addToCompare(p.id)}
-                    />
+                  {displayedProducts.map((product, index) => (
+                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
+                      <ProductCard
+                        product={product}
+                        onQuickView={(p) => setQuickViewProduct(p)}
+                        onCompare={(p) => addToCompare(p.id)}
+                      />
+                    </div>
                   ))}
                 </div>
 

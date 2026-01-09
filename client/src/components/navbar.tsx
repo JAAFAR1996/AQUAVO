@@ -137,6 +137,7 @@ export default function Navbar() {
                   aria-label="فتح القائمة الرئيسية"
                   aria-expanded={isMenuOpen}
                   aria-controls="mobile-menu"
+                  data-tour="mobile-menu-trigger"
                 >
                   <Menu className="h-6 w-6" aria-hidden="true" />
                 </Button>
