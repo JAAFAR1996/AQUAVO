@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, index, check } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, index, check, serial } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -1696,10 +1696,10 @@ export type InsertBlogPost = typeof blogPosts.$inferInsert;
 // Early Access Leads (قائمة الحجز المبكر)
 // ========================================
 export const earlyAccessLeads = pgTable("early_access_leads", {
-  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
-  phone: text("phone").notNull().unique(), // رقم الواتساب
-  name: text("name"), // اسم اختياري
-  source: text("source").default("landing_page"), // مصدر التسجيل
+  id: serial("id").primaryKey(),
+  phone: varchar("phone", { length: 20 }).notNull().unique(), // رقم الواتساب matching DB VARCHAR(20)
+  name: varchar("name", { length: 255 }).notNull(), // Matching DB VARCHAR(255)
+  source: varchar("source", { length: 50 }).default("landing_page"),
   status: text("status").default("pending"), // pending, contacted, converted
   notes: text("notes"), // ملاحظات للأدمن
   ipAddress: text("ip_address"),
@@ -1784,3 +1784,5 @@ export const updateAIAgentSettingSchema = z.object({
 export type AIAgentSetting = typeof aiAgentSettings.$inferSelect;
 export type InsertAIAgentSetting = z.infer<typeof insertAIAgentSettingSchema>;
 export type UpdateAIAgentSetting = z.infer<typeof updateAIAgentSettingSchema>;
+
+
