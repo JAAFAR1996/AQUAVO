@@ -292,6 +292,30 @@ export async function sendMessage(
         console.error("Gemini AI Error:", error);
 
         if (error instanceof Error) {
+            const errorMsg = error.message.toLowerCase();
+
+            // Check if this is a retryable API key error
+            const isApiKeyError =
+                errorMsg.includes("api_key") ||
+                errorMsg.includes("api key") ||
+                errorMsg.includes("403") ||
+                errorMsg.includes("forbidden") ||
+                errorMsg.includes("unregistered") ||
+                errorMsg.includes("quota") ||
+                errorMsg.includes("rate_limit");
+
+            if (isApiKeyError) {
+                // Try to switch to next API key
+                console.log("🔄 Attempting to switch to next API key...");
+                geminiClient.markCurrentKeyFailed(error);
+
+                // Check if we have more keys to try
+                const keyCount = geminiClient.getKeyCount();
+                if (keyCount > 1) {
+                    throw new Error("حدث خطأ مؤقت، يرجى المحاولة مرة أخرى");
+                }
+            }
+
             if (error.message.includes("مهلة") || error.message.includes("timeout")) {
                 throw new Error("انتهت مهلة الاتصال. حاول مرة أخرى.");
             }
