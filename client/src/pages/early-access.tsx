@@ -282,37 +282,52 @@ export default function EarlyAccessPage() {
                                         </div>
                                     </div>
 
-                                    {/* Spots Counter */}
+                                    {/* Spots Counter - Simplified Scarcity Design */}
                                     <div className="mb-6">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <div className="flex items-center gap-2">
-                                                <Users className="w-4 h-4 text-slate-400" />
-                                                <span className="text-slate-400 text-sm">الأماكن المتبقية</span>
+                                        {/* Main Counter - Single Number Focus */}
+                                        <div className="text-center mb-3">
+                                            <div className="inline-flex items-center gap-3 bg-slate-800/80 rounded-2xl px-6 py-4 border border-slate-700">
+                                                <Users className="w-5 h-5 text-cyan-400" />
+                                                <div>
+                                                    <span className="text-slate-300 text-sm">المقاعد المتبقية:</span>
+                                                    <span className={`text-3xl font-bold mx-2 ${spotsRemaining <= 5
+                                                            ? 'text-red-400'
+                                                            : spotsRemaining <= 10
+                                                                ? 'text-amber-400'
+                                                                : 'text-cyan-400'
+                                                        }`}>
+                                                        {spotsRemaining}
+                                                    </span>
+                                                    <span className="text-slate-400 text-sm">فقط!</span>
+                                                </div>
                                             </div>
-                                            <span className="text-white font-bold">
-                                                {spotsRemaining} / {MAX_SPOTS}
-                                            </span>
                                         </div>
-                                        <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+
+                                        {/* Progress Bar - Shows spots TAKEN (not remaining) */}
+                                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
                                             <motion.div
                                                 initial={{ width: 0 }}
-                                                animate={{ width: `${spotsPercentage}%` }}
+                                                animate={{ width: `${100 - spotsPercentage}%` }}
                                                 transition={{ delay: 0.5, duration: 1 }}
-                                                className={`h-full rounded-full ${spotsRemaining <= 5
-                                                    ? 'bg-gradient-to-r from-red-500 to-orange-500'
-                                                    : spotsRemaining <= 10
-                                                        ? 'bg-gradient-to-r from-amber-500 to-yellow-500'
-                                                        : 'bg-gradient-to-r from-cyan-500 to-teal-500'
-                                                    }`}
+                                                className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-500"
                                             />
                                         </div>
+                                        <p className="text-slate-500 text-xs mt-2 text-center">
+                                            تم حجز {MAX_SPOTS - spotsRemaining} من أصل {MAX_SPOTS} مقعد
+                                        </p>
+
+                                        {/* Urgency Message */}
                                         {spotsRemaining <= 10 && (
                                             <motion.p
                                                 initial={{ opacity: 0 }}
                                                 animate={{ opacity: 1 }}
-                                                className="text-amber-400 text-sm mt-2 text-center"
+                                                className={`text-sm mt-3 text-center font-medium ${spotsRemaining <= 5 ? 'text-red-400' : 'text-amber-400'
+                                                    }`}
                                             >
-                                                ⚡ الأماكن تنفذ بسرعة!
+                                                {spotsRemaining <= 5
+                                                    ? '🔥 آخر الفرص! سجّل الآن!'
+                                                    : '⚡ الأماكن تنفذ بسرعة!'
+                                                }
                                             </motion.p>
                                         )}
                                     </div>
