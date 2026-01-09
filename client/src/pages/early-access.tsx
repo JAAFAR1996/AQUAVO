@@ -42,6 +42,7 @@ export default function EarlyAccessPage() {
     const [spotsRemaining, setSpotsRemaining] = useState(INITIAL_DISPLAY_SPOTS);
     const [couponCode, setCouponCode] = useState<string | null>(null);
     const [isInputFocused, setIsInputFocused] = useState(false);
+    const [showCelebration, setShowCelebration] = useState(false);
     const { toast } = useToast();
 
     // Set page title
@@ -73,7 +74,7 @@ export default function EarlyAccessPage() {
     const fireConfetti = () => {
         const duration = 3000;
         const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 10000 };
         const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
 
         const interval: any = setInterval(function () {
@@ -100,7 +101,8 @@ export default function EarlyAccessPage() {
                 if (data.couponCode) {
                     setCouponCode(data.couponCode);
                 }
-                fireConfetti(); // Trigger celebration!
+                fireConfetti(); // Trigger confetti!
+                setShowCelebration(true); // Trigger bubble celebration!
             } else {
                 toast({
                     title: 'خطأ',
@@ -203,6 +205,32 @@ export default function EarlyAccessPage() {
                 {/* Gradient orbs */}
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
+
+                {/* Celebration Bubbles - Rise on Success */}
+                {showCelebration && [...Array(30)].map((_, i) => (
+                    <motion.div
+                        key={`celebration-bubble-${i}`}
+                        className="absolute rounded-full"
+                        style={{
+                            width: Math.random() * 60 + 20,
+                            height: Math.random() * 60 + 20,
+                            left: `${Math.random() * 100}%`,
+                            background: ['#06b6d4', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#22d3ee'][i % 6],
+                            opacity: 0.3,
+                        }}
+                        initial={{ bottom: -100, scale: 0 }}
+                        animate={{
+                            bottom: '120%',
+                            scale: [0, 1.2, 1],
+                            opacity: [0.3, 0.6, 0]
+                        }}
+                        transition={{
+                            duration: Math.random() * 3 + 2,
+                            delay: Math.random() * 1.5,
+                            ease: "easeOut"
+                        }}
+                    />
+                ))}
             </div>
 
             {/* Main Content */}
