@@ -11,41 +11,35 @@
  * - Chat history saving
  */
 
-import { GoogleGenerativeAI, FunctionCallingMode } from "@google/generative-ai";
+import { geminiClient, FunctionCallingMode } from "./gemini-client.js";
 import { AI_TOOLS, aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
 import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 
-// Validate API Key
-if (!process.env.GEMINI_API_KEY) {
-    console.warn("⚠️ GEMINI_API_KEY is not set in environment variables");
+// Get model with tools for sales agent (uses multi-key fallback)
+function getSalesAgentModel() {
+    return geminiClient.getModel("gemini-2.5-flash", {
+        tools: [{
+            functionDeclarations: AI_TOOLS.map(tool => ({
+                name: tool.name,
+                description: tool.description,
+                parameters: tool.parameters as any,
+            }))
+        }],
+        toolConfig: {
+            functionCallingConfig: {
+                mode: FunctionCallingMode.AUTO
+            }
+        }
+    });
 }
 
-// Initialize Gemini AI with Function Calling
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
-// Model with tools for sales agent
-const salesAgentModel = genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
-    tools: [{
-        functionDeclarations: AI_TOOLS.map(tool => ({
-            name: tool.name,
-            description: tool.description,
-            parameters: tool.parameters as any,
-        }))
-    }],
-    // Allow model to choose between text response and tool calls
-    toolConfig: {
-        functionCallingConfig: {
-            mode: FunctionCallingMode.AUTO // AUTO mode: model decides when to use tools
-        }
-    }
-});
-
-// Simple model for basic responses
-const simpleModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+// Get simple model for basic responses
+function getSimpleModel() {
+    return geminiClient.getModel("gemini-2.5-flash");
+}
 
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
@@ -187,6 +181,10 @@ export async function sendMessage(
         }));
 
         // 4. بدء المحادثة
+        const salesAgentModel = getSalesAgentModel();
+        if (!salesAgentModel) {
+            throw new Error("No Gemini API keys configured");
+        }
         const chat = salesAgentModel.startChat({
             history: [
                 { role: "user", parts: [{ text: systemPrompt }] },
@@ -347,10 +345,12 @@ export async function recommendProductsForJourney(
     availableProducts: any[]
 ): Promise<any[]> {
     try {
-        const jsonModel = genAI.getGenerativeModel({
-            model: "gemini-2.5-flash",
+        const jsonModel = geminiClient.getModel("gemini-2.5-flash", {
             generationConfig: { responseMimeType: "application/json" }
         });
+        if (!jsonModel) {
+            throw new Error("No Gemini API keys configured");
+        }
 
         const productsCatalog = availableProducts.slice(0, 50).map(p => ({
             id: p.id,

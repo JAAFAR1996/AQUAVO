@@ -1,10 +1,7 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import { sentimentHistory, type InsertSentimentHistory } from "../../shared/schema.js";
 import { eq, desc, and, gte } from "drizzle-orm";
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 export interface SentimentResult {
   sentiment: "positive" | "neutral" | "negative";
@@ -23,10 +20,12 @@ export interface SentimentResult {
  * يحلل مشاعر المستخدمين في المحادثات ويعدل استجابات AI وفقاً لها
  */
 export class SentimentAnalyzer {
-  private model;
-
-  constructor() {
-    this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  private getModel() {
+    const model = geminiClient.getModel("gemini-1.5-flash");
+    if (!model) {
+      throw new Error("No Gemini API keys configured");
+    }
+    return model;
   }
 
   /**
@@ -69,7 +68,7 @@ ${message}
   }
 }`;
 
-      const result = await this.model.generateContent(prompt);
+      const result = await this.getModel().generateContent(prompt);
       const response = await result.response;
       const text = response.text();
 
@@ -213,7 +212,7 @@ ${response}
 قدم رداً معدلاً يُظهر التعاطف والفهم لإحباط المستخدم، مع تقديم نفس المعلومات بطريقة أكثر دعماً.`;
 
       try {
-        const result = await this.model.generateContent(empathyPrompt);
+        const result = await this.getModel().generateContent(empathyPrompt);
         const adjustedResponse = await result.response;
         return adjustedResponse.text();
       } catch (error) {

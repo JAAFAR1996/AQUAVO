@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import {
     aquariumDesigns,
@@ -7,18 +7,17 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, sql } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Aquarium Advisor Service
  * مساعد افتراضي لتصميم أحواض الأسماك
  */
 export class AquariumAdvisor {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    private getModel() {
+        const model = geminiClient.getModel("gemini-2.0-flash");
+        if (!model) {
+            throw new Error("No Gemini API keys configured");
+        }
+        return model;
     }
 
     /**
@@ -76,7 +75,7 @@ export class AquariumAdvisor {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
+            const result = await this.getModel().generateContent(prompt);
             const text = result.response.text();
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -157,7 +156,7 @@ export class AquariumAdvisor {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
+            const result = await this.getModel().generateContent(prompt);
             const text = result.response.text();
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);

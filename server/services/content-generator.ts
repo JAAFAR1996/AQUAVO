@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import {
     generatedContent,
@@ -7,18 +7,17 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Content Generator Service
  * يولد محتوى تسويقي باستخدام الذكاء الاصطناعي
  */
 export class ContentGenerator {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    private getModel() {
+        const model = geminiClient.getModel("gemini-2.0-flash");
+        if (!model) {
+            throw new Error("No Gemini API keys configured");
+        }
+        return model;
     }
 
     /**
@@ -74,7 +73,7 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
+            const result = await this.getModel().generateContent(prompt);
             const text = result.response.text();
 
             // Parse JSON response
@@ -167,7 +166,7 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
+            const result = await this.getModel().generateContent(prompt);
             const text = result.response.text();
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -239,7 +238,7 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
+            const result = await this.getModel().generateContent(prompt);
             const text = result.response.text();
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
