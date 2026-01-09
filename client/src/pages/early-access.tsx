@@ -41,6 +41,7 @@ export default function EarlyAccessPage() {
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [spotsRemaining, setSpotsRemaining] = useState(INITIAL_DISPLAY_SPOTS);
     const [couponCode, setCouponCode] = useState<string | null>(null);
+    const [isInputFocused, setIsInputFocused] = useState(false);
     const { toast } = useToast();
 
     // Set page title
@@ -68,6 +69,22 @@ export default function EarlyAccessPage() {
         }
     }, [spotsData]);
 
+    // Confetti Effect
+    const fireConfetti = () => {
+        const duration = 3000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        const interval: any = setInterval(function () {
+            const timeLeft = animationEnd - Date.now();
+            if (timeLeft <= 0) return clearInterval(interval);
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    };
+
     // Submit mutation
     const submitMutation = useMutation({
         mutationFn: async (phoneNumber: string) => {
@@ -83,21 +100,7 @@ export default function EarlyAccessPage() {
                 if (data.couponCode) {
                     setCouponCode(data.couponCode);
                 }
-                
-                // Fire Confetti!
-                const duration = 3000;
-                const animationEnd = Date.now() + duration;
-                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-                const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-                const interval: any = setInterval(function () {
-                    const timeLeft = animationEnd - Date.now();
-                    if (timeLeft <= 0) return clearInterval(interval);
-                    const particleCount = 50 * (timeLeft / duration);
-                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-                }, 250);
-
+                fireConfetti(); // Trigger celebration!
             } else {
                 toast({
                     title: 'خطأ',
@@ -109,15 +112,14 @@ export default function EarlyAccessPage() {
         onError: (error: any) => {
             let message = error?.message || 'حدث خطأ في الاتصال بالخادم';
 
-            // Allow parsing "400: {...}" format from apiRequest
+            // Allow parsing "400: {...}" or any string containing JSON
             try {
-                // Remove status code prefix "XXX: "
-                const jsonPart = message.replace(/^\d+:\s*/, '');
-                if (jsonPart.startsWith('{')) {
+                // Find start of JSON object
+                const jsonStartIndex = message.indexOf('{');
+                if (jsonStartIndex !== -1) {
+                    const jsonPart = message.substring(jsonStartIndex);
                     const parsed = JSON.parse(jsonPart);
                     if (parsed.message) message = parsed.message;
-                } else {
-                    message = jsonPart; // Use cleaned text if not JSON
                 }
             } catch (e) {
                 // Keep original message if parsing fails
@@ -154,55 +156,6 @@ export default function EarlyAccessPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-cyan-950 to-slate-950 overflow-hidden relative">
             {/* Decorative Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {/* Floating bubbles */}
-import confetti from 'canvas-confetti';
-
-// ... imports
-
-export default function EarlyAccessPage() {
-    // ... state
-    const [isInputFocused, setIsInputFocused] = useState(false);
-
-    // ... hooks
-
-    // Confetti Effect
-    const fireConfetti = () => {
-        const duration = 3000;
-        const animationEnd = Date.now() + duration;
-        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-        const interval: any = setInterval(function () {
-            const timeLeft = animationEnd - Date.now();
-
-            if (timeLeft <= 0) {
-                return clearInterval(interval);
-            }
-
-            const particleCount = 50 * (timeLeft / duration);
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-        }, 250);
-    };
-
-    // ... submit mutation
-        onSuccess: (data) => {
-            if (data.success) {
-                setIsSubmitted(true);
-                setSpotsRemaining(data.spotsRemaining);
-                if (data.couponCode) {
-                    setCouponCode(data.couponCode);
-                }
-                fireConfetti(); // Trigger celebration!
-            }
-            // ...
-        },
-
-    // ... JSX
-
-            {/* Decorative Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {/* Floating bubbles - Speed up when focused */}
                 {[...Array(20)].map((_, i) => (
                     <motion.div
@@ -226,7 +179,7 @@ export default function EarlyAccessPage() {
                         }}
                     />
                 ))}
-                
+
                 {/* Additional Party Bubbles (Only when focused) */}
                 {isInputFocused && [...Array(10)].map((_, i) => (
                     <motion.div
@@ -246,8 +199,6 @@ export default function EarlyAccessPage() {
                         }}
                     />
                 ))}
-
-                {/* Gradient orbs */}
 
                 {/* Gradient orbs */}
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
