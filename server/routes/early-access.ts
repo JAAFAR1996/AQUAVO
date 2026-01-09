@@ -10,6 +10,7 @@ import { getDb } from "../db.js";
 import { earlyAccessLeads, insertEarlyAccessLeadSchema, coupons } from "../../shared/schema.js";
 import { count, eq, and, gte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -272,16 +273,8 @@ router.post("/register", async (req: Request, res: Response) => {
  * GET /api/early-access/leads (Admin only)
  * Get all early access leads
  */
-router.get("/leads", async (req: Request, res: Response) => {
+router.get("/leads", requireAdmin, async (req: Request, res: Response) => {
     try {
-        // Check if user is admin
-        if (!req.user || (req.user as any).role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-
         const db = getDb();
         if (!db) {
             return res.status(500).json({
@@ -313,16 +306,8 @@ router.get("/leads", async (req: Request, res: Response) => {
  * DELETE /api/early-access/leads/:id (Admin only)
  * Delete a fake/spam lead and deactivate its coupon
  */
-router.delete("/leads/:id", async (req: Request, res: Response) => {
+router.delete("/leads/:id", requireAdmin, async (req: Request, res: Response) => {
     try {
-        // Check if user is admin
-        if (!req.user || (req.user as any).role !== "admin") {
-            return res.status(403).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
-
         const db = getDb();
         if (!db) {
             return res.status(500).json({
@@ -335,7 +320,7 @@ router.delete("/leads/:id", async (req: Request, res: Response) => {
 
         // Find the lead
         const lead = await db.query.earlyAccessLeads?.findFirst({
-            where: (leads, { eq }) => eq(leads.id, id),
+            where: (leads, { eq }) => eq(leads.id, id as any),
         });
 
         if (!lead) {
@@ -362,7 +347,7 @@ router.delete("/leads/:id", async (req: Request, res: Response) => {
         // Delete the lead
         await db
             .delete(earlyAccessLeads)
-            .where(eq(earlyAccessLeads.id, id));
+            .where(eq(earlyAccessLeads.id, lead.id));
 
         console.log(`[EarlyAccess] 🗑️ Deleted lead: ${lead.phone} by admin`);
 
