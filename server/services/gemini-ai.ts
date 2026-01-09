@@ -1,45 +1,25 @@
 /**
  * AQUAVO AI Sales Agent - وكيل المبيعات الذكي
- * Version 2.0 - Gold Level with Function Calling
+ * Version 3.0 - Powered by Groq (Ultra Fast)
  * 
  * Features:
- * - Function Calling for autonomous actions
+ * - Ultra-fast responses with Groq
  * - Customer history awareness
  * - Personalized recommendations
- * - Cart and coupon management
  * - Admin/Public separation
  * - Chat history saving
+ * - Multi-API key fallback
  */
 
-import { geminiClient, FunctionCallingMode } from "./gemini-client.js";
+import { groqClient } from "./groq-client.js";
 import { AI_TOOLS, aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
 import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 
-// Get model with tools for sales agent (uses multi-key fallback)
-function getSalesAgentModel() {
-    return geminiClient.getModel("gemini-2.5-flash", {
-        tools: [{
-            functionDeclarations: AI_TOOLS.map(tool => ({
-                name: tool.name,
-                description: tool.description,
-                parameters: tool.parameters as any,
-            }))
-        }],
-        toolConfig: {
-            functionCallingConfig: {
-                mode: FunctionCallingMode.AUTO
-            }
-        }
-    });
-}
-
-// Get simple model for basic responses
-function getSimpleModel() {
-    return geminiClient.getModel("gemini-2.5-flash");
-}
+// Groq is now the AI provider - much faster than Gemini!
+// Uses llama-3.3-70b-versatile model
 
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
@@ -180,23 +160,24 @@ export async function sendMessage(
             parts: [{ text: msg.content }],
         }));
 
-        // 4. بدء المحادثة
-        const salesAgentModel = getSalesAgentModel();
-        if (!salesAgentModel) {
-            throw new Error("No Gemini API keys configured");
+        // 4. تحضير الرسائل لـ Groq
+        if (!groqClient.hasKeys()) {
+            throw new Error("No Groq API keys configured");
         }
-        const chat = salesAgentModel.startChat({
-            history: [
-                { role: "user", parts: [{ text: systemPrompt }] },
-                { role: "model", parts: [{ text: "مرحباً! 🦐 أنا شريمب، كيف أساعدك اليوم؟" }] },
-                ...chatHistory,
-            ],
-        });
 
-        // 5. تحليل مشاعر الرسالة (Sentiment Analysis)
-        let sentimentResult;
+        // بناء سجل المحادثة
+        const groqMessages: Array<{ role: "system" | "user" | "assistant", content: string }> = [
+            { role: "system", content: systemPrompt },
+            ...history.map(msg => ({
+                role: msg.role === "user" ? "user" as const : "assistant" as const,
+                content: msg.content
+            })),
+            { role: "user", content: message }
+        ];
+
+        // 5. تحليل مشاعر الرسالة (Sentiment Analysis) - اختياري
         try {
-            sentimentResult = await sentimentAnalyzer.analyzeSentiment(
+            const sentimentResult = await sentimentAnalyzer.analyzeSentiment(
                 message,
                 userId,
                 sessionId
@@ -206,55 +187,17 @@ export async function sendMessage(
             console.error("Sentiment analysis failed:", sentError);
         }
 
-        // 6. إرسال الرسالة
-        let result = await withTimeout(
-            chat.sendMessage(message),
+        // 6. إرسال الرسالة إلى Groq (سريع جداً!)
+        let responseText = await withTimeout(
+            groqClient.chat(groqMessages, {
+                temperature: 0.7,
+                maxTokens: 1024
+            }),
             AI_TIMEOUT_MS,
             "انتهت مهلة الاتصال"
         );
 
-        let response = result.response;
-        let responseText = response.text();
-
-        // 6. التحقق من طلب أداة (Function Call)
-        const functionCall = response.candidates?.[0]?.content?.parts?.find(
-            (part: any) => part.functionCall
-        );
-
-        if (functionCall?.functionCall) {
-            const { name, args } = functionCall.functionCall;
-            console.log(`🔧 AI calling tool: ${name}`, args);
-
-            // تنفيذ الأداة
-            const toolResult = await aiToolsExecutor.executeTool(name, args);
-            console.log(`✓ Tool result:`, toolResult);
-
-            // إرسال النتيجة للـ AI
-            const toolResponse = await chat.sendMessage([
-                {
-                    functionResponse: {
-                        name,
-                        response: toolResult,
-                    },
-                },
-            ]);
-
-            responseText = toolResponse.response.text();
-        }
-
-        // 7. تعديل الرد بناءً على المشاعر (Sentiment Adjustment)
-        if (sentimentResult && !isAdmin) {
-            try {
-                responseText = await sentimentAnalyzer.adjustResponseForSentiment(
-                    responseText,
-                    sentimentResult
-                );
-            } catch (adjustError) {
-                console.error("Failed to adjust response for sentiment:", adjustError);
-            }
-        }
-
-        // 8. حفظ المحادثة في قاعدة البيانات
+        // 7. حفظ المحادثة في قاعدة البيانات
         if (db) {
             const conversationId = sessionId || `conv_${Date.now()}`;
 
@@ -306,11 +249,11 @@ export async function sendMessage(
 
             if (isApiKeyError) {
                 // Try to switch to next API key
-                console.log("🔄 Attempting to switch to next API key...");
-                geminiClient.markCurrentKeyFailed(error);
+                console.log("🔄 Attempting to switch to next Groq API key...");
+                groqClient.markCurrentKeyFailed(error);
 
                 // Check if we have more keys to try
-                const keyCount = geminiClient.getKeyCount();
+                const keyCount = groqClient.getKeyCount();
                 if (keyCount > 1) {
                     throw new Error("حدث خطأ مؤقت، يرجى المحاولة مرة أخرى");
                 }
@@ -369,11 +312,8 @@ export async function recommendProductsForJourney(
     availableProducts: any[]
 ): Promise<any[]> {
     try {
-        const jsonModel = geminiClient.getModel("gemini-2.5-flash", {
-            generationConfig: { responseMimeType: "application/json" }
-        });
-        if (!jsonModel) {
-            throw new Error("No Gemini API keys configured");
+        if (!groqClient.hasKeys()) {
+            throw new Error("No Groq API keys configured");
         }
 
         const productsCatalog = availableProducts.slice(0, 50).map(p => ({
@@ -389,16 +329,24 @@ ${JSON.stringify(wizardData, null, 2)}
 Select 5-6 essential products from:
 ${JSON.stringify(productsCatalog)}
 
-Return JSON array:
+Return ONLY a JSON array with no extra text:
 [{"productId": "id", "reason": "سبب قصير بالعربي"}]`;
 
         const result = await withTimeout(
-            jsonModel.generateContent(prompt),
+            groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.3,
+                maxTokens: 1024
+            }),
             AI_TIMEOUT_MS,
             "Timeout"
         );
 
-        return JSON.parse(result.response.text());
+        // Parse JSON from response
+        const jsonMatch = result.match(/\[[\s\S]*\]/);
+        if (jsonMatch) {
+            return JSON.parse(jsonMatch[0]);
+        }
+        return [];
     } catch (error) {
         console.error("AI Recommendation Error:", error);
         return [];
