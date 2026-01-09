@@ -1,5 +1,5 @@
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products } from "../../shared/schema.js";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, gte } from "drizzle-orm";
 import { getDb } from "../db.js";
 
 export class OrderStorage {
