@@ -117,6 +117,108 @@ export function OnboardingTour() {
                 },
             ];
         }
+        // 3. CALCULATORS PAGE STEPS
+        else if (path === '/calculators') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h2 className="text-xl font-bold mb-2">حاسبات الأحواض 🧮</h2>
+                            <p>أدوات ذكية لحساب كل ما تحتاجه لحوضك!</p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    disableBeacon: true,
+                },
+                {
+                    target: '[data-tour="calculators-tabs"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">اختر نوع الحساب 📊</h3>
+                            <p>حجم الحوض، الفلتر، السخان، والمزيد من الأدوات المفيدة.</p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="calculators-content"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">أدخل البيانات ✍️</h3>
+                            <p>أدخل قياسات حوضك وستحصل على النتيجة فوراً!</p>
+                        </div>
+                    ),
+                },
+            ];
+        }
+        // 4. FISH ENCYCLOPEDIA PAGE STEPS
+        else if (path === '/fish-encyclopedia') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h2 className="text-xl font-bold mb-2">موسوعة الأسماك 🐠</h2>
+                            <p>تعرف على أنواع الأسماك ومتطلبات كل نوع.</p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    disableBeacon: true,
+                },
+                {
+                    target: '[data-tour="encyclopedia-search"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">ابحث عن سمكة 🔍</h3>
+                            <p>اكتب اسم السمكة التي تريد معرفة معلومات عنها.</p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="encyclopedia-filters"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">فلترة النتائج ⚡</h3>
+                            <p>صنّف الأسماك حسب الحجم، درجة الحرارة، أو مستوى العناية.</p>
+                        </div>
+                    ),
+                },
+            ];
+        }
+        // 5. FISH HEALTH PAGE STEPS
+        else if (path === '/fish-health-diagnosis') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h2 className="text-xl font-bold mb-2">تشخيص صحة السمكة 🩺</h2>
+                            <p>ارفع صورة سمكتك لتشخيص حالتها الصحية بالذكاء الاصطناعي!</p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    disableBeacon: true,
+                },
+                {
+                    target: '[data-tour="health-upload"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">ارفع صورة سمكتك 📷</h3>
+                            <p>التقط صورة واضحة للسمكة ثم ارفعها هنا.</p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="health-results"]',
+                    content: (
+                        <div className="text-right" dir="rtl">
+                            <h3 className="font-bold mb-2">نتيجة التشخيص 📋</h3>
+                            <p>ستظهر هنا حالة السمكة والتوصيات العلاجية.</p>
+                        </div>
+                    ),
+                },
+            ];
+        }
 
         setSteps(pageSteps);
 

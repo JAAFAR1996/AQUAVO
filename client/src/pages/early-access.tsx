@@ -453,14 +453,14 @@ export default function EarlyAccessPage() {
                                                 {/* Send to Shrimp Button */}
                                                 <motion.a
                                                     href={`https://wa.me/9647726090012?text=${encodeURIComponent(
-                                                        `🦐 مرحباً أيها الشرمب الحارس!\n\n` +
-                                                        `أنا من أوائل المسجلين في AQUAVO! 🎉\n\n` +
+                                                        `\u{1F990} مرحباً أيها الشرمب الحارس!\n\n` +
+                                                        `أنا من أوائل المسجلين في AQUAVO! \u{1F389}\n\n` +
                                                         `━━━━━━━━━━━━━━━━━━\n` +
-                                                        `🎁 كود الخصم الخاص بي:\n` +
-                                                        `✨ ${couponCode} ✨\n` +
+                                                        `\u{1F381} كود الخصم الخاص بي:\n` +
+                                                        `\u{2728} ${couponCode} \u{2728}\n` +
                                                         `━━━━━━━━━━━━━━━━━━\n\n` +
-                                                        `💰 خصم 20% على طلبي الأول!\n\n` +
-                                                        `أرجو أن تحفظ هذا الكود لي يا شرمب! 🔐`
+                                                        `\u{1F4B0} خصم 20% على طلبي الأول!\n\n` +
+                                                        `أرجو أن تحفظ هذا الكود لي يا شرمب! \u{1F510}`
                                                     )}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
