@@ -1,4 +1,4 @@
-import { geminiClient } from "./gemini-client.js";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import { sentimentHistory, type InsertSentimentHistory } from "../../shared/schema.js";
 import { eq, desc, and, gte } from "drizzle-orm";
@@ -20,13 +20,6 @@ export interface SentimentResult {
  * يحلل مشاعر المستخدمين في المحادثات ويعدل استجابات AI وفقاً لها
  */
 export class SentimentAnalyzer {
-  private getModel() {
-    const model = geminiClient.getModel("gemini-1.5-flash");
-    if (!model) {
-      throw new Error("No Gemini API keys configured");
-    }
-    return model;
-  }
 
   /**
    * تحليل مشاعر رسالة
@@ -40,6 +33,10 @@ export class SentimentAnalyzer {
     sessionId?: string
   ): Promise<SentimentResult> {
     try {
+      if (!groqClient.hasKeys()) {
+        return this.basicSentimentAnalysis(message);
+      }
+
       const prompt = `أنت محلل مشاعر خبير. قم بتحليل المشاعر في النص التالي وحدد:
 1. المشاعر العامة (positive/neutral/negative)
 2. درجة المشاعر من -1 (سلبي جداً) إلى 1 (إيجابي جداً)
@@ -55,7 +52,7 @@ export class SentimentAnalyzer {
 ${message}
 """
 
-قدم الإجابة بصيغة JSON:
+قدم الإجابة بصيغة JSON فقط:
 {
   "sentiment": "positive/neutral/negative",
   "score": 0.5,
@@ -68,25 +65,32 @@ ${message}
   }
 }`;
 
-      const result = await this.getModel().generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const responseText = await groqClient.chat([{ role: "user", content: prompt }], {
+        temperature: 0.2, // Low temperature for consistent JSON
+        maxTokens: 512,
+        model: "llama-3.1-8b-instant" // Use smaller model for sentiment
+      });
 
       // Parse JSON response
-      const sentimentData = this.parseSentimentResponse(text);
+      const sentimentData = this.parseSentimentResponse(responseText);
 
       // Save to history if userId or sessionId provided
       if (userId || sessionId) {
+        const indicatorsArray = [
+          ...(sentimentData.indicators.keywords || []),
+          `Tone: ${sentimentData.indicators.tone}`,
+          `Urgency: ${sentimentData.indicators.urgency}`
+        ];
+
         await this.saveSentimentHistory({
           userId,
           sessionId,
           message,
           sentiment: sentimentData.sentiment,
-          score: sentimentData.score,
-          confidence: sentimentData.confidence,
-          emotions: sentimentData.emotions,
-          indicators: sentimentData.indicators,
-        });
+          score: sentimentData.score.toString(),
+          confidence: sentimentData.confidence.toString(),
+          indicators: indicatorsArray,
+        } as InsertSentimentHistory);
       }
 
       return sentimentData;
@@ -202,6 +206,10 @@ ${message}
   ): Promise<string> {
     // If sentiment is very negative, add empathetic tone
     if (sentiment.score < -0.5) {
+      if (!groqClient.hasKeys()) {
+        return `أتفهم إحباطك، وأنا هنا لمساعدتك. ${response}`;
+      }
+
       const empathyPrompt = `أضف نبرة متعاطفة ومواساة للرد التالي، مع الحفاظ على المحتوى الأساسي:
 
 الرد الأصلي:
@@ -212,9 +220,11 @@ ${response}
 قدم رداً معدلاً يُظهر التعاطف والفهم لإحباط المستخدم، مع تقديم نفس المعلومات بطريقة أكثر دعماً.`;
 
       try {
-        const result = await this.getModel().generateContent(empathyPrompt);
-        const adjustedResponse = await result.response;
-        return adjustedResponse.text();
+        const adjustedResponse = await groqClient.chat([{ role: "user", content: empathyPrompt }], {
+          temperature: 0.7,
+          maxTokens: 512
+        });
+        return adjustedResponse;
       } catch (error) {
         console.error("Failed to adjust response:", error);
         // Fallback: add simple empathy prefix
@@ -240,6 +250,7 @@ ${response}
    * حفظ سجل المشاعر
    */
   private async saveSentimentHistory(data: InsertSentimentHistory) {
+    if (!db) return;
     try {
       await db.insert(sentimentHistory).values(data);
     } catch (error) {
@@ -251,6 +262,8 @@ ${response}
    * الحصول على سجل المشاعر للمستخدم
    */
   async getUserSentimentHistory(userId: string, limit: number = 20) {
+    if (!db) return [];
+
     return db
       .select()
       .from(sentimentHistory)
@@ -265,6 +278,15 @@ ${response}
   async getUserAverageSentiment(userId: string, days: number = 30) {
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - days);
+
+    if (!db) {
+      return {
+        averageScore: 0,
+        totalMessages: 0,
+        sentimentBreakdown: { positive: 0, neutral: 0, negative: 0 },
+        trend: "stable" as const,
+      };
+    }
 
     const history = await db
       .select()
@@ -290,7 +312,7 @@ ${response}
     }
 
     const averageScore =
-      history.reduce((sum, item) => sum + item.score, 0) / history.length;
+      history.reduce((sum, item) => sum + parseFloat(item.score as unknown as string), 0) / history.length;
 
     const sentimentBreakdown = {
       positive: history.filter((h) => h.sentiment === "positive").length,
@@ -304,9 +326,9 @@ ${response}
     const secondHalf = history.slice(midpoint);
 
     const firstHalfAvg =
-      firstHalf.reduce((sum, item) => sum + item.score, 0) / firstHalf.length;
+      firstHalf.reduce((sum, item) => sum + parseFloat(item.score as unknown as string), 0) / firstHalf.length;
     const secondHalfAvg =
-      secondHalf.reduce((sum, item) => sum + item.score, 0) /
+      secondHalf.reduce((sum, item) => sum + parseFloat(item.score as unknown as string), 0) /
       secondHalf.length;
 
     let trend: "improving" | "stable" | "declining" = "stable";
@@ -348,6 +370,8 @@ ${response}
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - days);
 
+    if (!db) return [];
+
     const allHistory = await db
       .select()
       .from(sentimentHistory)
@@ -369,7 +393,8 @@ ${response}
         };
       }
 
-      userSentiments[item.userId].scores.push(item.score);
+      const score = parseFloat(item.score as unknown as string);
+      userSentiments[item.userId].scores.push(score);
     });
 
     // Calculate average and find frustrated users

@@ -1,4 +1,4 @@
-import { geminiClient } from "./gemini-client.js";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     aquariumDesigns,
@@ -12,13 +12,6 @@ import { eq, desc, sql } from "drizzle-orm";
  * مساعد افتراضي لتصميم أحواض الأسماك
  */
 export class AquariumAdvisor {
-    private getModel() {
-        const model = geminiClient.getModel("gemini-2.0-flash");
-        if (!model) {
-            throw new Error("No Gemini API keys configured");
-        }
-        return model;
-    }
 
     /**
      * إنشاء تصميم حوض جديد
@@ -47,6 +40,10 @@ export class AquariumAdvisor {
         estimatedCost: number;
     }> {
         try {
+            if (!groqClient.hasKeys()) {
+                throw new Error("No Groq API keys configured");
+            }
+
             const prompt = `
 أنت خبير أحواض أسماك وتساعد في تصميم حوض مثالي.
 
@@ -64,7 +61,7 @@ export class AquariumAdvisor {
 4. الديكورات
 5. نصائح للعناية
 
-أجب بصيغة JSON:
+أجب بصيغة JSON فقط:
 {
   "fish": [{"name": "...", "quantity": 0, "reason": "..."}],
   "plants": [{"name": "...", "reason": "..."}],
@@ -75,8 +72,11 @@ export class AquariumAdvisor {
 }
 `;
 
-            const result = await this.getModel().generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.4,
+                maxTokens: 1024,
+                model: "llama-3.1-8b-instant"
+            });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -91,20 +91,23 @@ export class AquariumAdvisor {
                 .values({
                     userId: params.userId,
                     name: params.name,
-                    tankSize: params.tankSize,
+                    tankSize: params.tankSize.toString(),
                     tankType: params.tankType,
-                    fish: parsed.fish,
-                    plants: parsed.plants,
-                    equipment: parsed.equipment,
-                    decorations: parsed.decorations,
+                    // Use 'any' cast because AI returns simple objects {name, quantity} 
+                    // while schema expects {id, quantity} which we don't have yet.
+                    selectedFish: parsed.fish as any,
+                    // Schema has selectedDecor but parsed has decorations
+                    selectedDecor: parsed.decorations as any,
+                    selectedEquipment: parsed.equipment as any,
+                    budget: params.budget?.toString(),
                     estimatedCost: parsed.estimatedCost?.toString(),
-                    aiSuggestions: {
-                        tips: parsed.tips,
-                        generatedAt: new Date().toISOString(),
-                    },
+                    // Store tips in aiWarnings as it is a string[] column
+                    aiWarnings: parsed.tips,
+                    // store plants in aiNotes as JSON string since we don't have a column
+                    aiNotes: JSON.stringify({ plants: parsed.plants, generatedAt: new Date().toISOString() }),
                     status: "draft",
                     createdAt: new Date(),
-                })
+                } as any)
                 .returning({ id: aquariumDesigns.id });
 
             return {
@@ -138,6 +141,16 @@ export class AquariumAdvisor {
         tips: string[];
     }> {
         try {
+            if (!groqClient.hasKeys()) {
+                return {
+                    compatible: true,
+                    score: 50,
+                    reason: "Service unavailable",
+                    warnings: [],
+                    tips: []
+                };
+            }
+
             const prompt = `
 أنت خبير في توافق الأسماك.
 
@@ -146,7 +159,7 @@ export class AquariumAdvisor {
 
 حدد مدى توافقهما للعيش معاً في نفس الحوض.
 
-أجب بصيغة JSON:
+أجب بصيغة JSON فقط:
 {
   "compatible": true/false,
   "score": 0-100,
@@ -156,8 +169,11 @@ export class AquariumAdvisor {
 }
 `;
 
-            const result = await this.getModel().generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.2,
+                maxTokens: 512,
+                model: "llama-3.1-8b-instant"
+            });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -186,6 +202,8 @@ export class AquariumAdvisor {
         unavailableItems: string[];
     }> {
         try {
+            if (!db) throw new Error("Database not initialized");
+
             // Get design
             const design = await db
                 .select()
@@ -208,9 +226,9 @@ export class AquariumAdvisor {
             const unavailableItems: string[] = [];
             let totalEstimate = 0;
 
-            // Process fish
-            const fish = d.fish as Array<{ name: string; quantity: number }>;
-            for (const f of fish || []) {
+            // Process fish - cast to any because we stored custom object
+            const fish = (d.selectedFish as any) as Array<{ name: string; quantity: number }> || [];
+            for (const f of fish) {
                 const product = await this.findMatchingProduct(f.name, "fish");
                 if (product) {
                     items.push({
@@ -231,9 +249,20 @@ export class AquariumAdvisor {
                 }
             }
 
-            // Process plants
-            const plants = d.plants as Array<{ name: string }>;
-            for (const p of plants || []) {
+            // Process plants - extract from aiNotes
+            let plants: Array<{ name: string }> = [];
+            try {
+                if (d.aiNotes) {
+                    const notes = JSON.parse(d.aiNotes);
+                    if (notes && notes.plants) {
+                        plants = notes.plants;
+                    }
+                }
+            } catch (e) {
+                // ignore parse error
+            }
+
+            for (const p of plants) {
                 const product = await this.findMatchingProduct(p.name, "plants");
                 if (product) {
                     items.push({
@@ -255,8 +284,8 @@ export class AquariumAdvisor {
             }
 
             // Process equipment
-            const equipment = d.equipment as Array<{ name: string }>;
-            for (const e of equipment || []) {
+            const equipment = (d.selectedEquipment as any) as Array<{ name: string }> || [];
+            for (const e of equipment) {
                 const product = await this.findMatchingProduct(e.name, "equipment");
                 if (product) {
                     items.push({
@@ -296,6 +325,8 @@ export class AquariumAdvisor {
         _category: string
     ): Promise<{ id: string; price: string } | null> {
         try {
+            if (!db) return null;
+
             // Simple text search
             const matchingProducts = await db
                 .select({
@@ -322,15 +353,24 @@ export class AquariumAdvisor {
         Array<{
             id: string;
             name: string;
-            tankSize: number;
-            tankType: string;
-            status: string;
+            tankSize: string;
+            tankType: string | null;
+            status: string | null;
             createdAt: Date;
         }>
     > {
         try {
+            if (!db) throw new Error("Database not initialized");
+
             return await db
-                .select()
+                .select({
+                    id: aquariumDesigns.id,
+                    name: aquariumDesigns.name,
+                    tankSize: aquariumDesigns.tankSize,
+                    tankType: aquariumDesigns.tankType,
+                    status: aquariumDesigns.status,
+                    createdAt: aquariumDesigns.createdAt
+                })
                 .from(aquariumDesigns)
                 .where(eq(aquariumDesigns.userId, userId))
                 .orderBy(desc(aquariumDesigns.createdAt));
@@ -346,24 +386,52 @@ export class AquariumAdvisor {
     async getDesign(designId: string): Promise<{
         id: string;
         name: string;
-        tankSize: number;
-        tankType: string;
+        tankSize: string;
+        tankType: string | null;
         fish: unknown;
         plants: unknown;
         equipment: unknown;
         decorations: unknown;
         estimatedCost: string | null;
         aiSuggestions: unknown;
-        status: string;
+        status: string | null;
     } | null> {
         try {
+            if (!db) throw new Error("Database not initialized");
+
             const designs = await db
                 .select()
                 .from(aquariumDesigns)
                 .where(eq(aquariumDesigns.id, designId))
                 .limit(1);
 
-            return designs[0] || null;
+            const d = designs[0];
+            if (!d) return null;
+
+            let plants = null;
+            try {
+                if (d.aiNotes) {
+                    const notes = JSON.parse(d.aiNotes);
+                    if (notes) plants = notes.plants;
+                }
+            } catch (e) { }
+
+            return {
+                id: d.id,
+                name: d.name,
+                tankSize: d.tankSize,
+                tankType: d.tankType,
+                fish: d.selectedFish,
+                plants: plants,
+                equipment: d.selectedEquipment,
+                decorations: d.selectedDecor,
+                estimatedCost: d.estimatedCost,
+                aiSuggestions: {
+                    tips: d.aiWarnings, // We stored tips in aiWarnings
+                    plants: plants
+                },
+                status: d.status,
+            };
         } catch (error) {
             console.error("Error getting design:", error);
             throw error;

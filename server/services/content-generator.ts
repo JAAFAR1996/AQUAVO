@@ -1,4 +1,4 @@
-import { geminiClient } from "./gemini-client.js";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     generatedContent,
@@ -12,13 +12,6 @@ import { eq, desc } from "drizzle-orm";
  * يولد محتوى تسويقي باستخدام الذكاء الاصطناعي
  */
 export class ContentGenerator {
-    private getModel() {
-        const model = geminiClient.getModel("gemini-2.0-flash");
-        if (!model) {
-            throw new Error("No Gemini API keys configured");
-        }
-        return model;
-    }
 
     /**
      * توليد وصف منتج
@@ -33,6 +26,11 @@ export class ContentGenerator {
         };
     }> {
         try {
+            if (!db) throw new Error("Database not initialized");
+            if (!groqClient.hasKeys()) {
+                throw new Error("No Groq API keys configured");
+            }
+
             // Get product info
             const product = await db
                 .select()
@@ -63,7 +61,7 @@ export class ContentGenerator {
 4. وصف SEO (155 حرف كحد أقصى)
 5. كلمات مفتاحية (5-8 كلمات)
 
-أجب بصيغة JSON:
+أجب بصيغة JSON فقط:
 {
   "shortDescription": "...",
   "longDescription": "...",
@@ -73,8 +71,11 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.getModel().generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.7,
+                maxTokens: 1024,
+                model: "llama-3.1-8b-instant"
+            });
 
             // Parse JSON response
             const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -86,17 +87,17 @@ export class ContentGenerator {
 
             // Save generated content
             await this.saveContent({
-                contentType: "product_description",
-                targetId: productId,
-                content: {
+                contentType: "description", // Matched to schema enum
+                productId: productId,
+                generatedText: parsed.shortDescription,
+                prompt: "Product Description Generation",
+                metadata: {
                     shortDescription: parsed.shortDescription,
                     longDescription: parsed.longDescription,
-                },
-                metadata: {
                     seoTitle: parsed.seoTitle,
                     seoDescription: parsed.seoDescription,
                     keywords: parsed.keywords,
-                },
+                } as any,
                 status: "draft",
             });
 
@@ -127,6 +128,11 @@ export class ContentGenerator {
         callToAction: string;
     }> {
         try {
+            if (!db) throw new Error("Database not initialized");
+            if (!groqClient.hasKeys()) {
+                throw new Error("No Groq API keys configured");
+            }
+
             const product = await db
                 .select()
                 .from(products)
@@ -149,7 +155,7 @@ export class ContentGenerator {
 أنت خبير سوشيال ميديا لمتجر أحواض الأسماك AQUAVO.
 
 المنتج: ${p.name}
-السعر: ${p.price} دينار عراقي
+السمكة: ${p.price} دينار عراقي
 المنصة: ${platform}
 الحد الأقصى للحروف: ${platformLimits[platform]}
 
@@ -158,7 +164,7 @@ export class ContentGenerator {
 2. 5-7 هاشتاقات عربية وإنجليزية
 3. Call to Action قوي
 
-أجب بصيغة JSON:
+أجب بصيغة JSON فقط:
 {
   "text": "...",
   "hashtags": ["...", "..."],
@@ -166,8 +172,11 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.getModel().generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.8,
+                maxTokens: 1024,
+                model: "llama-3.1-8b-instant"
+            });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -178,15 +187,13 @@ export class ContentGenerator {
 
             await this.saveContent({
                 contentType: "social_post",
-                targetId: productId,
-                content: {
-                    text: parsed.text,
-                    platform,
-                },
+                productId: productId,
+                generatedText: parsed.text,
                 metadata: {
                     hashtags: parsed.hashtags,
                     callToAction: parsed.callToAction,
-                },
+                    platform,
+                } as any,
                 status: "draft",
             });
 
@@ -210,6 +217,11 @@ export class ContentGenerator {
         ctaText: string;
     }> {
         try {
+            if (!db) throw new Error("Database not initialized");
+            if (!groqClient.hasKeys()) {
+                throw new Error("No Groq API keys configured");
+            }
+
             const typePrompts = {
                 welcome: "بريد ترحيبي للعميل الجديد",
                 promotional: "عرض ترويجي جذاب",
@@ -229,7 +241,7 @@ export class ContentGenerator {
 3. نص البريد: واضح ومقنع
 4. نص زر CTA: قوي ومحفز
 
-أجب بصيغة JSON:
+أجب بصيغة JSON فقط:
 {
   "subject": "...",
   "preheader": "...",
@@ -238,8 +250,11 @@ export class ContentGenerator {
 }
 `;
 
-            const result = await this.getModel().generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+                temperature: 0.7,
+                maxTokens: 1024,
+                model: "llama-3.1-8b-instant"
+            });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -250,11 +265,14 @@ export class ContentGenerator {
 
             await this.saveContent({
                 contentType: "email",
-                content: {
+                generatedText: parsed.body,
+                metadata: {
                     type,
-                    ...parsed,
-                },
-                metadata: context,
+                    subject: parsed.subject,
+                    preheader: parsed.preheader,
+                    ctaText: parsed.ctaText,
+                    ...context,
+                } as any,
                 status: "draft",
             });
 
@@ -270,6 +288,7 @@ export class ContentGenerator {
      */
     async saveContent(data: InsertGeneratedContent): Promise<void> {
         try {
+            if (!db) throw new Error("Database not initialized");
             await db.insert(generatedContent).values({
                 ...data,
                 createdAt: new Date(),
@@ -292,11 +311,12 @@ export class ContentGenerator {
             id: string;
             contentType: string;
             content: unknown;
-            status: string;
+            status: string | null;
             createdAt: Date;
         }>
     > {
         try {
+            if (!db) throw new Error("Database not initialized");
             let query = db.select().from(generatedContent);
 
             if (contentType) {
@@ -306,7 +326,20 @@ export class ContentGenerator {
                 query = query.where(eq(generatedContent.status, status)) as typeof query;
             }
 
-            return await query.orderBy(desc(generatedContent.createdAt)).limit(50);
+            // Adjust return type to match what we can actually get
+            const results = await query.orderBy(desc(generatedContent.createdAt)).limit(50);
+
+            return results.map(r => ({
+                id: r.id,
+                contentType: r.contentType,
+                content: {
+                    text: r.generatedText,
+                    metadata: r.metadata
+                },
+                status: r.status,
+                createdAt: r.createdAt
+            }));
+
         } catch (error) {
             console.error("Error getting content:", error);
             throw error;
@@ -321,6 +354,7 @@ export class ContentGenerator {
         status: "draft" | "approved" | "published" | "rejected"
     ): Promise<void> {
         try {
+            if (!db) throw new Error("Database not initialized");
             await db
                 .update(generatedContent)
                 .set({
