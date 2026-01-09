@@ -156,80 +156,52 @@ export default function EarlyAccessPage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-950 via-cyan-950 to-slate-950 overflow-hidden relative">
             {/* Decorative Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {/* Floating bubbles - Speed up when focused */}
-                {[...Array(20)].map((_, i) => (
-                    <motion.div
-                        key={i}
-                        className={`absolute rounded-full ${isInputFocused ? 'bg-cyan-400/20' : 'bg-cyan-400/10'}`}
-                        style={{
-                            width: Math.random() * 100 + 20,
-                            height: Math.random() * 100 + 20,
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                        }}
-                        animate={{
-                            y: isInputFocused ? [0, -1000] : [0, -30, 0], // Rise fast when focused
-                            opacity: isInputFocused ? [0.2, 0] : [0.1, 0.3, 0.1],
-                        }}
-                        transition={{
-                            duration: isInputFocused ? Math.random() * 2 + 1 : Math.random() * 4 + 3,
-                            repeat: Infinity,
-                            delay: Math.random() * 2,
-                            ease: "linear"
-                        }}
-                    />
-                ))}
-
-                {/* Additional Party Bubbles (Only when focused) */}
-                {isInputFocused && [...Array(10)].map((_, i) => (
-                    <motion.div
-                        key={`party-${i}`}
-                        className="absolute rounded-full bg-amber-400/20"
-                        initial={{ bottom: -50, left: `${Math.random() * 100}%`, opacity: 0 }}
-                        animate={{ bottom: '100%', opacity: [0, 1, 0] }}
-                        transition={{
-                            duration: Math.random() * 3 + 2,
-                            repeat: Infinity,
-                            delay: Math.random() * 1,
-                            ease: "easeOut"
-                        }}
-                        style={{
-                            width: Math.random() * 30 + 10,
-                            height: Math.random() * 30 + 10,
-                        }}
-                    />
-                ))}
+                {/* Permanent floating bubbles with CSS animation */}
+                {[...Array(15)].map((_, i) => {
+                    const size = 20 + (i * 8) % 60;
+                    const left = (i * 17) % 100;
+                    const delay = (i * 0.5) % 5;
+                    const duration = 8 + (i % 5);
+                    return (
+                        <div
+                            key={`bubble-${i}`}
+                            className="absolute rounded-full bg-cyan-400/20 animate-bubble"
+                            style={{
+                                width: size,
+                                height: size,
+                                left: `${left}%`,
+                                bottom: -100,
+                                animationDelay: `${delay}s`,
+                                animationDuration: `${duration}s`,
+                            }}
+                        />
+                    );
+                })}
 
                 {/* Gradient orbs */}
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
                 <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl" />
-
-                {/* Celebration Bubbles - Rise on Success */}
-                {showCelebration && [...Array(30)].map((_, i) => (
-                    <motion.div
-                        key={`celebration-bubble-${i}`}
-                        className="absolute rounded-full"
-                        style={{
-                            width: Math.random() * 60 + 20,
-                            height: Math.random() * 60 + 20,
-                            left: `${Math.random() * 100}%`,
-                            background: ['#06b6d4', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6', '#22d3ee'][i % 6],
-                            opacity: 0.3,
-                        }}
-                        initial={{ bottom: -100, scale: 0 }}
-                        animate={{
-                            bottom: '120%',
-                            scale: [0, 1.2, 1],
-                            opacity: [0.3, 0.6, 0]
-                        }}
-                        transition={{
-                            duration: Math.random() * 3 + 2,
-                            delay: Math.random() * 1.5,
-                            ease: "easeOut"
-                        }}
-                    />
-                ))}
             </div>
+
+            {/* CSS for bubble animation */}
+            <style>{`
+                @keyframes bubble {
+                    0% {
+                        transform: translateY(0) scale(1);
+                        opacity: 0.3;
+                    }
+                    50% {
+                        opacity: 0.5;
+                    }
+                    100% {
+                        transform: translateY(-100vh) scale(1.2);
+                        opacity: 0;
+                    }
+                }
+                .animate-bubble {
+                    animation: bubble linear infinite;
+                }
+            `}</style>
 
             {/* Main Content */}
             <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-12">
@@ -479,14 +451,11 @@ export default function EarlyAccessPage() {
                                                 {/* Send to Shrimp Button */}
                                                 <motion.a
                                                     href={`https://wa.me/9647726090012?text=${encodeURIComponent(
-                                                        `\u{1F990} مرحباً أيها الشرمب الحارس!\n\n` +
-                                                        `أنا من أوائل المسجلين في AQUAVO! \u{1F389}\n\n` +
-                                                        `━━━━━━━━━━━━━━━━━━\n` +
-                                                        `\u{1F381} كود الخصم الخاص بي:\n` +
-                                                        `\u{2728} ${couponCode} \u{2728}\n` +
-                                                        `━━━━━━━━━━━━━━━━━━\n\n` +
-                                                        `\u{1F4B0} خصم 20% على طلبي الأول!\n\n` +
-                                                        `أرجو أن تحفظ هذا الكود لي يا شرمب! \u{1F510}`
+                                                        `مرحبا! انا من اوائل المسجلين في AQUAVO\n\n` +
+                                                        `كود الخصم الخاص بي:\n` +
+                                                        `${couponCode}\n\n` +
+                                                        `خصم 20% على طلبي الاول!\n\n` +
+                                                        `ارجو حفظ هذا الكود لي`
                                                     )}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
