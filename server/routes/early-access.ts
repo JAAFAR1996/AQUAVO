@@ -17,7 +17,7 @@ const router = Router();
 const MAX_SPOTS = 30;
 const INITIAL_DISPLAY_OFFSET = 6; // Start showing 24/30 (30 - 6 = 24)
 const DISCOUNT_PERCENTAGE = 20; // 20% discount
-const MAX_REGISTRATIONS_PER_IP = 2; // Max registrations per IP in 24 hours
+const MAX_REGISTRATIONS_PER_IP = 100; // Increased for launch/testing
 const RATE_LIMIT_HOURS = 24;
 
 // Iraqi phone number regex (07xx-xxx-xxxx format)

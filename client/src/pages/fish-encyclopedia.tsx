@@ -172,7 +172,7 @@ export default function FishEncyclopedia() {
         <section className="py-8 bg-card border-b">
           <div className="container mx-auto px-4">
             {/* Search Bar */}
-            <div className="max-w-2xl mx-auto mb-6">
+            <div className="max-w-2xl mx-auto mb-6" data-tour="encyclopedia-search">
               <div className="relative">
                 <Search className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -197,7 +197,7 @@ export default function FishEncyclopedia() {
 
             {/* Filters */}
             <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-              <div className="flex items-center gap-2 flex-wrap flex-1">
+              <div className="flex items-center gap-2 flex-wrap flex-1" data-tour="encyclopedia-filters">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <SlidersHorizontal className="h-4 w-4" />
                   <span className="font-medium text-sm">تصفية:</span>
@@ -360,7 +360,7 @@ export default function FishEncyclopedia() {
               <Button onClick={clearFilters}>مسح الفلاتر</Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" data-tour="encyclopedia-grid">
               {filteredAndSortedFish.map((fish) => (
                 <FishCard
                   key={fish.id}

@@ -34,7 +34,7 @@ export default function Calculators() {
           </div>
 
           <Tabs defaultValue="tank" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto p-1 gap-1 bg-muted/50 rounded-xl">
+            <TabsList className="grid w-full grid-cols-4 sm:grid-cols-7 h-auto p-1 gap-1 bg-muted/50 rounded-xl" data-tour="calculators-tabs">
               <TabsTrigger value="tank" className="data-[state=active]:bg-card data-[state=active]:shadow-sm py-2 sm:py-3 text-xs sm:text-sm rounded-lg flex flex-col sm:flex-row items-center gap-1">
                 <Box className="h-4 w-4 sm:h-5 sm:w-5 sm:ml-2" />
                 <span className="hidden sm:inline">حجم الحوض</span>
@@ -72,48 +72,50 @@ export default function Calculators() {
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="tank" className="mt-8">
-              <TankSizeCalculator />
-            </TabsContent>
+            <div data-tour="calculators-content">
+              <TabsContent value="tank" className="mt-8">
+                <TankSizeCalculator />
+              </TabsContent>
 
-            <TabsContent value="heater" className="mt-8">
-              <HeaterCalculator />
-            </TabsContent>
-            <TabsContent value="filter" className="mt-8">
-              <FilterCalculator />
-            </TabsContent>
-            <TabsContent value="salt" className="mt-8">
-              <SaltCalculator />
-            </TabsContent>
-            <TabsContent value="maintenance" className="mt-8">
-              <MaintenanceCalculator />
-            </TabsContent>
-            <TabsContent value="water" className="mt-8">
-              <WaterParametersCalculator />
-            </TabsContent>
-            <TabsContent value="breeding" className="mt-8">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-right">حاسبة تكاثر الأسماك</CardTitle>
-                  <CardDescription className="text-right">أداة متقدمة لحساب الجداول الزمنية لتكاثر الأسماك ومراحل نمو الصغار.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6 text-right">
-                  <div className="p-6 bg-primary/5 rounded-xl text-center space-y-4 border border-primary/10">
-                    <Fish className="w-16 h-16 mx-auto text-primary opacity-80" />
-                    <h3 className="text-2xl font-bold text-foreground">حاسبة التكاثر الشاملة</h3>
-                    <p className="text-muted-foreground max-w-lg mx-auto">
-                      احصل على خطة زمنية دقيقة لدورة حياة أسماكك، من التزاوج إلى الفقس ونمو الصغار، مع نصائح التغذية لكل مرحلة وقائمة المستلزمات الضرورية.
-                    </p>
-                    <Link href="/fish-breeding-calculator">
-                      <Button size="lg" className="mt-4 gap-2">
-                        <Fish className="w-5 h-5" />
-                        الذهاب إلى حاسبة التكاثر
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+              <TabsContent value="heater" className="mt-8">
+                <HeaterCalculator />
+              </TabsContent>
+              <TabsContent value="filter" className="mt-8">
+                <FilterCalculator />
+              </TabsContent>
+              <TabsContent value="salt" className="mt-8">
+                <SaltCalculator />
+              </TabsContent>
+              <TabsContent value="maintenance" className="mt-8">
+                <MaintenanceCalculator />
+              </TabsContent>
+              <TabsContent value="water" className="mt-8">
+                <WaterParametersCalculator />
+              </TabsContent>
+              <TabsContent value="breeding" className="mt-8">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-right">حاسبة تكاثر الأسماك</CardTitle>
+                    <CardDescription className="text-right">أداة متقدمة لحساب الجداول الزمنية لتكاثر الأسماك ومراحل نمو الصغار.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6 text-right">
+                    <div className="p-6 bg-primary/5 rounded-xl text-center space-y-4 border border-primary/10">
+                      <Fish className="w-16 h-16 mx-auto text-primary opacity-80" />
+                      <h3 className="text-2xl font-bold text-foreground">حاسبة التكاثر الشاملة</h3>
+                      <p className="text-muted-foreground max-w-lg mx-auto">
+                        احصل على خطة زمنية دقيقة لدورة حياة أسماكك، من التزاوج إلى الفقس ونمو الصغار، مع نصائح التغذية لكل مرحلة وقائمة المستلزمات الضرورية.
+                      </p>
+                      <Link href="/fish-breeding-calculator">
+                        <Button size="lg" className="mt-4 gap-2">
+                          <Fish className="w-5 h-5" />
+                          الذهاب إلى حاسبة التكاثر
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
           </Tabs>
         </div>
       </main>

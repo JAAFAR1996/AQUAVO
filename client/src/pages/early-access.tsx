@@ -8,6 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import confetti from 'canvas-confetti';
 import {
     Fish,
     Sparkles,
@@ -82,6 +83,21 @@ export default function EarlyAccessPage() {
                 if (data.couponCode) {
                     setCouponCode(data.couponCode);
                 }
+                
+                // Fire Confetti!
+                const duration = 3000;
+                const animationEnd = Date.now() + duration;
+                const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+                const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+                const interval: any = setInterval(function () {
+                    const timeLeft = animationEnd - Date.now();
+                    if (timeLeft <= 0) return clearInterval(interval);
+                    const particleCount = 50 * (timeLeft / duration);
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                    confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+                }, 250);
+
             } else {
                 toast({
                     title: 'خطأ',
@@ -91,9 +107,25 @@ export default function EarlyAccessPage() {
             }
         },
         onError: (error: any) => {
+            let message = error?.message || 'حدث خطأ في الاتصال بالخادم';
+
+            // Allow parsing "400: {...}" format from apiRequest
+            try {
+                // Remove status code prefix "XXX: "
+                const jsonPart = message.replace(/^\d+:\s*/, '');
+                if (jsonPart.startsWith('{')) {
+                    const parsed = JSON.parse(jsonPart);
+                    if (parsed.message) message = parsed.message;
+                } else {
+                    message = jsonPart; // Use cleaned text if not JSON
+                }
+            } catch (e) {
+                // Keep original message if parsing fails
+            }
+
             toast({
                 title: 'خطأ',
-                description: error?.message || 'حدث خطأ في الاتصال بالخادم',
+                description: message,
                 variant: 'destructive',
             });
         },
@@ -123,10 +155,59 @@ export default function EarlyAccessPage() {
             {/* Decorative Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {/* Floating bubbles */}
-                {[...Array(15)].map((_, i) => (
+import confetti from 'canvas-confetti';
+
+// ... imports
+
+export default function EarlyAccessPage() {
+    // ... state
+    const [isInputFocused, setIsInputFocused] = useState(false);
+
+    // ... hooks
+
+    // Confetti Effect
+    const fireConfetti = () => {
+        const duration = 3000;
+        const animationEnd = Date.now() + duration;
+        const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+        const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+        const interval: any = setInterval(function () {
+            const timeLeft = animationEnd - Date.now();
+
+            if (timeLeft <= 0) {
+                return clearInterval(interval);
+            }
+
+            const particleCount = 50 * (timeLeft / duration);
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+            confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+        }, 250);
+    };
+
+    // ... submit mutation
+        onSuccess: (data) => {
+            if (data.success) {
+                setIsSubmitted(true);
+                setSpotsRemaining(data.spotsRemaining);
+                if (data.couponCode) {
+                    setCouponCode(data.couponCode);
+                }
+                fireConfetti(); // Trigger celebration!
+            }
+            // ...
+        },
+
+    // ... JSX
+
+            {/* Decorative Elements */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                {/* Floating bubbles - Speed up when focused */}
+                {[...Array(20)].map((_, i) => (
                     <motion.div
                         key={i}
-                        className="absolute rounded-full bg-cyan-400/10"
+                        className={`absolute rounded-full ${isInputFocused ? 'bg-cyan-400/20' : 'bg-cyan-400/10'}`}
                         style={{
                             width: Math.random() * 100 + 20,
                             height: Math.random() * 100 + 20,
@@ -134,16 +215,39 @@ export default function EarlyAccessPage() {
                             top: `${Math.random() * 100}%`,
                         }}
                         animate={{
-                            y: [0, -30, 0],
-                            opacity: [0.1, 0.3, 0.1],
+                            y: isInputFocused ? [0, -1000] : [0, -30, 0], // Rise fast when focused
+                            opacity: isInputFocused ? [0.2, 0] : [0.1, 0.3, 0.1],
                         }}
                         transition={{
-                            duration: Math.random() * 4 + 3,
+                            duration: isInputFocused ? Math.random() * 2 + 1 : Math.random() * 4 + 3,
                             repeat: Infinity,
                             delay: Math.random() * 2,
+                            ease: "linear"
                         }}
                     />
                 ))}
+                
+                {/* Additional Party Bubbles (Only when focused) */}
+                {isInputFocused && [...Array(10)].map((_, i) => (
+                    <motion.div
+                        key={`party-${i}`}
+                        className="absolute rounded-full bg-amber-400/20"
+                        initial={{ bottom: -50, left: `${Math.random() * 100}%`, opacity: 0 }}
+                        animate={{ bottom: '100%', opacity: [0, 1, 0] }}
+                        transition={{
+                            duration: Math.random() * 3 + 2,
+                            repeat: Infinity,
+                            delay: Math.random() * 1,
+                            ease: "easeOut"
+                        }}
+                        style={{
+                            width: Math.random() * 30 + 10,
+                            height: Math.random() * 30 + 10,
+                        }}
+                    />
+                ))}
+
+                {/* Gradient orbs */}
 
                 {/* Gradient orbs */}
                 <div className="absolute -top-40 -right-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
@@ -272,6 +376,8 @@ export default function EarlyAccessPage() {
                                                 type="tel"
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value)}
+                                                onFocus={() => setIsInputFocused(true)}
+                                                onBlur={() => setIsInputFocused(false)}
                                                 placeholder="رقم الواتساب (مثال: 07701234567)"
                                                 className="w-full bg-slate-800/80 border border-slate-700 text-white placeholder:text-slate-500 rounded-xl py-4 pr-12 pl-4 text-lg focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all"
                                                 dir="ltr"

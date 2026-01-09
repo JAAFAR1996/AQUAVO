@@ -31,6 +31,11 @@ export const users = pgTable("users", {
   loyaltyPoints: integer("loyalty_points").default(0),
   loyaltyTier: text("loyalty_tier").default("bronze"),
   cashbackBalance: integer("cashback_balance").default(0),
+  preferences: jsonb("preferences").$type<{
+    tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
+    theme?: "light" | "dark" | "system";
+    notifications?: boolean;
+  }>(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),

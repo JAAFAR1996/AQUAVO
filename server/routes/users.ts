@@ -194,6 +194,47 @@ export function createUserRouter(): RouterType {
         }
     });
 
+    // Update User Preferences
+    router.patch("/user/preferences", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const sess = getSession(req);
+            if (!sess?.userId) {
+                res.sendStatus(401);
+                return;
+            }
+
+            const { preferences } = req.body;
+            if (!preferences) {
+                res.status(400).json({ message: "Preferences object is required" });
+                return;
+            }
+
+            const user = await storage.getUser(sess.userId);
+            if (!user) {
+                res.status(404).json({ message: "User not found" });
+                return;
+            }
+
+            // Deep merge or simple merge? users schema defines preferences as jsonb.
+            // We'll treat the incoming 'preferences' as a partial update to the existing object.
+            const currentPreferences = user.preferences as Record<string, any> || {};
+            const updatedPreferences = {
+                ...currentPreferences,
+                ...preferences,
+                // If specific sub-objects like tourSeen need deep merge, handle it:
+                tourSeen: {
+                    ...(currentPreferences.tourSeen || {}),
+                    ...(preferences.tourSeen || {})
+                }
+            };
+
+            const updatedUser = await storage.updateUser(sess.userId, { preferences: updatedPreferences });
+            res.json(updatedUser);
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Forgot Password
     router.post("/auth/forgot-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {

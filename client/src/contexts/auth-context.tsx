@@ -11,6 +11,10 @@ interface User {
   loyaltyPoints?: number;
   loyaltyTier?: string;
   createdAt?: string;
+  preferences?: {
+    tourSeen?: Record<string, boolean>;
+    [key: string]: any;
+  };
 }
 
 interface AuthContextType {
