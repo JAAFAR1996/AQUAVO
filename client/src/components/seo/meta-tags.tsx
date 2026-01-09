@@ -259,15 +259,15 @@ export function OrganizationSchema() {
         description: "أفضل منصة لمعدات وتقنيات أحواض الأسماك في العراق",
         contactPoint: {
             "@type": "ContactPoint",
-            telephone: "+964-770-000-0000",
+            telephone: "+964-772-609-0012",
             contactType: "customer service",
             availableLanguage: ["Arabic", "English"],
             areaServed: "IQ",
         },
         sameAs: [
-            "https://facebook.com/aquavoiq",
-            "https://instagram.com/aquavoiq",
-            "https://twitter.com/aquavoiq",
+            "https://www.facebook.com/profile.php?id=61586032750706",
+            "https://instagram.com/aquavo.iq",
+            "https://www.tiktok.com/@aquavo.iq",
         ],
         address: {
             "@type": "PostalAddress",
@@ -295,7 +295,7 @@ export function LocalBusinessSchema() {
         image: "https://aquavo.iq/logo_aquavo.png",
         "@id": "https://aquavo.iq",
         url: "https://aquavo.iq",
-        telephone: "+964-770-000-0000",
+        telephone: "+964-772-609-0012",
         priceRange: "$$",
         address: {
             "@type": "PostalAddress",

@@ -116,6 +116,7 @@ export default function Home() {
                   size="lg"
                   className="rounded-full bg-primary text-black hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all hover:scale-105 active:scale-95"
                   onClick={() => setLocation("/products")}
+                  data-tour="hero-cta"
                 >
                   تسوق الآن <ArrowRight className="mr-2 w-5 h-5 rotate-180" />
                 </Button>

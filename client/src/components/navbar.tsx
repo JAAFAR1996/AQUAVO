@@ -177,7 +177,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1 lg:gap-1.5">
+          <div className="hidden md:flex items-center gap-1 lg:gap-1.5" data-tour="navbar-categories">
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span className={cn(
@@ -261,6 +261,7 @@ export default function Navbar() {
               className="relative group"
               aria-label="البحث (Ctrl+K)"
               onClick={() => setIsSearchOpen(true)}
+              data-tour="navbar-search"
             >
               <Search className="h-5 w-5" aria-hidden="true" />
               <Badge
@@ -297,6 +298,7 @@ export default function Navbar() {
                   size="icon"
                   className="relative"
                   aria-label={`سلة المشتريات${totalItems > 0 ? ` - ${totalItems} منتج` : " - فارغة"}`}
+                  data-tour="navbar-cart"
                 >
                   <ShoppingCart className="h-5 w-5" aria-hidden="true" />
                   {totalItems > 0 && (

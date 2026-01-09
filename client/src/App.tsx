@@ -16,6 +16,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 import "@/lib/sentry"; // Auto-initializes on import
 
 import { WinnerNotificationBanner } from "@/components/notifications/winner-notification-banner";
+import { OnboardingTour } from "@/components/onboarding-tour";
 
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
@@ -441,6 +442,7 @@ function App() {
                   <Toaster />
                   <AIChatBot />
                   <Router />
+                  <OnboardingTour />
                 </TooltipProvider>
               </NavbarPreferencesProvider>
             </ComparisonProvider>
