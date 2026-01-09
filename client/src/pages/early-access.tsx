@@ -14,12 +14,10 @@ import {
     Sparkles,
     Check,
     Phone,
-    Gift,
     Percent,
     Users,
     ArrowLeft,
     Crown,
-    Star,
     Waves
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -123,7 +121,7 @@ export default function EarlyAccessPage() {
                     const parsed = JSON.parse(jsonPart);
                     if (parsed.message) message = parsed.message;
                 }
-            } catch (e) {
+            } catch {
                 // Keep original message if parsing fails
             }
 
