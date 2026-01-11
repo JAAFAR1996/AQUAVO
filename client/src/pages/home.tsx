@@ -103,7 +103,7 @@ export default function Home() {
             {/* Overlay Content */}
             <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 text-right">
               <div className="inline-flex items-center gap-2 bg-primary px-4 py-1 rounded-full text-black font-extrabold mb-4 text-sm md:text-base animate-pulse-glow">
-                <span className="uppercase tracking-widest">جديد 2025</span>
+                <span className="uppercase tracking-widest">جديد 2026</span>
                 <Crown className="w-4 h-4" />
               </div>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
