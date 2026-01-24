@@ -47,6 +47,10 @@
       "destination": "/api/index"
     },
     {
+      "source": "/tiktok:path*.txt",
+      "destination": "/tiktok:path*.txt"
+    },
+    {
       "source": "/privacy-policy/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt",
       "destination": "/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt"
     },
@@ -59,7 +63,7 @@
       "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt"
     },
     {
-      "source": "/(.*)",
+      "source": "/((?!.*\\.txt$).*)",
       "destination": "/index.html"
     }
   ]
