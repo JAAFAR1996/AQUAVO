@@ -5,11 +5,11 @@
 
 import { Router, Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import * as facebookService from '../services/social/facebook-service';
-import * as instagramService from '../services/social/instagram-service';
-import * as tiktokService from '../services/social/tiktok-service';
-import * as unifiedAnalytics from '../services/social/unified-analytics';
-import type { SocialPlatform } from '../../shared/social-analytics-types';
+import * as facebookService from '../services/social/facebook-service.js';
+import * as instagramService from '../services/social/instagram-service.js';
+import * as tiktokService from '../services/social/tiktok-service.js';
+import * as unifiedAnalytics from '../services/social/unified-analytics.js';
+import type { SocialPlatform } from '../../shared/social-analytics-types.js';
 
 // Augment express-session types
 declare module 'express-session' {

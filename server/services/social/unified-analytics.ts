@@ -3,12 +3,12 @@
  * Combines data from all platforms into a unified view
  */
 
-import { db } from '../../db';
-import { socialConnections, socialAnalyticsCache } from '../../../shared/schema';
+import { db } from '../../db.js';
+import { socialConnections, socialAnalyticsCache } from '../../../shared/schema.js';
 import { eq, and, gt } from 'drizzle-orm';
-import * as facebookService from './facebook-service';
-import * as instagramService from './instagram-service';
-import * as tiktokService from './tiktok-service';
+import * as facebookService from './facebook-service.js';
+import * as instagramService from './instagram-service.js';
+import * as tiktokService from './tiktok-service.js';
 import type {
     SocialPlatform,
     CrossPlatformAnalytics,
