@@ -1785,4 +1785,93 @@ export type AIAgentSetting = typeof aiAgentSettings.$inferSelect;
 export type InsertAIAgentSetting = z.infer<typeof insertAIAgentSettingSchema>;
 export type UpdateAIAgentSetting = z.infer<typeof updateAIAgentSettingSchema>;
 
+// ============================================================
+// SOCIAL MEDIA CONNECTIONS - ربط حسابات السوشيال ميديا
+// ============================================================
 
+export const socialConnections = pgTable("social_connections", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  platform: text("platform").notNull(), // 'facebook' | 'instagram' | 'tiktok'
+  accessToken: text("access_token").notNull(), // encrypted
+  refreshToken: text("refresh_token"),
+  tokenExpiresAt: timestamp("token_expires_at"),
+  pageId: text("page_id"), // For Facebook/Instagram business pages
+  accountId: text("account_id"), // Platform-specific account ID
+  accountName: text("account_name"),
+  accountUsername: text("account_username"),
+  profileImageUrl: text("profile_image_url"),
+  permissions: jsonb("permissions").$type<string[]>(), // Granted permissions
+  isActive: boolean("is_active").default(true),
+  lastSyncAt: timestamp("last_sync_at"),
+  syncStatus: text("sync_status").default("pending"), // pending, syncing, success, failed
+  syncError: text("sync_error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("social_connections_user_id_idx").on(table.userId),
+  platformIdx: index("social_connections_platform_idx").on(table.platform),
+  isActiveIdx: index("social_connections_is_active_idx").on(table.isActive),
+}));
+
+// Analytics Cache - تخزين مؤقت للبيانات (تجنب Rate Limits)
+export const socialAnalyticsCache = pgTable("social_analytics_cache", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  connectionId: text("connection_id").references(() => socialConnections.id).notNull(),
+  dataType: text("data_type").notNull(), // 'insights' | 'posts' | 'demographics' | 'best_content'
+  data: jsonb("data").notNull(),
+  periodStart: timestamp("period_start"),
+  periodEnd: timestamp("period_end"),
+  fetchedAt: timestamp("fetched_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(), // Cache expiration
+}, (table) => ({
+  connectionIdx: index("social_analytics_cache_connection_idx").on(table.connectionId),
+  dataTypeIdx: index("social_analytics_cache_data_type_idx").on(table.dataType),
+  expiresIdx: index("social_analytics_cache_expires_idx").on(table.expiresAt),
+}));
+
+// Relations
+export const socialConnectionsRelations = relations(socialConnections, ({ one, many }) => ({
+  user: one(users, {
+    fields: [socialConnections.userId],
+    references: [users.id],
+  }),
+  cache: many(socialAnalyticsCache),
+}));
+
+export const socialAnalyticsCacheRelations = relations(socialAnalyticsCache, ({ one }) => ({
+  connection: one(socialConnections, {
+    fields: [socialAnalyticsCache.connectionId],
+    references: [socialConnections.id],
+  }),
+}));
+
+// Zod Schemas
+export const insertSocialConnectionSchema = z.object({
+  userId: z.string().min(1),
+  platform: z.enum(["facebook", "instagram", "tiktok"]),
+  accessToken: z.string().min(1),
+  refreshToken: z.string().optional(),
+  tokenExpiresAt: z.date().optional(),
+  pageId: z.string().optional(),
+  accountId: z.string().optional(),
+  accountName: z.string().optional(),
+  accountUsername: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  permissions: z.array(z.string()).optional(),
+});
+
+export const insertSocialAnalyticsCacheSchema = z.object({
+  connectionId: z.string().min(1),
+  dataType: z.enum(["insights", "posts", "demographics", "best_content"]),
+  data: z.any(),
+  periodStart: z.date().optional(),
+  periodEnd: z.date().optional(),
+  expiresAt: z.date(),
+});
+
+// Types
+export type SocialConnection = typeof socialConnections.$inferSelect;
+export type InsertSocialConnection = z.infer<typeof insertSocialConnectionSchema>;
+export type SocialAnalyticsCache = typeof socialAnalyticsCache.$inferSelect;
+export type InsertSocialAnalyticsCache = z.infer<typeof insertSocialAnalyticsCacheSchema>;
