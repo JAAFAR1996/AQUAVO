@@ -55,6 +55,7 @@ const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 const EarlyAccess = lazy(() => import("@/pages/early-access"));
+const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
 
 
 // Medium-weight pages (direct imports for faster navigation)
@@ -389,6 +390,19 @@ function Router() {
             <RequireAdmin>
               <Suspense fallback={<PageLoader />}>
                 <AdminAI />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* Admin: Social Media Analytics */}
+      <Route path="/admin/social-analytics">
+        {() => (
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<PageLoader />}>
+                <SocialAnalytics />
               </Suspense>
             </RequireAdmin>
           </ErrorBoundary>
