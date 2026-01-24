@@ -55,6 +55,10 @@
       "destination": "/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt"
     },
     {
+      "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt",
+      "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
