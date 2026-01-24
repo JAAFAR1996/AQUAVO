@@ -3,8 +3,8 @@
  * Main dashboard for viewing social media analytics
  */
 
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearch } from 'wouter';
 import {
     BarChart3,
     Users,
@@ -110,7 +110,8 @@ const platformConfig = {
 };
 
 export default function SocialAnalyticsDashboard() {
-    const [searchParams] = useSearchParams();
+    const searchString = useSearch();
+    const searchParams = useMemo(() => new URLSearchParams(searchString), [searchString]);
     const { toast } = useToast();
 
     // State
