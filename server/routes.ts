@@ -23,6 +23,7 @@ import aiAdvancedRoutes from "./routes/ai-advanced.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
+import socialAnalyticsRoutes from "./routes/social-analytics.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -82,6 +83,9 @@ export async function registerRoutes(
 
   // Early Access Landing Page routes
   app.use("/api/early-access", earlyAccessRoutes);
+
+  // Social Media Analytics routes (TikTok, Facebook, Instagram)
+  app.use("/api/social-analytics", socialAnalyticsRoutes);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
