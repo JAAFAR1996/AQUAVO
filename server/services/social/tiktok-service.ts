@@ -143,7 +143,18 @@ export async function getUserInfo(accessToken: string): Promise<{
     likesCount: number;
     videoCount: number;
 }> {
-    const response = await fetch(`${TIKTOK_API_BASE}/user/info/`, {
+    const fields = [
+        'open_id',
+        'union_id',
+        'avatar_url',
+        'display_name',
+        'follower_count',
+        'following_count',
+        'likes_count',
+        'video_count',
+    ].join(',');
+
+    const response = await fetch(`${TIKTOK_API_BASE}/user/info/?fields=${fields}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -152,7 +163,7 @@ export async function getUserInfo(accessToken: string): Promise<{
 
     if (!response.ok) {
         const error = await response.json();
-        throw new Error(`Failed to get TikTok user info: ${error.error?.message || 'Unknown error'}`);
+        throw new Error(`Failed to get TikTok user info: ${error.error?.message || JSON.stringify(error)}`);
     }
 
     const data = await response.json();
