@@ -47,6 +47,14 @@
       "destination": "/api/index"
     },
     {
+      "source": "/privacy-policy/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt",
+      "destination": "/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt"
+    },
+    {
+      "source": "/terms/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt",
+      "destination": "/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
