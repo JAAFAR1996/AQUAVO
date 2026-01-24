@@ -34,7 +34,8 @@ interface TikTokConfig {
 function getConfig(): TikTokConfig {
     const clientKey = process.env.TIKTOK_CLIENT_KEY;
     const clientSecret = process.env.TIKTOK_CLIENT_SECRET;
-    const redirectUri = process.env.SOCIAL_OAUTH_CALLBACK_URL || 'http://localhost:5000/api/social-analytics/callback/tiktok';
+    const baseCallback = process.env.SOCIAL_OAUTH_CALLBACK_URL || 'http://localhost:5000/api/social-analytics/callback';
+    const redirectUri = `${baseCallback}/tiktok`;
 
     if (!clientKey || !clientSecret) {
         throw new Error('TikTok API credentials not configured. Set TIKTOK_CLIENT_KEY and TIKTOK_CLIENT_SECRET environment variables.');
