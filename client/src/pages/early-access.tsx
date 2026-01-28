@@ -24,8 +24,8 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
 // Maximum spots and initial display
-const MAX_SPOTS = 30;
-const INITIAL_DISPLAY_SPOTS = 24; // يبدأ عند 24 لإيحاء أن هناك من سجل قبلك
+const MAX_SPOTS = 50;
+const INITIAL_DISPLAY_SPOTS = 45; // يبدأ عند 45 لإيحاء أن هناك من سجل قبلك
 
 interface RegistrationResponse {
     success: boolean;
@@ -261,9 +261,9 @@ export default function EarlyAccessPage() {
                                         </h1>
 
                                         <p className="text-slate-300 text-lg leading-relaxed">
-                                            كن من أول <span className="text-cyan-400 font-bold">30</span> شخص
+                                            كن من أول <span className="text-cyan-400 font-bold">50</span> شخص
                                             <br />
-                                            واحصل على <span className="text-amber-400 font-bold">خصم 20%</span>
+                                            واحصل على <span className="text-amber-400 font-bold">خصم 5%</span>
                                             <br />
                                             على طلبك الأول!
                                         </p>
@@ -276,7 +276,7 @@ export default function EarlyAccessPage() {
                                                 <Percent className="w-6 h-6 text-amber-400" />
                                             </div>
                                             <div>
-                                                <span className="text-white font-bold text-lg">خصم 20%</span>
+                                                <span className="text-white font-bold text-lg">خصم 5%</span>
                                                 <p className="text-slate-400 text-sm">على طلبك الأول</p>
                                             </div>
                                         </div>
@@ -432,7 +432,7 @@ export default function EarlyAccessPage() {
                                                 </div>
                                                 <div className="flex items-center justify-center gap-2 mt-3">
                                                     <span className="text-amber-400">💰</span>
-                                                    <span className="text-amber-300 font-bold">خصم 20%</span>
+                                                    <span className="text-amber-300 font-bold">خصم 5%</span>
                                                     <span className="text-slate-500">•</span>
                                                     <span className="text-slate-400 text-sm">صالح لمرة واحدة</span>
                                                 </div>
@@ -469,7 +469,7 @@ export default function EarlyAccessPage() {
                                                         `مرحبا! انا من اوائل المسجلين في AQUAVO\n\n` +
                                                         `كود الخصم الخاص بي:\n` +
                                                         `${couponCode}\n\n` +
-                                                        `خصم 20% على طلبي الاول!\n\n` +
+                                                        `خصم 5% على طلبي الاول!\n\n` +
                                                         `ارجو حفظ هذا الكود لي`
                                                     )}`}
                                                     target="_blank"
