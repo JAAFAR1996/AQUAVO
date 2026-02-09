@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     orders,
@@ -10,20 +10,11 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, gte, sql, count, sum, and } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * AI Dashboard Service
  * لوحة تحكم ذكية للمدير مع تحليلات وتوصيات
  */
 export class AIDashboard {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
-
     /**
      * الحصول على ملخص اليوم
      */
@@ -289,8 +280,11 @@ export class AIDashboard {
 اكتب ملخص تحليلي مختصر (3 جمل فقط) مع نصيحة عملية واحدة.
 `;
 
-            const result = await this.model.generateContent(prompt);
-            return result.response.text().trim();
+            const result = await groqClient.chatText(
+                [{ role: "user", content: prompt }],
+                { temperature: 0.5, maxTokens: 200, model: "llama-3.1-8b-instant" }
+            );
+            return (result || "").trim();
         } catch (error) {
             console.error("AI insights generation failed:", error);
             return "تعذر توليد التحليلات الذكية";

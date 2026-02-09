@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiClient } from "./gemini-client.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { eq } from "drizzle-orm";
@@ -9,17 +9,6 @@ import { eq } from "drizzle-orm";
  */
 export class EmbeddingGenerator {
   private db = getDb();
-  private genAI: GoogleGenerativeAI;
-  private model: any;
-
-  constructor() {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error('GEMINI_API_KEY is required for embedding generation');
-    }
-    this.genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    // استخدام نموذج text-embedding-004 للحصول على embeddings
-    this.model = this.genAI.getGenerativeModel({ model: "text-embedding-004" });
-  }
 
   /**
    * توليد نص غني للمنتج
@@ -124,7 +113,10 @@ export class EmbeddingGenerator {
       const productText = this.createProductText(product);
 
       // توليد embedding باستخدام Gemini
-      const result = await this.model.embedContent(productText);
+      const result = await geminiClient.executeWithFallback(async (client) => {
+        const model = client.getGenerativeModel({ model: "text-embedding-004" });
+        return await model.embedContent(productText);
+      });
       const embedding = result.embedding.values;
 
       if (!embedding || embedding.length === 0) {
@@ -224,7 +216,10 @@ export class EmbeddingGenerator {
       console.log(`[Embeddings] 🔍 Generating embedding for query: "${query}"`);
 
       // توليد embedding للاستعلام
-      const result = await this.model.embedContent(query);
+      const result = await geminiClient.executeWithFallback(async (client) => {
+        const model = client.getGenerativeModel({ model: "text-embedding-004" });
+        return await model.embedContent(query);
+      });
       const embedding = result.embedding.values;
 
       if (!embedding || embedding.length === 0) {

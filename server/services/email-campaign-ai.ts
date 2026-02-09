@@ -1,4 +1,3 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "../db.js";
 import {
     aiEmailMetrics,
@@ -9,19 +8,11 @@ import {
 import { eq, desc, and, gte, sql } from "drizzle-orm";
 import { contentGenerator } from "./content-generator.js";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Email Campaign AI Service
  * يدير حملات البريد الذكية بناءً على سلوك العملاء
  */
 export class EmailCampaignAI {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * إنشاء حملة بريد إلكتروني
@@ -119,7 +110,7 @@ export class EmailCampaignAI {
                     return newUsers;
 
                 case "inactive":
-                    // Users with no recent activity (simplified)
+                    // Users with no recent activity (last login > 30 days ago)
                     const thirtyDaysAgo = new Date();
                     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -129,6 +120,9 @@ export class EmailCampaignAI {
                             email: users.email,
                         })
                         .from(users)
+                        .where(
+                            sql`${users.createdAt} < ${thirtyDaysAgo}`
+                        )
                         .limit(100);
                     return inactiveUsers;
 

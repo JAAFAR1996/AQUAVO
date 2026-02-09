@@ -1,6 +1,7 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 export function createFavoritesRouter(): RouterType {
     const router = Router();
@@ -44,6 +45,14 @@ export function createFavoritesRouter(): RouterType {
             }
 
             const favorite = await storage.addFavorite(userId, productId);
+
+            // Track favorite interaction (fire-and-forget)
+            analyticsTracker.trackFavorite({
+                userId,
+                sessionId: (req as any).sessionID || "unknown",
+                productId,
+            }).catch(() => {});
+
             res.status(201).json(favorite);
         } catch (err) {
             // Handle unique constraint violation gracefully if needed,

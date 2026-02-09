@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     inventoryRecommendations,
@@ -9,19 +9,11 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count, sum } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Inventory Optimizer Service
  * يحلل المخزون ويقدم توصيات ذكية
  */
 export class InventoryOptimizer {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * تحليل منتج واحد
@@ -168,11 +160,25 @@ export class InventoryOptimizer {
                 `[InventoryOptimizer] Analysis complete: ${allProducts.length} products, ${urgent} urgent, ${soon} soon, ${excess} excess`
             );
 
+            // Generate AI summary if there are urgent items
+            let aiSummary: string | undefined;
+            if ((urgent > 0 || soon > 0) && groqClient.hasKeys()) {
+                try {
+                    aiSummary = await groqClient.chatText(
+                        [{ role: "user", content: `أنت مدير مخزون لمتجر أحواض أسماك. لخّص الوضع في جملة: ${urgent} منتج عاجل، ${soon} قريب النفاد، ${excess} فائض، من أصل ${allProducts.length} منتج.` }],
+                        { temperature: 0.3, maxTokens: 80, model: "llama-3.1-8b-instant" }
+                    );
+                } catch {
+                    // AI summary is optional
+                }
+            }
+
             return {
                 analyzed: allProducts.length,
                 urgent,
                 soon,
                 excess,
+                ...(aiSummary ? { aiSummary: aiSummary.trim() } : {}),
             };
         } catch (error) {
             console.error("[InventoryOptimizer] Analysis failed:", error);

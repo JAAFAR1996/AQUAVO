@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts } from "@/lib/api";
+import { fetchProducts, fetchSmartSearch } from "@/lib/api";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
 import { Product } from "@/types";
-import { SearchIcon, Clock, TrendingUp, Package, X, ArrowRight } from "lucide-react";
+import { SearchIcon, Clock, TrendingUp, Package, X, ArrowRight, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -88,6 +88,23 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     queryFn: () => fetchProducts(),
   });
 
+  // AI semantic search - debounced, only fires when query is 3+ chars
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    if (query.trim().length < 3) { setDebouncedQuery(""); return; }
+    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [query]);
+
+  const { data: smartData } = useQuery({
+    queryKey: ["smart-search", debouncedQuery],
+    queryFn: () => fetchSmartSearch(debouncedQuery),
+    enabled: debouncedQuery.length >= 3,
+    staleTime: 60 * 1000,
+  });
+
+  const isSemantic = smartData?.semantic ?? false;
+
   // Load recent searches
   useEffect(() => {
     try {
@@ -118,15 +135,36 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     localStorage.removeItem(RECENT_SEARCHES_KEY);
   };
 
-  // Search logic
+  // Search logic - merges AI semantic results with local fuzzy results
   const searchResults = useMemo<SearchResult[]>(() => {
     if (!query.trim()) return [];
 
     const lowerQuery = query.toLowerCase();
     const results: SearchResult[] = [];
+    const seenIds = new Set<string>();
 
-    // Search products
+    // AI semantic results come first (higher priority)
+    if (smartData?.products && smartData.products.length > 0) {
+      smartData.products.forEach((product: Product) => {
+        if (seenIds.has(product.id)) return;
+        seenIds.add(product.id);
+        results.push({
+          id: product.id,
+          type: "product",
+          title: product.name,
+          subtitle: product.brand,
+          image: product.image,
+          price: product.price,
+          url: `/products/${product.slug}`,
+          category: product.category,
+        });
+      });
+    }
+
+    // Local fuzzy search products (fill remaining slots)
     (data?.products || []).forEach((product) => {
+      if (seenIds.has(product.id)) return;
+
       const matchScore =
         (product.name.toLowerCase().includes(lowerQuery) ? 3 : 0) +
         (product.brand.toLowerCase().includes(lowerQuery) ? 2 : 0) +
@@ -134,6 +172,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
         (fuzzyMatch(product.name, lowerQuery) ? 1 : 0);
 
       if (matchScore > 0) {
+        seenIds.add(product.id);
         results.push({
           id: product.id,
           type: "product",
@@ -173,7 +212,6 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       );
 
       if (matchesTitle || matchesCategory || matchesKeywords) {
-        // Avoid duplicates
         if (!results.find(r => r.url === item.url)) {
           results.push({
             id: item.url,
@@ -186,8 +224,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
       }
     });
 
-    return results.slice(0, 10); // Limit to 10 results
-  }, [query, data]);
+    return results.slice(0, 12);
+  }, [query, data, smartData]);
 
   // Handle keyboard navigation
   useEffect(() => {
@@ -284,8 +322,9 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           {/* Search Results */}
           {query.trim() && searchResults.length > 0 && (
             <div className="p-2">
-              <div className="text-xs text-muted-foreground px-3 py-2 font-medium">
-                نتائج البحث ({searchResults.length})
+              <div className="text-xs text-muted-foreground px-3 py-2 font-medium flex items-center gap-1.5 justify-end">
+                {isSemantic && <Sparkles className="w-3 h-3 text-primary" />}
+                {isSemantic ? "نتائج ذكية" : "نتائج البحث"} ({searchResults.length})
               </div>
               {searchResults.map((result, index) => (
                 <button

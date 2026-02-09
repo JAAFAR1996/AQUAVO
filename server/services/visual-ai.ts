@@ -1,23 +1,13 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import { imageAnalyses, products, type InsertImageAnalysis } from "../../shared/schema.js";
-import { eq, desc, and } from "drizzle-orm";
-// Node.js 22+ has native fetch
-
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+import { eq, desc, inArray, sql } from "drizzle-orm";
 
 /**
  * Visual AI Service
  * يستخدم Gemini Vision API لتحليل الصور المتعلقة بأحواض الأسماك
  */
 export class VisualAI {
-  private model;
-
-  constructor() {
-    this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-  }
 
   /**
    * تحليل صورة باستخدام Gemini Vision
@@ -41,19 +31,20 @@ export class VisualAI {
       // 2. Create prompt based on analysis type
       const prompt = this.generatePrompt(analysisType);
 
-      // 3. Analyze with Gemini Vision
-      const result = await this.model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            data: imageData.base64,
-            mimeType: imageData.mimeType,
+      // 3. Analyze with Gemini Vision (using singleton with key failover)
+      const text = await geminiClient.executeWithFallback(async (client) => {
+        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: imageData.base64,
+              mimeType: imageData.mimeType,
+            },
           },
-        },
-      ]);
-
-      const response = await result.response;
-      const text = response.text();
+        ]);
+        return result.response.text();
+      });
 
       // 4. Parse AI response
       const analysis = this.parseAnalysis(text, analysisType);
@@ -261,14 +252,23 @@ export class VisualAI {
       const categories = categoryMap[analysisType] || [];
 
       // Search for products matching detected items or categories
-      const searchTerms = [...detectedItems, ...categories].join(" ");
+      const searchTerms = [...detectedItems, ...categories];
+      const searchPattern = searchTerms.map(t => t.replace(/[%_]/g, '')).join('|');
 
-      // Get top 5 relevant products
-      const recommendedProducts = await db
-        .select()
-        .from(products)
-        .where(eq(products.inStock, true))
-        .limit(5);
+      // Get top 5 relevant products matching detected items
+      const recommendedProducts = searchPattern
+        ? await db
+            .select()
+            .from(products)
+            .where(
+              sql`${products.inStock} = true AND (${products.name} ~* ${searchPattern} OR ${products.category} ~* ${searchPattern} OR ${products.description} ~* ${searchPattern})`
+            )
+            .limit(5)
+        : await db
+            .select()
+            .from(products)
+            .where(eq(products.inStock, true))
+            .limit(5);
 
       return recommendedProducts;
     } catch (error) {
@@ -315,7 +315,7 @@ export class VisualAI {
     const recommendedProducts =
       productIds.length > 0
         ? await db.select().from(products).where(
-          and(...productIds.map((id) => eq(products.id, id)))
+          inArray(products.id, productIds)
         )
         : [];
 

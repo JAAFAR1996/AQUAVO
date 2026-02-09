@@ -5,14 +5,10 @@
  * @author شريمب 🦐
  */
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { getDb } from "../db.js";
 import { productViews, searchQueries, products, blogPosts } from "../../shared/schema.js";
 import { desc, sql, count, eq } from "drizzle-orm";
-
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
 interface BlogTopicSuggestion {
     topic: string;
@@ -31,6 +27,9 @@ interface GeneratedBlog {
     readTime: string;
     author: string;
     iconName: string;
+    metaDescription?: string;
+    keywords?: string[];
+    faq?: Array<{ q: string; a: string }>;
 }
 
 /**
@@ -182,32 +181,45 @@ async function analyzeUserBehavior(): Promise<BlogTopicSuggestion[]> {
  */
 async function generateBlogContent(topic: BlogTopicSuggestion): Promise<GeneratedBlog | null> {
     try {
-        const prompt = `أنت "شريمب 🦐" - خبير أحواض سمك عراقي ودود.
-        
-اكتب مقال مدونة احترافي ومفيد عن الموضوع التالي:
+        const prompt = `أنت "شريمب 🦐" - خبير أحواض سمك عراقي ودود، تكتب لموقع AQUAVO (aquavo.iq) - أول متجر أحواض متخصص في العراق.
+
+اكتب مقال مدونة احترافي ومحسّن لمحركات البحث (SEO 2026) عن الموضوع التالي:
 "${topic.topic}"
 
 الفئة: ${topic.category}
 
-المتطلبات:
-1. العنوان: جذاب وفيه إيموجي مناسب
-2. المقدمة: 2-3 جمل تجذب القارئ
-3. المحتوى: 400-600 كلمة، مقسم لأقسام واضحة مع h2 و h3
-4. النصائح: عملية وقابلة للتطبيق في العراق
-5. الأسلوب: ودود، مختصر، يستخدم إيموجي بشكل معتدل
-6. اللهجة: عربية فصحى بسيطة مع لمسة عراقية
+## متطلبات SEO 2026:
+1. **العنوان (Title)**: 50-60 حرف، يحتوي الكلمة المفتاحية الرئيسية، جذاب
+2. **الوصف التعريفي (Meta Description)**: 150-160 حرف، يلخص المقال ويحفز النقر
+3. **الكلمات المفتاحية**: 3-5 كلمات مفتاحية مرتبطة بالموضوع (عربية)
+4. **بنية المحتوى**:
+   - مقدمة تجيب على نية البحث مباشرة (في أول 100 كلمة)
+   - استخدم h2 للأقسام الرئيسية و h3 للفروع
+   - أضف قوائم (ul/ol) لتحسين Featured Snippets
+   - اكتب 800-1200 كلمة (محتوى شامل)
+   - أضف فقرة FAQ في النهاية (3-4 أسئلة شائعة مع إجابات قصيرة)
+5. **E-E-A-T**: أظهر الخبرة والتجربة العملية (انصح بمنتجات من AQUAVO حيث يناسب)
+6. **الروابط الداخلية**: اقترح 2-3 روابط لصفحات المتجر (مثل: /products?category=فلاتر)
+7. **الأسلوب**: ودود، مبسط، عربية فصحى بسيطة مع لمسة عراقية
+8. **Schema Markup hints**: أضف بيانات للـ structured data في حقل schema
 
 أجب بصيغة JSON فقط:
 {
-    "title": "عنوان المقال مع إيموجي",
-    "excerpt": "وصف مختصر 2-3 جمل",
-    "content": "محتوى HTML كامل مع h2, h3, p, ul, li, strong",
+    "title": "عنوان المقال (50-60 حرف)",
+    "metaDescription": "وصف تعريفي محسّن لمحركات البحث (150-160 حرف)",
+    "keywords": ["كلمة1", "كلمة2", "كلمة3"],
+    "excerpt": "وصف مختصر 2-3 جمل للعرض في البطاقة",
+    "content": "محتوى HTML كامل مع h2, h3, p, ul, ol, li, strong, a (روابط داخلية)",
+    "faq": [{"q": "سؤال؟", "a": "إجابة"}],
     "readTime": "X دقائق",
-    "iconName": "Fish|Droplets|Leaf|Heart|Filter|AlertTriangle"
+    "iconName": "Fish|Droplets|Leaf|Heart|Filter|AlertTriangle",
+    "schema": {"@type": "Article", "about": "الموضوع الرئيسي"}
 }`;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const responseText = await groqClient.chatText(
+            [{ role: "user", content: prompt }],
+            { temperature: 0.7, maxTokens: 4000, model: "llama-3.3-70b-versatile" }
+        ) || "";
 
         // استخراج JSON
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -222,16 +234,32 @@ async function generateBlogContent(topic: BlogTopicSuggestion): Promise<Generate
         const id = `auto-${Date.now()}`;
         const slug = generateSlug(blogData.title);
 
+        // Append FAQ section as HTML if provided
+        let fullContent = blogData.content || "";
+        if (blogData.faq && Array.isArray(blogData.faq) && blogData.faq.length > 0) {
+            fullContent += `\n<section class="faq-section"><h2>أسئلة شائعة</h2>`;
+            for (const item of blogData.faq) {
+                fullContent += `<div class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">`;
+                fullContent += `<h3 itemprop="name">${item.q}</h3>`;
+                fullContent += `<div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">`;
+                fullContent += `<p itemprop="text">${item.a}</p></div></div>`;
+            }
+            fullContent += `</section>`;
+        }
+
         return {
             id,
             slug,
             title: blogData.title,
             excerpt: blogData.excerpt,
-            content: blogData.content,
+            content: fullContent,
             category: topic.category,
             readTime: blogData.readTime || "5 دقائق",
             author: "شريمب 🦐",
             iconName: blogData.iconName || "Fish",
+            metaDescription: blogData.metaDescription || blogData.excerpt,
+            keywords: blogData.keywords || [],
+            faq: blogData.faq || [],
         };
 
     } catch (error) {
@@ -256,7 +284,7 @@ async function saveBlogToDatabase(blog: GeneratedBlog): Promise<boolean> {
             id: blog.id,
             title: blog.title,
             slug: blog.slug,
-            excerpt: blog.excerpt,
+            excerpt: blog.metaDescription || blog.excerpt,
             content: blog.content,
             category: blog.category,
             readTime: blog.readTime,

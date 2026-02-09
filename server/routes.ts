@@ -20,6 +20,7 @@ import { createNotificationsRouter } from "./routes/notifications.js";
 import journeyRoutes from "./routes/journey.js";
 import aiRoutes from "./routes/ai.js";
 import aiAdvancedRoutes from "./routes/ai-advanced.js";
+import aiSettingsRoutes from "./routes/ai-settings.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
@@ -47,14 +48,12 @@ export async function registerRoutes(
   app.use("/api/admin/analytics", createAnalyticsRouter());
   app.use("/api/notifications", createNotificationsRouter());
   app.use("/api/gallery", createGalleryRouter());
-  app.use("/api/system", createSystemRouter());
   app.use("/api/referral", createReferralRouter());
 
-  // System root routes (sitemap, robots) - Handling mounting inside createSystemRouter
-  // But wait, createSystemRouter defines /sitemap.xml.
-  // If I mount it at /api/system, it becomes /api/system/sitemap.xml
-  // I need to mount system router at root "/" for robots and sitemap!
-  app.use("/", createSystemRouter());
+  // System routes (sitemap, robots, health) - mount at root for correct paths
+  const systemRouter = createSystemRouter();
+  app.use("/api/system", systemRouter);
+  app.use("/", systemRouter);
 
   // User/Auth routes are tricky because they have mix of /api/register and /api/user
   // createUserRouter should likely be mounted at /api
@@ -69,8 +68,11 @@ export async function registerRoutes(
   // Journey wizard routes
   app.use(journeyRoutes);
 
-  // AI routes (Gemini)
+  // AI routes (chat, journey recommendations)
   app.use("/api/ai", aiRoutes);
+
+  // AI settings routes (agent management)
+  app.use("/api/ai", aiSettingsRoutes);
 
   // Advanced AI routes (Visual AI, Sentiment, Predictive, etc.)
   app.use("/api/ai-advanced", aiAdvancedRoutes);

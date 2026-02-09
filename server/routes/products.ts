@@ -1,8 +1,11 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { insertProductSchema, insertReviewSchema, insertDiscountSchema } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
+import { recommendationEngine } from "../services/recommendation-engine.js";
+import { predictiveAnalytics } from "../services/predictive-analytics.js";
+import { embeddingGenerator } from "../services/embedding-generator.js";
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 export function createProductRouter(): RouterType {
     const router = Router();
@@ -55,6 +58,224 @@ export function createProductRouter(): RouterType {
         }
     });
 
+    // Personalized recommendations (works for both logged-in users and guests)
+    router.get("/personalized", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const session = getSession(req);
+            const userId = session?.userId;
+
+            // Helper: get fallback products (trending → newest)
+            const getFallbackProducts = async () => {
+                const trending = await storage.getTrendingProducts();
+                if (trending.length > 0) return trending.slice(0, 8);
+                // Ultimate fallback: newest products (ignores stock for stores still setting up)
+                const newest = await storage.getProducts({ limit: 8, sortBy: "createdAt", sortOrder: "desc" });
+                return newest;
+            };
+
+            if (userId) {
+                // Logged-in user: hybrid collaborative filtering
+                const { productIds, method } = await recommendationEngine.getPersonalizedRecommendations(userId, 8);
+
+                if (productIds.length > 0) {
+                    const products = await Promise.all(
+                        productIds.map(id => storage.getProduct(id))
+                    );
+                    const validProducts = products.filter(Boolean);
+                    if (validProducts.length > 0) {
+                        res.json({ products: validProducts, personalized: true, method });
+                        return;
+                    }
+                }
+
+                // Fallback to trending/newest
+                const fallback = await getFallbackProducts();
+                res.json({ products: fallback, personalized: false, method: "trending_fallback" });
+            } else {
+                // Guest: trending/newest products
+                const fallback = await getFallbackProducts();
+                res.json({ products: fallback, personalized: false, method: "trending" });
+            }
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Predicted repurchase needs (requires auth)
+    router.get("/predicted-needs", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const session = getSession(req);
+            const userId = session!.userId!;
+
+            // Try saved predictions first, fall back to live calculation
+            let predictions = await predictiveAnalytics.getPredictionsForUser(userId);
+
+            if (predictions.length === 0) {
+                // Generate live predictions
+                const livePredictions = await predictiveAnalytics.predictNeeds(userId);
+                // Map live predictions to the same shape
+                const mapped = livePredictions.slice(0, 5).map(p => ({
+                    productId: p.productId,
+                    probability: p.probability,
+                    reason: p.reason,
+                    predictedDate: p.predictedDate,
+                }));
+
+                // Fetch product details
+                const results = await Promise.all(
+                    mapped.map(async (pred) => {
+                        const product = await storage.getProduct(pred.productId);
+                        if (!product) return null;
+                        return {
+                            product,
+                            probability: pred.probability,
+                            reason: pred.reason,
+                            predictedDate: pred.predictedDate?.toISOString() ?? null,
+                        };
+                    })
+                );
+
+                res.json({ predictions: results.filter(Boolean) });
+                return;
+            }
+
+            // Saved predictions: fetch product details
+            const topPredictions = predictions.slice(0, 5);
+            const results = await Promise.all(
+                topPredictions.map(async (pred) => {
+                    const product = await storage.getProduct(pred.productId);
+                    if (!product) return null;
+                    return {
+                        product,
+                        probability: Number(pred.probability),
+                        reason: pred.reason ?? "بناءً على نمط الشراء",
+                        predictedDate: pred.predictedDate?.toISOString() ?? null,
+                    };
+                })
+            );
+
+            res.json({ predictions: results.filter(Boolean) });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Cart-based suggestions (works for guests too)
+    router.get("/cart-suggestions", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const productIdsParam = req.query.productIds as string;
+            if (!productIdsParam) {
+                res.json({ suggestions: [], reason: "" });
+                return;
+            }
+
+            const cartProductIds = productIdsParam.split(",").filter(Boolean);
+            if (cartProductIds.length === 0) {
+                res.json({ suggestions: [], reason: "" });
+                return;
+            }
+
+            // Fetch frequently bought together for each cart item
+            const allSuggestions = new Map<string, number>();
+
+            for (const pid of cartProductIds) {
+                const related = await storage.getFrequentlyBoughtTogether(pid);
+                for (const product of related) {
+                    if (cartProductIds.includes(product.id)) continue; // skip items already in cart
+                    allSuggestions.set(product.id, (allSuggestions.get(product.id) || 0) + 1);
+                }
+            }
+
+            // Sort by frequency (how many cart items suggest this product)
+            const sorted = Array.from(allSuggestions.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 4);
+
+            const suggestions = await Promise.all(
+                sorted.map(async ([id]) => storage.getProduct(id))
+            );
+
+            res.json({
+                suggestions: suggestions.filter(Boolean),
+                reason: "أكمل حوضك - منتجات تُشترى عادةً معاً",
+            });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Semantic search using embeddings (AI-powered)
+    router.get("/smart-search", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const query = req.query.q as string;
+            if (!query || query.trim().length < 2) {
+                res.json({ products: [], semantic: false });
+                return;
+            }
+
+            // Try semantic search via embeddings
+            const semanticResults = await embeddingGenerator.semanticSearch(query, 20);
+
+            // Track search query (fire-and-forget)
+            const searchSession = getSession(req);
+            const trackSearchPromise = (resultsCount: number) =>
+                analyticsTracker.trackSearch({
+                    userId: searchSession?.userId,
+                    sessionId: (req as any).sessionID || "unknown",
+                    query,
+                    resultsCount,
+                }).catch(() => {});
+
+            if (semanticResults.length > 0) {
+                // Filter to decent similarity threshold
+                const relevant = semanticResults.filter(r => r.similarity > 0.3);
+                const products = await Promise.all(
+                    relevant.slice(0, 12).map(r => storage.getProduct(r.productId))
+                );
+                const validProducts = products.filter(Boolean);
+
+                if (validProducts.length > 0) {
+                    trackSearchPromise(validProducts.length);
+                    res.json({ products: validProducts, semantic: true });
+                    return;
+                }
+            }
+
+            // Fallback: regular text search
+            const textResults = await storage.getProducts({ search: query, limit: 20 });
+            trackSearchPromise(Array.isArray(textResults) ? textResults.length : 0);
+            res.json({ products: textResults, semantic: false });
+        } catch (err) {
+            // On any embedding error, fallback to text search
+            try {
+                const query = req.query.q as string;
+                const textResults = await storage.getProducts({ search: query, limit: 20 });
+                res.json({ products: textResults, semantic: false });
+            } catch {
+                next(err);
+            }
+        }
+    });
+
+    // Personalized product sort order (boosts recommended products to top)
+    router.get("/personalized-order", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const session = getSession(req);
+            const userId = session?.userId;
+
+            if (!userId) {
+                res.json({ boostIds: [] });
+                return;
+            }
+
+            // Get personalized product IDs to boost to top
+            const { productIds } = await recommendationEngine.getPersonalizedRecommendations(userId, 12);
+            res.json({ boostIds: productIds });
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Attributes (Categories & Brands)
     router.get("/attributes", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -85,6 +306,16 @@ export function createProductRouter(): RouterType {
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
+
+            // Track product view (fire-and-forget)
+            const session = getSession(req);
+            analyticsTracker.trackProductView({
+                userId: session?.userId,
+                sessionId: (req as any).sessionID || "unknown",
+                productId: product.id,
+                from: (req.query.from as string) || "direct",
+            }).catch(() => {});
+
             res.json(product);
         } catch (err) {
             next(err);

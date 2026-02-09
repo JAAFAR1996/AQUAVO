@@ -4,6 +4,7 @@ import { type IStorage } from "../storage/index.js";
 import { insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { z } from "zod";
 import { sendWelcomeEmail, sendProductDiscountEmail } from "../utils/email.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 // Helper function to broadcast discount
 export async function broadcastDiscountForProduct(storage: IStorage, productId: string): Promise<number> {
@@ -70,7 +71,7 @@ export function createNewsletterRouter(storage: IStorage): RouterType {
     });
 
     // Admin only: Broadcast product discount to all subscribers
-    router.post("/broadcast-discount", async (req: Request, res: Response): Promise<void> => {
+    router.post("/broadcast-discount", requireAdmin as any, async (req: Request, res: Response): Promise<void> => {
         try {
             const { productId } = req.body;
             if (!productId) {

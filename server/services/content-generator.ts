@@ -71,7 +71,7 @@ export class ContentGenerator {
 }
 `;
 
-            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.7,
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
@@ -172,7 +172,7 @@ export class ContentGenerator {
 }
 `;
 
-            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.8,
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
@@ -250,7 +250,7 @@ export class ContentGenerator {
 }
 `;
 
-            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.7,
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"

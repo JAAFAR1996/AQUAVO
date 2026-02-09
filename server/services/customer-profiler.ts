@@ -6,10 +6,7 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+import { groqClient } from "./groq-client.js";
 
 // ============================================================
 // CUSTOMER PROFILER CLASS
@@ -165,8 +162,10 @@ export class CustomerProfiler {
 }`;
 
         try {
-            const result = await model.generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chatText(
+                [{ role: "user", content: prompt }],
+                { temperature: 0.3, maxTokens: 500, model: "llama-3.1-8b-instant" }
+            );
 
             // استخراج JSON من الرد
             const jsonMatch = text.match(/\{[\s\S]*\}/);

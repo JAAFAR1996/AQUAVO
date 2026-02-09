@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
+import rateLimit from "express-rate-limit";
+import { requireAuth, requireAdmin } from "../middleware/auth.js";
 import { visualAI } from "../services/visual-ai.js";
 import { sentimentAnalyzer } from "../services/sentiment-analyzer.js";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
@@ -18,6 +20,14 @@ import { fraudDetector } from "../services/fraud-detector.js";
 import { aiDashboard } from "../services/ai-dashboard.js";
 
 const router = Router();
+
+// Rate limiting for all AI advanced routes
+const aiAdvancedLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 30,
+    message: { success: false, error: "تم تجاوز الحد المسموح من الطلبات" },
+});
+router.use(aiAdvancedLimiter);
 
 // Configure multer for image uploads
 const storage = multer.diskStorage({
@@ -66,7 +76,7 @@ const analyzeImageByUrlSchema = z.object({
  * POST /api/ai-advanced/visual/analyze-url
  * تحليل صورة من URL
  */
-router.post("/visual/analyze-url", async (req, res) => {
+router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
   try {
     const { imageUrl, analysisType, userId, sessionId } =
       analyzeImageByUrlSchema.parse(req.body);
@@ -107,6 +117,7 @@ router.post("/visual/analyze-url", async (req, res) => {
  */
 router.post(
   "/visual/analyze-upload",
+  requireAuth as any,
   upload.single("image"),
   async (req, res) => {
     try {
@@ -161,7 +172,7 @@ router.post(
  * GET /api/ai-advanced/visual/history/:userId
  * الحصول على سجل التحليلات
  */
-router.get("/visual/history/:userId", async (req, res) => {
+router.get("/visual/history/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 10;
@@ -186,7 +197,7 @@ router.get("/visual/history/:userId", async (req, res) => {
  * GET /api/ai-advanced/visual/analysis/:id
  * الحصول على تحليل محدد
  */
-router.get("/visual/analysis/:id", async (req, res) => {
+router.get("/visual/analysis/:id", requireAuth as any, async (req, res) => {
   try {
     const { id } = req.params;
     const analysis = await visualAI.getAnalysisById(id);
@@ -208,7 +219,7 @@ router.get("/visual/analysis/:id", async (req, res) => {
  * GET /api/ai-advanced/visual/stats
  * إحصائيات التحليلات
  */
-router.get("/visual/stats", async (req, res) => {
+router.get("/visual/stats", requireAdmin as any, async (req, res) => {
   try {
     const userId = req.query.userId as string | undefined;
     const stats = await visualAI.getAnalysisStats(userId);
@@ -232,7 +243,7 @@ router.get("/visual/stats", async (req, res) => {
  * GET /api/ai-advanced/sentiment/history/:userId
  * سجل تحليل المشاعر للمستخدم
  */
-router.get("/sentiment/history/:userId", async (req, res) => {
+router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const limit = parseInt(req.query.limit as string) || 20;
@@ -257,7 +268,7 @@ router.get("/sentiment/history/:userId", async (req, res) => {
  * GET /api/ai-advanced/sentiment/average/:userId
  * متوسط المشاعر والاتجاه
  */
-router.get("/sentiment/average/:userId", async (req, res) => {
+router.get("/sentiment/average/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const days = parseInt(req.query.days as string) || 30;
@@ -281,7 +292,7 @@ router.get("/sentiment/average/:userId", async (req, res) => {
  * GET /api/ai-advanced/sentiment/frustrated-users
  * كشف المستخدمين المحبطين
  */
-router.get("/sentiment/frustrated-users", async (req, res) => {
+router.get("/sentiment/frustrated-users", requireAdmin as any, async (req, res) => {
   try {
     const threshold = parseFloat(req.query.threshold as string) || -0.3;
     const days = parseInt(req.query.days as string) || 7;
@@ -311,7 +322,7 @@ router.get("/sentiment/frustrated-users", async (req, res) => {
  * GET /api/ai-advanced/predictions/:userId
  * الحصول على توقعات المستخدم
  */
-router.get("/predictions/:userId", async (req, res) => {
+router.get("/predictions/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const predictions = await predictiveAnalytics.getPredictionsForUser(userId);
@@ -334,7 +345,7 @@ router.get("/predictions/:userId", async (req, res) => {
  * POST /api/ai-advanced/predictions/run
  * تشغيل التوقعات يدوياً (للمشرف)
  */
-router.post("/predictions/run", async (req, res) => {
+router.post("/predictions/run", requireAdmin as any, async (req, res) => {
   try {
     const result = await triggerJob("predictions");
     res.json(result);
@@ -353,7 +364,7 @@ router.post("/predictions/run", async (req, res) => {
  * GET /api/ai-advanced/churn/:userId
  * تحليل الـ churn لمستخدم
  */
-router.get("/churn/:userId", async (req, res) => {
+router.get("/churn/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const analysis = await churnDetector.analyzeUser(userId);
@@ -375,7 +386,7 @@ router.get("/churn/:userId", async (req, res) => {
  * GET /api/ai-advanced/churn/high-risk
  * الحصول على العملاء عالي الخطورة
  */
-router.get("/churn-high-risk", async (req, res) => {
+router.get("/churn-high-risk", requireAdmin as any, async (req, res) => {
   try {
     const highRisk = await churnDetector.getHighRiskUsers();
 
@@ -399,7 +410,7 @@ router.get("/churn-high-risk", async (req, res) => {
  * POST /api/ai-advanced/content/product-description
  * توليد وصف منتج
  */
-router.post("/content/product-description", async (req, res) => {
+router.post("/content/product-description", requireAdmin as any, async (req, res) => {
   try {
     const { productId } = req.body;
     if (!productId) {
@@ -428,7 +439,7 @@ router.post("/content/product-description", async (req, res) => {
  * POST /api/ai-advanced/content/social-post
  * توليد منشور سوشيال ميديا
  */
-router.post("/content/social-post", async (req, res) => {
+router.post("/content/social-post", requireAdmin as any, async (req, res) => {
   try {
     const { productId, platform } = req.body;
     if (!productId || !platform) {
@@ -459,7 +470,7 @@ router.post("/content/social-post", async (req, res) => {
  * GET /api/ai-advanced/inventory/recommendations
  * الحصول على توصيات المخزون
  */
-router.get("/inventory/recommendations", async (req, res) => {
+router.get("/inventory/recommendations", requireAdmin as any, async (req, res) => {
   try {
     const recommendations = await inventoryOptimizer.getUrgentRecommendations();
 
@@ -481,7 +492,7 @@ router.get("/inventory/recommendations", async (req, res) => {
  * POST /api/ai-advanced/inventory/dismiss/:id
  * تجاهل توصية
  */
-router.post("/inventory/dismiss/:id", async (req, res) => {
+router.post("/inventory/dismiss/:id", requireAdmin as any, async (req, res) => {
   try {
     const { id } = req.params;
     await inventoryOptimizer.dismissRecommendation(id);
@@ -505,7 +516,7 @@ router.post("/inventory/dismiss/:id", async (req, res) => {
  * GET /api/ai-advanced/auto-orders/:userId
  * الحصول على الطلبات التلقائية للمستخدم
  */
-router.get("/auto-orders/:userId", async (req, res) => {
+router.get("/auto-orders/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const orders = await autoOrderProcessor.getUserAutoOrders(userId);
@@ -528,7 +539,7 @@ router.get("/auto-orders/:userId", async (req, res) => {
  * POST /api/ai-advanced/auto-orders
  * إنشاء طلب تلقائي
  */
-router.post("/auto-orders", async (req, res) => {
+router.post("/auto-orders", requireAuth as any, async (req, res) => {
   try {
     const { userId, productId, frequency, quantity } = req.body;
 
@@ -558,7 +569,7 @@ router.post("/auto-orders", async (req, res) => {
  * POST /api/ai-advanced/returns
  * إنشاء طلب إرجاع
  */
-router.post("/returns", async (req, res) => {
+router.post("/returns", requireAuth as any, async (req, res) => {
   try {
     const { orderId, userId, productId, reason, description, photos } = req.body;
 
@@ -588,7 +599,7 @@ router.post("/returns", async (req, res) => {
  * GET /api/ai-advanced/returns/:userId
  * الحصول على طلبات الإرجاع للمستخدم
  */
-router.get("/returns/:userId", async (req, res) => {
+router.get("/returns/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const requests = await returnsHandler.getUserRequests(userId);
@@ -613,7 +624,7 @@ router.get("/returns/:userId", async (req, res) => {
  * POST /api/ai-advanced/aquarium/design
  * إنشاء تصميم حوض
  */
-router.post("/aquarium/design", async (req, res) => {
+router.post("/aquarium/design", requireAuth as any, async (req, res) => {
   try {
     const { userId, name, tankSize, tankType, budget, experience, preferences } = req.body;
 
@@ -644,7 +655,7 @@ router.post("/aquarium/design", async (req, res) => {
  * POST /api/ai-advanced/aquarium/check-compatibility
  * فحص توافق الأسماك
  */
-router.post("/aquarium/check-compatibility", async (req, res) => {
+router.post("/aquarium/check-compatibility", requireAuth as any, async (req, res) => {
   try {
     const { fish1, fish2 } = req.body;
     if (!fish1 || !fish2) {
@@ -673,7 +684,7 @@ router.post("/aquarium/check-compatibility", async (req, res) => {
  * GET /api/ai-advanced/aquarium/:designId/shopping-list
  * توليد قائمة تسوق من التصميم
  */
-router.get("/aquarium/:designId/shopping-list", async (req, res) => {
+router.get("/aquarium/:designId/shopping-list", requireAuth as any, async (req, res) => {
   try {
     const { designId } = req.params;
     const shoppingList = await aquariumAdvisor.generateShoppingList(designId);
@@ -697,7 +708,7 @@ router.get("/aquarium/:designId/shopping-list", async (req, res) => {
  * GET /api/ai-advanced/jobs/status
  * حالة الـ cron jobs
  */
-router.get("/jobs/status", (req, res) => {
+router.get("/jobs/status", requireAdmin as any, (req, res) => {
   try {
     const status = getJobStatus();
     res.json({
@@ -719,7 +730,7 @@ router.get("/jobs/status", (req, res) => {
  * POST /api/ai-advanced/fraud/analyze/:orderId
  * تحليل طلب للكشف عن الاحتيال
  */
-router.post("/fraud/analyze/:orderId", async (req, res) => {
+router.post("/fraud/analyze/:orderId", requireAdmin as any, async (req, res) => {
   try {
     const { orderId } = req.params;
     const result = await fraudDetector.analyzeOrder(orderId);
@@ -741,7 +752,7 @@ router.post("/fraud/analyze/:orderId", async (req, res) => {
  * GET /api/ai-advanced/fraud/high-risk
  * الحصول على الطلبات عالية الخطورة
  */
-router.get("/fraud/high-risk", async (req, res) => {
+router.get("/fraud/high-risk", requireAdmin as any, async (req, res) => {
   try {
     const highRiskOrders = await fraudDetector.getHighRiskOrders();
 
@@ -763,7 +774,7 @@ router.get("/fraud/high-risk", async (req, res) => {
  * POST /api/ai-advanced/fraud/scan
  * فحص جميع الطلبات الحديثة
  */
-router.post("/fraud/scan", async (req, res) => {
+router.post("/fraud/scan", requireAdmin as any, async (req, res) => {
   try {
     const result = await fraudDetector.analyzeRecentOrders();
 
@@ -786,7 +797,7 @@ router.post("/fraud/scan", async (req, res) => {
  * GET /api/ai-advanced/dashboard/summary
  * ملخص اليوم الذكي
  */
-router.get("/dashboard/summary", async (req, res) => {
+router.get("/dashboard/summary", requireAdmin as any, async (req, res) => {
   try {
     const summary = await aiDashboard.getDailySummary();
 
@@ -807,7 +818,7 @@ router.get("/dashboard/summary", async (req, res) => {
  * GET /api/ai-advanced/dashboard/quick-stats
  * إحصائيات سريعة
  */
-router.get("/dashboard/quick-stats", async (req, res) => {
+router.get("/dashboard/quick-stats", requireAdmin as any, async (req, res) => {
   try {
     const stats = await aiDashboard.getQuickStats();
 
@@ -828,7 +839,7 @@ router.get("/dashboard/quick-stats", async (req, res) => {
  * GET /api/ai-advanced/dashboard/forecast
  * توقعات الأسبوع
  */
-router.get("/dashboard/forecast", async (req, res) => {
+router.get("/dashboard/forecast", requireAdmin as any, async (req, res) => {
   try {
     const forecast = await aiDashboard.getWeeklyForecast();
 

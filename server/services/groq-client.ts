@@ -2,12 +2,13 @@
  * Groq AI Client with Multi-API Key Fallback
  * =============================================
  * Ultra-fast AI inference with automatic key rotation
- * 
+ *
  * Features:
  * - Multiple API keys support (3-5 keys)
  * - Automatic failover on errors
  * - Rate limiting awareness
  * - Key health tracking
+ * - Tool/Function calling support
  */
 
 import Groq from "groq-sdk";
@@ -24,9 +25,29 @@ interface ApiKeyStatus {
     cooldownUntil?: number;
 }
 
-interface ChatMessage {
-    role: "system" | "user" | "assistant";
-    content: string;
+// Flexible ChatMessage type supporting tool calls
+type ChatMessage =
+    | { role: "system"; content: string }
+    | { role: "user"; content: string }
+    | { role: "assistant"; content: string | null; tool_calls?: Array<{ id: string; type: "function"; function: { name: string; arguments: string } }> }
+    | { role: "tool"; content: string; tool_call_id: string };
+
+interface ToolDefinition {
+    type: "function";
+    function: {
+        name: string;
+        description?: string;
+        parameters?: Record<string, unknown>;
+    };
+}
+
+interface ChatOptions {
+    model?: string;
+    temperature?: number;
+    maxTokens?: number;
+    systemPrompt?: string;
+    tools?: ToolDefinition[];
+    tool_choice?: "none" | "auto" | "required";
 }
 
 class GroqClientManager {
@@ -47,7 +68,6 @@ class GroqClientManager {
     }
 
     private initializeApiKeys(): void {
-        // Load all API keys from environment variables
         const keyEnvVars = [
             "GROQ_API_KEY",
             "GROQ_API_KEY_2",
@@ -83,24 +103,20 @@ class GroqClientManager {
             return null;
         }
 
-        // Find a healthy key
         let attempts = 0;
         while (attempts < this.apiKeys.length) {
             const keyStatus = this.apiKeys[this.currentKeyIndex];
 
-            // Check if key is healthy and not in cooldown
             if (keyStatus.isHealthy && (!keyStatus.cooldownUntil || Date.now() > keyStatus.cooldownUntil)) {
                 return this.clients.get(keyStatus.key) || null;
             }
 
-            // Reset cooldown if expired
             if (keyStatus.cooldownUntil && Date.now() > keyStatus.cooldownUntil) {
                 keyStatus.isHealthy = true;
                 keyStatus.cooldownUntil = undefined;
                 return this.clients.get(keyStatus.key) || null;
             }
 
-            // Try next key
             this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
             attempts++;
         }
@@ -120,13 +136,12 @@ class GroqClientManager {
         const currentKey = this.apiKeys[this.currentKeyIndex];
         const errorMessage = error.message.toLowerCase();
 
-        // Determine cooldown based on error type
         let cooldownMs = 60000; // Default: 1 minute
 
         if (errorMessage.includes("rate_limit") || errorMessage.includes("429")) {
-            cooldownMs = 60 * 1000; // 1 minute for rate limits
+            cooldownMs = 60 * 1000;
         } else if (errorMessage.includes("401") || errorMessage.includes("invalid")) {
-            cooldownMs = 30 * 60 * 1000; // 30 minutes for auth errors
+            cooldownMs = 30 * 60 * 1000;
         }
 
         currentKey.isHealthy = false;
@@ -137,44 +152,34 @@ class GroqClientManager {
         console.warn(`⚠️ Groq API Key ${this.currentKeyIndex + 1} failed: ${error.message}`);
         console.warn(`⏰ Key ${this.currentKeyIndex + 1} in cooldown for ${cooldownMs / 1000}s`);
 
-        // Switch to next key
         this.currentKeyIndex = (this.currentKeyIndex + 1) % this.apiKeys.length;
         console.log(`🔄 Switching to Groq API Key ${this.currentKeyIndex + 1}`);
 
         return this.getClient();
     }
 
-    /**
-     * Get total number of API keys configured
-     */
     public getKeyCount(): number {
         return this.apiKeys.length;
     }
 
-    /**
-     * Check if any API keys are configured
-     */
     public hasKeys(): boolean {
         return this.apiKeys.length > 0;
     }
 
     /**
-     * Send a chat completion request with automatic failover
+     * Send a chat completion request with full response (supports tool calling)
      */
     public async chat(
         messages: ChatMessage[],
-        options: {
-            model?: string;
-            temperature?: number;
-            maxTokens?: number;
-            systemPrompt?: string;
-        } = {}
-    ): Promise<string> {
+        options: ChatOptions = {}
+    ): Promise<Groq.Chat.Completions.ChatCompletion> {
         const {
             model = GroqClientManager.MODELS.LLAMA_70B,
             temperature = 0.7,
             maxTokens = 2048,
-            systemPrompt
+            systemPrompt,
+            tools,
+            tool_choice
         } = options;
 
         let lastError: Error | null = null;
@@ -189,23 +194,31 @@ class GroqClientManager {
             }
 
             try {
-                const fullMessages: ChatMessage[] = systemPrompt
-                    ? [{ role: "system", content: systemPrompt }, ...messages]
+                const fullMessages = systemPrompt
+                    ? [{ role: "system" as const, content: systemPrompt }, ...messages]
                     : messages;
 
-                const response = await client.chat.completions.create({
+                const createParams: any = {
                     model,
                     messages: fullMessages,
                     temperature,
                     max_tokens: maxTokens,
-                });
+                };
 
-                return response.choices[0]?.message?.content || "";
+                // Add tools if provided
+                if (tools && tools.length > 0) {
+                    createParams.tools = tools;
+                    if (tool_choice) {
+                        createParams.tool_choice = tool_choice;
+                    }
+                }
+
+                const response = await client.chat.completions.create(createParams);
+                return response;
             } catch (error) {
                 lastError = error as Error;
                 const errorMsg = (error as Error).message.toLowerCase();
 
-                // Check if error is retryable
                 const isRetryable =
                     errorMsg.includes("rate_limit") ||
                     errorMsg.includes("429") ||
@@ -219,12 +232,22 @@ class GroqClientManager {
                     continue;
                 }
 
-                // Non-retryable error
                 throw error;
             }
         }
 
         throw lastError || new Error("فشلت جميع محاولات الاتصال بـ Groq");
+    }
+
+    /**
+     * Simple text-only chat (backward compatible - returns string)
+     */
+    public async chatText(
+        messages: ChatMessage[],
+        options: Omit<ChatOptions, 'tools' | 'tool_choice'> = {}
+    ): Promise<string> {
+        const response = await this.chat(messages, options);
+        return response.choices[0]?.message?.content || "";
     }
 
     /**
@@ -252,9 +275,9 @@ class GroqClientManager {
             throw new Error("لا توجد مفاتيح Groq API مُعدة");
         }
 
-        const fullMessages: ChatMessage[] = systemPrompt
-            ? [{ role: "system", content: systemPrompt }, ...messages]
-            : messages;
+        const fullMessages: Array<{ role: "system" | "user" | "assistant"; content: string }> = systemPrompt
+            ? [{ role: "system", content: systemPrompt }, ...messages as any]
+            : messages as any;
 
         const stream = await client.chat.completions.create({
             model,
@@ -278,4 +301,4 @@ export const groqClient = new GroqClientManager();
 
 // Export for convenience
 export { Groq };
-export type { ChatMessage };
+export type { ChatMessage, ToolDefinition, ChatOptions };

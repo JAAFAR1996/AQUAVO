@@ -4,6 +4,7 @@ import { storage } from "../storage/index.js";
 import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
+import { embeddingGenerator } from "../services/embedding-generator.js";
 
 export function createAdminRouter(): RouterType {
     const router = Router();
@@ -481,6 +482,11 @@ export function createAdminRouter(): RouterType {
             const parsed = insertProductSchema.parse(data);
             const product = await storage.createProduct(parsed);
 
+            // Auto-generate embedding for new product (fire-and-forget)
+            embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
+                console.error(`[Admin] Failed to auto-generate embedding for product ${product.id}:`, err);
+            });
+
             // Audit Log
             await storage.createAuditLog({
                 userId: getSession(req)?.userId || "admin",
@@ -568,6 +574,13 @@ export function createAdminRouter(): RouterType {
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
                 return;
+            }
+
+            // Re-generate embedding on product update (name/description/category change)
+            if (updates.name || updates.description || updates.category || updates.brand) {
+                embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
+                    console.error(`[Admin] Failed to re-generate embedding for product ${product.id}:`, err);
+                });
             }
 
             // Audit Log

@@ -16,6 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
+import { PersonalizedSection } from "@/components/home/personalized-section";
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
@@ -220,6 +221,9 @@ export default function Home() {
               This perfectly fills the grid.
           */}
         </div>
+
+        {/* AI Personalized Recommendations */}
+        <PersonalizedSection />
 
         {/* Categories Marquee / Quick Links */}
         <div className="mt-12 py-8 overflow-hidden relative">

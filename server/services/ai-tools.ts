@@ -5,7 +5,7 @@
 
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, ilike, and, desc, sql } from "drizzle-orm";
+import { eq, ilike, and, or, desc, sql } from "drizzle-orm";
 
 // ============================================================
 // TOOL DEFINITIONS - تعريف الأدوات المتاحة للـ AI
@@ -84,6 +84,27 @@ export const AI_TOOLS = [
             required: ["couponCode"],
         },
     },
+    {
+        name: "get_product_details",
+        description: "الحصول على تفاصيل كاملة لمنتج معين (الوصف، الصور، التقييم، المخزون، السعر)",
+        parameters: {
+            type: "object",
+            properties: {
+                productId: { type: "string", description: "معرف المنتج" },
+            },
+            required: ["productId"],
+        },
+    },
+    {
+        name: "get_deals",
+        description: "عرض المنتجات التي عليها تخفيض/عرض حالياً",
+        parameters: {
+            type: "object",
+            properties: {
+                limit: { type: "number", description: "عدد العروض (افتراضي 5)" },
+            },
+        },
+    },
 ];
 
 // ============================================================
@@ -106,33 +127,84 @@ export class AIToolsExecutor {
             const db = this.db;
             if (!db) return { success: false, error: "Database not available" };
 
-            const limit = params.limit || 5;
+            const limit = params.limit || 8;
+            const query = params.query;
 
+            // Multi-field search: name, description, category, brand
             let products = await db
                 .select({
                     id: schema.products.id,
                     name: schema.products.name,
+                    slug: schema.products.slug,
                     brand: schema.products.brand,
                     category: schema.products.category,
                     price: schema.products.price,
+                    originalPrice: schema.products.originalPrice,
                     stock: schema.products.stock,
                     thumbnail: schema.products.thumbnail,
                     rating: schema.products.rating,
+                    description: schema.products.description,
                 })
                 .from(schema.products)
                 .where(
                     and(
-                        ilike(schema.products.name, `%${params.query}%`),
-                        params.category ? eq(schema.products.category, params.category) : undefined,
-                        params.brand ? eq(schema.products.brand, params.brand) : undefined
+                        or(
+                            ilike(schema.products.name, `%${query}%`),
+                            ilike(schema.products.description, `%${query}%`),
+                            ilike(schema.products.category, `%${query}%`),
+                            ilike(schema.products.brand, `%${query}%`)
+                        ),
+                        params.category ? ilike(schema.products.category, `%${params.category}%`) : undefined,
+                        params.brand ? ilike(schema.products.brand, `%${params.brand}%`) : undefined
                     )
                 )
+                .orderBy(desc(schema.products.rating))
                 .limit(limit);
+
+            // If no results, try semantic search via embeddings
+            if (products.length === 0) {
+                try {
+                    const { embeddingGenerator } = await import("./embedding-generator.js");
+                    const semanticResults = await embeddingGenerator.semanticSearch(query, limit);
+                    const relevant = semanticResults.filter(r => r.similarity > 0.3);
+
+                    if (relevant.length > 0) {
+                        const semanticProducts = await Promise.all(
+                            relevant.slice(0, limit).map(async (r) => {
+                                const [p] = await db.select({
+                                    id: schema.products.id,
+                                    name: schema.products.name,
+                                    slug: schema.products.slug,
+                                    brand: schema.products.brand,
+                                    category: schema.products.category,
+                                    price: schema.products.price,
+                                    originalPrice: schema.products.originalPrice,
+                                    stock: schema.products.stock,
+                                    thumbnail: schema.products.thumbnail,
+                                    rating: schema.products.rating,
+                                    description: schema.products.description,
+                                }).from(schema.products).where(eq(schema.products.id, r.productId));
+                                return p;
+                            })
+                        );
+                        products = semanticProducts.filter(Boolean) as typeof products;
+                    }
+                } catch {
+                    // Semantic search is optional fallback
+                }
+            }
+
+            // Return clean data for AI (trim description to save tokens)
+            const cleanProducts = products.map(p => ({
+                ...p,
+                description: p.description ? p.description.slice(0, 150) + "..." : null,
+                hasDiscount: p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price),
+            }));
 
             return {
                 success: true,
-                data: products,
-                count: products.length,
+                data: cleanProducts,
+                count: cleanProducts.length,
             };
         } catch (error) {
             console.error("searchProducts error:", error);
@@ -435,6 +507,103 @@ export class AIToolsExecutor {
     }
 
     /**
+     * تفاصيل منتج كاملة
+     */
+    async getProductDetails(params: { productId: string }) {
+        try {
+            const db = this.db;
+            if (!db) return { success: false, error: "Database not available" };
+
+            const [product] = await db
+                .select()
+                .from(schema.products)
+                .where(eq(schema.products.id, params.productId));
+
+            if (!product) {
+                return { success: false, error: "المنتج غير موجود" };
+            }
+
+            return {
+                success: true,
+                data: {
+                    id: product.id,
+                    name: product.name,
+                    slug: product.slug,
+                    brand: product.brand,
+                    category: product.category,
+                    description: product.description,
+                    price: product.price,
+                    originalPrice: product.originalPrice,
+                    hasDiscount: product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price),
+                    discountPercent: product.originalPrice
+                        ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
+                        : 0,
+                    stock: product.stock,
+                    rating: product.rating,
+                    thumbnail: product.thumbnail,
+                    images: product.images,
+                },
+            };
+        } catch (error) {
+            console.error("getProductDetails error:", error);
+            return { success: false, error: "Failed to get product details" };
+        }
+    }
+
+    /**
+     * العروض والتخفيضات الحالية
+     */
+    async getDeals(params: { limit?: number }) {
+        try {
+            const db = this.db;
+            if (!db) return { success: false, error: "Database not available" };
+
+            const limit = params.limit || 5;
+
+            // Products with originalPrice > price (discounted)
+            const deals = await db
+                .select({
+                    id: schema.products.id,
+                    name: schema.products.name,
+                    slug: schema.products.slug,
+                    price: schema.products.price,
+                    originalPrice: schema.products.originalPrice,
+                    category: schema.products.category,
+                    thumbnail: schema.products.thumbnail,
+                    stock: schema.products.stock,
+                })
+                .from(schema.products)
+                .where(
+                    and(
+                        sql`${schema.products.originalPrice}::numeric > ${schema.products.price}::numeric`,
+                        sql`${schema.products.stock} > 0`
+                    )
+                )
+                .orderBy(sql`(${schema.products.originalPrice}::numeric - ${schema.products.price}::numeric) / ${schema.products.originalPrice}::numeric DESC`)
+                .limit(limit);
+
+            const dealsWithDiscount = deals.map(d => ({
+                ...d,
+                discountPercent: d.originalPrice
+                    ? Math.round(((parseFloat(d.originalPrice) - parseFloat(d.price)) / parseFloat(d.originalPrice)) * 100)
+                    : 0,
+            }));
+
+            return {
+                success: true,
+                data: dealsWithDiscount,
+                count: dealsWithDiscount.length,
+                message: dealsWithDiscount.length > 0
+                    ? `عدنا ${dealsWithDiscount.length} عروض حالياً! 🔥`
+                    : "لا توجد عروض حالياً",
+            };
+        } catch (error) {
+            console.error("getDeals error:", error);
+            return { success: false, error: "Failed to get deals" };
+        }
+    }
+
+    /**
      * تنفيذ أداة بناءً على اسمها
      */
     async executeTool(toolName: string, params: any): Promise<any> {
@@ -451,6 +620,10 @@ export class AIToolsExecutor {
                 return this.addToCart(params);
             case "apply_coupon":
                 return this.applyCoupon(params);
+            case "get_product_details":
+                return this.getProductDetails(params);
+            case "get_deals":
+                return this.getDeals(params);
             default:
                 return { success: false, error: `Unknown tool: ${toolName}` };
         }
@@ -459,3 +632,13 @@ export class AIToolsExecutor {
 
 // مثيل واحد مشترك
 export const aiToolsExecutor = new AIToolsExecutor();
+
+// Groq-compatible tool definitions format
+export const GROQ_TOOLS = AI_TOOLS.map(tool => ({
+    type: "function" as const,
+    function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters,
+    },
+}));

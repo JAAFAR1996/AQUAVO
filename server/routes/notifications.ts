@@ -5,6 +5,7 @@ import { requireAuth, getSession, requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { pushSubscriptions } from "../../shared/schema.js";
 import { eq, and } from "drizzle-orm";
+import { smartNotifications } from "../services/smart-notifications.js";
 
 const router = Router();
 
@@ -238,6 +239,33 @@ router.post("/broadcast", requireAdmin, async (req: Request<object, object, { ti
         });
     } catch (error) {
         console.error("Broadcast error:", error);
+        next(error);
+    }
+});
+
+// AI Smart Reminders - trigger replenishment notifications (admin only)
+router.post("/smart-reminders", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const result = await smartNotifications.sendReplenishmentReminders();
+        res.json({
+            success: true,
+            message: `تم إرسال ${result.emailsSent} إيميل و ${result.pushSent} إشعار لـ ${result.usersNotified} مستخدم`,
+            ...result,
+        });
+    } catch (error) {
+        console.error("Smart reminders error:", error);
+        next(error);
+    }
+});
+
+// Get notification status for current user
+router.get("/my-status", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const sess = getSession(req);
+        const userId = sess!.userId!;
+        const status = await smartNotifications.getUserNotificationStatus(userId);
+        res.json(status);
+    } catch (error) {
         next(error);
     }
 });

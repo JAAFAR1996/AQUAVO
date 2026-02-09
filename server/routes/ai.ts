@@ -1,10 +1,10 @@
 import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import { sendMessage, ChatMessage, ChatContext, recommendProductsForJourney } from "../services/gemini-ai.js";
-import { groqClient } from "../services/groq-client.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { count, lt, and, gt, or, ilike, desc, eq, inArray } from "drizzle-orm";
+import { count, lt, and, gt, eq, inArray } from "drizzle-orm";
+import { getSession } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -32,99 +32,35 @@ const healthRateLimiter = rateLimit({
     },
 });
 
-// Helper: Find relevant products based on keywords
-async function findRelevantProducts(message: string, limit: number = 5) {
-    const db = getDb();
-    if (!db) return [];
+// Fast local intent detection (no API call - instant)
+function detectUserIntent(message: string): "INFORMATIONAL" | "SHOPPING" | "COMMERCIAL" {
+    const msg = message.toLowerCase();
 
-    try {
-        // Extract keywords from user message
-        const keywords = [
-            { term: "معالج", categories: ["معالجات الماء", "صيانة"] },
-            { term: "فلتر", categories: ["فلاتر"] },
-            { term: "حوض", categories: ["أحواض"] },
-            { term: "سمك", categories: ["أسماك"] },
-            { term: "طعام", categories: ["طعام"] },
-            { term: "نبات", categories: ["نباتات"] },
-            { term: "ضوء", categories: ["إضاءة"] },
-            { term: "سخان", categories: ["سخانات"] },
-            { term: "مضخ", categories: ["مضخات"] },
-            { term: "ديكور", categories: ["ديكورات"] },
-        ];
+    // Commercial keywords
+    const commercialKeywords = ["توصيل", "شحن", "سياسة", "ارجاع", "إرجاع", "عنوان", "فرع", "دفع", "فيزا", "ماستركارد", "shipping", "delivery", "policy"];
+    if (commercialKeywords.some(kw => msg.includes(kw))) return "COMMERCIAL";
 
-        // Find matching keywords
-        const matchedCategories: string[] = [];
-        for (const { term, categories } of keywords) {
-            if (message.includes(term)) {
-                matchedCategories.push(...categories);
-            }
-        }
+    // Shopping keywords
+    const shoppingKeywords = [
+        "شراء", "اشتري", "أشتري", "ابي", "أبي", "أريد", "اريد", "سعر", "كم سعر",
+        "أكو", "اكو", "عدكم", "عندكم", "متوفر", "موجود", "مخزون", "حوض", "فلتر",
+        "سخان", "مضخة", "طعام", "غذاء", "ديكور", "إضاءة", "led", "نبات",
+        "سمك", "أسماك", "معالج", "دواء", "حصى", "رمل", "buy", "price", "stock",
+        "محتاج", "لوازم", "مستلزمات", "أدوات", "كوبون", "خصم", "عرض",
+        "السلة", "سلة", "cart", "أضف", "اضف", "order", "طلب"
+    ];
+    if (shoppingKeywords.some(kw => msg.includes(kw))) return "SHOPPING";
 
-        // If keywords found, search by category
-        if (matchedCategories.length > 0) {
-            const conditions = matchedCategories.map(cat =>
-                ilike(schema.products.category, `%${cat}%`)
-            );
-
-            const products = await db
-                .select()
-                .from(schema.products)
-                .where(or(...conditions))
-                .orderBy(desc(schema.products.rating))
-                .limit(limit);
-
-            return products;
-        }
-
-        // No keywords matched - return empty array (don't suggest products without request)
-        return [];
-    } catch (error) {
-        console.error("Error finding products:", error);
-        return [];
-    }
-}
-
-
-// Helper: Detect User Intent
-async function detectUserIntent(message: string): Promise<"INFORMATIONAL" | "SHOPPING" | "COMMERCIAL"> {
-    try {
-        if (!groqClient.hasKeys()) return "SHOPPING"; // Default to shopping to be safe if AI fails
-
-        const prompt = `Classify user intent into one of these categories:
-1. INFORMATIONAL: asking about general knowledge, care tips, how-to, advice (e.g., "how to clean tank", "best fish for beginners", "why is my fish sick?")
-2. SHOPPING: explicit intent to buy, asking for price, availability, or specific product recommendation (e.g., "I want to buy fish", "price of heater", "suggest a filter for my tank", "do you have neon tetra?")
-3. COMMERCIAL: asking about store policies, shipping, location, or bulk orders.
-
-Message: "${message}"
-
-Return ONLY the category name.`;
-
-        const result = await groqClient.chat([{ role: "user", content: prompt }], {
-            temperature: 0.1,
-            maxTokens: 10,
-            model: "llama-3.1-8b-instant"
-        });
-
-        const intent = result.trim().toUpperCase();
-        if (["INFORMATIONAL", "SHOPPING", "COMMERCIAL"].includes(intent)) {
-            return intent as "INFORMATIONAL" | "SHOPPING" | "COMMERCIAL";
-        }
-        return "SHOPPING"; // Default
-
-    } catch (error) {
-        console.error("Intent detection failed:", error);
-        return "SHOPPING"; // Fallback
-    }
+    return "INFORMATIONAL";
 }
 
 // POST /api/ai/chat - Chat with Gemini AI
 router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
     try {
-        const { message, history = [], userName, userId } = req.body as {
+        const { message, history = [], userName } = req.body as {
             message: string;
             history?: ChatMessage[];
             userName?: string;
-            userId?: string;
         };
 
         if (!message || typeof message !== "string") {
@@ -133,6 +69,10 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                 error: "الرسالة مطلوبة",
             });
         }
+
+        // Get userId from session (NOT from request body) to prevent auth bypass
+        const sess = getSession(req);
+        const userId = sess?.userId;
 
         // Check if user is admin
         const db = getDb();
@@ -150,29 +90,21 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
             }
         }
 
-        // 1. Detect Intent
-        const intent = await detectUserIntent(message);
+        // 1. Detect Intent (instant, no API call)
+        const intent = detectUserIntent(message);
         console.log(`🤖 User Intent: ${intent} for message: "${message}"`);
 
-        // 2. Find relevant products ONLY if intent is SHOPPING/COMMERCIAL
-        let relevantProducts: any[] = [];
-        let searchPerformed = false;
-
-        if (intent === "SHOPPING" || intent === "COMMERCIAL") {
-            relevantProducts = await findRelevantProducts(message, 5);
-            searchPerformed = true;
-        }
-
-        // Get context from database
+        // 2. Build context - AI tools handle product search now (search_products, get_deals)
         let context: ChatContext = {
             userName,
-            searchPerformed,
-            productsFound: relevantProducts.length
+            userId,
+            sessionId: (req as any).sessionID,
+            isAdmin,
         };
 
         if (db) {
             try {
-                // Get product counts
+                // Get product counts for context
                 const [productsResult] = await db
                     .select({ count: count() })
                     .from(schema.products);
@@ -182,21 +114,8 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                     .from(schema.products)
                     .where(and(gt(schema.products.stock, 0), lt(schema.products.stock, 5)));
 
-                // Base context for all users
-                context = {
-                    ...context,
-                    isAdmin, // Pass admin flag to AI prompt
-                    productsCount: productsResult?.count ?? 0,
-                    lowStockCount: lowStockResult?.count ?? 0,
-                    topCategories: ["أحواض", "فلاتر", "طعام"],
-                    availableProducts: relevantProducts.map(p => ({
-                        id: p.id,
-                        name: p.name,
-                        price: p.price,
-                        category: p.category,
-                        rating: p.rating ? parseFloat(p.rating) : null,
-                    })),
-                };
+                context.productsCount = productsResult?.count ?? 0;
+                context.lowStockCount = lowStockResult?.count ?? 0;
 
                 // Get sales data (last 30 days) - ONLY FOR ADMINS
                 if (isAdmin) {
@@ -208,17 +127,14 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                         .from(schema.orders)
                         .where(gt(schema.orders.createdAt, thirtyDaysAgo));
 
-                    // Calculate total revenue
                     const totalRevenue = recentOrders.reduce((sum, order) => {
-                        return sum + parseFloat(order.total);
+                        return sum + (parseFloat(order.total) || 0);
                     }, 0);
 
-                    // Get order counts by status
                     const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
                     const pendingOrders = recentOrders.filter(o => o.status === 'pending').length;
                     const processingOrders = recentOrders.filter(o => o.status === 'processing').length;
 
-                    // Get top selling products
                     const orderItems = await db
                         .select()
                         .from(schema.orderItems)
@@ -244,7 +160,6 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                             .limit(5);
                     }
 
-                    // Add sales data to context for admins only
                     context.recentOrdersCount = recentOrders.length;
                     context.salesData = {
                         totalRevenue: Math.round(totalRevenue),
@@ -260,16 +175,17 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
             }
         }
 
-        // Send to Gemini
-        const response = await sendMessage(message, history, context);
+        // 3. Send to AI with tool calling (AI uses search_products, get_deals, etc.)
+        const result = await sendMessage(message, history, context);
+        const allProducts = result.products || [];
 
         res.json({
             success: true,
             data: {
-                response,
-                products: relevantProducts.map(p => ({
+                response: result.text,
+                products: allProducts.map(p => ({
                     id: p.id,
-                    slug: p.slug, // Add slug for navigation
+                    slug: p.slug,
                     name: p.name,
                     price: p.price,
                     image: (p.images && p.images.length > 0) ? p.images[0] : p.thumbnail,
@@ -348,11 +264,11 @@ router.post("/journey-recommendations", aiRateLimiter, async (req: Request, res:
 // GET /api/ai/health - Check if AI is working
 router.get("/health", healthRateLimiter, async (_req: Request, res: Response) => {
     try {
-        const response = await sendMessage("مرحبا، هل تعمل؟");
+        const result = await sendMessage("مرحبا، هل تعمل؟");
         res.json({
             success: true,
             status: "operational",
-            test: response.slice(0, 100),
+            test: result.text.slice(0, 100),
         });
     } catch (error) {
         res.status(500).json({

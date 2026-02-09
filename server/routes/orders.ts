@@ -2,8 +2,8 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
-import { insertOrderSchema } from "../../shared/schema.js";
 import { z } from "zod";
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 // Order validation schema
 const createOrderItemSchema = z.object({
@@ -64,6 +64,18 @@ export function createOrderRouter(): RouterType {
                 changes: { total: order.total, items: items.length }
             });
 
+            // Track purchase interactions for each item (fire-and-forget)
+            for (const item of items) {
+                analyticsTracker.trackPurchase({
+                    userId: userId || undefined,
+                    sessionId: (req as any).sessionID || "unknown",
+                    productId: item.productId,
+                    orderId: order.id,
+                    quantity: item.quantity,
+                    price: 0, // Price is calculated server-side in createOrderSecure
+                }).catch(() => {});
+            }
+
             res.status(201).json(order);
         } catch (err: any) {
             // Convert known validation errors to 400
@@ -88,7 +100,7 @@ export function createOrderRouter(): RouterType {
         }
     });
 
-    // Track Order Publicly
+    // Track Order Publicly - only expose safe fields (no PII)
     router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { orderNumber } = req.params as { orderNumber: string };
@@ -97,7 +109,15 @@ export function createOrderRouter(): RouterType {
                 res.status(404).json({ message: "Order not found" });
                 return;
             }
-            res.json(order);
+            // Only return safe tracking info, hide customer PII
+            res.json({
+                id: order.id,
+                orderNumber: order.orderNumber,
+                status: order.status,
+                total: order.total,
+                createdAt: order.createdAt,
+                updatedAt: order.updatedAt,
+            });
         } catch (err) {
             next(err);
         }

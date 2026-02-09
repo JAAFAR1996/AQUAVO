@@ -213,7 +213,7 @@ router.post("/register", async (req: Request, res: Response) => {
             attempts++;
         }
 
-        // Create coupon in database (single use, 20% discount)
+        // Create coupon in database (single use, 5% discount)
         await db.insert(coupons).values({
             code: couponCode,
             type: "percentage",

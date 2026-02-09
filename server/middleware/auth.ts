@@ -47,12 +47,12 @@ export async function requireAdmin(req: any, res: any, next: any) {
 
   // Check if user has admin role
   if (user.role !== "admin") {
-    console.log(`❌ Admin access denied: User ${user.email} is not admin (role: ${user.role})`);
+    console.log(`❌ Admin access denied: User ${user.id} is not admin (role: ${user.role})`);
     return res.status(403).json({ message: "غير مصرح لك بالوصول لهذه الصفحة" });
   }
 
   // Grant access
   req.user = user;
-  console.log(`✅ Admin access granted: ${user.email}`);
+  console.log(`✅ Admin access granted: ${user.id}`);
   next();
 }

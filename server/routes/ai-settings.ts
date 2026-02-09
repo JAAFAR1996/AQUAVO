@@ -4,9 +4,17 @@
  */
 
 import { Router, Request, Response } from "express";
+import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { eq } from "drizzle-orm";
+import { inventoryOptimizer } from "../services/inventory-optimizer.js";
+import { triggerJob } from "../cron/scheduled-jobs.js";
+import { churnDetector } from "../services/churn-detector.js";
+import { predictiveAnalytics } from "../services/predictive-analytics.js";
+import { embeddingGenerator } from "../services/embedding-generator.js";
+import { smartNotifications } from "../services/smart-notifications.js";
+import { verifyEmailConnection } from "../utils/email.js";
 
 const router = Router();
 
@@ -102,7 +110,7 @@ async function initializeDefaultAgents() {
 initializeDefaultAgents();
 
 // GET /api/ai/settings - Get all agent settings
-router.get("/settings", async (_req: Request, res: Response) => {
+router.get("/settings", requireAdmin as any, async (_req: Request, res: Response) => {
   const db = getDb();
   if (!db) {
     return res.status(500).json({ success: false, error: "Database not available" });
@@ -126,7 +134,7 @@ router.get("/settings", async (_req: Request, res: Response) => {
 });
 
 // GET /api/ai/settings/:agentName - Get specific agent
-router.get("/settings/:agentName", async (req: Request, res: Response) => {
+router.get("/settings/:agentName", requireAdmin as any, async (req: Request, res: Response) => {
   const db = getDb();
   if (!db) {
     return res.status(500).json({ success: false, error: "Database not available" });
@@ -151,7 +159,7 @@ router.get("/settings/:agentName", async (req: Request, res: Response) => {
 });
 
 // PATCH /api/ai/settings/:agentName - Update agent settings
-router.patch("/settings/:agentName", async (req: Request, res: Response) => {
+router.patch("/settings/:agentName", requireAdmin as any, async (req: Request, res: Response) => {
   const db = getDb();
   if (!db) {
     return res.status(500).json({ success: false, error: "Database not available" });
@@ -183,7 +191,7 @@ router.patch("/settings/:agentName", async (req: Request, res: Response) => {
 });
 
 // POST /api/ai/settings/:agentName/toggle - Quick toggle on/off
-router.post("/settings/:agentName/toggle", async (req: Request, res: Response) => {
+router.post("/settings/:agentName/toggle", requireAdmin as any, async (req: Request, res: Response) => {
   const db = getDb();
   if (!db) {
     return res.status(500).json({ success: false, error: "Database not available" });
@@ -221,7 +229,7 @@ router.post("/settings/:agentName/toggle", async (req: Request, res: Response) =
 });
 
 // POST /api/ai/settings/:agentName/run - Manually trigger agent
-router.post("/settings/:agentName/run", async (req: Request, res: Response) => {
+router.post("/settings/:agentName/run", requireAdmin as any, async (req: Request, res: Response) => {
   const db = getDb();
   if (!db) {
     return res.status(500).json({ success: false, error: "Database not available" });
@@ -241,16 +249,48 @@ router.post("/settings/:agentName/run", async (req: Request, res: Response) => {
     }
 
     if (!agent.isEnabled) {
-      return res.status(400).json({ success: false, error: "Agent is disabled" });
+      return res.status(400).json({ success: false, error: "الوكيل معطّل. فعّله أولاً." });
     }
 
-    // TODO: Implement actual agent run logic here
-    // For now, just update the stats
+    // Execute the actual agent logic
+    let runResult: any = null;
+    let runStatus: "success" | "error" = "success";
+
+    switch (agentName) {
+      case "inventory":
+        runResult = await inventoryOptimizer.analyzeAllProducts();
+        break;
+      case "content":
+        runResult = await triggerJob("autoblog");
+        break;
+      case "pricing":
+        runResult = await triggerJob("pricing");
+        break;
+      case "marketing":
+        runResult = await triggerJob("email_campaigns");
+        break;
+      case "sentiment":
+        runResult = { message: "محلل المشاعر يعمل تلقائياً مع كل محادثة" };
+        break;
+      case "sales":
+        runResult = { message: "وكيل المبيعات يعمل تلقائياً في الشات" };
+        break;
+      case "visual":
+        runResult = { message: "محلل الصور يعمل عند رفع صورة" };
+        break;
+      case "aquarium":
+        runResult = { message: "مستشار الأحواض يعمل عند طلب تصميم" };
+        break;
+      default:
+        runResult = { message: `الوكيل "${agentName}" لا يدعم التشغيل اليدوي` };
+    }
+
+    // Update stats
     const [updated] = await db
       .update(schema.aiAgentSettings)
       .set({
         lastRunAt: new Date(),
-        lastRunStatus: "success",
+        lastRunStatus: runStatus,
         actionsToday: (agent.actionsToday || 0) + 1,
         totalActions: (agent.totalActions || 0) + 1,
         updatedAt: new Date(),
@@ -258,15 +298,152 @@ router.post("/settings/:agentName/run", async (req: Request, res: Response) => {
       .where(eq(schema.aiAgentSettings.agentName, agentName))
       .returning();
 
-    console.log(`🤖 Agent "${agentName}" manually triggered`);
-    res.json({ 
-      success: true, 
+    console.log(`🤖 Agent "${agentName}" manually triggered - result:`, runResult);
+    res.json({
+      success: true,
       data: updated,
+      result: runResult,
       message: `تم تشغيل ${agent.displayName} بنجاح`,
     });
   } catch (error) {
     console.error("Error running agent:", error);
-    res.status(500).json({ success: false, error: "Failed to run agent" });
+
+    // Update status to error
+    try {
+      const { agentName } = req.params;
+      await db
+        .update(schema.aiAgentSettings)
+        .set({ lastRunStatus: "error", updatedAt: new Date() })
+        .where(eq(schema.aiAgentSettings.agentName, agentName));
+    } catch { /* ignore */ }
+
+    res.status(500).json({ success: false, error: "فشل تشغيل الوكيل" });
+  }
+});
+
+// ==================== Embedding Management ====================
+
+// GET /api/ai/embeddings/stats - Get embedding coverage stats
+router.get("/embeddings/stats", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    const stats = await embeddingGenerator.getEmbeddingStats();
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error("Error fetching embedding stats:", error);
+    res.status(500).json({ success: false, error: "Failed to fetch stats" });
+  }
+});
+
+// POST /api/ai/embeddings/generate-all - Generate embeddings for all products
+router.post("/embeddings/generate-all", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    console.log("🧠 Admin triggered full embedding generation...");
+    const result = await embeddingGenerator.generateAllEmbeddings(5);
+    res.json({
+      success: true,
+      message: `تم توليد ${result.success} embedding بنجاح (فشل: ${result.failed})`,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error generating embeddings:", error);
+    res.status(500).json({ success: false, error: "Failed to generate embeddings" });
+  }
+});
+
+// POST /api/ai/embeddings/generate-missing - Generate only missing embeddings
+router.post("/embeddings/generate-missing", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    console.log("🧠 Admin triggered missing embedding generation...");
+    const result = await embeddingGenerator.generateMissingEmbeddings();
+    res.json({
+      success: true,
+      message: `تم توليد ${result.success} embedding ناقص (فشل: ${result.failed})`,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error generating missing embeddings:", error);
+    res.status(500).json({ success: false, error: "Failed to generate missing embeddings" });
+  }
+});
+
+// POST /api/ai/embeddings/generate/:productId - Generate embedding for a single product
+router.post("/embeddings/generate/:productId", requireAdmin as any, async (req: Request, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const embedding = await embeddingGenerator.generateProductEmbedding(productId);
+    if (embedding) {
+      res.json({ success: true, message: "تم توليد embedding بنجاح", dimensions: embedding.length });
+    } else {
+      res.status(400).json({ success: false, error: "فشل توليد embedding" });
+    }
+  } catch (error) {
+    console.error("Error generating product embedding:", error);
+    res.status(500).json({ success: false, error: "Failed to generate embedding" });
+  }
+});
+
+// ==================== Smart Reminders Trigger ====================
+
+// POST /api/ai/run-predictions - Manually trigger daily predictions
+router.post("/run-predictions", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    const result = await predictiveAnalytics.runDailyPredictions();
+    res.json({
+      success: true,
+      message: `تحليل ${result.usersAnalyzed} مستخدم، ${result.predictionsCreated} تنبؤ جديد`,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error running predictions:", error);
+    res.status(500).json({ success: false, error: "Failed to run predictions" });
+  }
+});
+
+// POST /api/ai/run-smart-reminders - Trigger smart notification reminders
+router.post("/run-smart-reminders", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    const result = await smartNotifications.sendReplenishmentReminders();
+    res.json({
+      success: true,
+      message: `تم إرسال ${result.emailsSent} إيميل و ${result.pushSent} إشعار لـ ${result.usersNotified} مستخدم`,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error running smart reminders:", error);
+    res.status(500).json({ success: false, error: "Failed to send reminders" });
+  }
+});
+
+// ==================== Email System Status ====================
+
+// GET /api/ai/email-status - Check if email system is configured and working
+router.get("/email-status", requireAdmin as any, async (_req: Request, res: Response) => {
+  try {
+    const smtpHost = process.env.SMTP_HOST;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+
+    const configured = !!(smtpHost && smtpUser && smtpPass);
+    let connected = false;
+
+    if (configured) {
+      connected = await verifyEmailConnection();
+    }
+
+    res.json({
+      success: true,
+      data: {
+        configured,
+        connected,
+        host: smtpHost || "غير محدد",
+        user: smtpUser ? smtpUser.replace(/(.{3}).*(@.*)/, "$1***$2") : "غير محدد",
+        port: process.env.SMTP_PORT || "587",
+        secure: process.env.SMTP_SECURE === "true",
+      },
+    });
+  } catch (error) {
+    console.error("Error checking email status:", error);
+    res.status(500).json({ success: false, error: "Failed to check email status" });
   }
 });
 

@@ -65,7 +65,7 @@ ${message}
   }
 }`;
 
-      const responseText = await groqClient.chat([{ role: "user", content: prompt }], {
+      const responseText = await groqClient.chatText([{ role: "user", content: prompt }], {
         temperature: 0.2, // Low temperature for consistent JSON
         maxTokens: 512,
         model: "llama-3.1-8b-instant" // Use smaller model for sentiment
@@ -220,7 +220,7 @@ ${response}
 قدم رداً معدلاً يُظهر التعاطف والفهم لإحباط المستخدم، مع تقديم نفس المعلومات بطريقة أكثر دعماً.`;
 
       try {
-        const adjustedResponse = await groqClient.chat([{ role: "user", content: empathyPrompt }], {
+        const adjustedResponse = await groqClient.chatText([{ role: "user", content: empathyPrompt }], {
           temperature: 0.7,
           maxTokens: 512
         });

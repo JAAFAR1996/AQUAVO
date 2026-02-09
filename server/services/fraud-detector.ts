@@ -1,21 +1,13 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import { orders, users, orderItems, products } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count } from "drizzle-orm";
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 /**
  * Fraud Detector Service
  * كشف الطلبات المشبوهة والاحتيال
  */
 export class FraudDetector {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * تحليل طلب للكشف عن الاحتيال
@@ -250,8 +242,11 @@ ${indicators.flags.map((f) => `- ${f}`).join("\n")}
 اكتب تحليل مختصر (جملتين) عن مستوى الخطر.
 `;
 
-            const result = await this.model.generateContent(prompt);
-            return result.response.text().trim();
+            const result = await groqClient.chatText(
+                [{ role: "user", content: prompt }],
+                { temperature: 0.3, maxTokens: 150, model: "llama-3.1-8b-instant" }
+            );
+            return (result || "").trim();
         } catch (error) {
             console.error("AI analysis failed:", error);
             return "تعذر الحصول على تحليل AI";

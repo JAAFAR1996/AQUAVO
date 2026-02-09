@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { AlertCircle, ArrowUpDown } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
 import { ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
@@ -13,19 +13,21 @@ import { FilterModal, FilterState } from "@/components/products/filter-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, fetchProductAttributes } from "@/lib/api";
+import { fetchProducts, fetchProductAttributes, fetchPersonalizedOrder } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 import { BackToTop } from "@/components/back-to-top";
 import { QuickViewModal } from "@/components/products/quick-view-modal";
+import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
 
-type SortOption = "default" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
+type SortOption = "default" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
 
 export default function Products() {
   const [location] = useLocation();
+  const { user } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
   const initialCategory = searchParams.get("category");
   const initialSearch = searchParams.get("search");
@@ -53,7 +55,7 @@ export default function Products() {
   });
 
   const [sortBy, setSortBy] = useState<SortOption>(
-    initialSort === 'best-selling' ? "rating-desc" : "default"
+    initialSort === 'best-selling' ? "rating-desc" : (user ? "smart" : "default")
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -95,6 +97,16 @@ export default function Products() {
   }, [attributes]);
 
 
+  // Fetch AI personalized boost order (for logged-in users with smart sort)
+  const { data: boostData } = useQuery({
+    queryKey: ["personalized-order"],
+    queryFn: fetchPersonalizedOrder,
+    staleTime: 5 * 60 * 1000,
+    enabled: !!user && sortBy === "smart",
+  });
+
+  const boostIds = boostData?.boostIds ?? [];
+
   // Prepare query params for backend
   const queryParams = useMemo(() => {
     const params: import("@/types").ProductQueryParams = {};
@@ -116,7 +128,7 @@ export default function Products() {
     else if (sortBy === "price-desc") { params.sortBy = "price"; params.sortOrder = "desc"; }
     else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }
     else if (sortBy === "rating-desc") { params.sortBy = "rating"; params.sortOrder = "desc"; }
-    else { params.sortBy = "createdAt"; params.sortOrder = "desc"; } // default
+    else { params.sortBy = "createdAt"; params.sortOrder = "desc"; } // default & smart (smart reorders client-side)
 
     return params;
   }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
@@ -132,7 +144,7 @@ export default function Products() {
 
   // Client-side filtering for unsupported backend filters (Difficulty, specific tags)
   const finalProducts = useMemo(() => {
-    return products.filter(product => {
+    let filtered = products.filter(product => {
       // Difficulty
       if (filters.difficulties.length > 0 && product.difficulty && !filters.difficulties.includes(product.difficulty)) {
         return false;
@@ -143,7 +155,19 @@ export default function Products() {
       }
       return true;
     });
-  }, [products, filters.difficulties, filters.tags]);
+
+    // Smart sort: boost AI-recommended products to the top
+    if (sortBy === "smart" && boostIds.length > 0) {
+      const boostSet = new Set(boostIds);
+      const boosted = filtered.filter(p => boostSet.has(p.id));
+      const rest = filtered.filter(p => !boostSet.has(p.id));
+      // Sort boosted products by their order in boostIds
+      boosted.sort((a, b) => boostIds.indexOf(a.id) - boostIds.indexOf(b.id));
+      filtered = [...boosted, ...rest];
+    }
+
+    return filtered;
+  }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
 
   // Load More functionality
   const displayedProducts = useMemo(() => {
@@ -253,6 +277,7 @@ export default function Products() {
                   <SelectValue placeholder="ترتيب حسب" />
                 </SelectTrigger>
                 <SelectContent>
+                  {user && <SelectItem value="smart">✨ مخصص لك</SelectItem>}
                   <SelectItem value="default">الافتراضي</SelectItem>
                   <SelectItem value="price-asc">السعر: الأقل</SelectItem>
                   <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
@@ -266,10 +291,16 @@ export default function Products() {
 
         {/* Results Count */}
         {!isLoading && (
-          <div className="mb-6 text-sm text-muted-foreground">
+          <div className="mb-6 text-sm text-muted-foreground flex items-center gap-2 justify-between">
             {finalProducts.length > 0 ? (
               <span>عرض <strong>{displayedProducts.length}</strong> من <strong>{finalProducts.length}</strong> منتج</span>
-            ) : null}
+            ) : <span />}
+            {sortBy === "smart" && boostIds.length > 0 && (
+              <span className="flex items-center gap-1 text-xs text-primary">
+                <Sparkles className="w-3 h-3" />
+                مرتب حسب اهتماماتك
+              </span>
+            )}
           </div>
         )}
 

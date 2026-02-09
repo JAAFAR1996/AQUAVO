@@ -440,13 +440,7 @@ export default function AdminDashboard() {
   };
 
   const handleUpdateProduct = async () => {
-    console.log('[DEBUG] handleUpdateProduct called');
-    console.log('[DEBUG] selectedProduct:', selectedProduct?.id);
-    console.log('[DEBUG] formData.images count:', formData.images?.length);
-    console.log('[DEBUG] imageBase64 exists:', !!imageBase64);
-
     if (!selectedProduct) {
-      console.error('[DEBUG] No selected product!');
       toast({
         title: "خطأ",
         description: "لم يتم تحديد أي منتج",
@@ -464,10 +458,6 @@ export default function AdminDashboard() {
         imageBase64: imageBase64 || undefined,
       };
 
-      console.log('[DEBUG] Sending PATCH to:', `/api/admin/products/${selectedProduct.id}`);
-      console.log('[DEBUG] Payload images:', productPayload.images?.length, 'images');
-      console.log('[DEBUG] Payload has imageBase64:', !!productPayload.imageBase64);
-
       const response = await fetch(`/api/admin/products/${selectedProduct.id}`, {
         method: "PATCH",
         headers: addCsrfHeader({
@@ -476,8 +466,6 @@ export default function AdminDashboard() {
         credentials: "include",
         body: JSON.stringify(productPayload),
       });
-
-      console.log('[DEBUG] Response status:', response.status);
 
       if (response.ok) {
         toast({

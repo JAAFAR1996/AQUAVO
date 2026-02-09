@@ -142,6 +142,58 @@ export async function searchProducts(query: string): Promise<Product[]> {
   }
 }
 
+export async function fetchPersonalizedProducts(): Promise<{ products: Product[]; personalized: boolean; method: string }> {
+  try {
+    return await getJson<{ products: Product[]; personalized: boolean; method: string }>("/api/products/personalized");
+  } catch (err) {
+    console.warn("Failed to fetch personalized products:", err);
+    return { products: [], personalized: false, method: "error" };
+  }
+}
+
+export async function fetchPredictedNeeds(): Promise<{
+  predictions: Array<{ product: Product; probability: number; reason: string; predictedDate: string | null }>;
+}> {
+  try {
+    return await getJson<{
+      predictions: Array<{ product: Product; probability: number; reason: string; predictedDate: string | null }>;
+    }>("/api/products/predicted-needs");
+  } catch {
+    return { predictions: [] };
+  }
+}
+
+export async function fetchSmartSearch(query: string): Promise<{ products: Product[]; semantic: boolean }> {
+  if (!query || query.trim().length < 2) return { products: [], semantic: false };
+  try {
+    return await getJson<{ products: Product[]; semantic: boolean }>(
+      `/api/products/smart-search?q=${encodeURIComponent(query)}`
+    );
+  } catch {
+    return { products: [], semantic: false };
+  }
+}
+
+export async function fetchPersonalizedOrder(): Promise<{ boostIds: string[] }> {
+  try {
+    return await getJson<{ boostIds: string[] }>("/api/products/personalized-order");
+  } catch {
+    return { boostIds: [] };
+  }
+}
+
+export async function fetchCartSuggestions(productIds: string[]): Promise<{ suggestions: Product[]; reason: string }> {
+  if (productIds.length === 0) return { suggestions: [], reason: "" };
+  try {
+    return await getJson<{ suggestions: Product[]; reason: string }>(
+      `/api/products/cart-suggestions?productIds=${productIds.join(",")}`
+    );
+  } catch (err) {
+    console.warn("Failed to fetch cart suggestions:", err);
+    return { suggestions: [], reason: "" };
+  }
+}
+
 export async function fetchGallerySubmissions(): Promise<GallerySubmission[]> {
   try {
     return await getJson<GallerySubmission[]>("/api/gallery");

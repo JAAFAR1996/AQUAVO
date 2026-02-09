@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     returnRequests,
@@ -9,19 +9,11 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Returns Handler Service
  * يعالج طلبات الإرجاع باستخدام الذكاء الاصطناعي
  */
 export class ReturnsHandler {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * إنشاء طلب إرجاع
@@ -171,8 +163,10 @@ export class ReturnsHandler {
 }
 `;
 
-            const result = await this.model.generateContent(prompt);
-            const text = result.response.text();
+            const text = await groqClient.chatText(
+                [{ role: "user", content: prompt }],
+                { temperature: 0.3, maxTokens: 300, model: "llama-3.1-8b-instant" }
+            ) || "";
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {

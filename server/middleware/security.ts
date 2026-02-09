@@ -86,9 +86,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
  * CORS configuration
  */
 export function corsConfig(req: Request, res: Response, next: NextFunction) {
+  const isProduction = process.env.NODE_ENV === 'production';
+
   const allowedOrigins = [
-    'http://localhost:5000',
-    'http://localhost:3000',
+    // Only allow localhost in development
+    ...(!isProduction ? ['http://localhost:5000', 'http://localhost:3000'] : []),
     'https://fist-live.vercel.app', // Production Vercel domain
     'https://aquavo.iq', // Custom domain if any
     process.env.CLIENT_URL
@@ -166,9 +168,8 @@ export function securityLogger(req: Request, res: Response, next: NextFunction) 
   const ip = getClientIP(req);
   const timestamp = new Date().toISOString();
 
-  // Log suspicious activity
+  // Log suspicious activity (exclude legitimate /api/admin routes)
   const suspiciousPatterns = [
-    /admin/i,
     /wp-admin/i,
     /phpmyadmin/i,
     /\.php$/i,

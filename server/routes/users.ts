@@ -1,7 +1,7 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { insertUserSchema, insertUserAddressSchema, insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
+import { insertUserAddressSchema } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
 import { authLimiter, passwordResetLimiter } from "../middleware/rate-limit.js";

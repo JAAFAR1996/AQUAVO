@@ -15,6 +15,7 @@ import {
     MessageCircle
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/auth-context";
 
 interface ChatMessage {
     role: "user" | "assistant";
@@ -22,13 +23,14 @@ interface ChatMessage {
     timestamp: Date;
 }
 
-async function sendChatMessage(message: string, history: ChatMessage[]) {
+async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
     const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
             message,
             history: history.map(m => ({ role: m.role, content: m.content })),
+            userName,
         }),
     });
 
@@ -42,6 +44,7 @@ async function sendChatMessage(message: string, history: ChatMessage[]) {
 }
 
 export function AIChatPanel() {
+    const { user } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([
         {
             role: "assistant",
@@ -61,7 +64,7 @@ export function AIChatPanel() {
 
     // Chat mutation
     const chatMutation = useMutation({
-        mutationFn: (message: string) => sendChatMessage(message, messages),
+        mutationFn: (message: string) => sendChatMessage(message, messages, user?.fullName || undefined),
         onSuccess: (response) => {
             setMessages((prev) => [
                 ...prev,
@@ -131,7 +134,7 @@ export function AIChatPanel() {
                     <div className="flex items-center gap-2">
                         <Badge variant="secondary" className="gap-1">
                             <Sparkles className="w-3 h-3" />
-                            Gemini AI
+                            AI
                         </Badge>
                         <Button variant="ghost" size="icon" onClick={handleClear}>
                             <Trash2 className="w-4 h-4" />

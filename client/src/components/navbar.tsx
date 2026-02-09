@@ -1,14 +1,16 @@
 import { Link, useLocation } from "wouter";
-import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope } from "lucide-react";
+import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { FontSizeControllerCompact } from "@/components/ui/font-size-controller";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CheckoutDialog } from "@/components/cart/checkout-dialog";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
+import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { formatIQD, generateOrderNumber, cn } from "@/lib/utils";
 import { useCart, CartItem } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
@@ -56,6 +58,19 @@ export default function Navbar() {
   const { items: cartItems, removeItem, clearCart, totalItems, totalPrice } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
+
+  // Smart notification badge
+  const { data: notifStatus } = useQuery({
+    queryKey: ["notification-status"],
+    queryFn: async () => {
+      const res = await fetch("/api/notifications/my-status", { credentials: "include" });
+      if (!res.ok) return { pendingReminders: 0 };
+      return res.json();
+    },
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000,
+  });
+  const pendingReminders = notifStatus?.pendingReminders ?? 0;
 
   // 2025 Style hooks
   const { style: navbarStyle } = useNavbarPreferences();
@@ -292,6 +307,24 @@ export default function Navbar() {
               </Button>
             </Link>
 
+            {user && (
+              <Link href="/#predicted-needs">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative"
+                  aria-label={`التذكيرات الذكية${pendingReminders > 0 ? ` - ${pendingReminders} تذكير` : ""}`}
+                >
+                  <Bell className="h-5 w-5" aria-hidden="true" />
+                  {pendingReminders > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                      {pendingReminders}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            )}
+
             <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
               <SheetTrigger asChild>
                 <Button
@@ -359,6 +392,7 @@ export default function Navbar() {
                         ))}
                       </div>
                       <Separator className="my-4" />
+                      <CartSuggestions />
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <span className="font-medium">المجموع:</span>

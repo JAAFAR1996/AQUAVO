@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import multer from "multer";
+import { requireAuth } from "../middleware/auth.js";
 
 // Configure multer for memory storage
 const upload = multer({
@@ -20,8 +21,8 @@ const upload = multer({
 export function createUploadRouter() {
     const router = Router();
 
-    // Upload single image
-    router.post("/image", upload.single("image"), async (req: Request, res: Response, next: NextFunction) => {
+    // Upload single image (requires authentication)
+    router.post("/image", requireAuth as any, upload.single("image"), async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (!req.file) {
                 res.status(400).json({ message: "No file uploaded" });
@@ -47,8 +48,8 @@ export function createUploadRouter() {
         }
     });
 
-    // Upload multiple images
-    router.post("/images", upload.array("images", 10), async (req: Request, res: Response, next: NextFunction) => {
+    // Upload multiple images (requires authentication)
+    router.post("/images", requireAuth as any, upload.array("images", 10), async (req: Request, res: Response, next: NextFunction) => {
         try {
             const files = req.files as Express.Multer.File[];
 

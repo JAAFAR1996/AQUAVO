@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     churnPredictions,
@@ -8,9 +8,6 @@ import {
     productInteractions,
 } from "../../shared/schema.js";
 import { eq, desc, and, gte, lt, sql, count } from "drizzle-orm";
-
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 /**
  * Churn Prediction Indicators
@@ -44,11 +41,6 @@ interface ChurnAnalysis {
  * يكتشف العملاء المعرضين لخطر المغادرة
  */
 export class ChurnDetector {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * تحليل مستخدم واحد
@@ -58,7 +50,7 @@ export class ChurnDetector {
             const indicators = await this.calculateIndicators(userId);
             const { churnScore, contributingFactors } = this.calculateChurnScore(indicators);
             const riskLevel = this.getRiskLevel(churnScore);
-            const suggestedAction = this.suggestAction(riskLevel, contributingFactors);
+            const suggestedAction = await this.suggestAction(riskLevel, contributingFactors);
 
             return {
                 userId,
@@ -282,14 +274,15 @@ export class ChurnDetector {
     }
 
     /**
-     * اقتراح إجراء مناسب
+     * اقتراح إجراء مناسب (مع AI)
      */
-    private suggestAction(
+    private async suggestAction(
         riskLevel: "low" | "medium" | "high" | "critical",
         factors: Array<{ factor: string; weight: number; description: string }>
-    ): string {
+    ): Promise<string> {
         const mainFactor = factors.length > 0 ? factors[0].factor : "general";
 
+        // Static fallback map
         const actions: Record<string, Record<string, string>> = {
             critical: {
                 inactivity: "إرسال عرض خاص 30% للعودة + اتصال شخصي",
@@ -317,7 +310,33 @@ export class ChurnDetector {
             },
         };
 
-        return actions[riskLevel]?.[mainFactor] || actions[riskLevel]?.general || "متابعة";
+        const fallback = actions[riskLevel]?.[mainFactor] || actions[riskLevel]?.general || "متابعة";
+
+        // Try AI for personalized strategy on high/critical risk
+        if ((riskLevel === "critical" || riskLevel === "high") && groqClient.hasKeys()) {
+            try {
+                const factorsText = factors.map(f => `- ${f.description} (أهمية: ${f.weight}%)`).join("\n");
+                const prompt = `أنت خبير استبقاء عملاء لمتجر أحواض أسماك عراقي (AQUAVO).
+
+مستوى خطر المغادرة: ${riskLevel === "critical" ? "حرج" : "عالي"}
+العوامل:
+${factorsText}
+
+اقترح استراتيجية استبقاء مخصصة في جملة أو جملتين باللغة العربية. كن محدداً وعملياً.`;
+
+                const aiSuggestion = await groqClient.chatText(
+                    [{ role: "user", content: prompt }],
+                    { temperature: 0.5, maxTokens: 150, model: "llama-3.1-8b-instant" }
+                );
+                if (aiSuggestion && aiSuggestion.trim().length > 10) {
+                    return aiSuggestion.trim();
+                }
+            } catch (error) {
+                console.error("AI suggestion failed, using fallback:", error);
+            }
+        }
+
+        return fallback;
     }
 
     /**

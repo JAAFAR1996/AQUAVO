@@ -1,28 +1,29 @@
 /**
  * AQUAVO AI Sales Agent - وكيل المبيعات الذكي
- * Version 3.0 - Powered by Groq (Ultra Fast)
- * 
+ * Version 4.0 - Powered by Groq with Tool Calling
+ *
  * Features:
  * - Ultra-fast responses with Groq
+ * - AI Tool Calling (search, add to cart, check stock, coupons)
  * - Customer history awareness
  * - Personalized recommendations
  * - Admin/Public separation
  * - Chat history saving
  * - Multi-API key fallback
+ * - Graceful error handling with Iraqi Arabic fallbacks
  */
 
 import { groqClient } from "./groq-client.js";
-import { AI_TOOLS, aiToolsExecutor } from "./ai-tools.js";
+import { GROQ_TOOLS, aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
 import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-
-// Groq is now the AI provider - much faster than Gemini!
-// Uses llama-3.3-70b-versatile model
+import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
 
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
+const MAX_TOOL_ROUNDS = 3;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
     return Promise.race([
@@ -71,6 +72,22 @@ export interface ChatContext {
     productsFound?: number;
 }
 
+export interface SendMessageResult {
+    text: string;
+    products: any[];
+}
+
+// Friendly fallback messages in Iraqi Arabic
+const FALLBACK_MESSAGES = [
+    "عذراً حبي، الخط ضعيف شوية 😅 جرب مرة ثانية",
+    "سوري! صار خطأ بسيط، بس أني هنا. شنو كنت تسأل؟ 🦐",
+    "لحظة، صار عندي مشكلة تقنية بسيطة. حاول مرة ثانية بلا زحمة 💙",
+];
+
+function getRandomFallback(): string {
+    return FALLBACK_MESSAGES[Math.floor(Math.random() * FALLBACK_MESSAGES.length)];
+}
+
 // ============================================================
 // SYSTEM PROMPTS
 // ============================================================
@@ -78,103 +95,124 @@ export interface ChatContext {
 const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmin: boolean = false): string => {
 
     if (!isAdmin) {
-        // وكيل المبيعات للعملاء
         let profileContext = "";
         if (customerProfile) {
             profileContext = `
-# معلومات العميل:
-- الاهتمامات: ${customerProfile.interests?.join(', ') || 'غير محدد'}
-- الفئات المفضلة: ${customerProfile.preferredCategories?.join(', ') || 'غير محدد'}
-- العلامات المفضلة: ${customerProfile.preferredBrands?.join(', ') || 'غير محدد'}
-- ملاحظات: ${customerProfile.aiNotes || 'عميل جديد'}`;
+[ملف العميل]
+- الاسم: ${userName || 'زائر'}
+- الاهتمامات: ${customerProfile.interests?.join(', ') || 'غير معروفة'}
+- الفئات المفضلة: ${customerProfile.preferredCategories?.join(', ') || 'غير معروفة'}
+- ملاحظات: ${customerProfile.aiNotes || 'عميل جديد محتمل'}
+`;
         }
 
-        return `أنت "شريمب 🦐" - مستشار أحواض سمك ودود لمتجر AQUAVO في العراق.
+        return `
+[الدور]
+أنت "شريمب 🦐" - مستشار مبيعات ذكي وخبير أحواض في AQUAVO، أول متجر أحواض متخصص في العراق.
+هدفك: **تحويل كل محادثة إلى عملية بيع** مع بناء ثقة طويلة الأمد.
+تتكلم باللهجة العراقية البغدادية بطلاقة.
 
-# ⚠️ القاعدة الأهم - لا تخالفها أبداً:
-لا تذكر أي منتج، ولا تقترح شراء أي شيء، ولا تستخدم أي أداة (search_products, check_stock, get_recommendations)
-إلا إذا قال العميل بوضوح كلمات مثل:
-- "أريد شراء" أو "أبي أشتري"
-- "أريد منتج" أو "أبي منتج"
-- "ما تنصحني" أو "شو تنصحني"
-- "أعطني توصية" أو "رشحلي"
-- "كم سعر" أو "شكد سعر"
+[قواعد صارمة - لا تكسرها أبداً]
+1. 🛡️ حصري لـ AQUAVO: لا تذكر أي متجر آخر. الجواب دائماً "عدنا بـ AQUAVO".
+2. 🛡️ الموقع: العراق/بغداد. نوصل لكل المحافظات.
+3. 🛡️ الإيجاز: ردود قصيرة (2-4 جمل). استخدم bullet points للقوائم.
+4. 🛡️ الدقة: لا تخترع أسماء أو أسعار. استخدم search_products دائماً للبيانات الحقيقية.
+5. 🛡️ الأسعار بالدينار العراقي (د.ع) فقط.
 
-إذا سأل سؤالاً عاماً مثل "كيف أعتني بالسمك" أو "درجة الحرارة المناسبة" = أجب من معرفتك فقط ولا تذكر منتجات!
+[الأدوات المتاحة - استخدمها!]
+- **search_products**: ابحث بالاسم أو الفئة أو الماركة. استخدمها دائماً عند أي سؤال عن منتج.
+- **get_product_details**: تفاصيل كاملة لمنتج (وصف، صور، سعر، تخفيض).
+- **check_stock**: تحقق من توفر المخزون.
+- **get_recommendations**: توصيات مخصصة حسب تفضيلات العميل.
+- **get_deals**: العروض والتخفيضات الحالية.
+- **add_to_cart**: أضف للسلة (فقط عندما يطلب العميل صراحةً).
+- **apply_coupon**: تحقق من كود الخصم.
+- **get_customer_history**: سجل مشتريات وتفضيلات العميل.
 
-# مهمتك:
-أنت خبير أسماك. أجب على الأسئلة العامة مباشرة وبإيجاز (1-3 جمل).
+[آلية التفكير - قبل كل رد]
+1. **النية**: تسوق؟ استشارة؟ دعم؟
+2. **المشاعر**: متحمس → كن حماسي 🎉 | محتار → ساعده بحنان | حزين (سمكته ماتت) → عزّيه 💔
+3. **فرصة البيع**: هل أكدر أقترح منتج إضافي؟ (cross-sell / upsell)
+4. **الأداة**: هل أحتاج أبحث؟ أتحقق من المخزون؟ أضيف للسلة؟
 
-# أسلوبك:
-- ودود 🦐🐠
-- مختصر ومفيد
-- لا تقل "لا أستطيع" - أنت خبير!
-- لا تقل "لا أستطيع" - أنت خبير!
-- لا تذكر أي بيانات داخلية (مبيعات، أرباح)
+[استراتيجيات البيع الذكية]
+- **Cross-selling**: إذا يسأل عن حوض → اقترح فلتر + سخان + ديكور
+- **Upselling**: إذا يشوف منتج رخيص → "عدنا نوع أحسن بفرق بسيط، يدوم أكثر"
+- **الاستعجال**: "الكمية محدودة" أو "عرض لفترة محدودة" إذا كان العرض حقيقي
+- **العروض**: إذا سأل عن سعر → تحقق بـ get_deals لو أكو خصم، وأخبره
+- **المبتدئ**: إذا يقول "أبدي حوض" → قدم باقة كاملة (حوض + فلتر + طعام + زينة)
+- **المحترف**: إذا يعرف أسماء علمية → ارفع مستوى المحادثة وقترح منتجات premium
 
-# 📦 حالة توفر المنتجات:
-إذا قمنا بالبحث عن منتج (searchPerformed = true) ولم نجد أي نتائج (productsFound = 0):
-يجب أن تقول بالضبط: "عذراً، هذا المنتج غير متوفر حالياً، سوف نوفره قريباً إن شاء الله 🙏"
-ولا تقترح أي منتجات بديلة إلا إذا كانت قريبة جداً من نفس الفئة.
+[أسلوب الكلام]
+- كلمات عراقية: "شلونك"، "أكو"، "هواية"، "بلا زحمة"، "عدنا"، "شنو"، "خوش"، "هسه"
+- إيموجي باعتدال: 🐠 🦐 ✨ 🌿 💙
+- اعرض السعر بوضوح: "بس **25,000 د.ع** 🔥"
+- إذا فيه خصم: "~~35,000~~ **25,000 د.ع** (خصم 28%!) 🎉"
 
-${userName ? `اسم العميل: ${userName}` : ''}
-${profileContext}`;
+[التعامل مع عدم التوفر]
+"مع الأسف، مو متوفر حالياً 😔 بس خلّيني أشوفلك بديل ممتاز!" → ثم ابحث عن بديل.
+
+${profileContext}
+
+[حالة المستخدم الحالية]
+الاسم: ${userName || 'صديق'}
+`;
     }
 
-    // للمدير
-    return `أنت مساعد إدارة متجر AQUAVO.
+    // Admin Assistant System Prompt
+    return `You are the Store Management Assistant for AQUAVO.
 
-# قدراتك:
-- تحليل البيانات وتقديم تقارير
-- اقتراحات لتحسين المبيعات
-- معلومات عن العملاء والمخزون
+[ROLE]
+- Analyze sales data & metrics
+- Generate performance reports
+- Monitor inventory health
+- Do NOT act as a sales agent. Be professional, concise, and data-driven.
+- Respond in Arabic.
 
-# قواعدك:
-1. ردود مختصرة ومحددة
-2. استخدم البيانات الحقيقية فقط
-3. قدم توصيات عملية
+[DATA ACCESS]
+- Total Revenue/Orders
+- Best Selling Products
+- Low Stock Alerts
 
-${userName ? `المدير: ${userName}` : ''}`;
+${userName ? `Manager: ${userName}` : ''}`;
 };
 
 // ============================================================
-// MAIN CHAT FUNCTION WITH FUNCTION CALLING
+// MAIN CHAT FUNCTION WITH TOOL CALLING
 // ============================================================
 
 export async function sendMessage(
     message: string,
     history: ChatMessage[] = [],
     context?: ChatContext
-): Promise<string> {
+): Promise<SendMessageResult> {
     const db = getDb();
     const isAdmin = context?.isAdmin ?? false;
     const userId = context?.userId;
     const sessionId = context?.sessionId;
 
     try {
-        // 1. جلب ملف العميل إذا كان مسجلاً
+        // 1. Fetch customer profile if logged in
         let customerProfile = context?.customerProfile;
         if (userId && !isAdmin && !customerProfile) {
-            const profile = await customerProfiler.getFullProfile(userId);
-            customerProfile = profile?.profile;
+            try {
+                const profile = await customerProfiler.getFullProfile(userId);
+                customerProfile = profile?.profile;
+            } catch {
+                // Profile fetch is optional
+            }
         }
 
-        // 2. إنشاء الـ prompt
+        // 2. Create system prompt
         const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin);
 
-        // 3. بناء سجل المحادثة
-        const chatHistory = history.map((msg) => ({
-            role: msg.role === "user" ? "user" as const : "model" as const,
-            parts: [{ text: msg.content }],
-        }));
-
-        // 4. تحضير الرسائل لـ Groq
+        // 3. Check Groq availability
         if (!groqClient.hasKeys()) {
-            throw new Error("No Groq API keys configured");
+            return { text: getRandomFallback(), products: [] };
         }
 
-        // بناء سجل المحادثة
-        const groqMessages: Array<{ role: "system" | "user" | "assistant", content: string }> = [
+        // 4. Build message history for Groq
+        const groqMessages: GroqChatMessage[] = [
             { role: "system", content: systemPrompt },
             ...history.map(msg => ({
                 role: msg.role === "user" ? "user" as const : "assistant" as const,
@@ -183,7 +221,7 @@ export async function sendMessage(
             { role: "user", content: message }
         ];
 
-        // 5. تحليل مشاعر الرسالة (Sentiment Analysis) - اختياري
+        // 5. Sentiment analysis (non-blocking)
         try {
             const sentimentResult = await sentimentAnalyzer.analyzeSentiment(
                 message,
@@ -191,26 +229,102 @@ export async function sendMessage(
                 sessionId
             );
             console.log(`💭 Sentiment: ${sentimentResult.sentiment} (${sentimentResult.score.toFixed(2)})`);
-        } catch (sentError) {
-            console.error("Sentiment analysis failed:", sentError);
+        } catch {
+            // Sentiment is optional
         }
 
-        // 6. إرسال الرسالة إلى Groq (سريع جداً!)
-        let responseText = await withTimeout(
-            groqClient.chat(groqMessages, {
-                temperature: 0.7,
-                maxTokens: 1024
-            }),
-            AI_TIMEOUT_MS,
-            "انتهت مهلة الاتصال"
+        // 6. Tool-calling loop
+        const useTools = !isAdmin; // Tools only for customer-facing chat
+        let toolRound = 0;
+        let responseText = "";
+        let toolProducts: any[] = [];
+
+        while (toolRound <= MAX_TOOL_ROUNDS) {
+            const response = await withTimeout(
+                groqClient.chat(groqMessages, {
+                    temperature: 0.7,
+                    maxTokens: 1536,
+                    ...(useTools && toolRound < MAX_TOOL_ROUNDS && {
+                        tools: GROQ_TOOLS,
+                        tool_choice: "auto" as const,
+                    }),
+                }),
+                AI_TIMEOUT_MS,
+                "انتهت مهلة الاتصال"
+            );
+
+            const choice = response.choices[0];
+            const assistantMessage = choice.message;
+
+            // If no tool calls, we have the final text response
+            if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
+                responseText = assistantMessage.content || "";
+                break;
+            }
+
+            // AI wants to call tools - add assistant message to history
+            groqMessages.push({
+                role: "assistant",
+                content: assistantMessage.content,
+                tool_calls: assistantMessage.tool_calls.map(tc => ({
+                    id: tc.id,
+                    type: "function" as const,
+                    function: { name: tc.function.name, arguments: tc.function.arguments }
+                })),
+            });
+
+            // Execute each tool call
+            for (const toolCall of assistantMessage.tool_calls) {
+                let toolResult: any;
+                try {
+                    const args = JSON.parse(toolCall.function.arguments);
+
+                    // Auto-inject userId for tools that need it
+                    if (userId && ["add_to_cart", "get_customer_history", "get_recommendations"].includes(toolCall.function.name)) {
+                        args.userId = args.userId || userId;
+                    }
+
+                    console.log(`🔧 Tool call: ${toolCall.function.name}(${JSON.stringify(args)})`);
+                    toolResult = await aiToolsExecutor.executeTool(toolCall.function.name, args);
+
+                    // Track products found via tools
+                    if (toolResult.success && toolResult.data) {
+                        if (["search_products", "get_recommendations", "get_deals"].includes(toolCall.function.name) && Array.isArray(toolResult.data)) {
+                            toolProducts = [...toolProducts, ...toolResult.data];
+                        } else if (toolCall.function.name === "get_product_details" && toolResult.data.id) {
+                            toolProducts.push(toolResult.data);
+                        }
+                    }
+                } catch (err) {
+                    console.error(`Tool ${toolCall.function.name} failed:`, err);
+                    toolResult = { success: false, error: "Tool execution failed" };
+                }
+
+                groqMessages.push({
+                    role: "tool",
+                    content: JSON.stringify(toolResult),
+                    tool_call_id: toolCall.id,
+                });
+            }
+
+            toolRound++;
+        }
+
+        // 7. Safety check - ensure we have a response
+        if (!responseText || responseText.trim().length === 0) {
+            responseText = "عذراً حبيبي، صار خطأ بسيط. كدر تعيد السؤال مرة ثانية؟ 🦐";
+        }
+
+        // 8. Deduplicate products
+        const uniqueProducts = toolProducts.filter((p, i, arr) =>
+            arr.findIndex(x => x.id === p.id) === i
         );
 
-        // 7. حفظ المحادثة في قاعدة البيانات
+        // 9. Save conversation to database
         if (db) {
             const conversationId = sessionId || `conv_${Date.now()}`;
 
             try {
-                // حفظ رسالة المستخدم
                 await db.insert(schema.chatMessages).values({
                     conversationId,
                     userId: userId || null,
@@ -219,7 +333,6 @@ export async function sendMessage(
                     content: message,
                 });
 
-                // حفظ رد الـ AI
                 await db.insert(schema.chatMessages).values({
                     conversationId,
                     userId: userId || null,
@@ -228,7 +341,6 @@ export async function sendMessage(
                     content: responseText,
                 });
 
-                // تحديث تفاعل العميل
                 if (userId) {
                     await customerProfiler.trackInteraction(userId, "chat");
                 }
@@ -237,15 +349,14 @@ export async function sendMessage(
             }
         }
 
-        return responseText;
+        return { text: responseText, products: uniqueProducts };
 
     } catch (error) {
-        console.error("Gemini AI Error:", error);
+        console.error("Groq AI Error:", error);
 
         if (error instanceof Error) {
             const errorMsg = error.message.toLowerCase();
 
-            // Check if this is a retryable API key error
             const isApiKeyError =
                 errorMsg.includes("api_key") ||
                 errorMsg.includes("api key") ||
@@ -256,33 +367,13 @@ export async function sendMessage(
                 errorMsg.includes("rate_limit");
 
             if (isApiKeyError) {
-                // Try to switch to next API key
                 console.log("🔄 Attempting to switch to next Groq API key...");
                 groqClient.markCurrentKeyFailed(error);
-
-                // Check if we have more keys to try
-                const keyCount = groqClient.getKeyCount();
-                if (keyCount > 1) {
-                    throw new Error("حدث خطأ مؤقت، يرجى المحاولة مرة أخرى");
-                }
             }
-
-            if (error.message.includes("مهلة") || error.message.includes("timeout")) {
-                throw new Error("انتهت مهلة الاتصال. حاول مرة أخرى.");
-            }
-            if (error.message.includes("API_KEY") || error.message.includes("API key")) {
-                throw new Error("مفتاح API غير صالح");
-            }
-            if (error.message.includes("RATE_LIMIT") || error.message.includes("quota")) {
-                throw new Error("تم تجاوز حد الطلبات، حاول لاحقاً");
-            }
-            if (error.message.includes("SAFETY")) {
-                throw new Error("تم حظر الرسالة لأسباب أمنية");
-            }
-            throw new Error(`خطأ: ${error.message}`);
         }
 
-        throw new Error("حدث خطأ غير متوقع");
+        // Always return a friendly fallback instead of throwing
+        return { text: getRandomFallback(), products: [] };
     }
 }
 
@@ -298,7 +389,7 @@ export async function generateRecommendations(
         experience?: string;
     },
     userName?: string
-): Promise<string> {
+): Promise<SendMessageResult> {
     const prompt = `أعطني 3 توصيات منتجات لـ:
 - حجم الحوض: ${preferences.tankSize ?? "غير محدد"}
 - نوع الأسماك: ${preferences.fishType ?? "غير محدد"}
@@ -310,7 +401,7 @@ export async function generateRecommendations(
     return sendMessage(prompt, [], { userName, isAdmin: false });
 }
 
-export async function getFishCareAdvice(fishName: string, userName?: string): Promise<string> {
+export async function getFishCareAdvice(fishName: string, userName?: string): Promise<SendMessageResult> {
     const prompt = `معلومات مختصرة عن رعاية ${fishName}: الحوض، الحرارة، التغذية (3 نقاط فقط)`;
     return sendMessage(prompt, [], { userName, isAdmin: false });
 }
@@ -321,7 +412,7 @@ export async function recommendProductsForJourney(
 ): Promise<any[]> {
     try {
         if (!groqClient.hasKeys()) {
-            throw new Error("No Groq API keys configured");
+            return [];
         }
 
         const productsCatalog = availableProducts.slice(0, 50).map(p => ({
@@ -341,7 +432,7 @@ Return ONLY a JSON array with no extra text:
 [{"productId": "id", "reason": "سبب قصير بالعربي"}]`;
 
         const result = await withTimeout(
-            groqClient.chat([{ role: "user", content: prompt }], {
+            groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.3,
                 maxTokens: 1024
             }),
@@ -349,7 +440,6 @@ Return ONLY a JSON array with no extra text:
             "Timeout"
         );
 
-        // Parse JSON from response
         const jsonMatch = result.match(/\[[\s\S]*\]/);
         if (jsonMatch) {
             return JSON.parse(jsonMatch[0]);

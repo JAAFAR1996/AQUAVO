@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { z } from "zod";
+import { analyticsTracker } from "../services/analytics-tracker.js";
 
 export function createCartRouter(): RouterType {
     const router = Router();
@@ -48,6 +49,16 @@ export function createCartRouter(): RouterType {
 
             const data = addItemSchema.parse(req.body);
             const item = await storage.addToCart(userId, data.productId, data.quantity);
+
+            // Track cart add interaction (fire-and-forget)
+            analyticsTracker.trackCartAdd({
+                userId,
+                sessionId: req.sessionID || "unknown",
+                productId: data.productId,
+                quantity: data.quantity,
+                from: (req.query.from as string) || "unknown",
+            }).catch(() => {});
+
             res.status(201).json(item);
         } catch (err) {
             next(err);
@@ -87,6 +98,14 @@ export function createCartRouter(): RouterType {
             const userId = getSessionUserId(req)!;
             const { productId } = req.params as { productId: string };
             await storage.removeFromCart(userId, productId);
+
+            // Track cart remove interaction (fire-and-forget)
+            analyticsTracker.trackCartRemove({
+                userId,
+                sessionId: req.sessionID || "unknown",
+                productId,
+            }).catch(() => {});
+
             res.status(204).end();
         } catch (err) {
             next(err);

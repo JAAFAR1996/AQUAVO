@@ -72,7 +72,7 @@ export class AquariumAdvisor {
 }
 `;
 
-            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.4,
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
@@ -169,7 +169,7 @@ export class AquariumAdvisor {
 }
 `;
 
-            const text = await groqClient.chat([{ role: "user", content: prompt }], {
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
                 temperature: 0.2,
                 maxTokens: 512,
                 model: "llama-3.1-8b-instant"

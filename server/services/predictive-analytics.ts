@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import {
     predictedNeeds,
@@ -10,19 +10,11 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
 
-// Initialize Gemini AI
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 /**
  * Predictive Analytics Service
  * يحلل سلوك العملاء ويتوقع احتياجاتهم المستقبلية
  */
 export class PredictiveAnalytics {
-    private model;
-
-    constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    }
 
     /**
      * تحليل تاريخ شراء المستخدم
@@ -237,7 +229,30 @@ export class PredictiveAnalytics {
             // Sort by probability descending
             predictions.sort((a, b) => b.probability - a.probability);
 
-            return predictions.slice(0, 10); // Top 10 predictions
+            const topPredictions = predictions.slice(0, 10);
+
+            // Enrich top predictions with AI insight
+            if (topPredictions.length > 0 && groqClient.hasKeys()) {
+                try {
+                    const summaryText = topPredictions
+                        .slice(0, 5)
+                        .map(p => `${p.productName}: احتمال ${p.probability}% - ${p.reason}`)
+                        .join("\n");
+
+                    const insight = await groqClient.chatText(
+                        [{ role: "user", content: `أنت محلل بيانات لمتجر أحواض أسماك. لخّص هذه التوقعات في جملة واحدة مفيدة للمشرف:\n${summaryText}` }],
+                        { temperature: 0.3, maxTokens: 100, model: "llama-3.1-8b-instant" }
+                    );
+
+                    if (insight && topPredictions[0]) {
+                        topPredictions[0].reason = `${topPredictions[0].reason} | تحليل AI: ${insight.trim()}`;
+                    }
+                } catch {
+                    // AI enrichment is optional
+                }
+            }
+
+            return topPredictions;
         } catch (error) {
             console.error("Error predicting needs:", error);
             throw error;

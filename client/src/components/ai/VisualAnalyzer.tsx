@@ -384,7 +384,7 @@ export default function VisualAnalyzer() {
                       {product.name}
                     </h4>
                     <p className="text-blue-600 font-semibold">
-                      {product.price} جنيه
+                      {product.price} د.ع
                     </p>
                   </div>
                 ))}
