@@ -120,6 +120,8 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 5. 🛡️ الأسعار بالدينار العراقي (د.ع) فقط.
 
 [الأدوات المتاحة - استخدمها!]
+IMPORTANT: When calling search_products, use ENGLISH keywords for the query parameter.
+Translation: فلتر=filter, حوض=aquarium, طعام=food, سمك=fish, سخان=heater, إضاءة=light, ديكور=decoration, مضخة=pump, معالج=treatment, نبات=plant, حصى=gravel, تنظيف=cleaning
 - **search_products**: ابحث بالاسم أو الفئة أو الماركة. استخدمها دائماً عند أي سؤال عن منتج.
 - **get_product_details**: تفاصيل كاملة لمنتج (وصف، صور، سعر، تخفيض).
 - **check_stock**: تحقق من توفر المخزون.
@@ -238,20 +240,35 @@ export async function sendMessage(
         let toolRound = 0;
         let responseText = "";
         let toolProducts: any[] = [];
+        let toolsDisabled = false; // Fallback flag if tool calling fails
 
         while (toolRound <= MAX_TOOL_ROUNDS) {
-            const response = await withTimeout(
-                groqClient.chat(groqMessages, {
-                    temperature: 0.7,
-                    maxTokens: 1536,
-                    ...(useTools && toolRound < MAX_TOOL_ROUNDS && {
-                        tools: GROQ_TOOLS,
-                        tool_choice: "auto" as const,
+            let response;
+            try {
+                response = await withTimeout(
+                    groqClient.chat(groqMessages, {
+                        temperature: 0.7,
+                        maxTokens: 1536,
+                        ...(useTools && !toolsDisabled && toolRound < MAX_TOOL_ROUNDS && {
+                            tools: GROQ_TOOLS,
+                            tool_choice: "auto" as const,
+                        }),
                     }),
-                }),
-                AI_TIMEOUT_MS,
-                "انتهت مهلة الاتصال"
-            );
+                    AI_TIMEOUT_MS,
+                    "انتهت مهلة الاتصال"
+                );
+            } catch (toolError: any) {
+                // Groq returns tool_use_failed when model generates malformed function calls
+                // (common with Arabic text). Retry without tools.
+                if (toolError?.error?.code === "tool_use_failed" ||
+                    (toolError?.message && toolError.message.includes("tool_use_failed")) ||
+                    (toolError?.message && toolError.message.includes("Failed to call a function"))) {
+                    console.warn("⚠️ Tool calling failed (Arabic encoding issue), retrying without tools...");
+                    toolsDisabled = true;
+                    continue;
+                }
+                throw toolError;
+            }
 
             const choice = response.choices[0];
             const assistantMessage = choice.message;

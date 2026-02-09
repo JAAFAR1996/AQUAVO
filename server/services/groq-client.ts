@@ -59,7 +59,6 @@ class GroqClientManager {
     public static readonly MODELS = {
         LLAMA_70B: "llama-3.3-70b-versatile",
         LLAMA_8B: "llama-3.1-8b-instant",
-        MIXTRAL: "mixtral-8x7b-32768",
         GEMMA: "gemma2-9b-it",
     };
 
@@ -215,9 +214,15 @@ class GroqClientManager {
 
                 const response = await client.chat.completions.create(createParams);
                 return response;
-            } catch (error) {
+            } catch (error: any) {
                 lastError = error as Error;
-                const errorMsg = (error as Error).message.toLowerCase();
+                const errorMsg = (error?.message || "").toLowerCase();
+                const errorCode = error?.error?.code || "";
+
+                // tool_use_failed is a model issue, not a key issue - throw immediately
+                if (errorCode === "tool_use_failed" || errorMsg.includes("failed to call a function")) {
+                    throw error;
+                }
 
                 const isRetryable =
                     errorMsg.includes("rate_limit") ||

@@ -14,94 +14,94 @@ import { eq, ilike, and, or, desc, sql } from "drizzle-orm";
 export const AI_TOOLS = [
     {
         name: "search_products",
-        description: "البحث عن منتجات بالاسم أو الفئة أو العلامة التجارية",
+        description: "Search products by name, category or brand. Use Arabic keywords for the query.",
         parameters: {
             type: "object",
             properties: {
-                query: { type: "string", description: "كلمة البحث" },
-                category: { type: "string", description: "الفئة (اختياري)" },
-                brand: { type: "string", description: "العلامة التجارية (اختياري)" },
-                limit: { type: "number", description: "عدد النتائج (افتراضي 5)" },
+                query: { type: "string", description: "Search keyword in Arabic (e.g. فلتر, حوض, طعام)" },
+                category: { type: "string", description: "Category filter (optional)" },
+                brand: { type: "string", description: "Brand filter (optional)" },
+                limit: { type: "number", description: "Number of results (default 8)" },
             },
             required: ["query"],
         },
     },
     {
         name: "check_stock",
-        description: "التحقق من توفر منتج معين في المخزون",
+        description: "Check if a product is in stock by its ID.",
         parameters: {
             type: "object",
             properties: {
-                productId: { type: "string", description: "معرف المنتج" },
+                productId: { type: "string", description: "Product ID" },
             },
             required: ["productId"],
         },
     },
     {
         name: "get_customer_history",
-        description: "جلب تاريخ تفاعلات العميل السابقة",
+        description: "Get customer purchase history and preferences.",
         parameters: {
             type: "object",
             properties: {
-                userId: { type: "string", description: "معرف المستخدم" },
+                userId: { type: "string", description: "User ID" },
             },
             required: ["userId"],
         },
     },
     {
         name: "get_recommendations",
-        description: "الحصول على توصيات مخصصة للعميل",
+        description: "Get personalized product recommendations for a customer.",
         parameters: {
             type: "object",
             properties: {
-                userId: { type: "string", description: "معرف المستخدم (اختياري)" },
-                category: { type: "string", description: "الفئة المطلوبة (اختياري)" },
-                priceMax: { type: "number", description: "الحد الأقصى للسعر (اختياري)" },
+                userId: { type: "string", description: "User ID (optional)" },
+                category: { type: "string", description: "Category filter (optional)" },
+                priceMax: { type: "number", description: "Max price in IQD (optional)" },
             },
         },
     },
     {
         name: "add_to_cart",
-        description: "إضافة منتج لسلة العميل",
+        description: "Add a product to customer's cart. Only use when customer explicitly asks.",
         parameters: {
             type: "object",
             properties: {
-                userId: { type: "string", description: "معرف المستخدم" },
-                productId: { type: "string", description: "معرف المنتج" },
-                quantity: { type: "number", description: "الكمية (افتراضي 1)" },
+                userId: { type: "string", description: "User ID" },
+                productId: { type: "string", description: "Product ID" },
+                quantity: { type: "number", description: "Quantity (default 1)" },
             },
             required: ["userId", "productId"],
         },
     },
     {
         name: "apply_coupon",
-        description: "التحقق من كوبون وتطبيقه",
+        description: "Validate and apply a coupon code.",
         parameters: {
             type: "object",
             properties: {
-                couponCode: { type: "string", description: "كود الكوبون" },
+                couponCode: { type: "string", description: "Coupon code string" },
             },
             required: ["couponCode"],
         },
     },
     {
         name: "get_product_details",
-        description: "الحصول على تفاصيل كاملة لمنتج معين (الوصف، الصور، التقييم، المخزون، السعر)",
+        description: "Get full details of a specific product (description, images, price, discount).",
         parameters: {
             type: "object",
             properties: {
-                productId: { type: "string", description: "معرف المنتج" },
+                productId: { type: "string", description: "Product ID" },
             },
             required: ["productId"],
         },
     },
     {
         name: "get_deals",
-        description: "عرض المنتجات التي عليها تخفيض/عرض حالياً",
+        description: "Get products currently on sale/discount.",
         parameters: {
             type: "object",
             properties: {
-                limit: { type: "number", description: "عدد العروض (افتراضي 5)" },
+                limit: { type: "number", description: "Number of deals to return (default 5)" },
             },
         },
     },
@@ -110,6 +110,64 @@ export const AI_TOOLS = [
 // ============================================================
 // TOOL IMPLEMENTATIONS - تنفيذ الأدوات
 // ============================================================
+
+// English-to-Arabic keyword map for tool calling compatibility
+const EN_TO_AR_MAP: Record<string, string[]> = {
+    "filter": ["فلتر", "فلاتر"],
+    "aquarium": ["حوض", "أحواض"],
+    "tank": ["حوض", "أحواض"],
+    "food": ["طعام", "غذاء", "أكل"],
+    "fish": ["سمك", "أسماك", "سمكة"],
+    "heater": ["سخان", "سخانات"],
+    "light": ["إضاءة", "ضوء", "led"],
+    "lighting": ["إضاءة", "ضوء", "led"],
+    "decoration": ["ديكور", "ديكورات", "زينة"],
+    "pump": ["مضخة", "مضخات"],
+    "air pump": ["مضخة هواء"],
+    "treatment": ["معالج", "معالجات", "علاج", "دواء"],
+    "plant": ["نبات", "نباتات"],
+    "gravel": ["حصى", "رمل"],
+    "substrate": ["حصى", "رمل"],
+    "cleaning": ["تنظيف", "صيانة"],
+    "maintenance": ["صيانة", "تنظيف"],
+    "net": ["شبكة"],
+    "thermometer": ["ميزان حرارة"],
+    "water": ["ماء", "مياه"],
+    "brush": ["فرشاة"],
+    "magnetic": ["مغناطيس"],
+    "incubator": ["حاضنة"],
+    "sponge": ["اسفنج", "سفنج"],
+    "cotton": ["قطن"],
+    "betta": ["بيتا"],
+    "goldfish": ["ذهبية", "جولد فش"],
+    "shrimp": ["روبيان", "جمبري"],
+    "koi": ["كوي"],
+    "algae": ["طحالب"],
+    "ammonia": ["أمونيا"],
+    "test": ["فحص", "اختبار"],
+};
+
+/**
+ * Expand English query to include Arabic equivalents
+ */
+function expandQuery(query: string): string[] {
+    const lower = query.toLowerCase().trim();
+    const queries = [query]; // Always include original
+
+    // Check if query is English and map to Arabic
+    for (const [en, arList] of Object.entries(EN_TO_AR_MAP)) {
+        if (lower.includes(en)) {
+            queries.push(...arList);
+        }
+    }
+
+    // If query contains ?, it's corrupted Arabic - skip it
+    if (query.includes("?")) {
+        return Object.values(EN_TO_AR_MAP).flat().slice(0, 3); // Return generic terms
+    }
+
+    return [...new Set(queries)];
+}
 
 export class AIToolsExecutor {
     private db = getDb();
@@ -129,8 +187,16 @@ export class AIToolsExecutor {
 
             const limit = params.limit || 8;
             const query = params.query;
+            const expandedQueries = expandQuery(query);
 
-            // Multi-field search: name, description, category, brand
+            // Multi-field search with English-to-Arabic expansion
+            const searchConditions = expandedQueries.flatMap(q => [
+                ilike(schema.products.name, `%${q}%`),
+                ilike(schema.products.description, `%${q}%`),
+                ilike(schema.products.category, `%${q}%`),
+                ilike(schema.products.brand, `%${q}%`),
+            ]);
+
             let products = await db
                 .select({
                     id: schema.products.id,
@@ -148,12 +214,7 @@ export class AIToolsExecutor {
                 .from(schema.products)
                 .where(
                     and(
-                        or(
-                            ilike(schema.products.name, `%${query}%`),
-                            ilike(schema.products.description, `%${query}%`),
-                            ilike(schema.products.category, `%${query}%`),
-                            ilike(schema.products.brand, `%${query}%`)
-                        ),
+                        or(...searchConditions),
                         params.category ? ilike(schema.products.category, `%${params.category}%`) : undefined,
                         params.brand ? ilike(schema.products.brand, `%${params.brand}%`) : undefined
                     )
