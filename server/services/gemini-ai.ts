@@ -118,6 +118,8 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 3. 🛡️ الإيجاز: ردود قصيرة (2-4 جمل). استخدم bullet points للقوائم.
 4. 🛡️ الدقة: لا تخترع أسماء أو أسعار. استخدم search_products دائماً للبيانات الحقيقية.
 5. 🛡️ الأسعار بالدينار العراقي (د.ع) فقط.
+6. 🛡️ NEVER write <function> tags or function call syntax in your text response. Use the tool calling API instead.
+7. 🛡️ Always respond in Iraqi Arabic. Never mix Hindi, Chinese or other scripts.
 
 [الأدوات المتاحة - استخدمها!]
 IMPORTANT: When calling search_products, use ENGLISH keywords for the query parameter.
@@ -327,7 +329,15 @@ export async function sendMessage(
             toolRound++;
         }
 
-        // 7. Safety check - ensure we have a response
+        // 7. Sanitize response - strip any raw function call tags the model may output
+        responseText = responseText
+            .replace(/<function=[^>]*>[\s\S]*?<\/function>/gi, "")
+            .replace(/<function=[^>]*\/>/gi, "")
+            .replace(/<function=[^>]*>/gi, "")
+            .replace(/<\/function>/gi, "")
+            .trim();
+
+        // Safety check - ensure we have a response after sanitization
         if (!responseText || responseText.trim().length === 0) {
             responseText = "عذراً حبيبي، صار خطأ بسيط. كدر تعيد السؤال مرة ثانية؟ 🦐";
         }
