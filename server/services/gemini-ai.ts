@@ -14,7 +14,7 @@
  */
 
 import { groqClient } from "./groq-client.js";
-import { GROQ_TOOLS, aiToolsExecutor } from "./ai-tools.js";
+import { aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
 import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { getDb } from "../db.js";
@@ -23,7 +23,6 @@ import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
 
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
-const MAX_TOOL_ROUNDS = 3;
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
     return Promise.race([
@@ -182,7 +181,98 @@ ${userName ? `Manager: ${userName}` : ''}`;
 };
 
 // ============================================================
-// MAIN CHAT FUNCTION WITH TOOL CALLING
+// PRE-EXECUTE TOOLS based on message keywords
+// ============================================================
+
+async function preExecuteTools(message: string, userId?: string): Promise<{
+    products: any[];
+    context: string;
+}> {
+    const msg = message.toLowerCase();
+    let products: any[] = [];
+    let contextParts: string[] = [];
+
+    // Extract keywords for product search
+    const searchKeywords: Record<string, string> = {
+        "فلتر": "فلتر", "فلاتر": "فلتر", "filter": "فلتر",
+        "حوض": "حوض", "أحواض": "حوض", "احواض": "حوض", "tank": "حوض", "aquarium": "حوض",
+        "طعام": "طعام", "أكل": "طعام", "غذاء": "طعام", "food": "طعام",
+        "سمك": "سمك", "أسماك": "سمك", "سمكة": "سمك", "سمجة": "سمك", "fish": "سمك",
+        "سخان": "سخان", "heater": "سخان",
+        "إضاءة": "إضاءة", "اضاءة": "إضاءة", "ضوء": "إضاءة", "led": "إضاءة", "light": "إضاءة",
+        "ديكور": "ديكور", "زينة": "ديكور", "decoration": "ديكور",
+        "مضخة": "مضخة", "هواء": "مضخة هواء", "pump": "مضخة",
+        "معالج": "معالج", "علاج": "معالج", "دواء": "معالج", "treatment": "معالج", "مريض": "معالج",
+        "نبات": "نبات", "نباتات": "نبات", "plant": "نبات",
+        "حصى": "حصى", "رمل": "رمل", "gravel": "حصى",
+        "تنظيف": "تنظيف", "فرشاة": "فرشاة", "cleaning": "تنظيف",
+        "حاضنة": "حاضنة", "incubator": "حاضنة",
+        "اسفنج": "اسفنج", "قطن": "قطن",
+        "فحص": "فحص", "اختبار": "فحص", "أمونيا": "أمونيا", "test": "فحص",
+    };
+
+    // Find matching keywords
+    const matchedTerms = new Set<string>();
+    for (const [keyword, searchTerm] of Object.entries(searchKeywords)) {
+        if (msg.includes(keyword)) {
+            matchedTerms.add(searchTerm);
+        }
+    }
+
+    // Search for products if keywords found
+    if (matchedTerms.size > 0) {
+        for (const term of Array.from(matchedTerms).slice(0, 2)) { // Max 2 searches
+            try {
+                const result = await aiToolsExecutor.searchProducts({ query: term, limit: 5 });
+                if (result.success && result.data) {
+                    products = [...products, ...result.data];
+                }
+            } catch { /* search is best-effort */ }
+        }
+    }
+
+    // Check for deals/discount keywords
+    const dealsKeywords = ["عرض", "عروض", "خصم", "تخفيض", "كوبون", "deal", "discount", "sale"];
+    if (dealsKeywords.some(kw => msg.includes(kw))) {
+        try {
+            const deals = await aiToolsExecutor.getDeals({ limit: 5 });
+            if (deals.success && deals.data) {
+                products = [...products, ...deals.data];
+                contextParts.push(`العروض الحالية: ${deals.data.length} منتج بتخفيض`);
+            }
+        } catch { /* deals is best-effort */ }
+    }
+
+    // Get customer history if logged in and asking about orders/recommendations
+    const historyKeywords = ["طلباتي", "مشترياتي", "سجل", "order", "history", "توصية", "انصحني", "اقترح"];
+    if (userId && historyKeywords.some(kw => msg.includes(kw))) {
+        try {
+            const history = await aiToolsExecutor.getCustomerHistory({ userId });
+            if (history.success && history.data) {
+                contextParts.push(`سجل العميل: ${history.data.recentOrders?.length || 0} طلبات، ${history.data.favorites?.length || 0} مفضلات`);
+            }
+        } catch { /* history is best-effort */ }
+    }
+
+    // Deduplicate products
+    const unique = products.filter((p, i, arr) => arr.findIndex(x => x.id === p.id) === i);
+
+    // Build context string with product data
+    if (unique.length > 0) {
+        const productList = unique.slice(0, 8).map(p => {
+            const discount = p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price)
+                ? ` (خصم ${Math.round(((parseFloat(p.originalPrice) - parseFloat(p.price)) / parseFloat(p.originalPrice)) * 100)}% - كان ${p.originalPrice} د.ع)`
+                : "";
+            return `- ${p.name} | ${p.price} د.ع${discount} | ${p.stock > 0 ? "متوفر" : "نفذ"} | ID: ${p.id}`;
+        }).join("\n");
+        contextParts.push(`[المنتجات المتوفرة من بحثنا]\n${productList}`);
+    }
+
+    return { products: unique, context: contextParts.join("\n\n") };
+}
+
+// ============================================================
+// MAIN CHAT FUNCTION - Pre-execute tools approach
 // ============================================================
 
 export async function sendMessage(
@@ -215,129 +305,60 @@ export async function sendMessage(
             return { text: getRandomFallback(), products: [] };
         }
 
-        // 4. Build message history for Groq
+        // 4. Pre-execute tools based on message keywords (for customer-facing chat)
+        let toolProducts: any[] = [];
+        let toolContext = "";
+        if (!isAdmin) {
+            try {
+                const toolResult = await preExecuteTools(message, userId);
+                toolProducts = toolResult.products;
+                toolContext = toolResult.context;
+            } catch {
+                // Tool pre-execution is best-effort
+            }
+        }
+
+        // 5. Build message with product context injected
+        const userMessageWithContext = toolContext
+            ? `${message}\n\n---\n${toolContext}`
+            : message;
+
         const groqMessages: GroqChatMessage[] = [
             { role: "system", content: systemPrompt },
             ...history.map(msg => ({
                 role: msg.role === "user" ? "user" as const : "assistant" as const,
                 content: msg.content
             })),
-            { role: "user", content: message }
+            { role: "user", content: userMessageWithContext }
         ];
 
-        // 5. Sentiment analysis (non-blocking)
-        try {
-            const sentimentResult = await sentimentAnalyzer.analyzeSentiment(
-                message,
-                userId,
-                sessionId
-            );
-            console.log(`💭 Sentiment: ${sentimentResult.sentiment} (${sentimentResult.score.toFixed(2)})`);
-        } catch {
-            // Sentiment is optional
+        // 6. Sentiment analysis (fire-and-forget)
+        if (userId || sessionId) {
+            sentimentAnalyzer.analyzeSentiment(message, userId, sessionId).catch(() => {});
         }
 
-        // 6. Tool-calling loop
-        const useTools = !isAdmin; // Tools only for customer-facing chat
-        let toolRound = 0;
-        let responseText = "";
-        let toolProducts: any[] = [];
-        let toolsDisabled = false; // Fallback flag if tool calling fails
+        // 7. Call Groq WITHOUT tool calling (products already in context)
+        const response = await withTimeout(
+            groqClient.chat(groqMessages, {
+                temperature: 0.7,
+                maxTokens: 1536,
+            }),
+            AI_TIMEOUT_MS,
+            "انتهت مهلة الاتصال"
+        );
 
-        while (toolRound <= MAX_TOOL_ROUNDS) {
-            let response;
-            try {
-                response = await withTimeout(
-                    groqClient.chat(groqMessages, {
-                        temperature: 0.7,
-                        maxTokens: 1536,
-                        ...(useTools && !toolsDisabled && toolRound < MAX_TOOL_ROUNDS && {
-                            tools: GROQ_TOOLS,
-                            tool_choice: "auto" as const,
-                        }),
-                    }),
-                    AI_TIMEOUT_MS,
-                    "انتهت مهلة الاتصال"
-                );
-            } catch (toolError: any) {
-                // Groq returns tool_use_failed when model generates malformed function calls
-                // (common with Arabic text). Retry without tools.
-                if (toolError?.error?.code === "tool_use_failed" ||
-                    (toolError?.message && toolError.message.includes("tool_use_failed")) ||
-                    (toolError?.message && toolError.message.includes("Failed to call a function"))) {
-                    console.warn("⚠️ Tool calling failed (Arabic encoding issue), retrying without tools...");
-                    toolsDisabled = true;
-                    continue;
-                }
-                throw toolError;
-            }
+        let responseText = response.choices[0]?.message?.content || "";
 
-            const choice = response.choices[0];
-            const assistantMessage = choice.message;
-
-            // If no tool calls, we have the final text response
-            if (!assistantMessage.tool_calls || assistantMessage.tool_calls.length === 0) {
-                responseText = assistantMessage.content || "";
-                break;
-            }
-
-            // AI wants to call tools - add assistant message to history
-            groqMessages.push({
-                role: "assistant",
-                content: assistantMessage.content,
-                tool_calls: assistantMessage.tool_calls.map(tc => ({
-                    id: tc.id,
-                    type: "function" as const,
-                    function: { name: tc.function.name, arguments: tc.function.arguments }
-                })),
-            });
-
-            // Execute each tool call
-            for (const toolCall of assistantMessage.tool_calls) {
-                let toolResult: any;
-                try {
-                    const args = JSON.parse(toolCall.function.arguments);
-
-                    // Auto-inject userId for tools that need it
-                    if (userId && ["add_to_cart", "get_customer_history", "get_recommendations"].includes(toolCall.function.name)) {
-                        args.userId = args.userId || userId;
-                    }
-
-                    console.log(`🔧 Tool call: ${toolCall.function.name}(${JSON.stringify(args)})`);
-                    toolResult = await aiToolsExecutor.executeTool(toolCall.function.name, args);
-
-                    // Track products found via tools
-                    if (toolResult.success && toolResult.data) {
-                        if (["search_products", "get_recommendations", "get_deals"].includes(toolCall.function.name) && Array.isArray(toolResult.data)) {
-                            toolProducts = [...toolProducts, ...toolResult.data];
-                        } else if (toolCall.function.name === "get_product_details" && toolResult.data.id) {
-                            toolProducts.push(toolResult.data);
-                        }
-                    }
-                } catch (err) {
-                    console.error(`Tool ${toolCall.function.name} failed:`, err);
-                    toolResult = { success: false, error: "Tool execution failed" };
-                }
-
-                groqMessages.push({
-                    role: "tool",
-                    content: JSON.stringify(toolResult),
-                    tool_call_id: toolCall.id,
-                });
-            }
-
-            toolRound++;
-        }
-
-        // 7. Sanitize response - strip any raw function call tags the model may output
+        // 8. Sanitize response - strip any raw function call tags
         responseText = responseText
             .replace(/<function=[^>]*>[\s\S]*?<\/function>/gi, "")
             .replace(/<function=[^>]*\/>/gi, "")
             .replace(/<function=[^>]*>/gi, "")
             .replace(/<\/function>/gi, "")
+            .replace(/---\n\[المنتجات المتوفرة[\s\S]*$/gi, "") // Remove leaked context
             .trim();
 
-        // Safety check - ensure we have a response after sanitization
+        // Safety check
         if (!responseText || responseText.trim().length === 0) {
             responseText = "عذراً حبيبي، صار خطأ بسيط. كدر تعيد السؤال مرة ثانية؟ 🦐";
         }
