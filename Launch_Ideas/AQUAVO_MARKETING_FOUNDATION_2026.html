@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQUAVO - أساس التسويق 2026</title>
+    <style>
+        :root {
+            --primary: #0891b2;
+            --secondary: #0e7490;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --purple: #8b5cf6;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Navigation */
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .nav-title {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .nav-btn:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .nav-btn.hot {
+            background: var(--danger);
+            animation: pulse 2s infinite;
+        }
+
+        .nav-btn.gold {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+            }
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(135deg, rgba(8, 145, 178, 0.2), rgba(139, 92, 246, 0.2));
+            border-radius: 20px;
+            margin-bottom: 40px;
+        }
+
+        .hero h1 {
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--accent), var(--purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            color: var(--muted);
+            font-size: 1.2em;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 20px;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        /* Sections */
+        section {
+            padding-top: 80px;
+            margin-top: -60px;
+            margin-bottom: 50px;
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.8em;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            margin-bottom: 25px;
+        }
+
+        h3 {
+            color: var(--accent);
+            font-size: 1.3em;
+            margin: 25px 0 15px;
+        }
+
+        h4 {
+            color: var(--success);
+            margin: 20px 0 10px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 20px 0;
+            border-right: 5px solid var(--primary);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card.warning {
+            border-right-color: var(--accent);
+            background: linear-gradient(135deg, var(--card-bg), rgba(245, 158, 11, 0.1));
+        }
+
+        .card.danger {
+            border-right-color: var(--danger);
+            background: linear-gradient(135deg, var(--card-bg), rgba(239, 68, 68, 0.1));
+        }
+
+        .card.success {
+            border-right-color: var(--success);
+            background: linear-gradient(135deg, var(--card-bg), rgba(16, 185, 129, 0.1));
+        }
+
+        .card.purple {
+            border-right-color: var(--purple);
+            background: linear-gradient(135deg, var(--card-bg), rgba(139, 92, 246, 0.1));
+        }
+
+        .card.gold {
+            border: 2px solid var(--accent);
+            background: linear-gradient(135deg, var(--card-bg), rgba(245, 158, 11, 0.15));
+        }
+
+        /* Research badge */
+        .research-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th,
+        td {
+            padding: 14px;
+            text-align: right;
+            border: 1px solid #334155;
+        }
+
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        tr:hover {
+            background: rgba(8, 145, 178, 0.1);
+        }
+
+        /* Code */
+        pre,
+        code {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 15px;
+            display: block;
+            overflow-x: auto;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9em;
+            direction: ltr;
+            text-align: left;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border-top: 3px solid var(--primary);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.9em;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-right: 40px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(var(--primary), var(--purple));
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--card-bg);
+            border-radius: 12px;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            right: -30px;
+            top: 25px;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 3px solid var(--bg);
+        }
+
+        .timeline-time {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        /* Checklist */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 5px 0;
+            background: rgba(30, 41, 59, 0.5);
+        }
+
+        .checklist li::before {
+            content: "⬜ ";
+            margin-left: 8px;
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin: 2px;
+        }
+
+        .tag-tiktok {
+            background: #ff0050;
+        }
+
+        .tag-ig {
+            background: #c13584;
+        }
+
+        .tag-verified {
+            background: var(--success);
+        }
+
+        .tag-critical {
+            background: var(--danger);
+        }
+
+        /* Print */
+        @media print {
+            .nav {
+                display: none;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            .card {
+                break-inside: avoid;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+
+            .stat-number {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="nav">
+        <div class="nav-title">🧭 التنقل السريع - الوثيقة المرجعية الشاملة</div>
+        <div class="nav-buttons">
+            <button class="nav-btn hot" onclick="scrollTo('algorithm')">🧠 الخوارزميات 2026</button>
+            <button class="nav-btn gold" onclick="scrollTo('hooks')">🪝 صيغ الـ Hook</button>
+            <button class="nav-btn" onclick="scrollTo('video2')">🎬 فيديو 2 النهائي</button>
+            <button class="nav-btn" onclick="scrollTo('calendar')">📅 تقويم المحتوى</button>
+            <button class="nav-btn" onclick="scrollTo('iraq')">🇮🇶 أوقات العراق</button>
+            <button class="nav-btn" onclick="scrollTo('checklist')">✅ Checklist</button>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <div class="hero">
+            <h1>🐟 أساس التسويق AQUAVO 2026</h1>
+            <p>مبني على أحدث الأبحاث والبيانات الرسمية من TikTok و Instagram</p>
+            <div class="hero-badge">✅ موثق من مصادر 2026</div>
+        </div>
+
+        <!-- ==================== ALGORITHM SECTION ==================== -->
+        <section id="algorithm">
+            <h2>🧠 الفصل الأول: خوارزميات 2026 (الحقيقة الكاملة)</h2>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">70%+</div>
+                    <div class="stat-label">معدل إتمام المشاهدة المطلوب</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">65%</div>
+                    <div class="stat-label">يستمرون بعد 3 ثواني للانتشار</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">15 دق</div>
+                    <div class="stat-label">التفاعل الأول حاسم</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">3-5</div>
+                    <div class="stat-label">هاشتاغات مثالية</div>
+                </div>
+            </div>
+
+            <!-- TikTok -->
+            <div class="card danger">
+                <div class="research-badge">📊 مصدر: TikTok Official + Buffer + Opus Pro 2026</div>
+                <h3><span class="tag tag-tiktok">TikTok</span> عوامل التصنيف 2026</h3>
+
+                <table>
+                    <tr>
+                        <th>العامل</th>
+                        <th>الوزن</th>
+                        <th>التفاصيل</th>
+                    </tr>
+                    <tr>
+                        <td><strong>1. إعادة المشاهدة (Rewatch)</strong></td>
+                        <td>🔴 الأعلى</td>
+                        <td>العامل الأهم في 2026! يدل على اهتمام عميق</td>
+                    </tr>
+                    <tr>
+                        <td><strong>2. وقت المشاهدة + الإتمام</strong></td>
+                        <td>🔴 عالي جداً</td>
+                        <td>70%+ completion rate = دفعة قوية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3. المشاركات والحفظ (Shares/Saves)</strong></td>
+                        <td>🔴 عالي</td>
+                        <td>المشاركة الخارجية أقوى من الداخلية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>4. التفاعل المبكر (أول 15 دقيقة)</strong></td>
+                        <td>🟠 مهم</td>
+                        <td>الخوارزمية تختبر مع جمهور صغير أولاً</td>
+                    </tr>
+                    <tr>
+                        <td><strong>5. التعليقات النوعية</strong></td>
+                        <td>🟡 متوسط</td>
+                        <td>التعليقات المفيدة > الإيموجي</td>
+                    </tr>
+                    <tr>
+                        <td><strong>6. الهاشتاغات</strong></td>
+                        <td>🟢 أقل من قبل</td>
+                        <td>3-5 هاشتاغ مستهدف (AI يفهم المحتوى الآن)</td>
+                    </tr>
+                </table>
+
+                <div class="card warning" style="margin-top: 20px;">
+                    <h4>⚠️ تغيير مهم في 2026:</h4>
+                    <p>TikTok الآن يختبر الفيديو مع <strong>المتابعين أولاً</strong>، ثم يوسع حسب أدائه. لم يعد يدفع
+                        تلقائياً للجميع!</p>
+                </div>
+            </div>
+
+            <!-- Instagram -->
+            <div class="card purple">
+                <div class="research-badge">📊 مصدر: Hootsuite + Sprinklr + Buffer 2026</div>
+                <h3><span class="tag tag-ig">Instagram Reels</span> عوامل التصنيف 2026</h3>
+
+                <table>
+                    <tr>
+                        <th>العامل</th>
+                        <th>الأهمية</th>
+                        <th>التطبيق</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Watch Time + Completion</strong></td>
+                        <td>🔴 الأعلى</td>
+                        <td>فيديوهات قصيرة (15-30 ث) تحقق completion أعلى</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shares + Sends (DM)</strong></td>
+                        <td>🔴 عالي جداً</td>
+                        <td>أهم من اللايكات! استخدم "منشن صاحبك"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>التفاعل المبكر (أول ساعة)</strong></td>
+                        <td>🔴 عالي</td>
+                        <td>رد على التعليقات فوراً لتعزيز الدفعة</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Saves (الحفظ)</strong></td>
+                        <td>🟠 مهم جداً</td>
+                        <td>يدل على قيمة طويلة المدى</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Original Content</strong></td>
+                        <td>🟠 مهم</td>
+                        <td>❌ لا watermarks! محتوى أصلي فقط</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trending Audio</strong></td>
+                        <td>🟡 مفيد</td>
+                        <td>أضف trending audio بنسبة 1%</td>
+                    </tr>
+                </table>
+
+                <div class="card success" style="margin-top: 20px;">
+                    <h4>🆕 ميزة "Trial Reels" الجديدة:</h4>
+                    <p>يمكنك اختبار hooks مختلفة مع جمهور صغير قبل النشر العام!</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== HOOKS SECTION ==================== -->
+        <section id="hooks">
+            <h2>🪝 الفصل الثاني: صيغ Hook العلمية (MrBeast Style)</h2>
+
+            <div class="card gold">
+                <div class="research-badge">📊 مصدر: Virvid + LazyLines + BrandEfy 2026</div>
+                <h4>🎯 قاعدة الـ 3 Hooks (Triple Hook Rule)</h4>
+                <p>لضمان أقصى تأثير، يجب أن تعمل 3 عناصر معاً في أول 3 ثواني:</p>
+
+                <table>
+                    <tr>
+                        <th>النوع</th>
+                        <th>الوظيفة</th>
+                        <th>مثال AQUAVO</th>
+                    </tr>
+                    <tr>
+                        <td><strong>🎥 Visual Hook</strong></td>
+                        <td>صورة صادمة توقف التمرير</td>
+                        <td>سمكة تلهث على السطح + ماء معكر</td>
+                    </tr>
+                    <tr>
+                        <td><strong>🗣️ Verbal Hook</strong></td>
+                        <td>جملة تخلق فضول أو خوف</td>
+                        <td>"احتمال سمكك يموت أول أسبوع!"</td>
+                    </tr>
+                    <tr>
+                        <td><strong>📝 Text Hook</strong></td>
+                        <td>نص كبير يؤكد الرسالة</td>
+                        <td>"❌ غلط شائع"</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>📋 صيغ Hook المجربة (انسخ وعدّل):</h3>
+
+            <div class="card">
+                <h4>1️⃣ صيغة "الصدمة الشرطية" ✅ الأقوى للمصداقية</h4>
+                <code style="direction: rtl; text-align: right; font-size: 1.1em;">
+"[فعل] [شيء]؟ احتمال [نتيجة سيئة]... إذا ما [الحل]!"
+            </code>
+                <p style="margin-top: 10px;"><strong>مثال:</strong> "اشتريت حوض؟ احتمال يموت سمكك أول أسبوع... إذا ما
+                    سويت هالخطوة!"</p>
+                <p><strong>لماذا تعمل:</strong> تخلق خوف + تعطي أمل بالحل + ليست تهويل مباشر</p>
+            </div>
+
+            <div class="card">
+                <h4>2️⃣ صيغة "الرقم + المشكلة"</h4>
+                <code style="direction: rtl; text-align: right; font-size: 1.1em;">
+"X% من [الجمهور] يغلطون بـ [شيء]... وأنت؟"
+            </code>
+                <p style="margin-top: 10px;"><strong>مثال:</strong> "90% من المبتدئين يقتلون سمكهم أول أسبوع... وأنت؟"
+                </p>
+            </div>
+
+            <div class="card">
+                <h4>3️⃣ صيغة "القصة الشخصية"</h4>
+                <code style="direction: rtl; text-align: right; font-size: 1.1em;">
+"[فعلت شيء]... و[نتيجة صادمة]. خليني أخبرك ليش."
+            </code>
+                <p style="margin-top: 10px;"><strong>مثال:</strong> "ماتت كل أسماكي بليلة وحدة... خليني أخبرك ليش."</p>
+            </div>
+
+            <div class="card">
+                <h4>4️⃣ صيغة "التحدي"</h4>
+                <code style="direction: rtl; text-align: right; font-size: 1.1em;">
+"[رقم] أشياء ما يعرفها إلا [نسبة صغيرة]... أنت منهم؟"
+            </code>
+                <p style="margin-top: 10px;"><strong>مثال:</strong> "3 أسرار ما يعرفها إلا 1% من هواة الأحواض..."</p>
+            </div>
+
+            <div class="card danger">
+                <h4>⚠️ تحذير: Hooks يجب تجنبها</h4>
+                <ul>
+                    <li>❌ "لا تشتري قبل ما تشوف" ← ضعيفة، لا تحدد المشكلة</li>
+                    <li>❌ صور سمك ميت واضحة ← TikTok قد يقلل التوصية</li>
+                    <li>❌ "هذا الفيديو المهم" ← غامضة جداً</li>
+                    <li>❌ أرقام مبالغ فيها بدون "احتمال" أو "إذا" ← تضر المصداقية</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- ==================== VIDEO 2 FINAL ==================== -->
+        <section id="video2">
+            <h2>🎬 الفصل الثالث: فيديو 2 - النسخة النهائية 100%</h2>
+
+            <div class="card gold">
+                <h3>📋 معلومات الفيديو</h3>
+                <table>
+                    <tr>
+                        <td><strong>العنوان</strong></td>
+                        <td>كيف تجهز حوضك من الصفر</td>
+                    </tr>
+                    <tr>
+                        <td><strong>المدة</strong></td>
+                        <td>🎯 18 ثانية (مثالي لـ completion rate)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>الصيغة</strong></td>
+                        <td>9:16 عمودي (1080x1920)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>المنصة</strong></td>
+                        <td>TikTok أولاً → Instagram Reels ثانياً</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>⏱️ التوقيت ثانية بثانية:</h3>
+
+            <div class="timeline">
+                <div class="timeline-item" style="border-right: 3px solid var(--danger);">
+                    <div class="timeline-time">🔴 0-3 ثانية | HOOK</div>
+                    <p><strong>المشهد:</strong> سمكة تلهث بصعوبة على السطح + ماء معكر</p>
+                    <p><strong>الصوت:</strong> "اشتريت حوض؟ احتمال يموت سمكك أول أسبوع!"</p>
+                    <p><strong>النص:</strong> ❌ غلط شائع</p>
+                    <p><strong>SFX:</strong> 💓 نبضات قلب سريعة</p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">🔵 3-6 ثانية | خطوة 1</div>
+                    <p><strong>المشهد:</strong> مقارنة أحجام أحواض (20L → 60L → 120L)</p>
+                    <p><strong>الصوت:</strong> "الحوض الكبير أسهل! 60 لتر minimum"</p>
+                    <p><strong>النص:</strong> 1️⃣ حوض كبير</p>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-time">🔵 6-9 ثانية | خطوة 2</div>
+                    <p><strong>المشهد:</strong> فلتر يشتغل + فقاعات ترتفع</p>
+                    <p><strong>الصوت:</strong> "الفلتر = رئة الحوض!"</p>
+                    <p><strong>النص:</strong> 2️⃣ فلتر = حياة</p>
+                    <p><strong>SFX:</strong> 💧 صوت فقاعات نقية</p>
+                </div>
+
+                <div class="timeline-item" style="border-right: 3px solid var(--accent);">
+                    <div class="timeline-time">🟡 9-12 ثانية | خطوة 3 (مُصحَّحة علمياً)</div>
+                    <p><strong>المشهد:</strong> Time-lapse سريع (2 ث) + اختبار أمونيا = أصفر (0)</p>
+                    <p><strong>الصوت:</strong> "انتظر لحد الاختبار صفر... 2-4 أسابيع"</p>
+                    <p><strong>النص:</strong> 3️⃣ NH₃=0 ✅ NO₂=0 ✅</p>
+                    <p><strong>SFX:</strong> ⏰ Tick-tock</p>
+                </div>
+
+                <div class="timeline-item" style="border-right: 3px solid var(--success);">
+                    <div class="timeline-time">🟢 12-15 ثانية | خطوة 4</div>
+                    <p><strong>المشهد:</strong> سمكة تدخل الحوض + زجاجة مزيل كلور</p>
+                    <p><strong>الصوت:</strong> "سمكة وحدة + مزيل كلور!"</p>
+                    <p><strong>النص:</strong> 4️⃣ سمكة واحدة</p>
+                    <p><strong>SFX:</strong> ✨ Sparkle</p>
+                </div>
+
+                <div class="timeline-item" style="border-right: 3px solid var(--purple);">
+                    <div class="timeline-time">🔵🟢 15-18 ثانية | CTA + LOOP</div>
+                    <p><strong>المشهد:</strong> حوض جنة → (آخر 0.5 ث يعود لماء معكر = Loop!)</p>
+                    <p><strong>الصوت:</strong> "احفظها! إذا نسيتها = سمك ميت"</p>
+                    <p><strong>النص:</strong> 💾 احفظ + منشن صاحبك!</p>
+                    <p><strong>SFX:</strong> 😌 تنهيدة راحة</p>
+                </div>
+            </div>
+
+            <h3>🤖 AI Prompt جاهز (Veo 3 / Kling):</h3>
+            <pre>
+SCENE 1 - HOOK (Safe Version):
+Close-up of a stressed goldfish gasping rapidly at the water surface 
+of a small cloudy aquarium. The fish's mouth opens and closes quickly, 
+breathing heavily. Water has milky yellow-brown tint. Algae visible on 
+glass corners. Dim overhead lighting creates worried atmosphere.
+
+Camera: Handheld slight shake, extreme close-up on fish
+Lens: 50mm macro, f/2.8
+Color: Desaturated, sickly yellow-green tint
+Mood: Concern, "something is wrong"
+Duration: 3 seconds
+Resolution: 1080x1920 (9:16)
+
+⚠️ AVOID: Dead fish, floating fish, graphic content
+        </pre>
+
+            <pre>
+SCENE 6 - PARADISE + LOOP:
+Breathtaking beauty shot of established planted aquarium. Lush green 
+Java Fern and Anubias swaying gently. School of 6 Neon Tetras swimming 
+in perfect formation. One Betta fish with flowing red and blue fins 
+swims toward camera. Crystal clear water. God rays from LED light.
+
+FINAL 0.5 SECONDS: Quick cut back to cloudy water (creates auto-replay!)
+
+Camera: Slow motorized slider push-in
+Lens: 85mm, f/1.8, dreamy bokeh
+Color: Teal highlights, warm shadows, vibrant fish
+Mood: Paradise, aspiration, "I want this"
+        </pre>
+
+            <h3>📝 Caption النهائي:</h3>
+
+            <div class="card" style="background: linear-gradient(135deg, #ff0050, #c13584);">
+                <h4 style="color: white;">TikTok + Instagram:</h4>
+                <pre style="direction: rtl; text-align: right; background: rgba(0,0,0,0.3); color: white;">اشتريت حوض جديد؟ 🐠
+
+احتمال كبير سمكك يموت أول أسبوع... إلا إذا سويت هالخطوات! ⬇️
+
+منشن صاحبك اللي قتل سمكته وخلينا ننقذه 😭🐟
+
+💾 احفظها لأن إذا نسيتها... راح تدفع ثمنها بسمك ميت.
+
+#تجهيز_حوض_سمك #دورة_النيتروجين #أخطاء_مبتدئين #AQUAVO #العراق #fishtok</pre>
+            </div>
+        </section>
+
+        <!-- ==================== CALENDAR SECTION ==================== -->
+        <section id="calendar">
+            <h2>📅 الفصل الرابع: تقويم المحتوى 2026</h2>
+
+            <div class="card success">
+                <div class="research-badge">📊 مصدر: Buffer + SkedSocial + Automateed 2026</div>
+                <h4>📊 معدل النشر المثالي:</h4>
+                <table>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>النوع</th>
+                        <th>العدد/الأسبوع</th>
+                        <th>ملاحظة</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Instagram</strong></td>
+                        <td>Reels</td>
+                        <td>2-4</td>
+                        <td>الأهم!</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Instagram</strong></td>
+                        <td>Stories</td>
+                        <td>7-14 (يومياً)</td>
+                        <td>1-2 يومياً</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Instagram</strong></td>
+                        <td>Feed Posts</td>
+                        <td>3-5</td>
+                        <td>Carousels قوية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>TikTok</strong></td>
+                        <td>Videos</td>
+                        <td>3-5</td>
+                        <td>يمكن 1-3 يومياً للنمو السريع</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Facebook</strong></td>
+                        <td>Posts</td>
+                        <td>2-5</td>
+                        <td>إعادة نشر من IG</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>🗓️ جدول الأسبوع الأول (18-24 يناير):</h3>
+
+            <table>
+                <tr>
+                    <th>التاريخ</th>
+                    <th>الوقت</th>
+                    <th>المحتوى</th>
+                    <th>المنصة</th>
+                </tr>
+                <tr style="background: rgba(245, 158, 11, 0.2);">
+                    <td><strong>السبت 18</strong></td>
+                    <td>-</td>
+                    <td>📹 يوم Batch التصوير</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td><strong>الأحد 19</strong></td>
+                    <td>8:00 م</td>
+                    <td>🎬 فيديو 2: تجهيز الحوض</td>
+                    <td>TikTok → IG</td>
+                </tr>
+                <tr>
+                    <td><strong>الإثنين 20</strong></td>
+                    <td>8:00 م</td>
+                    <td>🎬 فيديو 3: المي الصافي كذبة</td>
+                    <td>TikTok → IG</td>
+                </tr>
+                <tr>
+                    <td><strong>الثلاثاء 21</strong></td>
+                    <td>8:00 م</td>
+                    <td>🎬 فيديو 4: القاتل الخفي</td>
+                    <td>TikTok → IG</td>
+                </tr>
+                <tr>
+                    <td><strong>الأربعاء 22</strong></td>
+                    <td>8:00 م</td>
+                    <td>🎬 فيديو 5: 3 أسماك للمبتدئين</td>
+                    <td>TikTok → IG → FB</td>
+                </tr>
+                <tr style="background: rgba(139, 92, 246, 0.2);">
+                    <td><strong>الخميس 23</strong></td>
+                    <td>8:00 م</td>
+                    <td>📹 فيديو "بنك الأسئلة" (بديل Live)</td>
+                    <td>TikTok → IG</td>
+                </tr>
+                <tr>
+                    <td><strong>الجمعة 24</strong></td>
+                    <td>متعدد</td>
+                    <td>📸 ستوريات + رد تعليقات</td>
+                    <td>IG Stories</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- ==================== IRAQ TIMES ==================== -->
+        <section id="iraq">
+            <h2>🇮🇶 الفصل الخامس: أوقات العراق المثالية</h2>
+
+            <div class="card warning">
+                <div class="research-badge">📊 مصدر: DataReportal + Radaar 2026 (توقيت بغداد UTC+3)</div>
+                <h4>📊 إحصائيات العراق 2026:</h4>
+                <ul>
+                    <li>👥 <strong>34.3 مليون</strong> مستخدم سوشيال ميديا</li>
+                    <li>📈 <strong>82.9%</strong> نسبة الاستخدام (متوقع)</li>
+                    <li>📱 <strong>TikTok</strong> الأكثر نمواً بين الشباب</li>
+                </ul>
+            </div>
+
+            <div class="card success">
+                <h4>⏰ أفضل أوقات النشر (توقيت بغداد):</h4>
+                <table>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الفترة الذهبية</th>
+                        <th>الملاحظة</th>
+                    </tr>
+                    <tr>
+                        <td><strong>الإثنين</strong></td>
+                        <td>8:00 م - 10:00 م</td>
+                        <td>🔥 الأقوى</td>
+                    </tr>
+                    <tr>
+                        <td><strong>الأربعاء</strong></td>
+                        <td>7:00 م - 10:00 م</td>
+                        <td>🔥 قوي جداً</td>
+                    </tr>
+                    <tr>
+                        <td><strong>الجمعة</strong></td>
+                        <td>6:00 م - 9:00 م</td>
+                        <td>✅ جيد</td>
+                    </tr>
+                    <tr>
+                        <td><strong>يومياً</strong></td>
+                        <td>12:00 ظ - 2:00 م</td>
+                        <td>وقت الغداء (اختياري)</td>
+                    </tr>
+                </table>
+                <p style="margin-top: 15px;"><strong>💡 التوصية:</strong> انشر دائماً <strong>8:00 م</strong> كوقت ثابت!
+                </p>
+            </div>
+        </section>
+
+        <!-- ==================== CHECKLIST ==================== -->
+        <section id="checklist">
+            <h2>✅ الفصل السادس: Checklist النهائي</h2>
+
+            <div class="card">
+                <h4>📹 قبل التصوير/التوليد:</h4>
+                <ul class="checklist">
+                    <li>السكربت مكتوب ومحفوظ؟</li>
+                    <li>Triple Hook جاهز (Visual + Verbal + Text)؟</li>
+                    <li>AI Prompts منسوخة؟</li>
+                    <li>SFX محملة (نبضات + فقاعات + راحة)؟</li>
+                </ul>
+            </div>
+
+            <div class="card success">
+                <h4>🎬 قبل التصدير:</h4>
+                <ul class="checklist">
+                    <li>Hook آمن (سمكة تلهث، ليس ميتة)؟</li>
+                    <li>"2-4 أسابيع" + اختبار أمونيا (مو أسبوعين)؟</li>
+                    <li>مزيل كلور موجود بلقطة؟</li>
+                    <li>Trending Audio 1%؟</li>
+                    <li>المدة 18 ثانية أو أقل؟</li>
+                    <li>Loop (آخر frame → ماء معكر)؟</li>
+                    <li>Captions كلمة بكلمة؟</li>
+                    <li>1080x1920 (9:16)؟</li>
+                </ul>
+            </div>
+
+            <div class="card warning">
+                <h4>📱 قبل النشر:</h4>
+                <ul class="checklist">
+                    <li>CTA = "منشن صاحبك + احفظ"؟</li>
+                    <li>5-8 هاشتاغ مستهدف؟</li>
+                    <li>وقت النشر 8:00 م؟</li>
+                    <li>لا watermarks؟</li>
+                </ul>
+            </div>
+
+            <div class="card purple">
+                <h4>⏰ بعد النشر (أول 15 دقيقة حاسمة!):</h4>
+                <ul class="checklist">
+                    <li>نشرت ستوري داعمة مع Link؟</li>
+                    <li>رديت على أول 5-10 تعليقات؟</li>
+                    <li>شاركت في 3 حسابات منافسة؟</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <div
+            style="text-align: center; padding: 50px 20px; background: var(--card-bg); border-radius: 20px; margin-top: 40px;">
+            <h3 style="color: var(--primary);">🐟 AQUAVO - أساس التسويق 2026</h3>
+            <p style="color: var(--muted);">مبني على أبحاث موثقة من: TikTok Official, Instagram/Meta, Buffer, Hootsuite,
+                Opus Pro, Sprinklr, DataReportal</p>
+            <p style="color: var(--muted); margin-top: 10px;">آخر تحديث: 18 يناير 2026 | النسخة: 4.0 (النهائية)</p>
+            <button class="nav-btn gold" onclick="window.print()"
+                style="margin-top: 20px; font-size: 1.1em; padding: 12px 30px;">🖨️ طباعة PDF</button>
+        </div>
+    </div>
+
+    <script>
+        function scrollTo(id) {
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+
+</body>
+
+</html>

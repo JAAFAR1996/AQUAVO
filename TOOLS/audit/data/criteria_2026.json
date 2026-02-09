@@ -1,0 +1,67 @@
+{
+  "research_date": "05-02-2026",
+  "source": "2026 E-commerce Standards",
+  "criteria": {
+    "product_page": {
+      "min_images": 3,
+      "video_required": true,
+      "description_min_words": 150,
+      "mandatory_elements": [
+        "اسم المنتج",
+        "وصف المنتج",
+        "سعر المنتج",
+        "تقييم المنتج"
+      ]
+    },
+    "images": {
+      "accepted_formats": [
+        "WebP",
+        "AVIF",
+        "PNG"
+      ],
+      "rejected_formats": [
+        "JPEG"
+      ],
+      "dark_mode_requirement": "متوافق مع الوضع الداكن",
+      "max_size_kb": 500
+    },
+    "speed": {
+      "max_load_time": 3000,
+      "lcp_max": 2500,
+      "inp_max": 200,
+      "cls_max": 0.1
+    },
+    "ux": {
+      "sticky_button_mobile": true,
+      "guest_checkout_required": true,
+      "required_features": [
+        "دفع بدون حساب",
+        "تأكيد الطلب",
+        "تتبع الشحن"
+      ]
+    },
+    "trust": {
+      "required_badges": [
+        "https",
+        "شارة الأمان",
+        "شارة الدفع الآمن"
+      ],
+      "return_policy_visible": true
+    }
+  },
+  "penalties": [
+    {
+      "violation": "عدم توافق مع معايير السرعة",
+      "points_deducted": 10
+    },
+    {
+      "violation": "عدم توافق مع معايير تجربة المستخدم",
+      "points_deducted": 8
+    },
+    {
+      "violation": "عدم توافق مع معايير الثقة والأمان",
+      "points_deducted": 12
+    }
+  ],
+  "summary_ar": "معايير التجارة الإلكترونية لعام 2026 تشمل متطلبات صارمة لصفحة المنتج وصوره وسرعته وتجربة المستخدم والثقة والأمان، مع عقوبات على عدم الامتثال"
+}

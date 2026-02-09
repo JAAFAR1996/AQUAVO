@@ -1,0 +1,2136 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQUAVO - دليل النشر الشامل 2026</title>
+    <style>
+        :root {
+            --primary: #0ea5e9;
+            --primary-dark: #0284c7;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Navigation */
+        nav {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        nav a {
+            color: var(--text);
+            text-decoration: none;
+            padding: 10px 20px;
+            background: var(--bg);
+            border-radius: 10px;
+            transition: all 0.3s;
+        }
+
+        nav a:hover {
+            background: var(--primary);
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .card h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .card h3 {
+            color: var(--accent);
+            margin: 20px 0 15px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        th,
+        td {
+            padding: 12px 15px;
+            text-align: right;
+            border-bottom: 1px solid #334155;
+        }
+
+        th {
+            background: var(--bg);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: rgba(14, 165, 233, 0.1);
+        }
+
+        /* Video Cards */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .video-card {
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+
+        .video-card h4 {
+            color: var(--accent);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .video-card .hook {
+            background: linear-gradient(90deg, var(--danger), #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 10px;
+        }
+
+        .video-card .script {
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .video-card .cta {
+            background: var(--success);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            display: inline-block;
+            font-size: 0.85rem;
+        }
+
+        .video-card .caption {
+            background: #1a1a2e;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            border-right: 3px solid var(--primary);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            margin: 3px;
+        }
+
+        .tag-instagram {
+            background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+        }
+
+        .tag-tiktok {
+            background: #000;
+            border: 1px solid #25f4ee;
+        }
+
+        .tag-facebook {
+            background: #1877f2;
+        }
+
+        .tag-hash {
+            background: #334155;
+            color: var(--accent);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-high {
+            background: var(--success);
+        }
+
+        .badge-medium {
+            background: var(--warning);
+            color: #000;
+        }
+
+        .badge-low {
+            background: var(--danger);
+        }
+
+        /* Schedule */
+        .schedule-day {
+            background: var(--bg);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-right: 4px solid var(--primary);
+        }
+
+        .schedule-day h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .time-slot {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 8px 0;
+            border-bottom: 1px dashed #334155;
+        }
+
+        .time-slot:last-child {
+            border-bottom: none;
+        }
+
+        .time {
+            background: var(--accent);
+            color: #000;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Tips Box */
+        .tip-box {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(6, 182, 212, 0.2));
+            border: 1px solid var(--primary);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .tip-box h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .warning-box {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .warning-box h4 {
+            color: var(--danger);
+            margin-bottom: 10px;
+        }
+
+        /* Ramadan Section */
+        .ramadan-card {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .ramadan-card h3 {
+            color: #ffd700;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .video-grid {
+                grid-template-columns: 1fr;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>🐟 AQUAVO - دليل النشر الشامل 2026</h1>
+            <p>استراتيجية النمو من 250 إلى 10,000+ متابع خلال 90 يوم</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav>
+            <a href="#videos">📹 أفكار الفيديو</a>
+            <a href="#schedule">📅 جدول النشر</a>
+            <a href="#times">⏰ أفضل الأوقات</a>
+            <a href="#hashtags">🏷️ الهاشتاقات</a>
+            <a href="#seo">🔍 Instagram SEO</a>
+            <a href="#platform-captions">📱 كابشنات المنصات</a>
+            <a href="#settings">⚙️ إعدادات النشر</a>
+            <a href="#ramadan">🌙 رمضان</a>
+            <a href="#sounds">🎵 الأصوات الرائجة</a>
+        </nav>
+
+        <!-- Best Times -->
+        <section id="times" class="card">
+            <h2>⏰ أفضل أوقات النشر - بغداد (UTC+3)</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>أفضل أيام</th>
+                        <th>أفضل ساعات</th>
+                        <th>أسوأ يوم</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="tag tag-instagram">Instagram</span></td>
+                        <td>الإثنين، الثلاثاء</td>
+                        <td><strong>9:00 - 10:00 ص</strong></td>
+                        <td>الأحد</td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag tag-tiktok">TikTok</span></td>
+                        <td>الثلاثاء، السبت</td>
+                        <td><strong>9:00 ص</strong></td>
+                        <td>الأحد</td>
+                    </tr>
+                    <tr>
+                        <td><span class="tag tag-facebook">Facebook</span></td>
+                        <td>الإثنين - الخميس</td>
+                        <td><strong>10:00 - 11:00 ص</strong></td>
+                        <td>الأحد</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="tip-box">
+                <h4>💡 نمط الاستخدام العراقي</h4>
+                <p>العراقيون يستخدمون السوشل ميديا مرتين يومياً: <strong>9ص - 12ظ</strong> (ساعات العمل) و <strong>7م -
+                        9م</strong> (بعد العشاء).</p>
+            </div>
+        </section>
+
+        <!-- Video Ideas -->
+        <section id="videos" class="card">
+            <h2>📹 أفكار الفيديو الفيروسية</h2>
+
+            <h3>🏆 الفئة 1: خرافات (احتمال انتشار عالي جداً)</h3>
+            <div class="video-grid">
+                <div class="video-card">
+                    <h4>1️⃣ خرافة البيتا لا تحتاج فلتر</h4>
+                    <div class="hook">"المتاجر كذبوا عليك! ❌"</div>
+                    <div class="script">البيتا تعيش في مياه راكدة طبيعياً لكنها كبيرة ومتجددة. الحوض الصغير بدون فلتر =
+                        سموم متراكمة.</div>
+                    <div class="cta">CTA: "صوّت + شارك + احفظ"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 فلتر سمك البيتا - Betta Fish Filter ❌<br>
+                        هل سمك الفايتر يحتاج فلتر؟ المتاجر كذبوا عليك!<br><br>
+                        ✅ betta fish + filter = حياة أطول 🐟<br>
+                        ✅ حوض سمك البيتا يحتاج تنقية<br>
+                        ❌ بدون فلتر = سموم = موت بطيء<br><br>
+                        صوّت: فلتر ✅ أم بدون ❌ 👇<br>
+                        📌 احفظ | 🔄 شارك لتنقذ سمكة!<br><br>
+                        #bettafish #سمك_الفايتر #fishtok #aquariumlife #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>2️⃣ خرافة السمك لا يحس بالألم</h4>
+                    <div class="hook">"العلم أثبت عكس ما تعتقد! 😱"</div>
+                    <div class="script">دراسات 2024 أثبتت: السمك يملك مستقبلات ألم، يتعلم تجنب المناطق المؤلمة، ويظهر
+                        سلوك خوف.</div>
+                    <div class="cta">CTA: "هل كنت تعرف؟ اكتب نعم/لا"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 هل السمك يحس بالألم؟ - Do Fish Feel Pain? 🧬<br>
+                        العلم أثبت: fish pain receptors حقيقية!<br><br>
+                        ✅ الأسماك لديها مستقبلات ألم<br>
+                        ✅ تتجنب الأماكن المؤلمة<br>
+                        ✅ حقائق عن الأسماك مذهلة!<br><br>
+                        🤔 هل كنت تعرف؟ نعم أو لا 👇<br>
+                        📌 احفظ | 🔄 شارك!<br><br>
+                        #fishfacts #حقائق #fishtok #aquarium #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>3️⃣ خرافة الطعام الزائد مفيد</h4>
+                    <div class="hook">"تطعم سمكتك كثير = تقتلها ببطء ☠️"</div>
+                    <div class="script">الطعام الزائد يتحلل → أمونيا → تسمم. القاعدة: ما يأكلونه في دقيقتين فقط.</div>
+                    <div class="cta">CTA: "كم مرة تطعم أسماكك باليوم؟"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 كمية طعام السمك - Overfeeding Fish ☠️<br>
+                        تغذية الأسماك الخاطئة = موت بطيء!<br><br>
+                        ❌ fish food كثير → أمونيا → تسمم<br>
+                        ✅ القاعدة الذهبية: دقيقتين فقط!<br><br>
+                        كم مرة تطعم أسماكك؟ 👇<br>
+                        📌 احفظ | 🔄 شارك مع صاحب حوض!<br><br>
+                        #fishfeeding #تغذية_الأسماك #fishtok #aquariumtips #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>4️⃣ خرافة الضوء 24 ساعة</h4>
+                    <div class="hook">"الضوء الدائم = توتر مستمر!"</div>
+                    <div class="script">الأسماك تحتاج 8-12 ساعة ضوء فقط. الإضاءة المستمرة تسبب طحالب وتوتر.</div>
+                    <div class="cta">CTA: "كم ساعة تشغل الضوء؟"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        � إضاءة حوض السمك - Aquarium Lighting 💡<br>
+                        كم ساعة ضوء للأسماك؟ الإجابة ستصدمك!<br><br>
+                        ❌ fish tank light 24 ساعة = توتر + طحالب<br>
+                        ✅ الحل: 8-12 ساعة فقط!<br><br>
+                        كم ساعة ضوء عندك؟ 👇<br>
+                        📌 احفظ للتطبيق!<br><br>
+                        #aquariumlighting #إضاءة_حوض_سمك #fishtok #fishtank #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>5️⃣ خرافة السمك يعيش أسابيع فقط</h4>
+                    <div class="hook">"سمكتك ممكن تعيش 20 سنة! 😱"</div>
+                    <div class="script">السمك الذهبي يعيش 20+ سنة بالعناية الصحيحة. الموت المبكر = عناية خاطئة.</div>
+                    <div class="cta">CTA: "كم عاشت أطول سمكة عندك؟"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 عمر السمكة الذهبية - Goldfish Lifespan 🤯<br>
+                        كم تعيش الأسماك؟ 20 سنة وأكثر!<br><br>
+                        ❌ fish lifespan قصير = عناية خاطئة<br>
+                        ✅ رعاية صحيحة = عقود من العمر<br><br>
+                        كم عاشت أطول سمكة عندك؟ 👇<br>
+                        � احفظ | 🔄 شارك!<br><br>
+                        #goldfish #السمكة_الذهبية #fishtok #aquariumlife #AQUAVO
+                    </div>
+                </div>
+            </div>
+
+            <h3>💔 الفئة 2: قصص عاطفية</h3>
+            <div class="video-grid">
+                <div class="video-card">
+                    <h4>6️⃣ السمك يحلم!</h4>
+                    <div class="hook">"نعم، سمكتك تحلم وهي نائمة 🛏️"</div>
+                    <div class="script">دراسة 2023: أسماك الزيبرا تمر بمراحل نوم مشابهة للإنسان وتظهر نشاط دماغي يشبه
+                        الأحلام.</div>
+                    <div class="cta">CTA: "شفت سمكتك نائمة؟ 😴"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 هل السمك يحلم؟ - Do Fish Dream? 🌙<br>
+                        نوم الأسماك - Fish Sleep حقيقة علمية!<br><br>
+                        ✅ دراسة 2023: السمك يمر بمراحل نوم<br>
+                        ✅ نشاط دماغي يشبه الأحلام<br><br>
+                        شفت سمكتك نائمة من قبل؟ 😴👇<br><br>
+                        #fishfacts #عالم_الأسماك #fishtok #amazingfacts #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>7️⃣ كرسي متحرك لسمكة!</h4>
+                    <div class="hook">"صنعت كرسي متحرك لسمكتي المعاقة ♿"</div>
+                    <div class="script">قصة حقيقية عن مساعدة سمكة لا تستطيع السباحة. حلول إبداعية للأسماك المريضة.</div>
+                    <div class="cta">CTA: "هل تفعل هذا لسمكتك؟ ❤️"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 كرسي متحرك لسمكة! - Fish Wheelchair ♿❤️<br>
+                        مساعدة سمكة معاقة - Helping Disabled Fish<br><br>
+                        شخص صنع جهاز يساعد سمكته على السباحة 🥺<br>
+                        هذا هو الحب الحقيقي لرعاية الحيوانات!<br><br>
+                        هل تفعل هذا لسمكتك؟ 👇<br><br>
+                        #animalcare #حب_الحيوانات #fishtok #heartwarming #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>8️⃣ السمك يسمع صوتك</h4>
+                    <div class="hook">"سمكتك تسمعك وتفهم! 🎵"</div>
+                    <div class="script">الدراسات أثبتت أن الأسماك تسمع وتتعرف على أصوات معينة، خاصة صوت صاحبها عند
+                        الإطعام.</div>
+                    <div class="cta">CTA: "جرب تكلم سمكتك!"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 هل السمك يسمع؟ - Can Fish Hear? 👂🐟<br>
+                        سمكتك تتعرف على صوتك! Fish Hearing حقيقة<br><br>
+                        ✅ الأسماك تسمع صوت صاحبها<br>
+                        ✅ خاصة عند وقت الأكل!<br><br>
+                        جرب تكلم سمكتك وشوف ردة فعلها 👇<br><br>
+                        #fishfacts #أسماك_زينة #fishtok #aquariumhobby #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>9️⃣ لماذا تختبئ سمكتك؟</h4>
+                    <div class="hook">"سمكتك تختبئ لأنها خايفة... 😨"</div>
+                    <div class="script">علامات التوتر عند الأسماك: الاختباء، قلة الأكل، اللون الباهت. الأسباب والحلول.
+                    </div>
+                    <div class="cta">CTA: "سمكتك تختبئ؟ اكتب نعم/لا"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 سمكتي تختبئ! - Why Is My Fish Hiding? 😰<br>
+                        علامات توتر السمك - Fish Stress Signs<br><br>
+                        ❌ الاختباء المستمر<br>
+                        ❌ قلة الأكل<br>
+                        ❌ اللون الباهت<br><br>
+                        سمكتك تختبئ؟ نعم أو لا 👇<br><br>
+                        #fishcare #رعاية_الأسماك #fishtok #aquariumtips #AQUAVO
+                    </div>
+                </div>
+
+                <div class="video-card">
+                    <h4>🔟 وداعاً يا صديقي 💔</h4>
+                    <div class="hook">"عاشت معي سنين... راحت اليوم 💔"</div>
+                    <div class="script">قصة عاطفية عن فقدان سمكة. الناس يتعاطفون ويشاركون قصصهم.</div>
+                    <div class="cta">CTA: "احكوا قصصكم في التعليقات"</div>
+                    <div class="caption">
+                        <strong>الكابشن (SEO 2026):</strong><br>
+                        🔴 فقدان سمكة - Losing A Pet Fish 💔<br>
+                        ذكريات مع السمك - Fish Memorial<br><br>
+                        عاشت معي سنين...<br>
+                        كانت جزء من حياتي<br>
+                        اليوم راحت...<br><br>
+                        شاركونا قصصكم مع أسماككم 👇<br><br>
+                        #petloss #حب_الأسماك #fishtok #memories #AQUAVO
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Publishing Schedule -->
+        <section id="schedule" class="card">
+            <h2>📅 جدول النشر الأسبوعي</h2>
+
+            <div class="schedule-day">
+                <h4>📌 الإثنين (7:00 - 9:00 ص)</h4>
+                <div class="time-slot">
+                    <span class="time">7:00 - 9:00 ص</span>
+                    <span><strong>خرافة البيتا لا تحتاج فلتر</strong></span>
+                    <span class="tag tag-instagram">IG Reel</span>
+                    <span class="tag tag-facebook">FB</span>
+                </div>
+            </div>
+
+            <div class="schedule-day">
+                <h4>📌 الثلاثاء & الأربعاء (12:00 - 2:00 م)</h4>
+                <div class="time-slot">
+                    <span class="time">12:00 - 2:00 م</span>
+                    <span><strong>خرافة السمك لا يحس بالألم</strong></span>
+                    <span class="tag tag-tiktok">TikTok</span>
+                    <span class="tag tag-instagram">IG Reel</span>
+                </div>
+            </div>
+
+            <div class="schedule-day">
+                <h4>📌 الخميس (6:00 - 8:00 م)</h4>
+                <div class="time-slot">
+                    <span class="time">6:00 - 8:00 م</span>
+                    <span><strong>السمك يحلم!</strong></span>
+                    <span class="tag tag-instagram">IG Reel</span>
+                    <span class="tag tag-facebook">FB</span>
+                </div>
+            </div>
+
+            <div class="schedule-day">
+                <h4>📌 الجمعة (1:00 - 3:00 م)</h4>
+                <div class="time-slot">
+                    <span class="time">1:00 - 3:00 م</span>
+                    <span><strong>كرسي متحرك لسمكة! ♿</strong></span>
+                    <span class="tag tag-tiktok">TikTok</span>
+                    <span class="tag tag-instagram">IG Reel</span>
+                </div>
+            </div>
+
+            <div class="schedule-day">
+                <h4>📌 السبت (11:00 ص - 1:00 م)</h4>
+                <div class="time-slot">
+                    <span class="time">11:00 ص - 1:00 م</span>
+                    <span><strong>خرافة الضوء 24 ساعة</strong></span>
+                    <span class="tag tag-tiktok">TikTok</span>
+                </div>
+            </div>
+
+            <div class="schedule-day">
+                <h4>📌 الأحد (10:00 ص - 12:00 م)</h4>
+                <div class="time-slot">
+                    <span class="time">10:00 ص - 12:00 م</span>
+                    <span>محتوى تعليمي خفيف / Story</span>
+                    <span class="tag tag-instagram">IG Story</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Hashtags -->
+        <section id="hashtags" class="card">
+            <h2>🏷️ الهاشتاقات الموصى بها</h2>
+
+            <div class="tip-box">
+                <h4>⚠️ قاعدة 2026 الجديدة</h4>
+                <p>Instagram: استخدم <strong>3-5 هاشتاقات</strong> فقط (الحد الأقصى 5). أكثر من ذلك = Spam.</p>
+                <p>TikTok: استخدم <strong>3-5 هاشتاقات</strong> مع استراتيجية 3×3.</p>
+            </div>
+
+            <h3>هاشتاقات إنجليزية (للوصول العالمي)</h3>
+            <div style="margin: 15px 0;">
+                <span class="tag tag-hash">#aquascaping</span>
+                <span class="tag tag-hash">#aquariumfish</span>
+                <span class="tag tag-hash">#plantedtank</span>
+                <span class="tag tag-hash">#aquariumlife</span>
+                <span class="tag tag-hash">#fishkeeping</span>
+                <span class="tag tag-hash">#fishtok</span>
+                <span class="tag tag-hash">#bettafish</span>
+                <span class="tag tag-hash">#goldfish</span>
+                <span class="tag tag-hash">#aquariumhobby</span>
+                <span class="tag tag-hash">#fishtank</span>
+            </div>
+
+            <h3>هاشتاقات عربية (للجمهور المحلي)</h3>
+            <div style="margin: 15px 0;">
+                <span class="tag tag-hash">#أسماك_زينة</span>
+                <span class="tag tag-hash">#حوض_سمك</span>
+                <span class="tag tag-hash">#تربية_أسماك</span>
+                <span class="tag tag-hash">#هواية_الأكواريوم</span>
+                <span class="tag tag-hash">#عالم_الأسماك</span>
+            </div>
+
+            <h3>📋 تركيبة الهاشتاقات المثالية</h3>
+            <table>
+                <tr>
+                    <th>المنصة</th>
+                    <th>التركيبة</th>
+                </tr>
+                <tr>
+                    <td>Instagram</td>
+                    <td>1 عربي (#أسماك_زينة) + 2 إنجليزي (#aquariumlife #fishtok) + 1 موضوع (#بيتا) + 1 موقع (إجمالي
+                        3-5)
+                    </td>
+                </tr>
+                <tr>
+                    <td>TikTok</td>
+                    <td>استراتيجية 3×3: 3 للمجال + 3 للمشكلة + 3 للجمهور (اختر 3-5 منهم فقط لكل فيديو)</td>
+                </tr>
+                <tr>
+                    <td>Facebook</td>
+                    <td>الهاشتاغات تساعد في الاكتشاف (1-3 هاشتاغات ذات صلة)</td>
+                </tr>
+            </table>
+
+            <h3>✍️ قواعد الكابشنات الفيروسية 2026</h3>
+            <div class="tip-box">
+                <h4>🔥 القواعد الذهبية (بناءً على أحدث الأبحاث)</h4>
+                <table>
+                    <tr>
+                        <th>القاعدة</th>
+                        <th>لماذا؟</th>
+                    </tr>
+                    <tr>
+                        <td><strong>الكلمات المفتاحية أولاً</strong></td>
+                        <td>الخوارزمية تقرأ أول سطرين - ضع الكلمات المهمة في البداية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>أقل من 30 كلمة</strong></td>
+                        <td>الكابشنات القصيرة تحصل على تفاعل أعلى</td>
+                    </tr>
+                    <tr>
+                        <td><strong>اطلب الحفظ 📌</strong></td>
+                        <td>الـ Saves = إشارة قوية للخوارزمية أن المحتوى قيّم</td>
+                    </tr>
+                    <tr>
+                        <td><strong>اطلب المشاركة 🔄</strong></td>
+                        <td>الـ Shares = أهم من اللايكات في 2026!</td>
+                    </tr>
+                    <tr>
+                        <td><strong>3-5 هاشتاقات فقط</strong></td>
+                        <td>اختر الهاشتاغات الأكثر صلة ونشاطاً (Quality > Quantity)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hook في أول سطر</strong></td>
+                        <td>جملة صادمة أو سؤال لجذب الانتباه فوراً</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="warning-box">
+                <h4>📋 قالب الكابشن المثالي 2026</h4>
+                <p
+                    style="font-family: monospace; background: #1a1a2e; padding: 15px; border-radius: 8px; margin-top: 10px;">
+                    [HOOK صادم] ❌/😱<br><br>
+                    [كلمة مفتاحية + معلومة 1]<br>
+                    [معلومة 2]<br>
+                    [معلومة 3 مع إيموجي]<br><br>
+                    [سؤال/CTA للتعليق] 👇<br>
+                    📌 احفظ للمرجعية<br>
+                    🔄 شارك مع [شخص مستهدف]<br><br>
+                    #hashtag1 #hashtag2 #hashtag3
+                </p>
+            </div>
+        </section>
+
+        <!-- Publishing Settings -->
+        <section id="settings" class="card">
+            <h2>⚙️ إعدادات النشر والجدولة</h2>
+
+            <h3>🤔 النشر المباشر vs أدوات الجدولة</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>هل تتأثر بالجدولة؟</th>
+                        <th>التوصية</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Instagram</td>
+                        <td><span class="badge badge-high">لا تتأثر ✅</span></td>
+                        <td>آمن استخدام Later/Buffer/Hootsuite</td>
+                    </tr>
+                    <tr>
+                        <td>TikTok</td>
+                        <td><span class="badge badge-high">لا تتأثر ✅</span></td>
+                        <td>آمن، لكن الأصوات الرائجة قد لا تتوفر</td>
+                    </tr>
+                    <tr>
+                        <td>Facebook</td>
+                        <td><span class="badge badge-high">لا تتأثر ✅</span></td>
+                        <td>آمن تماماً</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>⚠️ تحذير مهم: العلامات المائية</h4>
+                <p>إزالة العلامة المائية (Watermark) إلزامية قبل إعادة النشر!</p>
+                <ul style="margin-top: 10px; margin-right: 20px;">
+                    <li>Instagram توصي بـ "محتوى أصلي غير مُعلّم"</li>
+                    <li>إزالة شعار TikTok قبل النشر على Instagram</li>
+                    <li>استخدم أدوات مثل SnapTik أو SaveTok</li>
+                </ul>
+            </div>
+
+            <h3>📐 إعدادات الفيديو المثالية</h3>
+            <table>
+                <tr>
+                    <th>الإعداد</th>
+                    <th>Instagram Reels</th>
+                    <th>TikTok</th>
+                </tr>
+                <tr>
+                    <td>الأبعاد</td>
+                    <td>9:16 (1080 × 1920)</td>
+                    <td>9:16 (1080 × 1920)</td>
+                </tr>
+                <tr>
+                    <td>الدقة</td>
+                    <td>1080p (لا حاجة لـ 4K)</td>
+                    <td>1080p</td>
+                </tr>
+                <tr>
+                    <td>المدة المثالية</td>
+                    <td>15-30 ثانية</td>
+                    <td>15-30 ثانية</td>
+                </tr>
+                <tr>
+                    <td>معدل الإطارات</td>
+                    <td>30 fps</td>
+                    <td>30 fps</td>
+                </tr>
+                <tr>
+                    <td>التنسيق</td>
+                    <td>MP4 (H.264)</td>
+                    <td>MP4 (H.264)</td>
+                </tr>
+            </table>
+
+            <h3>📝 طول الكابشن الأمثل</h3>
+            <table>
+                <tr>
+                    <th>المنصة</th>
+                    <th>الطول المثالي</th>
+                    <th>الحد الأقصى</th>
+                </tr>
+                <tr>
+                    <td>Instagram</td>
+                    <td><strong>&lt;30 كلمة</strong> (150 حرف)</td>
+                    <td>2,200 حرف</td>
+                </tr>
+                <tr>
+                    <td>TikTok</td>
+                    <td><strong>1-3 جمل</strong> للترفيهي | <strong>150-300 كلمة</strong> للتعليمي</td>
+                    <td>4,000 حرف</td>
+                </tr>
+                <tr>
+                    <td>Facebook</td>
+                    <td><strong>قصير جداً</strong></td>
+                    <td>-</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Instagram SEO Section -->
+        <section id="seo" class="card">
+            <h2>🔍 Instagram SEO 2026 - بيانات محسّنة لكل فيديو</h2>
+
+            <div class="warning-box" style="background: rgba(16, 185, 129, 0.2); border-color: var(--success);">
+                <h4 style="color: var(--success);">📊 تحديثات خوارزميات 2026</h4>
+                <table>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>التحديث الجديد</th>
+                        <th>التأثير</th>
+                    </tr>
+                    <tr>
+                        <td>Instagram</td>
+                        <td>ميزة "Your Algorithm" + المحتوى الأصلي</td>
+                        <td>Shares ≈ Saves (كلاهما مهم جداً)</td>
+                    </tr>
+                    <tr>
+                        <td>TikTok</td>
+                        <td>Completion Rate > Likes</td>
+                        <td>فيديوهات قصيرة + 3×3 Hashtags</td>
+                    </tr>
+                    <tr>
+                        <td>YouTube Shorts</td>
+                        <td>Retention is King</td>
+                        <td>العنوان + الوصف + كلمات البحث</td>
+                    </tr>
+                </table>
+            </div>
+
+            <h3>🎯 استراتيجية الهاشتاغات 2026</h3>
+            <div class="tip-box">
+                <h4>📌 قاعدة المزيج المثالي (30 هاشتاغ)</h4>
+                <table>
+                    <tr>
+                        <th>النوع</th>
+                        <th>العدد</th>
+                        <th>الهدف</th>
+                    </tr>
+                    <tr>
+                        <td>كبيرة (1M+)</td>
+                        <td>3-5</td>
+                        <td>وصول واسع</td>
+                    </tr>
+                    <tr>
+                        <td>متوسطة (100K-1M)</td>
+                        <td>10-15</td>
+                        <td>منافسة متوازنة</td>
+                    </tr>
+                    <tr>
+                        <td>صغيرة (10K-100K)</td>
+                        <td>10-15</td>
+                        <td>تخصص (Niche)</td>
+                    </tr>
+                    <tr>
+                        <td>مخصصة (Brand)</td>
+                        <td>2-3</td>
+                        <td>بناء الهوية</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Video 1: Betta Filter Myth -->
+            <div class="video-card" style="margin-top: 20px; border: 2px solid var(--primary);">
+                <h4>1️⃣ V1: خرافة البيتا لا تحتاج فلتر</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    betta fish filter • betta filter myth • فلتر سمك الفايتر • حوض سمك البيتا
+                </div>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">📝 الكلمات المفتاحية طويلة الذيل:</strong><br>
+                    do betta fish need a filter • هل يحتاج سمك الفايتر الى فلتر • best filter for betta fish 2026
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fish</span>
+                    <span class="tag tag-hash">#aquarium</span>
+                    <span class="tag tag-hash">#bettafish</span>
+                    <span class="tag tag-hash">#fishkeeping</span>
+                    <span class="tag tag-hash">#petfish</span>
+                    <span class="tag tag-hash">#fishtank</span>
+                    <span class="tag tag-hash">#aquascape</span>
+                    <span class="tag tag-hash">#betta</span>
+                    <span class="tag tag-hash">#bettacare</span>
+                    <span class="tag tag-hash">#bettalove</span>
+                    <span class="tag tag-hash">#filtermyth</span>
+                    <span class="tag tag-hash">#سمك_الفايتر</span>
+                    <span class="tag tag-hash">#تربية_الاسماك</span>
+                    <span class="tag tag-hash">#حوض_سمك</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    ❌ هل تعتقد أن سمك الفايتر لا يحتاج فلتر؟<br>
+                    هذه الأسطورة تقتل أسماكًا كثيرة!<br><br>
+                    🐟 الحقيقة: البيتا يعيش في مياه غنية بالنباتات والأكسجين<br>
+                    ✅ فلتر هادئ = حياة أطول وصحة أفضل<br><br>
+                    صوّت: فلتر ✅ أم بدون ❌ 👇<br>
+                    📌 احفظ للمرجعية<br>
+                    🔄 شارك لتنقذ سمكة!
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">⏰ النشر: 7-9 م</span>
+                    <span class="badge badge-medium">🎵 snowfall - Øneheart</span>
+                </div>
+            </div>
+
+            <!-- Video 2: Fish Feel Pain -->
+            <div class="video-card" style="margin-top: 20px; border: 2px solid var(--accent);">
+                <h4>2️⃣ V2: السمك يحس بالألم</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    fish feel pain • do fish feel pain • هل السمك يحس بالألم • حقائق عن الأسماك
+                </div>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">📝 الكلمات المفتاحية طويلة الذيل:</strong><br>
+                    scientific proof fish feel pain • دراسات علمية عن إحساس الأسماك • fish pain receptors 2024
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fishfacts</span>
+                    <span class="tag tag-hash">#aquarium</span>
+                    <span class="tag tag-hash">#sciencefacts</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#fishcare</span>
+                    <span class="tag tag-hash">#animalwelfare</span>
+                    <span class="tag tag-hash">#fishkeeping</span>
+                    <span class="tag tag-hash">#aquariumlife</span>
+                    <span class="tag tag-hash">#حقائق</span>
+                    <span class="tag tag-hash">#علوم</span>
+                    <span class="tag tag-hash">#رعاية_الأسماك</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    😱 السمك يحس بالألم! العلم أثبت 🧬<br><br>
+                    دراسات 2024 أثبتت:<br>
+                    ✅ مستقبلات ألم حقيقية<br>
+                    ✅ يتجنب الأماكن المؤلمة<br>
+                    ✅ خوف وتوتر مثل الحيوانات الأخرى<br><br>
+                    🤔 هل كنت تعرف؟ نعم أو لا 👇<br>
+                    📌 احفظ هذه المعلومة!
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">⏰ النشر: 9 ص</span>
+                    <span class="badge badge-medium">🎵 The Keeper - Bonobo</span>
+                </div>
+            </div>
+
+            <!-- Video 3: Overfeeding -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>3️⃣ V3: خرافة الطعام الزائد</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    overfeeding fish • fish food amount • كمية طعام السمك • تغذية الأسماك الصحيحة
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fishfeeding</span>
+                    <span class="tag tag-hash">#aquariumtips</span>
+                    <span class="tag tag-hash">#fishcare</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#aquariumlife</span>
+                    <span class="tag tag-hash">#fishkeeping</span>
+                    <span class="tag tag-hash">#تغذية_الأسماك</span>
+                    <span class="tag tag-hash">#نصائح</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    ⚠️ الطعام الزائد يقتل سمكتك ببطء!<br><br>
+                    طعام كثير → أمونيا → تسمم ☠️<br>
+                    ✅ القاعدة الذهبية: ما يأكلونه في دقيقتين فقط!<br><br>
+                    كم مرة تطعم أسماكك؟ اكتب الرقم 👇<br>
+                    🔄 شارك مع صاحب حوض!
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">⏰ النشر: 9:30 ص</span>
+                </div>
+            </div>
+
+            <!-- Video 4: 24h Light -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>4️⃣ V4: خرافة الضوء 24 ساعة</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    aquarium lighting • fish tank light hours • إضاءة حوض السمك • كم ساعة ضوء للأسماك
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#aquariumlighting</span>
+                    <span class="tag tag-hash">#fishtank</span>
+                    <span class="tag tag-hash">#aquariumcare</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#plantedtank</span>
+                    <span class="tag tag-hash">#إضاءة_حوض_سمك</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    💡 الضوء 24 ساعة = مشكلة كبيرة!<br><br>
+                    ❌ توتر مستمر للسمك<br>
+                    ❌ طحالب تغزو الحوض<br>
+                    ✅ الحل: 8-12 ساعة فقط!<br><br>
+                    كم ساعة ضوء عندك؟ 👇<br>
+                    📌 احفظ للتطبيق!
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">⏰ النشر: 9 ص (السبت)</span>
+                </div>
+            </div>
+
+            <!-- Video 5: Fish Lifespan -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>5️⃣ V5: السمك يعيش 20 سنة!</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    goldfish lifespan • how long do fish live • عمر السمكة الذهبية • كم تعيش الأسماك
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#goldfish</span>
+                    <span class="tag tag-hash">#fishlifespan</span>
+                    <span class="tag tag-hash">#aquariumlife</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#fishfacts</span>
+                    <span class="tag tag-hash">#السمكة_الذهبية</span>
+                    <span class="tag tag-hash">#حقائق</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    🤯 السمكة الذهبية تعيش 20 سنة!<br><br>
+                    موت سريع = عناية خاطئة ❌<br>
+                    رعاية صحيحة = عقود من العمر ✅<br><br>
+                    🐟 كم عاشت أطول سمكة عندك؟ 👇<br>
+                    🔄 شارك مع محب الأسماك!
+                </div>
+            </div>
+
+            <!-- Video 6: Fish Dream -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>6️⃣ V6: السمك يحلم!</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    do fish dream • fish sleep • هل السمك يحلم • نوم الأسماك
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fishfacts</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#science</span>
+                    <span class="tag tag-hash">#aquariumlife</span>
+                    <span class="tag tag-hash">#amazingfacts</span>
+                    <span class="tag tag-hash">#عالم_الأسماك</span>
+                    <span class="tag tag-hash">#حقائق</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    🌙 سمكتك تحلم وهي نائمة!<br><br>
+                    دراسة 2023 أثبتت:<br>
+                    ✅ السمك يمر بمراحل نوم<br>
+                    ✅ نشاط دماغي يشبه الأحلام<br><br>
+                    شفت سمكتك نائمة من قبل؟ 😴👇
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-medium">🎵 Cycle Syncing - Still Haven</span>
+                </div>
+            </div>
+
+            <!-- Video 7: Fish Wheelchair -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>7️⃣ V7: كرسي متحرك لسمكة!</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    fish wheelchair • helping disabled fish • مساعدة سمكة معاقة • رعاية الحيوانات
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#animalcare</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#heartwarming</span>
+                    <span class="tag tag-hash">#petlove</span>
+                    <span class="tag tag-hash">#fishcare</span>
+                    <span class="tag tag-hash">#رحمة</span>
+                    <span class="tag tag-hash">#حب_الحيوانات</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    ♿❤️ كرسي متحرك لسمكة!<br><br>
+                    شخص صنع جهاز يساعد سمكته المعاقة على السباحة<br>
+                    هذا هو الحب الحقيقي 🥺<br><br>
+                    هل تفعل هذا لسمكتك؟ 👇
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">⏰ عاطفي - أفضل للمساء</span>
+                </div>
+            </div>
+
+            <!-- Video 8: Fish Hear You -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>8️⃣ V8: السمك يسمع صوتك!</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    can fish hear • fish hearing • هل السمك يسمع • سمك يتعرف على صاحبه
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fishfacts</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#aquariumhobby</span>
+                    <span class="tag tag-hash">#petfish</span>
+                    <span class="tag tag-hash">#amazingfacts</span>
+                    <span class="tag tag-hash">#أسماك_زينة</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    👂🐟 سمكتك تسمعك!<br><br>
+                    الدراسات أثبتت: الأسماك تتعرف على صوت صاحبها<br>
+                    خاصة عند وقت الأكل! 🍽️<br><br>
+                    جرب تكلم سمكتك وشوف ردة فعلها 👇
+                </div>
+            </div>
+
+            <!-- Video 9: Why Fish Hide -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>9️⃣ V9: لماذا تختبئ سمكتك؟</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    why is my fish hiding • fish stress signs • سمكتي تختبئ • علامات توتر السمك
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#fishcare</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#aquariumtips</span>
+                    <span class="tag tag-hash">#fishhealth</span>
+                    <span class="tag tag-hash">#نصائح</span>
+                    <span class="tag tag-hash">#رعاية_الأسماك</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    😰 سمكتك خايفة!<br><br>
+                    علامات التوتر:<br>
+                    ❌ الاختباء المستمر<br>
+                    ❌ قلة الأكل<br>
+                    ❌ اللون الباهت<br><br>
+                    سمكتك تختبئ؟ اكتب نعم أو لا 👇
+                </div>
+            </div>
+
+            <!-- Video 10: Goodbye Friend -->
+            <div class="video-card" style="margin-top: 20px;">
+                <h4>🔟 V10: وداعاً يا صديقي 💔</h4>
+
+                <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; margin: 10px 0;">
+                    <strong style="color: var(--accent);">🔑 الكلمات المفتاحية الرئيسية:</strong><br>
+                    losing a pet fish • fish memorial • فقدان سمكة • ذكريات مع السمك
+                </div>
+
+                <div style="margin: 15px 0;">
+                    <strong>الهاشتاغات:</strong><br>
+                    <span class="tag tag-hash">#petloss</span>
+                    <span class="tag tag-hash">#fishtok</span>
+                    <span class="tag tag-hash">#memories</span>
+                    <span class="tag tag-hash">#petmemorial</span>
+                    <span class="tag tag-hash">#ذكريات</span>
+                    <span class="tag tag-hash">#حب_الأسماك</span>
+                    <span class="tag tag-hash">#AQUAVO</span>
+                </div>
+
+                <div class="caption">
+                    <strong>📱 الكابشن المُحسّن:</strong><br><br>
+                    💔 وداعاً يا صديقي...<br><br>
+                    عاشت معي سنين<br>
+                    كانت جزء من حياتي<br>
+                    اليوم راحت...<br><br>
+                    شاركونا قصصكم مع أسماككم 👇
+                </div>
+
+                <div style="margin-top: 10px;">
+                    <span class="badge badge-high">🎵 snowfall - عاطفي جداً</span>
+                </div>
+            </div>
+
+            <!-- Algorithm Tips Summary -->
+            <h3 style="margin-top: 30px;">🧠 نصائح الخوارزمية 2026</h3>
+            <div class="tip-box">
+                <table>
+                    <tr>
+                        <th>النصيحة</th>
+                        <th>السبب</th>
+                    </tr>
+                    <tr>
+                        <td>اجذب الانتباه في أول 2 ثانية</td>
+                        <td>الخوارزمية تقيس معدل التمرير السريع</td>
+                    </tr>
+                    <tr>
+                        <td>أقل من 90 ثانية</td>
+                        <td>معدل الإكمال أهم من مدة الفيديو</td>
+                    </tr>
+                    <tr>
+                        <td>اطلب المشاركة + الحفظ</td>
+                        <td>Shares = أقوى إشارة في 2026</td>
+                    </tr>
+                    <tr>
+                        <td>أضف ترجمة عربية/إنجليزية</td>
+                        <td>Instagram يدعم الترجمة التلقائية الآن</td>
+                    </tr>
+                    <tr>
+                        <td>التفاعل في أول ساعة</td>
+                        <td>حاسم للوصول للـ Explore</td>
+                    </tr>
+                    <tr>
+                        <td>استخدم الأصوات الرائجة</td>
+                        <td>دفعة إضافية من الخوارزمية</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Competitor Analysis -->
+            <h3 style="margin-top: 30px;">🔍 تحليل المنافسين الناجحين</h3>
+            <table>
+                <tr>
+                    <th>الحساب</th>
+                    <th>الأسلوب</th>
+                    <th>معدل النشر</th>
+                </tr>
+                <tr>
+                    <td>@aquariuminfo</td>
+                    <td>مقاطع قصيرة (20 ثانية) + نصوص + أصوات رائجة</td>
+                    <td>3×/أسبوع</td>
+                </tr>
+                <tr>
+                    <td>@coralfish12g</td>
+                    <td>تعليق صوتي + حكايات لزيادة وقت المشاهدة</td>
+                    <td>2×/أسبوع</td>
+                </tr>
+                <tr>
+                    <td>@cichlid.bros</td>
+                    <td>تحديات قبل/بعد + تجارب تربية</td>
+                    <td>2×/أسبوع</td>
+                </tr>
+                <tr>
+                    <td>@tmk_aquarist</td>
+                    <td>تصميم جمالي + موسيقى هادئة</td>
+                    <td>2×/أسبوع</td>
+                </tr>
+            </table>
+        </section>
+
+        <!-- Platform-Specific Captions -->
+        <section id="platform-captions" class="card">
+            <h2>📱 كابشنات محسّنة لكل منصة</h2>
+
+            <div class="warning-box" style="background: rgba(99, 102, 241, 0.2); border-color: #818cf8;">
+                <h4 style="color: #818cf8;">🧠 خوارزميات 2026 - ماذا تريد كل منصة؟</h4>
+                <table>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>الكابشن المثالي</th>
+                        <th>الهاشتاغات</th>
+                        <th>أولوية الخوارزمية</th>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #fd1d1d;">Instagram</strong></td>
+                        <td>متوسط (150 حرف) + كلمات مفتاحية</td>
+                        <td>3-5</td>
+                        <td>Shares ≈ Saves > Comments</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #00f2ea;">TikTok</strong></td>
+                        <td>قصير (150-300 حرف) أو طويل (تعليمي)</td>
+                        <td>3-5</td>
+                        <td>Completion Rate > Shares</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #1877f2;">Facebook</strong></td>
+                        <td>عاطفي + سؤال مفتوح</td>
+                        <td>1-3</td>
+                        <td>Shares & Comments > Likes</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #ff0000;">YouTube Shorts</strong></td>
+                        <td>العنوان + الوصف (SEO)</td>
+                        <td>keywords</td>
+                        <td>Retention + Search</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- V1: Betta Filter -->
+            <div class="video-card" style="margin-top: 25px; border: 3px solid var(--primary);">
+                <h4>1️⃣ V1: خرافة البيتا لا تحتاج فلتر</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <!-- Instagram -->
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram Reels</strong><br><br>
+                            🔴 سمكة البيتا بدون فلتر = موت بطيء!<br><br>
+                            المتاجر كذبوا عليك! هل سمك الفايتر يحتاج فلتر؟<br>
+                            ✅ فلتر = حياة أطول 🐟<br>
+                            ❌ بدون فلتر = سموم وموت<br><br>
+                            سمكتك عندها فلتر؟ ✅ أو ❌ 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #سمكة_البيتا #حوض_سمك #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <!-- TikTok -->
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            البيتا بدون فلتر = ☠️<br>
+                            المتاجر كذبوا عليك!<br><br>
+                            فلتر ✅ أو بدون ❌؟ 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #سمكة_البيتا #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <!-- Facebook -->
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook Reels</strong><br><br>
+                            سمكة البيتا تحتاج فلتر؟ 🤔<br><br>
+                            المتاجر تقول لا... لكن الحقيقة:<br>
+                            الحوض بدون فلتر = سموم!<br><br>
+                            سمكتك عندها فلتر؟ 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <!-- YouTube Shorts -->
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube Shorts</strong><br><br>
+                            <strong>العنوان:</strong> هل سمك البيتا يحتاج فلتر؟ الحقيقة الصادمة! 🐟<br><br>
+                            <strong>الوصف:</strong> betta fish filter myth - فلتر سمك الفايتر - حوض البيتا<br><br>
+                            <span style="color: #888;">اشترك للمزيد من حقائق الأسماك! 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V2: Fish Feel Pain -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>2️⃣ V2: السمك يحس بالألم</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            😱 هل سمكة الزينة تحس بالألم؟ نعم!<br><br>
+                            سمكة الملاك (أنجل فيش) في حوضك تحس:<br>
+                            ✅ مستقبلات ألم مثل الحيوانات<br>
+                            ✅ تتجنب الأماكن المؤلمة<br>
+                            ✅ حقائق عن أسماك الزينة صادمة!<br><br>
+                            كنت تصدق إنها ما تحس؟ 😰 نعم/لا 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #سمكة_الملاك #حوض_سمك #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            😱 السمك يحس بالألم!<br>
+                            العلم أثبت 2024 🧬<br>
+                            مستقبلات ألم حقيقية!<br><br>
+                            كنت تعرف؟ ✅ أو ❌ 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #ألم_السمك #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            🔴 هل السمك يحس بالألم؟ الجواب الصادم!<br><br>
+                            الدراسات الحديثة أثبتت:<br>
+                            ✅ مستقبلات ألم حقيقية<br>
+                            ✅ خوف وتوتر مثل الحيوانات<br><br>
+                            ما رأيكم؟ اكتبوا 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> هل السمك يحس بالألم؟ 😱 الجواب العلمي الصادم!<br><br>
+                            <strong>الوصف:</strong> Do fish feel pain - هل السمك يحس بالألم - حقائق علمية عن الأسماك
+                            2024 - fish pain receptors<br>
+                            <span style="color: #888;">اشترك للمزيد! 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V3: Overfeeding -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>3️⃣ V3: خرافة الطعام الزائد</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            ☠️ طعام زائد = موت بطيء للسمكة الذهبية!<br><br>
+                            كمية طعام سمكة الأوراندا الصحيحة:<br>
+                            ❌ طعام زائد → أمونيا → تسمم 💀<br>
+                            ✅ فقط ما تأكله في دقيقتين!<br><br>
+                            🐟 الذهبية البالغة = مرة يومياً (+ يوم صيام بالأسبوع)<br><br>
+                            كم مرة تطعم ذهبيتك؟ اكتب الرقم 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#السمكة_الذهبية #تغذية_الأسماك #أسماك_زينة #حوض_سمك
+                                #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            ☠️ طعام كثير = سمك ميت!<br>
+                            القاعدة: دقيقتين بس!<br><br>
+                            كم مرة تطعم؟ اكتب 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #تغذية_الأسماك #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            ⚠️ الطعام الزائد أكبر قاتل للأسماك!<br><br>
+                            كمية طعام السمك الصحيحة:<br>
+                            ✅ ما يأكلونه في دقيقتين فقط!<br><br>
+                            كم مرة تطعمهم؟ شاركونا 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> لا تطعم سمكتك كثيراً! ☠️ القاعدة الذهبية<br><br>
+                            <strong>الوصف:</strong> Overfeeding fish - كمية طعام السمك - تغذية الأسماك الصحيحة - fish
+                            food amount<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V4: Lighting -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>4️⃣ V4: خرافة الضوء 24 ساعة</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            💡 إضاءة 24 ساعة = كارثة لأسماك الزينة!<br><br>
+                            كم ساعة ضوء لسمكة النيون؟<br>
+                            ❌ 24 ساعة = توتر + طحالب<br>
+                            ✅ 8-12 ساعة فقط!<br><br>
+                            إضاءة الحوض المثالية = تايمر أوتوماتيكي ⏰<br><br>
+                            كم ساعة ضوء عندك؟ 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #إضاءة_الحوض #سمكة_النيون #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            💡 ضوء 24 ساعة = ❌<br>
+                            8-12 ساعة = ✅<br><br>
+                            كم ساعة عندك؟ 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #إضاءة_الحوض #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            ⚠️ هل تترك ضوء الحوض شغال 24 ساعة؟<br><br>
+                            هذا يسبب توتر + طحالب!<br>
+                            ✅ الحل: 8-12 ساعة فقط<br><br>
+                            شاركونا كم ساعة عندكم 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> كم ساعة إضاءة لحوض السمك؟ 💡 اجنب الطحالب!<br><br>
+                            <strong>الوصف:</strong> Aquarium lighting - Fish tank light hours - إضاءة حوض السمك - كم
+                            ساعة ضوء<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V5: Lifespan -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>5️⃣ V5: السمك يعيش 20 سنة!</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            🤯 السمكة الذهبية تعيش 20 سنة+!<br><br>
+                            كم تعيش أسماك الزينة حقيقةً؟<br>
+                            ✅ السمكة الذهبية: 20-30 سنة!<br>
+                            ✅ سمكة البيتا: 5-7 سنوات!<br><br>
+                            موت سريع = عناية خاطئة ❌<br><br>
+                            كم عاشت أطول سمكة عندك؟ 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#السمكة_الذهبية #أسماك_زينة #عمر_السمك #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            🤯 السمكة الذهبية تعيش 20 سنة!<br>
+                            موت سريع = أنت السبب!<br><br>
+                            كم عاشت عندك؟ 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #السمكة_الذهبية #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            🤯 كم تعيش السمكة الذهبية؟ 20+ سنة!<br><br>
+                            إذا ماتت سمكتك بسرعة، السبب ليس "عمرها القصير"<br>
+                            بل طريقة العناية!<br><br>
+                            كم أطول فترة عاشت سمكة عندكم؟ 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> السمكة الذهبية تعيش 20 سنة! 🤯 لماذا تموت سمكتك؟<br><br>
+                            <strong>الوصف:</strong> Goldfish lifespan - عمر السمكة الذهبية - How long do fish live - كم
+                            تعيش الأسماك<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V6: Dreams -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>6️⃣ V6: السمك يحلم!</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            🌙 هل سمكة الزينة تحلم؟ نعم!<br><br>
+                            نوم سمكة النيون حقيقة علمية:<br>
+                            ✅ نشاط دماغي يشبه الحلم!<br>
+                            ✅ تنام بعيونها مفتوحة!<br>
+                            ✅ تحتاج ظلام للراحة 👁️<br><br>
+                            شفت سمكتك نايمة؟ 😴👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #نوم_الأسماك #سمكة_النيون #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            🌙 سمكتك تحلم وهي نائمة!<br>
+                            العلم أثبت!<br><br>
+                            شفتها نائمة؟ 😴👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #نوم_الأسماك #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            🌙 هل تعلم أن سمكتك تحلم؟<br><br>
+                            دراسة 2023 أثبتت أن الأسماك تمر بمراحل نوم<br>
+                            ولديها نشاط دماغي يشبه الأحلام!<br><br>
+                            هل لاحظتم سمكتكم نائمة من قبل؟ 😴👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> هل السمك يحلم؟ 🌙 حقيقة علمية مذهلة!<br><br>
+                            <strong>الوصف:</strong> Do fish dream - Fish sleep - هل السمك يحلم - نوم الأسماك - حقائق
+                            مذهلة<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V7: Wheelchair -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>7️⃣ V7: كرسي متحرك لسمكة!</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            ♿❤️ كرسي متحرك للسمكة الذهبية!<br><br>
+                            سمكة ما تقدر تسبح بسبب مرض المثانة:<br>
+                            شخص صنع جهاز يساعد سمكته الذهبية! 🥺<br>
+                            هذا هو رعاية أسماك الزينة الحقيقية!<br><br>
+                            هل تفعل هذا لسمكتك؟ ❤️/❌ 👇<br><br>
+                            📌 احفظ | 🔄 شارك | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#السمكة_الذهبية #أسماك_زينة #رعاية_الأسماك #حوض_سمك
+                                #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            ♿❤️ صنع كرسي متحرك لسمكته!<br>
+                            هذا الحب الحقيقي 🥺<br><br>
+                            تفعلها؟ 👇<br>
+                            📌 احفظ | ➕ تابع @aquavo_IQ<br><br>
+                            <span style="color: #888;">#أسماك_زينة #رعاية_الأسماك #حوض_سمك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            ♿❤️ شخص صنع كرسي متحرك لسمكته المعاقة!<br><br>
+                            السمكة لم تستطع السباحة...<br>
+                            فصنع لها جهاز يساعدها! 🥺<br><br>
+                            هل تفعلون هذا لحيواناتكم؟ 👇<br>
+                            🔄 شاركوا | ➕ تابعوا AQUAVO
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> صنع كرسي متحرك لسمكته! ♿❤️ قصة مؤثرة<br><br>
+                            <strong>الوصف:</strong> Fish wheelchair - كرسي متحرك لسمكة - Helping disabled fish - مساعدة
+                            سمكة معاقة - رعاية الحيوانات<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V8: Hearing -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>8️⃣ V8: السمك يسمع صوتك!</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            👂🐟 Can fish hear؟ هل السمك يسمع؟ نعم!<br><br>
+                            Fish hearing = السمك يسمع صوتك!<br>
+                            ✅ تتعرف على صوت صاحبها<br>
+                            ✅ خاصة وقت الأكل! 🍽️<br><br>
+                            جرب كلم سمكتك وشوف ردة فعلها! 👇<br>
+                            📌 احفظ وجرب!<br><br>
+                            <span style="color: #888;">#canfishhear #fishhearing #أسماك_زينة #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            👂🐟 سمكتك تسمعك!<br>
+                            تتعرف على صوتك!<br><br>
+                            جرب كلمها 👇<br>
+                            📌 احفظ!<br><br>
+                            <span style="color: #888;">#fishfacts #fishtok #canfishhear #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            👂🐟 هل تعلم أن سمكتك تسمعك؟<br><br>
+                            الأسماك تتعرف على صوت صاحبها<br>
+                            خاصة عند وقت الإطعام!<br><br>
+                            جربوا تكلمون أسماككم وشاركونا النتيجة! 👇<br>
+                            🔄 شاركوا!
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> سمكتك تسمعك وتعرفك! 👂🐟 حقيقة علمية<br><br>
+                            <strong>الوصف:</strong> Can fish hear - Fish hearing - هل السمك يسمع - سمك يتعرف على صاحبه -
+                            حقائق مذهلة<br>
+                            <span style="color: #888;">اشترك 🔔</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V9: Hiding -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>9️⃣ V9: لماذا تختبئ سمكتك؟</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            🔴 سمكتي تختبئ! - Why Is My Fish Hiding? 😰<br>
+                            علامات توتر السمك - Fish Stress Signs<br><br>
+                            ❌ اختباء ❌ قلة أكل ❌ لون باهت<br><br>
+                            سمكتك تختبئ؟ نعم/لا 👇<br><br>
+                            <span style="color: #888;">#fishcare #رعاية_الأسماك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            سمكتك تختبئ = خايفة! 😰<br>
+                            علامات التوتر واضحة<br><br>
+                            سمكتك تختبئ؟ 👇<br><br>
+                            <span style="color: #888;">#fishcare #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            هل سمكتك تختبئ كثيراً؟ 😰<br><br>
+                            هذه علامة على التوتر!<br>
+                            أسباب: ضوء كثير، أسماك عدوانية، مرض<br><br>
+                            شاركونا: هل سمكتكم تختبئ؟ 👇
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> لماذا سمكتي تختبئ؟ 😰 علامات التوتر والحلول<br><br>
+                            <strong>الوصف:</strong> why is my fish hiding - علامات توتر الأسماك
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- V10: Goodbye -->
+            <div class="video-card" style="margin-top: 25px;">
+                <h4>🔟 V10: وداعاً يا صديقي 💔</h4>
+
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 15px;">
+                    <div
+                        style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #fd1d1d;">📸 Instagram</strong><br><br>
+                            🔴 فقدان سمكة - Losing A Pet Fish 💔<br>
+                            ذكريات مع السمك...<br><br>
+                            عاشت معي سنين...<br>
+                            كانت جزء من حياتي<br>
+                            اليوم راحت...<br><br>
+                            شاركونا قصصكم 👇<br><br>
+                            <span style="color: #888;">#petloss #حب_الأسماك #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #00f2ea, #ff0050); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #00f2ea;">🎵 TikTok</strong><br><br>
+                            وداعاً يا صديقي... 💔<br>
+                            عاشت معي سنين<br><br>
+                            شاركونا قصصكم 👇<br><br>
+                            <span style="color: #888;">#petloss #fishtok #AQUAVO</span>
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #1877f2, #42b72a); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #1877f2;">📘 Facebook</strong><br><br>
+                            فقدت سمكتي اليوم... 💔<br><br>
+                            عاشت معي سنين طويلة<br>
+                            كانت أول ما أشوفه كل صباح<br><br>
+                            هل فقدتم سمكة عزيزة من قبل؟<br>
+                            شاركونا قصصكم وذكرياتكم 👇
+                        </div>
+                    </div>
+
+                    <div
+                        style="background: linear-gradient(135deg, #ff0000, #282828); padding: 2px; border-radius: 12px;">
+                        <div style="background: #1a1a2e; padding: 15px; border-radius: 10px; height: 100%;">
+                            <strong style="color: #ff0000;">▶️ YouTube</strong><br><br>
+                            <strong>العنوان:</strong> وداعاً يا صديقي... 💔 قصة فقدان سمكة<br><br>
+                            <strong>الوصف:</strong> losing a pet fish - فقدان سمكة - ذكريات مؤثرة
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Copy Section -->
+            <h3 style="margin-top: 30px;">📋 ملخص سريع - انسخ والصق!</h3>
+            <div class="tip-box">
+                <table>
+                    <tr>
+                        <th>المنصة</th>
+                        <th>القاعدة الذهبية</th>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #fd1d1d;">Instagram</strong></td>
+                        <td>كلمة مفتاحية عربي + English في أول سطر + 3-5 هاشتاغ + CTA للحفظ والمشاركة</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #00f2ea;">TikTok</strong></td>
+                        <td>جملتين فقط + سؤال بسيط + 3 هاشتاغات + صوت رائج</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #1877f2;">Facebook</strong></td>
+                        <td>عاطفي + سؤال مفتوح للتعليقات + بدون هاشتاغات أو 1-2 فقط</td>
+                    </tr>
+                    <tr>
+                        <td><strong style="color: #ff0000;">YouTube</strong></td>
+                        <td>العنوان = كلمة مفتاحية + إثارة | الوصف = كلمات مفتاحية إنجليزي + عربي</td>
+                    </tr>
+                </table>
+            </div>
+        </section>
+
+        <!-- Ramadan -->
+        <section id="ramadan" class="card">
+            <h2>🌙 جدول رمضان 2026</h2>
+
+            <div class="ramadan-card">
+                <h3>📅 تواريخ رمضان 2026</h3>
+                <p style="margin-top: 15px; font-size: 1.1rem;">
+                    <strong>البداية:</strong> 17-19 فبراير 2026 (حسب الرؤية)<br>
+                    <strong>النهاية:</strong> 18-20 مارس 2026<br>
+                    <strong>مدة الصيام:</strong> 12-13 ساعة يومياً
+                </p>
+            </div>
+
+            <h3>⏰ أفضل أوقات النشر في رمضان</h3>
+            <table>
+                <tr>
+                    <th>الفترة</th>
+                    <th>الوقت</th>
+                    <th>نوع المحتوى</th>
+                </tr>
+                <tr>
+                    <td>قبل الإفطار</td>
+                    <td>4:00 - 6:00 م</td>
+                    <td>محتوى تعليمي / توعوي</td>
+                </tr>
+                <tr>
+                    <td><strong>بعد الإفطار 🔥</strong></td>
+                    <td><strong>7:00 - 11:00 م</strong></td>
+                    <td><strong>الأفضل! محتوى ترفيهي وملهم</strong></td>
+                </tr>
+                <tr>
+                    <td>السحور</td>
+                    <td>2:00 - 4:00 ص</td>
+                    <td>محتوى هادئ / ديني</td>
+                </tr>
+            </table>
+
+            <div class="tip-box">
+                <h4>💡 نصائح رمضان</h4>
+                <ul style="margin-right: 20px;">
+                    <li>البث المباشر بعد الإفطار = أعلى تفاعل</li>
+                    <li>تجنب المحتوى الصاخب أثناء الصيام</li>
+                    <li>محتوى مقترح: "العناية بالأسماك خلال رمضان"</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Trending Sounds -->
+        <section id="sounds" class="card">
+            <h2>🎵 الأصوات الرائجة - فبراير 2026</h2>
+
+            <div class="warning-box" style="background: rgba(16, 185, 129, 0.2); border-color: var(--success);">
+                <h4 style="color: var(--success);">🔄 آخر تحديث: 2 فبراير 2026</h4>
+                <p>المصادر: Buffer، HeyOrca، TikTok Creative Center، Instagram Creators</p>
+            </div>
+
+            <h3>🔥 الأصوات الأكثر رواجاً الآن</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الصوت</th>
+                        <th>نوع المحتوى المناسب</th>
+                        <th>كيفية الاستخدام</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>snowfall</strong> - Øneheart & MaxGenetics 🔥🔥</td>
+                        <td>محتوى عاطفي، مشاهد سينمائية</td>
+                        <td>مثالي لفيديو البيتا! مع المشاهد الحزينة</td>
+                    </tr>
+                    <tr>
+                        <td><strong>The Keeper</strong> - Bonobo 🔥</td>
+                        <td>Travel، creative process، lifestyle</td>
+                        <td>مقاطع تحويل الأحواض، العناية اليومية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phonk (Metamorphosis)</strong> - Interworld 🔥</td>
+                        <td>Action, Fast cuts, Transitions</td>
+                        <td>مقاطع سريعة، تحديات، تركيب معدات وتجهيز</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sunroof</strong> - Nicky Youre & Dazy</td>
+                        <td>Happy, Summer vibes, Fun</td>
+                        <td>مقاطع الأسماك وهي تأكل، ألوان زاهية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Augen (Speed Up)</strong></td>
+                        <td>Trendy, Fast paced, Background</td>
+                        <td>نصائح سريعة، معلومات علمية</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trap Queen</strong> - Fetty Wap (2016 Nostalgia)</td>
+                        <td>ترندات nostalgic، throwback</td>
+                        <td>Before/After مع تحول dramatic</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cycle Syncing Frequency</strong> - Still Haven</td>
+                        <td>wellness، nervous-system، هادئ</td>
+                        <td>مقاطع relax، أسماك نائمة، جمال الأحواض</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🎭 ترندات الصوت الخاصة (Original Sounds)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>الترند</th>
+                        <th>الوصف</th>
+                        <th>مناسب لـ AQUAVO؟</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>"allow me to reintroduce myself"</strong> - Ulazzo</td>
+                        <td>self-introduction باستخدام CapCut template</td>
+                        <td>✅ تقديم الحساب الجديد</td>
+                    </tr>
+                    <tr>
+                        <td><strong>"I got like hella money"</strong></td>
+                        <td>self-deprecating humor عن الثراء</td>
+                        <td>🤔 يمكن تكييفه للمستلزمات</td>
+                    </tr>
+                    <tr>
+                        <td><strong>"mood ruined"</strong> original audio</td>
+                        <td>relatable content عن لحظات مزعجة</td>
+                        <td>✅ عندما تموت السمكة، الماء يتسخ</td>
+                    </tr>
+                    <tr>
+                        <td><strong>"universe signs"</strong> original audio</td>
+                        <td>"طلبت من الكون علامة" ثم reveal</td>
+                        <td>✅ إشارة لشراء سمكة جديدة</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🎵 للمحتوى السينمائي العاطفي (مثل فيديو البيتا)</h3>
+            <div class="tip-box">
+                <h4>💡 الصوت الأفضل لفيديو V1 Betta Filter Myth:</h4>
+                <p><strong>snowfall - Øneheart & MaxGenetics</strong> - صوت ambient عاطفي مثالي للمشاهد الحزينة
+                    والتحولات الدراماتيكية!</p>
+                <p style="margin-top: 10px;">بديل: <strong>Cycle Syncing Frequency</strong> لو تريد نغمة أهدأ.</p>
+            </div>
+
+            <div class="tip-box">
+                <h4>🔥 هل تزيد الأصوات الرائجة من الوصول؟</h4>
+                <p><strong>نعم!</strong> استخدام الصوتيات الرائجة يعزز ظهور الفيديو على صفحة For You ويزيد احتمالية
+                    المشاركة، خاصة عندما يتراوح طول المقطع بين <strong>7-15 ثانية</strong> ويُستخدم التزامن مع الإيقاع.
+                </p>
+            </div>
+
+            <h3>📢 تحديثات الخوارزميات - فبراير 2026</h3>
+            <div class="warning-box">
+                <h4>⚠️ تغييرات مهمة يجب معرفتها</h4>
+                <ul style="margin-right: 20px;">
+                    <li><strong>Instagram:</strong> الخوارزمية تفضل الآن <strong>Carousels</strong> على Reels في بعض
+                        الحالات</li>
+                    <li><strong>TikTok:</strong> إضافة <strong>Keywords</strong> في الـ Bio والكابشن أصبحت أهم للوصول
+                    </li>
+                    <li><strong>التفاعل:</strong> الـ Reshares أصبحت أهم من اللايكات لزيادة الوصول</li>
+                    <li><strong>المحتوى الأصلي:</strong> المنصات تكافئ المحتوى الأصلي أكثر من المُعاد نشره</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer style="text-align: center; padding: 30px; color: var(--muted);">
+            <p>🐟 AQUAVO - دليل النشر الشامل 2026</p>
+            <p>تم إنشاؤه: 1 فبراير 2026 | بغداد، العراق</p>
+            <p style="color: var(--success);">🔄 آخر تحديث للترندات: 2 فبراير 2026</p>
+        </footer>
+    </div>
+</body>
+
+</html>

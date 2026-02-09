@@ -1,0 +1,177 @@
+{
+    "metadata": {
+        "title": "THE LONELY ONE | الوحيد",
+        "version": "1.0",
+        "date": "2026-01-31",
+        "duration_seconds": 60,
+        "clips": 4,
+        "aspect_ratio": "9:16",
+        "resolution": "4K",
+        "fps": 24,
+        "seed": 88721
+    },
+    "character_bible": {
+        "identity_anchor": "A single small Blue Neon Tetra fish, approximately 3cm long, with characteristic iridescent blue horizontal stripe running from nose to adipose fin, red-orange lower half from mid-body to tail, translucent fins, large expressive black eyes with subtle silver reflection ring. The same fish throughout all clips, maintaining exact proportions and markings.",
+        "emotional_states": {
+            "loneliness": "Slow swimming, lowered head position, reduced color vibrancy, staying near bottom",
+            "hope": "Perky fins, brighter colors, forward movement, head tilted up curiously",
+            "disappointment": "Sudden color fade, frozen posture, slow sinking motion",
+            "joy": "Vibrant colors, active swimming, school behavior, synchronized movement"
+        }
+    },
+    "visual_style": {
+        "palette": {
+            "primary_teal": "#004D61",
+            "loneliness_blue": "#1E3A5F",
+            "hope_coral": "#FF6F61",
+            "connection_seafoam": "#00A884",
+            "friendship_gold": "#F5A623"
+        },
+        "lighting_block": {
+            "mood": "emotional_progression",
+            "key_light": "intensity 60-85, position camera left 45°",
+            "fill_light": "intensity 15-45, position camera right",
+            "rim_light": "intensity 20-35, position behind subject",
+            "color_temp_progression": "4500K (clip 1) → 5600K (clip 4)"
+        }
+    },
+    "clips": [
+        {
+            "id": 1,
+            "title": "THE BEAUTIFUL PRISON | السجن الجميل",
+            "time_range": "0-15 seconds",
+            "emotion": "Melancholic isolation",
+            "veo_prompt": "Wide establishing shot transitioning to medium shot via slow dolly-in over 15 seconds. Shallow depth of field with soft bokeh on aquarium plants and decorations. A single small Blue Neon Tetra fish, approximately 3cm long, with characteristic iridescent blue horizontal stripe running from nose to adipose fin, red-orange lower half from mid-body to tail, translucent fins, large expressive black eyes with subtle silver reflection ring. The fish swims slowly and aimlessly in the center of frame, occasionally pausing to look left, then right, finding nothing. Colors appear slightly muted, not as vibrant as a healthy tetra should be. Fish occasionally drifts downward, then corrects position halfheartedly. Pristine planted aquarium with perfect conditions: crystal-clear water, healthy green plants with gentle sway, smooth river stones, small driftwood piece, tiny bubbles rising from a hidden airstone. Room light visible through water surface creating caustic patterns. Low-key cinematic lighting with cool blue undertones suggesting emotional isolation. Soft volumetric light rays through water surface. Mood is melancholic, contemplative, beautiful but sad. SFX: Soft underwater ambiance, gentle bubbling, distant muffled room sounds, subtle low melancholic drone. Ambient noise: Quiet filter hum creating a sense of stillness.",
+            "first_frame_prompt": "Wide shot film still, pristine planted aquarium with crystal clear water, single small Blue Neon Tetra fish with iridescent blue stripe and red-orange lower body, swimming alone in center, lush green aquatic plants in soft focus background, smooth river stones, caustic light patterns on substrate, low-key blue tint lighting, melancholic atmosphere, the fish appears small and isolated despite the beautiful surroundings, shallow depth of field, ultra-detailed, 9:16 vertical, cinematic, seed 88721",
+            "last_frame_prompt": "Medium shot film still, same Blue Neon Tetra now closer and filling more frame, the fish paused mid-water looking toward camera with large expressive eyes, colors slightly muted, beautiful aquarium plants in soft bokeh background, same lighting but camera closer, the loneliness visible in the fish's stillness, caustics on body, ultra-detailed face and scales, 9:16 vertical, cinematic, seed 88721",
+            "text_overlays": [
+                {
+                    "time": "3-7s",
+                    "arabic": "🔬 الأسماك الاجتماعية تحتاج رفقة\nليست مجرد \"ديكور\""
+                },
+                {
+                    "time": "10-14s",
+                    "arabic": "الوحدة تُغيّر كيمياء دماغها...\nحرفياً."
+                }
+            ],
+            "audio": {
+                "sfx": "Soft underwater ambiance, gentle bubbling, subtle low melancholic drone",
+                "ambient": "Quiet filter hum creating a sense of stillness"
+            }
+        },
+        {
+            "id": 2,
+            "title": "THE FALSE HOPE | الأمل الزائف",
+            "time_range": "15-30 seconds",
+            "emotion": "Hope → Disappointment",
+            "veo_prompt": "Medium shot with slow tracking movement toward aquarium glass. Camera begins slightly behind fish, ends at fish's side as it approaches the glass. Shallow depth of field shifts to show reflection clarity. The same Blue Neon Tetra fish from Clip 1, maintaining exact appearance: iridescent blue stripe, red-orange lower half, translucent fins, large expressive black eyes. Colors now slightly brighter as hope emerges. The fish notices its reflection in the aquarium glass and freezes with sudden interest. Its fins perk up, colors brighten visibly. It swims eagerly toward the glass, tilting its head curiously at the other fish. It attempts to swim alongside the reflection, mirroring its own movements. After repeated attempts to connect, the fish slowly realizes the reflection copies every move. The hope fades. Colors dim. The fish drifts backward, its body language showing defeat. Lighting transitions from warm (hope) to cool (disappointment). Split lighting effect: warm on the fish's hopeful side, cool on the reflection side. SFX: Soft shimmer sound when noticing reflection, gentle underwater movement, subtle heartbeat rhythm building then fading, melancholic piano note at disappointment moment. Ambient noise: Continues from Clip 1, filter hum, occasional bubble.",
+            "first_frame_prompt": "Medium shot film still, same Blue Neon Tetra paused mid-water, beginning to notice glass wall of aquarium, slight brightness returning to colors, hint of curiosity in posture, aquarium plants in soft bokeh, caustic light patterns, 9:16 vertical, cinematic, seed 88721",
+            "last_frame_prompt": "Medium-close shot film still, same Blue Neon Tetra hovering near aquarium glass, its reflection visible in the glass creating a mirror image, but the fish's body language shows defeat - fins lowered, colors muted, slight downward tilt to body, the reflection mimicking the sad posture, room blurred beyond glass, cool blue lighting emphasizing isolation, emotional weight visible in the stillness, 9:16 vertical, cinematic, seed 88721",
+            "text_overlays": [
+                {
+                    "time": "17-20s",
+                    "arabic": "انتظر... هل هذا... صديق؟"
+                },
+                {
+                    "time": "25-29s",
+                    "arabic": "لا. مجرد انعكاس.\nالوحدة تخدع حتى الأسماك."
+                }
+            ],
+            "audio": {
+                "sfx": "Shimmer sound, heartbeat rhythm, melancholic piano note",
+                "ambient": "Filter hum, occasional bubble"
+            }
+        },
+        {
+            "id": 3,
+            "title": "THE ARRIVAL | الوصول",
+            "time_range": "30-45 seconds",
+            "emotion": "Hope emerging → Joy",
+            "veo_prompt": "Dynamic sequence: starts at water surface with crane shot looking down, then transitions to medium shot as camera descends. Deep focus to capture both existing fish and newcomers simultaneously. The same lonely Blue Neon Tetra, now visible from above, plus 5-6 new Blue Neon Tetras being introduced. All tetras share similar characteristics but with slight natural variations in stripe brightness. The original fish is identifiable by its slightly muted colors (will brighten). Water surface ripples as a gentle current introduces new fish from above. The new tetras descend in a scattered but graceful pattern. The original lonely tetra, at first frozen in surprise, cautiously approaches. The new fish orient themselves and begin to form a loose group. The original fish circles once, twice, then joins them. As it swims with the group, its colors visibly brighten. The school begins to move as one. The same aquarium from previous clips, but now transformed by the presence of multiple fish. Warming color temperature throughout. Golden hour quality lighting begins to emerge. SFX: Water ripple sounds, gentle splashing from above, ascending musical notes, light shimmer sounds as colors brighten, subtle orchestral swell beginning. Ambient noise: More active water sounds, filter creating gentle current, the silence broken by life.",
+            "first_frame_prompt": "High angle looking down through water surface, same aquarium, ripples on water indicating disturbance, dim blue lighting still present but with hints of gold entering from above, the original Blue Neon Tetra visible below looking upward with surprise, plants swaying slightly, anticipation in the moment, 9:16 vertical, cinematic, seed 88721",
+            "last_frame_prompt": "Medium shot film still, school of 6 Blue Neon Tetras swimming together in loose formation, the original fish now integrated, its colors notably brighter matching the group, synchronized movement visible in aligned postures, warm golden light mixing with aqua tones, plants in background, joyful energy in the composition, caustic light patterns dancing on all fish, 9:16 vertical, cinematic, seed 88721",
+            "text_overlays": [
+                {
+                    "time": "32-36s",
+                    "arabic": "ثم جاءوا..."
+                },
+                {
+                    "time": "40-44s",
+                    "arabic": "🔬 خلال 30 دقيقة فقط:\nانخفض جين الوحدة (pth2)\nوعادت الألوان الحقيقية"
+                }
+            ],
+            "audio": {
+                "sfx": "Water ripples, ascending musical notes, shimmer sounds, orchestral swell",
+                "ambient": "Active water sounds, gentle current"
+            }
+        },
+        {
+            "id": 4,
+            "title": "TOGETHER | معاً",
+            "time_range": "45-60 seconds",
+            "emotion": "Joy → Resolution",
+            "veo_prompt": "Wide to medium tracking shot following the school's graceful movement through the aquarium. Smooth floating camera feel. Final 5 seconds: slow dolly-out to wide shot showing the full, now-vibrant aquarium. The school of Blue Neon Tetras (6 fish) swimming in beautiful synchronized formation. All fish display vibrant, healthy colors - iridescent blue stripes catching light, red-orange lower bodies glowing with warmth. Fins active and extended. The original fish is now indistinguishable from the group - fully integrated, fully healthy. The school weaves through aquarium plants in balletic movement. They turn together, accelerate together, pause together. Camera follows their joyful exploration, then pulls back to reveal the full scene. Full warm golden-hour lighting. Colors at peak vibrancy. The mood is joyful, satisfying, complete. SFX: Gentle orchestral resolution, soft shimmer sounds, satisfying harmonic chord, subtle sounds of movement and water interplay. Ambient noise: Active aquarium sounds - filter creating pleasant current, soft bubbling, the sound of life.",
+            "first_frame_prompt": "Medium-wide shot film still, school of 6 Blue Neon Tetras in synchronized formation swimming through planted aquarium, vibrant colors - blue stripes iridescent, red-orange bodies glowing, warm golden lighting throughout, plants creating beautiful backdrop, caustic light patterns active, joyful energy, motion blur suggesting graceful movement, 9:16 vertical, cinematic, seed 88721",
+            "last_frame_prompt": "Wide shot film still, full view of pristine planted aquarium now complete with school of Blue Neon Tetras swimming together in the middle distance, warm golden-hour quality lighting filling the scene, lush green plants, smooth river stones, the tank that seemed empty and sad now vibrant and alive, perfect composition with balanced elements, sense of peace and resolution, the same aquarium transformed by community, subtle AQUAVO watermark ready for placement, 9:16 vertical, cinematic, seed 88721",
+            "text_overlays": [
+                {
+                    "time": "47-50s",
+                    "arabic": "الآن... الحوض كما يجب أن يكون"
+                },
+                {
+                    "time": "52-56s",
+                    "arabic": "🐟 أسماكك تحتاج رفقة\nليست مجرد ديكور\nهي كائنات تشعر"
+                },
+                {
+                    "time": "57-60s",
+                    "arabic": "💾 احفظ لتتذكر\n📤 شارك لصاحب يربي أسماك\n@aquavo.sa"
+                }
+            ],
+            "audio": {
+                "sfx": "Orchestral resolution, shimmer sounds, harmonic chord",
+                "ambient": "Active aquarium sounds, pleasant current, soft bubbling"
+            }
+        }
+    ],
+    "master_audio_prompt": {
+        "platform": "SUNO/UDIO",
+        "prompt": "Create an original 60-second emotional underscore for a short film about loneliness and connection. Seamless loop capability. Tempo: 72 BPM (slow, contemplative). Key: C minor → C major transition at 40 seconds. Mood Progression: 0-15s Melancholic sparse isolated piano notes, 15-30s Tension uncertainty suspended chords, 30-45s Hope emerging strings entering warmth, 45-60s Resolution full orchestration peaceful. Instruments: Piano lead solo in opening joins ensemble later, Strings cello enters at 20s full strings at 35s, Soft pads underwater atmosphere throughout, Gentle bells chimes accent moments of change. No vocals instrumental only. Space for voiceover if needed. Clean mix suitable for sound design layering. Export WAV 48kHz/24bit. Brand attributes: Caring Scientific Hopeful Premium."
+    },
+    "scientific_sources": [
+        {
+            "finding": "Social isolation activates pth2 gene (loneliness gene) in fish within 30 minutes",
+            "source": "Max Planck Institute 2024 + Nature 2022"
+        },
+        {
+            "finding": "Elevated cortisol levels in isolated fish (HPI axis stress response)",
+            "source": "Frontiers in Veterinary Science 2023"
+        },
+        {
+            "finding": "Behavioral changes: reduced movement, appetite loss, color fading",
+            "source": "PLOS ONE Zebrafish Isolation Studies"
+        },
+        {
+            "finding": "Neural rewiring: dopamine, serotonin, oxytocin changes",
+            "source": "eLife Sciences 2023 + Nature Communications"
+        }
+    ],
+    "production_workflow": {
+        "step_1": "Generate all First Frame images using prompts with seed 88721",
+        "step_2": "Generate all Last Frame images with matching seed",
+        "step_3": "Verify character consistency across all frames",
+        "step_4": "Generate audio track using MASTER_AUDIO_PROMPT",
+        "step_5": "Generate each clip with VEO 3.1 using First-to-Last Frame method",
+        "step_6": "Import to DaVinci Resolve",
+        "step_7": "Apply color grading: Teal-Orange → Natural Warm progression",
+        "step_8": "Add text overlays (Arabic) in safe zones",
+        "step_9": "Sync audio and SFX",
+        "step_10": "Add AQUAVO branding",
+        "step_11": "Export for platforms (TikTok, Instagram Reels, YouTube Shorts)"
+    },
+    "expected_performance": {
+        "completion_rate": "75%+",
+        "loop_rate": "15-20%",
+        "save_rate": "8-12%",
+        "share_rate": "5-8%"
+    }
+}

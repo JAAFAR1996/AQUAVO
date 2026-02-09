@@ -1,0 +1,40 @@
+
+---
+
+## 🔒 WATERMARK PROTECTION UPDATE
+
+**تحديث مهم:** يجب إضافة حماية اللوجو لجميع الصور في هذا الملف!
+
+### قسم الـ Watermark المطلوب:
+```json
+"watermark": {
+  "enabled": true,
+  "position": "bottom_right_corner",
+  "content": "AQUAVO Logo + Website URL",
+  "style": "Semi-transparent (30% opacity)",
+  "size": "10% of image width"
+}
+```
+
+**📝 يُضاف هذا القسم لكل برومبت JSON قبل الإنشاء**
+
+
+---
+
+## 🔒 WATERMARK PROTECTION UPDATE
+
+**تحديث مهم:** يجب إضافة حماية اللوجو لجميع الصور في هذا الملف!
+
+### قسم الـ Watermark المطلوب:
+```json
+"watermark": {
+  "enabled": true,
+  "position": "bottom_right_corner",
+  "content": "AQUAVO Logo + Website URL",
+  "style": "Semi-transparent (30% opacity)",
+  "size": "10% of image width"
+}
+```
+
+**📝 يُضاف هذا القسم لكل برومبت JSON قبل الإنشاء**
+

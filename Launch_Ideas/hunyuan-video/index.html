@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HunyuanVideo I2V - مولد الفيديو</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <span class="logo-icon">🎬</span>
+                <h1>HunyuanVideo</h1>
+            </div>
+            <p class="tagline">حوّل صورك إلى فيديوهات مذهلة للريلز</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <div class="upload-area" id="uploadArea">
+                    <input type="file" id="imageInput" accept="image/*" hidden>
+                    <div class="upload-placeholder" id="uploadPlaceholder">
+                        <span class="upload-icon">📷</span>
+                        <p>اسحب الصورة هنا أو انقر للاختيار</p>
+                        <span class="upload-hint">PNG, JPG, WEBP (حد أقصى 10MB)</span>
+                    </div>
+                    <div class="image-preview" id="imagePreview" hidden>
+                        <img id="previewImg" src="" alt="Preview">
+                        <button class="remove-btn" id="removeBtn">✕</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Prompt Section -->
+            <section class="prompt-section">
+                <label for="promptInput" class="prompt-label">
+                    <span class="label-icon">✍️</span>
+                    وصف الحركة المطلوبة
+                </label>
+                <textarea id="promptInput" class="prompt-input"
+                    placeholder="مثال: سمكة ذهبية تسبح برشاقة في الماء مع فقاعات صغيرة..." rows="3"></textarea>
+                <div class="prompt-tips">
+                    <span class="tip">💡 نصيحة: كن محدداً في وصف الحركة والتأثيرات</span>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section class="settings-section">
+                <div class="setting-group">
+                    <label>📐 الأبعاد</label>
+                    <select id="aspectRatio" class="setting-select">
+                        <option value="9:16" selected>9:16 (ريلز/تيك توك)</option>
+                        <option value="1:1">1:1 (مربع)</option>
+                        <option value="16:9">16:9 (أفقي)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>⏱️ المدة</label>
+                    <select id="duration" class="setting-select">
+                        <option value="3">3 ثواني</option>
+                        <option value="5" selected>5 ثواني</option>
+                        <option value="7">7 ثواني</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Generate Button -->
+            <button class="generate-btn" id="generateBtn" disabled>
+                <span class="btn-icon">🚀</span>
+                <span class="btn-text">توليد الفيديو</span>
+            </button>
+
+            <!-- Progress Section -->
+            <section class="progress-section" id="progressSection" hidden>
+                <!-- Timer -->
+                <div class="timer-container">
+                    <span class="timer-icon">⏱️</span>
+                    <span class="timer-value" id="timerValue">00:00</span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">جاري التحميل...</p>
+
+                <!-- Detailed Logs -->
+                <div class="logs-container" id="logsContainer">
+                    <div class="logs-header">
+                        <span>📋 سجل العمليات</span>
+                    </div>
+                    <div class="logs-content" id="logsContent">
+                        <!-- Logs will be added here dynamically -->
+                    </div>
+                </div>
+
+                <div class="progress-spinner"></div>
+            </section>
+
+            <!-- Result Section -->
+            <section class="result-section" id="resultSection" hidden>
+                <div class="video-container">
+                    <video id="resultVideo" controls loop autoplay muted>
+                        <source src="" type="video/mp4">
+                    </video>
+                </div>
+                <div class="result-actions">
+                    <button class="action-btn download-btn" id="downloadBtn">
+                        <span>⬇️</span> تحميل الفيديو
+                    </button>
+                    <button class="action-btn new-btn" id="newBtn">
+                        <span>🔄</span> فيديو جديد
+                    </button>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section class="error-section" id="errorSection" hidden>
+                <div class="error-content">
+                    <span class="error-icon">⚠️</span>
+                    <p class="error-text" id="errorText"></p>
+                    <button class="retry-btn" id="retryBtn">إعادة المحاولة</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <strong>Tencent HunyuanVideo</strong> on <strong>Modal</strong></p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

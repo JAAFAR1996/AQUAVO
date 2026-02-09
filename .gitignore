@@ -68,3 +68,8 @@ vite.config.ts.*
 
 .vercel
 .env*.local
+FishWebBeta/
+nul
+~$*
+*.tmp
+TOOLS/gmail-creator/

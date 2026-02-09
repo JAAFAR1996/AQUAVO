@@ -1,0 +1,67 @@
+{
+    "metadata": {
+        "title": "THE LONELY ONE | الوحيد - VIRAL EDITION",
+        "version": "2.0-VIRAL",
+        "date": "2026-01-31",
+        "duration_seconds": 10,
+        "clips": 3,
+        "aspect_ratio": "9:16",
+        "fps": 24,
+        "seed": 88721,
+        "loop_engineered": true
+    },
+    "character": {
+        "anchor": "Blue Neon Tetra, 3cm, iridescent blue horizontal stripe nose-to-tail, red-orange lower half, translucent fins, large expressive black eyes with silver ring.",
+        "lonely_state": "Muted colors, dull stripe, pale orange",
+        "happy_state": "Vibrant colors, brilliant blue, glowing orange"
+    },
+    "clips": [
+        {
+            "id": 1,
+            "title": "THE LONELINESS",
+            "time": "0-4 seconds",
+            "veo_prompt": "Close-up shot with slow push-in over 4 seconds. A single small Blue Neon Tetra fish, approximately 3cm long, with characteristic iridescent blue horizontal stripe from nose to adipose fin, red-orange lower half, translucent fins, large expressive black eyes. The fish hovers motionless in crystal-clear water, colors noticeably muted and dull, appearing small and isolated. Beautiful planted aquarium with green plants in soft bokeh background creates ironic contrast - perfect environment, lonely fish. Low-key cinematic lighting with cool blue undertones. The fish's muted colors suggest depression. Camera slowly pushes toward the fish's eye, building emotional tension. SFX: Deep melancholic underwater ambiance, single low piano note. Ambient noise: Eerie silence broken only by distant filter hum. palette: dominant loneliness blue #1E3A5F, cool teal undertones. lighting: low-key, color_temp 4500K, dramatic shadows. seed: 88721",
+            "first_frame": "Close-up film still, single Blue Neon Tetra with muted colors hovering alone in pristine aquarium, large sad eyes, iridescent blue stripe appears dull, planted tank in soft bokeh, low-key blue tint lighting, melancholic atmosphere, ultra-detailed, 9:16 vertical, cinematic, seed 88721",
+            "last_frame": "Medium-close shot film still, same Blue Neon Tetra closer to camera, frozen in loneliness, colors still muted, soft green plants in background, anticipation of change, 9:16 vertical, cinematic, seed 88721",
+            "text_arabic": "🔬 الأسماك الاجتماعية\nتشعر بالوحدة...\nدماغها يتغير حرفياً ☹️",
+            "text_time": "0.5-3s"
+        },
+        {
+            "id": 2,
+            "title": "THE TRANSFORMATION",
+            "time": "4-8 seconds",
+            "veo_prompt": "Dynamic medium shot with crane descending movement over 4 seconds. Water surface ripples as 5 new Blue Neon Tetras descend gracefully from above. The original lonely tetra, initially frozen, suddenly perks up - fins extend, colors visibly brighten in real-time from muted to vibrant. The fish swims eagerly toward the group. Lighting transforms rapidly from cool blue to warm golden as the fish join together. The school begins synchronized swimming. Colors reach peak vibrancy - iridescent blue stripes now brilliant, red-orange bodies glowing. Energy shifts from stillness to life. SFX: Ascending shimmer sounds, gentle splash, heartwarming orchestral swell, satisfying chord resolution. Ambient noise: Active water movement, bubbling life sounds. palette: transitioning #1E3A5F → #F5A623 golden warmth. lighting: cold→warm, color_temp 4500K→5600K. seed: 88721",
+            "first_frame": "Medium shot film still, water disturbance from above, hints of new fish descending, original Blue Neon Tetra looking up with sudden hope, still muted colors but fins perking up, transitional lighting, 9:16 vertical, cinematic, seed 88721",
+            "last_frame": "Medium shot film still, school of 6 Blue Neon Tetras swimming together in beautiful synchronized formation, all displaying vibrant colors - brilliant iridescent blue stripes, glowing red-orange bodies, warm golden lighting throughout, joyful energy, caustic light patterns on all fish, 9:16 vertical, cinematic, seed 88721",
+            "text_arabic": "ثم جاء الأصدقاء...\nوعادت الألوان ✨\nخلال 30 دقيقة فقط! 🧬",
+            "text_time": "4.5-7s"
+        },
+        {
+            "id": 3,
+            "title": "THE JOY + LOOP",
+            "time": "8-10 seconds",
+            "veo_prompt": "Wide shot slowly pulling back over 2 seconds. The school of 6 Blue Neon Tetras weaves beautifully through aquarium plants in balletic synchronized movement. All fish display peak vibrancy - brilliant iridescent blue stripes catching light, red-orange bodies glowing warmly. The aquarium that seemed empty is now alive with movement and color. Final moment: camera continues pulling back, the scene begins to subtly desaturate and cool down, transitioning the viewer's eye back toward isolation feeling - creating seamless loop to Clip 1. SFX: Gentle resolution chord, subtle fade, return of melancholic undertone at very end for loop continuity. palette: peak warmth #F5A623 → subtle cooling at end for loop. lighting: warm golden → slight blue creep at final frames. seed: 88721",
+            "first_frame": "Medium-wide shot film still, school of Blue Neon Tetras in joyful synchronized swimming, vibrant colors, warm golden lighting, beautiful planted aquarium backdrop, peak life energy, 9:16 vertical, cinematic, seed 88721",
+            "last_frame": "Wide shot film still, same school beginning to disperse slightly, colors just starting to cool, subtle shift toward blue tint beginning, camera pulled back showing more empty water space, priming viewer for loop back to lonely fish, 9:16 vertical, cinematic, seed 88721",
+            "text_arabic": "🐟 سمكتك تحتاج رفقة\n💾 احفظ  📤 شارك\n@aquavo.sa",
+            "text_time": "8-10s"
+        }
+    ],
+    "audio": {
+        "prompt": "Create a 10-second emotional underscore with seamless loop. Timeline: 0-2s Single melancholic piano note underwater ambiance, 2-4s Suspended tension rising anticipation, 4-6s Shimmer sounds ascending notes hope emerging, 6-8s Warm orchestral swell resolution, 8-10s Gentle fade return of opening piano note loop point. Tempo: 90 BPM. Key: A minor → A major → back to A minor hint. End frame = Start frame seamless loop. No vocals space for text overlay. Export: WAV 48kHz/24bit. Brand: Caring Scientific Hopeful."
+    },
+    "loop_engineering": {
+        "last_to_first_match": true,
+        "color_bridge": "Warm → Cool at end",
+        "sound_bridge": "Piano note return at 10s",
+        "motion_bridge": "Pull back → anticipates push-in",
+        "transition": "200ms cross-fade"
+    },
+    "expected_metrics": {
+        "completion_rate": "90%+",
+        "loop_rate": "40-50%",
+        "avg_watch_time": "15-20+ seconds",
+        "save_rate": "10-15%",
+        "share_rate": "8-12%"
+    }
+}
