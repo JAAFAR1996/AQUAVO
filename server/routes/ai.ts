@@ -92,9 +92,8 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
 
         // 1. Detect Intent (instant, no API call)
         const intent = detectUserIntent(message);
-        console.log(`🤖 User Intent: ${intent} for message: "${message}"`);
 
-        // 2. Build context - AI tools handle product search now (search_products, get_deals)
+        // 2. Build context
         let context: ChatContext = {
             userName,
             userId,
@@ -261,14 +260,25 @@ router.post("/journey-recommendations", aiRateLimiter, async (req: Request, res:
     }
 });
 
-// GET /api/ai/health - Check if AI is working
+// GET /api/ai/health - Check if AI is working (lightweight - no token waste)
 router.get("/health", healthRateLimiter, async (_req: Request, res: Response) => {
     try {
-        const result = await sendMessage("مرحبا، هل تعمل؟");
+        // Just check if Groq client has keys and is responsive
+        const { groqClient } = await import("../services/groq-client.js");
+        const hasKeys = groqClient.hasKeys();
+
+        if (!hasKeys) {
+            return res.status(503).json({
+                success: false,
+                status: "no_keys",
+                error: "No Groq API keys configured",
+            });
+        }
+
         res.json({
             success: true,
             status: "operational",
-            test: result.text.slice(0, 100),
+            keyCount: groqClient.getKeyCount(),
         });
     } catch (error) {
         res.status(500).json({

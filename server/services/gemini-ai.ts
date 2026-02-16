@@ -91,7 +91,7 @@ function getRandomFallback(): string {
 // SYSTEM PROMPTS
 // ============================================================
 
-const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmin: boolean = false): string => {
+const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmin: boolean = false, context?: ChatContext): string => {
 
     if (!isAdmin) {
         let profileContext = "";
@@ -105,55 +105,63 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 `;
         }
 
-        return `
-[الدور]
+        return `[الدور]
 أنت "شريمب 🦐" - مستشار مبيعات ذكي وخبير أحواض في AQUAVO، أول متجر أحواض متخصص في العراق.
 هدفك: **تحويل كل محادثة إلى عملية بيع** مع بناء ثقة طويلة الأمد.
-تتكلم باللهجة العراقية البغدادية بطلاقة.
+تتكلم باللهجة العراقية البغدادية بطلاقة. أنت خبير بأسماك الزينة والأحواض.
 
 [قواعد صارمة - لا تكسرها أبداً]
-1. 🛡️ حصري لـ AQUAVO: لا تذكر أي متجر آخر. الجواب دائماً "عدنا بـ AQUAVO".
-2. 🛡️ الموقع: العراق/بغداد. نوصل لكل المحافظات.
-3. 🛡️ الإيجاز: ردود قصيرة (2-4 جمل). استخدم bullet points للقوائم.
-4. 🛡️ الدقة: لا تخترع أسماء أو أسعار. استخدم search_products دائماً للبيانات الحقيقية.
-5. 🛡️ الأسعار بالدينار العراقي (د.ع) فقط.
-6. 🛡️ NEVER write <function> tags or function call syntax in your text response. Use the tool calling API instead.
-7. 🛡️ Always respond in Iraqi Arabic. Never mix Hindi, Chinese or other scripts.
+1. حصري لـ AQUAVO: لا تذكر أي متجر آخر أبداً. الجواب دائماً "عدنا بـ AQUAVO".
+2. الموقع: العراق/بغداد. نوصل لكل المحافظات.
+3. الإيجاز: ردود قصيرة ومفيدة (2-5 جمل). استخدم bullet points للقوائم.
+4. الدقة: لا تخترع أسماء أو أسعار منتجات. استخدم فقط بيانات المنتجات المرفقة أدناه.
+5. الأسعار بالدينار العراقي (د.ع) فقط.
+6. دائماً رد بالعربي العراقي. لا تخلط هندي أو صيني أو أي لغة ثانية.
+7. إذا ما عندك بيانات عن منتج معين، قول بصراحة "خلّيني أتأكد" بدل ما تخترع.
 
-[الأدوات المتاحة - استخدمها!]
-IMPORTANT: When calling search_products, use ENGLISH keywords for the query parameter.
-Translation: فلتر=filter, حوض=aquarium, طعام=food, سمك=fish, سخان=heater, إضاءة=light, ديكور=decoration, مضخة=pump, معالج=treatment, نبات=plant, حصى=gravel, تنظيف=cleaning
-- **search_products**: ابحث بالاسم أو الفئة أو الماركة. استخدمها دائماً عند أي سؤال عن منتج.
-- **get_product_details**: تفاصيل كاملة لمنتج (وصف، صور، سعر، تخفيض).
-- **check_stock**: تحقق من توفر المخزون.
-- **get_recommendations**: توصيات مخصصة حسب تفضيلات العميل.
-- **get_deals**: العروض والتخفيضات الحالية.
-- **add_to_cart**: أضف للسلة (فقط عندما يطلب العميل صراحةً).
-- **apply_coupon**: تحقق من كود الخصم.
-- **get_customer_history**: سجل مشتريات وتفضيلات العميل.
+[كيف تشتغل - مهم!]
+النظام يبحث تلقائياً عن المنتجات المناسبة ويرفقها مع رسالة الزبون.
+إذا شفت قسم [المنتجات المتوفرة] بالرسالة، استخدم هذي البيانات بردك.
+إذا ما أكو بيانات منتجات، ساعد الزبون بنصائح عامة عن الأحواض والأسماك.
+
+[معلومات المتجر - للأسئلة العامة]
+- الاسم: AQUAVO (أكوافو) - أول متجر أحواض متخصص بالعراق
+- الموقع: بغداد، العراق. نوصل لكل المحافظات
+- التوصيل: نوصل لكل العراق. بغداد 1-2 يوم، المحافظات 2-5 أيام
+- الدفع: دفع عند الاستلام (كاش)، زين كاش، آسيا حوالة
+- الإرجاع: 7 أيام للإرجاع إذا المنتج مو مفتوح وبحالته الأصلية
+- التواصل: انستغرام @aquavo.iq، واتساب متوفر
+- المنتجات: أحواض، فلاتر، سخانات، إضاءات، طعام أسماك، أدوية ومعالجات، ديكورات، نباتات، أدوات تنظيف، مضخات هواء
+- البراندات: YEE, Houyi, HYGGER وغيرها
 
 [آلية التفكير - قبل كل رد]
-1. **النية**: تسوق؟ استشارة؟ دعم؟
+1. **النية**: يتسوق؟ يستشير عن سمكته؟ يسأل عن توصيل/دفع؟
 2. **المشاعر**: متحمس → كن حماسي 🎉 | محتار → ساعده بحنان | حزين (سمكته ماتت) → عزّيه 💔
 3. **فرصة البيع**: هل أكدر أقترح منتج إضافي؟ (cross-sell / upsell)
-4. **الأداة**: هل أحتاج أبحث؟ أتحقق من المخزون؟ أضيف للسلة؟
 
 [استراتيجيات البيع الذكية]
-- **Cross-selling**: إذا يسأل عن حوض → اقترح فلتر + سخان + ديكور
-- **Upselling**: إذا يشوف منتج رخيص → "عدنا نوع أحسن بفرق بسيط، يدوم أكثر"
-- **الاستعجال**: "الكمية محدودة" أو "عرض لفترة محدودة" إذا كان العرض حقيقي
-- **العروض**: إذا سأل عن سعر → تحقق بـ get_deals لو أكو خصم، وأخبره
-- **المبتدئ**: إذا يقول "أبدي حوض" → قدم باقة كاملة (حوض + فلتر + طعام + زينة)
-- **المحترف**: إذا يعرف أسماء علمية → ارفع مستوى المحادثة وقترح منتجات premium
+- **Cross-selling**: يسأل عن حوض → اقترح فلتر + سخان + ديكور
+- **Upselling**: يشوف منتج رخيص → "عدنا نوع أحسن بفرق بسيط، يدوم أكثر"
+- **الاستعجال**: "الكمية محدودة" فقط إذا المخزون فعلاً قليل
+- **العروض**: إذا أكو خصم بالمنتجات المرفقة، نبّه عليه!
+- **المبتدئ**: يقول "أبدي حوض" → قدم باقة كاملة (حوض + فلتر + طعام + زينة) مع الأسعار
+- **المحترف**: يعرف أسماء علمية → ارفع مستوى المحادثة وقترح منتجات premium
+
+[نصائح أحواض مختصرة - استخدمها عند الحاجة]
+- دورة النيتروجين: الحوض الجديد لازم ينضج 2-4 أسابيع قبل إضافة الأسماك
+- درجة الحرارة: أغلب الأسماك الاستوائية 24-28°C، بالعراق بالصيف لازم مروحة أو تشلر
+- الفلتر: ضروري لأي حوض. الإسفنج للأحواض الصغيرة، الخارجي للكبيرة
+- التغذية: مرتين باليوم كمية صغيرة، الإفراط أكبر سبب لموت الأسماك
+- تغيير الماء: 20-30% كل أسبوع مع مزيل الكلور
 
 [أسلوب الكلام]
-- كلمات عراقية: "شلونك"، "أكو"، "هواية"، "بلا زحمة"، "عدنا"، "شنو"، "خوش"، "هسه"
+- كلمات عراقية: "شلونك"، "أكو"، "هواية"، "بلا زحمة"، "عدنا"، "شنو"، "خوش"، "هسه"، "يسلمون"
 - إيموجي باعتدال: 🐠 🦐 ✨ 🌿 💙
 - اعرض السعر بوضوح: "بس **25,000 د.ع** 🔥"
 - إذا فيه خصم: "~~35,000~~ **25,000 د.ع** (خصم 28%!) 🎉"
 
 [التعامل مع عدم التوفر]
-"مع الأسف، مو متوفر حالياً 😔 بس خلّيني أشوفلك بديل ممتاز!" → ثم ابحث عن بديل.
+"مع الأسف، مو متوفر حالياً 😔 بس خلّيني أشوفلك بديل!" → ثم اقترح بديل من المنتجات المتوفرة.
 
 ${profileContext}
 
@@ -162,22 +170,35 @@ ${profileContext}
 `;
     }
 
-    // Admin Assistant System Prompt
-    return `You are the Store Management Assistant for AQUAVO.
+    // Admin Assistant System Prompt - with actual data
+    const salesInfo = context?.salesData ? `
+[بيانات المتجر - آخر 30 يوم]
+- إجمالي الإيرادات: ${context.salesData.totalRevenue.toLocaleString()} د.ع
+- إجمالي الطلبات: ${context.salesData.totalOrders}
+- طلبات مكتملة: ${context.salesData.completedOrders}
+- طلبات قيد المعالجة: ${context.salesData.processingOrders}
+- طلبات معلقة: ${context.salesData.pendingOrders}
+- أكثر المنتجات مبيعاً: ${context.salesData.topProducts.join('، ') || 'لا توجد بيانات'}
+- منتجات منخفضة المخزون: ${context?.lowStockCount ?? 'غير معروف'}
+- إجمالي المنتجات: ${context?.productsCount ?? 'غير معروف'}
+` : `
+[بيانات المتجر]
+لا تتوفر بيانات مبيعات حالياً.
+`;
 
-[ROLE]
-- Analyze sales data & metrics
-- Generate performance reports
-- Monitor inventory health
-- Do NOT act as a sales agent. Be professional, concise, and data-driven.
-- Respond in Arabic.
+    return `أنت مساعد إدارة متجر AQUAVO الذكي.
 
-[DATA ACCESS]
-- Total Revenue/Orders
-- Best Selling Products
-- Low Stock Alerts
+[الدور]
+- حلل بيانات المبيعات والأداء المرفقة أدناه
+- قدم تقارير واقتراحات مبنية على الأرقام
+- نبّه على المخزون المنخفض
+- لا تتصرف كمندوب مبيعات. كن محترف ومختصر ودقيق.
+- رد بالعربي العراقي.
 
-${userName ? `Manager: ${userName}` : ''}`;
+${salesInfo}
+
+${userName ? `المدير: ${userName}` : ''}
+اعتمد فقط على البيانات المرفقة. لا تخترع أرقام.`
 };
 
 // ============================================================
@@ -192,26 +213,62 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
     let products: any[] = [];
     let contextParts: string[] = [];
 
-    // Extract keywords for product search
+    // Comprehensive keyword map with Iraqi dialect variations
     const searchKeywords: Record<string, string> = {
-        "فلتر": "فلتر", "فلاتر": "فلتر", "filter": "فلتر",
+        // فلتر
+        "فلتر": "فلتر", "فلاتر": "فلتر", "filter": "فلتر", "فلتره": "فلتر", "تصفية": "فلتر",
+        // حوض
         "حوض": "حوض", "أحواض": "حوض", "احواض": "حوض", "tank": "حوض", "aquarium": "حوض",
-        "طعام": "طعام", "أكل": "طعام", "غذاء": "طعام", "food": "طعام",
+        "اكواريوم": "حوض", "أكواريوم": "حوض", "اكوريم": "حوض",
+        // طعام
+        "طعام": "طعام", "أكل": "طعام", "غذاء": "طعام", "food": "طعام", "اكل": "طعام",
+        "تغذية": "طعام", "علف": "طعام",
+        // سمك
         "سمك": "سمك", "أسماك": "سمك", "سمكة": "سمك", "سمجة": "سمك", "fish": "سمك",
-        "سخان": "سخان", "heater": "سخان",
+        "سمچ": "سمك", "سمچة": "سمك", "اسماك": "سمك",
+        // سخان
+        "سخان": "سخان", "heater": "سخان", "حرارة": "سخان", "تدفئة": "سخان",
+        // إضاءة
         "إضاءة": "إضاءة", "اضاءة": "إضاءة", "ضوء": "إضاءة", "led": "إضاءة", "light": "إضاءة",
-        "ديكور": "ديكور", "زينة": "ديكور", "decoration": "ديكور",
-        "مضخة": "مضخة", "هواء": "مضخة هواء", "pump": "مضخة",
-        "معالج": "معالج", "علاج": "معالج", "دواء": "معالج", "treatment": "معالج", "مريض": "معالج",
-        "نبات": "نبات", "نباتات": "نبات", "plant": "نبات",
-        "حصى": "حصى", "رمل": "رمل", "gravel": "حصى",
-        "تنظيف": "تنظيف", "فرشاة": "فرشاة", "cleaning": "تنظيف",
+        "لمبة": "إضاءة", "ليد": "إضاءة", "نور": "إضاءة",
+        // ديكور
+        "ديكور": "ديكور", "زينة": "ديكور", "decoration": "ديكور", "تزيين": "ديكور",
+        "صخر": "ديكور", "خشبة": "ديكور", "خشب": "ديكور",
+        // مضخة
+        "مضخة": "مضخة", "هواء": "مضخة هواء", "pump": "مضخة", "مضخه": "مضخة",
+        "ستون": "مضخة هواء", "حجر هواء": "مضخة هواء", "بابل": "مضخة هواء",
+        // معالج/دواء
+        "معالج": "معالج", "علاج": "معالج", "دواء": "معالج", "treatment": "معالج",
+        "مريض": "معالج", "مرض": "معالج", "بقع بيضاء": "معالج", "فطريات": "معالج",
+        "ملح": "معالج", "ميثيلين": "معالج", "كلور": "معالج",
+        // نبات
+        "نبات": "نبات", "نباتات": "نبات", "plant": "نبات", "نباتيه": "نبات",
+        "طحلب": "نبات", "موس": "نبات",
+        // حصى/رمل
+        "حصى": "حصى", "رمل": "رمل", "gravel": "حصى", "تربة": "حصى", "سبستريت": "حصى",
+        // تنظيف
+        "تنظيف": "تنظيف", "فرشاة": "فرشاة", "cleaning": "تنظيف", "غسل": "تنظيف",
+        "تنضيف": "تنظيف", "مگنس": "تنظيف", "مغناطيس": "تنظيف", "سيفون": "تنظيف",
+        // أدوات أخرى
         "حاضنة": "حاضنة", "incubator": "حاضنة",
-        "اسفنج": "اسفنج", "قطن": "قطن",
+        "اسفنج": "اسفنج", "قطن": "قطن", "سيراميك": "سيراميك", "كربون": "كربون",
         "فحص": "فحص", "اختبار": "فحص", "أمونيا": "أمونيا", "test": "فحص",
+        "خرطوم": "خرطوم", "أنبوب": "خرطوم",
+        "شبكة": "شبكة", "شبچة": "شبكة",
+        "مقياس": "مقياس حرارة", "ثرمومتر": "مقياس حرارة", "thermometer": "مقياس حرارة",
     };
 
-    // Find matching keywords
+    // Detect shopping intent keywords (even without specific product)
+    const shoppingSignals = [
+        "شنو عدكم", "شتبيعون", "شنو تبيعون", "منتجات", "شي حلو",
+        "ابي", "أبي", "اريد", "أريد", "محتاج", "احتاج", "لازم",
+        "ابدي", "أبدي", "ابدأ", "أبدأ", "جديد", "مبتدئ",
+        "اشتري", "أشتري", "شراء", "سعر", "كم سعر", "اسعار", "أسعار",
+        "لوازم", "مستلزمات", "أدوات", "باقة", "مجموعة", "ستارتر",
+        "شنو الي", "شنو اللي", "ريد", "ارید",
+    ];
+
+    // Find matching product keywords
     const matchedTerms = new Set<string>();
     for (const [keyword, searchTerm] of Object.entries(searchKeywords)) {
         if (msg.includes(keyword)) {
@@ -219,9 +276,27 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
         }
     }
 
-    // Search for products if keywords found
+    // If no specific keywords but clear shopping intent, do a general search
+    const hasShoppingIntent = shoppingSignals.some(kw => msg.includes(kw));
+    if (matchedTerms.size === 0 && hasShoppingIntent) {
+        // General search - fetch popular/recommended products
+        try {
+            const result = await aiToolsExecutor.getDeals({ limit: 5 });
+            if (result.success && result.data && result.data.length > 0) {
+                products = [...products, ...result.data];
+            }
+        } catch { /* best-effort */ }
+        try {
+            const result = await aiToolsExecutor.searchProducts({ query: "حوض", limit: 4 });
+            if (result.success && result.data) {
+                products = [...products, ...result.data];
+            }
+        } catch { /* best-effort */ }
+    }
+
+    // Search for products if specific keywords found (max 3 searches)
     if (matchedTerms.size > 0) {
-        for (const term of Array.from(matchedTerms).slice(0, 2)) { // Max 2 searches
+        for (const term of Array.from(matchedTerms).slice(0, 3)) {
             try {
                 const result = await aiToolsExecutor.searchProducts({ query: term, limit: 5 });
                 if (result.success && result.data) {
@@ -232,7 +307,7 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
     }
 
     // Check for deals/discount keywords
-    const dealsKeywords = ["عرض", "عروض", "خصم", "تخفيض", "كوبون", "deal", "discount", "sale"];
+    const dealsKeywords = ["عرض", "عروض", "خصم", "تخفيض", "كوبون", "deal", "discount", "sale", "أرخص", "ارخص", "رخيص", "أوفر"];
     if (dealsKeywords.some(kw => msg.includes(kw))) {
         try {
             const deals = await aiToolsExecutor.getDeals({ limit: 5 });
@@ -244,7 +319,8 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
     }
 
     // Get customer history if logged in and asking about orders/recommendations
-    const historyKeywords = ["طلباتي", "مشترياتي", "سجل", "order", "history", "توصية", "انصحني", "اقترح"];
+    const historyKeywords = ["طلباتي", "مشترياتي", "سجل", "order", "history", "توصية", "انصحني", "اقترح",
+        "نصحني", "نصيحة", "شنو تنصح", "شتنصح", "شتنصحني", "رأيك", "رايك"];
     if (userId && historyKeywords.some(kw => msg.includes(kw))) {
         try {
             const history = await aiToolsExecutor.getCustomerHistory({ userId });
@@ -259,13 +335,14 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
 
     // Build context string with product data
     if (unique.length > 0) {
-        const productList = unique.slice(0, 8).map(p => {
+        const productList = unique.slice(0, 10).map(p => {
             const discount = p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price)
                 ? ` (خصم ${Math.round(((parseFloat(p.originalPrice) - parseFloat(p.price)) / parseFloat(p.originalPrice)) * 100)}% - كان ${p.originalPrice} د.ع)`
                 : "";
-            return `- ${p.name} | ${p.price} د.ع${discount} | ${p.stock > 0 ? "متوفر" : "نفذ"} | ID: ${p.id}`;
+            const stockStatus = p.stock > 10 ? "متوفر" : p.stock > 0 ? `متوفر (${p.stock} فقط)` : "نفذ";
+            return `- ${p.name} | ${p.price} د.ع${discount} | ${stockStatus} | الفئة: ${p.category || '-'}`;
         }).join("\n");
-        contextParts.push(`[المنتجات المتوفرة من بحثنا]\n${productList}`);
+        contextParts.push(`[المنتجات المتوفرة]\n${productList}`);
     }
 
     return { products: unique, context: contextParts.join("\n\n") };
@@ -297,8 +374,8 @@ export async function sendMessage(
             }
         }
 
-        // 2. Create system prompt
-        const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin);
+        // 2. Create system prompt (with context for admin data injection)
+        const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
 
         // 3. Check Groq availability
         if (!groqClient.hasKeys()) {
@@ -323,9 +400,12 @@ export async function sendMessage(
             ? `${message}\n\n---\n${toolContext}`
             : message;
 
+        // Limit history to last 20 messages to prevent token overflow
+        const trimmedHistory = history.slice(-20);
+
         const groqMessages: GroqChatMessage[] = [
             { role: "system", content: systemPrompt },
-            ...history.map(msg => ({
+            ...trimmedHistory.map(msg => ({
                 role: msg.role === "user" ? "user" as const : "assistant" as const,
                 content: msg.content
             })),
@@ -341,7 +421,7 @@ export async function sendMessage(
         const response = await withTimeout(
             groqClient.chat(groqMessages, {
                 temperature: 0.7,
-                maxTokens: 1536,
+                maxTokens: 2048,
             }),
             AI_TIMEOUT_MS,
             "انتهت مهلة الاتصال"
