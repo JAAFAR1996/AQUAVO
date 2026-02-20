@@ -93,6 +93,9 @@ export const products = pgTable("products", {
 
   createdAtIdx: index("products_created_at_idx").on(table.createdAt),
   ratingIdx: index("products_rating_idx").on(table.rating),
+  deletedAtIdx: index("products_deleted_at_idx").on(table.deletedAt),
+  brandIdx: index("products_brand_idx").on(table.brand),
+  priceIdx: index("products_price_idx").on(table.price),
 }));
 
 export const orders = pgTable("orders", {
@@ -317,7 +320,10 @@ export const orderItems = pgTable("order_items_relational", {
   priceAtPurchase: numeric("price_at_purchase").notNull(), // Snapshot of price
   totalPrice: numeric("total_price").notNull(),
   metadata: jsonb("metadata"), // For variants like size, color
-});
+}, (table) => ({
+  productIdIdx: index("order_items_product_id_idx").on(table.productId),
+  orderIdIdx: index("order_items_order_id_idx").on(table.orderId),
+}));
 
 export const payments = pgTable("payments", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),

@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>خطة AQUAVO الاستراتيجية - موسم رمضان 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0f4c75;
+            --secondary: #3282b8;
+            --accent: #bbe1fa;
+            --gold: #d4af37;
+            --dark: #1b262c;
+            --light: #f8f9fa;
+            --success: #2ecc71;
+            --warning: #f1c40f;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        /* Header Section */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--dark));
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIiBvcGFjaXR5PSIwLjEiPjxwYXRoIGQ9Ik0wIDBoNDB2NDBIMHoiIGZpbGw9Im5vbmUiLz48cGF0aCBkPSJNMjAgMjBsMTAgMTBMMjAgNDBMMTAgMzB6IiBmaWxsPSIjZmZmIi8+PC9zdmc+');
+            opacity: 0.1;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.8rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-top: 10px;
+            color: var(--accent);
+        }
+
+        /* KPI Dashboard */
+        .kpi-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: var(--light);
+            border-bottom: 1px solid #eee;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            border-right: 4px solid var(--gold);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+            transition: transform 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+
+        .kpi-card p {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .kpi-card strong {
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        /* Content Table */
+        .schedule-section {
+            padding: 30px;
+        }
+
+        .week-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        th {
+            text-align: right;
+            padding: 15px;
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            background: white;
+            padding: 20px;
+            vertical-align: top;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        td:first-child {
+            border-radius: 0 10px 10px 0;
+            border-right: 1px solid #f0f0f0;
+        }
+
+        td:last-child {
+            border-radius: 10px 0 0 10px;
+            border-left: 1px solid #f0f0f0;
+        }
+
+        .date-cell {
+            font-weight: 700;
+            color: var(--primary);
+            min-width: 100px;
+        }
+
+        .time-cell {
+            font-size: 0.85rem;
+            color: #888;
+            display: block;
+            margin-top: 5px;
+        }
+
+        /* Content Tags */
+        .type-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .type-reel {
+            background: #ffeaa7;
+            color: #d35400;
+        }
+
+        .type-story {
+            background: #fab1a0;
+            color: #c0392b;
+        }
+
+        .type-carousel {
+            background: #81ecec;
+            color: #00cec9;
+        }
+
+        .type-live {
+            background: #ff7675;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        /* Action Buttons & Scripts */
+        .script-container {
+            background: #fafafa;
+            border: 1px dashed #ddd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            position: relative;
+        }
+
+        .script-text {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-line;
+            color: #444;
+        }
+
+        .tools-used {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--secondary);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .tool-tag {
+            background: #e3f2fd;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .btn-copy {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .btn-copy:hover {
+            background: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .tech-note {
+            font-size: 0.85rem;
+            color: #e67e22;
+            background: #fff3e0;
+            padding: 8px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 118, 117, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 118, 117, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 118, 117, 0);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .table-responsive table {
+                display: block;
+            }
+
+            .table-responsive thead {
+                display: none;
+            }
+
+            .table-responsive tbody,
+            .table-responsive tr,
+            .table-responsive td {
+                display: block;
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            .table-responsive tr {
+                margin-bottom: 20px;
+            }
+
+            .table-responsive td {
+                text-align: right;
+                padding: 15px;
+            }
+
+            .week-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <header>
+            <h1>AQUAVO | Content Operating System</h1>
+            <p>خطة المحتوى الرقمي المتقدمة - موسم رمضان 2026</p>
+            <div style="margin-top: 20px;">
+                <span
+                    style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem;">📅
+                    التحديث: فبراير 2026</span>
+                <span
+                    style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; margin-right: 10px;">🤖
+                    AI Engine: Active</span>
+            </div>
+        </header>
+
+        <div class="kpi-board">
+            <div class="kpi-card">
+                <h3>🎯 الهدف الرئيسي</h3>
+                <p>تحويل المتابعين من "مشاهدين" إلى "مقتنين" لمنتجات Sobo/Jeneca عبر التثقيف (Edutainment).</p>
+            </div>
+            <div class="kpi-card">
+                <h3>⏰ توقيت النشر (رمضان)</h3>
+                <p><strong>الذروة:</strong> 10:00 م - 2:00 ص (بعد التراويح)</p>
+                <p><strong>الهدوء (Zen):</strong> 3:30 ص (وقت السحور)</p>
+            </div>
+            <div class="kpi-card">
+                <h3>🛠️ المكدس التقني (AI Stack)</h3>
+                <p><strong>صور:</strong> Nano Banana Pro + Ideogram</p>
+                <p><strong>فيديو:</strong> Kling AI (Start/End Frame)</p>
+            </div>
+            <div class="kpi-card">
+                <h3>💡 الأصول المستخدمة</h3>
+                <p><strong>Scripts:</strong> V7, V8, V9</p>
+                <p><strong>Catalogs:</strong> Xilong, Sobo, Jeneca</p>
+            </div>
+        </div>
+
+        <div class="schedule-section">
+
+            <div class="week-header">
+                <div>
+                    <h2 style="margin: 0;">الأسبوع 1: الإطلاق وكسر الخرافات</h2>
+                    <small style="opacity: 0.9;">من 15 فبراير إلى 21 فبراير 2026 (بداية رمضان)</small>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 10px;">
+                    Focus: Viral Hooks & Brand Authority
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">التوقيت</th>
+                            <th width="15%">النوع & المنصة</th>
+                            <th width="40%">المحتوى & السكريبت</th>
+                            <th width="30%">التنفيذ التقني & ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="date-cell">الأحد 15/02</div>
+                                <span class="time-cell">8:00 PM (توقيت بغداد)</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-reel">Reels / TikTok</span>
+                                <br>Hook Type: Pain Point
+                            </td>
+                            <td>
+                                <strong>العنوان: لماذا تختبئ سمكتك؟ 😰</strong>
+                                <p>فيديو يعالج مشكلة شائعة (Stress) ويقدم الحل (Miding Spots).</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script1')">نسخ</button>
+                                    <div class="script-text" id="script1">
+                                        سمكتك مختفية؟ 🤔 هذا مو خجل.. هذا استغاثة! 🚨
+                                        في الفيديو: 3 أسباب تخلي سمكتك تهرب منك.. والحل بسيط جداً!
+
+                                        💡 نصيحة AQUAVO: البيئة الآمنة = سمكة سعيدة.
+
+                                        عندك سمكة خوافة؟ اكتب لنا نوعها 👇
+                                        #AQUAVO #FishCare #NeonTetra #أحواض_سمك #تربية_أسماك
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: V9_WHY_FISH_HIDING.md</span>
+                                    <span class="tool-tag">Nano Banana</span>
+                                    <span class="tool-tag">Kling AI</span>
+                                </div>
+                                <div class="tech-note">
+                                    ⚠️ <strong>توجيه:</strong> استخدم Nano Banana لإنشاء سمكة "نيون" بعيون معبرة (Style:
+                                    Pixar-Realism) كما في الملف V9.
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الاثنين 16/02</div>
+                                <span class="time-cell">3:00 PM (بعد الظهر)</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-story">Instagram Story</span>
+                                <br>Engagement: Sticker
+                            </td>
+                            <td>
+                                <strong>العنوان: وصول الشحنة الجديدة (Sobo Filters)</strong>
+                                <p>فيديو عفوي (Behind the Scenes) لفتح كراتين فلاتر Sobo الجديدة.</p>
+                                <div class="script-container">
+                                    <div class="script-text">
+                                        "وصل الوحش الصامت! 🤫 فلاتر Sobo الجديدة.. جاهزين لرمضان؟"
+
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: SOBO Catalog</span>
+                                    <span class="tool-tag">Smartphone Camera</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الثلاثاء 17/02</div>
+                                <span class="time-cell">9:00 PM</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-carousel">Carousel</span>
+                                <br>Educational
+                            </td>
+                            <td>
+                                <strong>العنوان: دليل تنظيف الحوض قبل رمضان 🌙</strong>
+                                <p>5 خطوات عملية لتجهيز الحوض باستخدام أدوات Xilong.</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script2')">نسخ</button>
+                                    <div class="script-text" id="script2">
+                                        استقبل رمضان بحوض نقي 💧✨
+                                        الدليل الكامل لتنظيف وتجهيز حوضك للشهر الفضيل.
+
+                                        1️⃣ تغيير 30% من الماء
+                                        2️⃣ تنظيف الفلتر (بدون قتل البكتيريا!)
+                                        ... (اسحب لليسار للتكملة)
+
+                                        احفظ البوست كمرجع لك 🔖
+                                        #RamadanPrep #AquariumCleaning #Xilong #AQUAVO
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: Xilong Catalog</span>
+                                    <span class="tool-tag">Ideogram (Arabic Text)</span>
+                                </div>
+                                <div class="tech-note">
+                                    ℹ️ استخدم Ideogram لكتابة العناوين العربية على الصور لتجنب التكسر (راجع
+                                    TEXT_GENERATION_GUIDE).
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الأربعاء 18/02</div>
+                                <span class="time-cell">Maghrib Time</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-reel">Reels (Cinematic)</span>
+                                <br>Theme: Spiritual/Zen
+                            </td>
+                            <td>
+                                <strong>العنوان: تهنئة رمضان (AI Cinematic)</strong>
+                                <p>مشهد سينمائي لحوض سمك يحتوي على زينة رمضانية خافتة وفقاعات ذهبية.</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script3')">نسخ</button>
+                                    <div class="script-text" id="script3">
+                                        مبارك عليكم الشهر 🌙✨
+                                        جعل الله أيامكم كلها هدوء وصفاء.. مثل صفاء مياه AQUAVO.
+
+                                        #رمضان_كريم #Ramadan2026 #AQUAVO #Aquascape
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Nano Banana Pro</span>
+                                    <span class="tool-tag">Kling Motion</span>
+                                </div>
+                                <div class="tech-note">
+                                    🎨 <strong>Color Grading:</strong> استخدم درجات الذهبي والأزرق الداكن (Ramadan
+                                    Palette). الصوت: مؤثرات مياه فقط (ASMR).
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الخميس 19/02</div>
+                                <span class="time-cell">10:00 PM (الذروة)</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-reel">Reels / TikTok</span>
+                                <br>Hook Type: Shock/Viral
+                            </td>
+                            <td>
+                                <strong>العنوان: خرافة عمر السمك! 🤯</strong>
+                                <p>الفيديو الرئيسي للأسبوع (Anchor Content). قصة السمكة Tish.</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script4')">نسخ</button>
+                                    <div class="script-text" id="script4">
+                                        تخيل سمكة تعيش أكثر منك! 🤯
+                                        السمكة 'Tish' عاشت 43 سنة... والسر مش في السحر، السر في العناية الصحيحة! 🧬
+
+                                        شاهد الفيديو لتعرف كيف تضاعف عمر سمكتك الذهبية.
+
+                                        👇 كم عاشت أطول سمكة عندك؟ اكتب لنا في التعليقات!
+                                        #Goldfish #FishFacts #AQUAVO #معلومات_صادمة #العراق
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: V8_FISH_LIFESPAN.md</span>
+                                    <span class="tool-tag">Kling (Morphing)</span>
+                                </div>
+                                <div class="tech-note">
+                                    ⚡ <strong>Technique:</strong> استخدم "First Frame" (سمكة صغيرة) و "Last Frame" (سمكة
+                                    عجوزة) في Kling لعمل تحول زمني سلس.
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="week-header" style="margin-top: 50px; background: var(--secondary);">
+                <div>
+                    <h2 style="margin: 0;">الأسبوع 2: التعليم والتفاعل العميق</h2>
+                    <small style="opacity: 0.9;">من 22 فبراير إلى 28 فبراير 2026</small>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 10px;">
+                    Focus: Engagement & Product Solutions
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="15%">التوقيت</th>
+                            <th width="15%">النوع & المنصة</th>
+                            <th width="40%">المحتوى & السكريبت</th>
+                            <th width="30%">التنفيذ التقني & ملاحظات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="date-cell">الأحد 22/02</div>
+                                <span class="time-cell">10:30 PM</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-reel">Reels</span>
+                                <br>Hook Type: Emotional
+                            </td>
+                            <td>
+                                <strong>العنوان: السمك يسمعك! 🎵</strong>
+                                <p>فيديو عاطفي يثبت ذكاء الأسماك وقدرتها على تمييز صاحبها.</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script5')">نسخ</button>
+                                    <div class="script-text" id="script5">
+                                        هل تعلم أن سمكتك تعرف شكلك وصوتك؟ 🧠🐟
+                                        دراسات جامعة أكسفورد أثبتت أن الأسماك أذكى مما نتخيل.
+
+                                        جرب تنادي سمكتك وقت الأكل وشوف ردة الفعل! 😍
+
+                                        #SmartFish #OscarFish #AQUAVO #ذكاء_الأسماك #رمضان_2026
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: V7_FISH_HEARS_YOU.md</span>
+                                    <span class="tool-tag">Higgsfield (Orbit)</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الثلاثاء 24/02</div>
+                                <span class="time-cell">11:00 PM</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-reel">Reels / TikTok</span>
+                                <br>Style: ASMR / Product
+                            </td>
+                            <td>
+                                <strong>العنوان: الهدوء المطلق (Sobo Setup)</strong>
+                                <p>تركيب فلتر Sobo بدون موسيقى، فقط أصوات التركيب وتدفق الماء (Satisfying).</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script6')">نسخ</button>
+                                    <div class="script-text" id="script6">
+                                        الهدوء اللي تحتاجه في غرفتك... 🤫🌊
+                                        تجربة تركيب فلاتر Sobo الاحترافية. قوة جبارة، وصوت معدوم.
+
+                                        اطلب الآن واحصل على خصم رمضان 🌙
+                                        Link in Bio 🔗
+                                        #ASMR #AquariumSetup #Sobo #AQUAVO #Relaxation
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Real Footage</span>
+                                    <span class="tool-tag">High Quality Mic</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>
+                                <div class="date-cell">الخميس 26/02</div>
+                                <span class="time-cell">9:00 PM</span>
+                            </td>
+                            <td>
+                                <span class="type-badge type-carousel">Carousel / Ad</span>
+                                <br>Campaign: Grand Prize
+                            </td>
+                            <td>
+                                <strong>العنوان: اشترِ واربح رحلة لبيروت! ✈️</strong>
+                                <p>الإعلان عن المسابقة الكبرى بالتعاون مع الروضتين.</p>
+                                <div class="script-container">
+                                    <button class="btn-copy" onclick="copyToClipboard('script7')">نسخ</button>
+                                    <div class="script-text" id="script7">
+                                        رمضان كريم.. وعيديتك علينا! 🎁✈️
+
+                                        جهز حوضك للعيد وادخل السحب على رحلة مدفوعة لبيروت! 🇱🇧
+                                        كل فاتورة بقيمة 50 ألف دينار = فرصة فوز.
+
+                                        التفاصيل في الستوري 👆
+                                        #AQUAVO_Travel #Beirut #AlRawdatain #مسابقات_العراق
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="tools-used">
+                                    <span class="tool-tag">Source: Al Rawdatain Offer</span>
+                                    <span class="tool-tag">Graphic Design</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(elementId) {
+            var text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(function () {
+                // Visual feedback
+                var btn = document.querySelector(`button`);
+                var originalText = btn.innerText;
+                btn.innerText = "تم النسخ! ✓";
+                btn.style.background = "#2ecc71";
+                setTimeout(function () {
+                    btn.innerText = originalText;
+                    btn.style.background = "#0f4c75";
+                }, 2000);
+            }, function (err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+    </script>
+
+</body>
+
+</html>

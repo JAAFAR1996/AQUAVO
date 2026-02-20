@@ -6,7 +6,6 @@ import { ArrowRight, Star, Truck, ShieldCheck, Phone, Leaf, Droplets, Thermomete
 import { Link, useLocation } from "wouter";
 
 import { ProductOfTheWeek } from "@/components/home/product-of-the-week";
-import { MasonryGalleryGrid } from "@/components/gallery/masonry-gallery-grid";
 import { AquascapeStyles } from "@/components/home/aquascape-styles";
 
 import { ProductCard } from "@/components/products/product-card";
@@ -53,17 +52,6 @@ export default function Home() {
 
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
-  const { data: gallerySubmissions } = useQuery({
-    queryKey: ["/api/gallery/submissions"],
-    queryFn: async () => {
-      const res = await fetch("/api/gallery/submissions");
-      if (!res.ok) return [];
-      return res.json();
-    }
-  });
-
-  const winner = gallerySubmissions?.find((s: { isWinner?: boolean }) => s.isWinner);
-
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">
       <MetaTags
@@ -88,6 +76,7 @@ export default function Home() {
               loop
               muted
               playsInline
+              preload="none"
               className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105"
               style={{ objectFit: 'cover', objectPosition: 'center' }}
               poster={heroImage}

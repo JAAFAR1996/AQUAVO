@@ -23,11 +23,23 @@ export function serveStatic(app: Express) {
   }
 
   console.log(`[Static] Serving static files from: ${distPath}`);
-  app.use(express.static(distPath));
 
-  // fall through to index.html if the file doesn't exist
+  // Hashed assets (JS/CSS chunks) - cache forever (immutable)
+  app.use("/assets", express.static(path.join(distPath, "assets"), {
+    maxAge: "1y",
+    immutable: true,
+  }));
+
+  // Non-hashed static files (images, fonts, manifest) - cache with revalidation
+  app.use(express.static(distPath, {
+    maxAge: "7d",
+    etag: true,
+    lastModified: true,
+  }));
+
+  // fall through to index.html if the file doesn't exist (SPA routing)
   app.use("*", (_req, res) => {
+    res.setHeader("Cache-Control", "no-cache");
     res.sendFile(path.resolve(distPath, "index.html"));
   });
 }
-

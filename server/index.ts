@@ -6,6 +6,7 @@ import http from "http";
 import express, { Request, Response, NextFunction } from "express";
 import session from "express-session";
 import helmet from "helmet";
+import compression from "compression";
 import { registerRoutes } from "./routes.js";
 import { serveStatic } from "./static.js";
 import { createSessionStore, buildSessionSecret } from "./session-config.js";
@@ -50,6 +51,17 @@ setupWebSocket(httpServer);
 // Required for secure cookies to work behind a reverse proxy
 app.set("trust proxy", 1);
 
+// Performance: Gzip/Brotli compression for all responses
+app.use(compression({
+  level: 6,
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    // Don't compress server-sent events
+    if (req.headers['accept'] === 'text/event-stream') return false;
+    return compression.filter(req, res);
+  },
+}));
+
 // Security: Helmet for comprehensive HTTP security headers
 app.use(helmet({
   contentSecurityPolicy: false, // Using custom CSP from securityHeaders middleware
@@ -63,22 +75,29 @@ app.use(securityHeaders);
 // Security: CORS configuration
 app.use(corsConfig);
 
-app.use(
+// Performance: Only apply body parsing, sanitization, and security logging to API routes
+// Static file requests skip these entirely to avoid unnecessary overhead
+const apiOnly = (fn: any) => (req: Request, res: Response, next: NextFunction) => {
+  if (!req.path.startsWith("/api")) return next();
+  return fn(req, res, next);
+};
+
+app.use(apiOnly(
   express.json({
-    limit: '20mb', // Increase limit for base64 images - set to 20mb to be safe
-    verify: (req: any, _res, buf) => {
+    limit: '20mb',
+    verify: (req: any, _res: any, buf: Buffer) => {
       req.rawBody = buf;
     },
   }),
-);
+));
 
-app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(apiOnly(express.urlencoded({ extended: true, limit: '20mb' })));
 
 // Security: Request body sanitization (must be AFTER parsing)
-app.use(sanitizeBody);
+app.use(apiOnly(sanitizeBody));
 
 // Security: Log suspicious activity
-app.use(securityLogger);
+app.use(apiOnly(securityLogger));
 
 // Health check endpoint - BEFORE session middleware
 // This allows the hosting platform to verify the app is running without hitting the database
@@ -112,8 +131,8 @@ app.get("/health/db", async (_req, res) => {
   }
 });
 
-// Security: CSRF Protection (Strict Origin Validation)
-app.use((req, res, next) => {
+// Security: CSRF Protection (Strict Origin Validation) - API only
+app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
   // Skip for non-state-changing methods
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
@@ -147,7 +166,7 @@ app.use((req, res, next) => {
   }
 
   next();
-});
+}));
 
 // Session configuration
 const sessionStore = createSessionStore(process.env.NODE_ENV, { enableCleanupTimer: true });
@@ -159,22 +178,22 @@ if (process.env.NODE_ENV === "production" && process.env.DATABASE_URL) {
   console.log("Using in-memory session store (development mode)");
 }
 
-app.use(
-  session({
-    store: sessionStore,
-    secret: buildSessionSecret(),
-    resave: false,
-    saveUninitialized: false,
-    rolling: true, // Extend session on every request
-    cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-      path: "/", // Explicit path for all routes
-      sameSite: "lax", // "lax" is preferred for same-origin (frontend served by backend)
-      secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
-      httpOnly: true, // Cookie not accessible via JavaScript (security)
-    },
-  }),
-);
+const sessionMiddleware = session({
+  store: sessionStore,
+  secret: buildSessionSecret(),
+  resave: false,
+  saveUninitialized: false,
+  rolling: false, // Don't rewrite session cookie on every request
+  cookie: {
+    maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    path: "/", // Explicit path for all routes
+    sameSite: "lax", // "lax" is preferred for same-origin (frontend served by backend)
+    secure: process.env.NODE_ENV === "production", // Only send over HTTPS in production
+    httpOnly: true, // Cookie not accessible via JavaScript (security)
+  },
+});
+// Only run session for API routes (static files don't need DB session lookup)
+app.use(apiOnly(sessionMiddleware));
 
 type LogLevel = "info" | "warn" | "error" | "debug";
 
@@ -238,12 +257,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
           typeof capturedJsonResponse === "object" && capturedJsonResponse !== null
             ? Object.keys(capturedJsonResponse).slice(0, 5)
             : [];
-        const size = JSON.stringify(capturedJsonResponse).length;
         const totalKeys =
           typeof capturedJsonResponse === "object" && capturedJsonResponse !== null
             ? Object.keys(capturedJsonResponse).length
             : keys.length;
-        logLine += ` :: bodyKeys=${keys.join(",") || "none"}${totalKeys > keys.length ? "+" : ""} size=${size}`;
+        logLine += ` :: bodyKeys=${keys.join(",") || "none"}${totalKeys > keys.length ? "+" : ""}`;
       }
 
       log(logLine);

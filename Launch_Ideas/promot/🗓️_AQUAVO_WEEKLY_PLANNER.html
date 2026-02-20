@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🗓️ AQUAVO الخطة الأسبوعية الشاملة</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --deep-teal: #004D61;
+            --coral: #FF6F61;
+            --seafoam: #00A884;
+            --black: #0A0A0A;
+            --dark-bg: #0F1419;
+            --card-bg: #1a1f27;
+            --border: #2a3f47;
+            --text-light: #e0e0e0;
+            --text-gray: #a0a0a0;
+        }
+
+        body {
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #0a1418 100%);
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--deep-teal) 0%, #003d50 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 3px solid var(--coral);
+            box-shadow: 0 8px 16px rgba(0, 77, 97, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #b0d8e0;
+            font-size: 1.1em;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            background: rgba(10, 20, 28, 0.8);
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .week-btn {
+            padding: 10px 20px;
+            background: var(--card-bg);
+            border: 2px solid var(--border);
+            color: var(--text-light);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .week-btn:hover {
+            border-color: var(--coral);
+            background: rgba(255, 111, 97, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .week-btn.active {
+            background: var(--coral);
+            border-color: var(--coral);
+            color: white;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: var(--deep-teal);
+            border: none;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn:hover {
+            background: var(--coral);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 111, 97, 0.3);
+        }
+
+        /* Daily Post Card */
+        .day-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .day-card:hover {
+            border-color: var(--coral);
+            box-shadow: 0 8px 16px rgba(255, 111, 97, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .day-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .day-date {
+            background: linear-gradient(135deg, var(--deep-teal), var(--seafoam));
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .day-name {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: var(--coral);
+        }
+
+        .best-time {
+            background: rgba(0, 168, 132, 0.1);
+            border-left: 4px solid var(--seafoam);
+            padding: 10px 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--seafoam);
+            font-weight: 500;
+        }
+
+        /* Content Type Badge */
+        .content-type {
+            display: inline-block;
+            padding: 8px 16px;
+            background: var(--coral);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* Section Title */
+        .section-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: var(--seafoam);
+            margin: 20px 0 15px 0;
+            padding-left: 10px;
+            border-left: 4px solid var(--coral);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Caption Box */
+        .caption-box {
+            background: rgba(0, 77, 97, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+            line-height: 1.8;
+            position: relative;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .caption-box p {
+            margin-bottom: 10px;
+        }
+
+        .caption-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Copy Button */
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--coral);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #ff5946;
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: var(--seafoam);
+        }
+
+        /* Collapsible Sections */
+        .collapsible {
+            background: rgba(0, 168, 132, 0.1);
+            border: 1px solid var(--border);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: var(--seafoam);
+        }
+
+        .collapsible:hover {
+            background: rgba(0, 168, 132, 0.15);
+            border-color: var(--seafoam);
+        }
+
+        .collapsible.active {
+            background: rgba(0, 168, 132, 0.2);
+            border-color: var(--seafoam);
+        }
+
+        .collapsible-icon {
+            transition: transform 0.3s;
+            font-size: 1.3em;
+        }
+
+        .collapsible.active .collapsible-icon {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            display: none;
+            background: rgba(0, 20, 28, 0.4);
+            border: 1px solid var(--border);
+            border-top: none;
+            padding: 15px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            margin-top: -8px;
+            margin-bottom: 15px;
+        }
+
+        .collapsible-content.show {
+            display: block;
+        }
+
+        .collapsible-content p {
+            margin-bottom: 10px;
+            line-height: 1.8;
+        }
+
+        /* Stories Grid */
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .story-item {
+            background: rgba(0, 77, 97, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .story-item:hover {
+            border-color: var(--coral);
+            background: rgba(255, 111, 97, 0.1);
+        }
+
+        .story-number {
+            font-weight: bold;
+            color: var(--coral);
+            font-size: 1.2em;
+            margin-bottom: 8px;
+        }
+
+        .story-type {
+            color: var(--seafoam);
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .story-desc {
+            font-size: 0.9em;
+            color: var(--text-gray);
+        }
+
+        /* Music Section */
+        .music-box {
+            background: rgba(0, 168, 132, 0.1);
+            border-left: 4px solid var(--seafoam);
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+            font-size: 0.95em;
+        }
+
+        .music-box strong {
+            color: var(--seafoam);
+        }
+
+        /* Dark Mode Toggle */
+        .dark-mode-toggle {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 60px;
+            height: 60px;
+            background: var(--deep-teal);
+            border: 2px solid var(--coral);
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            z-index: 1000;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 77, 97, 0.4);
+        }
+
+        .dark-mode-toggle:hover {
+            background: var(--coral);
+            border-color: var(--deep-teal);
+            transform: scale(1.1);
+        }
+
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+            color: #0a0a0a;
+        }
+
+        body.light-mode .card-bg,
+        body.light-mode .day-card,
+        body.light-mode .caption-box {
+            background: #ffffff;
+            border-color: #ddd;
+            color: #0a0a0a;
+        }
+
+        body.light-mode .text-light {
+            color: #0a0a0a;
+        }
+
+        body.light-mode .text-gray {
+            color: #666;
+        }
+
+        /* Print Styles */
+        @media print {
+            .navbar, .controls, .dark-mode-toggle {
+                display: none;
+            }
+
+            .day-card {
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .day-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .stories-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            }
+
+            .navbar {
+                gap: 8px;
+            }
+
+            .week-btn {
+                padding: 8px 16px;
+                font-size: 0.85em;
+            }
+
+            .dark-mode-toggle {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2em;
+            }
+        }
+
+        /* Week Container */
+        .week-container {
+            display: none;
+        }
+
+        .week-container.active {
+            display: block;
+        }
+
+        /* Hashtags */
+        .hashtags {
+            color: var(--seafoam);
+            font-size: 0.9em;
+            margin-top: 10px;
+            word-break: break-word;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .day-card {
+            animation: fadeIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🐟 خطة AQUAVO الأسبوعية الشاملة</h1>
+        <p>دليلك الكامل لإدارة المحتوى من 14 فبراير إلى 31 مارس 2026</p>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <button class="week-btn active" onclick="showWeek('week1')">📅 الأسبوع 1 (14-20 فبراير)</button>
+        <button class="week-btn" onclick="showWeek('week2')">📅 الأسبوع 2 (21-27 فبراير)</button>
+        <button class="week-btn" onclick="showWeek('week3')">📅 الأسبوع 3 (28 فبراير - 6 مارس)</button>
+        <button class="week-btn" onclick="showWeek('week4')">📅 الأسبوع 4 (7-13 مارس)</button>
+        <button class="week-btn" onclick="showWeek('week5')">📅 الأسبوع 5 (14-20 مارس)</button>
+        <button class="week-btn" onclick="showWeek('week6')">📅 الأسبوع 6 (21-27 مارس)</button>
+        <button class="week-btn" onclick="showWeek('week7')">📅 الأسبوع 7 (28-31 مارس)</button>
+    </div>
+
+    <!-- Controls -->
+    <div class="container">
+        <div class="controls">
+            <button class="control-btn" onclick="printPage()">🖨️ طباعة</button>
+            <button class="control-btn" onclick="toggleDarkMode()">🌙 الوضع الليلي</button>
+            <button class="control-btn" onclick="expandAll()">📂 فتح الكل</button>
+            <button class="control-btn" onclick="collapseAll()">📁 إغلاق الكل</button>
+        </div>
+    </div>
+
+    <!-- WEEK 1 -->
+    <div id="week1" class="week-container active">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع الأول: الانطلاق (14-20 فبراير)</h2>
+
+            <!-- Saturday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">السبت 14 فبراير</div>
+                        <div class="day-name">مذكرات سمكة: الحلقة 1</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎠 كاروسيل (8 شرائح)</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>Instagram (رئيسي) + TikTok Photo Mode + Facebook</p>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>كيف تطعم سمك الزينة بالطريقة الصحيحة؟</strong> 🐟 مذكرات سمكة — الحلقة 1</p>
+                    <p>هل أنت "العملاق" في نظر سمكتك؟ الإفراط في إطعام الأسماك هو القاتل #1! 😂</p>
+                    <p>القاعدة الذهبية: أطعم سمكتك مرة واحدة يومياً، كمية تنتهي في دقيقتين.</p>
+                    <p>احفظ هذا ⬇️ وتابعنا للحلقة 2 يوم الثلاثاء 🔔<br>#تربية_أسماك #FishKeeping #AQUAVO</p>
+                </div>
+
+                <h4 class="section-title">📸 الستوريات (5)</h4>
+                <div class="stories-grid">
+                    <div class="story-item">
+                        <div class="story-number">1️⃣</div>
+                        <div class="story-type">Poll</div>
+                        <div class="story-desc">هل تطعم سمكتك أكثر من مرة؟</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">2️⃣</div>
+                        <div class="story-type">نصيحة</div>
+                        <div class="story-desc">3 علامات الإفراط بالطعام 🚨</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">3️⃣</div>
+                        <div class="story-type">Repost</div>
+                        <div class="story-desc">مشاركة المنشور</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">4️⃣</div>
+                        <div class="story-type">Quiz</div>
+                        <div class="story-desc">كم مرة تطعم السمكة؟</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">5️⃣</div>
+                        <div class="story-type">Countdown</div>
+                        <div class="story-desc">الحلقة 2 الثلاثاء</div>
+                    </div>
+                </div>
+
+                <div class="music-box">
+                    <strong>🎵 الموسيقى المقترحة:</strong> "Lofi underwater" أو "Gil Wanders - Dreams"
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    💡 دراسة الكلمات المفتاحية (SEO)
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p>تغذية أسماك الزينة • كمية طعام السمك المناسبة • الإفراط في إطعام الأسماك • أفضل أكل لسمك الزينة • طعام سمك البيتا • جدول تغذية أسماك الزينة</p>
+                </div>
+            </div>
+
+            <!-- Sunday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الأحد 15 فبراير</div>
+                        <div class="day-name">عوالم مصغرة: Stranger Things</div>
+                    </div>
+                    <div class="best-time">⏰ 3:00 عصراً</div>
+                </div>
+
+                <span class="content-type">📸 صور (6 صور)</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>TikTok (رئيسي) + Instagram + Facebook</p>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>تصميم حوض سمك مستوحى من Stranger Things</strong> 🔴 الـ Upside Down تحت الماء!</p>
+                    <p>بوابة متوهجة، نباتات داكنة كأغصان الـ Upside Down، وضباب أحمر.</p>
+                    <p>هل تجرؤ تبنيه بغرفتك؟ 😈</p>
+                    <p>أرسل هذا لصديقك الي يحب Stranger Things 👇<br>#Aquascaping #StrangerThings #AQUAVO</p>
+                </div>
+
+                <h4 class="section-title">📸 الستوريات (4)</h4>
+                <div class="stories-grid">
+                    <div class="story-item">
+                        <div class="story-number">1️⃣</div>
+                        <div class="story-type">Poll</div>
+                        <div class="story-desc">أي عالم خيالي تفضل؟</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">2️⃣</div>
+                        <div class="story-type">تحدي</div>
+                        <div class="story-desc">أي حوض من فيلم ستختار؟</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">3️⃣</div>
+                        <div class="story-type">Repost</div>
+                        <div class="story-desc">مشاركة المنشور</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">4️⃣</div>
+                        <div class="story-type">Question</div>
+                        <div class="story-desc">أي فيلم تختار؟</div>
+                    </div>
+                </div>
+
+                <div class="music-box">
+                    <strong>🎵 الموسيقى المقترحة:</strong> Stranger Things Theme (Remix) أو "Running Up That Hill"
+                </div>
+            </div>
+
+            <!-- Monday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الإثنين 16 فبراير</div>
+                        <div class="day-name">Species Spotlight: Betta</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎠 كاروسيل (10 شرائح)</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>Instagram (رئيسي) + TikTok Photo Mode + Pinterest + Facebook</p>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>العناية بسمكة البيتا — دليل المبتدئين الكامل</strong> 🐟 (10 شرائح)</p>
+                    <p>أكثر سمكة زينة شعبية... وأكثر سمكة يُساء فهمها!</p>
+                    <p>❌ لا تضعها في كوب — تحتاج حوض 10 لتر عالأقل<br>❌ لا تضع ذكرين معاً — ستتقاتل حتى الموت<br>✅ حوض 10 لتر + سخان + فلتر = بيتا سعيدة</p>
+                    <p>احفظ هذا الدليل 💾 وأرسله لأي شخص يفكر يربي سمكة بيتا<br>#BettaFish #سمك_زينة #AQUAVO</p>
+                </div>
+
+                <h4 class="section-title">📸 الستوريات (4)</h4>
+                <div class="stories-grid">
+                    <div class="story-item">
+                        <div class="story-number">1️⃣</div>
+                        <div class="story-type">Quiz</div>
+                        <div class="story-desc">كم سنة تعيش Betta؟</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">2️⃣</div>
+                        <div class="story-type">Fact</div>
+                        <div class="story-desc">Betta يتنفس الهواء!</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">3️⃣</div>
+                        <div class="story-type">Repost</div>
+                        <div class="story-desc">مشاركة الدليل</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">4️⃣</div>
+                        <div class="story-type">Request</div>
+                        <div class="story-desc">أرسل صورة Betta!</div>
+                    </div>
+                </div>
+
+                <div class="music-box">
+                    <strong>🎵 الموسيقى المقترحة:</strong> "Laufey - From The Start" أو أي لحن هادئ aesthetic
+                </div>
+            </div>
+
+            <!-- Tuesday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الثلاثاء 17 فبراير</div>
+                        <div class="day-name">مذكرات سمكة: الحلقة 2</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية)</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>Instagram + TikTok + Facebook</p>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>🐟 مذكرات سمكة — الحلقة 2: "الماء صار بارد!" ❄️</strong></p>
+                    <p>سمكتنا ظنت العصر الجليدي بدأ! 😂<br>لكن العملاق أنقذها بالسخان 🔥</p>
+                    <p>💡 هل تعلم؟ تغير الحرارة المفاجئ يسبب صدمة (Thermal Shock) ويمرض السمكة.<br>ثبت الحرارة على 24-26°C دائماً.</p>
+                    <p>منشن شخص ينسى يشغل السخان! 👇<br>#FishDiary #FishHealth #AQUAVO #مذكرات_سمكة</p>
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    💡 ملاحظات الإنتاج
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>الفيديو:</strong> V7_FISH_HEARS_YOU.md<br>
+                    <strong>المدة:</strong> 15 ثانية (Clip A: 8s + Clip B: 8s)<br>
+                    <strong>الموسيقى:</strong> "Snowman - Sia" أو أي لحن ترند بارد/شتوي</p>
+                </div>
+            </div>
+
+            <!-- Wednesday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الأربعاء 18 فبراير</div>
+                        <div class="day-name">Community Roast: قصف جبهة 💀</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">📸 صورة + نص (AI)</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>Instagram + TikTok Photo Mode</p>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>طلبت من الذكاء الاصطناعي يقيم هذا الحوض... وشوفوا الرد</strong> 💀🔥</p>
+                    <p>🤖 تقييم الشبح (The Ghost):<br>
+                    "واو... هذا حوض ولا حساء خضار؟ 🥗<br>
+                    الطحالب مسوية حفلة أكثر منك! والفلتر يطلب الرحمة.<br>
+                    السمكة قدمت طلب لجوء للحوض اللي جنبه.<br>
+                    التقييم: -3/10 (حاول مرة أخرى)"</p>
+                    <p>😂 الذكاء الاصطناعي ما يرحم!<br>
+                    مين يتجرأ نقيّم حوضه الأسبوع الجاي؟ 😈<br>
+                    أرسل صورة حوضك خاص واكتب "قصف"! 👇<br>#AquariumRoast #RateMyTank #AQUAVO</p>
+                </div>
+            </div>
+
+            <!-- Thursday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الخميس 19 فبراير</div>
+                        <div class="day-name">مذكرات سمكة: الحلقة 3</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية)</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>🐟 مذكرات سمكة — الحلقة 3: "شفت نفسي بالزجاج!" 🪞</strong></p>
+                    <p>من هذا الوسيم؟ أوه، هذا أنا! 😎<br>
+                    السمك أحياناً يهاجم انعكاسه... يظنه منافس!</p>
+                    <p>هل سمكتك تحارب الزجاج؟ 😂<br>
+                    تابعنا للحلقة القادمة!<br>#FishDiary #BettaFlare #AQUAVO #مذكرات_سمكة</p>
+                </div>
+            </div>
+
+            <!-- Friday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الجمعة 20 فبراير</div>
+                        <div class="day-name">لعبة: حقيقي أم AI؟</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 صباحاً + 9:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎮 تحدي تفاعلي</span>
+
+                <h4 class="section-title">📱 المنصات</h4>
+                <p>Instagram + TikTok Photo Mode</p>
+
+                <h4 class="section-title">📝 المنشور الأول (صباحاً)</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>لعبة الجمعة: حقيقي ✅ أم ذكاء اصطناعي 🤖؟</strong></p>
+                    <p>تتوقع تقدر تفرق؟ اسحب لليسار وشوف الإجابة! ⬅️</p>
+                    <p>أتحداك تجيبها صح! 😂<br>
+                    كتبت "حقيقي" ولا "AI" قبل ما تشوف الحل؟ اعترف بالتعليقات! 👇<br>#RealVsAI #AquariumArt #AQUAVO #تحدي</p>
+                </div>
+
+                <h4 class="section-title">📝 المنشور الثاني (مساءً) - حوض الأسبوع</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>🏆 حوض الأسبوع — تهانينا @[Username]!</strong></p>
+                    <p>ما شاء الله، تنسيق ونباتات ولا أروع! 🌿<br>
+                    ما رأيكم بتقييم الحوض من 10؟ 👇</p>
+                    <p>📸 تريد حوضك يظهر هنا؟ أرسل صورتك مع #MyAQUAVO<br>#MyAQUAVO #PlantedTank #Aquascape #AQUAVO</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEK 2 -->
+    <div id="week2" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع الثاني: الريلز الخاصة (21-27 فبراير)</h2>
+
+            <!-- Monday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الإثنين 21 فبراير</div>
+                        <div class="day-name">V7: السمك يسمعك!</div>
+                    </div>
+                    <div class="best-time">⏰ 7:00-9:00 صباحاً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية) - مميز</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>سمكتك تسمعك! 🎵</strong></p>
+                    <p>الدراسات العلمية أثبتت أن الأسماك تتعرف على صاحبها وتسمع صوته!</p>
+                    <p>الأرشفر (Archerfish) تتذكر الوجوه بدقة 80% طبقاً لجامعة أكسفورد 🧠</p>
+                    <p>جرب تكلم سمكتك وشوف الفرق! 💙<br>#FishFacts #ScienceFacts #AQUAVO #FishTok</p>
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    📊 ملاحظات الإنتاج - V7
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>القصة:</strong> Oscar fish يتعرف على صاحبه من صوته وينظر لـ الكاميرا بحب</p>
+                    <p><strong>المدة:</strong> 15 ثانية (Clip A: تنتبه + تصور علمي 8s) + (Clip B: اتصال عاطفي 8s)</p>
+                    <p><strong>الإضاءة:</strong> Natural aquarium 5200K → Cyan scientific → Warm golden 5600K</p>
+                    <p><strong>الموسيقى:</strong> Wonder building → emotional revelation → warmth</p>
+                    <p><strong>الأسماك:</strong> Oscar Fish (عيون كبيرة، ذكي، يتفاعل مع صاحبه)</p>
+                </div>
+            </div>
+
+            <!-- Tuesday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الثلاثاء 22 فبراير</div>
+                        <div class="day-name">V8: خرافة عمر السمك</div>
+                    </div>
+                    <div class="best-time">⏰ 12:00-2:00 ظهراً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية) - مميز</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>هذا الخطأ الكبير يقتل أسماكك! 🤯</strong></p>
+                    <p>تعتقد سمكتك تعيش أسابيع؟ خطأ شنيع!</p>
+                    <p>Tish - أطول سمكة ذهبية في التاريخ عاشت 43 سنة! 🏆 (1956-1999)</p>
+                    <p>الموت المبكر = عناية خاطئة، وليس قدر السمك!</p>
+                    <p>كم سنة عاشت أطول سمكة عندك؟ 👇💙<br>#FishMyths #FishKeeping #AQUAVO #WellActually</p>
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    📊 ملاحظات الإنتاج - V8
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>القصة:</strong> سمكة ذهبية عجوزة حكيمة → تاريخ Tish → سمكة صحية تسبح بنشاط</p>
+                    <p><strong>التحول:</strong> صدمة (43 سنة!) → تعليم (أسطورة حقيقية) → آمل (يمكن لسمكتك أيضاً)</p>
+                    <p><strong>الموسيقى:</strong> Shocking wonder → legendary tribute → hopeful resolution</p>
+                </div>
+            </div>
+
+            <!-- Wednesday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الأربعاء 23 فبراير</div>
+                        <div class="day-name">V9: لماذا تختبئ سمكتك</div>
+                    </div>
+                    <div class="best-time">⏰ 12:00-2:00 ظهراً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية) - مميز</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>سمكتك تختبئ؟ 😰 هذا يعني شيء!</strong></p>
+                    <p>الاختباء ليس طبيعي... إلا إذا كانت خائفة أو مريضة</p>
+                    <p>علامات التوتر عند الأسماك 🚨</p>
+                    <p>✅ تحسين جودة الماء ✅ إزالة الأسماك العدوانية ✅ أماكن اختباء صحية</p>
+                    <p>البيئة الآمنة = سمكة سعيدة وواثقة 💚<br>#AquariumCare #FishHealth #AQUAVO #Tips</p>
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    📊 ملاحظات الإنتاج - V9
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>القصة:</strong> Neon Tetra خائفة مختبئة → عرض علامات التوتر → خروج واثق من المخبئ</p>
+                    <p><strong>التحول البصري:</strong> إضاءة مظلمة قاسية → تشخيصية → دافئة وآمنة</p>
+                    <p><strong>الرسالة:</strong> المشكلة عند صاحب الحوض، وليس السمكة</p>
+                </div>
+            </div>
+
+            <!-- Thursday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الخميس 24 فبراير</div>
+                        <div class="day-name">V10: وداعاً يا صديقي 💔</div>
+                    </div>
+                    <div class="best-time">⏰ 6:00-8:00 مساءً</div>
+                </div>
+
+                <span class="content-type">🎬 ريلز (15 ثانية) - عاطفي</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>وداعاً يا صديقي 💔</strong></p>
+                    <p>عاشت معي سنين... وكانت أفضل رفيقة كل يوم 🐟</p>
+                    <p>اليوم راحت بسلام... لكن الذكريات باقية 💙</p>
+                    <p>لكل من فقد سمكته وشعر أن حزنه ما يقدره حد... أنت ما وحدك</p>
+                    <p>شاركونا قصصكم 👇❤️<br>#PetLoss #MemorialDay #AQUAVO #FishLove</p>
+                </div>
+
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    📊 ملاحظات الإنتاج - V10 (عاطفي جداً)
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>القصة:</strong> ذكرى جميلة دافئة → لحظات يومية معاً → وداع سلمي</p>
+                    <p><strong>التحول البصري:</strong> ذكرى ذهبية دافئة 4200K → اتصال حميمي → سلام إثيري 5400K مع أشعة ناعمة</p>
+                    <p><strong>⚠️ IMPORTANT:</strong> بلا صور مؤلمة أو سمكة مريضة! ركز على الحب والذكريات، وليس الفقد</p>
+                    <p><strong>الفيروسية:</strong> محتوى عاطفي = تعليقات عالية جداً (الناس تشارك قصصهم)</p>
+                </div>
+            </div>
+
+            <!-- Friday -->
+            <div class="day-card">
+                <div class="day-header">
+                    <div class="day-info">
+                        <div class="day-date">الجمعة 25 فبراير</div>
+                        <div class="day-name">أفضل لحظات الأسبوع</div>
+                    </div>
+                    <div class="best-time">⏰ 9:00 صباحاً</div>
+                </div>
+
+                <span class="content-type">📊 إحصائيات + Reels Best Of</span>
+
+                <h4 class="section-title">📝 الكابشن</h4>
+                <div class="caption-box">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">نسخ</button>
+                    <p><strong>الأسبوع الثاني بـ AQUAVO: لحظات لن تنساها 🐟</strong></p>
+                    <p>من الحب والذكريات إلى الحقائق العلمية المدهشة</p>
+                    <p>شكراً على 5000+ تفاعل هذا الأسبوع! ❤️</p>
+                    <p>تابعونا الأسبوع القادم لمفاجآت جديدة 🚀<br>#AQUAVO #CommunityPower #FishLove</p>
+                </div>
+            </div>
+
+            <!-- Reposting Schedule -->
+            <div class="day-card" style="background: rgba(0, 168, 132, 0.1); border: 2px dashed var(--seafoam);">
+                <h4 class="section-title">📅 جدول إعادة النشر (Reposting)</h4>
+                <p style="color: var(--text-gray); margin: 15px 0;">
+                    <strong>السبت 26:</strong> أفضل ريل من الأسبوع (V7 أو V10)<br>
+                    <strong>الأحد 27:</strong> أفضل منشور تفاعلاً (Stories Compilation)<br>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEKS 3-7 COMPACT VERSION -->
+    <div id="week3" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع الثالث: الاستمرارية (28 فبراير - 6 مارس)</h2>
+            <div class="day-card">
+                <p style="text-align: center; color: var(--seafoam); font-size: 1.1em; font-weight: bold; margin: 20px 0;">
+                    ⚙️ هذا الأسبوع يتبع نفس نمط الأسبوع الأول مع تبديل الكابشنات والمحتوى<br>
+                    🔄 استخدم نفس المنصات والأوقات الأمثل
+                </p>
+                <div class="collapsible" onclick="toggleCollapsible(this)">
+                    📋 ملخص المحتوى المقترح
+                    <span class="collapsible-icon">▼</span>
+                </div>
+                <div class="collapsible-content">
+                    <p><strong>السبت 28:</strong> مذكرات سمكة - الحلقة 4 (حول التفاعل)<br>
+                    <strong>الأحد 1 مارس:</strong> عوالم مصغرة - Japanese Garden Style<br>
+                    <strong>الإثنين 2:</strong> Species Spotlight - Neon Tetra<br>
+                    <strong>الثلاثاء 3:</strong> مذكرات سمكة - الحلقة 5<br>
+                    <strong>الأربعاء 4:</strong> Community Roast - AI Edition<br>
+                    <strong>الخميس 5:</strong> مذكرات سمكة - الحلقة 6<br>
+                    <strong>الجمعة 6:</strong> حوض الأسبوع + إحصائيات</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WEEKS 4-7 SIMPLIFIED -->
+    <div id="week4" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع الرابع: التوسع (7-13 مارس)</h2>
+            <div class="day-card" style="background: rgba(0, 168, 132, 0.15); border: 2px solid var(--seafoam);">
+                <p style="text-align: center; margin: 20px 0; font-size: 1.05em;">
+                    <strong>🎯 استراتيجية الأسبوع الرابع:</strong><br>
+                    البدء باختبار محتوى جديد بناءً على تفاعل الأسابيع السابقة
+                </p>
+                <h4 class="section-title">🔥 محتوى عالي الأداء</h4>
+                <p>كرر أفضل 3 ريلز من الأسابيع السابقة<br>
+                أضف 2 ريلز جديدة (topics: Water Chemistry, Aquascaping Mistakes)</p>
+
+                <h4 class="section-title">📊 تحليل البيانات</h4>
+                <p>✅ أي أنواع محتوى حصلت على أعلى engagement؟<br>
+                ✅ أي أوقات النشر الأفضل؟<br>
+                ✅ ما الكابشنات اللي حققت أعلى تفاعل؟</p>
+
+                <h4 class="section-title">🎬 أفكار جديدة للأسبوع الرابع</h4>
+                <div class="stories-grid">
+                    <div class="story-item">
+                        <div class="story-number">1</div>
+                        <div class="story-type">التحدي</div>
+                        <div class="story-desc">تغيير الماء الصحيح</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">2</div>
+                        <div class="story-type">تعليمي</div>
+                        <div class="story-desc">الأخطاء الشائعة #1</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">3</div>
+                        <div class="story-type">تصوير</div>
+                        <div class="story-desc">Aquascaping in 60 seconds</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="week5" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع الخامس: المرحلة الثانية (14-20 مارس)</h2>
+            <div class="day-card">
+                <p style="text-align: center; margin: 20px 0; font-size: 1.05em; color: var(--coral);">
+                    <strong>🚀 نقطة فحص منتصف الرحلة</strong>
+                </p>
+                <h4 class="section-title">📈 الأهداف</h4>
+                <p>✅ الوصول إلى 50K متابع (إن أمكن)<br>
+                ✅ متوسط engagement rate 8-12%<br>
+                ✅ 100K+ views على كل ريل</p>
+
+                <h4 class="section-title">🎯 محتوى مقترح</h4>
+                <p><strong>الأفكار الفائزة:</strong> كرر أفضل 5 ريلز<br>
+                <strong>تجارب جديدة:</strong> Collab مع حساب آخر / Behind the Scenes</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="week6" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع السادس: التقوية (21-27 مارس)</h2>
+            <div class="day-card">
+                <h4 class="section-title">🎯 استراتيجية النهاية</h4>
+                <p>💪 استمرار مع المحتوى الرابح<br>
+                🎁 إطلاق منتج أو خدمة جديدة (إن أمكن)<br>
+                🤝 شراكات مع حسابات أخرى</p>
+
+                <h4 class="section-title">📊 اختبار موضوعات جديدة</h4>
+                <div class="stories-grid">
+                    <div class="story-item">
+                        <div class="story-number">1</div>
+                        <div class="story-type">استعراض</div>
+                        <div class="story-desc">معدات جديدة</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">2</div>
+                        <div class="story-type">تحدي</div>
+                        <div class="story-desc">Build a Tank in 24h</div>
+                    </div>
+                    <div class="story-item">
+                        <div class="story-number">3</div>
+                        <div class="story-type">توعوي</div>
+                        <div class="story-desc">الأسماك المهددة</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="week7" class="week-container">
+        <div class="container">
+            <h2 style="text-align: center; margin: 30px 0; color: var(--coral); font-size: 1.8em;">🗓️ الأسبوع السابع: الختام (28-31 مارس)</h2>
+            <div class="day-card">
+                <h4 class="section-title">🏁 نهاية الرحلة الأولى</h4>
+                <p><strong>الإثنين 28:</strong> أفضل محتوى الشهر (Compilation)<br>
+                <strong>الثلاثاء 29:</strong> شكر للمتابعين + نتائج الشهر<br>
+                <strong>الأربعاء 30:</strong> تشويق للشهر القادم<br>
+                <strong>الخميس 31:</strong> مفاجأة خاصة / إعلان جديد</p>
+
+                <h4 class="section-title">📊 إحصائيات نهائية المتوقعة</h4>
+                <div style="background: rgba(0, 77, 97, 0.2); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                    <p>🎯 <strong>المتابعون المتوقعون:</strong> 50K-100K<br>
+                    📈 <strong>معدل الاستجابة:</strong> 10-15%<br>
+                    💬 <strong>عدد التعليقات:</strong> 5K+ تعليق<br>
+                    🔄 <strong>المشاركات:</strong> 2K+ مشاركة<br>
+                    ❤️ <strong>إجمالي الإعجابات:</strong> 200K+</p>
+                </div>
+
+                <h4 class="section-title">🚀 الخطوات التالية</h4>
+                <p>✅ تحليل شامل للأداء<br>
+                ✅ تحديد أفضل محتوى + أسوأ محتوى<br>
+                ✅ خطة الشهر الثاني بناءً على البيانات<br>
+                ✅ تطوير منتجات/خدمات جديدة</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="background: rgba(0, 77, 97, 0.1); padding: 30px 20px; text-align: center; margin-top: 50px; border-top: 2px solid var(--border);">
+        <p style="color: var(--text-gray); margin: 10px 0;">
+            📅 <strong>تم إنشاء هذه الخطة:</strong> 14 فبراير 2026<br>
+            🎯 <strong>الفترة الزمنية:</strong> 14 فبراير - 31 مارس 2026 (6-7 أسابيع)<br>
+            🔗 <strong>المنصات:</strong> Instagram + TikTok + Facebook
+        </p>
+        <p style="color: var(--coral); font-weight: bold; margin-top: 20px;">
+            💡 تذكير: حدّث الخطة أسبوعياً بناءً على البيانات والتفاعل!
+        </p>
+    </div>
+
+    <!-- Dark Mode Toggle Button -->
+    <button class="dark-mode-toggle" onclick="toggleDarkMode()" title="تبديل الوضع الليلي">🌙</button>
+
+    <!-- Scripts -->
+    <script>
+        function showWeek(weekId) {
+            // Hide all weeks
+            const weeks = document.querySelectorAll('.week-container');
+            weeks.forEach(week => week.classList.remove('active'));
+
+            // Show selected week
+            document.getElementById(weekId).classList.add('active');
+
+            // Update active button
+            const buttons = document.querySelectorAll('.week-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function copyToClipboard(btn) {
+            const text = btn.nextElementSibling.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                btn.textContent = '✓ تم النسخ!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'نسخ';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+
+        function toggleCollapsible(element) {
+            element.classList.toggle('active');
+            const content = element.nextElementSibling;
+            if (content && content.classList.contains('collapsible-content')) {
+                content.classList.toggle('show');
+            }
+        }
+
+        function expandAll() {
+            const collapsibles = document.querySelectorAll('.collapsible');
+            collapsibles.forEach(c => {
+                c.classList.add('active');
+                c.nextElementSibling?.classList.add('show');
+            });
+        }
+
+        function collapseAll() {
+            const collapsibles = document.querySelectorAll('.collapsible');
+            collapsibles.forEach(c => {
+                c.classList.remove('active');
+                c.nextElementSibling?.classList.remove('show');
+            });
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('light-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        }
+
+        function printPage() {
+            window.print();
+        }
+
+        // Load theme preference
+        window.addEventListener('load', () => {
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+            }
+        });
+
+        // Smooth scroll for anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

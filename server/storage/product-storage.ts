@@ -149,6 +149,15 @@ export class ProductStorage {
         return result[0];
     }
 
+    async getProductsByIds(ids: string[]): Promise<Product[]> {
+        if (ids.length === 0) return [];
+        const db = this.ensureDb();
+        const result = await db.select().from(products).where(inArray(products.id, ids));
+        // Preserve the order of the input IDs
+        const productMap = new Map(result.map(p => [p.id, p]));
+        return ids.map(id => productMap.get(id)).filter((p): p is Product => p !== undefined);
+    }
+
     async getProductBySlug(slug: string): Promise<Product | undefined> {
         const db = this.ensureDb();
         const result = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
@@ -476,11 +485,6 @@ export class ProductStorage {
             // 1. Get Top Sales IDs (Smart/Automatic)
             const topSalesIds = await this.getHighSalesProductIds(10);
 
-            // 2. Logic:
-            // - Manual flag is heavily weighted
-            // - Real Sales Data is weighted (Smart)
-            // - High Rating is fallback
-
             // Base condition for Best Seller
             const bestSellerCondition = or(
                 eq(products.isBestSeller, true),
@@ -488,10 +492,18 @@ export class ProductStorage {
                 and(gt(products.rating, '4.0'), gt(products.reviewCount, 0))
             );
 
-            let bestSellers = await db.select().from(products)
-                .where(and(bestSellerCondition, isNull(products.deletedAt)))
-                .orderBy(desc(products.isBestSeller), desc(products.rating))
-                .limit(12);
+            // 2. Run bestSellers + productOfWeek queries in PARALLEL
+            const [bestSellersResult, explicitProductOfWeek] = await Promise.all([
+                db.select().from(products)
+                    .where(and(bestSellerCondition, isNull(products.deletedAt)))
+                    .orderBy(desc(products.isBestSeller), desc(products.rating))
+                    .limit(12),
+                db.select().from(products)
+                    .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt)))
+                    .limit(1),
+            ]);
+
+            let bestSellers = bestSellersResult;
 
             // Fallback if still empty (just get newest)
             if (bestSellers.length === 0) {
@@ -500,11 +512,6 @@ export class ProductStorage {
                     .orderBy(desc(products.createdAt))
                     .limit(10);
             }
-
-            // Get product of the week: Prefer explicitly marked product
-            const explicitProductOfWeek = await db.select().from(products)
-                .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt)))
-                .limit(1);
 
             let productOfWeek = explicitProductOfWeek.length > 0 ? explicitProductOfWeek[0] : null;
 

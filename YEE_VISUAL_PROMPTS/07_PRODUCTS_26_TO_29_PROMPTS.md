@@ -28,7 +28,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -118,7 +132,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -175,7 +203,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -222,7 +264,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -266,7 +322,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -318,6 +388,19 @@
   "model": "gemini-2.5-flash-image",
   "task_type": "enhancement",
   "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -496,7 +579,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -549,6 +646,19 @@
   "model": "gemini-2.5-flash-image",
   "task_type": "enhancement",
   "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -600,7 +710,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -637,7 +761,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -673,7 +811,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -709,7 +861,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -753,6 +919,19 @@
   "model": "gemini-2.5-flash-image",
   "task_type": "enhancement",
   "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -803,7 +982,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -840,7 +1033,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -877,7 +1084,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",
@@ -914,7 +1135,21 @@
 ```json
 {
   "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
+  "task_type": "enhancement",
+  "reference_image_policy": "STRICT_ADHERENCE",
+  "product_preservation": {
+    "mode": "ABSOLUTE_LOCK",
+    "rules": [
+      "DO NOT modify, alter, or change the product in any way",
+      "DO NOT add elements to the product that don't exist in the reference",
+      "DO NOT remove any details from the product",
+      "DO NOT change product colors, shape, or proportions",
+      "DO NOT reposition labels, logos, or text on the product",
+      "PRESERVE 100% of the original product appearance"
+    ],
+    "allowed_changes": "ONLY background, lighting, and environment can be enhanced",
+    "product_lock": true
+  },
   "watermark": {
     "enabled": true,
     "position": "bottom_right_corner (fixed)",

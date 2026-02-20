@@ -78,10 +78,7 @@ export function createProductRouter(): RouterType {
                 const { productIds, method } = await recommendationEngine.getPersonalizedRecommendations(userId, 8);
 
                 if (productIds.length > 0) {
-                    const products = await Promise.all(
-                        productIds.map(id => storage.getProduct(id))
-                    );
-                    const validProducts = products.filter(Boolean);
+                    const validProducts = await storage.getProductsByIds(productIds);
                     if (validProducts.length > 0) {
                         res.json({ products: validProducts, personalized: true, method });
                         return;
@@ -121,10 +118,13 @@ export function createProductRouter(): RouterType {
                     predictedDate: p.predictedDate,
                 }));
 
-                // Fetch product details
-                const results = await Promise.all(
-                    mapped.map(async (pred) => {
-                        const product = await storage.getProduct(pred.productId);
+                // Fetch product details in batch
+                const productIds = mapped.map(p => p.productId);
+                const fetchedProducts = await storage.getProductsByIds(productIds);
+                const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
+                const results = mapped
+                    .map(pred => {
+                        const product = productMap.get(pred.productId);
                         if (!product) return null;
                         return {
                             product,
@@ -133,17 +133,20 @@ export function createProductRouter(): RouterType {
                             predictedDate: pred.predictedDate?.toISOString() ?? null,
                         };
                     })
-                );
+                    .filter(Boolean);
 
-                res.json({ predictions: results.filter(Boolean) });
+                res.json({ predictions: results });
                 return;
             }
 
-            // Saved predictions: fetch product details
+            // Saved predictions: fetch product details in batch
             const topPredictions = predictions.slice(0, 5);
-            const results = await Promise.all(
-                topPredictions.map(async (pred) => {
-                    const product = await storage.getProduct(pred.productId);
+            const predProductIds = topPredictions.map(p => p.productId);
+            const fetchedProducts = await storage.getProductsByIds(predProductIds);
+            const productMap = new Map(fetchedProducts.map(p => [p.id, p]));
+            const results = topPredictions
+                .map(pred => {
+                    const product = productMap.get(pred.productId);
                     if (!product) return null;
                     return {
                         product,
@@ -152,9 +155,9 @@ export function createProductRouter(): RouterType {
                         predictedDate: pred.predictedDate?.toISOString() ?? null,
                     };
                 })
-            );
+                .filter(Boolean);
 
-            res.json({ predictions: results.filter(Boolean) });
+            res.json({ predictions: results });
         } catch (err) {
             next(err);
         }
@@ -191,12 +194,11 @@ export function createProductRouter(): RouterType {
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 4);
 
-            const suggestions = await Promise.all(
-                sorted.map(async ([id]) => storage.getProduct(id))
-            );
+            const suggestionIds = sorted.map(([id]) => id);
+            const suggestions = await storage.getProductsByIds(suggestionIds);
 
             res.json({
-                suggestions: suggestions.filter(Boolean),
+                suggestions,
                 reason: "أكمل حوضك - منتجات تُشترى عادةً معاً",
             });
         } catch (err) {
@@ -229,10 +231,8 @@ export function createProductRouter(): RouterType {
             if (semanticResults.length > 0) {
                 // Filter to decent similarity threshold
                 const relevant = semanticResults.filter(r => r.similarity > 0.3);
-                const products = await Promise.all(
-                    relevant.slice(0, 12).map(r => storage.getProduct(r.productId))
-                );
-                const validProducts = products.filter(Boolean);
+                const relevantIds = relevant.slice(0, 12).map(r => r.productId);
+                const validProducts = await storage.getProductsByIds(relevantIds);
 
                 if (validProducts.length > 0) {
                     trackSearchPromise(validProducts.length);

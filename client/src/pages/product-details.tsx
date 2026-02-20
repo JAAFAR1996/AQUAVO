@@ -373,7 +373,7 @@ export default function ProductDetails() {
                 </div>
 
                 {/* Description */}
-                <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+                <p className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
                   {product.description}
                 </p>
 
@@ -707,21 +707,33 @@ export default function ProductDetails() {
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="font-semibold mb-2">طريقة الاستخدام</h4>
-                      <ul className="list-decimal list-inside space-y-1 text-muted-foreground">
-                        <li>اقرأ التعليمات الموجودة على العبوة بعناية</li>
-                        <li>استخدم المنتج حسب التوصيات المذكورة</li>
-                        <li>احفظ المنتج في مكان بارد وجاف بعيداً عن أشعة الشمس</li>
-                        <li>تأكد من صلاحية المنتج قبل الاستخدام</li>
-                      </ul>
+                      {product.specifications?.["طريقة الاستخدام"] ? (
+                        <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+                          {product.specifications["طريقة الاستخدام"]}
+                        </p>
+                      ) : (
+                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground">
+                          <li>اقرأ التعليمات الموجودة على العبوة بعناية</li>
+                          <li>استخدم المنتج حسب التوصيات المذكورة</li>
+                          <li>احفظ المنتج في مكان بارد وجاف بعيداً عن أشعة الشمس</li>
+                          <li>تأكد من صلاحية المنتج قبل الاستخدام</li>
+                        </ul>
+                      )}
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">تحذيرات الأمان</h4>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>احفظ المنتج بعيداً عن متناول الأطفال</li>
-                        <li>لا تستخدم المنتج بكميات أكبر من الموصى بها</li>
-                        <li>في حالة ملامسة العينين، اغسلهما فوراً بالماء</li>
-                        <li>استشر خبير أحواض السمك عند الشك</li>
-                      </ul>
+                      {product.specifications?.["تحذيرات"] ? (
+                        <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+                          {product.specifications["تحذيرات"]}
+                        </p>
+                      ) : (
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          <li>احفظ المنتج بعيداً عن متناول الأطفال</li>
+                          <li>لا تستخدم المنتج بكميات أكبر من الموصى بها</li>
+                          <li>في حالة ملامسة العينين، اغسلهما فوراً بالماء</li>
+                          <li>استشر خبير أحواض السمك عند الشك</li>
+                        </ul>
+                      )}
                     </div>
                   </CardContent>
                 </Card>

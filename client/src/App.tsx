@@ -15,23 +15,17 @@ import { initGA, trackPageView } from "@/lib/analytics";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
 import "@/lib/sentry"; // Auto-initializes on import
 
-import { WinnerNotificationBanner } from "@/components/notifications/winner-notification-banner";
-import { OnboardingTour } from "@/components/onboarding-tour";
-
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
-import { LiveChatWidget } from "@/components/chat/live-chat-widget";
-import { AIChatBot } from "@/components/chat/ai-chat-bot";
 
-// Direct imports for critical pages (needed for fast first paint)
+// Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
 import Products from "@/pages/products";
-import NotFound from "@/pages/404";
 
-// Lazy load heavy pages for better performance (code splitting)
+// Lazy load ALL non-critical pages for better performance (code splitting)
+const NotFound = lazy(() => import("@/pages/404"));
 const Journey = lazy(() => import("@/pages/journey"));
-
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const FishBreedingCalculator = lazy(() => import("@/pages/fish-breeding-calculator"));
 const FishEncyclopedia = lazy(() => import("@/pages/fish-encyclopedia"));
@@ -41,7 +35,6 @@ const Profile = lazy(() => import("@/pages/profile"));
 const FAQ = lazy(() => import("@/pages/faq"));
 const Calculators = lazy(() => import("@/pages/calculators"));
 const FishHealthDiagnosis = lazy(() => import("@/pages/fish-health-diagnosis"));
-
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const OrderConfirmation = lazy(() => import("@/pages/order-confirmation"));
@@ -56,25 +49,24 @@ const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 const EarlyAccess = lazy(() => import("@/pages/early-access"));
 const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
+const Deals = lazy(() => import("@/pages/deals"));
+const Wishlist = lazy(() => import("@/pages/wishlist"));
+const SearchResults = lazy(() => import("@/pages/search-results"));
+const Sustainability = lazy(() => import("@/pages/sustainability"));
+const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
+const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
+const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
+const Terms = lazy(() => import("@/pages/terms"));
+const OrderTracking = lazy(() => import("@/pages/order-tracking"));
+const AdminLogin = lazy(() => import("@/pages/admin-login"));
+const Shipping = lazy(() => import("@/pages/shipping"));
+const Login = lazy(() => import("@/pages/login"));
+const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 
-
-// Medium-weight pages (direct imports for faster navigation)
-
-import Deals from "@/pages/deals";
-import Wishlist from "@/pages/wishlist";
-import SearchResults from "@/pages/search-results";
-
-import Sustainability from "@/pages/sustainability";
-
-import EcoFriendlyGuide from "@/pages/guides-eco-friendly";
-import ReturnPolicy from "@/pages/return-policy";
-import PrivacyPolicy from "@/pages/privacy-policy";
-import Terms from "@/pages/terms";
-import OrderTracking from "@/pages/order-tracking";
-import AdminLogin from "@/pages/admin-login";
-import Shipping from "@/pages/shipping";
-import Login from "@/pages/login";
-import ForgotPassword from "@/pages/forgot-password";
+// Lazy load heavy global components
+const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
+const OnboardingTour = lazy(() => import("@/components/onboarding-tour").then(m => ({ default: m.OnboardingTour })));
+const WinnerNotificationBanner = lazy(() => import("@/components/notifications/winner-notification-banner").then(m => ({ default: m.WinnerNotificationBanner })));
 
 
 
@@ -122,7 +114,15 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/guides/eco-friendly" component={EcoFriendlyGuide} />
+      <Route path="/guides/eco-friendly">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EcoFriendlyGuide />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Beginner Guide */}
       <Route path="/beginner-guide">
@@ -202,9 +202,15 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/deals" component={Deals} />
-      <Route path="/wishlist" component={Wishlist} />
-      <Route path="/search" component={SearchResults} />
+      <Route path="/deals">
+        {() => (<Suspense fallback={<PageLoader />}><Deals /></Suspense>)}
+      </Route>
+      <Route path="/wishlist">
+        {() => (<Suspense fallback={<PageLoader />}><Wishlist /></Suspense>)}
+      </Route>
+      <Route path="/search">
+        {() => (<Suspense fallback={<PageLoader />}><SearchResults /></Suspense>)}
+      </Route>
 
       {/* Lazy loaded compare page */}
       <Route path="/compare">
@@ -252,10 +258,18 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/sustainability" component={Sustainability} />
-      <Route path="/return-policy" component={ReturnPolicy} />
-      <Route path="/privacy-policy" component={PrivacyPolicy} />
-      <Route path="/terms" component={Terms} />
+      <Route path="/sustainability">
+        {() => (<Suspense fallback={<PageLoader />}><Sustainability /></Suspense>)}
+      </Route>
+      <Route path="/return-policy">
+        {() => (<Suspense fallback={<PageLoader />}><ReturnPolicy /></Suspense>)}
+      </Route>
+      <Route path="/privacy-policy">
+        {() => (<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>)}
+      </Route>
+      <Route path="/terms">
+        {() => (<Suspense fallback={<PageLoader />}><Terms /></Suspense>)}
+      </Route>
 
 
 
@@ -280,7 +294,9 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/order-tracking" component={OrderTracking} />
+      <Route path="/order-tracking">
+        {() => (<Suspense fallback={<PageLoader />}><OrderTracking /></Suspense>)}
+      </Route>
 
       {/* Lazy loaded blog */}
       <Route path="/blog">
@@ -315,8 +331,12 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/shipping" component={Shipping} />
-      <Route path="/login" component={Login} />
+      <Route path="/shipping">
+        {() => (<Suspense fallback={<PageLoader />}><Shipping /></Suspense>)}
+      </Route>
+      <Route path="/login">
+        {() => (<Suspense fallback={<PageLoader />}><Login /></Suspense>)}
+      </Route>
 
       {/* Lazy loaded register */}
       <Route path="/register">
@@ -340,9 +360,13 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/forgot-password">
+        {() => (<Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense>)}
+      </Route>
 
-      <Route path="/admin/login" component={AdminLogin} />
+      <Route path="/admin/login">
+        {() => (<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>)}
+      </Route>
 
       {/* Lazy loaded admin dashboard */}
       <Route path="/admin">
@@ -420,7 +444,9 @@ function Router() {
         )}
       </Route>
 
-      <Route component={NotFound} />
+      <Route>
+        {() => (<Suspense fallback={<PageLoader />}><NotFound /></Suspense>)}
+      </Route>
     </Switch>
   );
 }
@@ -451,12 +477,18 @@ function App() {
                   <ScrollProgress />
                   <FloatingActionButton />
 
-                  <WinnerNotificationBanner />
+                  <Suspense fallback={null}>
+                    <WinnerNotificationBanner />
+                  </Suspense>
 
                   <Toaster />
-                  <AIChatBot />
+                  <Suspense fallback={null}>
+                    <AIChatBot />
+                  </Suspense>
                   <Router />
-                  <OnboardingTour />
+                  <Suspense fallback={null}>
+                    <OnboardingTour />
+                  </Suspense>
                 </TooltipProvider>
               </NavbarPreferencesProvider>
             </ComparisonProvider>

@@ -15,6 +15,7 @@ export interface IStorage {
     getProducts(filters?: ProductFilters): Promise<Product[]>;
     getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }>;
     getProduct(id: string): Promise<Product | undefined>;
+    getProductsByIds(ids: string[]): Promise<Product[]>;
     getProductBySlug(slug: string): Promise<Product | undefined>;
     createProduct(product: Partial<Product>): Promise<Product>;
     updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
@@ -155,6 +156,7 @@ class CombinedStorage implements IStorage {
     getProducts = this.productStorage.getProducts.bind(this.productStorage);
     getProductAttributes = this.productStorage.getProductAttributes.bind(this.productStorage);
     getProduct = this.productStorage.getProduct.bind(this.productStorage);
+    getProductsByIds = this.productStorage.getProductsByIds.bind(this.productStorage);
     getProductBySlug = this.productStorage.getProductBySlug.bind(this.productStorage);
     createProduct = this.productStorage.createProduct.bind(this.productStorage);
     updateProduct = this.productStorage.updateProduct.bind(this.productStorage);
@@ -227,12 +229,10 @@ class CombinedStorage implements IStorage {
             const trending = await analyticsTracker.getTrendingProducts(7, 8);
 
             if (trending.length > 0) {
-                // Get product details
+                // Get product details in batch (single query)
                 const productIds = trending.map((t: any) => t.productId);
-                const products = await Promise.all(
-                    productIds.map((id: string) => this.productStorage.getProduct(id))
-                );
-                return products.filter((p): p is Product => p !== undefined && (p.stock ?? 0) > 0);
+                const products = await this.productStorage.getProductsByIds(productIds);
+                return products.filter(p => (p.stock ?? 0) > 0);
             }
 
             // Fallback: Get highly-rated products with stock
@@ -258,11 +258,9 @@ class CombinedStorage implements IStorage {
             const coProductIds = await recommendationEngine.getFrequentlyBoughtTogether(productId, 4);
 
             if (coProductIds.length > 0) {
-                // Get product details
-                const products = await Promise.all(
-                    coProductIds.map((id: string) => this.productStorage.getProduct(id))
-                );
-                return products.filter((p): p is Product => p !== undefined && (p.stock ?? 0) > 0);
+                // Get product details in batch (single query)
+                const products = await this.productStorage.getProductsByIds(coProductIds);
+                return products.filter(p => (p.stock ?? 0) > 0);
             }
 
             // Fallback: Get products from the same category
@@ -294,12 +292,10 @@ class CombinedStorage implements IStorage {
                 const similarByEmbedding = await embeddingGenerator.findSimilarByEmbedding(productId, 5);
 
                 if (similarByEmbedding.length > 0) {
-                    // Get product details
+                    // Get product details in batch (single query)
                     const productIds = similarByEmbedding.map((s: any) => s.productId);
-                    const products = await Promise.all(
-                        productIds.map((id: string) => this.productStorage.getProduct(id))
-                    );
-                    return products.filter((p): p is Product => p !== undefined && (p.stock ?? 0) > 0);
+                    const products = await this.productStorage.getProductsByIds(productIds);
+                    return products.filter(p => (p.stock ?? 0) > 0);
                 }
             } catch (embeddingError) {
                 console.log('[Storage] Embedding similarity not available, using fallback');

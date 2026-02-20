@@ -1,24 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useCallback } from "react";
 
 export function ScrollProgress() {
-  const [scrollProgress, setScrollProgress] = useState(0);
+  const barRef = useRef<HTMLDivElement>(null);
+  const rafId = useRef<number>(0);
+
+  const handleScroll = useCallback(() => {
+    if (rafId.current) return;
+    rafId.current = requestAnimationFrame(() => {
+      if (barRef.current) {
+        const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progress = totalHeight > 0 ? (window.scrollY / totalHeight) * 100 : 0;
+        barRef.current.style.width = `${progress}%`;
+      }
+      rafId.current = 0;
+    });
+  }, []);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = (window.scrollY / totalHeight) * 100;
-      setScrollProgress(progress);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
     };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [handleScroll]);
 
   return (
     <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-50 pointer-events-none">
       <div
-        className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary transition-all duration-150 ease-out"
-        style={{ width: `${scrollProgress}%` }}
+        ref={barRef}
+        className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary"
+        style={{ width: "0%" }}
       />
     </div>
   );
