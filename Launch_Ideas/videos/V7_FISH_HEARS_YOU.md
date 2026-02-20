@@ -34,13 +34,13 @@
         "time": "0-3s",
         "name": "الخطاف المدهش - Amazing Hook",
         "description": "شخص يتكلم مع سمكته، السمكة تتفاعل وتقترب",
-        "text_overlay": "🐟 يوم مربي الأسماك | سمكتك تسمعك!",
+        "text_overlay": "� يوم حب حيوانك الأليف | سمكتك تسمعك!",
         "emotion": "curiosity, surprise"
       },
       "ACT_2": {
         "time": "3-8s",
         "name": "الحقيقة العلمية - Scientific Truth",
-        "description": "تصور لأذن السمكة الداخلية مع موجات صوتية",
+        "description": "تصور لأذن السمكة الداخلية مع موجات صوتية قادمة من الخارج نحو السمكة",
         "text_overlay": "العلم أثبت: سمكتك تعرف صاحبها من بين ٤٤ شخص! 🧠",
         "emotion": "revelation, amazement"
       },
@@ -48,7 +48,7 @@
         "time": "8-12s",
         "name": "التواصل - Connection",
         "description": "السمكة تستجيب وتقترب من الزجاج نحو صاحبها",
-        "text_overlay": "يوم مربي الأسماك 🐟 أنت مو بس صاحب حوض...",
+        "text_overlay": "يوم حب حيوانك الأليف � أنت مو بس صاحب حوض...",
         "emotion": "emotional connection, warmth"
       },
       "ACT_4": {
@@ -80,7 +80,7 @@
       {
         "finding": "Fish have specialized organs for hearing: cilia, bladders, otoliths",
         "source": "NIH - Fish bioacoustics",
-        "visual_use": "show sound waves entering fish"
+        "visual_use": "show sound waves traveling FROM human/outside TOWARD fish head — fish is the RECEIVER, not the source"
       },
       {
         "finding": "Archerfish can recognize and remember human faces with 80%+ accuracy",
@@ -194,7 +194,7 @@
     
     "specific_text": {
       "text_1": {
-        "text": "🐟 يوم مربي الأسماك | سمكتك تسمعك!",
+        "text": "� يوم حب حيوانك الأليف | سمكتك تسمعك!",
         "size": "52px",
         "tone": "celebration, amazing, surprising",
         "background": "rgba(0, 0, 0, 0.70)"
@@ -206,9 +206,9 @@
         "background": "rgba(0, 80, 120, 0.75)"
       },
       "text_3": {
-        "text": "يوم مربي الأسماك 🐟 أنت مو بس صاحب حوض...",
+        "text": "يوم حب حيوانك الأليف � أنت مو بس صاحب حوض...",
         "size": "48px",
-        "tone": "emotional, tribute, Fish Keeper Day",
+        "tone": "emotional, tribute, Love Your Pet Day",
         "background": "rgba(0, 100, 150, 0.75)"
       },
       "text_4": {
@@ -411,9 +411,10 @@
     "subject": {
       "main": "SAME Oscar Fish with sound wave visualization",
       "visualization": {
-        "style": "ethereal sound waves approaching fish",
-        "sound_waves": "cyan #00CED1 concentric rings from one side",
-        "inner_ear": "subtle glow showing hearing mechanism",
+        "style": "ethereal sound waves traveling FROM human/camera side TOWARD fish — fish is RECEIVING, not emitting",
+        "sound_waves": "cyan #00CED1 concentric rings originating from LEFT/CAMERA SIDE, getting smaller as they approach fish head",
+        "CRITICAL": "Waves must originate OUTSIDE the fish and converge TOWARD it — NOT emanate FROM the fish outward",
+        "inner_ear": "subtle glow showing hearing mechanism receiving the sound",
         "color": "#00CED1 turquoise glow"
       },
       "fish_body": "same Oscar, now closer to glass, recognizing",
@@ -422,9 +423,11 @@
     },
     
     "sound_wave_visualization": {
-      "type": "gentle cyan sound wave rings",
-      "origin": "from camera direction (human voice)",
-      "destination": "toward fish head/ear area",
+      "CRITICAL_DIRECTION": "Sound waves travel FROM human/camera/outside → TOWARD fish. The fish LISTENS, it does NOT produce sound!",
+      "type": "gentle cyan sound wave rings originating from outside/camera side",
+      "origin": "from camera direction / left side / human voice source — LARGE rings at origin",
+      "destination": "converging toward fish head/ear area — rings get SMALLER near fish",
+      "visual_logic": "Like a speaker cone sending waves to a microphone — the fish is the microphone/receiver",
       "style": "ethereal, not harsh or clinical",
       "color_scheme": "#00CED1 cyan to #00A884 teal gradient"
     },
@@ -469,7 +472,7 @@
   
   "seed": 88727,
   
-  "full_prompt_text": "Educational artistic visualization of SAME Tiger Oscar Fish with ethereal sound waves reaching toward it. Fish closer to glass with brightening recognizing expression in large Pixar-style eyes (#5D4037 amber). Cyan #00CED1 concentric sound wave rings flowing from camera direction toward fish head area, suggesting human voice being heard. Subtle glow around fish ear region showing hearing mechanism. Sound waves ethereal and magical, not clinical or harsh, transitioning to #00A884 teal as they approach fish. Same Oscar pattern clearly visible. Natural aquarium background slightly dimmed to allow cyan glow visualization. Documentary meets magical realism style. Arabic text overlay in center reads 'العلم أثبت: الأسماك تتعرف على صاحبها! 🧠' in white DIN Next Arabic Bold 48px with teal semi-transparent box. Educational revelation moment. 4K resolution, 9:16 vertical. Seed 88727."
+  "full_prompt_text": "Educational artistic visualization of SAME Tiger Oscar Fish RECEIVING sound. CRITICAL DIRECTION: Cyan #00CED1 concentric sound wave rings originate FROM the LEFT/CAMERA SIDE (representing human voice) and travel TOWARD the fish head — the fish is the LISTENER/RECEIVER, NOT the sound source. Waves are LARGE at origin (left/camera side) and get SMALLER as they converge on the fish ear area. Fish closer to glass with brightening recognizing expression in large Pixar-style eyes (#5D4037 amber). Subtle glow around fish ear region showing hearing mechanism receiving the incoming sound. Sound waves ethereal and magical, not clinical or harsh, transitioning to #00A884 teal as they approach fish. Same Oscar pattern clearly visible. Natural aquarium background slightly dimmed to allow cyan glow visualization. Documentary meets magical realism style. Arabic text overlay in center reads 'العلم أثبت: الأسماك تتعرف على صاحبها! 🧠' in white DIN Next Arabic Bold 48px with teal semi-transparent box. Educational revelation moment. 4K resolution, 9:16 vertical. Seed 88727."
 }
 ```
 
@@ -642,7 +645,7 @@
   },
   
   "veo_combined_prompt": {
-    "visual": "Cinematic 8-second video showing fish hearing human voice. START: Tiger Oscar Fish in planted aquarium turning toward camera with curious attentive expression. Large Pixar-style eyes (#5D4037 amber) focusing on viewer direction. Natural 5200K aquarium lighting. Camera gently pushes in. Fish clearly listening and orienting toward sound source. At 4s, ethereal cyan #00CED1 sound wave rings begin appearing, flowing from camera direction toward fish head. Sound waves magical and soft, not clinical. Fish moves closer to glass with brightening recognizing expression. Subtle glow around ear region. END: Close-up of fish with full sound wave visualization, multiple cyan wave rings, educational magical atmosphere. 4K resolution, 9:16 aspect, 30fps.",
+    "visual": "Cinematic 8-second video showing fish HEARING human voice. START: Tiger Oscar Fish in planted aquarium turning toward camera with curious attentive expression. Large Pixar-style eyes (#5D4037 amber) focusing on viewer direction. Natural 5200K aquarium lighting. Camera gently pushes in. Fish clearly listening and orienting toward sound source. At 4s, ethereal cyan #00CED1 sound wave rings begin appearing — CRITICAL: waves originate FROM camera/human side and travel TOWARD the fish head (fish is the RECEIVER, not the emitter). Sound waves magical and soft, not clinical, large at origin and converging smaller toward fish ear. Fish moves closer to glass with brightening recognizing expression. Subtle glow around ear region showing it receiving the sound. END: Close-up of fish with full incoming sound wave visualization, multiple cyan wave rings flowing toward it from outside. 4K resolution, 9:16 aspect, 30fps.",
     
     "audio": "Aquarium bubbles and gentle human voice humming (0-2s). Attentive listening atmosphere (2-4s). Wonder building with scientific discovery undertone (4-6s). Educational revelation moment (6-8s). No vocals, cinematic quality."
   },
@@ -790,7 +793,7 @@
 
 ---
 
-**📅 Publication Day: Friday, February 20, 2026 — يوم مربي الأسماك 🐟**
+**📅 Publication Day: Friday, February 20, 2026 — يوم حب حيوانك الأليف � National Love Your Pet Day**
 **⏰ Optimal Post Time: 6:00-7:00 PM Baghdad Time (UTC+3)**
 **📱 Platforms: Instagram Reels → TikTok → Facebook**
 
