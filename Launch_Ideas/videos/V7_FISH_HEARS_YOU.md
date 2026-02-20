@@ -34,28 +34,28 @@
         "time": "0-3s",
         "name": "الخطاف المدهش - Amazing Hook",
         "description": "شخص يتكلم مع سمكته، السمكة تتفاعل وتقترب",
-        "text_overlay": "سمكتك تسمعك! 🎵",
+        "text_overlay": "🐟 يوم مربي الأسماك | سمكتك تسمعك!",
         "emotion": "curiosity, surprise"
       },
       "ACT_2": {
         "time": "3-8s",
         "name": "الحقيقة العلمية - Scientific Truth",
         "description": "تصور لأذن السمكة الداخلية مع موجات صوتية",
-        "text_overlay": "العلم أثبت: الأسماك تتعرف على صاحبها! 🧠",
+        "text_overlay": "العلم أثبت: سمكتك تعرف صاحبها من بين ٤٤ شخص! 🧠",
         "emotion": "revelation, amazement"
       },
       "ACT_3": {
         "time": "8-12s",
         "name": "التواصل - Connection",
         "description": "السمكة تستجيب وتقترب من الزجاج نحو صاحبها",
-        "text_overlay": "تسمعك... وتعرفك! 💙",
+        "text_overlay": "يوم مربي الأسماك 🐟 أنت مو بس صاحب حوض...",
         "emotion": "emotional connection, warmth"
       },
       "ACT_4": {
         "time": "12-15s",
         "name": "دعوة للعمل - Call to Action",
         "description": "لقطة قريبة للسمكة وهي تنظر مباشرة للكاميرا",
-        "text_overlay": "جرب تكلم سمكتك! 👇",
+        "text_overlay": "أنت عائلتها ❤️ تاگ مربي يستاهل 👇",
         "emotion": "inspiration, action"
       }
     }
@@ -194,27 +194,27 @@
     
     "specific_text": {
       "text_1": {
-        "text": "سمكتك تسمعك! 🎵",
-        "size": "58px",
-        "tone": "amazing, surprising",
+        "text": "🐟 يوم مربي الأسماك | سمكتك تسمعك!",
+        "size": "52px",
+        "tone": "celebration, amazing, surprising",
         "background": "rgba(0, 0, 0, 0.70)"
       },
       "text_2": {
-        "text": "العلم أثبت: الأسماك تتعرف على صاحبها! 🧠",
-        "size": "48px",
-        "tone": "educational, revelatory",
+        "text": "العلم أثبت: سمكتك تعرف صاحبها من بين ٤٤ شخص! 🧠",
+        "size": "46px",
+        "tone": "educational, revelatory, celebration",
         "background": "rgba(0, 80, 120, 0.75)"
       },
       "text_3": {
-        "text": "تسمعك... وتعرفك! 💙",
-        "size": "56px",
-        "tone": "emotional, warm",
+        "text": "يوم مربي الأسماك 🐟 أنت مو بس صاحب حوض...",
+        "size": "48px",
+        "tone": "emotional, tribute, Fish Keeper Day",
         "background": "rgba(0, 100, 150, 0.75)"
       },
       "text_4": {
-        "text": "جرب تكلم سمكتك! 👇",
-        "size": "60px",
-        "tone": "action, engaging",
+        "text": "أنت عائلتها ❤️ تاگ مربي يستاهل 👇",
+        "size": "56px",
+        "tone": "emotional CTA, tag friend, celebration",
         "background": "rgba(0, 77, 97, 0.85)"
       }
     },
@@ -790,8 +790,8 @@
 
 ---
 
-**📅 Publication Day: Monday, February 10, 2026**
-**⏰ Optimal Post Time: 7:00-9:00 AM Baghdad Time (UTC+3)**
+**📅 Publication Day: Friday, February 20, 2026 — يوم مربي الأسماك 🐟**
+**⏰ Optimal Post Time: 6:00-7:00 PM Baghdad Time (UTC+3)**
 **📱 Platforms: Instagram Reels → TikTok → Facebook**
 
 ---
