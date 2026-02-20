@@ -48,7 +48,7 @@ export function initializeScheduledJobs(): void {
             jobStatus.predictionsRunning = false;
         }
     }, {
-        timezone: "Asia/Riyadh", // Saudi Arabia timezone
+        timezone: "Asia/Baghdad",
     });
 
     // ==================== Churn Analysis at 3:00 AM ====================
@@ -72,7 +72,7 @@ export function initializeScheduledJobs(): void {
             jobStatus.churnRunning = false;
         }
     }, {
-        timezone: "Asia/Riyadh",
+        timezone: "Asia/Baghdad",
     });
 
     // ==================== Check Conversions at 4:00 AM ====================
@@ -86,7 +86,7 @@ export function initializeScheduledJobs(): void {
             console.error("[ScheduledJobs] Conversions check failed:", error);
         }
     }, {
-        timezone: "Asia/Riyadh",
+        timezone: "Asia/Baghdad",
     });
 
     // ==================== Generate Missing Embeddings at 1:30 AM ====================
@@ -165,9 +165,9 @@ export function initializeScheduledJobs(): void {
 
     console.log("[ScheduledJobs] Cron jobs initialized successfully");
     console.log("  - 🧠 Missing Embeddings: 1:30 AM (Asia/Baghdad)");
-    console.log("  - Daily Predictions: 2:00 AM (Asia/Riyadh)");
-    console.log("  - Churn Analysis: 3:00 AM (Asia/Riyadh)");
-    console.log("  - Conversions Check: 4:00 AM (Asia/Riyadh)");
+    console.log("  - Daily Predictions: 2:00 AM (Asia/Baghdad)");
+    console.log("  - Churn Analysis: 3:00 AM (Asia/Baghdad)");
+    console.log("  - Conversions Check: 4:00 AM (Asia/Baghdad)");
     console.log("  - 🔔 Smart Reminders: 4:30 AM (Asia/Baghdad)");
     console.log("  - 📝 Weekly Auto-Blog: Sunday 5:00 AM (Asia/Baghdad)");
 }

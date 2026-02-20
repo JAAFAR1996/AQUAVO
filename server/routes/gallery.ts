@@ -3,6 +3,15 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { saveBase64Image } from "../middleware/upload.js";
+import rateLimit from "express-rate-limit";
+
+const gallerySubmitLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3,
+    message: { error: "تم تجاوز عدد الصور المسموحة. يرجى المحاولة بعد ساعة." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 const getSessionHelper = (req: Request) => (req as any).session;
 
@@ -23,7 +32,7 @@ export function createGalleryRouter(): RouterType {
     router.get("/submissions", getSubmissions);
 
     // Submit New
-    router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.post("/", gallerySubmitLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { customerName, customerPhone, tankSize, description, imageBase64 } = req.body;
             if (!customerName || !imageBase64) {

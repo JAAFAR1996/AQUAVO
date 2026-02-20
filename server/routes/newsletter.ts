@@ -5,6 +5,15 @@ import { insertNewsletterSubscriptionSchema } from "../../shared/schema.js";
 import { z } from "zod";
 import { sendWelcomeEmail, sendProductDiscountEmail } from "../utils/email.js";
 import { requireAdmin } from "../middleware/auth.js";
+import rateLimit from "express-rate-limit";
+
+const newsletterLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 5,
+    message: { error: "تم تجاوز عدد طلبات الاشتراك. يرجى المحاولة لاحقاً." },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
 
 // Helper function to broadcast discount
 export async function broadcastDiscountForProduct(storage: IStorage, productId: string): Promise<number> {
@@ -39,7 +48,7 @@ export async function broadcastDiscountForProduct(storage: IStorage, productId: 
 export function createNewsletterRouter(storage: IStorage): RouterType {
     const router = Router();
 
-    router.post("/subscribe", async (req: Request, res: Response): Promise<void> => {
+    router.post("/subscribe", newsletterLimiter, async (req: Request, res: Response): Promise<void> => {
         try {
             const data = insertNewsletterSubscriptionSchema.parse(req.body);
 

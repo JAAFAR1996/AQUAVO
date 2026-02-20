@@ -8,6 +8,7 @@ interface User {
   fullName?: string;
   role: string;
   phone?: string;
+  birthDate?: string | null;
   loyaltyPoints?: number;
   loyaltyTier?: string;
   createdAt?: string;

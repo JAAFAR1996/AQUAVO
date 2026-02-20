@@ -13,7 +13,8 @@ import {
     LogOut,
     Crown,
     Gift,
-    Users
+    Users,
+    Ticket,
 } from "lucide-react";
 
 import { BackToTop } from "@/components/back-to-top";
@@ -21,7 +22,7 @@ import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
 
 import { useAuth } from "@/contexts/auth-context";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { ProfileInfo } from "@/components/profile/profile-info";
@@ -35,19 +36,27 @@ import { Address, UserProfileExtra } from "@/lib/types";
 export default function Profile() {
     const { toast } = useToast();
     const { user, logout } = useAuth();
+    const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
 
     // Fetch orders
     const { data: orders, isLoading: isLoadingOrders } = useQuery({
         queryKey: ["/api/orders"],
         queryFn: async () => {
-            const response = await fetch("/api/orders", {
-                credentials: "include",
-            });
-            if (!response.ok) {
-                throw new Error("Failed to fetch orders");
-            }
+            const response = await fetch("/api/orders", { credentials: "include" });
+            if (!response.ok) throw new Error("Failed to fetch orders");
             return response.json();
+        },
+        enabled: !!user,
+    });
+
+    // Fetch addresses from API
+    const { data: apiAddresses = [], refetch: refetchAddresses } = useQuery<Address[]>({
+        queryKey: ["/api/user/addresses"],
+        queryFn: async () => {
+            const res = await fetch("/api/user/addresses", { credentials: "include" });
+            if (!res.ok) return [];
+            return res.json();
         },
         enabled: !!user,
     });
@@ -57,12 +66,12 @@ export default function Profile() {
         ? new Date(user.createdAt).toLocaleDateString("en-GB", { month: "long", year: "numeric" })
         : "ديسمبر 2025";
 
-    // Mock extra user data that isn't in core auth yet (profile details)
     const [extraData, setExtraData] = useState<UserProfileExtra>({
-        phone: user?.phone || "0770XXXXXXX",
+        phone: user?.phone || "",
         memberSince: memberSinceDate,
         avatar: "",
         addresses: [],
+        birthDate: user?.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
     });
 
     // Get loyalty points and calculate tier based on points
@@ -77,43 +86,88 @@ export default function Profile() {
         );
     }
 
-    const handleSave = () => {
-        setIsEditing(false);
-        toast({
-            title: "تم حفظ التغييرات",
-            description: "تم تحديث بياناتك بنجاح",
-        });
+    const handleSave = async () => {
+        try {
+            const res = await fetch("/api/user", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    phone: extraData.phone,
+                    birthDate: extraData.birthDate || null,
+                }),
+            });
+            if (!res.ok) throw new Error("Failed to update profile");
+            queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+            setIsEditing(false);
+            toast({ title: "تم حفظ التغييرات", description: "تم تحديث بياناتك بنجاح" });
+        } catch {
+            toast({ title: "خطأ", description: "فشل حفظ البيانات، يرجى المحاولة مرة أخرى", variant: "destructive" });
+        }
     };
 
-    const handleAddAddress = (address: Address) => {
-        setExtraData({
-            ...extraData,
-            addresses: [...extraData.addresses, address],
-        });
+    const handleAddAddress = async (address: Address) => {
+        try {
+            const res = await fetch("/api/user/addresses", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    label: address.label,
+                    address: address.address,
+                    phone: address.phone,
+                    isDefault: address.isDefault ?? false,
+                }),
+            });
+            if (!res.ok) throw new Error("Failed to add address");
+            await refetchAddresses();
+            toast({ title: "تم إضافة العنوان", description: "تم حفظ عنوانك الجديد بنجاح" });
+        } catch {
+            toast({ title: "خطأ", description: "فشل إضافة العنوان", variant: "destructive" });
+        }
     };
 
-    const handleUpdateAddress = (updatedAddress: Address) => {
-        setExtraData({
-            ...extraData,
-            addresses: extraData.addresses.map((addr) =>
-                addr.id === updatedAddress.id ? updatedAddress : addr
-            ),
-        });
+    const handleUpdateAddress = async (updatedAddress: Address) => {
+        try {
+            const res = await fetch(`/api/user/addresses/${updatedAddress.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    label: updatedAddress.label,
+                    address: updatedAddress.address,
+                    phone: updatedAddress.phone,
+                    isDefault: updatedAddress.isDefault,
+                }),
+            });
+            if (!res.ok) throw new Error("Failed to update address");
+            await refetchAddresses();
+            toast({ title: "تم تحديث العنوان", description: "تم تحديث عنوانك بنجاح" });
+        } catch {
+            toast({ title: "خطأ", description: "فشل تحديث العنوان", variant: "destructive" });
+        }
     };
 
-    const handleDeleteAddress = (id: string) => {
-        setExtraData({
-            ...extraData,
-            addresses: extraData.addresses.filter((addr) => addr.id !== id),
-        });
-        toast({
-            title: "تم حذف العنوان",
-            description: "تم حذف العنوان بنجاح",
-        });
+    const handleDeleteAddress = async (id: string) => {
+        try {
+            const res = await fetch(`/api/user/addresses/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            });
+            if (!res.ok) throw new Error("Failed to delete address");
+            await refetchAddresses();
+            toast({ title: "تم حذف العنوان", description: "تم حذف العنوان بنجاح" });
+        } catch {
+            toast({ title: "خطأ", description: "فشل حذف العنوان", variant: "destructive" });
+        }
     };
 
     const handlePhoneChange = (phone: string) => {
         setExtraData({ ...extraData, phone });
+    };
+
+    const handleBirthDateChange = (birthDate: string) => {
+        setExtraData({ ...extraData, birthDate });
     };
 
     return (
@@ -167,7 +221,7 @@ export default function Profile() {
 
                     {/* Profile Tabs */}
                     <Tabs defaultValue="info" className="space-y-6">
-                        <TabsList className="grid w-full grid-cols-5 h-auto p-1">
+                        <TabsList className="grid w-full grid-cols-6 h-auto p-1">
                             <TabsTrigger value="info" className="py-3 gap-2">
                                 <User className="w-4 h-4" />
                                 <span className="hidden sm:inline">المعلومات</span>
@@ -184,6 +238,10 @@ export default function Profile() {
                                 <Crown className="w-4 h-4" />
                                 <span className="hidden sm:inline">الولاء</span>
                             </TabsTrigger>
+                            <TabsTrigger value="coupons" className="py-3 gap-2">
+                                <Ticket className="w-4 h-4" />
+                                <span className="hidden sm:inline">الكوبونات</span>
+                            </TabsTrigger>
                             <TabsTrigger value="referral" className="py-3 gap-2">
                                 <Users className="w-4 h-4" />
                                 <span className="hidden sm:inline">الدعوة</span>
@@ -199,6 +257,7 @@ export default function Profile() {
                                 setIsEditing={setIsEditing}
                                 onSave={handleSave}
                                 onPhoneChange={handlePhoneChange}
+                                onBirthDateChange={handleBirthDateChange}
                             />
                         </TabsContent>
 
@@ -210,7 +269,7 @@ export default function Profile() {
                         {/* Addresses Tab */}
                         <TabsContent value="addresses">
                             <ProfileAddresses
-                                addresses={extraData.addresses}
+                                addresses={apiAddresses}
                                 onAddAddress={handleAddAddress}
                                 onUpdateAddress={handleUpdateAddress}
                                 onDeleteAddress={handleDeleteAddress}
@@ -220,6 +279,11 @@ export default function Profile() {
                         {/* Loyalty Tab */}
                         <TabsContent value="loyalty">
                             <ProfileLoyalty loyaltyPoints={loyaltyPoints} loyaltyTier={loyaltyTier} />
+                        </TabsContent>
+
+                        {/* Coupons Tab */}
+                        <TabsContent value="coupons">
+                            <ProfileCoupons />
                         </TabsContent>
 
                         {/* Referral Tab */}

@@ -294,6 +294,55 @@ export function createUserRouter(): RouterType {
     });
 
 
+    // Update User Profile (fullName, phone, birthDate)
+    router.patch("/user", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const sess = getSession(req);
+            if (!sess?.userId) { res.sendStatus(401); return; }
+
+            const { fullName, phone, birthDate } = req.body;
+            const updates: Record<string, any> = {};
+            if (fullName && typeof fullName === "string") updates.fullName = fullName.trim().slice(0, 100);
+            if (phone !== undefined && typeof phone === "string") updates.phone = phone.trim().slice(0, 20);
+            if (birthDate !== undefined) updates.birthDate = birthDate ? new Date(birthDate) : null;
+
+            if (Object.keys(updates).length === 0) {
+                res.status(400).json({ message: "No valid fields to update" });
+                return;
+            }
+
+            const user = await storage.updateUser(sess.userId, updates);
+            res.json(user);
+        } catch (err) { next(err); }
+    });
+
+    // Change Password
+    router.post("/user/change-password", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const sess = getSession(req);
+            if (!sess?.userId) { res.sendStatus(401); return; }
+
+            const { currentPassword, newPassword } = req.body;
+            if (!currentPassword || !newPassword) {
+                res.status(400).json({ message: "Current password and new password are required" });
+                return;
+            }
+            if (typeof newPassword !== "string" || newPassword.length < 8) {
+                res.status(400).json({ message: "كلمة المرور الجديدة يجب أن تكون 8 أحرف على الأقل" });
+                return;
+            }
+
+            const user = await storage.getUser(sess.userId);
+            if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+                res.status(401).json({ message: "كلمة المرور الحالية غير صحيحة" });
+                return;
+            }
+
+            await storage.updateUser(sess.userId, { passwordHash: hashPassword(newPassword) });
+            res.json({ message: "تم تغيير كلمة المرور بنجاح" });
+        } catch (err) { next(err); }
+    });
+
     // Addresses
     router.get("/user/addresses", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -322,6 +371,37 @@ export function createUserRouter(): RouterType {
         } catch (err) {
             next(err);
         }
+    });
+
+    router.patch("/user/addresses/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const sess = getSession(req);
+            if (!sess?.userId) { res.sendStatus(401); return; }
+
+            const { id } = req.params as { id: string };
+            const { label, address, phone, isDefault } = req.body;
+            const updates: Record<string, any> = {};
+            if (label !== undefined) updates.label = String(label).slice(0, 50);
+            if (address !== undefined) updates.address = String(address).slice(0, 500);
+            if (phone !== undefined) updates.phone = String(phone).slice(0, 20);
+            if (isDefault !== undefined) updates.isDefault = Boolean(isDefault);
+
+            const updated = await storage.updateUserAddress(id, sess.userId, updates);
+            if (!updated) { res.status(404).json({ message: "Address not found" }); return; }
+            res.json(updated);
+        } catch (err) { next(err); }
+    });
+
+    router.delete("/user/addresses/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const sess = getSession(req);
+            if (!sess?.userId) { res.sendStatus(401); return; }
+
+            const { id } = req.params as { id: string };
+            const deleted = await storage.deleteUserAddress(id, sess.userId);
+            if (!deleted) { res.status(404).json({ message: "Address not found" }); return; }
+            res.json({ message: "تم حذف العنوان" });
+        } catch (err) { next(err); }
     });
 
     // Coupons (My Coupons)

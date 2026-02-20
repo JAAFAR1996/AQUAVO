@@ -36,4 +36,5 @@ export interface UserProfileExtra {
     memberSince: string;
     avatar: string;
     addresses: Address[];
+    birthDate?: string;
 }

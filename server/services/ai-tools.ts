@@ -227,7 +227,7 @@ export class AIToolsExecutor {
                 try {
                     const { embeddingGenerator } = await import("./embedding-generator.js");
                     const semanticResults = await embeddingGenerator.semanticSearch(query, limit);
-                    const relevant = semanticResults.filter(r => r.similarity > 0.3);
+                    const relevant = semanticResults.filter(r => r.similarity > 0.5);
 
                     if (relevant.length > 0) {
                         const semanticProducts = await Promise.all(

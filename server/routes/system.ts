@@ -1,6 +1,7 @@
 import type { Router as RouterType, Request, Response } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 export function createSystemRouter(): RouterType {
     const router = Router();
@@ -47,8 +48,8 @@ export function createSystemRouter(): RouterType {
         res.send(robots);
     });
 
-    // Seeding (Admin/System only ideally, but public in routes.ts for Vercel)
-    router.get("/seed", async (req: Request, res: Response): Promise<void> => {
+    // Seeding (Admin only)
+    router.get("/seed", requireAdmin as any, async (req: Request, res: Response): Promise<void> => {
         try {
             await storage.seedProductsIfNeeded();
             await storage.seedFishSpeciesIfNeeded();

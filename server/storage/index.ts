@@ -92,6 +92,8 @@ export interface IStorage {
     // User Addresses
     createUserAddress(address: InsertUserAddress): Promise<UserAddress>;
     getUserAddresses(userId: string): Promise<UserAddress[]>;
+    deleteUserAddress(id: string, userId: string): Promise<boolean>;
+    updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "address" | "phone" | "isDefault">>): Promise<UserAddress | undefined>;
 
     // Recommendations
     getFrequentlyBoughtTogether(productId: string): Promise<Product[]>;
@@ -144,6 +146,8 @@ class CombinedStorage implements IStorage {
     updateUser = this.userStorage.updateUser.bind(this.userStorage);
     createUserAddress = this.userStorage.createUserAddress.bind(this.userStorage);
     getUserAddresses = this.userStorage.getUserAddresses.bind(this.userStorage);
+    deleteUserAddress = this.userStorage.deleteUserAddress.bind(this.userStorage);
+    updateUserAddress = this.userStorage.updateUserAddress.bind(this.userStorage);
     createPasswordResetToken = this.userStorage.createPasswordResetToken.bind(this.userStorage);
     verifyPasswordResetToken = this.userStorage.verifyPasswordResetToken.bind(this.userStorage);
     deletePasswordResetToken = this.userStorage.deletePasswordResetToken.bind(this.userStorage);

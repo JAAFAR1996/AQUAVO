@@ -67,6 +67,9 @@ const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
 const OnboardingTour = lazy(() => import("@/components/onboarding-tour").then(m => ({ default: m.OnboardingTour })));
 const WinnerNotificationBanner = lazy(() => import("@/components/notifications/winner-notification-banner").then(m => ({ default: m.WinnerNotificationBanner })));
+const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.InstallPrompt })));
+const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
+const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
 
 
 
@@ -480,6 +483,12 @@ function App() {
                   <Suspense fallback={null}>
                     <WinnerNotificationBanner />
                   </Suspense>
+                  <Suspense fallback={null}>
+                    <UpdateBanner />
+                  </Suspense>
+                  <Suspense fallback={null}>
+                    <OfflineIndicator />
+                  </Suspense>
 
                   <Toaster />
                   <Suspense fallback={null}>
@@ -488,6 +497,9 @@ function App() {
                   <Router />
                   <Suspense fallback={null}>
                     <OnboardingTour />
+                  </Suspense>
+                  <Suspense fallback={null}>
+                    <InstallPrompt className="fixed bottom-20 left-4 right-4 z-40 max-w-sm mx-auto" />
                   </Suspense>
                 </TooltipProvider>
               </NavbarPreferencesProvider>

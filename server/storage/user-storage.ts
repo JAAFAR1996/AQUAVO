@@ -106,6 +106,23 @@ export class UserStorage {
         return await db.select().from(userAddresses).where(eq(userAddresses.userId, userId));
     }
 
+    async deleteUserAddress(id: string, userId: string): Promise<boolean> {
+        const db = this.ensureDb();
+        const result = await db.delete(userAddresses)
+            .where(and(eq(userAddresses.id, id), eq(userAddresses.userId, userId)))
+            .returning();
+        return result.length > 0;
+    }
+
+    async updateUserAddress(id: string, userId: string, updates: Partial<Pick<UserAddress, "label" | "address" | "phone" | "isDefault">>): Promise<UserAddress | undefined> {
+        const db = this.ensureDb();
+        const result = await db.update(userAddresses)
+            .set(updates as any)
+            .where(and(eq(userAddresses.id, id), eq(userAddresses.userId, userId)))
+            .returning();
+        return result[0];
+    }
+
     // Password Reset
     async createPasswordResetToken(userId: string, tokenHash: string, expiresAt: Date): Promise<string> {
         const db = this.ensureDb();

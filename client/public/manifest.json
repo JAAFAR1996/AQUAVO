@@ -47,10 +47,10 @@
             "url": "/fish-encyclopedia"
         },
         {
-            "name": "سلة المشتريات",
-            "short_name": "السلة",
-            "description": "عرض سلة المشتريات",
-            "url": "/checkout"
+            "name": "قائمة الرغبات",
+            "short_name": "المفضلة",
+            "description": "عرض قائمة الرغبات",
+            "url": "/wishlist"
         }
     ],
     "related_applications": [],

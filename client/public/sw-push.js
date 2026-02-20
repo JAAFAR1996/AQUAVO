@@ -53,16 +53,14 @@ self.addEventListener('notificationclick', function (event) {
 });
 
 self.addEventListener('pushsubscriptionchange', function (event) {
+    // Notify all open clients to resubscribe (they have access to the VAPID key)
     event.waitUntil(
-        self.registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: self.vapidPublicKey,
-        }).then(function (subscription) {
-            return fetch('/api/notifications/resubscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(subscription),
-            });
+        self.clients.matchAll({ type: 'window' }).then(function (clientList) {
+            return Promise.all(
+                clientList.map(function (client) {
+                    return client.postMessage({ type: 'PUSH_RESUBSCRIBE' });
+                })
+            );
         })
     );
 });
