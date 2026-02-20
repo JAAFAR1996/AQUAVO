@@ -707,7 +707,13 @@ export default function ProductDetails() {
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="font-semibold mb-2">طريقة الاستخدام</h4>
-                      {product.specifications?.["طريقة الاستخدام"] ? (
+                      {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
+                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground">
+                          {product.specifications.usageInstructions.map((step: string, idx: number) => (
+                            <li key={idx}>{step}</li>
+                          ))}
+                        </ul>
+                      ) : product.specifications?.["طريقة الاستخدام"] ? (
                         <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
                           {product.specifications["طريقة الاستخدام"]}
                         </p>
@@ -722,7 +728,13 @@ export default function ProductDetails() {
                     </div>
                     <div>
                       <h4 className="font-semibold mb-2">تحذيرات الأمان</h4>
-                      {product.specifications?.["تحذيرات"] ? (
+                      {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                          {product.specifications.safetyWarnings.map((warning: string, idx: number) => (
+                            <li key={idx}>{warning}</li>
+                          ))}
+                        </ul>
+                      ) : product.specifications?.["تحذيرات"] ? (
                         <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
                           {product.specifications["تحذيرات"]}
                         </p>
