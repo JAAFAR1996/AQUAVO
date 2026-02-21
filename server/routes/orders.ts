@@ -101,6 +101,7 @@ export function createOrderRouter(): RouterType {
     });
 
     // Track Order Publicly - only expose safe fields (no PII)
+    // Must be defined BEFORE /:id to avoid route conflict
     router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { orderNumber } = req.params as { orderNumber: string };
@@ -118,6 +119,28 @@ export function createOrderRouter(): RouterType {
                 createdAt: order.createdAt,
                 updatedAt: order.updatedAt,
             });
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // Get Order by ID for authenticated user (order confirmation page)
+    router.get("/:id", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const reqUser = (req as any).user;
+
+            const order = await storage.getOrder(id);
+            if (!order) {
+                res.status(404).json({ message: "Order not found" });
+                return;
+            }
+            // Only allow the order owner or admin to view it
+            if (order.userId && order.userId !== reqUser?.id && reqUser?.role !== "admin") {
+                res.status(403).json({ message: "Access denied" });
+                return;
+            }
+            res.json(order);
         } catch (err) {
             next(err);
         }

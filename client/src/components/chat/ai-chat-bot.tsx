@@ -41,15 +41,15 @@ interface ChatMessage {
     products?: Product[];
 }
 
-async function sendChatMessage(message: string, history: ChatMessage[], userName?: string, userId?: string) {
+async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
     const response = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
             message,
             history: history.map(m => ({ role: m.role, content: m.content })),
             userName,
-            userId,
         }),
     });
 
@@ -111,7 +111,7 @@ export function AIChatBot() {
 
     // Chat mutation
     const chatMutation = useMutation({
-        mutationFn: (message: string) => sendChatMessage(message, messages, userName, user?.id),
+        mutationFn: (message: string) => sendChatMessage(message, messages, userName),
         onSuccess: (data) => {
             setMessages((prev) => [
                 ...prev,

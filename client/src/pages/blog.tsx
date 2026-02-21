@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 
 import { BackToTop } from "@/components/back-to-top";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,6 +47,12 @@ export default function Blog() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
+            <MetaTags
+                title="المدونة"
+                description="مقالات ونصائح متخصصة في عالم أحواض الأسماك والحياة المائية - AQUAVO"
+                keywords={["مدونة أحواض الأسماك", "نصائح تربية الأسماك", "أحواض المياه العذبة", "AQUAVO"]}
+                type="article"
+            />
             <Navbar />
 
             {/* Hero Section - 2025 Premium Design */}

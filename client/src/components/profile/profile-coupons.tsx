@@ -5,16 +5,14 @@ import { Loader2, Ticket } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 
-interface ProfileCouponsProps {
-    userId: string;
-}
-
-export function ProfileCoupons({ userId }: ProfileCouponsProps) {
+export function ProfileCoupons() {
     const { toast } = useToast();
     const { data: coupons, isLoading } = useQuery({
         queryKey: ["/api/coupons/my-coupons"],
         queryFn: async () => {
-            const response = await fetch("/api/coupons/my-coupons");
+            const response = await fetch("/api/coupons/my-coupons", {
+                credentials: "include",
+            });
             if (!response.ok) throw new Error("Failed to fetch coupons");
             return response.json();
         }

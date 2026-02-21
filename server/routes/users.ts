@@ -1,13 +1,21 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { insertUserAddressSchema } from "../../shared/schema.js";
+import { insertUserAddressSchema, earlyAccessLeads } from "../../shared/schema.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
 import { authLimiter, passwordResetLimiter } from "../middleware/rate-limit.js";
 import { hashPassword, verifyPassword } from "../utils/auth.js";
 import { SecurityStorage } from "../storage/security-storage.js";
+import { getDb } from "../db.js";
+import { eq } from "drizzle-orm";
 import crypto from "crypto";
+
+/** Strip sensitive fields before sending user to client */
+function sanitizeUser(user: Record<string, any>) {
+    const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safe } = user;
+    return safe;
+}
 
 const securityStorage = new SecurityStorage();
 
@@ -83,7 +91,7 @@ export function createUserRouter(): RouterType {
             const sess = getSession(req);
             if (sess) sess.userId = user.id;
 
-            res.status(201).json(user);
+            res.status(201).json(sanitizeUser(user));
         } catch (err) {
             next(err);
         }
@@ -158,7 +166,7 @@ export function createUserRouter(): RouterType {
                 changes: { ip: req.ip }
             });
 
-            res.json(user);
+            res.json(sanitizeUser(user));
         } catch (err) {
             next(err);
         }
@@ -188,7 +196,24 @@ export function createUserRouter(): RouterType {
                 return;
             }
             const user = await storage.getUser(sess.userId);
-            res.json(user);
+            if (!user) { res.sendStatus(401); return; }
+
+            // Check if user is an early access member (phone matches earlyAccessLeads)
+            let isEarlyAccess = false;
+            if (user.phone) {
+                try {
+                    const db = getDb();
+                    if (db) {
+                        const lead = await db.select({ id: earlyAccessLeads.id })
+                            .from(earlyAccessLeads)
+                            .where(eq(earlyAccessLeads.phone, user.phone))
+                            .limit(1);
+                        isEarlyAccess = lead.length > 0;
+                    }
+                } catch { /* non-critical */ }
+            }
+
+            res.json(sanitizeUser({ ...user, isEarlyAccess }));
         } catch (err) {
             next(err);
         }
@@ -229,7 +254,7 @@ export function createUserRouter(): RouterType {
             };
 
             const updatedUser = await storage.updateUser(sess.userId, { preferences: updatedPreferences });
-            res.json(updatedUser);
+            res.json(sanitizeUser(updatedUser ?? {}));
         } catch (err) {
             next(err);
         }
@@ -312,7 +337,7 @@ export function createUserRouter(): RouterType {
             }
 
             const user = await storage.updateUser(sess.userId, updates);
-            res.json(user);
+            res.json(sanitizeUser(user ?? {}));
         } catch (err) { next(err); }
     });
 

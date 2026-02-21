@@ -12,6 +12,7 @@ interface User {
   loyaltyPoints?: number;
   loyaltyTier?: string;
   createdAt?: string;
+  isEarlyAccess?: boolean;
   preferences?: {
     tourSeen?: Record<string, boolean>;
     [key: string]: any;

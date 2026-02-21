@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useRoute } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Package, Truck, Home, ArrowRight, Copy, Check, Printer } from "lucide-react";
@@ -152,6 +153,11 @@ function ConfirmationContent({ orderId, total, itemsCount, address }: { orderId:
 
     return (
         <div className="min-h-screen flex flex-col bg-background font-sans">
+            <MetaTags
+                title="تأكيد الطلب"
+                description="شكراً لطلبك! تم استلام طلبك بنجاح في AQUAVO"
+                noIndex={true}
+            />
             <Navbar />
 
             <main className="flex-1 flex items-center justify-center py-12 px-4">

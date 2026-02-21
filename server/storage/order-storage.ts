@@ -34,8 +34,11 @@ export class OrderStorage {
 
     async getOrder(id: string): Promise<Order | undefined> {
         const db = this.ensureDb();
+        // Try by UUID first, then by orderNumber (for public tracking)
         const result = await db.select().from(orders).where(eq(orders.id, id)).limit(1);
-        return result[0];
+        if (result[0]) return result[0];
+        const byNumber = await db.select().from(orders).where(eq(orders.orderNumber, id)).limit(1);
+        return byNumber[0];
     }
 
     async createOrder(order: Partial<Order>): Promise<Order> {

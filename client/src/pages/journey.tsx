@@ -5,6 +5,7 @@ import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 
 // Hook
 import { useJourney } from "@/hooks/use-journey";
@@ -158,6 +159,11 @@ export default function JourneyPage() {
 
   return (
     <div className="min-h-screen bg-background" ref={topRef}>
+      <MetaTags
+        title="رحلتي مع الحوض"
+        description="خطط لإعداد حوضك المثالي خطوة بخطوة مع دليل AQUAVO التفاعلي - من اختيار الحوض حتى إضافة الأسماك"
+        keywords={["إعداد حوض الأسماك", "خطوات إنشاء حوض", "دليل مبتدئين", "AQUAVO"]}
+      />
       <Navbar />
       {/* Header */}
       <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">

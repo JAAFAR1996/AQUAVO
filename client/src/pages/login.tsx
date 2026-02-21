@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -99,6 +100,11 @@ export default function Login() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background" dir="rtl">
+            <MetaTags
+                title="تسجيل الدخول"
+                description="سجّل دخولك إلى AQUAVO للوصول إلى طلباتك وعروضك الشخصية ونقاط الولاء"
+                noIndex={true}
+            />
             <Navbar />
 
             <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">

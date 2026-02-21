@@ -6,6 +6,12 @@ import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 
+/** Strip sensitive fields before sending user data to client */
+function sanitizeUser(user: Record<string, any>) {
+    const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safe } = user;
+    return safe;
+}
+
 export function createAdminRouter(): RouterType {
     const router = Router();
 
@@ -77,7 +83,7 @@ export function createAdminRouter(): RouterType {
 
                         if (db && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && (order as any).userId) {
                             webPush.default.setVapidDetails(
-                                process.env.VAPID_SUBJECT || "mailto:admin@aquavo.com",
+                                process.env.VAPID_SUBJECT || "mailto:info@aquavo.iq",
                                 VAPID_PUBLIC_KEY,
                                 VAPID_PRIVATE_KEY
                             );
@@ -134,11 +140,11 @@ export function createAdminRouter(): RouterType {
                 const search = req.query.search as string || undefined;
 
                 const result = await storage.getUsersPaginated(page, limit, search);
-                res.json(result);
+                res.json({ ...result, users: result.users.map(sanitizeUser) });
             } else {
                 // Backward compatibility: return all users if no pagination requested
                 const users = await storage.getUsers();
-                res.json(users);
+                res.json(users.map(sanitizeUser));
             }
         } catch (err) {
             next(err);

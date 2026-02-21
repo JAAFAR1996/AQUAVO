@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -245,6 +246,11 @@ export default function SearchResults() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <MetaTags
+        title={searchQuery ? `نتائج البحث: ${searchQuery}` : "البحث"}
+        description={`نتائج البحث عن "${searchQuery}" في منتجات وأسماك AQUAVO`}
+        noIndex={true}
+      />
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8" id="main-content">

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { ProductComparisonTable, useComparison } from "@/components/products/product-comparison";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Scale, Trash2 } from "lucide-react";
@@ -28,6 +29,11 @@ export default function ComparePage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background">
+            <MetaTags
+                title="مقارنة المنتجات"
+                description="قارن بين منتجات أحواض الأسماك واختر الأنسب لك - مقارنة شاملة للمواصفات والأسعار في AQUAVO"
+                keywords={["مقارنة أحواض الأسماك", "مقارنة منتجات المياه", "AQUAVO"]}
+            />
             <Navbar />
 
             <main className="flex-1 container mx-auto px-4 py-8 pt-24">

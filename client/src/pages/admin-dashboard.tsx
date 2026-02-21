@@ -238,9 +238,18 @@ export default function AdminDashboard() {
     specifications: {},
   });
 
+  const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
+
   useEffect(() => {
     fetchProducts();
     fetchMetadata();
+    fetch("/api/admin/orders", { credentials: "include" })
+      .then(r => r.ok ? r.json() : [])
+      .then((data: any[]) => {
+        const active = data.filter((o: any) => o.status !== "delivered" && o.status !== "cancelled");
+        setActiveOrdersCount(active.length);
+      })
+      .catch(() => {});
   }, []);
 
   const fetchMetadata = async () => {
@@ -705,7 +714,7 @@ export default function AdminDashboard() {
             <ShoppingCart className="h-4 w-4 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold"><AnimatedCounter end={activeOrdersCount} duration={1000} /></div>
             <p className="text-xs text-gray-500">طلبات نشطة</p>
           </CardContent>
         </Card>

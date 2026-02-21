@@ -224,7 +224,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full touch-target-sm" aria-label="قائمة الحساب الشخصي">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src="" alt={user.fullName || user.email} />
+                      <AvatarImage src={undefined} alt={user.fullName || user.email} />
                       <AvatarFallback className="bg-primary/10 text-primary">
                         {(user.fullName || user.email).charAt(0).toUpperCase()}
                       </AvatarFallback>

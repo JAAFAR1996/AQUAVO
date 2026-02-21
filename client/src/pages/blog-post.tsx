@@ -2,6 +2,7 @@ import { useRoute, Link } from "wouter";
 import { blogPosts } from "@/lib/blog-data";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags, ArticleSchema } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowRight, Calendar, Clock, User, Share2, ArrowLeft } from "lucide-react";
@@ -26,6 +27,19 @@ export default function BlogPost() {
 
     return (
         <div className="min-h-screen flex flex-col bg-background font-sans">
+            <MetaTags
+                title={post.title}
+                description={post.excerpt || post.title}
+                image={post.image}
+                type="article"
+            />
+            <ArticleSchema
+                title={post.title}
+                description={post.excerpt || post.title}
+                image={post.image || "https://aquavo.iq/logo_aquavo.png"}
+                datePublished={post.date || new Date().toISOString()}
+                author={post.author || "AQUAVO"}
+            />
             <Navbar />
 
             <main id="main-content" className="flex-1 pb-20">

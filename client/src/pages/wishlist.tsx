@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -66,6 +67,11 @@ export default function Wishlist() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <MetaTags
+        title="قائمة الأمنيات"
+        description="منتجاتك المفضلة في AQUAVO - احفظ ما يعجبك وارجع إليه لاحقاً"
+        noIndex={true}
+      />
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8" id="main-content">
@@ -154,12 +160,12 @@ export default function Wishlist() {
                   {/* Price */}
                   <div className="flex items-baseline gap-2">
                     <span className="text-xl font-bold text-primary">
-                      {Number(item.price).toLocaleString('en-US')}{" "}
+                      {Number(item.price).toLocaleString('ar-IQ')}{" "}
                       <span className="text-sm font-normal text-muted-foreground">د.ع</span>
                     </span>
                     {item.originalPrice && (
                       <span className="text-sm text-muted-foreground line-through">
-                        {item.originalPrice.toLocaleString('en-US')}
+                        {Number(item.originalPrice).toLocaleString('ar-IQ')}
                       </span>
                     )}
                   </div>
