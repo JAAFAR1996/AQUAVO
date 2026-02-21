@@ -25,11 +25,11 @@ export function ScrollProgress() {
   }, [handleScroll]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 h-1 bg-transparent z-50 pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 h-[3px] bg-transparent z-50 pointer-events-none">
       <div
         ref={barRef}
-        className="h-full bg-gradient-to-r from-primary via-cyan-500 to-primary"
-        style={{ width: "0%" }}
+        className="h-full bg-gradient-to-r from-cyan-400 via-primary to-teal-400 shadow-[0_0_6px_rgba(6,182,212,0.8)]"
+        style={{ width: "0%", transition: "width 0.1s linear" }}
       />
     </div>
   );

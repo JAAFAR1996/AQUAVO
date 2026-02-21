@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { FontSizeControllerCompact } from "@/components/ui/font-size-controller";
@@ -27,6 +27,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Package as PackageIcon } from "lucide-react";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import { NavbarStyleSwitcher } from "@/components/navbar/NavbarStyleSwitcher";
 import { useNavbarPreferences, type NavbarStyle } from "@/hooks/use-navbar-preferences";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
@@ -54,8 +56,12 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [isImmersiveMenuOpen, setIsImmersiveMenuOpen] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number; type: string } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const { toast } = useToast();
 
-  const { items: cartItems, removeItem, clearCart, totalItems, totalPrice } = useCart();
+  const { items: cartItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
 
@@ -71,6 +77,31 @@ export default function Navbar() {
     staleTime: 5 * 60 * 1000,
   });
   const pendingReminders = notifStatus?.pendingReminders ?? 0;
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponLoading(true);
+    try {
+      const res = await fetch("/api/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: couponCode.trim().toUpperCase(), totalAmount: totalPrice }),
+      });
+      if (!res.ok) { toast({ title: "كوبون غير صالح", variant: "destructive" }); return; }
+      const coupon = await res.json();
+      const discount = coupon.type === "percentage"
+        ? (totalPrice * parseFloat(coupon.value)) / 100
+        : parseFloat(coupon.value);
+      setCouponApplied({ code: coupon.code, discount, type: coupon.type });
+      toast({ title: `تم تطبيق الكوبون ✅`, description: `وفرت ${discount.toLocaleString("ar-IQ")} د.ع` });
+    } catch {
+      toast({ title: "خطأ في التحقق من الكوبون", variant: "destructive" });
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const cartFinalTotal = couponApplied ? Math.max(0, totalPrice - couponApplied.discount) : totalPrice;
 
   // 2025 Style hooks
   const { style: navbarStyle } = useNavbarPreferences();
@@ -376,7 +407,27 @@ export default function Navbar() {
                                 {formatIQD(item.price)}
                               </p>
                               <div className="flex items-center justify-between mt-2">
-                                <span className="text-xs text-muted-foreground">الكمية: {item.quantity}</span>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-full text-xs"
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    aria-label={`تقليل كمية ${item.name}`}
+                                  >
+                                    −
+                                  </Button>
+                                  <span className="text-sm font-semibold w-6 text-center">{item.quantity}</span>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-6 w-6 rounded-full text-xs"
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                    aria-label={`زيادة كمية ${item.name}`}
+                                  >
+                                    +
+                                  </Button>
+                                </div>
                                 <Button
                                   variant="ghost"
                                   size="icon"
@@ -393,10 +444,36 @@ export default function Navbar() {
                       </div>
                       <Separator className="my-4" />
                       <CartSuggestions />
-                      <div className="space-y-4">
+                      <div className="space-y-3">
+                        {/* Coupon Field */}
+                        <div className="flex gap-2">
+                          <Input
+                            placeholder="كود الخصم"
+                            value={couponCode}
+                            onChange={e => setCouponCode(e.target.value)}
+                            className="text-sm h-9"
+                            disabled={!!couponApplied}
+                            aria-label="كود الخصم"
+                          />
+                          {couponApplied ? (
+                            <Button variant="outline" size="sm" className="shrink-0 text-destructive" onClick={() => { setCouponApplied(null); setCouponCode(""); }}>
+                              إزالة
+                            </Button>
+                          ) : (
+                            <Button variant="outline" size="sm" className="shrink-0" onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
+                              {couponLoading ? "..." : "تطبيق"}
+                            </Button>
+                          )}
+                        </div>
+                        {couponApplied && (
+                          <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
+                            <span>خصم ({couponApplied.code})</span>
+                            <span>- {formatIQD(couponApplied.discount)}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center">
                           <span className="font-medium">المجموع:</span>
-                          <span className="text-xl font-bold text-primary">{formatIQD(totalPrice)}</span>
+                          <span className="text-xl font-bold text-primary">{formatIQD(cartFinalTotal)}</span>
                         </div>
                         <div className="flex items-center gap-4 bg-primary/5 p-3 rounded-lg border border-primary/10">
                           <ShrimpMascot mood="excited" size="sm" animate />

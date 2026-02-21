@@ -177,6 +177,7 @@ export function ProductImageGallery({
                             size="icon"
                             className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
                             onClick={() => setLightboxOpen(false)}
+                            aria-label="إغلاق معرض الصور"
                         >
                             <X className="w-6 h-6" />
                         </Button>

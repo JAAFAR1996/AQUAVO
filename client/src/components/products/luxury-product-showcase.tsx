@@ -48,7 +48,7 @@ export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
             <Button size="lg" className="rounded-full px-8 h-14 text-lg">
               اكتشف المزيد
             </Button>
-            <Button variant="outline" size="icon" className="rounded-full w-14 h-14 border-2">
+            <Button variant="outline" size="icon" className="rounded-full w-14 h-14 border-2" aria-label="التالي">
               <ArrowLeft className="w-6 h-6" />
             </Button>
           </div>

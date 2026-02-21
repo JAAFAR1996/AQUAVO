@@ -280,7 +280,7 @@ export function CouponsManagement() {
                                     <TableCell className="font-mono font-bold">
                                         <div className="flex items-center gap-2">
                                             <span className="bg-muted px-2 py-1 rounded select-all">{coupon.code}</span>
-                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(coupon.code)}>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copyToClipboard(coupon.code)} aria-label={`نسخ كود ${coupon.code}`}>
                                                 <Copy className="h-3 w-3" />
                                             </Button>
                                         </div>

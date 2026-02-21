@@ -205,7 +205,7 @@ export function FilterModal({
                 <DialogHeader className="px-6 py-4 border-b border-border flex-shrink-0">
                     <div className="flex items-center justify-between">
                         <DialogClose asChild>
-                            <Button variant="ghost" size="icon" className="rounded-full">
+                            <Button variant="ghost" size="icon" className="rounded-full" aria-label="إغلاق الفلاتر">
                                 <X className="w-5 h-5" />
                             </Button>
                         </DialogClose>

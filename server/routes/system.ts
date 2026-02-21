@@ -48,6 +48,11 @@ export function createSystemRouter(): RouterType {
         res.send(robots);
     });
 
+    // Health check (public)
+    router.get("/health", (_req: Request, res: Response): void => {
+        res.json({ status: "ok", timestamp: new Date().toISOString() });
+    });
+
     // Seeding (Admin only)
     router.get("/seed", requireAdmin as any, async (req: Request, res: Response): Promise<void> => {
         try {

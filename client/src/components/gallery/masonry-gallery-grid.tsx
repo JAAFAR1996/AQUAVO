@@ -180,10 +180,10 @@ export function MasonryGalleryGrid() {
                     >
                       <Heart className={`w-4 h-4 mr-2 ${likeMutation.isPending ? 'animate-spin' : ''}`} /> إعجاب
                     </Button>
-                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground">
+                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="حفظ الصورة">
                       <Bookmark className="w-4 h-4" />
                     </Button>
-                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground">
+                    <Button variant="outline" size="icon" className="shrink-0 text-muted-foreground hover:text-foreground" aria-label="مشاركة الصورة">
                       <Share2 className="w-4 h-4" />
                     </Button>
                   </div>

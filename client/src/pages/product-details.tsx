@@ -84,10 +84,11 @@ export default function ProductDetails() {
   const handleAddToCart = () => {
     if (product) {
       // Create a modified product with variant info in the name
+      const variantLabel = selectedVariant?.label || selectedVariant?.id || "";
       const productToAdd = selectedVariant
         ? {
           ...product,
-          name: `${product.name} (${selectedVariant.label})`,
+          name: variantLabel ? `${product.name} (${variantLabel})` : product.name,
           price: selectedVariant.price,
           // Use variant-specific ID if available to track separately in cart
           id: `${product.id}-${selectedVariant.id}`,

@@ -46,14 +46,16 @@
   <link rel="dns-prefetch" href="https://plausible.io">
   <meta name="robots" content="index, follow, max-image-preview:large">
 
-  <!-- Fonts - Optimized: single request, non-blocking loading -->
+  <!-- Fonts - Optimized: critical fonts only, non-blocking -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"
-    media="print" onload="this.media='all'">
+  <!-- Critical: Cairo only (body text) - loaded immediately -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
+  <!-- Non-critical: Changa + Tajawal - deferred -->
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap&subset=arabic" onload="this.rel='stylesheet'">
   <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Changa:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap" rel="stylesheet">
   </noscript>
 
   <!-- Critical CSS for Above-the-Fold Content -->

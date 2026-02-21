@@ -210,6 +210,8 @@ export class AIToolsExecutor {
                     thumbnail: schema.products.thumbnail,
                     rating: schema.products.rating,
                     description: schema.products.description,
+                    hasVariants: schema.products.hasVariants,
+                    variants: schema.products.variants,
                 })
                 .from(schema.products)
                 .where(
@@ -256,11 +258,36 @@ export class AIToolsExecutor {
             }
 
             // Return clean data for AI (trim description to save tokens)
-            const cleanProducts = products.map(p => ({
-                ...p,
-                description: p.description ? p.description.slice(0, 150) + "..." : null,
-                hasDiscount: p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price),
-            }));
+            const cleanProducts = products.map(p => {
+                // For products with variants, expose the price range so AI can answer price queries
+                let priceDisplay = p.price;
+                let variantPrices: string | null = null;
+                if (p.hasVariants && Array.isArray(p.variants) && p.variants.length > 0) {
+                    const prices = (p.variants as any[]).map(v => parseFloat(v.price)).filter(n => !isNaN(n) && n > 0);
+                    if (prices.length > 0) {
+                        const minP = Math.min(...prices);
+                        const maxP = Math.max(...prices);
+                        priceDisplay = String(minP);
+                        variantPrices = prices.length > 1
+                            ? `${minP.toLocaleString()} - ${maxP.toLocaleString()} د.ع (حسب الخيار)`
+                            : `${minP.toLocaleString()} د.ع`;
+                    }
+                }
+                return {
+                    id: p.id,
+                    name: p.name,
+                    slug: p.slug,
+                    brand: p.brand,
+                    category: p.category,
+                    price: priceDisplay,
+                    priceDisplay: variantPrices ?? (parseFloat(p.price) > 0 ? `${parseInt(p.price).toLocaleString()} د.ع` : "اتصل للسعر"),
+                    stock: p.stock,
+                    rating: p.rating,
+                    hasVariants: p.hasVariants,
+                    description: p.description ? p.description.slice(0, 150) + "..." : null,
+                    hasDiscount: p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price),
+                };
+            });
 
             return {
                 success: true,

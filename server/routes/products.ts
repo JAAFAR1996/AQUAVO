@@ -38,6 +38,21 @@ export function createProductRouter(): RouterType {
         }
     });
 
+    // Categories list (distinct values from products table)
+    router.get("/categories", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const products = await storage.getProducts({ limit: 1000 });
+            const categorySet = new Set<string>();
+            for (const p of products) {
+                if (p.category) categorySet.add(p.category);
+            }
+            const categories = Array.from(categorySet).sort();
+            res.json({ categories });
+        } catch (err) {
+            next(err);
+        }
+    });
+
     // Top selling (Specific route BEFORE :idOrSlug)
     router.get("/top-selling", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -105,7 +120,13 @@ export function createProductRouter(): RouterType {
             const userId = session!.userId!;
 
             // Try saved predictions first, fall back to live calculation
-            let predictions = await predictiveAnalytics.getPredictionsForUser(userId);
+            let predictions: Awaited<ReturnType<typeof predictiveAnalytics.getPredictionsForUser>> = [];
+            try {
+                predictions = await predictiveAnalytics.getPredictionsForUser(userId);
+            } catch {
+                res.json({ predictions: [] });
+                return;
+            }
 
             if (predictions.length === 0) {
                 // Generate live predictions

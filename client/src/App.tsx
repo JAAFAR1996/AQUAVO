@@ -1,4 +1,4 @@
-import { Switch, Route, useLocation } from "wouter";
+import { Switch, Route, Redirect, useLocation } from "wouter";
 import { lazy, Suspense, useEffect } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -333,6 +333,11 @@ function Router() {
           </ErrorBoundary>
         )}
       </Route>
+
+      {/* Redirects for common 404s */}
+      <Route path="/cart">{() => <Redirect to="/" />}</Route>
+      <Route path="/admin-login">{() => <Redirect to="/admin/login" />}</Route>
+      <Route path="/returns">{() => <Redirect to="/return-policy" />}</Route>
 
       <Route path="/shipping">
         {() => (<Suspense fallback={<PageLoader />}><Shipping /></Suspense>)}

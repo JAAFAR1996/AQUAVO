@@ -136,7 +136,7 @@ export function AIChatPanel() {
                             <Sparkles className="w-3 h-3" />
                             AI
                         </Badge>
-                        <Button variant="ghost" size="icon" onClick={handleClear}>
+                        <Button variant="ghost" size="icon" onClick={handleClear} aria-label="مسح المحادثة">
                             <Trash2 className="w-4 h-4" />
                         </Button>
                     </div>

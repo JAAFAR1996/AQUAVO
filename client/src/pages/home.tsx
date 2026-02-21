@@ -228,6 +228,9 @@ export default function Home() {
           For now, I'll keep the Masonry Gallery and Testimonials but maybe hide the old 'Features' and regular 'Best Sellers' since we have them in Bento.
       */}
 
+      {/* Customer Testimonials */}
+      <Testimonials />
+
       {/* Existing Sections Refined */}
       <AquascapeStyles />
 
