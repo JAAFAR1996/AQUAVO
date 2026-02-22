@@ -517,13 +517,26 @@ function App() {
   );
 }
 
-// Track page views on route changes
+// Track page views on route changes + scroll to top
 function PageViewTracker() {
   const [location] = useLocation();
 
+  // Disable browser's automatic scroll restoration
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if ('scrollRestoration' in window.history) {
+      window.history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  useEffect(() => {
+    // Immediate scroll
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    // Delayed scroll to handle lazy-loaded content
+    const timer = setTimeout(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+    }, 100);
     trackPageView(location);
+    return () => clearTimeout(timer);
   }, [location]);
 
   return null;
