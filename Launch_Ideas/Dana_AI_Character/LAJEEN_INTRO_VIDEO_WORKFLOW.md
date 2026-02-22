@@ -367,392 +367,736 @@ Duration: 50-60 seconds.
 3. هذي الصورة ستكون Reference لكل الفريمات
 ```
 
-#### 🖼️ الخطوة 3: ولّد 6 فريمات (Image Generator × 6)
-
-**كل فريم يحتاج:**
-1. Text Node → يحتوي البروموت
-2. وصل الـ Text Node + Upload Node → Image Generator Node
-3. ولّد الصورة
-
----
+#### 🖼️ الخطوة 3: ولّد 6 فريمات بـ Nano Banana Pro
 
 > [!IMPORTANT]
-> **🧬 نظام الطبقات المتراكمة (Micro-Layer System)**
-> كل طبقة تغيّر **شي واحد فقط** — بالضبط مثل الورك فلو الإبداعي!
-> الـ AI يحافظ على كل التفاصيل السابقة ويعدّل فقط الشي اللي طلبته.
+> **الأداة:** Nano Banana Pro (عبر Freepik Spaces أو Higgsfield)
+> **المنهج:** 6 صور مستقلة — كل صورة بوصف كامل + الصورة المرجعية
+> **التنسيق:** يتبع دليل الإنتاج المرئي (Subject + Environment + Lighting + Camera + Style)
 
-### 🗺️ خريطة الطبقات:
-
+**لكل فريم:**
 ```
-الطبقة 1  [BASE]       ← الصورة التأسيسية الكاملة
-   ↓
-الطبقة 2  [HEAD TILT]   ← ميّل الرأس لليمين
-   ↓
-الطبقة 3  [EYES]        ← عيون فضولية أكثر
-   ↓ ─── ✂️ فريم 1 (هوك) جاهز ───
-   ↓
-الطبقة 4  [SMILE]       ← ابتسامة أعرض + حماس
-   ↓
-الطبقة 5  [LEAN]        ← انحناء خفيف للأمام
-   ↓
-الطبقة 6  [HAIR]        ← شعر مطاير من الحركة
-   ↓
-الطبقة 7  [HEAD FWD]    ← رأس مستقيم + نظرة مباشرة
-   ↓ ─── ✂️ فريم 2 (متحمسة) جاهز ───
-   ↓
-الطبقة 8  [POSTURE]     ← تستقيم + جلسة مهنية
-   ↓
-الطبقة 9  [HAND UP]     ← يد ترتفع بإيماءة شرح
-   ↓
-الطبقة 10 [HEAD LEFT]   ← رأس يميل لليسار + ثقة
-   ↓
-الطبقة 11 [FOCUS]       ← ابتسامة أهدأ + نظرة خبيرة
-   ↓ ─── ✂️ فريم 3 (شرح) جاهز ───
-   ↓
-الطبقة 12 [HAND DOWN]   ← يد تنزل من الشرح
-   ↓
-الطبقة 13 [HEART]       ← يد تلمس القلب بلطف
-   ↓
-الطبقة 14 [SOFT EYES]   ← عيون تلين + عاطفة عميقة
-   ↓
-الطبقة 15 [NOD]         ← إيماءة رأس خفيفة + ابتسامة دافئة صغيرة
-   ↓ ─── ✂️ فريم 4 (شخصي) جاهز ───
-   ↓
-الطبقة 16 [WAVE]        ← يد ترتفع تلوّح
-   ↓
-الطبقة 17 [JOY]         ← أكبر ابتسامة + عيون مغمضة بسعادة
-   ↓
-الطبقة 18 [BRIGHT]      ← إضاءة أسطع + طاقة عالية
-   ↓ ─── ✂️ فريم 5 (CTA) جاهز ───
-```
-
-### 🔗 أي طبقة تصير Start/End Frame لأي كليب:
-
-| الكليب | Start Frame | End Frame | المدة |
-|--------|-------------|-----------|-------|
-| كليب 1 (هوك) | طبقة 1 | طبقة 3 | 5 ث |
-| كليب 2 (متحمسة) | طبقة 3 | طبقة 7 | 6 ث |
-| كليب 3 (شرح) | طبقة 7 | طبقة 11 | 8 ث |
-| كليب 4 (شخصي) | طبقة 11 | طبقة 15 | 7 ث |
-| كليب 5 (CTA) | طبقة 15 | طبقة 18 | 5 ث |
-
----
-
-### 🎯 الطبقة 1 — BASE (الصورة التأسيسية)
-
-> ⚠️ هذي الطبقة الوحيدة ببرومبت طويل — تبني كلشي من الصفر.
-
-```
-Create a front-facing smartphone video-style portrait of a young Iraqi woman, 
-age 23, recorded indoors in the evening. The shot feels like a casual home 
-recording, NOT a professional studio photo. The camera is fixed at face height 
-as if resting on a desk directly in front of her. Framing is waist-up, 
-9:16 vertical aspect ratio.
-
-She wears a fitted turquoise polo shirt with a tiny embroidered AQUAVO logo 
-on the left chest — the logo is very small and subtle like a Lacoste crocodile, 
-dark teal thread on turquoise fabric, naturally embroidered with visible thread 
-texture that follows the fabric wrinkles. The fabric has natural cotton wrinkles.
-
-Her hair is long, jet black, flowing loose past her shoulders with a natural 
-center part and soft face-framing strands. A few stray flyaway hairs are 
-visible — NOT perfectly groomed. Individual hair strands catch the light.
-
-Her face: natural facial asymmetry — her left eye is VERY SLIGHTLY larger 
-than her right, her smile sits slightly higher on the right side, and her 
-right eyebrow is barely higher than her left. She has large dark brown doe 
-eyes with visible limbal rings around each iris. Two bright catchlight 
-reflections in both eyes. Faint red blood vessels visible in the sclera. 
-Natural tear film creates slight moisture. Individual lash strands visible.
-
-Her skin: luminous fair with warm peachy-golden undertones. Natural micro-pores 
-visible on nose and cheeks. Subtle vellus hairs (peach fuzz) catch the 
-side-lighting on her cheeks. Her nose and forehead are slightly more shiny 
-than her cheeks. Absolutely ZERO makeup.
-
-Her expression: neutral, calm, relaxed. Looking directly at the camera. 
-Lips naturally closed, resting expression. Hands at her sides, out of frame.
-
-Background: soft blurred teal-turquoise-ocean blue gradient. Abstract 
-underwater caustic light patterns faintly visible. NO furniture, NO desk, 
-NO aquarium, NO fish tanks.
-
-Lighting: warm golden key light (3500K) from camera-left at 45 degrees. 
-Soft fill light from camera-right at 50%. Subtle backlight rim on black hair.
-
-Image quality: smartphone video indoors at night — mild softness, visible 
-digital noise, slight compression artifacts, no filters, no beauty effects. 
-This must look like a real phone recording — NOT a perfect AI render.
+1. ارفع الصورة المرجعية كـ Reference Image
+2. انسخ البرومبت المحدد لهالفريم
+3. ولّد الصورة
+4. إذا اللوغو كبير → طبّق برومبت تصحيح اللوغو (المرحلة A.5)
 ```
 
 ---
 
-### 🎯 الطبقة 2 — HEAD TILT
+### 🎯 فريم 1 — الهوك (0-3 ثوانٍ)
+> مشهد 1: "أنا لجين 🐟 وهسة راح أخبرك شي..."
 
-> 📋 Input: صورة الطبقة 1
-
-```
-Keep this photo exactly the same. Change ONLY one thing: 
-tilt her head very slightly to the right — as if she is about 
-to share a secret with a close friend. Just a subtle, natural tilt. 
-Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 3 — CURIOUS EYES + SECRET SMILE
-
-> 📋 Input: صورة الطبقة 2
-> ✂️ **هذي = فريم 1 (الهوك)**
-
-```
-Keep this photo exactly the same. Change ONLY her expression: 
-her eyes widen very slightly with curiosity — sparkling, captivating, 
-as if she knows something you do not. Add a subtle mysterious smile — 
-lips gently closed, just the faintest confident smirk at the corners 
-of her mouth. She looks like she is about to reveal a secret.
-Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 4 — BIGGER SMILE
-
-> 📋 Input: صورة الطبقة 3
-
-```
-Keep this photo exactly the same. Change ONLY her smile: 
-widen it from mysterious to genuinely WARM and ENTHUSIASTIC — 
-a bigger closed-lip smile showing real excitement. Her cheeks 
-push up slightly. But her lips stay closed — no teeth showing. 
-Her eyes stay the same. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 5 — LEAN FORWARD
-
-> 📋 Input: صورة الطبقة 4
-
-```
-Keep this photo exactly the same. Change ONLY her posture: 
-she leans SLIGHTLY forward toward the camera — as if she is 
-about to share exciting news. Her shoulders shift forward just 
-a little. She is now slightly closer to the camera. Her face 
-appears a tiny bit larger in the frame. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 6 — HAIR MOVEMENT
-
-> 📋 Input: صورة الطبقة 5
-
-```
-Keep this photo exactly the same. Change ONLY her hair: 
-a few more flyaway strands are disturbed from the forward lean — 
-one or two strands fall slightly across her forehead, a strand 
-near her ear shifts. The hair looks natural and slightly messy 
-from movement. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 7 — HEAD STRAIGHT + DIRECT GAZE
-
-> 📋 Input: صورة الطبقة 6
-> ✂️ **هذي = فريم 2 (متحمسة)**
-
-```
-Keep this photo exactly the same. Change ONLY her head position: 
-straighten her head from the tilt so she is now facing the camera 
-directly — more engaged and energetic. Her eyebrows rise VERY 
-slightly, showing growing surprise and passion. She looks like 
-she is about to burst with excitement. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 8 — UPRIGHT POSTURE
-
-> 📋 Input: صورة الطبقة 7
-
-```
-Keep this photo exactly the same. Change ONLY her posture: 
-she sits more upright — straightening her back, pulling her 
-shoulders back slightly into a more professional but still warm 
-posture. She has leaned back from the forward position. She looks 
-like a confident, knowledgeable person. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 9 — HAND RISES (EXPLAINING GESTURE)
-
-> 📋 Input: صورة الطبقة 8
-
-```
-Keep this photo exactly the same. Change ONLY one thing: 
-her right hand rises from her side to chest level — palm facing UP, 
-fingers naturally spread, in a gentle "explaining" gesture as if she 
-is listing important points. Her wrist is relaxed and natural, NOT stiff. 
-Her fingers show realistic skin texture. Frame the shot slightly wider 
-to show the hand clearly. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 10 — HEAD TILTS LEFT
-
-> 📋 Input: صورة الطبقة 9
-
-```
-   Keep this photo exactly the same. Change ONLY her head: 
-   tilt it very slightly to the LEFT — the opposite direction from 
-   the beginning. This is a subtle confident tilt, like a knowledgeable 
-   friend explaining something important. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 11 — FOCUSED EXPERT EXPRESSION
-
-> 📋 Input: صورة الطبقة 10
-> ✂️ **هذي = فريم 3 (شرح)**
-
-```
-Keep this photo exactly the same. Change ONLY her expression: 
-her wide excited smile narrows to a GENTLE, CONFIDENT expression — 
-professional warmth. Her eyes become more focused and intelligent, 
-maintaining direct eye contact. She looks like a trusted expert giving 
-valuable advice. Calm, assured, knowledgeable. Her mouth stays naturally 
-closed. Everything else stays identical — same hand gesture, same posture.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create a mysterious, intriguing portrait — the viewer must feel she is about to reveal a secret",
+    "secondary": "Maintain exact character identity from reference image with photorealistic smartphone quality"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "subtle mysterious half-smile — lips FULLY CLOSED, corners of mouth lifted VERY slightly on the RIGHT side more than the left",
+      "eyes": {
+        "gaze": "direct into camera lens — locked eye contact",
+        "shape": "wide open with curiosity, left eye VERY SLIGHTLY larger than right (natural asymmetry)",
+        "iris": "large dark brown with visible limbal rings around each iris",
+        "catchlights": "two bright rectangular reflections in both eyes (from key light + fill light)",
+        "sclera": "faint red blood vessels visible in corners",
+        "moisture": "natural tear film creating slight wet glistening",
+        "lashes": "individual lash strands visible, natural length, NO mascara"
+      },
+      "eyebrows": {
+        "position": "right eyebrow BARELY higher than left (natural asymmetry)",
+        "shape": "natural thick dark brows, not groomed or shaped"
+      },
+      "mouth": {
+        "state": "CLOSED — lips pressed gently together",
+        "expression": "faintest confident smirk — mysterious, NOT a full smile",
+        "lips": "natural color, no lipstick, slight natural moisture"
+      },
+      "skin": {
+        "tone": "luminous fair with warm peachy-golden undertones",
+        "texture": "natural micro-pores visible on nose bridge and cheeks",
+        "details": "subtle vellus hairs (peach fuzz) catch side-lighting on cheeks, nose and forehead slightly more shiny than cheeks (natural oil)",
+        "imperfections": "small beauty mark on left cheek, zero makeup, zero foundation, zero concealer"
+      }
+    },
+    "head": {
+      "tilt": "tilted VERY SLIGHTLY to the RIGHT — about 5-7 degrees, as if about to share a secret",
+      "rotation": "facing camera directly, no turn left or right",
+      "chin": "neutral position, not raised or lowered"
+    },
+    "hair": {
+      "style": "long jet-black hair flowing loose past shoulders",
+      "parting": "natural center part",
+      "framing": "soft face-framing strands on both sides",
+      "details": "a few stray flyaway hairs visible — NOT perfectly groomed, individual hair strands catch the warm key light with golden highlights",
+      "texture": "natural slight wave, not perfectly straight"
+    },
+    "body": {
+      "framing": "waist-up portrait, shoulders and upper chest visible",
+      "posture": "relaxed, natural, sitting casually — NOT stiff or posed",
+      "shoulders": "relaxed, slightly rounded naturally, level (not raised with tension)",
+      "lean": "neutral — not leaning forward or back"
+    },
+    "hands": {
+      "visibility": "NOT visible — both hands rest at her sides, below the frame",
+      "position": "out of frame completely"
+    },
+    "clothing": {
+      "type": "fitted turquoise polo shirt with collar visible",
+      "color": "turquoise (HEX approximately #2AAFAB)",
+      "fabric": "natural cotton with visible wrinkles and texture — NOT pressed or perfect",
+      "buttons": "2-3 buttons visible at collar, top button undone",
+      "logo": {
+        "position": "left chest area",
+        "icon": "small wave/fish infinity symbol — VERY SMALL like a Lacoste crocodile",
+        "text": "AQUAVO written below the icon",
+        "size": "total logo about 2cm wide — tiny and subtle",
+        "style": "dark teal thread embroidered on turquoise fabric, visible thread stitching texture that follows fabric wrinkles"
+      }
+    }
+  },
+  "environment": {
+    "background": {
+      "type": "soft blurred gradient",
+      "colors": "teal → turquoise → ocean blue gradient (HEX range: #0D7377 to #1A9BA5 to #2BC4D0)",
+      "effects": "faint underwater caustic light patterns visible through the blur — abstract rippling light",
+      "blur_level": "heavy gaussian blur — f/1.8 equivalent depth of field",
+      "objects": "NONE — no furniture, no desk, no aquarium, no fish tanks, no plants, no decorations"
+    }
+  },
+  "lighting": {
+    "key_light": {
+      "position": "camera-left at 45 degrees, slightly above eye level",
+      "color_temperature": "warm golden 3500K",
+      "intensity": "primary light source — 100%",
+      "quality": "soft, slightly diffused"
+    },
+    "fill_light": {
+      "position": "camera-right",
+      "intensity": "50% of key light — fills shadows but does NOT eliminate them",
+      "quality": "soft and even"
+    },
+    "rim_light": {
+      "position": "behind subject, slightly above",
+      "effect": "subtle edge highlight on black hair — separates hair from background",
+      "intensity": "low — barely noticeable"
+    },
+    "overall_mood": "warm evening indoor light — cozy and intimate"
+  },
+  "camera": {
+    "angle": "straight on, at face height — as if phone rests on a desk directly in front of her",
+    "distance": "medium close-up / waist-up",
+    "lens": "smartphone equivalent — approximately 26mm focal length",
+    "aspect_ratio": "9:16 vertical (1080x1920)",
+    "quality": {
+      "style": "smartphone video screenshot — NOT a professional studio photo",
+      "noise": "visible digital noise / grain — especially in shadows and background",
+      "softness": "mild overall softness — typical of phone camera in low light",
+      "compression": "slight JPEG compression artifacts visible",
+      "filters": "NONE — no beauty filter, no skin smoothing, no color filter",
+      "depth_of_field": "shallow — background blurred, face sharp"
+    }
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT make her look like a professional studio photo",
+      "Do NOT add makeup, eyeliner, lipstick, or foundation",
+      "Do NOT make skin perfectly smooth — keep pores and texture",
+      "Do NOT show hands in this frame",
+      "Do NOT add any objects or furniture in background",
+      "Do NOT make the logo large — it must be tiny and subtle",
+      "Do NOT make hair perfectly groomed — keep flyaways"
+    ]
+  }
+}
 ```
 
 ---
 
-### 🎯 الطبقة 12 — HAND LOWERS
+### 🎯 فريم 2 — متحمسة (3-12 ثانية)
+> مشهد 2: "إذا عندك حوض سمك... أنا هنا علمودك! 💚"
 
-> 📋 Input: صورة الطبقة 11
-
-```
-Keep this photo exactly the same. Change ONLY her hand: 
-her right hand lowers from the explaining gesture — it drops slowly 
-to rest at her side or in front of her chest. The explaining gesture 
-is complete. Her expression stays the same. Everything else stays identical.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create an excited, engaged portrait — she is bursting with enthusiasm about her passion",
+    "secondary": "Clear visual difference from Frame 1: wider smile, body leaning forward, head straight"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "wide genuine ENTHUSIASTIC smile — excited and passionate, clearly different from Frame 1's mystery",
+      "eyes": {
+        "gaze": "direct into camera — sparkling with energy and warmth",
+        "shape": "bright and wide open — more open than Frame 1, showing excitement",
+        "iris": "large dark brown with visible limbal rings",
+        "catchlights": "two bright reflections in both eyes — more vibrant than Frame 1",
+        "sclera": "clean white with faint natural veins",
+        "moisture": "natural tear film — healthy glistening",
+        "lashes": "individual strands visible, natural"
+      },
+      "eyebrows": {
+        "position": "RAISED with surprise and passion — noticeably higher than Frame 1",
+        "expression": "animated and engaged — showing genuine excitement"
+      },
+      "mouth": {
+        "state": "CLOSED but with a WIDE smile — lips pressed together in a big closed-lip grin",
+        "expression": "wide genuine closed-lip smile — cheeks pushed UP creating natural smile lines",
+        "lips": "stretched wide with joy, natural color, NO teeth showing",
+        "cheeks": "pushed up from the wide smile — creating slight under-eye bunching"
+      },
+      "skin": {
+        "tone": "same luminous fair with warm peachy-golden undertones as Frame 1",
+        "texture": "same natural micro-pores on nose and cheeks",
+        "details": "slight natural flush on cheeks from excitement — very subtle warmth",
+        "imperfections": "same beauty mark on left cheek, zero makeup"
+      }
+    },
+    "head": {
+      "tilt": "STRAIGHT — NO tilt, facing camera perfectly head-on (different from Frame 1)",
+      "rotation": "facing camera directly",
+      "chin": "slightly raised with confidence and enthusiasm"
+    },
+    "hair": {
+      "style": "same long jet-black hair",
+      "details": "a few MORE flyaway strands than Frame 1 — slightly messier from the forward lean movement",
+      "movement": "one or two strands have shifted across forehead, a strand near ear has moved",
+      "texture": "same natural wave"
+    },
+    "body": {
+      "framing": "waist-up, she appears SLIGHTLY CLOSER to camera than Frame 1",
+      "posture": "leaning SLIGHTLY FORWARD toward camera — about 5-10 degrees, as if excited to share news",
+      "shoulders": {
+        "position": "shifted forward from the lean — more engaged body language",
+        "level": "even, not raised with tension"
+      },
+      "lean": "subtle forward lean — her face is slightly larger in frame compared to Frame 1"
+    },
+    "hands": {
+      "visibility": "NOT visible — both hands at sides below frame",
+      "position": "out of frame"
+    },
+    "clothing": {
+      "type": "same turquoise polo shirt — fabric shows slight compression wrinkles from the forward lean",
+      "color": "same turquoise (HEX approximately #2AAFAB) — MUST MATCH Frame 1 exactly",
+      "logo": {
+        "same_as": "Frame 1 — tiny embroidered AQUAVO logo on left chest"
+      }
+    }
+  },
+  "environment": {
+    "background": {
+      "same_as": "Frame 1 — same teal-turquoise gradient with caustic light patterns",
+      "colors": "MUST MATCH Frame 1 exactly (HEX range: #0D7377 to #1A9BA5 to #2BC4D0)",
+      "objects": "NONE"
+    }
+  },
+  "lighting": {
+    "same_as": "Frame 1 — same warm golden key light at 3500K from camera-left, same fill from right at 50%",
+    "note": "MUST MATCH Frame 1 color temperature and intensity exactly"
+  },
+  "camera": {
+    "same_as": "Frame 1 — same smartphone quality, 9:16, same noise and compression",
+    "note": "Subject appears SLIGHTLY larger in frame due to forward lean"
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT tilt her head — it must be STRAIGHT (this differentiates from Frame 1)",
+      "Do NOT show teeth — smile is wide but CLOSED",
+      "Do NOT change the background color from Frame 1",
+      "Do NOT change the polo shirt color from Frame 1",
+      "Do NOT show hands",
+      "Do NOT add makeup"
+    ],
+    "must_match_frame_1": [
+      "Same background gradient and caustic patterns",
+      "Same polo shirt color and logo",
+      "Same skin tone and texture",
+      "Same lighting color temperature",
+      "Same camera quality and noise"
+    ]
+  }
+}
 ```
 
 ---
 
-### 🎯 الطبقة 13 — HAND TOUCHES HEART
+### 🎯 فريم 3 — الشرح (12-28 ثانية)
+> مشهد 3: "AQUAVO = أول متجر أحواض... 💚 مو بس متجر — عائلة!"
 
-> 📋 Input: صورة الطبقة 12
-
-```
-Keep this photo exactly the same. Change ONLY her right hand: 
-it moves gently to rest over her heart on her chest — fingers slightly 
-spread, palm flat against the polo fabric. The touch is gentle and sincere, 
-NOT pressing hard. Natural skin texture on her hand, subtle veins visible. 
-This is a deeply genuine gesture. Everything else stays identical.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create a confident expert explaining — she is a trusted advisor sharing knowledge",
+    "secondary": "RIGHT HAND visible in an explaining gesture — this is the first frame showing a hand"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "calm, assured, knowledgeable — professional warmth, NOT excitement",
+      "eyes": {
+        "gaze": "direct into camera — focused and intelligent",
+        "shape": "slightly narrower than Frame 2 — more focused and deliberate",
+        "iris": "same dark brown with limbal rings",
+        "catchlights": "same two reflections",
+        "expression": "confident expertise — 'I know what I'm talking about' energy"
+      },
+      "eyebrows": {
+        "position": "relaxed and level — NOT raised like Frame 2",
+        "expression": "calm confidence, one brow VERY slightly higher (natural asymmetry)"
+      },
+      "mouth": {
+        "state": "CLOSED — gentle confident smile",
+        "expression": "smaller smile than Frame 2 — professional warmth, not excitement. Controlled and assured",
+        "lips": "natural color, pressed gently with slight upward curve"
+      },
+      "skin": {
+        "same_as": "Frame 1 — same tone, texture, pores, no makeup"
+      }
+    },
+    "head": {
+      "tilt": "VERY SLIGHTLY tilted to the LEFT — about 3-5 degrees (opposite direction from Frame 1)",
+      "rotation": "facing camera directly",
+      "chin": "slightly raised — confident posture"
+    },
+    "hair": {
+      "same_as": "Frame 1 base style",
+      "details": "flowing naturally, some strands fall over right shoulder, frame-framing strands present"
+    },
+    "body": {
+      "framing": "SLIGHTLY WIDER than Frames 1-2 — showing more of upper body to include the hand gesture",
+      "posture": "sitting UPRIGHT — back straight, professional and confident, NOT leaning forward",
+      "shoulders": {
+        "position": "pulled back slightly — open, confident posture",
+        "level": "right shoulder slightly lower because right arm is raised"
+      }
+    },
+    "hands": {
+      "right_hand": {
+        "visibility": "VISIBLE — this is a KEY element of this frame",
+        "position": "raised to chest level, about 15cm in front of her body",
+        "palm": "facing UP — open palm presenting/explaining",
+        "fingers": {
+          "thumb": "relaxed, slightly separated from other fingers, pointing upward-outward",
+          "index": "naturally extended, slightly curved — NOT stiff or pointing",
+          "middle": "naturally extended, slightly curved, close to index finger",
+          "ring": "naturally extended, slightly lower than middle finger",
+          "pinky": "naturally extended, slightly curled inward — most relaxed of all fingers"
+        },
+        "wrist": "relaxed, slightly bent — NOT stiff or mechanical. Natural angle",
+        "skin_detail": "visible knuckle creases, natural skin texture, subtle veins on back of hand, clean short natural nails",
+        "gesture_meaning": "open-palm 'explaining' gesture — as if listing important points or presenting information"
+      },
+      "left_hand": {
+        "visibility": "NOT visible — rests at her side, out of frame"
+      }
+    },
+    "clothing": {
+      "same_as": "Frame 1 — same turquoise polo, same color (#2AAFAB), same logo",
+      "wrinkles": "slight fabric pull from right arm being raised — natural movement wrinkles near right shoulder and armpit"
+    }
+  },
+  "environment": {
+    "background": {
+      "same_as": "Frame 1 — MUST MATCH same gradient and caustic patterns",
+      "objects": "NONE"
+    }
+  },
+  "lighting": {
+    "same_as": "Frame 1 — same warm golden key light, same fill",
+    "hand_lighting": "key light hits the palm and fingers from the left — warm golden light on skin, subtle shadow cast by hand on polo shirt"
+  },
+  "camera": {
+    "same_as": "Frame 1 base quality",
+    "framing": "slightly wider than Frames 1-2 to include the hand gesture cleanly"
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT make the hand stiff or robotic — fingers must look natural and relaxed",
+      "Do NOT show left hand",
+      "Do NOT make the smile as wide as Frame 2 — this is calm confidence, not excitement",
+      "Do NOT tilt head to the RIGHT — it must tilt LEFT (opposite of Frame 1)",
+      "Do NOT add extra fingers — exactly 5 fingers on right hand",
+      "Do NOT make fingers unnaturally long or short"
+    ],
+    "critical_hand_rules": [
+      "Exactly 5 fingers visible on right hand",
+      "Palm faces UPWARD",
+      "Fingers are SPREAD but RELAXED — not tense",
+      "Wrist angle is NATURAL — not bent at 90 degrees",
+      "Hand is at CHEST LEVEL — not face level or waist level"
+    ]
+  }
+}
 ```
 
 ---
 
-### 🎯 الطبقة 14 — EYES SOFTEN
+### 🎯 فريم 4 — يد على القلب (نهاية المشهد 3)
+> مشهد 3 النهاية: "مو بس متجر — عائلة! 💚"
 
-> 📋 Input: صورة الطبقة 13
-
-```
-Keep this photo exactly the same. Change ONLY her eyes and expression: 
-her eyes SOFTEN with deep genuine warmth — becoming slightly more moist 
-(natural tear film glistening, but she is NOT crying). Her eyebrows 
-soften empathetically. Her smile becomes SMALLER and WARMER — a soft, 
-intimate, caring expression. This is the most emotionally vulnerable 
-moment. Everything else stays identical — same hand on heart.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create a deeply sincere emotional moment — hand on heart, genuine connection",
+    "secondary": "The hand-on-heart gesture must look NATURAL and GENTLE — not theatrical"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "deeply warm and sincere — this is the emotional peak of Phase 1",
+      "eyes": {
+        "gaze": "direct into camera — soft, caring, vulnerable",
+        "shape": "slightly softer than Frame 3 — less focused, more emotional",
+        "iris": "same dark brown with limbal rings",
+        "catchlights": "same reflections — but slightly more glistening from emotion",
+        "moisture": "slightly MORE moisture than other frames — natural tear film glistening (NOT crying)",
+        "expression": "radiating genuine care — 'I truly care about you' energy"
+      },
+      "eyebrows": {
+        "position": "softened — slightly drawn together with empathy, NOT frowning",
+        "expression": "warm concern and sincerity"
+      },
+      "mouth": {
+        "state": "CLOSED — soft intimate smile",
+        "expression": "SMALLER smile than Frames 2-3 — soft, small, intimate",
+        "lips": "gently pressed together with warm subtle upward curve — genuine not performative"
+      },
+      "skin": {
+        "same_as": "Frame 1 — same tone and texture",
+        "warmth": "slight natural flush from emotion — very subtle"
+      }
+    },
+    "head": {
+      "tilt": "VERY SUBTLE downward nod — chin drops just a fraction, affirming sincerity",
+      "rotation": "facing camera directly",
+      "chin": "SLIGHTLY lowered from neutral — humble, sincere angle"
+    },
+    "hair": {
+      "same_as": "Frame 1 base style",
+      "details": "some hair falls over right shoulder naturally, strands frame face"
+    },
+    "body": {
+      "framing": "waist-up — same framing as Frame 1",
+      "posture": "upright but softened — not as rigid as Frame 3, more relaxed and open",
+      "shoulders": {
+        "position": "slightly rounded forward — vulnerable body language",
+        "right_shoulder": "slightly lower because right arm crosses to heart"
+      }
+    },
+    "hands": {
+      "right_hand": {
+        "visibility": "VISIBLE — KEY element: hand resting over heart",
+        "position": "flat against LEFT side of chest, over the heart area — palm on polo fabric",
+        "pressure": "GENTLE — light touch, NOT pressing hard into chest",
+        "palm": "flat against fabric — you can see the fabric slightly indent under palm",
+        "fingers": {
+          "thumb": "rests naturally on fabric, pointing upward toward left shoulder",
+          "index": "extended flat on fabric, slightly separated from middle finger",
+          "middle": "extended flat on fabric, center of the hand spread",
+          "ring": "extended flat on fabric, slightly lower",
+          "pinky": "extended flat on fabric, lowest finger — slightly curled at tip"
+        },
+        "wrist": "crosses body naturally — slight diagonal from right side to left chest",
+        "skin_detail": "back of hand visible, subtle veins, knuckle creases, clean natural nails",
+        "fabric_interaction": "polo fabric shows slight indentation under hand — the hand is TOUCHING the fabric, not hovering"
+      },
+      "left_hand": {
+        "visibility": "NOT visible — at her side below frame"
+      }
+    },
+    "clothing": {
+      "same_as": "Frame 1 — same turquoise polo, same color, same logo",
+      "wrinkles": "fabric slightly compressed under right hand — natural wrinkle pattern where hand presses",
+      "logo_note": "logo may be partially covered by hand — this is OK and natural"
+    }
+  },
+  "environment": {
+    "background": {
+      "same_as": "Frame 1 — MUST MATCH same gradient",
+      "objects": "NONE"
+    }
+  },
+  "lighting": {
+    "base": "same warm golden key light from Frame 1",
+    "adjustment": "SLIGHTLY softer and warmer overall — fill light increased by about 10%, creating a more intimate mood",
+    "shadows": "softer, less contrast than Frames 1-3 — more even, gentler lighting"
+  },
+  "camera": {
+    "same_as": "Frame 1 — same smartphone quality, 9:16"
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT make the hand press HARD — the touch is GENTLE",
+      "Do NOT make this a theatrical gesture — it should feel natural and genuine",
+      "Do NOT show left hand",
+      "Do NOT make her look like she's crying — eyes glisten but NO tears",
+      "Do NOT make the smile wide — it must be SMALL and intimate",
+      "Do NOT add extra fingers — exactly 5 on right hand"
+    ],
+    "critical_hand_rules": [
+      "Hand is FLAT on chest, over heart",
+      "Fingers are slightly SPREAD on fabric",
+      "Palm TOUCHES the polo fabric — visible fabric indentation",
+      "Wrist crosses body diagonally from right",
+      "Touch is GENTLE — light pressure only"
+    ]
+  }
+}
 ```
 
 ---
 
-### 🎯 الطبقة 15 — GENTLE NOD + INTIMATE MOOD
+### 🎯 فريم 5 — شخصي (28-42 ثانية)
+> مشهد 4: "أنا لجين 👋 عمري 23 — هدفي = حوضك يكون أحلى حوض! 🏆"
 
-> 📋 Input: صورة الطبقة 14
-> ✂️ **هذي = فريم 4 (شخصي)**
+> ⚠️ **هذا الفريم لازم يختلف بوضوح عن فريم 4!** اليد تنزل + الذقن يرتفع + التعبير يتغيّر
 
-```
-Keep this photo exactly the same. Change ONLY two subtle things:
-
-1. Her head gives a very subtle downward nod — barely noticeable, 
-   affirming sincerity. Her chin drops just a fraction.
-
-2. The overall lighting feels VERY SLIGHTLY softer and warmer — 
-   as if the fill light increased by 10%, making the mood quieter 
-   and more intimate.
-
-Everything else stays identical — same hand on heart, same soft eyes, 
-same warm expression.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create a personal, confident self-introduction — she is telling you who she is and her mission",
+    "secondary": "MUST be visually DIFFERENT from Frame 4: hand DOWN (not on heart), chin UP (not lowered), expression is proud confidence (not emotional vulnerability)"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "personal warm CONFIDENCE — proud but humble, like introducing yourself to a new friend",
+      "eyes": {
+        "gaze": "direct into camera — warm, personal, and determined",
+        "shape": "open and clear — NOT glistening with emotion like Frame 4",
+        "iris": "same dark brown with limbal rings",
+        "catchlights": "same reflections — clear and bright",
+        "expression": "warm determination — 'I know my purpose and I'm excited to share it'"
+      },
+      "eyebrows": {
+        "position": "relaxed but slightly RAISED — open and honest expression",
+        "expression": "confident and inviting — different from Frame 4's soft empathy"
+      },
+      "mouth": {
+        "state": "CLOSED — warm personal smile",
+        "expression": "medium smile — BIGGER than Frame 4's small intimate smile but SMALLER than Frame 2's big excited smile. Confident and personal",
+        "lips": "natural curve upward — warm and genuine"
+      },
+      "skin": {
+        "same_as": "Frame 1 — same tone and texture, no makeup"
+      }
+    },
+    "head": {
+      "tilt": "VERY SLIGHT tilt to the RIGHT — about 3 degrees, friendly and personal",
+      "rotation": "facing camera directly",
+      "chin": "SLIGHTLY RAISED — confidence and pride (OPPOSITE of Frame 4's lowered chin)"
+    },
+    "hair": {
+      "same_as": "Frame 1 base style",
+      "details": "natural flow, some strands over shoulders"
+    },
+    "body": {
+      "framing": "waist-up — same as Frame 1",
+      "posture": "upright and OPEN — shoulders back slightly, confident and welcoming",
+      "shoulders": {
+        "position": "LEVEL and relaxed — more open than Frame 4's rounded shoulders",
+        "expression": "confident open body language — 'here I am' energy"
+      }
+    },
+    "hands": {
+      "right_hand": {
+        "visibility": "BARELY visible or NOT visible — hand has LOWERED from heart to rest in her LAP or at her side",
+        "position": "resting naturally in her lap, below main frame — fingers loosely curled in a relaxed fist or open on her thigh",
+        "note": "This is KEY DIFFERENCE from Frame 4 — the hand is NO LONGER on heart"
+      },
+      "left_hand": {
+        "visibility": "NOT visible — at her side"
+      }
+    },
+    "clothing": {
+      "same_as": "Frame 1 — same turquoise polo, same color, same logo",
+      "logo": "FULLY VISIBLE — no hand covering it (unlike Frame 4)"
+    }
+  },
+  "environment": {
+    "background": {
+      "same_as": "Frame 1 — MUST MATCH same gradient",
+      "objects": "NONE"
+    }
+  },
+  "lighting": {
+    "base": "same warm golden key light from Frame 1",
+    "adjustment": "slightly warmer and softer than Frames 1-3, similar warmth to Frame 4 but slightly brighter",
+    "mood": "intimate but confident — warm personal conversation"
+  },
+  "camera": {
+    "same_as": "Frame 1 — same smartphone quality, 9:16"
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT put hand on heart — that was Frame 4. Hand must be DOWN",
+      "Do NOT lower the chin — chin must be slightly RAISED (opposite of Frame 4)",
+      "Do NOT make eyes glistening with emotion — that was Frame 4. Eyes must be CLEAR and confident",
+      "Do NOT make the smile too small like Frame 4 — this is a slightly bigger, more confident smile",
+      "Do NOT round the shoulders — posture must be OPEN and confident"
+    ],
+    "key_differences_from_frame_4": [
+      "Hand: DOWN (not on heart)",
+      "Chin: RAISED slightly (not lowered)",
+      "Eyes: clear and confident (not glistening with emotion)",
+      "Smile: medium confident (not small intimate)",
+      "Shoulders: open and back (not rounded forward)",
+      "Logo: fully visible (not covered by hand)"
+    ]
+  }
+}
 ```
 
 ---
 
-### 🎯 الطبقة 16 — HAND LIFTS TO WAVE
+### 🎯 فريم 6 — التوديع + CTA (42-50 ثانية)
+> مشهد 5: "تابعنا 👇 @aquavo.iq — لايك + فولو + شير = ❤️"
 
-> 📋 Input: صورة الطبقة 15
-
-```
-Keep this photo exactly the same. Change ONLY her right hand: 
-it lifts from her heart and rises to shoulder level — open palm, 
-fingers spread naturally, mid-wave position as if waving goodbye to 
-a friend she will see again soon. Her hand is slightly angled, natural 
-and casual, NOT a stiff military wave. Her expression stays the same 
-for now. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 17 — BIGGEST SMILE (DUCHENNE JOY)
-
-> 📋 Input: صورة الطبقة 16
-
-```
-Keep this photo exactly the same — same waving hand. Change ONLY 
-her expression: her soft sincere expression BURSTS into the biggest, 
-most genuine smile of the entire series — a real Duchenne smile where 
-her eyes crinkle and squint slightly from happiness. Her cheeks push 
-up naturally. Her lips part just enough to show a natural, warm smile — 
-NOT a teeth-baring exaggerated grin, but genuine JOY. Her eyebrows 
-raise slightly — open and happy. Everything else stays identical.
-```
-
----
-
-### 🎯 الطبقة 18 — BRIGHTER ENERGY + FINAL TOUCHES
-
-> 📋 Input: صورة الطبقة 17
-> ✂️ **هذي = فريم 5 (CTA)**
-
-```
-Keep this photo exactly the same — same waving hand, same big smile. 
-Change ONLY two things:
-
-1. Her body language becomes OPEN and POSITIVE — shoulders back slightly, 
-   posture upright and welcoming, radiating warm energy. A subtle bounce 
-   in her posture as if she is genuinely happy.
-
-2. The overall lighting feels VERY SLIGHTLY BRIGHTER — as if the mood 
-   itself brightened. More light fills the scene. Less shadow on her face.
-
-Her hair shows very slight movement from the wave — a few strands shift 
-naturally. Everything else stays identical.
+```json
+{
+  "model": "nanobanana-pro",
+  "task_type": "image_generation_with_reference",
+  "reference": "Upload the character reference image",
+  "priority": {
+    "primary": "Create the most joyful, energetic farewell — biggest smile, waving hand, pure happiness",
+    "secondary": "This is the BRIGHTEST and most POSITIVE frame of all — maximum warmth and energy"
+  },
+  "subject": {
+    "identity": "Same young Iraqi woman from the uploaded reference image, age 23",
+    "face": {
+      "expression": "BIGGEST and most GENUINE smile of the entire series — pure unbridled joy",
+      "eyes": {
+        "gaze": "direct into camera — but eyes are SQUINTING from happiness",
+        "shape": "crinkled at corners — Duchenne smile indicator, crow's feet lines appear",
+        "iris": "same dark brown — partially hidden by squinting",
+        "catchlights": "bright reflections still visible despite squint",
+        "expression": "pure joy — eyes CRINKLE and partially close from the big smile"
+      },
+      "eyebrows": {
+        "position": "RAISED — open and happy, highest position of all frames",
+        "expression": "animated delight"
+      },
+      "mouth": {
+        "state": "SLIGHTLY OPEN — lips barely parted with natural joy",
+        "expression": "biggest smile — real Duchenne smile, NOT a forced grin",
+        "teeth": "top teeth BARELY visible through the slight lip part — natural, NOT a wide open grin",
+        "lips": "stretched wide with genuine happiness",
+        "cheeks": "PUSHED UP HIGH — natural smile bunching creating under-eye creases"
+      },
+      "skin": {
+        "same_as": "Frame 1 — same tone and texture, no makeup",
+        "flush": "natural slight flush from joy and energy"
+      }
+    },
+    "head": {
+      "tilt": "neutral to VERY SLIGHT playful tilt — about 2-3 degrees either direction",
+      "rotation": "facing camera directly",
+      "chin": "slightly raised — open and confident"
+    },
+    "hair": {
+      "same_as": "Frame 1 base style",
+      "movement": "slight movement from the wave — a few strands shift, one strand crosses face slightly",
+      "energy": "hair looks slightly more dynamic — catching more light from the movement"
+    },
+    "body": {
+      "framing": "waist-up — slightly wider to include the waving hand fully",
+      "posture": "UPRIGHT and OPEN — shoulders back, chest open, radiating positive energy",
+      "shoulders": {
+        "position": "right shoulder raised slightly from the wave, left shoulder relaxed",
+        "expression": "open and inviting body language — maximum positivity"
+      },
+      "energy": "subtle bounce in posture — she looks genuinely happy and alive"
+    },
+    "hands": {
+      "right_hand": {
+        "visibility": "VISIBLE — KEY element: waving goodbye",
+        "position": "raised to SHOULDER LEVEL — slightly to the right of her face",
+        "palm": "facing FORWARD toward camera — open palm wave",
+        "wave_style": "casual friendly wave — mid-wave position, as if waving to a friend she will see again soon",
+        "fingers": {
+          "thumb": "slightly separated, pointing outward — relaxed",
+          "index": "extended and slightly spread from middle finger",
+          "middle": "extended straight — tallest finger, center of wave",
+          "ring": "extended, slightly lower and closer to middle finger",
+          "pinky": "extended but slightly curled inward naturally — the most relaxed finger"
+        },
+        "wrist": "slightly angled — NOT a stiff military wave. Natural casual angle, wrist has a slight bend",
+        "skin_detail": "palm lines visible, natural skin texture, clean nails",
+        "energy": "mid-motion feel — the hand looks like it's IN THE MIDDLE of a wave, not frozen"
+      },
+      "left_hand": {
+        "visibility": "NOT visible — at her side below frame"
+      }
+    },
+    "clothing": {
+      "same_as": "Frame 1 — same turquoise polo, same color (#2AAFAB), same logo",
+      "wrinkles": "fabric stretches slightly from raised right arm — natural pull near right armpit and shoulder",
+      "logo": "visible on left chest"
+    }
+  },
+  "environment": {
+    "background": {
+      "same_as": "Frame 1 — MUST MATCH same gradient",
+      "objects": "NONE"
+    }
+  },
+  "lighting": {
+    "base": "same warm golden key light from Frame 1",
+    "adjustment": "SLIGHTLY BRIGHTER than all other frames — more light fills the scene, less shadow on face",
+    "mood": "bright, positive, upbeat — the most energetic lighting of all frames",
+    "fill_increase": "fill light at about 60-65% (vs 50% in Frame 1) — less contrast, more open and positive"
+  },
+  "camera": {
+    "same_as": "Frame 1 base quality",
+    "framing": "slightly wider to include waving hand clearly — hand should not be cropped"
+  },
+  "constraints": {
+    "must_not": [
+      "Do NOT make a stiff military wave — the wave must be CASUAL and FRIENDLY",
+      "Do NOT make her mouth wide open in a theatrical grin — it's a natural joyful smile with lips BARELY parted",
+      "Do NOT show too many teeth — just a GLIMPSE through slightly parted lips",
+      "Do NOT crop the waving hand — it must be FULLY visible",
+      "Do NOT add extra fingers — exactly 5 on right hand",
+      "Do NOT make this look posed — it should feel SPONTANEOUS and genuine"
+    ],
+    "critical_hand_rules": [
+      "Hand at SHOULDER level — not above head, not at face level",
+      "Palm faces CAMERA — open and friendly",
+      "Fingers SPREAD but NATURAL — not perfectly straight",
+      "Wrist has natural SLIGHT BEND — not stiff",
+      "Wave is CASUAL — like waving to a friend, not a formal wave"
+    ]
+  }
+}
 ```
 
 ---
 
 > [!TIP]
 > ### 💡 نصائح التنفيذ:
-> - **إذا الـ AI غيّر شي ما طلبته:** كرر نفس البرومبت مع إضافة `"DO NOT change [الشي اللي تغيّر]"` 
-> - **إذا الوجه اختلف:** ارجع للطبقة اللي قبلها واستخدمها كـ reference من جديد
-> - **مو لازم تستخدم كل الـ 18 طبقة!** الـ 5 فريمات المحددة بـ ✂️ هي اللي تحتاجها للفيديو
-> - **الطبقات الوسطية (بدون ✂️):** اختيارية — لكن تساعد على ثبات الشخصية إذا القفزة الكبيرة ما نجحت
+> - **كل فريم يبدأ بـ** `"Using the uploaded reference image"` — هذا يثبت الهوية
+> - **إذا الوجه اختلف:** ولّد مرة ثانية — Nano Banana Pro مع Reference Image يحافظ على الثبات
+> - **إذا اللوغو كبير:** طبّق برومبت Logo Fix (المرحلة A.5)
+> - **الترتيب مهم:** ولّد بالترتيب (1→2→3→4→5→6) وتحقق من الثبات بين كل فريم
 
 ---
 
@@ -791,125 +1135,139 @@ DO NOT change: face, eyes, hair, skin, expression, background, pose, body, hands
 
 ---
 
-### المرحلة B: تحويل الفريمات لفيديو (Start-to-End Frame)
+### المرحلة B: تحويل الفريمات لفيديو (SeedAnce 2 — Start-to-End Frame)
 
 > [!IMPORTANT]
-> **كل كليب يستخدم فريمين من نظام الطبقات:** Start Frame (الطبقة ✂️ الأولى) + End Frame (الطبقة ✂️ الثانية).
-> نهاية كل كليب = بداية الكليب اللي بعده → سلاسة مثالية!
-
-#### 🎬 الخطوة 4: ولّد 5 كليبات فيديو (Start → End)
-
-```
-لكل كليب:
-1. ارفع Start Frame + End Frame (من الطبقات المحددة بـ ✂️)
-2. اختر Model: **"Kling O1"** (الأفضل لـ Start-to-End Frame)
-3. Duration: 5-8 ثوانٍ لكل كليب
-4. Aspect Ratio: 9:16
-5. اكتب Motion Prompt لكل كليب
-
-التوزيع (مرتبط بنظام الطبقات):
-├── كليب 1 (هوك):     طبقة 1 → طبقة 3    (5 ثوانٍ)
-├── كليب 2 (متحمسة):  طبقة 3 → طبقة 7    (6 ثوانٍ)
-├── كليب 3 (شرح):     طبقة 7 → طبقة 11   (8 ثوانٍ)
-├── كليب 4 (شخصي):   طبقة 11 → طبقة 15   (7 ثوانٍ)
-└── كليب 5 (CTA):     طبقة 15 → طبقة 18   (5 ثوانٍ)
-```
+> **الأداة:** SeedAnce 2 (عبر Dreamina أو Jimeng)
+> **المنهج:** Start Frame + End Frame → فيديو بينهم
+> **⚡ أهم قاعدة:** آخر فريم من الكليب السابق = Start Frame للكليب التالي!
 
 > [!CAUTION]
-> **⚠️ قواعد Kling O1 المؤكدة (من البحث):**
-> 1. **مختصر:** 2-4 أفكار رئيسية فقط — لا تكتب فقرات طويلة!
-> 2. **لا تكتب timelines:** Kling يسوي interpolation بين الفريمين تلقائياً
-> 3. **وصف الانتقال:** شنو يتغيّر من البداية للنهاية
-> 4. **حدد الكاميرا:** لازم تُذكر صراحة
-> 5. **البنية:** Subject + Action + Context + Style
+> **⚠️ قواعد SeedAnce 2 المؤكدة (من البحث):**
+> 1. **30-100 كلمة فقط** — مختصر ومركّز
+> 2. **استخدم @Image1 و @Image2** — للإشارة لفريم البداية والنهاية
+> 3. **البنية:** Subject + Action + Camera + Style + Constraints
+> 4. **وصف الانتقال** — مو وصف المشهد من جديد
+> 5. **ثبّت الهوية:** اكتب "Keep the same character, same clothing, same hairstyle, no face changes, no flicker, high consistency"
+> 6. **الجودة تنخفض بعد 10 ثوانٍ** — حافظ على 5-8 ثوانٍ لكل كليب
 
-### ✅ مطابقة البرومبتات مع السيناريو:
+#### 🎬 الخطوة 4: ولّد 5 كليبات فيديو (SeedAnce 2)
 
-| الكليب | مشهد السيناريو | الحركة المطلوبة | ✅ |
-|--------|---------------|-----------------|----|
-| كليب 1 | مشهد 1: الهوك | ابتسامة غامضة + ميلان رأس يمين | ✅ |
-| كليب 2 | مشهد 2: شنو AQUAVO | حماس + إيماءة رأس عند "أنا هنا" | ✅ |
-| كليب 3 | مشهد 3: الخدمات | يد مفتوحة شرح + يد على القلب عند "عائلة" | ✅ |
-| كليب 4 | مشهد 4: مين أنا | نظرة دافئة + إيماءة رأس عند "هدفي" | ✅ |
-| كليب 5 | مشهد 5: CTA | تلويح + أكبر ابتسامة | ✅ |
+```
+📋 سير العمل المتسلسل (Chain Approach):
+
+كليب 1:  فريم 1 (صورة) → فريم 2 (صورة)     [5 ثوانٍ]
+كليب 2:  آخر لقطة كليب 1 → فريم 3 (صورة)    [6 ثوانٍ]
+كليب 3:  آخر لقطة كليب 2 → فريم 4 (صورة)    [8 ثوانٍ]
+كليب 4:  آخر لقطة كليب 3 → فريم 5 (صورة)    [7 ثوانٍ]
+كليب 5:  آخر لقطة كليب 4 → فريم 6 (صورة)    [5 ثوانٍ]
+
+⚠️ "آخر لقطة" = screenshot من آخر فريم بالفيديو المولّد
+   إذا آخر فريم تشوّه → خذ فريم من قبل النهاية بنص ثانية
+```
+
+### ✅ مطابقة الكليبات مع السيناريو:
+
+| الكليب | المشهد | @Image1 (Start) | @Image2 (End) | المدة |
+|--------|--------|-----------------|---------------|-------|
+| كليب 1 | الهوك | فريم 1 (صورة) | فريم 2 (صورة) | 5 ث |
+| كليب 2 | شنو AQUAVO | آخر لقطة كليب 1 | فريم 3 (صورة) | 6 ث |
+| كليب 3 | الخدمات | آخر لقطة كليب 2 | فريم 4 (صورة) | 8 ث |
+| كليب 4 | مين أنا | آخر لقطة كليب 3 | فريم 5 (صورة) | 7 ث |
+| كليب 5 | CTA | آخر لقطة كليب 4 | فريم 6 (صورة) | 5 ث |
 
 ---
 
-**Motion Prompt — كليب 1 (الهوك الغامض):**
+**SeedAnce 2 Prompt — كليب 1 (الهوك الغامض):**
 > مشهد 1: "أنا لجين 🐟 وهسة راح أخبرك شي..."
-> Start: طبقة 1 (BASE) → End: طبقة 3 (CURIOUS EYES) | 5 ثوانٍ
+> @Image1 = فريم 1 | @Image2 = فريم 2 | 5 ثوانٍ
 
 ```
-A young woman in a turquoise polo shirt transitions from a calm 
-neutral expression to a subtle mysterious smile. Her head tilts 
-very slightly to the right as if sharing a secret. Her eyes widen 
-with curiosity and sparkle with intrigue. One natural blink. Subtle 
-breathing through gentle shoulder rise. Lips stay closed — no talking. 
-Fixed camera, no movement. Slow, intimate smartphone-quality evening.
+@Image1 as the first frame and @Image2 as the last frame. A smooth, 
+natural transition of a young woman in a turquoise polo. She shifts 
+from calm neutral to a mysterious curious smile, head tilting slightly 
+right. Eyes widen with intrigue. One natural blink. Subtle breathing 
+through shoulders. Lips stay closed — no talking. Fixed camera, no 
+movement. Keep the same character, same clothing, same hairstyle, 
+no face changes, no flicker, high consistency. Intimate smartphone 
+video quality.
 ```
 
 ---
 
-**Motion Prompt — كليب 2 (بناء الحماس):**
+**SeedAnce 2 Prompt — كليب 2 (بناء الحماس):**
 > مشهد 2: "إذا عندك حوض سمك... أنا هنا علمودك! 💚"
-> Start: طبقة 3 (CURIOUS EYES) → End: طبقة 7 (HEAD STRAIGHT) | 6 ثوانٍ
+> @Image1 = آخر لقطة كليب 1 | @Image2 = فريم 3 | 6 ثوانٍ
 
 ```
-The same young woman's mysterious curiosity transforms into genuine 
-excitement. Her closed-lip smile widens warmly. Her body leans 
-slightly forward with growing energy. Her head straightens from 
-the tilt to face camera directly. Eyebrows rise with enthusiasm. 
-She gives one affirming nod. Flyaway hairs shift from movement. 
-No talking, lips stay closed. Fixed camera, no movement. Fluid, 
-natural indoor smartphone video.
+@Image1 as the first frame and @Image2 as the last frame. The same 
+young woman's curious expression transforms into genuine excitement. 
+Closed-lip smile widens warmly. Body leans slightly forward with 
+energy. Head straightens to face camera directly. Eyebrows rise. 
+One affirming nod. Flyaway hairs shift. No talking, lips closed. 
+Fixed camera. Keep the same character, same clothing, same hairstyle, 
+no face changes, no flicker, high consistency. Natural indoor 
+smartphone video.
 ```
 
 ---
 
-**Motion Prompt — كليب 3 (الشرح + يد على القلب):**
+**SeedAnce 2 Prompt — كليب 3 (الشرح + يد على القلب):**
 > مشهد 3: "AQUAVO = أول متجر... 💚 مو بس متجر — عائلة!"
-> Start: طبقة 7 (HEAD STRAIGHT) → End: طبقة 11 (FOCUSED EXPERT) | 8 ثوانٍ
+> @Image1 = آخر لقطة كليب 2 | @Image2 = فريم 4 | 8 ثوانٍ
 
 ```
-The same young woman shifts from excited to calm professional focus. 
-She sits upright as her right hand rises to chest level in an 
-open-palm explaining gesture. Her head tilts slightly left with 
-confidence. Her smile narrows to a gentle assured expression. Eyes 
-become focused with direct eye contact. She nods once thoughtfully. 
-Her hand then lowers and gently rests over her heart — a sincere 
-gesture. Lips stay closed. Fixed camera. Smartphone-quality indoor.
+@Image1 as the first frame and @Image2 as the last frame. The same 
+young woman transitions from excited to calm professional focus. She 
+sits upright, right hand rises to chest level in open-palm explaining 
+gesture. Head tilts slightly left with confidence. Smile narrows to 
+assured expression. She nods once, then hand gently lowers to rest 
+over her heart. Lips stay closed. Fixed camera. Keep the same character, 
+same clothing, no face changes, high consistency. Smartphone quality.
 ```
 
 ---
 
-**Motion Prompt — كليب 4 (اللحظة الشخصية):**
+**SeedAnce 2 Prompt — كليب 4 (اللحظة الشخصية):**
 > مشهد 4: "أنا لجين 👋 عمري 23... هدفي = حوضك يكون أحلى حوض!"
-> Start: طبقة 11 (FOCUSED EXPERT) → End: طبقة 15 (NOD) | 7 ثوانٍ
+> @Image1 = آخر لقطة كليب 3 | @Image2 = فريم 5 | 7 ثوانٍ
 
 ```
-The same young woman with her hand on her heart. Her confident 
-expression softens into deep genuine warmth and sincerity. Her eyes 
-become intimate and slightly glistening with emotion, gazing directly 
-into camera. Her smile becomes smaller and warmer. She gives one slow 
-affirming nod. Breathing deepens. Lighting warms subtly. Lips stay 
-closed. Fixed camera. Slow, emotional, intimate smartphone recording.
+@Image1 as the first frame and @Image2 as the last frame. The same 
+young woman with hand on heart. Her confident expression softens into 
+deep genuine warmth. Eyes become intimate and glistening with emotion, 
+gazing directly into camera. Smile becomes smaller and warmer. One 
+slow affirming nod. Breathing deepens. Lighting warms subtly. Lips 
+stay closed. Fixed camera. Keep the same character, same clothing, 
+no face changes, high consistency. Slow, emotional smartphone recording.
 ```
 
 ---
 
-**Motion Prompt — كليب 5 (التوديع):**
+**SeedAnce 2 Prompt — كليب 5 (التوديع):**
 > مشهد 5: "تابعنا 👇 @aquavo.iq"
-> Start: طبقة 15 (NOD) → End: طبقة 18 (BRIGHT ENERGY) | 5 ثوانٍ
+> @Image1 = آخر لقطة كليب 4 | @Image2 = فريم 6 | 5 ثوانٍ
 
 ```
-The same young woman transitions from quiet sincerity to joyful 
-farewell. Her right hand lifts from her heart to shoulder level 
-and waves side-to-side with open palm. Her soft expression bursts 
-into her biggest genuine smile — eyes crinkle with happiness. She 
-nods with a playful head tilt. Posture opens with positive energy. 
-Lighting brightens. Lips barely part — no talking. Fixed camera. 
-Upbeat, warm indoor smartphone video.
+@Image1 as the first frame and @Image2 as the last frame. The same 
+young woman transitions from quiet sincerity to joyful farewell. Right 
+hand lifts from heart to shoulder level, waving side-to-side with open 
+palm. Expression bursts into biggest genuine smile — eyes crinkle with 
+happiness. Playful nod. Posture opens with positive energy. Lighting 
+brightens. Lips barely part — no talking. Fixed camera. Keep the same 
+character, same clothing, no face changes, high consistency. Upbeat 
+smartphone video.
 ```
+
+---
+
+> [!TIP]
+> ### 💡 نصائح SeedAnce 2:
+> - **خذ Screenshot من آخر فريم** عبر: إيقاف الفيديو المؤقت → Shift+S أو أداة القص
+> - **إذا آخر فريم فيه تشوّه:** ارجع نص ثانية وخذ فريم نظيف
+> - **إذا الانتقال مو سلس:** قسّم الكليب لقسمين — مثلاً كليب 3 → كليبين (3A + 3B)
+> - **9:16 دائماً:** SeedAnce 2 ياخذ الـ aspect ratio من Start Frame
+> - **الزمن:** 5-8 ثوانٍ = النطاق المثالي. لا تتجاوز 10 ثوانٍ
 
 ---
 
@@ -1639,6 +1997,229 @@ RGB Split Flash:
 أنا لجين 🐟 مختصة أحواض سمك بالعراق 🇮🇶
 إذا عندك حوض — تابعني! 💚
 #لجين #اكوافو #أحواض_سمك #fyp #foryou #العراق #aquarium #viral
+```
+
+---
+
+## 🗣️ استراتيجية الصوت العراقي — 3 مسارات
+
+> [!IMPORTANT]
+> **الصوت هو اللي يخلي لجين تحس "حقيقية" أو "AI".** اختر المسار الأنسب لمستوى خبرتك ووقتك.
+
+### المسار A: صوت AI عراقي (الأسرع — 5 دقائق)
+
+| المنصة | الصوت | الجودة | السعر | ملاحظات |
+|---|---|---|---|---|
+| **Voiser AI** ⭐ | Iraqi Female Custom | ⭐⭐⭐⭐⭐ | اشتراك | تحكم بالنبرة والعاطفة والسرعة |
+| **ODIO.AI** | Rana (IQ) Premium | ⭐⭐⭐⭐ | مجاني محدود | جيد للتجربة الأولى |
+| **Narakeet** | Haifa (Female, Iraqi) | ⭐⭐⭐⭐ | $0.10/دقيقة | رخيص ومقبول |
+| **Verbatik** | Rana | ⭐⭐⭐½ | مجاني محدود | احتياطي فقط |
+
+**💡 خطوات المسار A:**
+```
+1. اكتب السكريبت العراقي لكل كليب (جملة أو جملتين بس)
+2. جرب Voiser AI أولاً (أفضل تحكم)
+3. إذا ما عجبك → جرب ODIO.AI
+4. ولّد 5 ملفات MP3 (واحد لكل كليب)
+5. راجع كل ملف — تأكد النبرة عراقية مو شامية أو مصرية
+```
+
+### المسار B: تسجيل صوت حقيقي + AI Voice Cloning (الأقوى)
+
+> **النتيجة:** صوت حقيقي 100% مع مرونة تغيير النص بأي وقت
+
+```
+الخطوة 1: سجل صوت فتاة عراقية حقيقية (10 دقائق كافية)
+         - الأفضل: 20 جملة متنوعة (سؤال، تعجب، شرح، ضحك)
+         - الجودة: أي مايكروفون + غرفة هادئة
+
+الخطوة 2: ارفع التسجيل لـ ElevenLabs → Voice Cloning
+         - اختر "Instant Voice Clone"
+         - النتيجة خلال 5 دقائق
+
+الخطوة 3: الآن تقدر تكتب أي نص وتطلع بصوتها بالضبط!
+         - جرب: "هلو! أنا لجين من بغداد" → يطلع بنفس الصوت
+
+الخطوة 4: ولّد 5 ملفات صوت (واحد لكل كليب)
+```
+
+### المسار C: الفيديو الصامت (الأبسط — الحالي)
+
+```
+✅ لا صوت = لا مشكلة مزامنة شفاه
+✅ النص العربي + الموسيقى = كافي لفيديو ممتاز
+✅ أبسط وأسرع — مناسب للبداية
+⚠️ لكن: أقل تأثيراً عاطفياً من الصوت الحقيقي
+```
+
+> **💡 التوصية:** ابدأ بـ **المسار C** (صامت) للفيديو الأول. بعد ما تتقن الـ Workflow، انتقل لـ **المسار A** (AI voice) ثم **المسار B** (voice clone).
+
+### 💋 مزامنة الشفاه (Lip Sync) — إذا اخترت المسار A أو B
+
+| الأداة | المميزات | الطريقة |
+|---|---|---|
+| **Vozo AI (LipREAL™)** ⭐ | واقعية فائقة، يحرك الوجه كامل مو بس الشفاه، 110+ لغة | ارفع فريم لجين + الصوت → Precision Mode |
+| **Sync.so** | Zero-shot، دقة 4K، API متاح | ارفع الفيديو + الصوت → يطلع جاهز |
+| **HeyGen Translator v3** | ترجمة + lip sync بخطوة واحدة، 175+ لغة | الأسهل بس أقل تحكم |
+
+```
+⚠️ مهم جداً (للمسار الصامت - المسار C):
+استخدم Kling Lip Sync مع ملف صامت (Silent MP3)
+هذا يمنع الشفاه من التحرك عشوائياً أثناء الفيديو!
+```
+
+---
+
+## 🛡️ قائمة تدمير بصمة الـ AI — 7 طبقات
+
+> [!CAUTION]
+> **المشكلة:** فيديوهات AI عندها "بصمة رقمية" — نعومة مبالغة، إضاءة مثالية، ألوان موحدة.
+> **الحل:** أضف طبقات "عيوب حقيقية" بالـ Post-Production. هذا يخلي الفيديو يبين **100% كأنه مسجل بموبايل بالبيت**.
+
+### الطبقات السبعة:
+
+| # | الطبقة | الأداة | الإعداد | ليش تشتغل |
+|---|---|---|---|---|
+| 1 | **Film Grain** | CapCut Filter | Grain intensity **15-25%** | الكاميرا الحقيقية تنتج grain |
+| 2 | **Compression Artifacts** | تصدير بـ lower bitrate ثم re-encode | **4-6 Mbps** بدل 12 | الموبايل يضغط الفيديو |
+| 3 | **Slight Color Shift** | CapCut → Temperature +3, Tint +2 | خفيف **جداً** | كاميرات الموبايل مو دقيقة |
+| 4 | **Vignette خفيف** | CapCut → Vignette | **10-15%** | عدسات الموبايل تغمق الأطراف |
+| 5 | **Lens Distortion** | CapCut أو After Effects | Barrel distortion **2-3%** | عدسة واسعة = تشويه خفيف |
+| 6 | **Focus Breathing** | Keyframe subtle blur shift | Blur **0% → 1% → 0%** | الفوكس يتنفس بالكاميرا الحقيقية |
+| 7 | **Chromatic Aberration** | CapCut Filter أو Dehancer | Intensity **5%** فقط | انحراف لوني = عدسة حقيقية |
+
+### ✅ Checklist — قبل التصدير:
+
+#### البشرة:
+- [ ] مسامات مرئية (مو بشرة بلاستيكية)
+- [ ] تباين لمعان (أنف لامع، خدود مات)
+- [ ] زغب وجه (peach fuzz) مرئي بالإضاءة الجانبية
+
+#### العيون:
+- [ ] Catchlights تتطابق مع مصدر الضوء
+- [ ] أوعية دموية خفيفة بالبياض
+- [ ] Limbal ring مرئي
+- [ ] حركة رموش طبيعية (مو متزامنة)
+
+#### الوجه:
+- [ ] عدم التماثل (2% فرق بين الجانبين)
+- [ ] حركات مجهرية مستمرة (رمش كل 3-4 ثوانٍ)
+- [ ] بلع لعاب مرة واحدة على الأقل
+
+#### الصوت (إذا المسار A أو B):
+- [ ] لهجة عراقية طبيعية (مو شامية أو مصرية)
+- [ ] مزامنة شفاه دقيقة (Vozo أو Sync.so)
+- [ ] تنفس مسموع بين الجمل
+
+#### التقنية:
+- [ ] Film grain خفيف (15-25%)
+- [ ] Compression artifacts طبيعية (6-8 Mbps)
+- [ ] Vignette خفيف بالأطراف (10-15%)
+- [ ] لا نعومة مبالغة بالبشرة
+- [ ] لا إضاءة مثالية بـ 100%
+- [ ] Chromatic aberration خفيف (5%)
+
+### 🧪 اختبار "هل تفوت على البشر؟":
+```
+1. اعرض الفيديو على 3 أشخاص ما يعرفون إنه AI
+2. اسألهم: "شنو رأيك بالبنت هاي؟"
+3. إذا ما شكّوا = ✅ نجاح!
+4. إذا حسوا "شي غريب" = شوف شنو بالضبط وصلّحه
+5. الأشياء اللي عادةً تفضح:
+   - بشرة ناعمة وية (→ أضف grain + pores)
+   - عيون ثابتة (→ أضف blink + micro-movements)
+   - إضاءة مثالية (→ أضف shadows + color shift)
+```
+
+---
+
+## 🎬 Pipeline الـ Post-Production الاحترافي
+
+> [!TIP]
+> **هذا الـ Pipeline رتّبه بالتسلسل — لا تقلب الترتيب!** كل خطوة مبنية على اللي قبلها.
+
+### المرحلة 1: التجميع الأساسي (CapCut)
+```
+الخطوة 1: استورد 5 كليبات على Timeline
+الخطوة 2: رتبهم بالتسلسل (كليب 1 → 2 → 3 → 4 → 5)
+الخطوة 3: قص أي إطارات زائدة ببداية/نهاية كل كليب
+الخطوة 4: أضف ترانزشنات (Cross Dissolve 0.3-0.5 ثانية بين الكليبات)
+```
+
+### المرحلة 2: النصوص والكابشنات
+```
+الخطوة 5: أضف الكابشنات العربية (خط عصري — بدون أوقات محددة)
+الخطوة 6: Animation: Fade + Scale (مو glitch أو spin!)
+الخطوة 7: الحجم: كبير وواضح (15-20% من الشاشة)
+الخطوة 8: الموقع: الثلث الأسفل من الشاشة
+الخطوة 9: Beat Sync — الكلمات تظهر مع إيقاع الموسيقى
+```
+
+### المرحلة 3: الصوت والموسيقى
+```
+الخطوة 10: أضف الموسيقى (Lo-fi warm beat, بدون كلمات)
+الخطوة 11: Volume Keyframes:
+           - الهوك (0-5ث): 40% — تخلي الفيديو يبدأ هادئ
+           - الوسط (5-35ث): 50% — مستوى مريح
+           - الـ CTA (35-50ث): 65% — يرتفع مع الطاقة
+الخطوة 12: Sound Effects خفيفة:
+           - Pop: عند ظهور أول نص
+           - Whoosh: عند الترانزشنات
+           - Sparkle: عند ظهور اللوغو
+           - Volume: 20-30% (مو أعلى!)
+الخطوة 13: Fade In الموسيقى (0.5 ثانية) + Fade Out (1 ثانية)
+```
+
+### المرحلة 4: Color Grading
+```
+الخطوة 14: Color Grade أساسي:
+           - Temperature: +5 إلى +8 (دافئ)
+           - Contrast: +10
+           - Saturation: +5 (خفيف — لا تبالغ!)
+           - Highlights: -5 (تقلل اللمعان المبالغ)
+الخطوة 15: تأكد اللون موحّد على كل الكليبات
+```
+
+### المرحلة 5: طبقة تدمير بصمة AI ⭐
+```
+الخطوة 16: صدّر الفيديو بدقة عالية أولاً (12+ Mbps)
+الخطوة 17: أعد استيراده بمشروع CapCut جديد
+الخطوة 18: أضف Film Grain (15-20%)
+الخطوة 19: أضف Vignette (10%)
+الخطوة 20: أضف Temperature +3 إضافي
+الخطوة 21: أضف Chromatic Aberration (5%) — إذا متاح
+الخطوة 22: صدّر بـ 6-8 Mbps (compression طبيعي)
+```
+
+### المرحلة 6: التصدير النهائي
+```
+الإعدادات:
+├── Resolution: 1080 × 1920 (9:16)
+├── FPS: 30
+├── Bitrate: 6-8 Mbps (مو أعلى!)
+├── Format: MP4 / H.264
+└── Quality: High (مو Ultra — Ultra يبين AI!)
+
+⚠️ لا تستخدم:
+├── 4K (يبيّن كل عيب AI)
+├── 60fps (غير طبيعي لموبايل)
+├── Bitrate أعلى من 10 Mbps
+└── Ultra Quality / Lossless
+```
+
+### المرحلة 7: النشر والتوقيت
+```
+Instagram Reels:
+├── ارفع مباشرة (إنستغرام يضغط أكثر = يبين طبيعي أكثر!)
+├── أضف Caption + Hashtags
+├── أفضل وقت: 7-9 مساءً (توقيت بغداد)
+└── أضف موقع: بغداد، العراق
+
+TikTok:
+├── ارفع نفس الفيديو بدون تعديل
+├── أضف Caption مختصر + Hashtags
+├── أفضل وقت: 8-10 مساءً
+└── استخدم الصوت الترند إذا ممكن
 ```
 
 ---
