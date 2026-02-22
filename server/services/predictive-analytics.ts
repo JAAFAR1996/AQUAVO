@@ -35,7 +35,7 @@ export class PredictiveAnalytics {
             const userOrders = await db
                 .select({
                     orderId: orders.id,
-                    totalAmount: orders.totalAmount,
+                    totalAmount: orders.total,
                     createdAt: orders.createdAt,
                 })
                 .from(orders)

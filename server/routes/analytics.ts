@@ -125,14 +125,15 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
         const topProductsSales = await db
             .select({
                 productId: orderItems.productId,
-                productName: orderItems.productName,
+                productName: products.name,
                 totalQuantity: sum(orderItems.quantity),
-                totalRevenue: sum(sql`${orderItems.price} * ${orderItems.quantity}`),
+                totalRevenue: sum(sql`${orderItems.priceAtPurchase} * ${orderItems.quantity}`),
             })
             .from(orderItems)
             .innerJoin(orders, eq(orders.id, orderItems.orderId))
+            .leftJoin(products, eq(products.id, orderItems.productId))
             .where(gte(orders.createdAt, startDate))
-            .groupBy(orderItems.productId, orderItems.productName)
+            .groupBy(orderItems.productId, products.name)
             .orderBy(desc(sum(orderItems.quantity)))
             .limit(10);
 
@@ -239,17 +240,23 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
 
         // 1. Peak Shopping Hours
         const hourCounts = new Map<number, number>();
-        for (const order of recentOrders) {
-            const hour = new Date(order.createdAt).getHours();
-            hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
+        let peakHoursText = "لا توجد بيانات كافية";
+
+        if (recentOrders.length > 0) {
+            for (const order of recentOrders) {
+                if (order.createdAt) {
+                    const hour = new Date(order.createdAt).getHours();
+                    hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
+                }
+            }
+
+            const sortedHours = Array.from(hourCounts.entries())
+                .sort((a, b) => b[1] - a[1]);
+
+            if (sortedHours.length > 0) {
+                peakHoursText = `${sortedHours[0][0]}-${(sortedHours[0][0] + 3) % 24} ${sortedHours[0][0] >= 12 ? 'مساءً' : 'صباحاً'}`;
+            }
         }
-
-        const sortedHours = Array.from(hourCounts.entries())
-            .sort((a, b) => b[1] - a[1]);
-
-        const peakHoursText = sortedHours.length > 0
-            ? `${sortedHours[0][0]}-${(sortedHours[0][0] + 3) % 24} ${sortedHours[0][0] >= 12 ? 'مساءً' : 'صباحاً'}`
-            : "لا توجد بيانات كافية";
 
         // 2. Cart Abandonment Rate (estimate based on order completion rate)
         // Since we don't have a carts table, estimate based on incomplete vs complete orders

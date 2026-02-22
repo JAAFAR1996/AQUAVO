@@ -16,6 +16,11 @@
     "noEmit": true,
     "module": "ESNext",
     "strict": true,
+    "types": [
+      "vitest/globals",
+      "@testing-library/jest-dom",
+      "node"
+    ],
     "lib": [
       "esnext",
       "dom",

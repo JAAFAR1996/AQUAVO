@@ -1,5 +1,6 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
+import { count, avg, eq, desc, and, gte } from "drizzle-orm";
 
 /**
  * متتبع التحليلات - تتبع تفاعلات المستخدمين في الوقت الفعلي
@@ -202,9 +203,9 @@ export class AnalyticsTracker {
         .select()
         .from(schema.searchQueries)
         .where(
-          schema.searchQueries.sessionId.eq(data.sessionId)
+          eq(schema.searchQueries.sessionId, data.sessionId)
         )
-        .orderBy(schema.searchQueries.createdAt.desc())
+        .orderBy(desc(schema.searchQueries.createdAt))
         .limit(1);
 
       if (recentSearch.length > 0 && recentSearch[0].query === data.query) {
@@ -215,7 +216,7 @@ export class AnalyticsTracker {
             clickedProductId: data.productId,
             clickPosition: data.position,
           })
-          .where(schema.searchQueries.id.eq(recentSearch[0].id));
+          .where(eq(schema.searchQueries.id, recentSearch[0].id));
 
         console.log(`[Analytics] 🖱️ Search click tracked: ${data.productId} at position ${data.position}`);
       } else {
@@ -255,11 +256,13 @@ export class AnalyticsTracker {
         .select()
         .from(schema.productInteractions)
         .where(
-          schema.productInteractions.sessionId.eq(data.sessionId)
-            .and(schema.productInteractions.productId.eq(data.productId))
-            .and(schema.productInteractions.interactionType.eq('view'))
+          and(
+            eq(schema.productInteractions.sessionId, data.sessionId),
+            eq(schema.productInteractions.productId, data.productId),
+            eq(schema.productInteractions.interactionType, 'view')
+          )
         )
-        .orderBy(schema.productInteractions.createdAt.desc())
+        .orderBy(desc(schema.productInteractions.createdAt))
         .limit(1);
 
       if (recentView.length > 0) {
@@ -287,8 +290,8 @@ export class AnalyticsTracker {
       const interactions = await this.db
         .select()
         .from(schema.productInteractions)
-        .where(schema.productInteractions.userId.eq(userId))
-        .orderBy(schema.productInteractions.createdAt.desc())
+        .where(eq(schema.productInteractions.userId, userId))
+        .orderBy(desc(schema.productInteractions.createdAt))
         .limit(100);
 
       const summary = {
@@ -339,15 +342,17 @@ export class AnalyticsTracker {
       const trending = await this.db
         .select({
           productId: schema.productInteractions.productId,
-          viewCount: schema.productInteractions.id.count(),
+          viewCount: count(schema.productInteractions.id),
         })
         .from(schema.productInteractions)
         .where(
-          schema.productInteractions.interactionType.eq('view')
-            .and(schema.productInteractions.createdAt.gte(since))
+          and(
+            eq(schema.productInteractions.interactionType, 'view'),
+            gte(schema.productInteractions.createdAt, since)
+          )
         )
         .groupBy(schema.productInteractions.productId)
-        .orderBy(schema.productInteractions.id.count().desc())
+        .orderBy(desc(count(schema.productInteractions.id)))
         .limit(limit);
 
       return trending;
@@ -370,16 +375,20 @@ export class AnalyticsTracker {
         .select()
         .from(schema.productInteractions)
         .where(
-          schema.productInteractions.interactionType.eq('cart_add')
-            .and(schema.productInteractions.createdAt.gte(since))
+          and(
+            eq(schema.productInteractions.interactionType, 'cart_add'),
+            gte(schema.productInteractions.createdAt, since)
+          )
         );
 
       const purchases = await this.db
         .select()
         .from(schema.productInteractions)
         .where(
-          schema.productInteractions.interactionType.eq('purchase')
-            .and(schema.productInteractions.createdAt.gte(since))
+          and(
+            eq(schema.productInteractions.interactionType, 'purchase'),
+            gte(schema.productInteractions.createdAt, since)
+          )
         );
 
       if (cartAdds.length === 0) return 0;
@@ -404,13 +413,13 @@ export class AnalyticsTracker {
       const topQueries = await this.db
         .select({
           query: schema.searchQueries.query,
-          searchCount: schema.searchQueries.id.count(),
-          avgResults: schema.searchQueries.resultsCount.avg(),
+          searchCount: count(schema.searchQueries.id),
+          avgResults: avg(schema.searchQueries.resultsCount),
         })
         .from(schema.searchQueries)
-        .where(schema.searchQueries.createdAt.gte(since))
+        .where(gte(schema.searchQueries.createdAt, since))
         .groupBy(schema.searchQueries.query)
-        .orderBy(schema.searchQueries.id.count().desc())
+        .orderBy(desc(count(schema.searchQueries.id)))
         .limit(limit);
 
       return topQueries;
@@ -432,15 +441,17 @@ export class AnalyticsTracker {
       const noResultQueries = await this.db
         .select({
           query: schema.searchQueries.query,
-          count: schema.searchQueries.id.count(),
+          count: count(schema.searchQueries.id),
         })
         .from(schema.searchQueries)
         .where(
-          schema.searchQueries.noResultsFound.eq(true)
-            .and(schema.searchQueries.createdAt.gte(since))
+          and(
+            eq(schema.searchQueries.noResultsFound, true),
+            gte(schema.searchQueries.createdAt, since)
+          )
         )
         .groupBy(schema.searchQueries.query)
-        .orderBy(schema.searchQueries.id.count().desc())
+        .orderBy(desc(count(schema.searchQueries.id)))
         .limit(limit);
 
       return noResultQueries;
