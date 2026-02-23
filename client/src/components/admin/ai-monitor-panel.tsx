@@ -67,6 +67,33 @@ function levelColor(level: string) {
     return "bg-emerald-600 text-white";
 }
 
+function shortId(id: string | null | undefined) {
+    if (!id) return null;
+    return id.length > 12 ? id.slice(0, 8) + "…" : id;
+}
+
+function fullTimestamp(ts: string) {
+    if (!ts) return "—";
+    return new Date(ts).toLocaleString("ar-IQ", {
+        day: "2-digit", month: "2-digit", year: "2-digit",
+        hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+    });
+}
+
+function renderDetailValue(v: any): string {
+    if (v === null || v === undefined) return "—";
+    if (typeof v === "object") return JSON.stringify(v, null, 0);
+    return String(v);
+}
+
+function shortModel(model: string | null) {
+    if (!model) return "—";
+    return model
+        .replace("llama-3.3-70b-versatile", "llama-70b")
+        .replace("llama-3.1-8b-instant", "llama-8b")
+        .replace("gemini-2.5-flash", "gemini-flash");
+}
+
 function eventIcon(event: string) {
     const f = ALL_FEATURES.find(x => x.event === event);
     if (f) { const Icon = f.icon; return <Icon className={`w-3.5 h-3.5 ${f.color}`} />; }
@@ -167,6 +194,7 @@ function FeatureCard({ feature, stats }: { feature: typeof ALL_FEATURES[0]; stat
 export function AiMonitorPanel() {
     const [logLevel, setLogLevel] = useState("all");
     const [activeTab, setActiveTab] = useState<"overview" | "features" | "cron" | "logs">("overview");
+    const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
     const { data: stats, refetch: refetchStats, isFetching: statsFetching } = useQuery({
         queryKey: ["ai-monitor-stats"],
@@ -497,17 +525,17 @@ export function AiMonitorPanel() {
             {activeTab === "logs" && (
                 <Card className="bg-slate-800 border-slate-700">
                     <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between flex-wrap gap-2">
                             <CardTitle className="text-white text-sm flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-primary" /> سجل العمليات الكامل
+                                <Activity className="w-4 h-4 text-primary" />
+                                سجل العمليات التفصيلي
+                                <span className="text-slate-500 font-normal text-xs">— اضغط على أي سطر لعرض كل التفاصيل</span>
                             </CardTitle>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 flex-wrap">
                                 {["all", "info", "warning", "error", "critical"].map(l => (
                                     <button key={l} onClick={() => setLogLevel(l)}
                                         className={`px-2 py-1 rounded text-xs transition-colors ${
-                                            logLevel === l
-                                                ? "bg-primary text-white"
-                                                : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                                            logLevel === l ? "bg-primary text-white" : "bg-slate-700 text-slate-400 hover:bg-slate-600"
                                         }`}>
                                         {l === "all" ? "الكل" : l}
                                     </button>
@@ -516,59 +544,212 @@ export function AiMonitorPanel() {
                         </div>
                     </CardHeader>
                     <CardContent className="p-0">
-                        <ScrollArea className="h-[500px]">
+                        <ScrollArea className="h-[650px]">
                             {logs.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-32 text-slate-500">
                                     <CheckCircle className="w-8 h-8 mb-2 text-emerald-500" />
                                     <p className="text-sm">لا يوجد سجلات بعد</p>
                                 </div>
                             ) : (
-                                <table className="w-full text-xs">
-                                    <thead className="sticky top-0 bg-slate-800 border-b border-slate-700">
-                                        <tr className="text-slate-400">
-                                            <th className="text-right px-4 py-2 font-medium">الوقت</th>
-                                            <th className="text-right px-2 py-2 font-medium">الحدث</th>
-                                            <th className="text-right px-2 py-2 font-medium">المستوى</th>
-                                            <th className="text-right px-2 py-2 font-medium">النموذج</th>
-                                            <th className="text-right px-2 py-2 font-medium">المدة</th>
-                                            <th className="text-right px-2 py-2 font-medium">منتجات</th>
-                                            <th className="text-right px-2 py-2 font-medium">الحالة</th>
-                                            <th className="text-right px-4 py-2 font-medium">تفاصيل</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-700/50">
-                                        {logs.map((log: any) => (
-                                            <tr key={log.id} className="hover:bg-slate-700/30 transition-colors">
-                                                <td className="px-4 py-2 text-slate-500 whitespace-nowrap">{timeAgo(log.timestamp)}</td>
-                                                <td className="px-2 py-2">
-                                                    <div className="flex items-center gap-1 whitespace-nowrap">
-                                                        {eventIcon(log.event)}
-                                                        <span className="text-slate-300">{log.event}</span>
+                                <div className="divide-y divide-slate-700/40">
+                                    {logs.map((log: any) => {
+                                        const isExpanded = expandedLogId === log.id;
+                                        const uid = shortId(log.userId);
+                                        const sid = shortId(log.sessionId);
+                                        const tools: string[] = log.toolsUsed ?? [];
+                                        const details: Record<string, any> = log.details ?? {};
+                                        const hasDetails = uid || sid || tools.length > 0 || log.tokenCount || log.messageLength || Object.keys(details).length > 0 || log.errorMessage || log.errorCode;
+
+                                        return (
+                                            <div key={log.id}>
+                                                {/* ── Summary Row (always visible) ── */}
+                                                <div
+                                                    onClick={() => hasDetails && setExpandedLogId(isExpanded ? null : log.id)}
+                                                    className={`px-4 py-3 transition-colors ${hasDetails ? "cursor-pointer" : ""} ${isExpanded ? "bg-slate-700/50" : "hover:bg-slate-700/30"}`}
+                                                >
+                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                        {/* Status dot */}
+                                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${log.success ? "bg-emerald-500" : "bg-red-500"}`} />
+
+                                                        {/* Event + icon */}
+                                                        <div className="flex items-center gap-1.5 min-w-[130px]">
+                                                            {eventIcon(log.event)}
+                                                            <span className="text-slate-200 text-xs font-medium">{log.event}</span>
+                                                        </div>
+
+                                                        {/* Level */}
+                                                        <Badge className={`text-[10px] px-1.5 flex-shrink-0 ${levelColor(log.level)}`}>{log.level}</Badge>
+
+                                                        {/* User */}
+                                                        <div className="flex items-center gap-1 text-xs">
+                                                            <User className="w-3 h-3 text-slate-500" />
+                                                            <span className={uid ? "text-blue-400 font-mono" : "text-slate-600"}>
+                                                                {uid ?? "زائر"}
+                                                            </span>
+                                                        </div>
+
+                                                        {/* Model */}
+                                                        <span className="text-slate-500 font-mono text-xs flex-shrink-0">
+                                                            {shortModel(log.model)}
+                                                            {log.webSearchUsed && <Globe className="w-3 h-3 inline mr-1 text-violet-400" />}
+                                                        </span>
+
+                                                        {/* Duration */}
+                                                        <span className={`text-xs font-mono flex-shrink-0 ${log.responseTimeMs > 10000 ? "text-red-400" : log.responseTimeMs > 5000 ? "text-amber-400" : "text-slate-400"}`}>
+                                                            {formatMs(log.responseTimeMs)}
+                                                        </span>
+
+                                                        {/* Products */}
+                                                        {log.productsFound > 0 && (
+                                                            <span className="text-xs text-cyan-400 flex-shrink-0">
+                                                                {log.productsFound} منتج
+                                                            </span>
+                                                        )}
+
+                                                        {/* Flags */}
+                                                        {log.fallbackUsed && <span className="text-[10px] text-amber-400 bg-amber-900/30 px-1.5 py-0.5 rounded">fallback</span>}
+
+                                                        {/* Error snippet */}
+                                                        {log.errorMessage && (
+                                                            <span className="text-xs text-red-400 truncate max-w-[200px]">⚠ {log.errorMessage}</span>
+                                                        )}
+
+                                                        {/* Blog title */}
+                                                        {!log.errorMessage && details.title && (
+                                                            <span className="text-xs text-emerald-400 truncate max-w-[200px]">📝 {details.title}</span>
+                                                        )}
+
+                                                        {/* Timestamp */}
+                                                        <span className="text-slate-600 text-xs mr-auto flex-shrink-0">{fullTimestamp(log.timestamp)}</span>
+
+                                                        {/* Expand indicator */}
+                                                        {hasDetails && (
+                                                            <span className="text-slate-600 text-xs">{isExpanded ? "▲" : "▼"}</span>
+                                                        )}
                                                     </div>
-                                                </td>
-                                                <td className="px-2 py-2">
-                                                    <Badge className={`text-[10px] px-1.5 ${levelColor(log.level)}`}>{log.level}</Badge>
-                                                </td>
-                                                <td className="px-2 py-2 text-slate-400 font-mono whitespace-nowrap">
-                                                    {log.model ? log.model.replace("llama-3.3-70b-versatile", "llama-70b").replace("llama-3.1-8b-instant", "llama-8b") : "—"}
-                                                    {log.webSearchUsed && <Globe className="w-3 h-3 inline mr-1 text-violet-400" />}
-                                                </td>
-                                                <td className="px-2 py-2 text-slate-300">{formatMs(log.responseTimeMs)}</td>
-                                                <td className="px-2 py-2 text-slate-400">{log.productsFound ?? "—"}</td>
-                                                <td className="px-2 py-2">
-                                                    {log.success
-                                                        ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                                                        : <XCircle className="w-3.5 h-3.5 text-red-500" />}
-                                                </td>
-                                                <td className="px-4 py-2 text-slate-500 max-w-xs truncate">
-                                                    {log.errorMessage
-                                                        ?? (log.details?.title ? `📝 ${log.details.title}` : "")
-                                                        ?? (log.fallbackUsed ? "⚠️ fallback" : "")}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                </div>
+
+                                                {/* ── Expanded Details ── */}
+                                                {isExpanded && (
+                                                    <div className="bg-slate-900/60 border-t border-slate-700 px-6 py-4 text-xs space-y-3">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                                                            {/* Identity */}
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">الهوية</p>
+                                                                <div className="space-y-1">
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-20 flex-shrink-0">User ID</span>
+                                                                        <span className={uid ? "text-blue-400 font-mono break-all" : "text-slate-600"}>{log.userId ?? "زائر (غير مسجل)"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-20 flex-shrink-0">Session</span>
+                                                                        <span className="text-slate-400 font-mono break-all">{log.sessionId ?? "—"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-20 flex-shrink-0">Log ID</span>
+                                                                        <span className="text-slate-600 font-mono text-[10px]">{log.id}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Performance */}
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">الأداء</p>
+                                                                <div className="space-y-1">
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">وقت الاستجابة</span>
+                                                                        <span className={`font-mono ${log.responseTimeMs > 10000 ? "text-red-400" : "text-slate-300"}`}>{formatMs(log.responseTimeMs)}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">الرموز (tokens)</span>
+                                                                        <span className="text-slate-300 font-mono">{log.tokenCount ?? "—"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">طول الرسالة</span>
+                                                                        <span className="text-slate-300 font-mono">{log.messageLength ? `${log.messageLength} حرف` : "—"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">منتجات وجدها</span>
+                                                                        <span className="text-slate-300 font-mono">{log.productsFound ?? "—"}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            {/* Flags */}
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">الإشارات</p>
+                                                                <div className="space-y-1">
+                                                                    <div className="flex gap-2 items-center">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">النجاح</span>
+                                                                        {log.success ? <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> : <XCircle className="w-3.5 h-3.5 text-red-400" />}
+                                                                        <span className={log.success ? "text-emerald-400" : "text-red-400"}>{log.success ? "نعم" : "فشل"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2 items-center">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">Fallback</span>
+                                                                        <span className={log.fallbackUsed ? "text-amber-400" : "text-slate-600"}>{log.fallbackUsed ? "✓ مُستخدم" : "لا"}</span>
+                                                                    </div>
+                                                                    <div className="flex gap-2 items-center">
+                                                                        <span className="text-slate-500 w-24 flex-shrink-0">بحث إنترنت</span>
+                                                                        <span className={log.webSearchUsed ? "text-violet-400" : "text-slate-600"}>{log.webSearchUsed ? "✓ مُستخدم" : "لا"}</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Tools Used */}
+                                                        {tools.length > 0 && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">الأدوات المستخدمة ({tools.length})</p>
+                                                                <div className="flex flex-wrap gap-1.5">
+                                                                    {tools.map((t: string, i: number) => (
+                                                                        <Badge key={i} className="text-[10px] bg-blue-900/60 text-blue-300 border border-blue-800 px-2 py-0.5 font-mono">
+                                                                            {t}
+                                                                        </Badge>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Error Info */}
+                                                        {(log.errorMessage || log.errorCode) && (
+                                                            <div className="space-y-1.5 bg-red-900/20 border border-red-900/40 rounded-lg p-3">
+                                                                <p className="text-red-400 font-semibold text-[11px] uppercase tracking-wider">تفاصيل الخطأ</p>
+                                                                {log.errorCode && (
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-20 flex-shrink-0">كود الخطأ</span>
+                                                                        <span className="text-red-300 font-mono">{log.errorCode}</span>
+                                                                    </div>
+                                                                )}
+                                                                {log.errorMessage && (
+                                                                    <div className="flex gap-2">
+                                                                        <span className="text-slate-500 w-20 flex-shrink-0">الرسالة</span>
+                                                                        <span className="text-red-300 break-all">{log.errorMessage}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Extra Details JSON */}
+                                                        {Object.keys(details).length > 0 && (
+                                                            <div className="space-y-1.5">
+                                                                <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">بيانات إضافية</p>
+                                                                <div className="bg-slate-800 rounded-lg p-3 space-y-1 border border-slate-700">
+                                                                    {Object.entries(details).map(([k, v]) => (
+                                                                        <div key={k} className="flex gap-2">
+                                                                            <span className="text-slate-500 font-mono min-w-[120px] flex-shrink-0">{k}</span>
+                                                                            <span className="text-slate-300 break-all font-mono text-[11px]">{renderDetailValue(v)}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             )}
                         </ScrollArea>
                     </CardContent>
