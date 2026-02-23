@@ -9,6 +9,7 @@ import { groqClient } from "./groq-client.js";
 import { getDb } from "../db.js";
 import { productViews, searchQueries, products, blogPosts } from "../../shared/schema.js";
 import { desc, sql, count, eq } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 interface BlogTopicSuggestion {
     topic: string;
@@ -315,54 +316,55 @@ export async function runWeeklyBlogGeneration(): Promise<{
     error?: string;
 }> {
     console.log("[AutoBlog] 📝 بدء توليد المدونة الأسبوعية...");
+    const startMs = Date.now();
 
     try {
         // 1. تحليل سلوك المستخدمين
         const suggestions = await analyzeUserBehavior();
 
         if (suggestions.length === 0) {
-            return {
-                success: false,
-                error: "لم يتم العثور على اقتراحات مواضيع",
-            };
+            aiMonitor.logError("Auto blog: no topic suggestions found", {}, { event: "blog_generated" });
+            return { success: false, error: "لم يتم العثور على اقتراحات مواضيع" };
         }
 
         // 2. اختيار أفضل موضوع
         const topSuggestion = suggestions[0];
         console.log(`[AutoBlog] الموضوع المختار: ${topSuggestion.topic}`);
-        console.log(`[AutoBlog] السبب: ${topSuggestion.reason}`);
 
         // 3. توليد المحتوى
         const generatedBlog = await generateBlogContent(topSuggestion);
 
         if (!generatedBlog) {
-            return {
-                success: false,
-                error: "فشل توليد المحتوى",
-            };
+            aiMonitor.logError("Auto blog: content generation failed", { topic: topSuggestion.topic }, { event: "blog_generated", model: "llama-3.3-70b-versatile" });
+            return { success: false, error: "فشل توليد المحتوى" };
         }
 
         // 4. حفظ في قاعدة البيانات
         const saved = await saveBlogToDatabase(generatedBlog);
 
         console.log("[AutoBlog] ✅ تم توليد المدونة الأسبوعية بنجاح!");
-        console.log(`  - العنوان: ${generatedBlog.title}`);
-        console.log(`  - الفئة: ${generatedBlog.category}`);
-        console.log(`  - وقت القراءة: ${generatedBlog.readTime}`);
-        console.log(`  - محفوظ في DB: ${saved ? 'نعم' : 'لا'}`);
-
-        return {
+        aiMonitor.log({
+            event: "blog_generated",
+            level: "info",
+            model: "llama-3.3-70b-versatile",
             success: true,
-            blogGenerated: generatedBlog,
-            savedToDb: saved,
-        };
+            responseTimeMs: Date.now() - startMs,
+            details: {
+                title: generatedBlog.title,
+                category: generatedBlog.category,
+                readTime: generatedBlog.readTime,
+                savedToDb: saved,
+                topicReason: topSuggestion.reason,
+            },
+        });
+
+        return { success: true, blogGenerated: generatedBlog, savedToDb: saved };
 
     } catch (error) {
+        const errMsg = error instanceof Error ? error.message : "Unknown error";
         console.error("[AutoBlog] ❌ خطأ:", error);
-        return {
-            success: false,
-            error: error instanceof Error ? error.message : "Unknown error",
-        };
+        aiMonitor.logError(`Auto blog generation crashed: ${errMsg}`, {}, { event: "blog_generated", model: "llama-3.3-70b-versatile", responseTimeMs: Date.now() - startMs });
+        return { success: false, error: errMsg };
     }
 }
 

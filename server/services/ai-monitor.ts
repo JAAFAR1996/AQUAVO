@@ -9,7 +9,9 @@ import { desc, gte, eq, and, count, avg, sql } from "drizzle-orm";
 
 export interface AiEvent {
     event: "chat" | "tool_call" | "error" | "timeout" | "fallback" | "key_rotated" |
-           "search" | "sentiment" | "embedding" | "recommendation" | "cart_add" | "compound_search";
+           "search" | "sentiment" | "embedding" | "recommendation" | "cart_add" | "compound_search" |
+           "blog_generated" | "notification_sent" | "prediction" | "churn_analysis" | "cron_job" |
+           "visual_analysis" | "price_suggestion" | "fraud_check" | "email_campaign";
     level?: "info" | "warning" | "error" | "critical";
     model?: string;
     userId?: string;
@@ -220,6 +222,40 @@ class AiMonitorService {
             .orderBy(sql`date_trunc('hour', ${aiMonitoringLogs.timestamp})`);
 
         return rows;
+    }
+
+    /** Get per-feature breakdown (all event types, last N hours) */
+    async getFeatureBreakdown(hoursBack: number = 168) {
+        const db = getDb();
+        if (!db) return [];
+
+        const since = new Date(Date.now() - hoursBack * 60 * 60 * 1000);
+
+        return db
+            .select({
+                event: aiMonitoringLogs.event,
+                total: count(),
+                errors: sql<number>`sum(case when ${aiMonitoringLogs.success} = false then 1 else 0 end)`,
+                avgMs: avg(aiMonitoringLogs.responseTimeMs),
+                lastRun: sql<string>`max(${aiMonitoringLogs.timestamp})`,
+            })
+            .from(aiMonitoringLogs)
+            .where(gte(aiMonitoringLogs.timestamp, since))
+            .groupBy(aiMonitoringLogs.event)
+            .orderBy(desc(count()));
+    }
+
+    /** Get cron job history */
+    async getCronJobHistory(limit: number = 30) {
+        const db = getDb();
+        if (!db) return [];
+
+        return db
+            .select()
+            .from(aiMonitoringLogs)
+            .where(eq(aiMonitoringLogs.event, "cron_job"))
+            .orderBy(desc(aiMonitoringLogs.timestamp))
+            .limit(limit);
     }
 
     /** Get model usage breakdown */

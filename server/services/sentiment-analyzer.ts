@@ -2,6 +2,7 @@ import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import { sentimentHistory, type InsertSentimentHistory } from "../../shared/schema.js";
 import { eq, desc, and, gte } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 export interface SentimentResult {
   sentiment: "positive" | "neutral" | "negative";
@@ -93,10 +94,11 @@ ${message}
         } as InsertSentimentHistory);
       }
 
+      aiMonitor.log({ event: "sentiment", level: "info", success: true, model: "llama-3.1-8b-instant", userId, sessionId, details: { sentiment: sentimentData.sentiment, score: sentimentData.score, urgency: sentimentData.indicators.urgency } });
       return sentimentData;
     } catch (error) {
       console.error("Sentiment analysis error:", error);
-
+      aiMonitor.log({ event: "sentiment", level: "warning", success: false, userId, sessionId, details: { fallback: true } });
       // Fallback to basic sentiment analysis
       return this.basicSentimentAnalysis(message);
     }

@@ -1,6 +1,6 @@
 /**
- * AI Monitor Panel — لوحة مراقبة الذكاء الاصطناعي
- * Shows every AI action, error, latency, model usage in real time
+ * AI Monitor Panel — لوحة مراقبة الذكاء الاصطناعي الشاملة
+ * Monitors ALL AI features: chat, blog, embeddings, predictions, churn, notifications, sentiment
  */
 
 import { useState } from "react";
@@ -12,13 +12,46 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import {
     Activity, AlertTriangle, CheckCircle, Clock, Globe, MessageSquare,
     RefreshCw, Search, Wifi, WifiOff, Zap, XCircle, TrendingUp,
+    BookOpen, Bell, Brain, User, ShoppingCart, Heart, BarChart3,
+    Shield, Mail, Cpu,
 } from "lucide-react";
 
 // ─── API helpers ─────────────────────────────────────────────
-const fetchStats    = () => fetch("/api/admin/ai-monitor/stats",  { credentials: "include" }).then(r => r.json());
+const fetchStats    = () => fetch("/api/admin/ai-monitor/stats",    { credentials: "include" }).then(r => r.json());
 const fetchLogs     = (level: string) => fetch(`/api/admin/ai-monitor/logs?limit=150&level=${level}`, { credentials: "include" }).then(r => r.json());
-const fetchErrors   = () => fetch("/api/admin/ai-monitor/errors?limit=50", { credentials: "include" }).then(r => r.json());
-const fetchModels   = () => fetch("/api/admin/ai-monitor/models",  { credentials: "include" }).then(r => r.json());
+const fetchErrors   = () => fetch("/api/admin/ai-monitor/errors?limit=50",  { credentials: "include" }).then(r => r.json());
+const fetchModels   = () => fetch("/api/admin/ai-monitor/models",   { credentials: "include" }).then(r => r.json());
+const fetchFeatures = () => fetch("/api/admin/ai-monitor/features?hours=168", { credentials: "include" }).then(r => r.json());
+const fetchCronJobs = () => fetch("/api/admin/ai-monitor/cron-jobs?limit=30", { credentials: "include" }).then(r => r.json());
+
+// ─── Feature definitions — all AI features in the site ───────
+const ALL_FEATURES = [
+    { event: "chat",            label: "شاتبوت شريمب",        icon: MessageSquare, color: "text-blue-400",   desc: "المحادثات مع الزبائن" },
+    { event: "search",          label: "بحث المنتجات",         icon: Search,        color: "text-cyan-400",   desc: "البحث التلقائي قبل كل رد" },
+    { event: "compound_search", label: "بحث الإنترنت",         icon: Globe,         color: "text-violet-400", desc: "compound-beta web search" },
+    { event: "sentiment",       label: "تحليل المشاعر",        icon: Heart,         color: "text-pink-400",   desc: "تحليل مشاعر الزبائن" },
+    { event: "embedding",       label: "Embeddings",           icon: Brain,         color: "text-indigo-400", desc: "تحويل المنتجات لمتجهات ذكية" },
+    { event: "blog_generated",  label: "مدونة تلقائية",        icon: BookOpen,      color: "text-emerald-400",desc: "كل أحد 5 صباحاً (بغداد)" },
+    { event: "prediction",      label: "تنبؤ الاحتياجات",      icon: TrendingUp,    color: "text-amber-400",  desc: "يتنبأ بمشتريات الزبائن" },
+    { event: "churn_analysis",  label: "كشف العزوف",           icon: User,          color: "text-orange-400", desc: "يكتشف الزبائن المعرضين للمغادرة" },
+    { event: "notification_sent",label: "إشعارات ذكية",        icon: Bell,          color: "text-yellow-400", desc: "تذكير إعادة الشراء" },
+    { event: "recommendation",  label: "توصيات المنتجات",      icon: ShoppingCart,  color: "text-lime-400",   desc: "مقترحات للسلة والصفحة الرئيسية" },
+    { event: "email_campaign",  label: "حملات البريد",         icon: Mail,          color: "text-rose-400",   desc: "حملات AI بالبريد الإلكتروني" },
+    { event: "fraud_check",     label: "كشف الاحتيال",         icon: Shield,        color: "text-red-400",    desc: "فحص الطلبات المشبوهة" },
+    { event: "price_suggestion",label: "تسعير ذكي",            icon: BarChart3,     color: "text-teal-400",   desc: "اقتراحات الأسعار التنافسية" },
+    { event: "visual_analysis", label: "تحليل الصور",          icon: Cpu,           color: "text-fuchsia-400",desc: "Gemini Vision — فحص صور الحوض" },
+    { event: "cron_job",        label: "المهام المجدولة",      icon: Clock,         color: "text-slate-300",  desc: "كل المهام الليلية" },
+];
+
+// ─── Cron job display names ───────────────────────────────────
+const CRON_JOB_NAMES: Record<string, string> = {
+    auto_blog:       "📝 مدونة أسبوعية (أحد 5ص)",
+    embeddings:      "🧠 توليد Embeddings (1:30ص)",
+    predictions:     "💡 تنبؤ الاحتياجات (2ص)",
+    churn:           "👤 كشف العزوف (3ص)",
+    conversions:     "🔄 فحص التحويلات (4ص)",
+    smart_reminders: "🔔 إشعارات ذكية (4:30ص)",
+};
 
 // ─── Helpers ──────────────────────────────────────────────────
 function levelColor(level: string) {
@@ -29,12 +62,11 @@ function levelColor(level: string) {
 }
 
 function eventIcon(event: string) {
-    if (event === "chat")       return <MessageSquare className="w-3.5 h-3.5" />;
-    if (event === "error")      return <XCircle className="w-3.5 h-3.5 text-red-500" />;
-    if (event === "timeout")    return <Clock className="w-3.5 h-3.5 text-amber-500" />;
-    if (event === "fallback")   return <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />;
-    if (event === "search")     return <Search className="w-3.5 h-3.5 text-blue-400" />;
-    if (event === "compound_search") return <Globe className="w-3.5 h-3.5 text-violet-400" />;
+    const f = ALL_FEATURES.find(x => x.event === event);
+    if (f) { const Icon = f.icon; return <Icon className={`w-3.5 h-3.5 ${f.color}`} />; }
+    if (event === "error")   return <XCircle className="w-3.5 h-3.5 text-red-500" />;
+    if (event === "timeout") return <Clock className="w-3.5 h-3.5 text-amber-500" />;
+    if (event === "fallback") return <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />;
     return <Activity className="w-3.5 h-3.5 text-slate-400" />;
 }
 
@@ -45,10 +77,12 @@ function formatMs(ms: number | null) {
 }
 
 function timeAgo(ts: string) {
+    if (!ts) return "—";
     const diff = Date.now() - new Date(ts).getTime();
     if (diff < 60000) return `منذ ${Math.floor(diff / 1000)}ث`;
     if (diff < 3600000) return `منذ ${Math.floor(diff / 60000)}د`;
-    return `منذ ${Math.floor(diff / 3600000)}س`;
+    if (diff < 86400000) return `منذ ${Math.floor(diff / 3600000)}س`;
+    return `منذ ${Math.floor(diff / 86400000)}ي`;
 }
 
 // ─── Stat Card ────────────────────────────────────────────────
@@ -71,46 +105,115 @@ function StatCard({ icon, label, value, sub, color = "text-white" }: {
     );
 }
 
+// ─── Feature Card ─────────────────────────────────────────────
+function FeatureCard({ feature, stats }: { feature: typeof ALL_FEATURES[0]; stats?: any }) {
+    const Icon = feature.icon;
+    const total  = Number(stats?.total ?? 0);
+    const errors = Number(stats?.errors ?? 0);
+    const rate   = total > 0 ? Math.round(((total - errors) / total) * 100) : null;
+    const lastRun = stats?.lastRun ?? null;
+
+    const isActive = total > 0;
+    const hasError = errors > 0;
+
+    const statusBadge = !isActive
+        ? <Badge className="text-[10px] bg-slate-700 text-slate-400 px-1.5">غير مُسجَّل</Badge>
+        : hasError
+        ? <Badge className="text-[10px] bg-amber-700/80 text-amber-200 px-1.5">{errors} خطأ</Badge>
+        : <Badge className="text-[10px] bg-emerald-800/80 text-emerald-300 px-1.5">✓ سليم</Badge>;
+
+    return (
+        <Card className={`bg-slate-800 border-slate-700 transition-all ${isActive ? "hover:border-slate-500" : "opacity-60"}`}>
+            <CardContent className="p-4">
+                <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">
+                            <Icon className={`w-4 h-4 ${feature.color}`} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-semibold text-white">{feature.label}</p>
+                            <p className="text-xs text-slate-500">{feature.desc}</p>
+                        </div>
+                    </div>
+                    {statusBadge}
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                    <div className="flex gap-3">
+                        <span className="text-slate-400">{total > 0 ? `${total} عملية` : "—"}</span>
+                        {rate !== null && <span className={rate < 80 ? "text-red-400" : "text-emerald-400"}>{rate}% نجاح</span>}
+                    </div>
+                    <span className="text-slate-500">{lastRun ? timeAgo(lastRun) : "لم يشتغل"}</span>
+                </div>
+                {total > 0 && (
+                    <div className="mt-2 h-1 bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                            className={`h-full rounded-full transition-all ${rate && rate >= 80 ? "bg-emerald-500" : rate && rate >= 50 ? "bg-amber-500" : "bg-red-500"}`}
+                            style={{ width: `${rate ?? 0}%` }}
+                        />
+                    </div>
+                )}
+            </CardContent>
+        </Card>
+    );
+}
+
 // ─── Main Component ───────────────────────────────────────────
 export function AiMonitorPanel() {
     const [logLevel, setLogLevel] = useState("all");
+    const [activeTab, setActiveTab] = useState<"overview" | "features" | "cron" | "logs">("overview");
 
     const { data: stats, refetch: refetchStats, isFetching: statsFetching } = useQuery({
         queryKey: ["ai-monitor-stats"],
         queryFn: fetchStats,
-        refetchInterval: 30000, // auto-refresh every 30s
+        refetchInterval: 30000,
     });
-
     const { data: logsData, refetch: refetchLogs } = useQuery({
         queryKey: ["ai-monitor-logs", logLevel],
         queryFn: () => fetchLogs(logLevel),
         refetchInterval: 30000,
     });
-
     const { data: errorsData } = useQuery({
         queryKey: ["ai-monitor-errors"],
         queryFn: fetchErrors,
         refetchInterval: 60000,
     });
-
     const { data: modelsData } = useQuery({
         queryKey: ["ai-monitor-models"],
         queryFn: fetchModels,
         refetchInterval: 60000,
     });
+    const { data: featuresData } = useQuery({
+        queryKey: ["ai-monitor-features"],
+        queryFn: fetchFeatures,
+        refetchInterval: 60000,
+    });
+    const { data: cronData } = useQuery({
+        queryKey: ["ai-monitor-cron"],
+        queryFn: fetchCronJobs,
+        refetchInterval: 60000,
+    });
 
-    const logs   = logsData?.logs ?? [];
-    const errors = errorsData?.errors ?? [];
-    const models = modelsData?.models ?? [];
+    const logs    = logsData?.logs ?? [];
+    const errors  = errorsData?.errors ?? [];
+    const models  = modelsData?.models ?? [];
+    const featureBreakdown: any[] = featuresData?.features ?? [];
+    const cronJobs: any[] = cronData?.jobs ?? [];
+
+    // Map event → stats from DB
+    const featureMap = new Map(featureBreakdown.map((f: any) => [f.event, f]));
 
     const statusColor = stats?.status === "critical" ? "text-red-400" :
                         stats?.status === "warning"  ? "text-amber-400" : "text-emerald-400";
     const StatusIcon  = stats?.status === "healthy"  ? Wifi : WifiOff;
 
-    function refetchAll() {
-        refetchStats();
-        refetchLogs();
-    }
+    function refetchAll() { refetchStats(); refetchLogs(); }
+
+    const tabs = [
+        { id: "overview" as const, label: "نظرة عامة" },
+        { id: "features" as const, label: "ميزات AI" },
+        { id: "cron"     as const, label: "جدول المهام" },
+        { id: "logs"     as const, label: "السجل الكامل" },
+    ];
 
     return (
         <div className="space-y-6" dir="rtl">
@@ -121,7 +224,7 @@ export function AiMonitorPanel() {
                         <Activity className="w-6 h-6 text-primary" />
                         مراقبة الذكاء الاصطناعي
                     </h2>
-                    <p className="text-slate-400 text-sm mt-1">كل عملية يقوم بها الـ AI — لايف</p>
+                    <p className="text-slate-400 text-sm mt-1">كل ميزة AI بالموقع — 15 ميزة تحت المجهر</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={refetchAll} disabled={statsFetching}
                     className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-700">
@@ -151,175 +254,320 @@ export function AiMonitorPanel() {
                 </div>
             )}
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <StatCard icon={<MessageSquare className="w-5 h-5 text-blue-400" />}
-                    label="محادثات (24س)" value={stats?.chatCount ?? "—"} />
-                <StatCard icon={<Clock className="w-5 h-5 text-violet-400" />}
-                    label="متوسط وقت الرد" value={formatMs(stats?.avgResponseMs ?? 0)}
-                    color={stats?.avgResponseMs > 10000 ? "text-red-400" : "text-white"} />
-                <StatCard icon={<XCircle className="w-5 h-5 text-red-400" />}
-                    label="أخطاء (24س)" value={stats?.errors ?? "—"}
-                    sub={`${stats?.errorRate ?? 0}% نسبة الخطأ`}
-                    color={stats?.errors > 0 ? "text-red-400" : "text-emerald-400"} />
-                <StatCard icon={<Globe className="w-5 h-5 text-emerald-400" />}
-                    label="بحث الإنترنت" value={stats?.webSearchCount ?? "—"}
-                    sub="compound-beta" />
+            {/* Tab Nav */}
+            <div className="flex gap-1 bg-slate-800 p-1 rounded-xl border border-slate-700">
+                {tabs.map(tab => (
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                            activeTab === tab.id
+                                ? "bg-primary text-white"
+                                : "text-slate-400 hover:text-white hover:bg-slate-700"
+                        }`}>
+                        {tab.label}
+                    </button>
+                ))}
             </div>
 
-            {/* Secondary Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                <StatCard icon={<AlertTriangle className="w-5 h-5 text-amber-400" />}
-                    label="Fallback (رجع للنسخة القديمة)" value={stats?.fallbacks ?? "—"} />
-                <StatCard icon={<Zap className="w-5 h-5 text-primary" />}
-                    label="مفاتيح Groq" value={stats?.groqKeysTotal ?? "—"} sub="API keys" />
-                <StatCard icon={<TrendingUp className="w-5 h-5 text-blue-400" />}
-                    label="إجمالي العمليات" value={stats?.total ?? "—"} sub="آخر 24 ساعة" />
-            </div>
+            {/* ── TAB: نظرة عامة ─────────────────────────── */}
+            {activeTab === "overview" && (
+                <div className="space-y-6">
+                    {/* Stats Grid */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <StatCard icon={<MessageSquare className="w-5 h-5 text-blue-400" />}
+                            label="محادثات (24س)" value={stats?.chatCount ?? "—"} />
+                        <StatCard icon={<Clock className="w-5 h-5 text-violet-400" />}
+                            label="متوسط وقت الرد" value={formatMs(stats?.avgResponseMs ?? 0)}
+                            color={stats?.avgResponseMs > 10000 ? "text-red-400" : "text-white"} />
+                        <StatCard icon={<XCircle className="w-5 h-5 text-red-400" />}
+                            label="أخطاء (24س)" value={stats?.errors ?? "—"}
+                            sub={`${stats?.errorRate ?? 0}% نسبة الخطأ`}
+                            color={stats?.errors > 0 ? "text-red-400" : "text-emerald-400"} />
+                        <StatCard icon={<Globe className="w-5 h-5 text-emerald-400" />}
+                            label="بحث الإنترنت" value={stats?.webSearchCount ?? "—"}
+                            sub="compound-beta" />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <StatCard icon={<AlertTriangle className="w-5 h-5 text-amber-400" />}
+                            label="Fallback" value={stats?.fallbacks ?? "—"} />
+                        <StatCard icon={<Zap className="w-5 h-5 text-primary" />}
+                            label="مفاتيح Groq" value={stats?.groqKeysTotal ?? "—"} sub="API keys" />
+                        <StatCard icon={<TrendingUp className="w-5 h-5 text-blue-400" />}
+                            label="إجمالي العمليات" value={stats?.total ?? "—"} sub="آخر 24 ساعة" />
+                    </div>
 
-            {/* Models Usage */}
-            {models.length > 0 && (
-                <Card className="bg-slate-800 border-slate-700">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-white text-sm flex items-center gap-2">
-                            <Zap className="w-4 h-4 text-primary" /> استخدام النماذج
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {models.map((m: any, i: number) => (
-                                <div key={i} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
-                                    <div className="flex items-center gap-2">
-                                        {m.model === "compound-beta" ?
-                                            <Globe className="w-4 h-4 text-violet-400" /> :
-                                            <Zap className="w-4 h-4 text-blue-400" />}
-                                        <span className="text-slate-300 text-sm font-mono">{m.model ?? "unknown"}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-xs">
-                                        <span className="text-slate-400">{m.total} طلب</span>
-                                        <span className="text-amber-400">{m.errors} خطأ</span>
-                                        <span className="text-slate-300">{formatMs(Math.round(Number(m.avgMs ?? 0)))}</span>
-                                    </div>
+                    {/* Models */}
+                    {models.length > 0 && (
+                        <Card className="bg-slate-800 border-slate-700">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-white text-sm flex items-center gap-2">
+                                    <Zap className="w-4 h-4 text-primary" /> استخدام النماذج
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {models.map((m: any, i: number) => (
+                                        <div key={i} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
+                                            <div className="flex items-center gap-2">
+                                                {m.model === "compound-beta"
+                                                    ? <Globe className="w-4 h-4 text-violet-400" />
+                                                    : <Zap className="w-4 h-4 text-blue-400" />}
+                                                <span className="text-slate-300 text-sm font-mono">{m.model ?? "unknown"}</span>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-xs">
+                                                <span className="text-slate-400">{m.total} طلب</span>
+                                                <span className="text-amber-400">{m.errors} خطأ</span>
+                                                <span className="text-slate-300">{formatMs(Math.round(Number(m.avgMs ?? 0)))}</span>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Recent Errors */}
+                    {errors.length > 0 && (
+                        <Card className="bg-slate-800 border-red-900/50 border">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-red-400 text-sm flex items-center gap-2">
+                                    <XCircle className="w-4 h-4" /> آخر الأخطاء ({errors.length})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <ScrollArea className="h-48">
+                                    <div className="divide-y divide-slate-700">
+                                        {errors.slice(0, 20).map((e: any) => (
+                                            <div key={e.id} className="px-4 py-2.5 hover:bg-slate-700/50 transition-colors">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <Badge className="text-[10px] bg-red-700 text-white px-1.5">{e.event}</Badge>
+                                                        {e.errorCode && <span className="text-xs font-mono text-red-400">{e.errorCode}</span>}
+                                                    </div>
+                                                    <span className="text-xs text-slate-500">{timeAgo(e.timestamp)}</span>
+                                                </div>
+                                                <p className="text-xs text-red-300 truncate">{e.errorMessage ?? "خطأ غير محدد"}</p>
+                                                {e.model && <p className="text-xs text-slate-500 mt-0.5">النموذج: {e.model}</p>}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </ScrollArea>
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
             )}
 
-            {/* Recent Errors */}
-            {errors.length > 0 && (
-                <Card className="bg-slate-800 border-red-900/50 border">
-                    <CardHeader className="pb-3">
-                        <CardTitle className="text-red-400 text-sm flex items-center gap-2">
-                            <XCircle className="w-4 h-4" /> آخر الأخطاء ({errors.length})
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <ScrollArea className="h-48">
-                            <div className="divide-y divide-slate-700">
-                                {errors.slice(0, 20).map((e: any) => (
-                                    <div key={e.id} className="px-4 py-2.5 hover:bg-slate-700/50 transition-colors">
-                                        <div className="flex items-center justify-between mb-1">
+            {/* ── TAB: ميزات AI ──────────────────────────── */}
+            {activeTab === "features" && (
+                <div className="space-y-4">
+                    <p className="text-slate-400 text-sm">كل ميزة AI بالموقع — آخر 7 أيام</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {ALL_FEATURES.map(f => (
+                            <FeatureCard
+                                key={f.event}
+                                feature={f}
+                                stats={featureMap.get(f.event)}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* ── TAB: جدول المهام ───────────────────────── */}
+            {activeTab === "cron" && (
+                <div className="space-y-4">
+                    {/* Scheduled jobs reference */}
+                    <Card className="bg-slate-800 border-slate-700">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-white text-sm flex items-center gap-2">
+                                <Clock className="w-4 h-4 text-primary" /> جدول المهام الليلية (توقيت بغداد)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {Object.entries(CRON_JOB_NAMES).map(([key, label]) => {
+                                    const lastJob = cronJobs.find(j => j.details?.job === key);
+                                    const status = lastJob?.details?.status as string | undefined;
+                                    return (
+                                        <div key={key} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                                            <span className="text-sm text-slate-300">{label}</span>
                                             <div className="flex items-center gap-2">
-                                                <Badge className="text-[10px] bg-red-700 text-white px-1.5">{e.event}</Badge>
-                                                {e.errorCode && <span className="text-xs font-mono text-red-400">{e.errorCode}</span>}
+                                                {lastJob ? (
+                                                    <>
+                                                        <Badge className={`text-[10px] px-1.5 ${
+                                                            status === "completed" ? "bg-emerald-800 text-emerald-300" :
+                                                            status === "failed"    ? "bg-red-800 text-red-300" :
+                                                                                    "bg-blue-800 text-blue-300"
+                                                        }`}>
+                                                            {status === "completed" ? "✓ نجح" : status === "failed" ? "✗ فشل" : status ?? "—"}
+                                                        </Badge>
+                                                        <span className="text-xs text-slate-500">{timeAgo(lastJob.timestamp)}</span>
+                                                    </>
+                                                ) : (
+                                                    <Badge className="text-[10px] bg-slate-600 text-slate-400 px-1.5">لم يُسجَّل بعد</Badge>
+                                                )}
                                             </div>
-                                            <span className="text-xs text-slate-500">{timeAgo(e.timestamp)}</span>
                                         </div>
-                                        <p className="text-xs text-red-300 truncate">{e.errorMessage ?? "خطأ غير محدد"}</p>
-                                        {e.model && <p className="text-xs text-slate-500 mt-0.5">النموذج: {e.model}</p>}
+                                    );
+                                })}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Cron jobs history */}
+                    <Card className="bg-slate-800 border-slate-700">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-white text-sm">سجل تشغيل المهام (آخر 30)</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <ScrollArea className="h-80">
+                                {cronJobs.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-32 text-slate-500">
+                                        <Clock className="w-8 h-8 mb-2 text-slate-600" />
+                                        <p className="text-sm">لا توجد سجلات مهام بعد</p>
+                                        <p className="text-xs mt-1">المهام تعمل في الليل — راجع لاحقاً</p>
                                     </div>
+                                ) : (
+                                    <div className="divide-y divide-slate-700">
+                                        {cronJobs.map((j: any) => {
+                                            const detail = j.details ?? {};
+                                            const jobName = CRON_JOB_NAMES[detail.job] ?? detail.job ?? j.event;
+                                            const isCompleted = detail.status === "completed";
+                                            const isFailed    = detail.status === "failed";
+                                            return (
+                                                <div key={j.id} className="px-4 py-3 hover:bg-slate-700/30 transition-colors">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <div className="flex items-center gap-2">
+                                                            {isFailed
+                                                                ? <XCircle className="w-4 h-4 text-red-400" />
+                                                                : isCompleted
+                                                                ? <CheckCircle className="w-4 h-4 text-emerald-400" />
+                                                                : <Activity className="w-4 h-4 text-blue-400" />}
+                                                            <span className="text-sm text-slate-300">{jobName}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {j.responseTimeMs && (
+                                                                <span className="text-xs text-slate-500">{formatMs(j.responseTimeMs)}</span>
+                                                            )}
+                                                            <span className="text-xs text-slate-500">{timeAgo(j.timestamp)}</span>
+                                                        </div>
+                                                    </div>
+                                                    {/* Result details */}
+                                                    {isCompleted && detail.job === "auto_blog" && detail.title && (
+                                                        <p className="text-xs text-emerald-400 mt-0.5">📝 {detail.title}</p>
+                                                    )}
+                                                    {isCompleted && detail.usersAnalyzed !== undefined && (
+                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                            {detail.usersAnalyzed} مستخدم محلَّل
+                                                            {detail.predictionsCreated !== undefined && ` | ${detail.predictionsCreated} تنبؤ`}
+                                                            {detail.highRisk !== undefined && ` | ${detail.highRisk} خطر عالٍ`}
+                                                        </p>
+                                                    )}
+                                                    {isCompleted && detail.job === "embeddings" && (
+                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                            ✓ {detail.success ?? 0} embedding | ✗ {detail.failed ?? 0} فشل
+                                                        </p>
+                                                    )}
+                                                    {isCompleted && detail.job === "smart_reminders" && (
+                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                            {detail.usersNotified ?? 0} مستخدم | {detail.emailsSent ?? 0} إيميل | {detail.pushSent ?? 0} push
+                                                        </p>
+                                                    )}
+                                                    {isFailed && j.errorMessage && (
+                                                        <p className="text-xs text-red-400 mt-0.5 truncate">{j.errorMessage}</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </ScrollArea>
+                        </CardContent>
+                    </Card>
+                </div>
+            )}
+
+            {/* ── TAB: السجل الكامل ──────────────────────── */}
+            {activeTab === "logs" && (
+                <Card className="bg-slate-800 border-slate-700">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="text-white text-sm flex items-center gap-2">
+                                <Activity className="w-4 h-4 text-primary" /> سجل العمليات الكامل
+                            </CardTitle>
+                            <div className="flex gap-1">
+                                {["all", "info", "warning", "error", "critical"].map(l => (
+                                    <button key={l} onClick={() => setLogLevel(l)}
+                                        className={`px-2 py-1 rounded text-xs transition-colors ${
+                                            logLevel === l
+                                                ? "bg-primary text-white"
+                                                : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                                        }`}>
+                                        {l === "all" ? "الكل" : l}
+                                    </button>
                                 ))}
                             </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <ScrollArea className="h-[500px]">
+                            {logs.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-32 text-slate-500">
+                                    <CheckCircle className="w-8 h-8 mb-2 text-emerald-500" />
+                                    <p className="text-sm">لا يوجد سجلات بعد</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-xs">
+                                    <thead className="sticky top-0 bg-slate-800 border-b border-slate-700">
+                                        <tr className="text-slate-400">
+                                            <th className="text-right px-4 py-2 font-medium">الوقت</th>
+                                            <th className="text-right px-2 py-2 font-medium">الحدث</th>
+                                            <th className="text-right px-2 py-2 font-medium">المستوى</th>
+                                            <th className="text-right px-2 py-2 font-medium">النموذج</th>
+                                            <th className="text-right px-2 py-2 font-medium">المدة</th>
+                                            <th className="text-right px-2 py-2 font-medium">منتجات</th>
+                                            <th className="text-right px-2 py-2 font-medium">الحالة</th>
+                                            <th className="text-right px-4 py-2 font-medium">تفاصيل</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-700/50">
+                                        {logs.map((log: any) => (
+                                            <tr key={log.id} className="hover:bg-slate-700/30 transition-colors">
+                                                <td className="px-4 py-2 text-slate-500 whitespace-nowrap">{timeAgo(log.timestamp)}</td>
+                                                <td className="px-2 py-2">
+                                                    <div className="flex items-center gap-1 whitespace-nowrap">
+                                                        {eventIcon(log.event)}
+                                                        <span className="text-slate-300">{log.event}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-2 py-2">
+                                                    <Badge className={`text-[10px] px-1.5 ${levelColor(log.level)}`}>{log.level}</Badge>
+                                                </td>
+                                                <td className="px-2 py-2 text-slate-400 font-mono whitespace-nowrap">
+                                                    {log.model ? log.model.replace("llama-3.3-70b-versatile", "llama-70b").replace("llama-3.1-8b-instant", "llama-8b") : "—"}
+                                                    {log.webSearchUsed && <Globe className="w-3 h-3 inline mr-1 text-violet-400" />}
+                                                </td>
+                                                <td className="px-2 py-2 text-slate-300">{formatMs(log.responseTimeMs)}</td>
+                                                <td className="px-2 py-2 text-slate-400">{log.productsFound ?? "—"}</td>
+                                                <td className="px-2 py-2">
+                                                    {log.success
+                                                        ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+                                                        : <XCircle className="w-3.5 h-3.5 text-red-500" />}
+                                                </td>
+                                                <td className="px-4 py-2 text-slate-500 max-w-xs truncate">
+                                                    {log.errorMessage
+                                                        ?? (log.details?.title ? `📝 ${log.details.title}` : "")
+                                                        ?? (log.fallbackUsed ? "⚠️ fallback" : "")}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
                         </ScrollArea>
                     </CardContent>
                 </Card>
             )}
-
-            {/* All Logs */}
-            <Card className="bg-slate-800 border-slate-700">
-                <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-white text-sm flex items-center gap-2">
-                            <Activity className="w-4 h-4 text-primary" /> سجل العمليات الكامل
-                        </CardTitle>
-                        <div className="flex gap-1">
-                            {["all", "info", "warning", "error", "critical"].map(l => (
-                                <button key={l} onClick={() => setLogLevel(l)}
-                                    className={`px-2 py-1 rounded text-xs transition-colors ${
-                                        logLevel === l
-                                            ? "bg-primary text-white"
-                                            : "bg-slate-700 text-slate-400 hover:bg-slate-600"
-                                    }`}>
-                                    {l === "all" ? "الكل" : l}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <ScrollArea className="h-96">
-                        {logs.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-32 text-slate-500">
-                                <CheckCircle className="w-8 h-8 mb-2 text-emerald-500" />
-                                <p className="text-sm">لا يوجد سجلات بعد</p>
-                            </div>
-                        ) : (
-                            <table className="w-full text-xs">
-                                <thead className="sticky top-0 bg-slate-800 border-b border-slate-700">
-                                    <tr className="text-slate-400">
-                                        <th className="text-right px-4 py-2 font-medium">الوقت</th>
-                                        <th className="text-right px-2 py-2 font-medium">الحدث</th>
-                                        <th className="text-right px-2 py-2 font-medium">المستوى</th>
-                                        <th className="text-right px-2 py-2 font-medium">النموذج</th>
-                                        <th className="text-right px-2 py-2 font-medium">الوقت</th>
-                                        <th className="text-right px-2 py-2 font-medium">منتجات</th>
-                                        <th className="text-right px-2 py-2 font-medium">الحالة</th>
-                                        <th className="text-right px-4 py-2 font-medium">التفاصيل</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-700/50">
-                                    {logs.map((log: any) => (
-                                        <tr key={log.id} className="hover:bg-slate-700/30 transition-colors">
-                                            <td className="px-4 py-2 text-slate-500 whitespace-nowrap">{timeAgo(log.timestamp)}</td>
-                                            <td className="px-2 py-2">
-                                                <div className="flex items-center gap-1 whitespace-nowrap">
-                                                    {eventIcon(log.event)}
-                                                    <span className="text-slate-300">{log.event}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-2 py-2">
-                                                <Badge className={`text-[10px] px-1.5 ${levelColor(log.level)}`}>
-                                                    {log.level}
-                                                </Badge>
-                                            </td>
-                                            <td className="px-2 py-2 text-slate-400 font-mono whitespace-nowrap">
-                                                {log.model ? log.model.replace("llama-3.3-70b-versatile", "llama-70b") : "—"}
-                                                {log.webSearchUsed && <Globe className="w-3 h-3 inline mr-1 text-violet-400" />}
-                                            </td>
-                                            <td className="px-2 py-2 text-slate-300">
-                                                {formatMs(log.responseTimeMs)}
-                                            </td>
-                                            <td className="px-2 py-2 text-slate-400">
-                                                {log.productsFound ?? "—"}
-                                            </td>
-                                            <td className="px-2 py-2">
-                                                {log.success
-                                                    ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-                                                    : <XCircle className="w-3.5 h-3.5 text-red-500" />}
-                                            </td>
-                                            <td className="px-4 py-2 text-slate-500 max-w-xs truncate">
-                                                {log.errorMessage ?? (log.fallbackUsed ? "⚠️ fallback" : "")}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </ScrollArea>
-                </CardContent>
-            </Card>
         </div>
     );
 }

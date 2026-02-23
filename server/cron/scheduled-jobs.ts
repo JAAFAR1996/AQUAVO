@@ -4,6 +4,7 @@ import { churnDetector } from "../services/churn-detector.js";
 import { autoBlogGenerator } from "../services/auto-blog-generator.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { smartNotifications } from "../services/smart-notifications.js";
+import { aiMonitor } from "../services/ai-monitor.js";
 
 /**
  * Scheduled Jobs Service
@@ -29,139 +30,112 @@ export function initializeScheduledJobs(): void {
 
     // ==================== Daily Predictions at 2:00 AM ====================
     cron.schedule("0 2 * * *", async () => {
-        if (jobStatus.predictionsRunning) {
-            console.log("[ScheduledJobs] Predictions job already running, skipping...");
-            return;
-        }
-
-        console.log("[ScheduledJobs] Starting daily predictions job...");
+        if (jobStatus.predictionsRunning) return;
         jobStatus.predictionsRunning = true;
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "predictions", status: "started" } });
         try {
             const result = await predictiveAnalytics.runDailyPredictions();
-            console.log(
-                `[ScheduledJobs] Predictions completed: ${result.usersAnalyzed} users, ${result.predictionsCreated} predictions`
-            );
+            console.log(`[ScheduledJobs] Predictions: ${result.usersAnalyzed} users, ${result.predictionsCreated} predictions`);
+            aiMonitor.log({ event: "prediction", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "predictions", ...result } });
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "predictions", status: "completed", ...result } });
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Predictions job failed:", error);
-        } finally {
-            jobStatus.predictionsRunning = false;
-        }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+            aiMonitor.logError(`Cron predictions failed: ${msg}`, {}, { event: "cron_job", responseTimeMs: Date.now() - t, details: { job: "predictions", status: "failed" } } as any);
+        } finally { jobStatus.predictionsRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
 
     // ==================== Churn Analysis at 3:00 AM ====================
     cron.schedule("0 3 * * *", async () => {
-        if (jobStatus.churnRunning) {
-            console.log("[ScheduledJobs] Churn job already running, skipping...");
-            return;
-        }
-
-        console.log("[ScheduledJobs] Starting churn analysis job...");
+        if (jobStatus.churnRunning) return;
         jobStatus.churnRunning = true;
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "churn", status: "started" } });
         try {
             const result = await churnDetector.analyzeAllUsers();
-            console.log(
-                `[ScheduledJobs] Churn analysis completed: ${result.usersAnalyzed} users, ${result.highRisk} high risk, ${result.critical} critical`
-            );
+            console.log(`[ScheduledJobs] Churn: ${result.usersAnalyzed} users, ${result.highRisk} high risk, ${result.critical} critical`);
+            aiMonitor.log({ event: "churn_analysis", level: "info", success: true, responseTimeMs: Date.now() - t, details: { ...result } });
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "churn", status: "completed", ...result } });
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Churn job failed:", error);
-        } finally {
-            jobStatus.churnRunning = false;
-        }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+            aiMonitor.logError(`Cron churn failed: ${msg}`, {}, { event: "cron_job", details: { job: "churn", status: "failed" } } as any);
+        } finally { jobStatus.churnRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
 
     // ==================== Check Conversions at 4:00 AM ====================
     cron.schedule("0 4 * * *", async () => {
-        console.log("[ScheduledJobs] Starting conversions check...");
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "conversions", status: "started" } });
         try {
             const conversions = await predictiveAnalytics.checkConversions();
-            console.log(`[ScheduledJobs] Conversions check completed: ${conversions} conversions found`);
+            console.log(`[ScheduledJobs] Conversions: ${conversions} found`);
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "conversions", status: "completed", conversions } });
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Conversions check failed:", error);
+            aiMonitor.logError(`Cron conversions failed: ${msg}`, {}, { event: "cron_job", details: { job: "conversions", status: "failed" } } as any);
         }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+    }, { timezone: "Asia/Baghdad" });
 
     // ==================== Generate Missing Embeddings at 1:30 AM ====================
     cron.schedule("30 1 * * *", async () => {
-        if (jobStatus.embeddingsRunning) {
-            console.log("[ScheduledJobs] Embeddings job already running, skipping...");
-            return;
-        }
-
-        console.log("[ScheduledJobs] 🧠 Starting daily embedding generation for new products...");
+        if (jobStatus.embeddingsRunning) return;
         jobStatus.embeddingsRunning = true;
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "embeddings", status: "started" } });
         try {
             const result = await embeddingGenerator.generateMissingEmbeddings();
-            console.log(
-                `[ScheduledJobs] Embeddings completed: ${result.success} generated, ${result.failed} failed`
-            );
+            console.log(`[ScheduledJobs] Embeddings: ${result.success} ok, ${result.failed} failed`);
+            aiMonitor.log({ event: "embedding", level: "info", success: true, responseTimeMs: Date.now() - t, details: { ...result } });
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "embeddings", status: "completed", ...result } });
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Embeddings job failed:", error);
-        } finally {
-            jobStatus.embeddingsRunning = false;
-        }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+            aiMonitor.logError(`Cron embeddings failed: ${msg}`, {}, { event: "cron_job", details: { job: "embeddings", status: "failed" } } as any);
+        } finally { jobStatus.embeddingsRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
 
-    // ==================== Smart Reminders at 4:30 AM (after predictions) ====================
+    // ==================== Smart Reminders at 4:30 AM ====================
     cron.schedule("30 4 * * *", async () => {
-        if (jobStatus.smartRemindersRunning) {
-            console.log("[ScheduledJobs] Smart reminders already running, skipping...");
-            return;
-        }
-
-        console.log("[ScheduledJobs] 🔔 Starting smart reminder notifications...");
+        if (jobStatus.smartRemindersRunning) return;
         jobStatus.smartRemindersRunning = true;
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "smart_reminders", status: "started" } });
         try {
             const result = await smartNotifications.sendReplenishmentReminders();
-            console.log(
-                `[ScheduledJobs] Smart reminders completed: ${result.usersNotified} users, ${result.emailsSent} emails, ${result.pushSent} push`
-            );
+            console.log(`[ScheduledJobs] Smart reminders: ${result.usersNotified} users, ${result.emailsSent} emails, ${result.pushSent} push`);
+            aiMonitor.log({ event: "notification_sent", level: "info", success: true, responseTimeMs: Date.now() - t, details: { ...result } });
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "smart_reminders", status: "completed", ...result } });
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Smart reminders failed:", error);
-        } finally {
-            jobStatus.smartRemindersRunning = false;
-        }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+            aiMonitor.logError(`Cron smart_reminders failed: ${msg}`, {}, { event: "cron_job", details: { job: "smart_reminders", status: "failed" } } as any);
+        } finally { jobStatus.smartRemindersRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
 
-    // ==================== Weekly Auto-Blog at 5:00 AM Sunday (Baghdad) ====================
+    // ==================== Weekly Auto-Blog at 5:00 AM Sunday ====================
     cron.schedule("0 5 * * 0", async () => {
-        if (jobStatus.autoBlogRunning) {
-            console.log("[ScheduledJobs] Auto-blog job already running, skipping...");
-            return;
-        }
-
-        console.log("[ScheduledJobs] 📝 Starting weekly auto-blog generation...");
+        if (jobStatus.autoBlogRunning) return;
         jobStatus.autoBlogRunning = true;
-
+        const t = Date.now();
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "auto_blog", status: "started" } });
         try {
             const result = await autoBlogGenerator.runWeeklyBlogGeneration();
             if (result.success) {
                 console.log(`[ScheduledJobs] ✅ Auto-blog created: ${result.blogGenerated?.title}`);
+                aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "auto_blog", status: "completed", title: result.blogGenerated?.title } });
             } else {
                 console.log(`[ScheduledJobs] ⚠️ Auto-blog failed: ${result.error}`);
+                aiMonitor.logError(`Auto-blog cron failed: ${result.error}`, {}, { event: "cron_job", responseTimeMs: Date.now() - t, details: { job: "auto_blog", status: "failed", error: result.error } } as any);
             }
         } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
             console.error("[ScheduledJobs] Auto-blog job failed:", error);
-        } finally {
-            jobStatus.autoBlogRunning = false;
-        }
-    }, {
-        timezone: "Asia/Baghdad",
-    });
+            aiMonitor.logError(`Cron auto_blog crashed: ${msg}`, {}, { event: "cron_job", details: { job: "auto_blog", status: "failed" } } as any);
+        } finally { jobStatus.autoBlogRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
 
     console.log("[ScheduledJobs] Cron jobs initialized successfully");
     console.log("  - 🧠 Missing Embeddings: 1:30 AM (Asia/Baghdad)");

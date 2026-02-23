@@ -76,4 +76,26 @@ router.get("/models", async (req: Request, res: Response) => {
     }
 });
 
+/** GET /api/admin/ai-monitor/features — per-feature breakdown (7 days) */
+router.get("/features", async (req: Request, res: Response) => {
+    try {
+        const hours = Math.min(Number(req.query.hours) || 168, 720);
+        const features = await aiMonitor.getFeatureBreakdown(hours);
+        res.json({ features });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+/** GET /api/admin/ai-monitor/cron-jobs — cron job history */
+router.get("/cron-jobs", async (req: Request, res: Response) => {
+    try {
+        const limit = Math.min(Number(req.query.limit) || 30, 100);
+        const jobs = await aiMonitor.getCronJobHistory(limit);
+        res.json({ jobs });
+    } catch (err: any) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 export default router;
