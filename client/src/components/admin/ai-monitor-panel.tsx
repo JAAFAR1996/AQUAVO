@@ -13,7 +13,7 @@ import {
     Activity, AlertTriangle, CheckCircle, Clock, Globe, MessageSquare,
     RefreshCw, Search, Wifi, WifiOff, Zap, XCircle, TrendingUp,
     BookOpen, Bell, Brain, User, ShoppingCart, Heart, BarChart3,
-    Shield, Mail, Cpu,
+    Shield, Mail, Cpu, FileText, Package, RotateCcw, Users, Layers, LayoutDashboard,
 } from "lucide-react";
 
 // ─── API helpers ─────────────────────────────────────────────
@@ -39,8 +39,14 @@ const ALL_FEATURES = [
     { event: "email_campaign",  label: "حملات البريد",         icon: Mail,          color: "text-rose-400",   desc: "حملات AI بالبريد الإلكتروني" },
     { event: "fraud_check",     label: "كشف الاحتيال",         icon: Shield,        color: "text-red-400",    desc: "فحص الطلبات المشبوهة" },
     { event: "price_suggestion",label: "تسعير ذكي",            icon: BarChart3,     color: "text-teal-400",   desc: "اقتراحات الأسعار التنافسية" },
-    { event: "visual_analysis", label: "تحليل الصور",          icon: Cpu,           color: "text-fuchsia-400",desc: "Gemini Vision — فحص صور الحوض" },
-    { event: "cron_job",        label: "المهام المجدولة",      icon: Clock,         color: "text-slate-300",  desc: "كل المهام الليلية" },
+    { event: "visual_analysis",       label: "تحليل الصور",        icon: Cpu,             color: "text-fuchsia-400", desc: "Gemini Vision — فحص صور الحوض" },
+    { event: "aquarium_design",       label: "مصمم الحوض",         icon: Layers,          color: "text-sky-400",     desc: "تصميم حوض + توافق الأسماك" },
+    { event: "content_generated",     label: "توليد المحتوى",      icon: FileText,        color: "text-purple-400",  desc: "وصف منتجات + سوشيال + إيميل" },
+    { event: "dashboard_insights",    label: "تحليل لوحة التحكم", icon: LayoutDashboard, color: "text-blue-300",    desc: "ملخص ذكي يومي للمدير" },
+    { event: "inventory_optimization",label: "تحسين المخزون",      icon: Package,         color: "text-orange-300",  desc: "تحليل المخزون واقتراح الطلبيات" },
+    { event: "returns_analysis",      label: "معالجة الإرجاع",     icon: RotateCcw,       color: "text-yellow-300",  desc: "قرارات إرجاع ذكية بالـ AI" },
+    { event: "customer_analysis",     label: "تحليل العملاء",      icon: Users,           color: "text-green-300",   desc: "بناء ملف سلوكي لكل عميل" },
+    { event: "cron_job",              label: "المهام المجدولة",    icon: Clock,           color: "text-slate-300",   desc: "كل المهام الليلية" },
 ];
 
 // ─── Cron job display names ───────────────────────────────────
@@ -224,7 +230,7 @@ export function AiMonitorPanel() {
                         <Activity className="w-6 h-6 text-primary" />
                         مراقبة الذكاء الاصطناعي
                     </h2>
-                    <p className="text-slate-400 text-sm mt-1">كل ميزة AI بالموقع — 15 ميزة تحت المجهر</p>
+                    <p className="text-slate-400 text-sm mt-1">كل ميزة AI بالموقع — 21 ميزة تحت المجهر</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={refetchAll} disabled={statsFetching}
                     className="gap-2 border-slate-600 text-slate-300 hover:bg-slate-700">

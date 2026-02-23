@@ -2,6 +2,7 @@ import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
 import { imageAnalyses, products, type InsertImageAnalysis } from "../../shared/schema.js";
 import { eq, desc, inArray, sql } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Visual AI Service
@@ -67,6 +68,7 @@ export class VisualAI {
         processingTimeMs: processingTime,
       });
 
+      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: "gemini-2.5-flash", userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence } });
       return {
         id: savedAnalysis.id,
         analysisType,
@@ -75,6 +77,7 @@ export class VisualAI {
         processingTimeMs: processingTime,
       };
     } catch (error) {
+      aiMonitor.logError(error instanceof Error ? error.message : "Visual AI failed", { analysisType }, { event: "visual_analysis", userId, sessionId, responseTimeMs: Date.now() - startTime });
       console.error("Visual AI Error:", error);
       throw new Error(
         `فشل تحليل الصورة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`

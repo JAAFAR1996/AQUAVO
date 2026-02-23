@@ -9,6 +9,7 @@ import {
     inventoryRecommendations,
 } from "../../shared/schema.js";
 import { eq, desc, gte, sql, count, sum, and } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * AI Dashboard Service
@@ -284,8 +285,10 @@ export class AIDashboard {
                 [{ role: "user", content: prompt }],
                 { temperature: 0.5, maxTokens: 200, model: "llama-3.1-8b-instant" }
             );
+            aiMonitor.log({ event: "dashboard_insights", level: "info", success: true, model: "llama-3.1-8b-instant", details: { revenue: data.revenue, ordersCount: data.ordersCount, alertsCount: data.alerts.length } });
             return (result || "").trim();
         } catch (error) {
+            aiMonitor.log({ event: "dashboard_insights", level: "warning", success: false, model: "llama-3.1-8b-instant" });
             console.error("AI insights generation failed:", error);
             return "تعذر توليد التحليلات الذكية";
         }

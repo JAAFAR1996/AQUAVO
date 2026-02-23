@@ -7,6 +7,7 @@ import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { eq, desc, sql, and, gte } from "drizzle-orm";
 import { groqClient } from "./groq-client.js";
+import { aiMonitor } from "./ai-monitor.js";
 
 // ============================================================
 // CUSTOMER PROFILER CLASS
@@ -166,6 +167,7 @@ export class CustomerProfiler {
                 [{ role: "user", content: prompt }],
                 { temperature: 0.3, maxTokens: 500, model: "llama-3.1-8b-instant" }
             );
+            aiMonitor.log({ event: "customer_analysis", level: "info", success: true, model: "llama-3.1-8b-instant" });
 
             // استخراج JSON من الرد
             const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -173,6 +175,7 @@ export class CustomerProfiler {
                 return JSON.parse(jsonMatch[0]);
             }
         } catch (error) {
+            aiMonitor.log({ event: "customer_analysis", level: "warning", success: false, model: "llama-3.1-8b-instant" });
             console.error("AI analysis error:", error);
         }
 

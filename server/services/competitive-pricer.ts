@@ -7,6 +7,7 @@ import {
     type InsertCompetitorPrice,
 } from "../../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Competitive Pricer Service
@@ -154,6 +155,7 @@ export class CompetitivePricer {
                 reasoning = parsed.reasoning;
             }
 
+            aiMonitor.log({ event: "price_suggestion", level: "info", success: true, model: "llama-3.1-8b-instant", details: { productId, pricePosition, suggestedPrice } });
             return {
                 ourPrice,
                 avgCompetitorPrice,
@@ -164,6 +166,7 @@ export class CompetitivePricer {
                 reasoning,
             };
         } catch (error) {
+            aiMonitor.logError(error instanceof Error ? error.message : "Pricing analysis failed", { productId }, { event: "price_suggestion" });
             console.error("Error analyzing pricing:", error);
             throw error;
         }

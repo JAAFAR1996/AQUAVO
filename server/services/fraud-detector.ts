@@ -2,6 +2,7 @@ import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
 import { orders, users, orderItems, products } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Fraud Detector Service
@@ -246,8 +247,10 @@ ${indicators.flags.map((f) => `- ${f}`).join("\n")}
                 [{ role: "user", content: prompt }],
                 { temperature: 0.3, maxTokens: 150, model: "llama-3.1-8b-instant" }
             );
+            aiMonitor.log({ event: "fraud_check", level: "info", success: true, model: "llama-3.1-8b-instant", details: { orderId: order.id } });
             return (result || "").trim();
         } catch (error) {
+            aiMonitor.log({ event: "fraud_check", level: "warning", success: false, model: "llama-3.1-8b-instant" });
             console.error("AI analysis failed:", error);
             return "تعذر الحصول على تحليل AI";
         }

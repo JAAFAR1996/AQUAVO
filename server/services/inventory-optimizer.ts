@@ -8,6 +8,7 @@ import {
     type InsertInventoryRecommendation,
 } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count, sum } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Inventory Optimizer Service
@@ -168,6 +169,7 @@ export class InventoryOptimizer {
                         [{ role: "user", content: `أنت مدير مخزون لمتجر أحواض أسماك. لخّص الوضع في جملة: ${urgent} منتج عاجل، ${soon} قريب النفاد، ${excess} فائض، من أصل ${allProducts.length} منتج.` }],
                         { temperature: 0.3, maxTokens: 80, model: "llama-3.1-8b-instant" }
                     );
+                    aiMonitor.log({ event: "inventory_optimization", level: "info", success: true, model: "llama-3.1-8b-instant", details: { analyzed: allProducts.length, urgent, soon, excess } });
                 } catch {
                     // AI summary is optional
                 }

@@ -6,6 +6,7 @@ import {
     type InsertGeneratedContent,
 } from "../../shared/schema.js";
 import { eq, desc } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Content Generator Service
@@ -76,6 +77,7 @@ export class ContentGenerator {
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
             });
+            aiMonitor.log({ event: "content_generated", level: "info", success: true, model: "llama-3.1-8b-instant", details: { type: "product_description", productId } });
 
             // Parse JSON response
             const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -177,6 +179,7 @@ export class ContentGenerator {
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
             });
+            aiMonitor.log({ event: "content_generated", level: "info", success: true, model: "llama-3.1-8b-instant", details: { type: "social_post", productId, platform } });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -255,6 +258,7 @@ export class ContentGenerator {
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
             });
+            aiMonitor.log({ event: "content_generated", level: "info", success: true, model: "llama-3.1-8b-instant", details: { type: "email", emailType: type } });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {

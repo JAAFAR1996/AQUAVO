@@ -6,6 +6,7 @@ import {
     type InsertAquariumDesign,
 } from "../../shared/schema.js";
 import { eq, desc, sql } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Aquarium Advisor Service
@@ -77,6 +78,7 @@ export class AquariumAdvisor {
                 maxTokens: 1024,
                 model: "llama-3.1-8b-instant"
             });
+            aiMonitor.log({ event: "aquarium_design", level: "info", success: true, model: "llama-3.1-8b-instant", userId: params.userId, details: { tankSize: params.tankSize, tankType: params.tankType, experience: params.experience } });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {
@@ -174,6 +176,7 @@ export class AquariumAdvisor {
                 maxTokens: 512,
                 model: "llama-3.1-8b-instant"
             });
+            aiMonitor.log({ event: "aquarium_design", level: "info", success: true, model: "llama-3.1-8b-instant", details: { type: "compatibility", fish1, fish2 } });
 
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             if (!jsonMatch) {

@@ -8,6 +8,7 @@ import {
     type InsertReturnRequest,
 } from "../../shared/schema.js";
 import { eq, desc, and } from "drizzle-orm";
+import { aiMonitor } from "./ai-monitor.js";
 
 /**
  * Returns Handler Service
@@ -192,6 +193,7 @@ export class ReturnsHandler {
                 })
                 .where(eq(returnRequests.id, requestId));
 
+            aiMonitor.log({ event: "returns_analysis", level: "info", success: true, model: "llama-3.1-8b-instant", details: { requestId, recommendation: parsed.recommendation, fraudRisk: parsed.fraudRisk } });
             return {
                 recommendation: parsed.recommendation,
                 confidence: parsed.confidence,
@@ -200,6 +202,7 @@ export class ReturnsHandler {
                 fraudRisk: parsed.fraudRisk,
             };
         } catch (error) {
+            aiMonitor.logError(error instanceof Error ? error.message : "Returns analysis failed", { requestId }, { event: "returns_analysis" });
             console.error("Error analyzing request:", error);
             throw error;
         }
