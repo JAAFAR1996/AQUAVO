@@ -57,7 +57,9 @@ class GroqClientManager {
 
     // Available Groq models
     public static readonly MODELS = {
-        LLAMA_70B: "llama-3.3-70b-versatile",
+        COMPOUND_BETA: "compound-beta",       // Has built-in web search (preferred)
+        COMPOUND_MINI: "compound-beta-mini",  // Faster, less thorough search
+        LLAMA_70B: "llama-3.3-70b-versatile", // Fallback (no web search)
         LLAMA_8B: "llama-3.1-8b-instant",
         GEMMA: "gemma2-9b-it",
     };

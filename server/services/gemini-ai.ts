@@ -128,6 +128,7 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 النظام يبحث تلقائياً عن المنتجات المناسبة ويرفقها مع رسالة الزبون.
 إذا شفت قسم [المنتجات المتوفرة] بالرسالة، استخدم هذي البيانات بردك.
 إذا ما أكو بيانات منتجات، ساعد الزبون بنصائح عامة عن الأحواض والأسماك.
+عندك قدرة على البحث بالإنترنت — استخدمها لأسئلة الأمراض والأسماك النادرة والمعلومات الحديثة. لكن دائماً أعطِ جواباً عملياً مباشراً بعدين.
 
 [معلومات المتجر - للأسئلة العامة]
 - الاسم: AQUAVO (أكوافو) - أول متجر أحواض متخصص بالعراق
@@ -458,12 +459,31 @@ export async function sendMessage(
             sentimentAnalyzer.analyzeSentiment(message, userId, sessionId).catch(() => { });
         }
 
-        // 7. Call Groq WITHOUT tool calling (products already in context)
+        // 7. Call Groq — try compound-beta first (has web search), fallback to llama-3.3-70b
         const response = await withTimeout(
-            groqClient.chat(groqMessages, {
-                temperature: 0.7,
-                maxTokens: 2048,
-            }),
+            (async () => {
+                try {
+                    // compound-beta automatically searches the web when needed
+                    return await groqClient.chat(groqMessages, {
+                        model: "compound-beta",
+                        temperature: 0.7,
+                        maxTokens: 2048,
+                    });
+                } catch (compoundErr: any) {
+                    const msg = (compoundErr?.message || "").toLowerCase();
+                    const isModelErr = msg.includes("model") || msg.includes("not found") ||
+                        msg.includes("does not exist") || msg.includes("unsupported") ||
+                        msg.includes("invalid");
+                    if (isModelErr) {
+                        console.warn("⚠️ compound-beta unavailable, falling back to llama-3.3-70b");
+                        return await groqClient.chat(groqMessages, {
+                            temperature: 0.7,
+                            maxTokens: 2048,
+                        });
+                    }
+                    throw compoundErr; // re-throw non-model errors
+                }
+            })(),
             AI_TIMEOUT_MS,
             "انتهت مهلة الاتصال"
         );
