@@ -32,6 +32,8 @@ export function createProductRouter(): RouterType {
             };
 
             const products = await storage.getProducts(filters);
+            // Cache product listings for 60s, allow stale for 5 minutes while revalidating
+            res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
             res.json({ products });
         } catch (err) {
             next(err);
@@ -41,13 +43,8 @@ export function createProductRouter(): RouterType {
     // Categories list (distinct values from products table)
     router.get("/categories", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const products = await storage.getProducts({ limit: 1000 });
-            const categorySet = new Set<string>();
-            for (const p of products) {
-                if (p.category) categorySet.add(p.category);
-            }
-            const categories = Array.from(categorySet).sort();
-            res.json({ categories });
+            const attrs = await storage.getProductAttributes();
+            res.json({ categories: attrs.categories });
         } catch (err) {
             next(err);
         }
@@ -199,13 +196,17 @@ export function createProductRouter(): RouterType {
                 return;
             }
 
-            // Fetch frequently bought together for each cart item
+            // Fetch frequently bought together — all in parallel (was N sequential queries)
             const allSuggestions = new Map<string, number>();
+            const cartIdSet = new Set(cartProductIds);
 
-            for (const pid of cartProductIds) {
-                const related = await storage.getFrequentlyBoughtTogether(pid);
+            const relatedArrays = await Promise.all(
+                cartProductIds.map(pid => storage.getFrequentlyBoughtTogether(pid))
+            );
+
+            for (const related of relatedArrays) {
                 for (const product of related) {
-                    if (cartProductIds.includes(product.id)) continue; // skip items already in cart
+                    if (cartIdSet.has(product.id)) continue; // skip items already in cart
                     allSuggestions.set(product.id, (allSuggestions.get(product.id) || 0) + 1);
                 }
             }
@@ -382,8 +383,11 @@ export function createProductRouter(): RouterType {
 
             const nameWithoutSize = removeVariantSuffix(product.name);
 
-            // Get all products with similar base name
-            const allProducts = await storage.getProducts({});
+            // Get products in same category+brand only (avoids loading full catalog)
+            const allProducts = await storage.getProducts({
+                category: product.category,
+                brand: product.brand,
+            });
             const variants = allProducts.filter((p: typeof product) => {
                 const pNameBase = removeVariantSuffix(p.name);
                 return pNameBase === nameWithoutSize &&

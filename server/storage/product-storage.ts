@@ -20,6 +20,7 @@ export interface ProductFilters {
 
 export class ProductStorage {
     private db = getDb();
+    private highSalesCache: { ids: string[]; expires: number } | null = null;
 
     private ensureDb() {
         if (!this.db) {
@@ -454,8 +455,11 @@ export class ProductStorage {
     async seedFishSpeciesIfNeeded(): Promise<void> {
         // Implementation can be moved here or kept in seed script
     }
-    // Helper to get top selling product IDs from real order data
+    // Helper to get top selling product IDs from real order data (cached 30 min)
     private async getHighSalesProductIds(limit: number = 20): Promise<string[]> {
+        if (this.highSalesCache && Date.now() < this.highSalesCache.expires) {
+            return this.highSalesCache.ids;
+        }
         const db = this.ensureDb();
         try {
             // Aggregate sales quantity per product
@@ -472,7 +476,9 @@ export class ProductStorage {
                 .orderBy(desc(sql`sum(${orderItems.quantity})`))
                 .limit(limit);
 
-            return sales.map(s => s.productId);
+            const ids = sales.map(s => s.productId);
+            this.highSalesCache = { ids, expires: Date.now() + 30 * 60 * 1000 }; // cache 30 min
+            return ids;
         } catch (err) {
             console.error("Error fetching high sales products:", err);
             return [];

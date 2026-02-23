@@ -137,7 +137,7 @@ export default function Products() {
   const { data, isLoading: isProductsLoading, isError } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 1000 * 60, // 1 minute
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const products = data?.products ?? [];
@@ -161,8 +161,9 @@ export default function Products() {
       const boostSet = new Set(boostIds);
       const boosted = filtered.filter(p => boostSet.has(p.id));
       const rest = filtered.filter(p => !boostSet.has(p.id));
-      // Sort boosted products by their order in boostIds
-      boosted.sort((a, b) => boostIds.indexOf(a.id) - boostIds.indexOf(b.id));
+      // O(1) lookup map instead of O(n) indexOf inside sort
+      const orderMap = new Map(boostIds.map((id, i) => [id, i]));
+      boosted.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
       filtered = [...boosted, ...rest];
     }
 
