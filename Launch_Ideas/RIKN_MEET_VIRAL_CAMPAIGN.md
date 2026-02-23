@@ -753,35 +753,50 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
 
 ### 📸 صورة 1 — وجه السمكة من قريب
 
-```
-Photorealistic extreme macro close-up of a single betta fish face — inside aquarium — looking DIRECTLY at the camera lens.
-
-FISH:
-Beautiful male betta fish (Siamese fighting fish). Deep royal blue and red coloring with iridescent scales that catch the light. One large detailed eye looking directly into camera. The eye is the focal point — detailed, beautiful, intelligent-looking. The eye should show a tiny reflection of the camera/room in the iris.
-
-SETTING:
-Inside a home aquarium. Clean glass in front. Aquatic plants softly blurred in background. Fine gravel substrate below. Warm blue-green aquarium LED light.
-
-CAMERA:
-Extreme macro close-up — the fish eye and face fill the frame. 9:16 vertical. Depth of field: eye in razor-sharp focus, everything else gradually soft.
-
-ATMOSPHERE:
-The fish appears to be genuinely looking at you — curious, intelligent, present.
-
-QUALITY:
-Ultra-realistic. Scales detailed with iridescent sheen. Eye shows complex iris structure. Natural aquarium colors. NOT AI-looking fish.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "macro aquarium photography",
+  "camera_setup": "Sony A7R V, 90mm Macro, f/2.8, ISO 400",
+  "subject": {
+    "main": "Photorealistic extreme macro close-up of a single betta fish face inside aquarium, looking DIRECTLY at the camera lens. Beautiful male betta fish (Siamese fighting fish). Deep royal blue and red coloring with iridescent scales that catch the light. One large detailed eye looking directly into camera — the eye is the focal point, detailed, beautiful, intelligent-looking. The eye shows a tiny reflection of the camera/room in the iris.",
+    "composition": "Fish eye and face fill the frame. Eye in razor-sharp focus, everything else gradually soft."
+  },
+  "environment": {
+    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, intimate, revealing scale detail" },
+    "background": "Clean glass in front. Aquatic plants softly blurred in background. Fine gravel substrate below.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#CC0000 (Betta Red Fins)" }
+  },
+  "style": { "artistic": "Nature documentary extreme macro", "mood": "Curious, intelligent, present — the fish appears to genuinely look at you" },
+  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "bright unnatural colors"], "style_raw": true }
+}
 ```
 
 ### 📸 صورة 2 — السمكة تسبح ناحيتك
 
-```
-Photorealistic photo of betta fish swimming directly toward camera from slightly farther away.
-
-Same fish — same aquarium setting. The fish is now seen from a slight distance, swimming directly toward the camera with purpose. Both eyes visible now (3/4 view from front). Fins spread naturally as it swims forward.
-
-Camera: 9:16 vertical. Sharp focus on fish. Aquarium background softly blurred.
-
-QUALITY: Ultra-realistic. Same quality as previous fish photo.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "macro aquarium photography",
+  "camera_setup": "Sony A7R V, 90mm Macro, f/2.8, ISO 400",
+  "subject": {
+    "main": "Photorealistic photo of betta fish swimming directly toward camera from slightly farther away. Same fish — same aquarium setting. The fish is now seen from a slight distance, swimming directly toward the camera with purpose. Both eyes visible (3/4 view from front). Fins spread naturally as it swims forward.",
+    "composition": "Sharp focus on fish. Aquarium background softly blurred. Fish centered in frame, approaching viewer."
+  },
+  "environment": {
+    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, same as previous shot" },
+    "background": "Same aquarium interior — plants and substrate softly blurred.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#CC0000 (Betta Red Fins)" }
+  },
+  "style": { "artistic": "Nature documentary approach shot", "mood": "Purposeful, engaging — the fish is coming to you" },
+  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image"], "style_raw": true }
+}
 ```
 
 ---

@@ -145,7 +145,7 @@ export const EXPERIMENTS = {
     name: 'add_to_cart_button_text',
     variants: {
       A: 'أضف للسلة',
-      B: '🛒 اشتري الآن',
+      B: 'اشتري الآن',
     },
   },
 
