@@ -182,7 +182,7 @@ export function AIChatBot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="fixed bottom-6 left-6 z-50 w-[360px] max-w-[calc(100vw-48px)]"
+                        className="fixed bottom-6 left-6 z-50 w-[420px] max-w-[calc(100vw-32px)]"
                     >
                         <Card className={cn(
                             "shadow-2xl border-primary/20 overflow-hidden",
@@ -234,7 +234,7 @@ export function AIChatBot() {
                             {!isMinimized && (
                                 <CardContent className="p-0">
                                     {/* Messages */}
-                                    <ScrollArea className="h-[300px] p-3" ref={scrollRef}>
+                                    <ScrollArea className="h-[400px] p-3" ref={scrollRef}>
                                         <div className="space-y-3">
                                             {messages.map((message) => (
                                                 <div
@@ -261,7 +261,7 @@ export function AIChatBot() {
                                                     <div className="flex-1">
                                                         <div
                                                             className={cn(
-                                                                "max-w-[75%] rounded-2xl px-3 py-2 text-sm",
+                                                                "max-w-[85%] rounded-2xl px-3 py-2 text-xs",
                                                                 message.role === "user"
                                                                     ? "bg-primary text-white rounded-tr-none ml-auto"
                                                                     : "bg-muted rounded-tl-none"
@@ -274,8 +274,8 @@ export function AIChatBot() {
 
                                                         {/* Product Cards */}
                                                         {message.role === "assistant" && message.products && message.products.length > 0 && (
-                                                            <div className="mt-2 space-y-2">
-                                                                {message.products.map((product) => (
+                                                            <div className="mt-2 space-y-1.5">
+                                                                {message.products.filter(p => Number(p.price) > 0).slice(0, 3).map((product) => (
                                                                     <Card
                                                                         key={product.id}
                                                                         className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer max-w-[280px]"
