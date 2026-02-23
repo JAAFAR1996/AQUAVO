@@ -35,6 +35,11 @@ export default function Deals() {
     return Math.round(((original - current) / original) * 100);
   };
 
+  // Find max discount percentage
+  const maxDiscount = dealsProducts.length > 0
+    ? Math.max(...dealsProducts.map((p: Product) => getDiscountPercentage(Number(p.originalPrice), Number(p.price))))
+    : 0;
+
   const handleAddToCart = (product: Product) => {
     addItem(product);
 
@@ -93,7 +98,7 @@ export default function Deals() {
                   <TrendingDown className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-foreground">70%</p>
+                  <p className="text-3xl font-bold text-foreground">{maxDiscount > 0 ? `${maxDiscount}%` : '0%'}</p>
                   <p className="text-sm text-muted-foreground">خصم يصل إلى</p>
                 </div>
               </div>

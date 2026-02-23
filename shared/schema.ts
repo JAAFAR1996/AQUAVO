@@ -1910,4 +1910,35 @@ export type InsertSocialConnection = z.infer<typeof insertSocialConnectionSchema
 export type SocialAnalyticsCache = typeof socialAnalyticsCache.$inferSelect;
 export type InsertSocialAnalyticsCache = z.infer<typeof insertSocialAnalyticsCacheSchema>;
 
+// ============================================================
+// AI MONITORING LOGS — تسجيل كل عمليات الذكاء الاصطناعي
+// ============================================================
+export const aiMonitoringLogs = pgTable("ai_monitoring_logs", {
+  id: serial("id").primaryKey(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  event: text("event").notNull(),         // 'chat', 'tool_call', 'error', 'timeout', 'fallback', 'key_rotated', 'search', 'sentiment', 'embedding'
+  level: text("level").notNull().default("info"), // 'info' | 'warning' | 'error' | 'critical'
+  model: text("model"),                   // 'compound-beta' | 'llama-3.3-70b-versatile' | etc
+  userId: text("user_id"),
+  sessionId: text("session_id"),
+  responseTimeMs: integer("response_time_ms"),
+  success: boolean("success").notNull().default(true),
+  errorCode: text("error_code"),
+  errorMessage: text("error_message"),
+  tokenCount: integer("token_count"),
+  toolsUsed: jsonb("tools_used").$type<string[]>(),
+  productsFound: integer("products_found"),
+  fallbackUsed: boolean("fallback_used").default(false),
+  webSearchUsed: boolean("web_search_used").default(false),
+  messageLength: integer("message_length"),
+  details: jsonb("details").$type<Record<string, any>>(),
+}, (table) => ({
+  timestampIdx: index("ai_monitor_timestamp_idx").on(table.timestamp),
+  levelIdx: index("ai_monitor_level_idx").on(table.level),
+  eventIdx: index("ai_monitor_event_idx").on(table.event),
+  userIdx: index("ai_monitor_user_idx").on(table.userId),
+}));
+
+export type AiMonitoringLog = typeof aiMonitoringLogs.$inferSelect;
+
 

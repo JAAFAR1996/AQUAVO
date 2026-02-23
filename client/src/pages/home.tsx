@@ -153,13 +153,6 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Gamification Teaser in Sidebar */}
-            <div className="mt-4 p-4 rounded-2xl bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 text-center relative z-10">
-              <p className="text-sm font-bold mb-2 text-foreground dark:text-white">🔥 150+ شخص اشتروا اليوم!</p>
-              <div className="w-full bg-black/10 dark:bg-black/40 rounded-full h-2 overflow-hidden">
-                <div className="bg-gradient-to-r from-primary to-accent w-[70%] h-full animate-pulse" />
-              </div>
-            </div>
 
             {/* Decoration */}
             <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />

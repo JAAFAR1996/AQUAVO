@@ -17,6 +17,7 @@ import { groqClient } from "./groq-client.js";
 import { aiToolsExecutor } from "./ai-tools.js";
 import { customerProfiler } from "./customer-profiler.js";
 import { sentimentAnalyzer } from "./sentiment-analyzer.js";
+import { aiMonitor } from "./ai-monitor.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
@@ -432,8 +433,11 @@ export async function sendMessage(
                 const toolResult = await preExecuteTools(message, userId);
                 toolProducts = toolResult.products;
                 toolContext = toolResult.context;
-            } catch {
-                // Tool pre-execution is best-effort
+                if (toolProducts.length > 0) {
+                    aiMonitor.log({ event: "search", level: "info", userId, sessionId, productsFound: toolProducts.length, success: true });
+                }
+            } catch (toolErr: any) {
+                aiMonitor.logError("Tool pre-execution failed", { error: toolErr?.message }, { userId, sessionId, event: "tool_call" });
             }
         }
 
@@ -460,15 +464,22 @@ export async function sendMessage(
         }
 
         // 7. Call Groq — try compound-beta first (has web search), fallback to llama-3.3-70b
+        const startMs = Date.now();
+        let modelUsed = "compound-beta";
+        let webSearchUsed = false;
+        let fallbackUsed = false;
+
         const response = await withTimeout(
             (async () => {
                 try {
-                    // compound-beta automatically searches the web when needed
-                    return await groqClient.chat(groqMessages, {
+                    const res = await groqClient.chat(groqMessages, {
                         model: "compound-beta",
                         temperature: 0.7,
                         maxTokens: 2048,
                     });
+                    // compound-beta may include web search in its process
+                    webSearchUsed = true;
+                    return res;
                 } catch (compoundErr: any) {
                     const msg = (compoundErr?.message || "").toLowerCase();
                     const isModelErr = msg.includes("model") || msg.includes("not found") ||
@@ -476,18 +487,24 @@ export async function sendMessage(
                         msg.includes("invalid");
                     if (isModelErr) {
                         console.warn("⚠️ compound-beta unavailable, falling back to llama-3.3-70b");
+                        aiMonitor.log({ event: "fallback", level: "warning", userId, sessionId, model: "compound-beta", details: { reason: compoundErr?.message } });
+                        modelUsed = "llama-3.3-70b-versatile";
+                        fallbackUsed = true;
+                        webSearchUsed = false;
                         return await groqClient.chat(groqMessages, {
                             temperature: 0.7,
                             maxTokens: 2048,
                         });
                     }
-                    throw compoundErr; // re-throw non-model errors
+                    throw compoundErr;
                 }
             })(),
             AI_TIMEOUT_MS,
             "انتهت مهلة الاتصال"
         );
 
+        const responseTimeMs = Date.now() - startMs;
+        const tokenCount = (response as any).usage?.total_tokens;
         let responseText = response.choices[0]?.message?.content || "";
 
         // 8. Sanitize response - strip any raw function call tags
@@ -502,7 +519,16 @@ export async function sendMessage(
         // Safety check
         if (!responseText || responseText.trim().length === 0) {
             responseText = "عذراً حبيبي، صار خطأ بسيط. كدر تعيد السؤال مرة ثانية؟ 🦐";
+            aiMonitor.log({ event: "fallback", level: "warning", userId, sessionId, model: modelUsed, details: { reason: "empty_response" } });
         }
+
+        // Log successful chat
+        aiMonitor.log({
+            event: "chat", level: "info", model: modelUsed, userId, sessionId,
+            responseTimeMs, success: true, tokenCount,
+            productsFound: toolProducts.length, fallbackUsed, webSearchUsed,
+            messageLength: message.length,
+        });
 
         // 8. Deduplicate products
         const uniqueProducts = toolProducts.filter((p, i, arr) =>
@@ -560,6 +586,18 @@ export async function sendMessage(
                 groqClient.markCurrentKeyFailed(error);
             }
         }
+
+        // Log the error
+        const errMsg = error instanceof Error ? error.message : String(error);
+        const isTimeout = errMsg.includes("انتهت مهلة") || errMsg.includes("timeout");
+        aiMonitor.log({
+            event: isTimeout ? "timeout" : "error",
+            level: isTimeout ? "warning" : "error",
+            success: false, userId, sessionId,
+            errorMessage: errMsg,
+            errorCode: (error as any)?.status?.toString() ?? (error as any)?.code,
+            messageLength: message.length,
+        });
 
         // Always return a friendly fallback instead of throwing
         return { text: getRandomFallback(), products: [] };

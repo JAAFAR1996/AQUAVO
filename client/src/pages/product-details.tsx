@@ -611,42 +611,7 @@ export default function ProductDetails() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    {/* Overall Rating */}
-                    <div className="flex flex-col md:flex-row gap-8 pb-6 border-b">
-                      <div className="text-center md:text-right space-y-2">
-                        <div className="text-5xl font-bold text-primary">{product.rating}</div>
-                        <div className="flex text-amber-400 justify-center md:justify-start">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              className={`w-5 h-5 ${i < Math.floor(product.rating) ? "fill-current" : ""}`}
-                            />
-                          ))}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          بناءً على {product.reviewCount} تقييم
-                        </div>
-                      </div>
-                      <div className="flex-1 space-y-2">
-                        {[5, 4, 3, 2, 1].map((stars) => {
-                          const percentage = stars === 5 ? 70 : stars === 4 ? 20 : stars === 3 ? 8 : stars === 2 ? 2 : 0;
-                          return (
-                            <div key={stars} className="flex items-center gap-2">
-                              <span className="text-sm w-12">{stars} نجوم</span>
-                              <div className="flex-1 bg-muted rounded-full h-2 overflow-hidden">
-                                <div
-                                  className="bg-amber-400 h-full"
-                                  style={{ width: `${percentage}%` }}
-                                />
-                              </div>
-                              <span className="text-sm text-muted-foreground w-12 text-left">
-                                {percentage}%
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
+
 
                     {/* Sample Reviews */}
                     <div className="space-y-4">

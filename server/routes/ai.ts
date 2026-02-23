@@ -126,8 +126,22 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                         .from(schema.orders)
                         .where(gt(schema.orders.createdAt, thirtyDaysAgo));
 
+                    const todayStart = new Date();
+                    todayStart.setHours(0, 0, 0, 0);
+
+                    let todayRevenue = 0;
+                    let todayOrders = 0;
+
                     const totalRevenue = recentOrders.reduce((sum, order) => {
-                        return sum + (parseFloat(order.total) || 0);
+                        const orderDate = new Date(order.createdAt);
+                        const orderTotal = parseFloat(order.total) || 0;
+
+                        if (orderDate >= todayStart) {
+                            todayRevenue += orderTotal;
+                            todayOrders++;
+                        }
+
+                        return sum + orderTotal;
                     }, 0);
 
                     const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
@@ -163,6 +177,8 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                     context.salesData = {
                         totalRevenue: Math.round(totalRevenue),
                         totalOrders: recentOrders.length,
+                        todayRevenue: Math.round(todayRevenue),
+                        todayOrders,
                         completedOrders,
                         pendingOrders,
                         processingOrders,
