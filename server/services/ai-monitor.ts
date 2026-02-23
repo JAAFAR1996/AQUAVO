@@ -4,7 +4,7 @@
  */
 
 import { getDb } from "../db.js";
-import { aiMonitoringLogs } from "../../shared/schema.js";
+import { aiMonitoringLogs, users } from "../../shared/schema.js";
 import { desc, gte, eq, and, count, avg, sql } from "drizzle-orm";
 
 export interface AiEvent {
@@ -175,7 +175,7 @@ class AiMonitorService {
         };
     }
 
-    /** Get recent logs for admin table */
+    /** Get recent logs for admin table — includes user name via LEFT JOIN */
     async getLogs(limit: number = 100, level?: string) {
         const db = getDb();
         if (!db) return [];
@@ -185,8 +185,32 @@ class AiMonitorService {
             : undefined;
 
         return db
-            .select()
+            .select({
+                id: aiMonitoringLogs.id,
+                timestamp: aiMonitoringLogs.timestamp,
+                event: aiMonitoringLogs.event,
+                level: aiMonitoringLogs.level,
+                model: aiMonitoringLogs.model,
+                userId: aiMonitoringLogs.userId,
+                sessionId: aiMonitoringLogs.sessionId,
+                responseTimeMs: aiMonitoringLogs.responseTimeMs,
+                success: aiMonitoringLogs.success,
+                errorCode: aiMonitoringLogs.errorCode,
+                errorMessage: aiMonitoringLogs.errorMessage,
+                tokenCount: aiMonitoringLogs.tokenCount,
+                toolsUsed: aiMonitoringLogs.toolsUsed,
+                productsFound: aiMonitoringLogs.productsFound,
+                fallbackUsed: aiMonitoringLogs.fallbackUsed,
+                webSearchUsed: aiMonitoringLogs.webSearchUsed,
+                messageLength: aiMonitoringLogs.messageLength,
+                details: aiMonitoringLogs.details,
+                // User info from JOIN
+                userFullName: users.fullName,
+                userEmail: users.email,
+                userPhone: users.phone,
+            })
             .from(aiMonitoringLogs)
+            .leftJoin(users, eq(aiMonitoringLogs.userId, users.id))
             .where(conditions)
             .orderBy(desc(aiMonitoringLogs.timestamp))
             .limit(limit);

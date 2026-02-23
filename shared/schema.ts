@@ -817,11 +817,16 @@ export const pageViews = pgTable("page_views", {
   country: text("country"),
   city: text("city"),
   deviceType: text("device_type"),
+  utmSource: text("utm_source"),
+  utmMedium: text("utm_medium"),
+  utmCampaign: text("utm_campaign"),
+  detectedSource: text("detected_source"), // 'facebook'|'instagram'|'tiktok'|'google'|'bing'|'youtube'|'twitter'|'snapchat'|'direct'|'other'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   userIdx: index("page_views_user_idx").on(table.userId),
   pathIdx: index("page_views_path_idx").on(table.pagePath),
   createdAtIdx: index("page_views_created_at_idx").on(table.createdAt),
+  detectedSourceIdx: index("page_views_source_idx").on(table.detectedSource),
 }));
 
 export const salesStats = pgTable("sales_stats", {

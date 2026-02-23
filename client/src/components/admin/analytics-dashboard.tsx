@@ -37,6 +37,18 @@ import {
     Area,
 } from "recharts";
 
+interface SourceData {
+    source: string;
+    visits: number;
+    uniqueUsers: number;
+    recentVisitors: {
+        fullName: string | null;
+        email: string | null;
+        pagePath: string;
+        timestamp: string;
+    }[];
+}
+
 interface AnalyticsData {
     summary: {
         totalRevenue: number;
@@ -58,6 +70,22 @@ interface AnalyticsData {
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
 
+const PLATFORM_CONFIG: Record<string, { label: string; emoji: string; color: string; bg: string }> = {
+    facebook:  { label: "فيسبوك",      emoji: "📘", color: "#1877f2", bg: "bg-blue-50 dark:bg-blue-950/30" },
+    instagram: { label: "انستغرام",    emoji: "📸", color: "#e1306c", bg: "bg-pink-50 dark:bg-pink-950/30" },
+    tiktok:    { label: "تيك توك",     emoji: "🎵", color: "#000000", bg: "bg-slate-50 dark:bg-slate-800/30" },
+    google:    { label: "بحث Google",  emoji: "🔍", color: "#4285f4", bg: "bg-sky-50 dark:bg-sky-950/30" },
+    youtube:   { label: "يوتيوب",      emoji: "▶️", color: "#ff0000", bg: "bg-red-50 dark:bg-red-950/30" },
+    twitter:   { label: "تويتر / X",   emoji: "🐦", color: "#1da1f2", bg: "bg-cyan-50 dark:bg-cyan-950/30" },
+    snapchat:  { label: "سناب شات",    emoji: "👻", color: "#ffcc00", bg: "bg-yellow-50 dark:bg-yellow-950/30" },
+    whatsapp:  { label: "واتساب",      emoji: "💬", color: "#25d366", bg: "bg-green-50 dark:bg-green-950/30" },
+    telegram:  { label: "تيليغرام",    emoji: "✈️", color: "#0088cc", bg: "bg-blue-50 dark:bg-blue-950/30" },
+    bing:      { label: "Bing",        emoji: "🔎", color: "#00809d", bg: "bg-teal-50 dark:bg-teal-950/30" },
+    linkedin:  { label: "لينكدإن",     emoji: "💼", color: "#0a66c2", bg: "bg-blue-50 dark:bg-blue-950/30" },
+    direct:    { label: "مباشر",       emoji: "🔗", color: "#6b7280", bg: "bg-gray-50 dark:bg-gray-800/30" },
+    other:     { label: "أخرى",        emoji: "🌐", color: "#9ca3af", bg: "bg-gray-50 dark:bg-gray-800/30" },
+};
+
 export function AnalyticsDashboard() {
     const [period, setPeriod] = useState<"7d" | "30d" | "90d">("30d");
 
@@ -70,6 +98,16 @@ export function AnalyticsDashboard() {
             if (!res.ok) throw new Error("Failed to fetch analytics");
             return res.json();
         },
+    });
+
+    const { data: sourcesData } = useQuery<SourceData[]>({
+        queryKey: ["admin-analytics-sources"],
+        queryFn: async () => {
+            const res = await fetch("/api/admin/analytics/sources", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
+        },
+        refetchInterval: 60_000,
     });
 
     const formatCurrency = (value: number) => {
@@ -329,12 +367,82 @@ export function AnalyticsDashboard() {
                     </Card>
                 </TabsContent>
 
-                <TabsContent value="traffic" className="mt-4">
+                <TabsContent value="traffic" className="mt-4 space-y-4">
+                    {/* Per-platform source cards */}
+                    {sourcesData && sourcesData.length > 0 ? (
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3">مصادر الزيارات حسب المنصة</h3>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {sourcesData.map((src) => {
+                                    const cfg = PLATFORM_CONFIG[src.source] ?? PLATFORM_CONFIG["other"];
+                                    const totalVisits = sourcesData.reduce((s, x) => s + x.visits, 0);
+                                    const pct = totalVisits > 0 ? Math.round((src.visits / totalVisits) * 100) : 0;
+                                    return (
+                                        <Card key={src.source} className={`border-0 ${cfg.bg}`}>
+                                            <CardContent className="pt-4 pb-3 px-4">
+                                                {/* Header */}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-2xl">{cfg.emoji}</span>
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{cfg.label}</p>
+                                                            <p className="text-xs text-muted-foreground">{pct}% من الزيارات</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-xl font-bold" style={{ color: cfg.color }}>{formatNumber(src.visits)}</p>
+                                                        <p className="text-xs text-muted-foreground">{formatNumber(src.uniqueUsers)} فريد</p>
+                                                    </div>
+                                                </div>
+                                                {/* Progress bar */}
+                                                <div className="w-full bg-muted rounded-full h-1.5 mb-3">
+                                                    <div
+                                                        className="h-1.5 rounded-full transition-all"
+                                                        style={{ width: `${pct}%`, backgroundColor: cfg.color }}
+                                                    />
+                                                </div>
+                                                {/* Recent visitors */}
+                                                {src.recentVisitors.length > 0 && (
+                                                    <div className="space-y-1.5">
+                                                        <p className="text-xs text-muted-foreground font-medium mb-1">آخر الزوار</p>
+                                                        {src.recentVisitors.slice(0, 4).map((v, i) => (
+                                                            <div key={i} className="flex items-center justify-between text-xs">
+                                                                <div className="flex items-center gap-1.5 min-w-0">
+                                                                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                                                                        style={{ backgroundColor: cfg.color }}>
+                                                                        {(v.fullName ?? "؟").charAt(0)}
+                                                                    </div>
+                                                                    <span className="truncate font-medium">
+                                                                        {v.fullName ?? (v.email ? v.email.split("@")[0] : "زائر مجهول")}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-muted-foreground truncate max-w-[80px] mr-1" dir="ltr">
+                                                                    {v.pagePath.length > 14 ? v.pagePath.slice(0, 14) + "…" : v.pagePath}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </CardContent>
+                                        </Card>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ) : (
+                        <Card>
+                            <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                                لا توجد بيانات مصادر بعد — ستظهر هنا تلقائياً عند بدء الزيارات
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {/* Original charts row */}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         <Card>
                             <CardHeader>
-                                <CardTitle>مصادر الزيارات</CardTitle>
-                                <CardDescription>من أين يأتي زوارك</CardDescription>
+                                <CardTitle>توزيع المصادر</CardTitle>
+                                <CardDescription>نسبة كل مصدر من إجمالي الزيارات</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <div className="h-[250px]">

@@ -4,6 +4,7 @@ import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { orders, users, products, orderItems, productViews, cartSessions } from "../../shared/schema.js";
 import { sql, desc, gte, count, sum, eq, and, gt } from "drizzle-orm";
+import { pageViews } from "../../shared/schema.js";
 
 const router = Router();
 
@@ -433,6 +434,139 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
     } catch (error) {
         console.error("AI Insights error:", error);
         next(error);
+    }
+});
+
+// ─── Helper: detect source from referrer URL ────────────────────────────────
+function detectSourceFromReferrer(referrer: string | null, utmSource: string | null): string {
+    if (utmSource) return utmSource.toLowerCase().trim();
+    if (!referrer) return "direct";
+    try {
+        const host = new URL(referrer).hostname.toLowerCase();
+        if (host.includes("facebook.com") || host.includes("fb.com") || host.includes("m.facebook.com") || host.includes("l.facebook.com")) return "facebook";
+        if (host.includes("instagram.com") || host.includes("l.instagram.com")) return "instagram";
+        if (host.includes("tiktok.com") || host.includes("vm.tiktok.com")) return "tiktok";
+        if (host.includes("google.")) return "google";
+        if (host.includes("bing.com")) return "bing";
+        if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
+        if (host.includes("twitter.com") || host.includes("t.co") || host.includes("x.com")) return "twitter";
+        if (host.includes("snapchat.com")) return "snapchat";
+        if (host.includes("linkedin.com")) return "linkedin";
+        if (host.includes("whatsapp.com") || host.includes("wa.me")) return "whatsapp";
+        if (host.includes("telegram.org") || host.includes("t.me")) return "telegram";
+        return "other";
+    } catch {
+        return "direct";
+    }
+}
+
+// ─── POST /api/analytics/track-visit — (public) ─────────────────────────────
+router.post("/track-visit", async (req: Request, res: Response): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) { res.status(200).json({ ok: true }); return; }
+
+        const { pagePath, referrer, utmSource, utmMedium, utmCampaign } = req.body as {
+            pagePath?: string;
+            referrer?: string;
+            utmSource?: string;
+            utmMedium?: string;
+            utmCampaign?: string;
+        };
+
+        if (!pagePath) { res.status(200).json({ ok: true }); return; }
+
+        const userId = (req.session as any)?.userId ?? null;
+        const sessionId = (req.session as any)?.id ?? null;
+        const detectedSource = detectSourceFromReferrer(referrer ?? null, utmSource ?? null);
+        const userAgent = req.headers["user-agent"] ?? null;
+        const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.socket?.remoteAddress ?? null;
+        const deviceType = userAgent
+            ? /mobile|android|iphone|ipad/i.test(userAgent) ? "mobile"
+            : /tablet/i.test(userAgent) ? "tablet"
+            : "desktop"
+            : null;
+
+        await db.insert(pageViews).values({
+            pagePath: pagePath.slice(0, 255),
+            userId,
+            sessionId,
+            referrer: referrer?.slice(0, 500) ?? null,
+            utmSource: utmSource?.slice(0, 100) ?? null,
+            utmMedium: utmMedium?.slice(0, 100) ?? null,
+            utmCampaign: utmCampaign?.slice(0, 200) ?? null,
+            detectedSource,
+            userAgent: userAgent?.slice(0, 500) ?? null,
+            ipAddress: ip?.slice(0, 50) ?? null,
+            deviceType,
+        });
+
+        res.status(200).json({ ok: true });
+    } catch {
+        // Tracking failures must never break the site
+        res.status(200).json({ ok: true });
+    }
+});
+
+// ─── GET /api/admin/analytics/sources — platform breakdown ──────────────────
+router.get("/sources", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) { res.json({ sources: [], total: 0 }); return; }
+
+        const days = Math.min(Number(req.query.days) || 30, 90);
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+        // Per-platform counts
+        const rows = await db
+            .select({
+                source: pageViews.detectedSource,
+                visits: count(),
+                uniqueUsers: sql<number>`count(distinct ${pageViews.userId})`,
+            })
+            .from(pageViews)
+            .where(gte(pageViews.createdAt, since))
+            .groupBy(pageViews.detectedSource)
+            .orderBy(desc(count()));
+
+        const total = rows.reduce((s, r) => s + Number(r.visits), 0);
+
+        const sources = rows.map(r => ({
+            source: r.source ?? "direct",
+            visits: Number(r.visits),
+            uniqueUsers: Number(r.uniqueUsers),
+            percentage: total > 0 ? Math.round((Number(r.visits) / total) * 100) : 0,
+        }));
+
+        // Last 5 visitors per platform (with user info if logged in)
+        const recentBySource: Record<string, any[]> = {};
+        const topSources = rows.slice(0, 6).map(r => r.source ?? "direct");
+
+        for (const src of topSources) {
+            const recent = await db
+                .select({
+                    pagePath: pageViews.pagePath,
+                    userId: pageViews.userId,
+                    userFullName: users.fullName,
+                    userEmail: users.email,
+                    utmCampaign: pageViews.utmCampaign,
+                    deviceType: pageViews.deviceType,
+                    createdAt: pageViews.createdAt,
+                })
+                .from(pageViews)
+                .leftJoin(users, eq(pageViews.userId, users.id))
+                .where(and(
+                    gte(pageViews.createdAt, since),
+                    eq(pageViews.detectedSource, src)
+                ))
+                .orderBy(desc(pageViews.createdAt))
+                .limit(5);
+            recentBySource[src] = recent;
+        }
+
+        res.json({ sources, total, days, recentBySource });
+    } catch (err: any) {
+        next(err);
     }
 });
 

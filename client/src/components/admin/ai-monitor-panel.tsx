@@ -583,8 +583,8 @@ export function AiMonitorPanel() {
                                                         {/* User */}
                                                         <div className="flex items-center gap-1 text-xs">
                                                             <User className="w-3 h-3 text-slate-500" />
-                                                            <span className={uid ? "text-blue-400 font-mono" : "text-slate-600"}>
-                                                                {uid ?? "زائر"}
+                                                            <span className={log.userFullName || uid ? "text-blue-400" : "text-slate-600"}>
+                                                                {log.userFullName ?? (uid ? `ID:${uid}` : "زائر")}
                                                             </span>
                                                         </div>
 
@@ -638,17 +638,31 @@ export function AiMonitorPanel() {
                                                             <div className="space-y-1.5">
                                                                 <p className="text-slate-400 font-semibold text-[11px] uppercase tracking-wider">الهوية</p>
                                                                 <div className="space-y-1">
+                                                                    {log.userFullName && (
+                                                                        <div className="flex gap-2">
+                                                                            <span className="text-slate-500 w-20 flex-shrink-0">الاسم</span>
+                                                                            <span className="text-white font-semibold">{log.userFullName}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    {log.userEmail && (
+                                                                        <div className="flex gap-2">
+                                                                            <span className="text-slate-500 w-20 flex-shrink-0">الإيميل</span>
+                                                                            <span className="text-blue-400">{log.userEmail}</span>
+                                                                        </div>
+                                                                    )}
+                                                                    {log.userPhone && (
+                                                                        <div className="flex gap-2">
+                                                                            <span className="text-slate-500 w-20 flex-shrink-0">الهاتف</span>
+                                                                            <span className="text-slate-300">{log.userPhone}</span>
+                                                                        </div>
+                                                                    )}
                                                                     <div className="flex gap-2">
                                                                         <span className="text-slate-500 w-20 flex-shrink-0">User ID</span>
-                                                                        <span className={uid ? "text-blue-400 font-mono break-all" : "text-slate-600"}>{log.userId ?? "زائر (غير مسجل)"}</span>
+                                                                        <span className={uid ? "text-slate-500 font-mono text-[10px] break-all" : "text-slate-600"}>{log.userId ?? "زائر (غير مسجل)"}</span>
                                                                     </div>
                                                                     <div className="flex gap-2">
                                                                         <span className="text-slate-500 w-20 flex-shrink-0">Session</span>
-                                                                        <span className="text-slate-400 font-mono break-all">{log.sessionId ?? "—"}</span>
-                                                                    </div>
-                                                                    <div className="flex gap-2">
-                                                                        <span className="text-slate-500 w-20 flex-shrink-0">Log ID</span>
-                                                                        <span className="text-slate-600 font-mono text-[10px]">{log.id}</span>
+                                                                        <span className="text-slate-500 font-mono text-[10px] break-all">{log.sessionId ?? "—"}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>

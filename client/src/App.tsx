@@ -540,6 +540,23 @@ function PageViewTracker() {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
     }, 100);
     trackPageView(location);
+
+    // ── UTM + referrer tracking ──────────────────────────────
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const utmSource   = params.get("utm_source")   ?? undefined;
+      const utmMedium   = params.get("utm_medium")   ?? undefined;
+      const utmCampaign = params.get("utm_campaign") ?? undefined;
+      const referrer    = document.referrer || undefined;
+
+      fetch("/api/analytics/track-visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ pagePath: location, referrer, utmSource, utmMedium, utmCampaign }),
+      }).catch(() => {});
+    } catch { /* never crash the app */ }
+
     return () => clearTimeout(timer);
   }, [location]);
 
