@@ -98,7 +98,9 @@ export default function OrderTracking() {
       const mappedOrder: OrderDetails = {
         orderNumber: data.orderNumber || data.id,
         orderDate: new Date(data.createdAt).toLocaleDateString("en-GB"),
-        estimatedDelivery: "قريباً",
+        estimatedDelivery: data.estimatedDelivery
+          ? new Date(data.estimatedDelivery).toLocaleDateString("ar-IQ", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+          : "قريباً",
         status: data.status,
         customerName: shippingInfo.name || "عميل",
         shippingAddress: shippingInfo.address || "العنوان غير متوفر",
@@ -106,11 +108,11 @@ export default function OrderTracking() {
         courier: "خدمة التوصيل",
         trackingNumber: "---",
         shippingMethod: "قياسي",
-        items: data.items.map((item: { name: string; quantity: number; price: number | string }) => ({
+        items: data.items.map((item: { name: string; quantity: number; price: number | string; imageUrl?: string }) => ({
           name: item.name,
           quantity: item.quantity,
           price: item.price + " د.ع",
-          image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=100&h=100&fit=crop" // Placeholder or item image
+          image: item.imageUrl || "/images/placeholder-fish.png"
         })) || [],
         timeline: [
           {
@@ -325,6 +327,11 @@ export default function OrderTracking() {
                             key={item.name}
                             className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg"
                           >
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-16 h-16 object-cover rounded-md border bg-background"
+                            />
                             <div className="flex-1">
                               <h4 className="font-medium">{item.name}</h4>
                               <p className="text-sm text-muted-foreground">الكمية: {item.quantity}</p>
@@ -345,6 +352,10 @@ export default function OrderTracking() {
                         معلومات الشحن
                       </h3>
                       <div className="space-y-3">
+                        <div className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-xs text-muted-foreground mb-1">تاريخ التوصيل المتوقع</p>
+                          <p className="font-medium text-emerald-600">{orderDetails.estimatedDelivery}</p>
+                        </div>
                         <div className="p-3 bg-muted/30 rounded-lg">
                           <p className="text-xs text-muted-foreground mb-1">شركة التوصيل</p>
                           <p className="font-medium">{orderDetails.courier}</p>

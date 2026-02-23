@@ -1655,6 +1655,7 @@ export const productViews = pgTable("product_views", {
   productId: text("product_id").references(() => products.id),
   userId: text("user_id").references(() => users.id),
   sessionId: text("session_id"),
+  referrer: text("referrer"), // e.g. "search_google", "social_facebook", "direct"
   viewedAt: timestamp("viewed_at").defaultNow().notNull(),
   viewDuration: integer("view_duration"), // seconds
   source: text("source"), // homepage, search, category, direct
@@ -1667,6 +1668,33 @@ export const productViews = pgTable("product_views", {
 export const insertProductViewSchema = createInsertSchema(productViews);
 export type ProductView = typeof productViews.$inferSelect;
 export type InsertProductView = typeof productViews.$inferInsert;
+
+export const cartSessions = pgTable("cart_sessions", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id),
+  sessionId: text("session_id").notNull().unique(), // Unique per active browser session
+  status: text("status").notNull().default("active"), // 'active', 'abandoned', 'converted'
+  totalValue: integer("total_value").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertCartSessionSchema = createInsertSchema(cartSessions);
+export type CartSession = typeof cartSessions.$inferSelect;
+export type InsertCartSession = typeof cartSessions.$inferInsert;
+
+export const blogCategories = pgTable("blog_categories", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull().unique(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  iconName: text("icon_name"), // for optional UI styling
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertBlogCategorySchema = createInsertSchema(blogCategories);
+export type BlogCategory = typeof blogCategories.$inferSelect;
+export type InsertBlogCategory = typeof blogCategories.$inferInsert;
 
 // Blog Posts - Store auto-generated and manual blog posts
 export const blogPosts = pgTable("blog_posts", {
@@ -1702,9 +1730,9 @@ export type InsertBlogPost = typeof blogPosts.$inferInsert;
 // Early Access Leads (قائمة الحجز المبكر)
 // ========================================
 export const earlyAccessLeads = pgTable("early_access_leads", {
-  id: serial("id").primaryKey(),
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   phone: varchar("phone", { length: 20 }).notNull().unique(), // رقم الواتساب matching DB VARCHAR(20)
-  name: varchar("name", { length: 255 }).notNull(), // Matching DB VARCHAR(255)
+  name: varchar("name", { length: 255 }), // Matching DB VARCHAR(255)
   source: varchar("source", { length: 50 }).default("landing_page"),
   status: text("status").default("pending"), // pending, contacted, converted
   notes: text("notes"), // ملاحظات للأدمن
@@ -1881,3 +1909,5 @@ export type SocialConnection = typeof socialConnections.$inferSelect;
 export type InsertSocialConnection = z.infer<typeof insertSocialConnectionSchema>;
 export type SocialAnalyticsCache = typeof socialAnalyticsCache.$inferSelect;
 export type InsertSocialAnalyticsCache = z.infer<typeof insertSocialAnalyticsCacheSchema>;
+
+

@@ -1,5 +1,6 @@
 import { useRoute, Link } from "wouter";
-import { blogPosts } from "@/lib/blog-data";
+import { useQuery } from "@tanstack/react-query";
+import type { BlogPost } from "@shared/schema";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { MetaTags, ArticleSchema } from "@/components/seo/meta-tags";
@@ -12,9 +13,26 @@ import DOMPurify from 'isomorphic-dompurify';
 
 export default function BlogPost() {
     const [match, params] = useRoute("/blog/:id");
-    const post = blogPosts.find(p => p.id === params?.id);
+    const slug = params?.id;
 
-    if (!match || !post) {
+    const { data: post, isLoading, error } = useQuery<BlogPost>({
+        queryKey: [`/api/blog/posts/${slug}`],
+        enabled: !!slug
+    });
+
+    const { data: allPosts } = useQuery<BlogPost[]>({
+        queryKey: ["/api/blog/posts"]
+    });
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
+
+    if (!match || !post || error) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center">
                 <h1 className="text-2xl font-bold mb-4">المقال غير موجود</h1>
@@ -30,14 +48,14 @@ export default function BlogPost() {
             <MetaTags
                 title={post.title}
                 description={post.excerpt || post.title}
-                image={post.image}
+                image={post.imageUrl || undefined}
                 type="article"
             />
             <ArticleSchema
                 title={post.title}
                 description={post.excerpt || post.title}
-                image={post.image || "https://aquavo.iq/logo_aquavo.png"}
-                datePublished={post.date || new Date().toISOString()}
+                image={post.imageUrl || "https://aquavo.iq/logo_aquavo.png"}
+                datePublished={post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString()}
                 author={post.author || "AQUAVO"}
             />
             <Navbar />
@@ -47,7 +65,7 @@ export default function BlogPost() {
                 <div className="relative h-[50vh] min-h-[400px]">
                     <div className="absolute inset-0">
                         <img
-                            src={post.image}
+                            src={post.imageUrl || "/images/placeholder.jpg"}
                             alt={post.title}
                             className="w-full h-full object-cover"
                         />
@@ -76,11 +94,22 @@ export default function BlogPost() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="w-5 h-5" />
-                                    <span>{post.date}</span>
+                                    <span>
+                                        {post.publishedAt
+                                            ? new Date(post.publishedAt).toLocaleDateString('ar-IQ', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })
+                                            : "تم النشر حديثاً"}
+                                    </span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Clock className="w-5 h-5" />
                                     <span>{post.readTime}</span>
+                                </div>
+                                <div className="flex items-center gap-2 bg-primary/20 text-primary px-3 py-1 rounded-full text-sm font-bold">
+                                    <span>المشاهدات: {post.viewCount || 0}</span>
                                 </div>
                             </div>
                         </motion.div>
@@ -119,10 +148,10 @@ export default function BlogPost() {
                             <div className="bg-muted/30 p-6 rounded-2xl border sticky top-24">
                                 <h3 className="font-bold text-lg mb-4">مقالات أخرى قد تهمك</h3>
                                 <div className="space-y-4">
-                                    {blogPosts.filter(p => p.id !== post.id).slice(0, 3).map(related => (
-                                        <Link key={related.id} href={`/blog/${related.id}`}>
+                                    {allPosts && allPosts.filter(p => p.id !== post.id).slice(0, 3).map(related => (
+                                        <Link key={related.id} href={`/blog/${related.slug}`}>
                                             <a className="flex gap-4 group cursor-pointer">
-                                                <img src={related.image} alt={related.title} className="w-20 h-20 rounded-lg object-cover" />
+                                                <img src={related.imageUrl || "/images/placeholder.jpg"} alt={related.title} className="w-20 h-20 rounded-lg object-cover" />
                                                 <div>
                                                     <h4 className="font-bold text-sm group-hover:text-primary transition-colors line-clamp-2">
                                                         {related.title}

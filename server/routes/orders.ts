@@ -64,6 +64,12 @@ export function createOrderRouter(): RouterType {
                 changes: { total: order.total, items: items.length }
             });
 
+            // Mark cart session as converted for accurate analytics
+            analyticsTracker.trackSessionStatus(
+                (req as any).sessionID || "unknown",
+                "converted"
+            ).catch(() => { });
+
             // Track purchase interactions for each item (fire-and-forget)
             for (const item of items) {
                 analyticsTracker.trackPurchase({
@@ -73,7 +79,7 @@ export function createOrderRouter(): RouterType {
                     orderId: order.id,
                     quantity: item.quantity,
                     price: 0, // Price is calculated server-side in createOrderSecure
-                }).catch(() => {});
+                }).catch(() => { });
             }
 
             res.status(201).json(order);
@@ -110,6 +116,34 @@ export function createOrderRouter(): RouterType {
                 res.status(404).json({ message: "Order not found" });
                 return;
             }
+
+            // Get order items and their product info
+            const items = await storage.getOrderItems(order.id);
+            const enrichedItems = await Promise.all(
+                items.map(async (item) => {
+                    const product = await storage.getProduct(item.productId);
+                    return {
+                        id: item.id,
+                        name: product?.name || product?.arabicName || "منتج غير معروف",
+                        imageUrl: product?.image || "",
+                        quantity: item.quantity
+                    };
+                })
+            );
+
+            // Calculate estimated delivery
+            // Base estimation: orders take 1-3 days to process, then 1-3 days to ship
+            const orderDate = new Date(order.createdAt || new Date());
+            const estimatedDate = new Date(orderDate);
+
+            if (order.status === "delivered") {
+                estimatedDate.setDate(orderDate.getDate()); // Already delivered
+            } else if (order.status === "shipped") {
+                estimatedDate.setDate(orderDate.getDate() + 2); // 2 days from order if shipped
+            } else {
+                estimatedDate.setDate(orderDate.getDate() + 4); // General estimate: 4 days
+            }
+
             // Only return safe tracking info, hide customer PII
             res.json({
                 id: order.id,
@@ -118,6 +152,8 @@ export function createOrderRouter(): RouterType {
                 total: order.total,
                 createdAt: order.createdAt,
                 updatedAt: order.updatedAt,
+                estimatedDelivery: estimatedDate,
+                items: enrichedItems
             });
         } catch (err) {
             next(err);

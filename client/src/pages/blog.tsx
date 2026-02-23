@@ -21,7 +21,9 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
-import { blogPosts } from "@/lib/blog-data";
+import { useQuery } from "@tanstack/react-query";
+import type { BlogPost, BlogCategory } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 // Map icon strings to components
 const iconMap: Record<string, React.ReactNode> = {
@@ -33,17 +35,34 @@ const iconMap: Record<string, React.ReactNode> = {
     Leaf: <Leaf className="w-5 h-5" />,
 };
 
-const categories = [
-    { name: "الكل", count: blogPosts.length },
-    { name: "للمبتدئين", count: blogPosts.filter(p => p.category === "للمبتدئين").length },
-    { name: "نصائح", count: blogPosts.filter(p => p.category === "نصائح").length },
-    { name: "أنواع الأسماك", count: blogPosts.filter(p => p.category === "أنواع الأسماك").length },
-];
+// Dynamic categories will be fetched from the API
 
 export default function Blog() {
     const [location, setLocation] = useLocation();
-    const featuredPost = blogPosts.find((p) => p.featured);
-    const regularPosts = blogPosts.filter((p) => !p.featured);
+
+    // Fetch Categories
+    const { data: categories = [], isLoading: categoriesLoading } = useQuery<BlogCategory[]>({
+        queryKey: ["/api/blog/categories"],
+    });
+
+    // Fetch Posts
+    const { data: blogPosts = [], isLoading: postsLoading } = useQuery<BlogPost[]>({
+        queryKey: ["/api/blog/posts"],
+    });
+
+    const isLoading = categoriesLoading || postsLoading;
+
+    // Build the dynamic category count array
+    const categoryCounts = [
+        { name: "الكل", count: blogPosts.length },
+        ...categories.map(cat => ({
+            name: cat.name,
+            count: blogPosts.filter(p => p.category === cat.name).length
+        }))
+    ];
+
+    const featuredPost = blogPosts.find((p) => p.isFeatured);
+    const regularPosts = blogPosts.filter((p) => !p.isFeatured);
 
     return (
         <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
@@ -88,7 +107,7 @@ export default function Blog() {
                 <div className="container mx-auto px-4">
                     {/* Categories Filter - Modern Pill Design */}
                     <div className="flex flex-wrap gap-3 mb-16 justify-center">
-                        {categories.map((cat) => (
+                        {categoryCounts.map((cat) => (
                             <Button
                                 key={cat.name}
                                 variant="ghost"
@@ -109,133 +128,139 @@ export default function Blog() {
                         ))}
                     </div>
 
-                    {/* Bento Grid Layout */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20 auto-rows-[400px]">
-                        {/* Featured Post - Large Block */}
-                        {featuredPost && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="md:col-span-2 lg:col-span-2 row-span-2 relative group cursor-pointer rounded-3xl overflow-hidden border border-border/50 shadow-2xl"
-                                onClick={() => setLocation(`/blog/${featuredPost.id}`)}
-                            >
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
-                                <img
-                                    src={featuredPost.image}
-                                    alt={featuredPost.title}
-                                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
-                                />
-                                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 flex flex-col items-start gap-4">
-                                    <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-bold backdrop-blur-md shadow-lg shadow-primary/20">
-                                        {iconMap[featuredPost.iconName]}
-                                        <span className="mr-2">{featuredPost.category}</span>
-                                    </Badge>
-                                    <h2 className="text-3xl md:text-5xl font-black text-white leading-tight group-hover:text-primary transition-colors duration-300">
-                                        {featuredPost.title}
-                                    </h2>
-                                    <p className="text-gray-300 text-lg line-clamp-2 max-w-2xl">
-                                        {featuredPost.excerpt}
-                                    </p>
-                                    <div className="flex items-center gap-6 mt-4 text-white/80 font-medium">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                                                <User className="w-4 h-4" />
-                                            </div>
-                                            {featuredPost.author}
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-4 h-4" />
-                                            {featuredPost.readTime}
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        {/* Regular Posts - Bento Blocks */}
-                        {regularPosts.map((post, index) => (
-                            <motion.div
-                                key={post.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="relative group cursor-pointer rounded-3xl overflow-hidden border border-border/50 bg-card hover:border-primary/50 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5"
-                                onClick={() => setLocation(`/blog/${post.id}`)}
-                            >
-                                <div className="h-full flex flex-col">
-                                    <div className="relative h-48 overflow-hidden">
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opactiy-60" />
-                                        <img
-                                            src={post.image}
-                                            alt={post.title}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        />
-                                        <div className="absolute top-4 right-4 z-20">
-                                            <Badge variant="secondary" className="backdrop-blur-md bg-background/80 border-0">
-                                                {iconMap[post.iconName]}
-                                                <span className="mr-1">{post.category}</span>
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                    <div className="p-6 flex-1 flex flex-col">
-                                        <h3 className="text-xl font-bold mb-3 leading-snug group-hover:text-primary transition-colors">
-                                            {post.title}
-                                        </h3>
-                                        <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
-                                            {post.excerpt}
-                                        </p>
-                                        <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-4 border-t border-border/50">
-                                            <span className="flex items-center gap-1">
-                                                <Clock className="w-3 h-3" />
-                                                {post.readTime}
-                                            </span>
-                                            <span className="font-medium text-primary cursor-pointer group-hover:underline">
-                                                اقرأ المزيد &larr;
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        ))}
-
-                        {/* Newsletter Block - Bento Style */}
-                        <div className="md:col-span-2 lg:col-span-1 bg-gradient-to-br from-primary via-primary/80 to-teal-600 rounded-3xl p-8 text-white flex flex-col justify-between relative overflow-hidden border border-white/10 shadow-2xl shadow-primary/20">
-                            <div className="absolute top-0 right-0 p-8 opacity-10">
-                                <BookOpen className="w-32 h-32 rotate-12" />
-                            </div>
-                            <div>
-                                <h3 className="text-2xl font-bold mb-2">النشرة البريدية</h3>
-                                <p className="text-white/90 mb-6 text-sm">
-                                    انضم لأكثر من 5000 هاوي واحصل على نصائح أسبوعية مجانية.
-                                </p>
-                            </div>
-                            <form onSubmit={async (e) => {
-                                e.preventDefault();
-                                // Logic similar to before
-                                const emailInput = (e.target as HTMLFormElement).elements.namedItem('email') as HTMLInputElement;
-                                const email = emailInput.value;
-                                alert(`تم الاشتراك: ${email}`); // Placeholder for actual logic
-                                emailInput.value = "";
-                            }}>
-                                <div className="space-y-3">
-                                    <input
-                                        name="email"
-                                        type="email"
-                                        required
-                                        placeholder="بريدك الإلكتروني"
-                                        className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
-                                    />
-                                    <Button type="submit" className="w-full bg-white text-primary hover:bg-white/90 rounded-xl font-bold shadow-lg">
-                                        اشترك الآن
-                                    </Button>
-                                </div>
-                            </form>
+                    {isLoading ? (
+                        <div className="flex justify-center items-center h-64">
+                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         </div>
-                    </div>
+                    ) : (
+                        <>
+                            {/* Bento Grid Layout */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20 auto-rows-[400px]">
+                                {/* Featured Post - Large Block */}
+                                {featuredPost && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="md:col-span-2 lg:col-span-2 row-span-2 relative group cursor-pointer rounded-3xl overflow-hidden border border-border/50 shadow-2xl"
+                                        onClick={() => setLocation(`/blog/${featuredPost.slug}`)}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
+                                        <img
+                                            src={featuredPost.imageUrl || '/images/placeholder.jpg'}
+                                            alt={featuredPost.title}
+                                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
+                                        />
+                                        <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 flex flex-col items-start gap-4">
+                                            <Badge className="bg-primary text-primary-foreground border-0 px-4 py-1.5 text-sm font-bold backdrop-blur-md shadow-lg shadow-primary/20">
+                                                {iconMap[featuredPost.iconName || 'Fish']}
+                                                <span className="mr-2">{featuredPost.category}</span>
+                                            </Badge>
+                                            <h2 className="text-3xl md:text-5xl font-black text-white leading-tight group-hover:text-primary transition-colors duration-300">
+                                                {featuredPost.title}
+                                            </h2>
+                                            <p className="text-gray-300 text-lg line-clamp-2 max-w-2xl">
+                                                {featuredPost.excerpt}
+                                            </p>
+                                            <div className="flex items-center gap-6 mt-4 text-white/80 font-medium">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                        <User className="w-4 h-4" />
+                                                    </div>
+                                                    {featuredPost.author}
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Clock className="w-4 h-4" />
+                                                    {featuredPost.readTime}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
 
+                                {/* Regular Posts - Bento Blocks */}
+                                {regularPosts.map((post, index) => (
+                                    <motion.div
+                                        key={post.id}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: index * 0.1 }}
+                                        className="relative group cursor-pointer rounded-3xl overflow-hidden border border-border/50 bg-card hover:border-primary/50 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5"
+                                        onClick={() => setLocation(`/blog/${post.slug}`)}
+                                    >
+                                        <div className="h-full flex flex-col">
+                                            <div className="relative h-48 overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opactiy-60" />
+                                                <img
+                                                    src={post.imageUrl || '/images/placeholder.jpg'}
+                                                    alt={post.title}
+                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                />
+                                                <div className="absolute top-4 right-4 z-20">
+                                                    <Badge variant="secondary" className="backdrop-blur-md bg-background/80 border-0">
+                                                        {iconMap[post.iconName || 'Fish']}
+                                                        <span className="mr-1">{post.category}</span>
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                            <div className="p-6 flex-1 flex flex-col">
+                                                <h3 className="text-xl font-bold mb-3 leading-snug group-hover:text-primary transition-colors">
+                                                    {post.title}
+                                                </h3>
+                                                <p className="text-muted-foreground text-sm line-clamp-3 mb-4 flex-1">
+                                                    {post.excerpt}
+                                                </p>
+                                                <div className="flex items-center justify-between text-xs text-muted-foreground mt-auto pt-4 border-t border-border/50">
+                                                    <span className="flex items-center gap-1">
+                                                        <Clock className="w-3 h-3" />
+                                                        {post.readTime}
+                                                    </span>
+                                                    <span className="font-medium text-primary cursor-pointer group-hover:underline">
+                                                        اقرأ المزيد &larr;
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+
+                                {/* Newsletter Block - Bento Style */}
+                                <div className="md:col-span-2 lg:col-span-1 bg-gradient-to-br from-primary via-primary/80 to-teal-600 rounded-3xl p-8 text-white flex flex-col justify-between relative overflow-hidden border border-white/10 shadow-2xl shadow-primary/20">
+                                    <div className="absolute top-0 right-0 p-8 opacity-10">
+                                        <BookOpen className="w-32 h-32 rotate-12" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold mb-2">النشرة البريدية</h3>
+                                        <p className="text-white/90 mb-6 text-sm">
+                                            انضم لأكثر من 5000 هاوي واحصل على نصائح أسبوعية مجانية.
+                                        </p>
+                                    </div>
+                                    <form onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        // Logic similar to before
+                                        const emailInput = (e.target as HTMLFormElement).elements.namedItem('email') as HTMLInputElement;
+                                        const email = emailInput.value;
+                                        alert(`تم الاشتراك: ${email}`); // Placeholder for actual logic
+                                        emailInput.value = "";
+                                    }}>
+                                        <div className="space-y-3">
+                                            <input
+                                                name="email"
+                                                type="email"
+                                                required
+                                                placeholder="بريدك الإلكتروني"
+                                                className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
+                                            />
+                                            <Button type="submit" className="w-full bg-white text-primary hover:bg-white/90 rounded-xl font-bold shadow-lg">
+                                                اشترك الآن
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </main>
-
 
             <BackToTop />
             <Footer />

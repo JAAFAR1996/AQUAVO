@@ -10,6 +10,7 @@ import { AuthProvider } from "@/contexts/auth-context";
 import { RequireAdmin } from "@/components/auth/require-admin";
 import { ScrollProgress } from "@/components/effects/scroll-progress";
 import { FloatingActionButton } from "@/components/effects/floating-action-button";
+import { Analytics } from '@vercel/analytics/react';
 
 import { initGA, trackPageView } from "@/lib/analytics";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
@@ -477,6 +478,7 @@ function App() {
             <ComparisonProvider>
               <NavbarPreferencesProvider>
                 <TooltipProvider>
+                  <Analytics />
                   <PageViewTracker />
                   {/* Skip to main content for keyboard navigation */}
                   <a href="#main-content" className="skip-to-main">

@@ -2,7 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, users, products, orderItems } from "../../shared/schema.js";
+import { orders, users, products, orderItems, productViews, cartSessions } from "../../shared/schema.js";
 import { sql, desc, gte, count, sum, eq, and, gt } from "drizzle-orm";
 
 const router = Router();
@@ -73,16 +73,43 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
         const newCustomers = newCustomersData[0]?.count || 0;
         const customersChange = totalCustomers > 0 ? (newCustomers / totalCustomers) * 100 : 0;
 
-        // حساب الزيارات المقدرة من الطلبات (معدل التحويل الصناعي 2-3%)
-        // كل طلب يمثل تقريباً 40-50 زيارة
-        const estimatedConversionRate = 0.025; // 2.5% معدل تحويل واقعي
-        const totalPageViews = currentOrders > 0 ? Math.round(currentOrders / estimatedConversionRate) : 0;
-        const previousPageViews = previousOrders > 0 ? Math.round(previousOrders / estimatedConversionRate) : 0;
-        const pageViewsChange = previousPageViews > 0 ? ((totalPageViews - previousPageViews) / previousPageViews) * 100 : 0;
+        // ==========================================
+        // Real Data Integration (Product Views & Sessions)
+        // ==========================================
 
-        // حساب المتوسطات الحقيقية
+        // 1. Get real page views from product_views table
+        const currentViewsData = await db
+            .select({ count: count() })
+            .from(productViews)
+            .where(gte(productViews.viewedAt, startDate));
+
+        const previousViewsData = await db
+            .select({ count: count() })
+            .from(productViews)
+            .where(and(
+                gte(productViews.viewedAt, previousStartDate),
+                sql`${productViews.viewedAt} < ${startDate}`
+            ));
+
+        const totalPageViews = currentViewsData[0]?.count || 0;
+        const previousPageViews = previousViewsData[0]?.count || 0;
+        const pageViewsChange = previousPageViews > 0
+            ? ((totalPageViews - previousPageViews) / previousPageViews) * 100
+            : 0;
+
+        // 2. Real Conversion Rate based on Unique Sessions vs Orders
+        // Calculate conversion rate = (Total Orders / Unique Cart Sessions) * 100
+        const cartSessionsData = await db
+            .select({ count: count() })
+            .from(cartSessions)
+            .where(gte(cartSessions.createdAt, startDate));
+
+        const totalSessions = cartSessionsData[0]?.count || 0;
+        const conversionRate = totalSessions > 0
+            ? (currentOrders / totalSessions) * 100
+            : 0; // Fallback to 0 if no sessions exist yet
+
         const averageOrderValue = currentOrders > 0 ? currentRevenue / currentOrders : 0;
-        const conversionRate = estimatedConversionRate * 100; // النسبة المئوية
 
         // جلب بيانات المبيعات اليومية الحقيقية من قاعدة البيانات
         const dailySalesData = await db
@@ -143,23 +170,48 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
             revenue: Number(p.totalRevenue) || 0,
         }));
 
-        // مصادر الزيارات - تقديرات مبنية على معايير التجارة الإلكترونية
-        // ملاحظة: هذه تقديرات مبنية على معدلات صناعية لأنه لا يوجد نظام تتبع مفعّل
-        // للحصول على بيانات دقيقة، يُنصح بربط Google Analytics
-        const trafficSourcesEstimates = [
-            { source: "بحث جوجل", percentage: 40 },      // معدل البحث العضوي النموذجي
-            { source: "مباشر", percentage: 25 },          // زيارات مباشرة
-            { source: "وسائل التواصل", percentage: 20 }, // فيسبوك، انستغرام
-            { source: "إحالات", percentage: 10 },         // مواقع أخرى
-            { source: "أخرى", percentage: 5 },            // مصادر متنوعة
-        ];
+        // 3. Real Traffic Sources from product_views.referrer
+        const trafficData = await db
+            .select({
+                source: productViews.referrer,
+                visits: count()
+            })
+            .from(productViews)
+            .where(gte(productViews.viewedAt, startDate))
+            .groupBy(productViews.referrer);
 
-        const trafficSources = trafficSourcesEstimates.map(src => ({
-            source: src.source,
-            visits: Math.round(totalPageViews * (src.percentage / 100)),
-            percentage: src.percentage,
-            isEstimate: true, // علامة تدل على أنها تقديرات
-        }));
+        // Normalize specific referrers into main categories for the UI
+        let searchVisits = 0;
+        let socialVisits = 0;
+        let directVisits = 0;
+        let otherVisits = 0;
+
+        trafficData.forEach(t => {
+            const ref = t.source || "direct";
+            const v = t.visits || 0;
+
+            if (ref === "direct") directVisits += v;
+            else if (ref.includes("google") || ref.includes("bing") || ref.includes("yahoo")) searchVisits += v;
+            else if (ref.includes("facebook") || ref.includes("instagram") || ref.includes("tiktok") || ref.includes("snapchat")) socialVisits += v;
+            else otherVisits += v;
+        });
+
+        // If we have real tracking data, use it. Otherwise, return zeros instead of fake estimates.
+        let trafficSources = [];
+        const totalRealVisits = searchVisits + socialVisits + directVisits + otherVisits;
+
+        if (totalRealVisits > 0) {
+            trafficSources = [
+                { source: "بحث جوجل", visits: searchVisits, percentage: Math.round((searchVisits / totalRealVisits) * 100) },
+                { source: "مباشر", visits: directVisits, percentage: Math.round((directVisits / totalRealVisits) * 100) },
+                { source: "وسائل التواصل", visits: socialVisits, percentage: Math.round((socialVisits / totalRealVisits) * 100) },
+                { source: "أخرى", visits: otherVisits, percentage: Math.round((otherVisits / totalRealVisits) * 100) },
+            ].filter(s => s.visits > 0);
+        } else {
+            trafficSources = [
+                { source: "مباشر", visits: 0, percentage: 0 },
+            ];
+        }
 
         // Orders by status
         const statusCounts = await db
@@ -206,12 +258,11 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
                 revenue: "real",           // من جدول الطلبات
                 orders: "real",            // من جدول الطلبات
                 customers: "real",         // من جدول المستخدمين
-                pageViews: "estimated",    // تقدير مبني على معدل التحويل 2.5%
+                pageViews: "real",         // تم تحويله لبيانات حقيقية من جدول product_views
                 salesChart: "real",        // من جدول الطلبات اليومية
                 topProducts: "real",       // من جدول عناصر الطلبات
-                trafficSources: "estimated", // تقديرات مبنية على معايير صناعية
+                trafficSources: "real",    // تم تحويله لبيانات حقيقية من جدول product_views
                 ordersByStatus: "real",    // من جدول الطلبات
-                note: "للحصول على بيانات الزيارات الحقيقية، يُنصح بربط Google Analytics"
             }
         });
     } catch (error) {

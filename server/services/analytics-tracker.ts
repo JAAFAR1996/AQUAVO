@@ -20,8 +20,10 @@ export class AnalyticsTracker {
     duration?: number; // بالثواني
     scrollDepth?: number; // 0-100%
     from?: string; // من أين جاء (search, category, recommendations, etc.)
+    referrer?: string; // e.g. "search_google", "social_facebook", "direct"
   }) {
     try {
+      // 1. سجل التفاعل المعتاد للمحرك التوصيات
       await this.db.insert(schema.productInteractions).values({
         userId: data.userId || null,
         sessionId: data.sessionId,
@@ -33,6 +35,14 @@ export class AnalyticsTracker {
           from: data.from || 'direct'
         },
         createdAt: new Date(),
+      });
+
+      // 2. سجل المشاهدة الحقيقية للإحصائيات في productViews
+      await this.db.insert(schema.productViews).values({
+        userId: data.userId || null,
+        sessionId: data.sessionId,
+        productId: data.productId,
+        referrer: data.referrer || data.from || 'direct',
       });
 
       console.log(`[Analytics] 👁️ Product view tracked: ${data.productId} (session: ${data.sessionId})`);
@@ -66,6 +76,24 @@ export class AnalyticsTracker {
         createdAt: new Date(),
       });
 
+      // إنشاء أو تحديث جلسة السلة (Cart Session)
+      // نستخدم ON CONFLICT للتعامل مع الجلسات المتكررة
+      await this.db.insert(schema.cartSessions)
+        .values({
+          sessionId: data.sessionId,
+          userId: data.userId || null,
+          status: 'active',
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: schema.cartSessions.sessionId,
+          set: {
+            userId: data.userId || null,
+            status: 'active',
+            updatedAt: new Date()
+          }
+        });
+
       console.log(`[Analytics] 🛒 Cart add tracked: ${data.productId} (from: ${data.from})`);
     } catch (error) {
       console.error('[Analytics] Error tracking cart add:', error);
@@ -97,6 +125,20 @@ export class AnalyticsTracker {
       console.log(`[Analytics] 🗑️ Cart remove tracked: ${data.productId}`);
     } catch (error) {
       console.error('[Analytics] Error tracking cart remove:', error);
+    }
+  }
+
+  /**
+   * تحديث حالة جلسة السلة (مثلاً: تم الشراء أو تم التخلي عنها)
+   * Track cart session status (checkout/abandoned)
+   */
+  async trackSessionStatus(sessionId: string, status: "converted" | "abandoned") {
+    try {
+      await this.db.update(schema.cartSessions)
+        .set({ status, updatedAt: new Date() })
+        .where(eq(schema.cartSessions.sessionId, sessionId));
+    } catch (error) {
+      console.error('[Analytics] Error tracking session status:', error);
     }
   }
 
