@@ -120,15 +120,17 @@ export async function fetchProductVariants(slug: string): Promise<Product[]> {
 export async function fetchTopSellingProducts(): Promise<{
   productOfWeek: Product | null;
   bestSellers: Product[];
+  hasRealSales: boolean;
 }> {
   try {
     return await getJson<{
       productOfWeek: Product | null;
       bestSellers: Product[];
+      hasRealSales: boolean;
     }>("/api/products/top-selling");
   } catch (err) {
     console.error("Failed to fetch top selling products:", err);
-    return { productOfWeek: null, bestSellers: [] };
+    return { productOfWeek: null, bestSellers: [], hasRealSales: false };
   }
 }
 

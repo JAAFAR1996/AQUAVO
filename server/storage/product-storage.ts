@@ -485,16 +485,17 @@ export class ProductStorage {
         }
     }
 
-    async getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[] }> {
+    async getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[]; hasRealSales: boolean }> {
         const db = this.ensureDb();
         try {
             // 1. Get Top Sales IDs (Smart/Automatic)
             const topSalesIds = await this.getHighSalesProductIds(10);
+            const hasRealSales = topSalesIds.length > 0;
 
             // Base condition for Best Seller
             const bestSellerCondition = or(
                 eq(products.isBestSeller, true),
-                topSalesIds.length > 0 ? inArray(products.id, topSalesIds) : undefined,
+                hasRealSales ? inArray(products.id, topSalesIds) : undefined,
                 and(gt(products.rating, '4.0'), gt(products.reviewCount, 0))
             );
 
@@ -529,11 +530,12 @@ export class ProductStorage {
 
             return {
                 productOfWeek,
-                bestSellers: bestSellers.slice(0, 10)
+                bestSellers: bestSellers.slice(0, 10),
+                hasRealSales
             };
         } catch (error) {
             console.error("Error fetching top selling products:", error);
-            return { productOfWeek: null, bestSellers: [] };
+            return { productOfWeek: null, bestSellers: [], hasRealSales: false };
         }
     }
 }

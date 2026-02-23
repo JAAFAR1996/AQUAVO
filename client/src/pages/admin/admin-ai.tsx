@@ -90,16 +90,10 @@ export default function AdminAI() {
                         إدارة وتحليلات AI المتقدمة للمتجر
                     </p>
                 </div>
-                <div className="flex gap-2">
-                    <Button variant="default" className="gap-2 bg-purple-600 hover:bg-purple-700" onClick={() => window.location.href = '/admin/ai-monitor'}>
-                        <Activity className="h-4 w-4" />
-                        المراقبة الحية للذكاء
-                    </Button>
-                    <Button onClick={handleRefreshAll} variant="outline" className="gap-2">
-                        <RefreshCw className="h-4 w-4" />
-                        تحديث الكل
-                    </Button>
-                </div>
+                <Button onClick={handleRefreshAll} variant="outline" className="gap-2">
+                    <RefreshCw className="h-4 w-4" />
+                    تحديث الكل
+                </Button>
             </div>
 
             {/* Quick Stats */}
@@ -358,13 +352,6 @@ export default function AdminAI() {
                 {/* Features Tab */}
                 <TabsContent value="features" className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <FeatureCard
-                            title="مراقبة الذكاء الاصطناعي"
-                            description="سجلات البحث وأداء النماذج (Live)"
-                            icon={<Activity className="h-6 w-6" />}
-                            status="active"
-                            link="/admin/ai-monitor"
-                        />
                         <FeatureCard
                             title="مساعد المبيعات"
                             description="دردشة ذكية للرد على استفسارات العملاء"

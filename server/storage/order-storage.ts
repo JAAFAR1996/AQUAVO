@@ -506,8 +506,8 @@ export class OrderStorage {
 
 
     // Sales analytics
-    async getTopSellingProducts(): Promise<{ productOfWeek: any | null; bestSellers: any[] }> {
-        return { productOfWeek: null, bestSellers: [] };
+    async getTopSellingProducts(): Promise<{ productOfWeek: any | null; bestSellers: any[]; hasRealSales: boolean }> {
+        return { productOfWeek: null, bestSellers: [], hasRealSales: false };
     }
 
     async seedGalleryIfNeeded(): Promise<void> {

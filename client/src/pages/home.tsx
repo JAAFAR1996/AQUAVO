@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, Truck, ShieldCheck, Phone, Leaf, Droplets, Thermometer, Package, Trophy, Crown, Camera, ShoppingCart } from "lucide-react";
+import { ArrowRight, Star, Truck, ShieldCheck, Phone, Leaf, Droplets, Thermometer, Package, Trophy, Crown, Camera, ShoppingCart, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { ProductOfTheWeek } from "@/components/home/product-of-the-week";
@@ -49,6 +49,7 @@ export default function Home() {
 
   const featuredProduct = salesData?.productOfWeek;
   const bestSellers = salesData?.bestSellers ?? [];
+  const hasRealSales = salesData?.hasRealSales ?? false;
 
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
 
@@ -122,7 +123,11 @@ export default function Home() {
                 <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">المزيد</Button>
               </Link>
               <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground dark:text-white">
-                الأكثر مبيعاً <Trophy className="w-6 h-6 text-yellow-500 animate-bounce" />
+                {hasRealSales ? (
+                  <>الأكثر مبيعاً <Trophy className="w-6 h-6 text-yellow-500 animate-bounce" /></>
+                ) : (
+                  <>اختيارات AQUAVO <Sparkles className="w-6 h-6 text-primary animate-pulse" /></>
+                )}
               </h2>
             </div>
 

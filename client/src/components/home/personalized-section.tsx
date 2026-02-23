@@ -15,8 +15,8 @@ function PredictedNeedCard({ prediction }: {
 
   const probabilityColor =
     prediction.probability >= 80 ? "bg-red-500" :
-    prediction.probability >= 60 ? "bg-amber-500" :
-    "bg-blue-500";
+      prediction.probability >= 60 ? "bg-amber-500" :
+        "bg-blue-500";
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:border-primary/30 transition-colors">
@@ -75,6 +75,9 @@ export function PersonalizedSection() {
   const isPersonalized = personalizedData?.personalized ?? false;
   const predictions = predictedData?.predictions ?? [];
 
+  const method = personalizedData?.method ?? "";
+  const hasRealTrending = method === "trending" && products.length > 0;
+
   // Don't render if there's nothing to show
   if (!loadingPersonalized && products.length === 0 && predictions.length === 0) return null;
 
@@ -89,9 +92,13 @@ export function PersonalizedSection() {
               <>
                 مختار لك <Sparkles className="w-6 h-6 text-primary" />
               </>
-            ) : (
+            ) : hasRealTrending ? (
               <>
                 الأكثر رواجاً <TrendingUp className="w-6 h-6 text-primary" />
+              </>
+            ) : (
+              <>
+                اكتشف منتجاتنا <TrendingUp className="w-6 h-6 text-primary" />
               </>
             )}
           </h2>

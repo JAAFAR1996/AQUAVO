@@ -52,7 +52,7 @@ export interface IStorage {
     createOrderSecure(userId: string | null, items: any[], customerInfo: any, couponCode?: string): Promise<Order>;
     seedProductsIfNeeded(): Promise<void>;
     // Sales analytics
-    getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[] }>;
+    getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[]; hasRealSales: boolean }>;
 
     // Cart methods
     getCartItems(userId: string): Promise<(CartItem & { product: Product })[]>;
