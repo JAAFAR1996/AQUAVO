@@ -11,7 +11,9 @@ export interface AiEvent {
     event: "chat" | "tool_call" | "error" | "timeout" | "fallback" | "key_rotated" |
            "search" | "sentiment" | "embedding" | "recommendation" | "cart_add" | "compound_search" |
            "blog_generated" | "notification_sent" | "prediction" | "churn_analysis" | "cron_job" |
-           "visual_analysis" | "price_suggestion" | "fraud_check" | "email_campaign";
+           "visual_analysis" | "price_suggestion" | "fraud_check" | "email_campaign" |
+           "aquarium_design" | "content_generated" | "dashboard_insights" |
+           "inventory_optimization" | "returns_analysis" | "customer_analysis";
     level?: "info" | "warning" | "error" | "critical";
     model?: string;
     userId?: string;

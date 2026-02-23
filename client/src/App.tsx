@@ -46,6 +46,7 @@ const AquariumWizard = lazy(() => import("@/pages/aquarium-wizard"));
 const FishCompatibility = lazy(() => import("@/pages/fish-compatibility"));
 const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
+const AdminAIMonitor = lazy(() => import("@/pages/admin/ai-monitor"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
@@ -424,6 +425,19 @@ function Router() {
             <RequireAdmin>
               <Suspense fallback={<PageLoader />}>
                 <AdminAI />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* Admin: AI Monitor */}
+      <Route path="/admin/ai-monitor">
+        {() => (
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<PageLoader />}>
+                <AdminAIMonitor />
               </Suspense>
             </RequireAdmin>
           </ErrorBoundary>
