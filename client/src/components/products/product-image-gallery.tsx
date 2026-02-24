@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { detailImage, thumbImage, lightboxImage } from "@/lib/cloudinary";
 
 interface ProductImageGalleryProps {
     images: string[];
@@ -70,7 +71,7 @@ export function ProductImageGallery({
                 >
                     {/* Main Image */}
                     <img
-                        src={currentImage}
+                        src={detailImage(currentImage) || "/logo_aquavo.png"}
                         alt={`${productName} - صورة ${selectedIndex + 1}`}
                         className={cn(
                             "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
@@ -154,7 +155,7 @@ export function ProductImageGallery({
                             )}
                         >
                             <img
-                                src={image}
+                                src={thumbImage(image) || "/logo_aquavo.png"}
                                 alt={`${productName} - صورة مصغرة ${galleryImages.indexOf(image) + 1}`}
                                 className="w-full h-full object-contain bg-transparent p-1"
                                 loading="lazy"
@@ -184,7 +185,7 @@ export function ProductImageGallery({
 
                         {/* Main Image */}
                         <img
-                            src={currentImage}
+                            src={lightboxImage(currentImage) || "/logo_aquavo.png"}
                             alt={productName}
                             className="max-w-full max-h-[85vh] object-contain select-none"
                             draggable={false}
@@ -228,7 +229,7 @@ export function ProductImageGallery({
                                     )}
                                 >
                                     <img
-                                        src={image}
+                                        src={thumbImage(image) || "/logo_aquavo.png"}
                                         alt={`صورة ${galleryImages.indexOf(image) + 1}`}
                                         className="w-full h-full object-contain bg-transparent"
                                     />

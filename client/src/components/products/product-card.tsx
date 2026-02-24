@@ -14,6 +14,7 @@ import { Link } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 import { formatNumber } from "@/lib/format";
+import { cardImage } from "@/lib/cloudinary";
 
 interface ProductCardProps {
   product: Product;
@@ -24,6 +25,7 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView }: ProductCardProps) {
   const { toast } = useToast();
   const { addItem } = useCart();
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   // A/B Testing: Button Text
   const buttonVariant = useABTest(EXPERIMENTS.ADD_TO_CART_BUTTON.name);
@@ -69,21 +71,23 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
             <div className="absolute inset-0 p-3 sm:p-6 flex items-center justify-center bg-transparent">
               <div className="transition-transform duration-500 group-hover:scale-105">
                 <img
-                  src={`${product.thumbnail || product.image || "/logo_aquavo.png"}?v=1`}
+                  src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
                   alt={`صورة منتج ${product.name} من ${product.brand}`}
-                  className="w-full h-full object-contain filter drop-shadow-2xl select-none"
+                  className={`w-full h-full object-contain filter drop-shadow-2xl select-none transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                   loading="lazy"
-                  width={300}
-                  height={300}
+                  width={400}
+                  height={400}
                   decoding="async"
                   draggable={false}
                   onContextMenu={(e) => e.preventDefault()}
                   onDragStart={(e) => e.preventDefault()}
+                  onLoad={() => setImgLoaded(true)}
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    if (target.src !== "/logo_aquavo.png") {
+                    if (!target.src.endsWith("/logo_aquavo.png")) {
                       target.src = "/logo_aquavo.png";
                     }
+                    setImgLoaded(true);
                   }}
                 />
               </div>
