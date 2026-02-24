@@ -106,7 +106,7 @@ const AR_SEP = /([\ \t\n\r،؛:؟!،,.()[\]{}"'\/\\<>؟\-])/;
  * Deterministically replaces MSA (fusha) words with Iraqi equivalents.
  * Runs AFTER the AI generates its response — guarantees dialect regardless of model behavior.
  */
-function normalizeToIraqiDialect(text: string): string {
+export function normalizeToIraqiDialect(text: string): string {
     let result = text;
 
     // Step 1: Multi-word phrase replacements (more specific, applied first)

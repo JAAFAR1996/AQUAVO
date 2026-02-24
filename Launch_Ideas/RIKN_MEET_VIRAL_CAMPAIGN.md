@@ -800,7 +800,6 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
     "reflection": "Faint ghost reflection of the phone screen barely visible on the aquarium glass surface"
   },
   "style": { "artistic": "Casual smartphone photo that happened to capture a perfect moment", "mood": "Curious, intimate — someone just held their phone up to the glass and the fish looked right at them" },
-  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
   "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "bright unnatural colors", "professional camera quality", "tripod-perfect stability", "studio lighting"], "style_raw": true }
 }
@@ -830,7 +829,6 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
     "framing": "Camera tilted about 1-2 degrees — natural handheld tilt"
   },
   "style": { "artistic": "Casual smartphone video screenshot", "mood": "Purposeful, engaging — someone filming their fish and it swam right toward them" },
-  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
   "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "professional camera quality", "tripod-perfect stability"], "style_raw": true }
 }
@@ -862,7 +860,6 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
     "framing": "Not perfectly composed — the eye is offset, as if the person was trying to get as close as possible"
   },
   "style": { "artistic": "Lucky smartphone macro shot", "mood": "Hypnotic, intimate — someone pressed their phone right against the glass and got this incredible close-up" },
-  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
   "constraints": { "exclusions": ["cartoon", "AI-looking", "text on image", "full fish body visible", "professional camera quality", "perfect studio composition"], "style_raw": true }
 }
