@@ -323,6 +323,7 @@ export default function Products() {
                     <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
                       <ProductCard
                         product={product}
+                        priority={index < 8}
                         onQuickView={(p) => setQuickViewProduct(p)}
                         onCompare={(p) => addToCompare(p.id)}
                       />

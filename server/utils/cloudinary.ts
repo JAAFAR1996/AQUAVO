@@ -16,6 +16,11 @@ export async function uploadImage(imageBase64: string): Promise<string> {
     try {
         const result = await cloudinary.uploader.upload(imageBase64, {
             folder: "aquavo-products",
+            // Convert to WebP, limit to 1200px, auto quality — stored optimally from day one
+            transformation: [
+                { width: 1200, height: 1200, crop: "limit" },
+                { fetch_format: "auto", quality: "auto" },
+            ],
         });
         return result.secure_url;
     } catch (error) {

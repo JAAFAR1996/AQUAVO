@@ -123,9 +123,15 @@
     "framing": "Same slight tilt as صورة 1 — maintaining consistency",
     "critical_realism": "This must look like the SAME ROOM with the SAME LIGHTING as صورة 1 — the ONLY difference is the boxes are replaced by an aquarium. The walls should NOT have any colored glow. The floor should NOT have dramatic reflections. Think of it as a normal daytime photo with the lights on."
   },
+  "text_overlay": {
+    "text": "😶",
+    "position": "center",
+    "style": "Large emoji, centered on screen",
+    "note": "يُستخدم كـ first_frame لكليب 4"
+  },
   "style": { "artistic": "Casual smartphone photo — same person, same room, same time of day as صورة 1, just the corner changed", "mood": "Simple transformation — the corner went from boring storage to a living aquarium" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["light rays on walls", "star-shaped light patterns", "blue-green glow on walls", "colored wall lighting from aquarium", "dramatic aquarium lighting on room", "mirror-like floor reflection of aquarium", "strong floor reflections", "dark room lit only by aquarium", "dim room", "multiple cables or wires", "tangled wires", "power strips", "cube-shaped aquarium", "aquarium taller than wide", "text", "logos", "AI-looking", "Western-style home", "professional camera", "studio lighting", "people", "faces"], "style_raw": true }
+  "constraints": { "exclusions": ["light rays on walls", "star-shaped light patterns", "blue-green glow on walls", "colored wall lighting from aquarium", "dramatic aquarium lighting on room", "mirror-like floor reflection of aquarium", "strong floor reflections", "dark room lit only by aquarium", "dim room", "multiple cables or wires", "tangled wires", "power strips", "cube-shaped aquarium", "aquarium taller than wide", "logos", "AI-looking", "Western-style home", "professional camera", "studio lighting", "people", "faces"], "style_raw": true }
 }
 ```
 
@@ -233,9 +239,15 @@
     "framing": "Not perfectly level — handheld close-up, slightly tilted",
     "critical_realism": "This must look like a REAL aquarium photograph — not a computer render. Water must have natural slight cloudiness. Fish must have organic movement poses. Glass must have real-world imperfections."
   },
+  "text_overlay": {
+    "text": "الروابط بالبايو 🐟",
+    "position": "bottom_center",
+    "style": "White Arabic font, small size",
+    "note": "يُستخدم كـ first_frame لكليب 5"
+  },
   "style": { "artistic": "Someone admiring their aquarium up close", "mood": "Intimate, alive, peaceful" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["crystal clear water", "perfectly clean glass", "identical fish", "fish in rows", "cartoon fish", "CGI water", "smooth gravel", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
+  "constraints": { "exclusions": ["crystal clear water", "perfectly clean glass", "identical fish", "fish in rows", "cartoon fish", "CGI water", "smooth gravel", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
 }
 ```
 
@@ -274,82 +286,6 @@
   "style": { "artistic": "Smartphone night mode photo of a cozy room", "mood": "Peaceful, beautiful, transformed" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
   "constraints": { "exclusions": ["evenly lit room", "visible room details in darkness", "studio lighting", "perfect clarity in dark areas", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
-}
-```
-
----
-
-### 📸 صورة 7 — الركن بعد مع إيموجي (IMAGE_AFTER_CORNER_EMOJI)
-
-> ⚠️ نفس صورة 2 (AFTER) بس مع إيموجي على الشاشة — تستخدم كـ first_frame لكليب 4
-
-```json
-{
-  "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
-  "prompt_style": "smartphone aquarium room photography",
-  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld — same angle as صورة 2",
-  "subject": {
-    "main": "Photorealistic photo — IDENTICAL scene to صورة 2. Same corner, same aquarium (60cm wide rectangular, wider than tall), same melamine cabinet stand with closed doors, same soft diffused blue-green glow (NO star reflections, NO dramatic light patterns), CLEAN floor around stand (no wires, no cables). Must match all realism details from صورة 2: slight algae on glass corner, calcium line, slightly green water, heater hidden behind plant.",
-    "composition": "Same angle as صورة 2. Corner with aquarium fills frame."
-  },
-  "environment": {
-    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green ambient glow — same as صورة 2" },
-    "background": "Same warm beige walls illuminated by aquarium. Same glossy tile floor with reflections.",
-    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#1A237E (Deep Blue)" }
-  },
-  "imperfections": {
-    "focus": "Same as صورة 2 — slightly soft corners",
-    "noise": "Same natural noise level as صورة 2",
-    "framing": "Same tilt as صورة 2 — consistency",
-    "critical_realism": "Must match صورة 2 realism quality exactly. Same lived-in aquarium look."
-  },
-  "text_overlay": {
-    "text": "😶",
-    "position": "center",
-    "style": "Large emoji, centered on screen"
-  },
-  "style": { "artistic": "Same as صورة 2 but with emoji reaction", "mood": "Speechless amazement at the transformation" },
-  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["perfectly clean glass", "crystal clear water", "brand new look", "smooth surfaces", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
-}
-```
-
----
-
-### 📸 صورة 8 — كلوز أب الحوض مع نص (IMAGE_FISH_CLOSE_TEXT)
-
-> ⚠️ نفس صورة 5 بس مع نص — تستخدم كـ first_frame لكليب 5
-
-```json
-{
-  "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
-  "prompt_style": "smartphone aquarium close-up photography",
-  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, close to glass",
-  "subject": {
-    "main": "Photorealistic close-up — IDENTICAL scene to صورة 5. Same aquarium, same angle, same fish, same plants. Must use all the same realism details from صورة 5: individual fish scale detail, plant leaf veins and brown tips, mixed gravel sizes, water droplets on glass, calcium line at water surface, equipment visible, water not crystal clear.",
-    "composition": "Same as صورة 5 — aquarium glass fills frame."
-  },
-  "environment": {
-    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green dominant light — same as صورة 5" },
-    "background": "Same as صورة 5 — dim room reflected in glass.",
-    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#00E676 (Plant Green)" }
-  },
-  "imperfections": {
-    "focus": "Same depth of field as صورة 5",
-    "noise": "Same noise pattern as صورة 5",
-    "glass": "Same glass imperfections — fingerprints, condensation, calcium",
-    "critical_realism": "Must match صورة 5 realism quality exactly."
-  },
-  "text_overlay": {
-    "text": "الروابط بالبايو 🐟",
-    "position": "bottom_center",
-    "style": "White Arabic font, small size"
-  },
-  "style": { "artistic": "Same as صورة 5 with CTA text", "mood": "Inviting — link in bio call to action" },
-  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["crystal clear water", "perfectly clean glass", "identical fish", "CGI water", "smooth gravel", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
 }
 ```
 
@@ -750,9 +686,15 @@
     "framing": "Slightly off-center — peeking into room feel",
     "lens": "Slight lens flare from aquarium light source"
   },
+  "text_overlay": {
+    "text": "الساعة 2 الليل...",
+    "position": "top_left",
+    "style": "White thin Arabic font, subtle",
+    "note": "يُستخدم كـ last_frame لكليب 1"
+  },
   "style": { "artistic": "Late night smartphone photo of a peaceful bedroom", "mood": "Peaceful 2AM quiet — the kind of calm that only exists deep in the night" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["faces visible", "text", "professional camera", "studio lighting", "AI-looking", "daytime lighting"], "style_raw": true }
+  "constraints": { "exclusions": ["faces visible", "professional camera", "studio lighting", "AI-looking", "daytime lighting"], "style_raw": true }
 }
 ```
 
@@ -779,9 +721,15 @@
     "glass": "Slight condensation visible on outer glass edge",
     "framing": "Slightly tilted — 2AM handheld casualness"
   },
+  "text_overlay": {
+    "text": "وهو صاحي لكلش",
+    "position": "center",
+    "style": "White Arabic font, centered",
+    "note": "يُستخدم كـ last_frame لكليب 2"
+  },
   "style": { "artistic": "Intimate late-night aquarium photo", "mood": "Peaceful, alive while the world sleeps" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["people", "faces", "text", "professional camera", "daytime lighting", "AI-looking"], "style_raw": true }
+  "constraints": { "exclusions": ["people", "faces", "professional camera", "daytime lighting", "AI-looking"], "style_raw": true }
 }
 ```
 
@@ -816,78 +764,8 @@
 ```
 
 ---
+  },
 
-### 📸 صورة 4 — الغرفة المظلمة مع نص (IMAGE_DARK_ROOM_TEXT1)
-
-> ⚠️ نفس صورة 1 بس مع نص — تستخدم كـ last_frame لكليب 1
-
-```json
-{
-  "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
-  "prompt_style": "smartphone night mode bedroom photography",
-  "camera_setup": "iPhone 15 Pro Max, night mode, handheld",
-  "subject": {
-    "main": "Photorealistic interior of dark Iraqi bedroom at 2AM. Modern aquarium in the corner glowing warm blue-green LED. Sleeping shape under blankets visible in background — no face. Room 90% dark.",
-    "composition": "Same as صورة 1 — aquarium glow as focal point. Wide enough to see room context."
-  },
-  "environment": {
-    "lighting": { "type": "Aquarium LED only", "quality": "Warm glow casting ripple patterns on wall" },
-    "background": "Dark bedroom with sleeping shape barely visible.",
-    "color_palette": { "dominant": "#0A0F14 (Dark Room)", "accent": "#004D40 (Aquarium Teal)" }
-  },
-  "imperfections": {
-    "focus": "Night mode softness — same as صورة 1",
-    "noise": "Same night grain as صورة 1",
-    "framing": "Same angle and tilt as صورة 1"
-  },
-  "text_overlay": {
-    "text": "الساعة 2 الليل...",
-    "position": "top_left",
-    "style": "White thin Arabic font, subtle"
-  },
-  "style": { "artistic": "Same as صورة 1 with text overlay", "mood": "Late night loneliness — the aquarium is your companion" },
-  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["faces", "professional camera", "AI-looking"], "style_raw": true }
-}
-```
-
----
-
-### 📸 صورة 5 — ماكرو الحوض بالليل مع نص (IMAGE_AQUARIUM_NIGHT_TEXT2)
-
-> ⚠️ نفس صورة 2 بس مع نصوص — تستخدم كـ last_frame لكليب 2
-
-```json
-{
-  "model": "gemini-2.5-flash-image",
-  "task_type": "generation",
-  "prompt_style": "smartphone night aquarium macro photography",
-  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, close to glass",
-  "subject": {
-    "main": "Photorealistic close-up of aquarium glass at night. Behind glass: lush green plants, colorful fish hovering gently, fine substrate. Aquarium LED warm blue-green. Complete darkness outside.",
-    "composition": "Same as صورة 2 — glass fills most of frame."
-  },
-  "environment": {
-    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green against total darkness" },
-    "background": "Complete darkness outside the tank.",
-    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#00E676 (Plant Green)" }
-  },
-  "imperfections": {
-    "focus": "Same as صورة 2",
-    "noise": "Same night noise as صورة 2",
-    "glass": "Slight condensation on outer glass edge"
-  },
-  "text_overlay": {
-    "text": "وهو صاحي لكلش",
-    "position": "center",
-    "style": "White Arabic font, centered"
-  },
-  "style": { "artistic": "Same as صورة 2 with emotional text", "mood": "The fish is awake for everything — your silent companion" },
-  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["people", "faces", "professional camera", "AI-looking"], "style_raw": true }
-}
-```
 
 ---
 

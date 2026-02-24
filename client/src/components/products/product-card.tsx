@@ -20,9 +20,11 @@ interface ProductCardProps {
   product: Product;
   onCompare?: (product: Product) => void;
   onQuickView?: (product: Product) => void;
+  /** Pass true for above-the-fold cards (first ~8) to load eagerly */
+  priority?: boolean;
 }
 
-export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView }: ProductCardProps) {
+export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView, priority = false }: ProductCardProps) {
   const { toast } = useToast();
   const { addItem } = useCart();
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -69,12 +71,17 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
           {/* Image */}
           <div className="relative pt-[100%] overflow-hidden" data-protected="true">
             <div className="absolute inset-0 p-3 sm:p-6 flex items-center justify-center bg-transparent">
-              <div className="transition-transform duration-500 group-hover:scale-105">
+              {/* Skeleton placeholder shown while image is loading */}
+              {!imgLoaded && (
+                <div className="absolute inset-0 rounded-t-xl animate-pulse bg-muted/60" />
+              )}
+              <div className="transition-transform duration-500 group-hover:scale-105 relative z-10">
                 <img
                   src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
                   alt={`صورة منتج ${product.name} من ${product.brand}`}
                   className={`w-full h-full object-contain filter drop-shadow-2xl select-none transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-                  loading="lazy"
+                  loading={priority ? "eager" : "lazy"}
+                  fetchPriority={priority ? "high" : "auto"}
                   width={400}
                   height={400}
                   decoding="async"
