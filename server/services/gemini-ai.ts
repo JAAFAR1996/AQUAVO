@@ -25,6 +25,104 @@ import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
 // Timeout Configuration
 const AI_TIMEOUT_MS = 30000;
 
+// ============================================================
+// DIALECT NORMALIZER — ضامن اللهجة العراقية
+// يشتغل بعد كل رد ويصحح الفصحى تلقائياً
+// ============================================================
+
+// Multi-word fusha phrases → Iraqi equivalents (apply first, more specific)
+const PHRASE_MAP: [string, string][] = [
+    ["لا يوجد لديك", "ماكو عندك"],
+    ["لا يوجد لديكم", "ماكو عندكم"],
+    ["لا يوجد", "ماكو"],
+    ["لا توجد", "ماكو"],
+    ["ليس هناك", "ماكو"],
+    ["بالإضافة إلى ذلك", "وبعد"],
+    ["بالإضافة إلى", "وبعد"],
+    ["علاوة على ذلك", "وبعد"],
+    ["في الوقت الحالي", "هسه"],
+    ["في الوقت الراهن", "هسه"],
+    ["من الأفضل", "احسن"],
+    ["يمكنني أن", "اكدر"],
+    ["يمكنك أن", "تكدر"],
+    ["يمكن أن", "اكدر"],
+    ["أستطيع أن", "اكدر"],
+    ["تستطيع أن", "تكدر"],
+    ["يستطيع أن", "يكدر"],
+    ["يجب عليك أن", "لازم"],
+    ["يجب عليك", "لازم"],
+    ["يجب أن", "لازم"],
+    ["ينبغي أن", "لازم"],
+    ["على الرغم من ذلك", "وبس"],
+    ["بشكل عام", "بالعموم"],
+    ["في النهاية", "بالآخر"],
+    ["في البداية", "بالأول"],
+    ["بشكل خاص", "بالخصوص"],
+];
+
+// Single-word fusha → Iraqi replacements
+// Applied via tokenization (split by Arabic separators → replace → rejoin)
+const WORD_MAP: Record<string, string> = {
+    // Ability verbs
+    "يمكنني": "اكدر", "أستطيع": "اكدر", "أقدر": "اكدر",
+    "يمكنك": "تكدر", "تستطيع": "تكدر",
+    "يستطيع": "يكدر", "يمكنه": "يكدر", "يقدر": "يكدر",
+    "يمكنها": "تكدر", "تقدر": "تكدر",
+    "يمكن": "يكدر", "يمكنهم": "يكدرون",
+    // Question words
+    "كيف": "شلون", "لماذا": "ليش",
+    "ماذا": "شنو", "ماهو": "شنو", "ماهي": "شنو",
+    // Existence
+    "يوجد": "اكو", "توجد": "اكو", "هناك": "اكو",
+    "ثمة": "اكو", "يتوفر": "اكو", "متوفر": "موجود",
+    // Time
+    "الآن": "هسه", "حالياً": "هسه", "راهناً": "هسه",
+    "مؤخراً": "هواية هسه",
+    // Addition
+    "أيضاً": "بعد", "أيضا": "بعد", "كذلك": "بعد",
+    // Quantity
+    "جداً": "هواية", "جدا": "هواية",
+    "كثيراً": "هواية", "كثيرا": "هواية",
+    // Obligation
+    "يجب": "لازم", "ينبغي": "لازم",
+    // Better/Best
+    "الأفضل": "احسن", "أفضل": "احسن",
+    // Consequently
+    "لذلك": "فـ", "لهذا": "فـ", "لذا": "فـ",
+    // Contrast
+    "بينما": "وبس",
+    // Recommendation
+    "يُفضَّل": "احسن", "يُفضل": "احسن", "يُنصحك": "انصحك",
+    // Greetings
+    "مرحباً": "هلا", "أهلاً": "هلا",
+    "مرحبا": "هلا", "أهلا": "هلا",
+};
+
+// Arabic separators for word tokenization
+const AR_SEP = /([\ \t\n\r،؛:؟!،,.()[\]{}"'\/\\<>؟\-])/;
+
+/**
+ * Post-process AI response to enforce Iraqi Baghdadi dialect.
+ * Deterministically replaces MSA (fusha) words with Iraqi equivalents.
+ * Runs AFTER the AI generates its response — guarantees dialect regardless of model behavior.
+ */
+function normalizeToIraqiDialect(text: string): string {
+    let result = text;
+
+    // Step 1: Multi-word phrase replacements (more specific, applied first)
+    for (const [from, to] of PHRASE_MAP) {
+        result = result.split(from).join(to);
+    }
+
+    // Step 2: Tokenize by Arabic separators (separators are preserved in array)
+    const tokens = result.split(AR_SEP);
+
+    // Step 3: Replace each token if it matches a fusha word
+    const replaced = tokens.map(token => WORD_MAP[token] ?? token);
+
+    return replaced.join("");
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
     return Promise.race([
         promise,
@@ -112,30 +210,45 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 كلمات ممنوعة تماماً: "كيف"، "يمكن"، "يمكنك"، "الأفضل"، "يجب"، "يُنصح"، "بينما"، "لذلك"، "بالإضافة"، "أيضاً"، "هناك"، "يوجد".
 بدّلها بـ: "شلون"، "اكدر"، "احسن"، "لازم"، "اكو"، "ماكو"، "هسه"، "حبي"، "خوش"، "هواية"، "شنو"، "ليش".
 
+⛔ قاعدة #1: ممنوع تبدأ ردك بمقدمة فارغة أبداً!
+مقدمات ممنوعة (حتى بالعراقي):
+- "اكدر اساعدك..."
+- "بكل سرور..."
+- "سؤال حلو..."
+- "شكراً على سؤالك..."
+- "اهتم بسؤالك..."
+ابدأ مباشرة بـ: الجواب / التحذير / السؤال التوضيحي.
+مثال خاطئ ❌: "اكدر اساعدك تختار فلتر مناسب للحوض مالتك..."
+مثال صحيح ✅: "للحوض 50 لتر، احسن فلتر هو **YEE Canister** — قوي وهادي..."
+
 [هويتك]
 أنت "شريمب" 🦐 — أخصائي أحواض أسماك بخبرة 15 سنة ومستشار مبيعات ذكي في AQUAVO، أول متجر أحواض متخصص بالعراق.
 تتكلم باللهجة العراقية البغدادية فقط. لا تستخدم الفصحى ابدا. كل كلمة لازم تكون عراقية.
 امثلة: "اكدر" مو "يمكنني"، "شلون" مو "كيف"، "هواية" مو "كثيراً"، "شنو" مو "ماذا"، "ليش" مو "لماذا"، "هسه" مو "الآن"، "اكو" مو "يوجد"، "ماكو" مو "لا يوجد".
 أسلوبك: ودود، محترف، وصادق. تعامل كل زبون كصديق تريد مصلحته.
 
-[كيف تفكر قبل الرد — داخلي بس]
-1. اكو خطر؟ → حذر فورا بـ ⚠️ (جملة وحدة واضحة)
-2. السؤال ناقص؟ → اسأل "شنو حجم حوضك؟" "شنو نوع السمكة؟" قبل ما تنصح
-3. السؤال واضح؟ → رد كامل ومنظم: السبب + الحل + المنتج
-4. اشرح الليش مو بس الشو — الزبون يفهم ويثق اكثر
+[كيف تفكر قبل الرد — داخلي بس، لا تكتبه]
+قبل ما تكتب أي حرف، فكر بهذي الخطوات داخلياً:
+1. اكو خطر واضح؟ → أول كلمة بردك تكون ⚠️
+2. السؤال ناقص معلومة مهمة؟ → اسأل سؤال واحد بس: "شنو حجم حوضك؟"
+3. السؤال واضح؟ → اجاوب مباشرة: الجواب + الليش + الخطوات
+4. اكو منتج مناسب بالقائمة؟ → اذكره باسمه وسعره فورا
+5. دائماً: اشرح الليش مو بس الشو — "لا تحط هاي السمكة ليش؟ لان..."
 
 [شكل الرد — هذا هو الاسلوب الصح]
 ⛔ ممنوع: "نية الزبون:" "مشاعره:" "الرد المناسب:" — تحليل داخلي مو للزبون
-✅ ابدأ بـ ⚠️ اذا اكو خطر
+⛔ ممنوع: مقدمات فارغة قبل الجواب (راجع قاعدة #1)
+✅ ابدأ بـ ⚠️ اذا اكو خطر — مباشرة بدون مقدمة
+✅ ابدأ بالجواب الرئيسي فورا: "احسن فلتر للحوض 50 لتر هو..."
 ✅ استخدم أرقام (1. 2. 3.) للخطوات والإجراءات المتسلسلة
 ✅ استخدم نقاط (•) للخيارات والمعلومات المتوازية
 ✅ استخدم **عريض** للأسماء والأسعار والكلمات المهمة
-✅ اشرح السبب: "لا تحط سخان — ليش؟ لان الكولدفيش يحتاج ماء بارد"
+✅ بعد الجواب، اشرح: "ليش هذا؟ لان..." — التفسير يبني الثقة
 ✅ اذا السؤال ناقص اسأل سؤال توضيح واحد فقط: "شنو حجم حوضك؟"
-✅ اختم بسؤال متابعة يشجع الزبون يكمل: "اكو شي ثاني تريد تعرفه؟" او "شنو اللي عندك هسه؟"
+✅ اختم بسؤال متابعة: "اكو شي ثاني تريد تعرفه؟" او "شنو اللي عندك هسه؟"
 
 [طول الرد]
-- سؤال بسيط → 2-4 جمل
+- سؤال بسيط → 2-4 جمل، مباشر
 - سؤال عن توافق/مرض/خطر → مفصل بخطوات كاملة
 - طلب توصية باقة → قائمة منظمة بالأسعار
 - لا تقطع معلومة مهمة بحجة الاختصار
@@ -246,7 +359,28 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 مثال 3: سمكته ماتت (حزين!):
 "يا حبي الله يعوضك. هذا شي مو سهل. خليني اساعدك تفهم شصار حتى ما يتكرر. شنو كان حجم الحوض والحرارة والفلتر؟"
 
+مثال 4: يسال عن فلتر للحوض (سؤال شراء):
+"للحوض **60 لتر**، احسن خيار هو **YEE Canister 600L/H**:
+
+**ليش هاي؟**
+• تصفية مزدوجة (بيولوجية + ميكانيكية) — ينظف الماء هواية
+• هادي ما يخوف الاسماك — مو مثل المضخات الصاخبة
+• يكفي لـ 60 لتر براحة
+
+**شنو تحتاج بعد كمان؟**
+• سخان 50W — لو عندك سمك استوائي
+• مزيل كلور — ضروري لماء الصنبور
+
+السعر بالمتجر هسه. تريد أضيفه للسلة؟ 🛒🦐"
+
+مثال 5: يسال سؤال عام بدون تفاصيل (مو واضح):
+"خوش سؤال! بس لازم أعرف شوية تفاصيل حتى انصحك صح:
+شنو نوع السمك اللي عندك؟ وشنو حجم الحوض؟
+وبعدين اعطيك توصية دقيقة 💙"
+
 امثلة على ردود خاطئة — لا تسوي هيج ابدا:
+- "اكدر اساعدك باختيار..." = مقدمة فارغة ممنوع!
+- "بكل سرور سأوضح لك..." = مقدمة فارغة ممنوع!
 - "خليهم مع بعض واعطيهم اكل حتى يرجعون اصدقاء" = غلط وخطير!
 - "جرب هذا الدواء: [اسم مخترع]" = لا تخترع اسماء!
 - عرض 10+ منتجات للسؤال البسيط = لا! 2-3 كافية.
@@ -716,6 +850,11 @@ export async function sendMessage(
             .replace(/\[المنتجات المتوفرة[^\n]*\n[\s\S]*$/gi, "") // Remove leaked context (format 2)
             .trim();
 
+        // 9. Normalize to Iraqi dialect — deterministic fallback for any fusha leakage
+        if (!isAdmin) {
+            responseText = normalizeToIraqiDialect(responseText);
+        }
+
         // Safety check
         if (!responseText || responseText.trim().length === 0) {
             responseText = "عذراً حبيبي، صار خطأ بسيط. كدر تعيد السؤال مرة ثانية؟ 🦐";
@@ -802,6 +941,123 @@ export async function sendMessage(
         // Always return a friendly fallback instead of throwing
         return { text: getRandomFallback(), products: [] };
     }
+}
+
+// ============================================================
+// STREAMING CHAT FUNCTION - يخلي البوت يرد كلمة بكلمة مثل Claude
+// ============================================================
+
+export type StreamEvent =
+    | { type: "chunk"; text: string }
+    | { type: "done"; products: any[]; normalizedText?: string }
+    | { type: "error"; message: string };
+
+export async function* sendMessageStream(
+    message: string,
+    history: ChatMessage[] = [],
+    context?: ChatContext
+): AsyncGenerator<StreamEvent> {
+    const isAdmin = context?.isAdmin ?? false;
+    const userId = context?.userId;
+    const sessionId = context?.sessionId;
+    const db = getDb();
+
+    // 1. Fetch customer profile
+    let customerProfile = context?.customerProfile;
+    if (userId && !isAdmin && !customerProfile) {
+        try {
+            const profile = await customerProfiler.getFullProfile(userId);
+            customerProfile = profile?.profile;
+        } catch { }
+    }
+
+    // 2. System prompt
+    const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+
+    // 3. Check Groq availability
+    if (!groqClient.hasKeys()) {
+        yield { type: "chunk", text: getRandomFallback() };
+        yield { type: "done", products: [] };
+        return;
+    }
+
+    // 4. Pre-execute tools
+    let toolProducts: any[] = [];
+    let toolContext = "";
+    try {
+        const toolResult = await preExecuteTools(message, userId);
+        toolProducts = toolResult.products;
+        toolContext = toolResult.context;
+    } catch { }
+
+    // 5. Build Groq messages
+    const userMessageWithContext = toolContext
+        ? `${message}\n\n---\n${toolContext}`
+        : message;
+
+    const trimmedHistory = history.slice(-20);
+    const groqMessages: GroqChatMessage[] = [
+        { role: "system", content: systemPrompt },
+        ...trimmedHistory.map(msg => ({
+            role: msg.role === "user" ? "user" as const : "assistant" as const,
+            content: msg.content
+        })),
+        { role: "user", content: userMessageWithContext }
+    ];
+
+    // 6. Stream from Groq
+    let accumulatedText = "";
+    try {
+        const stream = groqClient.chatStream(groqMessages, {
+            model: "llama-3.3-70b-versatile",
+            temperature: 0.45,
+            maxTokens: 2048,
+        });
+
+        for await (const chunk of stream) {
+            accumulatedText += chunk;
+            yield { type: "chunk", text: chunk };
+        }
+    } catch (streamErr: any) {
+        if (!accumulatedText) {
+            yield { type: "chunk", text: getRandomFallback() };
+        }
+    }
+
+    // 7. Apply dialect normalization — fix any fusha that slipped through streaming
+    let finalText = accumulatedText;
+    if (!isAdmin && accumulatedText) {
+        const normalized = normalizeToIraqiDialect(accumulatedText);
+        if (normalized !== accumulatedText) {
+            finalText = normalized;
+        }
+    }
+
+    // 8. Save to DB (fire-and-forget)
+    if (finalText && db) {
+        const conversationId = sessionId || `conv_${Date.now()}`;
+        Promise.all([
+            db.insert(schema.chatMessages).values({ conversationId, userId: userId || null, sessionId, role: "user", content: message }),
+            db.insert(schema.chatMessages).values({ conversationId, userId: userId || null, sessionId, role: "assistant", content: finalText }),
+        ]).then(() => {
+            if (userId) customerProfiler.trackInteraction(userId, "chat").catch(() => { });
+        }).catch(() => { });
+
+        // Sentiment fire-and-forget
+        if (userId || sessionId) {
+            sentimentAnalyzer.analyzeSentiment(message, userId, sessionId).catch(() => { });
+        }
+    }
+
+    // 9. Done — send products + normalized text (if dialect was corrected)
+    const uniqueProducts = toolProducts.filter((p, i, arr) =>
+        arr.findIndex(x => x.id === p.id) === i
+    );
+    yield {
+        type: "done",
+        products: uniqueProducts,
+        ...(finalText !== accumulatedText && { normalizedText: finalText }),
+    };
 }
 
 // ============================================================

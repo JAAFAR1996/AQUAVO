@@ -781,21 +781,28 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
-  "prompt_style": "macro aquarium photography",
-  "camera_setup": "Sony A7R V, 90mm Macro, f/2.8, ISO 400",
+  "prompt_style": "smartphone macro aquarium photography",
+  "camera_setup": "iPhone 15 Pro Max, macro mode, handheld, no tripod",
   "subject": {
-    "main": "Photorealistic extreme macro close-up of a single betta fish face inside aquarium, looking DIRECTLY at the camera lens. Beautiful male betta fish (Siamese fighting fish). Deep royal blue and red coloring with iridescent scales that catch the light. One large detailed eye looking directly into camera — the eye is the focal point, detailed, beautiful, intelligent-looking. The eye shows a tiny reflection of the camera/room in the iris.",
-    "composition": "Fish eye and face fill the frame. Eye in razor-sharp focus, everything else gradually soft."
+    "main": "Photorealistic extreme close-up of a single betta fish face inside aquarium, looking DIRECTLY at the camera lens. Beautiful male betta fish (Siamese fighting fish). Deep royal blue body with subtle purple-blue iridescent shimmer on scales — flowing fins with natural blue gradient fading to translucent edges. One large dark round eye looking directly into camera — the eye is deep black, almost entirely dark with a single small bright LED catchlight. The eye is the focal point — sharp, alive, intelligent-looking.",
+    "composition": "Fish eye and face fill the frame. Eye in focus but slightly imperfect — smartphone macro limitations visible."
   },
   "environment": {
-    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, intimate, revealing scale detail" },
-    "background": "Clean glass in front. Aquatic plants softly blurred in background. Fine gravel substrate below.",
-    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#CC0000 (Betta Red Fins)" }
+    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, slightly uneven — one side of fish slightly brighter than other" },
+    "background": "Glass in front with a tiny fingerprint smudge visible at the edge of frame. Aquatic plants softly blurred in background. Fine gravel substrate below.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#1A237E (Deep Royal Blue Betta)" }
   },
-  "style": { "artistic": "Nature documentary extreme macro", "mood": "Curious, intelligent, present — the fish appears to genuinely look at you" },
+  "imperfections": {
+    "focus": "Very slight focus softness on fins — only the eye area is truly sharp (smartphone macro limitation)",
+    "noise": "Subtle digital noise grain visible in darker areas — natural smartphone sensor noise at close range",
+    "glass": "A tiny fingerprint smudge or water droplet visible at the very edge of the glass",
+    "framing": "Slightly off-center composition — not perfectly centered, as if quickly held up to the glass",
+    "reflection": "Faint ghost reflection of the phone screen barely visible on the aquarium glass surface"
+  },
+  "style": { "artistic": "Casual smartphone photo that happened to capture a perfect moment", "mood": "Curious, intimate — someone just held their phone up to the glass and the fish looked right at them" },
   "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "bright unnatural colors"], "style_raw": true }
+  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "bright unnatural colors", "professional camera quality", "tripod-perfect stability", "studio lighting"], "style_raw": true }
 }
 ```
 
@@ -805,21 +812,27 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
-  "prompt_style": "macro aquarium photography",
-  "camera_setup": "Sony A7R V, 90mm Macro, f/2.8, ISO 400",
+  "prompt_style": "smartphone aquarium photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, no tripod",
   "subject": {
-    "main": "Photorealistic photo of betta fish swimming directly toward camera from slightly farther away. Same fish — same aquarium setting. The fish is now seen from a slight distance, swimming directly toward the camera with purpose. Both eyes visible (3/4 view from front). Fins spread naturally as it swims forward.",
-    "composition": "Sharp focus on fish. Aquarium background softly blurred. Fish centered in frame, approaching viewer."
+    "main": "Photorealistic photo of betta fish swimming directly toward camera from slightly farther away. Same royal blue fish — same aquarium setting. The fish is now seen from a slight distance, swimming directly toward the camera with purpose. Both eyes visible (3/4 view from front). Fins spread naturally as it swims forward.",
+    "composition": "Fish in focus but not perfectly centered — slightly to the left of frame. Aquarium background softly blurred. Fish approaching viewer."
   },
   "environment": {
-    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, same as previous shot" },
-    "background": "Same aquarium interior — plants and substrate softly blurred.",
-    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#CC0000 (Betta Red Fins)" }
+    "lighting": { "type": "Warm blue-green aquarium LED light", "quality": "Natural, slightly uneven" },
+    "background": "Same aquarium interior — plants and substrate softly blurred. A small water droplet visible on the outer glass surface.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#1A237E (Deep Royal Blue Betta)" }
   },
-  "style": { "artistic": "Nature documentary approach shot", "mood": "Purposeful, engaging — the fish is coming to you" },
+  "imperfections": {
+    "focus": "Slight motion softness on fin tips — fish is moving and smartphone shutter is not instant",
+    "noise": "Subtle digital noise in the darker water areas",
+    "glass": "One small water droplet on outer glass — slightly out of focus",
+    "framing": "Camera tilted about 1-2 degrees — natural handheld tilt"
+  },
+  "style": { "artistic": "Casual smartphone video screenshot", "mood": "Purposeful, engaging — someone filming their fish and it swam right toward them" },
   "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image"], "style_raw": true }
+  "constraints": { "exclusions": ["cartoon", "AI-looking fish", "text on image", "professional camera quality", "tripod-perfect stability"], "style_raw": true }
 }
 ```
 
@@ -831,21 +844,27 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
-  "prompt_style": "extreme macro aquarium photography",
-  "camera_setup": "Sony A7R V, 90mm Macro, f/2.0, ISO 800",
+  "prompt_style": "smartphone extreme close-up aquarium photography",
+  "camera_setup": "iPhone 15 Pro Max, macro mode, handheld, pressed close to glass",
   "subject": {
-    "main": "Photorealistic extreme macro of a single betta fish eye filling the entire frame. The iris shows incredible detail — color gradients, tiny reflection of the aquarium interior visible in the eye surface. Surrounding iridescent scales barely visible at frame edges, completely out of focus.",
-    "composition": "Fish eye fills 80% of frame. Razor-sharp focus on iris and pupil. Everything else falls to soft bokeh."
+    "main": "Photorealistic extreme close-up of a single betta fish eye filling the entire frame. The eye is deep black — almost completely dark, glassy, alive. A single bright LED catchlight reflected on the eye surface gives it life and depth. No colorful iris — just pure deep black with that one point of light. Surrounding iridescent blue scales barely visible at frame edges, completely out of focus.",
+    "composition": "Fish eye fills 70% of frame — not perfectly centered, slightly offset to upper-right. Focus on the dark glassy eye surface and catchlight. Surrounding scales fall to soft blur."
   },
   "environment": {
-    "lighting": { "type": "Warm aquarium LED light", "quality": "Intimate, creating a single bright catchlight in the iris" },
-    "background": "Pure soft bokeh — indistinct warm aquarium tones",
-    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#1A1A1A (Deep Black Pupil)" }
+    "lighting": { "type": "Warm aquarium LED light", "quality": "Natural LED creating a single catchlight — not studio-perfect" },
+    "background": "Soft blur — warm aquarium tones, slightly noisy in dark areas",
+    "color_palette": { "dominant": "#0A0A0A (Deep Black Eye)", "accent": "#FFFFFF (LED Catchlight)" }
   },
-  "style": { "artistic": "Nature documentary extreme macro", "mood": "Hypnotic, impossibly detailed, intimate" },
+  "imperfections": {
+    "focus": "Slight focus hunting artifacts — the very edge of the eye is slightly soft (smartphone macro struggling at this distance)",
+    "noise": "Visible digital noise grain in the dark areas around the eye — typical smartphone sensor at close range in low light",
+    "glass": "Extremely faint condensation or micro-scratches on glass surface between camera and fish",
+    "framing": "Not perfectly composed — the eye is offset, as if the person was trying to get as close as possible"
+  },
+  "style": { "artistic": "Lucky smartphone macro shot", "mood": "Hypnotic, intimate — someone pressed their phone right against the glass and got this incredible close-up" },
   "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
   "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
-  "constraints": { "exclusions": ["cartoon", "AI-looking", "text on image", "full fish body visible"], "style_raw": true }
+  "constraints": { "exclusions": ["cartoon", "AI-looking", "text on image", "full fish body visible", "professional camera quality", "perfect studio composition"], "style_raw": true }
 }
 ```
 

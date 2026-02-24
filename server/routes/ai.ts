@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
-import { sendMessage, ChatMessage, ChatContext, recommendProductsForJourney } from "../services/gemini-ai.js";
+import { sendMessage, sendMessageStream, ChatMessage, ChatContext, recommendProductsForJourney } from "../services/gemini-ai.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { count, lt, and, gt, eq, inArray } from "drizzle-orm";
@@ -216,6 +216,87 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
             success: false,
             error: error instanceof Error ? error.message : "حدث خطأ",
         });
+    }
+});
+
+// POST /api/ai/chat/stream - Streaming version (SSE) — يخلي البوت يرد كلمة بكلمة
+router.post("/chat/stream", aiRateLimiter, async (req: Request, res: Response) => {
+    try {
+        const { message, history = [], userName } = req.body as {
+            message: string;
+            history?: ChatMessage[];
+            userName?: string;
+        };
+
+        if (!message || typeof message !== "string") {
+            return res.status(400).json({ success: false, error: "الرسالة مطلوبة" });
+        }
+
+        const sess = getSession(req);
+        const userId = sess?.userId;
+
+        const db = getDb();
+        let isAdmin = false;
+        if (db && userId) {
+            try {
+                const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+                isAdmin = user?.role === "admin";
+            } catch { }
+        }
+
+        // Build context
+        let context: ChatContext = {
+            userName, userId,
+            sessionId: (req as any).sessionID,
+            isAdmin,
+        };
+
+        if (db) {
+            try {
+                const [productsResult] = await db.select({ count: count() }).from(schema.products);
+                const [lowStockResult] = await db.select({ count: count() }).from(schema.products)
+                    .where(and(gt(schema.products.stock, 0), lt(schema.products.stock, 5)));
+                context.productsCount = productsResult?.count ?? 0;
+                context.lowStockCount = lowStockResult?.count ?? 0;
+            } catch { }
+        }
+
+        // SSE headers
+        res.setHeader("Content-Type", "text/event-stream");
+        res.setHeader("Cache-Control", "no-cache");
+        res.setHeader("Connection", "keep-alive");
+        res.setHeader("X-Accel-Buffering", "no"); // Disable Nginx buffering
+        res.flushHeaders();
+
+        // Stream events to client
+        for await (const event of sendMessageStream(message, history, context)) {
+            if (event.type === "done") {
+                // Map products same as non-streaming endpoint
+                const mappedProducts = event.products.map((p: any) => ({
+                    id: p.id, slug: p.slug, name: p.name, price: p.price,
+                    image: (p.images && p.images.length > 0) ? p.images[0] : p.thumbnail,
+                    category: p.category,
+                    rating: p.rating ? parseFloat(p.rating) : null,
+                }));
+                const donePayload: any = { type: "done", products: mappedProducts };
+                if (event.normalizedText) donePayload.normalizedText = event.normalizedText;
+                res.write(`data: ${JSON.stringify(donePayload)}\n\n`);
+            } else {
+                res.write(`data: ${JSON.stringify(event)}\n\n`);
+            }
+        }
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+
+    } catch (error) {
+        console.error("Streaming Chat Error:", error);
+        if (!res.headersSent) {
+            res.status(500).json({ success: false, error: "حدث خطأ" });
+        } else {
+            res.write(`data: ${JSON.stringify({ type: "error", message: "عذراً، صار خطأ" })}\n\n`);
+            res.end();
+        }
     }
 });
 

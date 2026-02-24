@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
@@ -219,10 +218,17 @@ const FeedbackButtons = memo(function FeedbackButtons({
 });
 
 // ============================================================
-// API Call
+// Streaming API Call — كلمة بكلمة مثل Claude
 // ============================================================
-async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
-    const response = await fetch("/api/ai/chat", {
+async function streamChatMessage(
+    message: string,
+    history: ChatMessage[],
+    userName: string | undefined,
+    onChunk: (text: string) => void,
+    onDone: (products: Product[], normalizedText?: string) => void,
+    onError: (msg: string) => void
+): Promise<void> {
+    const response = await fetch("/api/ai/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -233,28 +239,42 @@ async function sendChatMessage(message: string, history: ChatMessage[], userName
         }),
     });
 
-    if (!response.ok) {
-        let errorMessage = "فشل الاتصال";
-        try {
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const error = await response.json();
-                errorMessage = error.error || errorMessage;
-            } else {
-                const text = await response.text();
-                errorMessage = text.slice(0, 100) || errorMessage;
-            }
-        } catch {
-            // Ignore parse errors
-        }
-        throw new Error(errorMessage);
+    if (!response.ok || !response.body) {
+        onError("فشل الاتصال 😔 حاول مرة ثانية");
+        return;
     }
 
-    const data = await response.json();
-    return {
-        response: data.data.response,
-        products: data.data.products || [],
-    };
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? ""; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+            if (!line.startsWith("data: ")) continue;
+            const data = line.slice(6).trim();
+            if (data === "[DONE]") return;
+
+            try {
+                const event = JSON.parse(data);
+                if (event.type === "chunk") {
+                    onChunk(event.text);
+                } else if (event.type === "done") {
+                    onDone(event.products || [], event.normalizedText);
+                } else if (event.type === "error") {
+                    onError(event.message || "صار خطأ 😔");
+                }
+            } catch {
+                // Ignore malformed events
+            }
+        }
+    }
 }
 
 // ============================================================
@@ -313,7 +333,9 @@ export function AIChatBot() {
     const [isMinimized, setIsMinimized] = useState(false);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState("");
+    const [isStreaming, setIsStreaming] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const streamingIndexRef = useRef<number>(-1);
 
     // Proactive chat triggers
     const { showProactiveHint, setShowProactiveHint } = useProactiveChat(isOpen, setIsOpen, messages, setMessages);
@@ -321,8 +343,8 @@ export function AIChatBot() {
     // Personalized greeting
     useEffect(() => {
         const greeting = userName
-            ? `أهلاً ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات`
-            : "مرحباً! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات";
+            ? `هلا ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصايح رعاية\n• توصيات منتجات`
+            : "هلا! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصايح رعاية\n• توصيات منتجات";
 
         setMessages([{
             role: "assistant",
@@ -331,7 +353,7 @@ export function AIChatBot() {
         }]);
     }, [userName]);
 
-    // Smooth auto-scroll
+    // Smooth auto-scroll on new content
     useEffect(() => {
         if (scrollRef.current) {
             const el = scrollRef.current;
@@ -341,39 +363,82 @@ export function AIChatBot() {
         }
     }, [messages]);
 
-    // Chat mutation
-    const chatMutation = useMutation({
-        mutationFn: (message: string) => sendChatMessage(message, messages, userName),
-        onSuccess: (data) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: data.response,
-                    products: data.products,
-                    feedback: null,
-                    timestamp: new Date()
-                },
-            ]);
-        },
-        onError: (error: Error) => {
-            setMessages((prev) => [
-                ...prev,
-                { role: "assistant", content: `❌ ${error.message}`, timestamp: new Date() },
-            ]);
-        },
-    });
+    const handleSend = useCallback(async () => {
+        if (!input.trim() || isStreaming) return;
 
-    const handleSend = useCallback(() => {
-        if (!input.trim() || chatMutation.isPending) return;
-
-        setMessages((prev) => [
-            ...prev,
-            { role: "user", content: input.trim(), timestamp: new Date() },
-        ]);
-        chatMutation.mutate(input.trim());
+        const userMessage = input.trim();
         setInput("");
-    }, [input, chatMutation]);
+        setIsStreaming(true);
+
+        // Add user message
+        setMessages(prev => [...prev, {
+            role: "user",
+            content: userMessage,
+            timestamp: new Date(),
+        }]);
+
+        // Add empty assistant message (will be filled by streaming)
+        const assistantMsgIndex = messages.length + 1;
+        streamingIndexRef.current = assistantMsgIndex;
+        setMessages(prev => [...prev, {
+            role: "assistant",
+            content: "",
+            timestamp: new Date(),
+            feedback: null,
+        }]);
+
+        let accumulatedText = "";
+
+        await streamChatMessage(
+            userMessage,
+            messages,
+            userName,
+            // onChunk: append text as it arrives
+            (chunk) => {
+                accumulatedText += chunk;
+                setMessages(prev => {
+                    const updated = [...prev];
+                    const lastIdx = updated.length - 1;
+                    if (updated[lastIdx]?.role === "assistant") {
+                        updated[lastIdx] = { ...updated[lastIdx], content: accumulatedText };
+                    }
+                    return updated;
+                });
+            },
+            // onDone: attach products + apply dialect correction if needed
+            (products, normalizedText) => {
+                setMessages(prev => {
+                    const updated = [...prev];
+                    const lastIdx = updated.length - 1;
+                    if (updated[lastIdx]?.role === "assistant") {
+                        updated[lastIdx] = {
+                            ...updated[lastIdx],
+                            products,
+                            // Replace with normalized text if dialect was corrected
+                            ...(normalizedText && { content: normalizedText }),
+                        };
+                    }
+                    return updated;
+                });
+                setIsStreaming(false);
+            },
+            // onError
+            (errMsg) => {
+                setMessages(prev => {
+                    const updated = [...prev];
+                    const lastIdx = updated.length - 1;
+                    if (updated[lastIdx]?.role === "assistant") {
+                        updated[lastIdx] = { ...updated[lastIdx], content: `❌ ${errMsg}` };
+                    }
+                    return updated;
+                });
+                setIsStreaming(false);
+            }
+        );
+
+        // Safety: ensure streaming is marked done
+        setIsStreaming(false);
+    }, [input, isStreaming, messages, userName]);
 
     // Handle feedback
     const handleFeedback = useCallback((messageIndex: number, type: "up" | "down") => {
@@ -615,8 +680,8 @@ export function AIChatBot() {
                                                 </div>
                                             ))}
 
-                                            {/* Typing Indicator */}
-                                            {chatMutation.isPending && (
+                                            {/* Typing Indicator — only show when waiting for first chunk */}
+                                            {isStreaming && messages[messages.length - 1]?.role === "assistant" && messages[messages.length - 1]?.content === "" && (
                                                 <div className="flex gap-2">
                                                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
                                                         <Bot className="w-3 h-3 text-white" />
@@ -678,17 +743,17 @@ export function AIChatBot() {
                                                 onChange={(e) => setInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                                 placeholder="اكتب سؤالك..."
-                                                disabled={chatMutation.isPending}
+                                                disabled={isStreaming}
                                                 className="flex-1 h-9 text-xs"
                                             />
                                             <Button
                                                 onClick={handleSend}
-                                                disabled={!input.trim() || chatMutation.isPending}
+                                                disabled={!input.trim() || isStreaming}
                                                 size="icon"
                                                 className="h-9 w-9"
                                                 aria-label="إرسال الرسالة"
                                             >
-                                                {chatMutation.isPending ? (
+                                                {isStreaming ? (
                                                     <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                                                 ) : (
                                                     <Send className="w-4 h-4" aria-hidden="true" />
