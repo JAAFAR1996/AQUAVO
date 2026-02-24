@@ -332,7 +332,7 @@ export default function ReturnPolicy() {
                     </div>
                     <div>
                       <p className="font-medium">اتصل بنا</p>
-                      <p className="text-sm text-muted-foreground" dir="ltr">+964 772 609 0012</p>
+                      <p className="text-sm text-muted-foreground" dir="ltr">+964 774 788 0673</p>
                     </div>
                   </a>
                   <a

@@ -23,7 +23,7 @@ import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 // Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
-import Products from "@/pages/products";
+const Products = lazy(() => import("@/pages/products"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
@@ -96,7 +96,15 @@ function Router() {
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/ar" component={Home} />
-      <Route path="/products" component={Products} />
+      <Route path="/products">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Products />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Aquarium Setup Wizard */}
       <Route path="/aquarium-wizard">

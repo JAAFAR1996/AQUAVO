@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/auth-context";
 import { useCart } from "@/contexts/cart-context";
 import { fetchPersonalizedProducts, fetchPredictedNeeds } from "@/lib/api";
@@ -58,6 +59,13 @@ export function PersonalizedSection() {
   const { user } = useAuth();
   const isLoggedIn = !!user;
 
+  // Defer heavy AI prediction call by 4s so it doesn't compete with page render
+  const [canLoadPredictions, setCanLoadPredictions] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setCanLoadPredictions(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
   const { data: personalizedData, isLoading: loadingPersonalized } = useQuery({
     queryKey: ["products", "personalized"],
     queryFn: fetchPersonalizedProducts,
@@ -68,7 +76,7 @@ export function PersonalizedSection() {
     queryKey: ["products", "predicted-needs"],
     queryFn: fetchPredictedNeeds,
     staleTime: 5 * 60 * 1000,
-    enabled: isLoggedIn,
+    enabled: isLoggedIn && canLoadPredictions,
   });
 
   const products = personalizedData?.products ?? [];

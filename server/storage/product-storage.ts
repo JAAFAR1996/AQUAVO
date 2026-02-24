@@ -119,22 +119,23 @@ export class ProductStorage {
     async getProductAttributes(): Promise<{ categories: string[], brands: string[], minPrice: number, maxPrice: number }> {
         const db = this.ensureDb();
 
-        // Fetch categories from the dedicated table
-        const categoryResults = await db.select({ name: categories.name })
-            .from(categories)
-            .orderBy(categories.name);
-
-        // Fetch unique brands from products table
-        const brandResults = await db.selectDistinct({ brand: products.brand })
-            .from(products)
-            .where(isNull(products.deletedAt))
-            .orderBy(products.brand);
-
-        // Fetch price range
-        const priceStats = await db.select({
-            min: sql<string>`min(${products.price})`,
-            max: sql<string>`max(${products.price})`
-        }).from(products).where(isNull(products.deletedAt));
+        // Run all 3 queries in parallel instead of sequentially
+        const [categoryResults, brandResults, priceStats] = await Promise.all([
+            // Categories from dedicated table
+            db.select({ name: categories.name })
+                .from(categories)
+                .orderBy(categories.name),
+            // Unique brands from active products
+            db.selectDistinct({ brand: products.brand })
+                .from(products)
+                .where(isNull(products.deletedAt))
+                .orderBy(products.brand),
+            // Price range from active products
+            db.select({
+                min: sql<string>`min(${products.price})`,
+                max: sql<string>`max(${products.price})`
+            }).from(products).where(isNull(products.deletedAt)),
+        ]);
 
         return {
             categories: categoryResults.map(c => c.name).filter(Boolean),

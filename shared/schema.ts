@@ -96,6 +96,11 @@ export const products = pgTable("products", {
   deletedAtIdx: index("products_deleted_at_idx").on(table.deletedAt),
   brandIdx: index("products_brand_idx").on(table.brand),
   priceIdx: index("products_price_idx").on(table.price),
+  // Composite indexes for the most common filter patterns (deletedAt IS NULL + filter column)
+  categoryDeletedIdx: index("products_category_deleted_idx").on(table.category, table.deletedAt),
+  brandDeletedIdx: index("products_brand_deleted_idx").on(table.brand, table.deletedAt),
+  createdAtDeletedIdx: index("products_created_at_deleted_idx").on(table.createdAt, table.deletedAt),
+  bestSellerDeletedIdx: index("products_best_seller_deleted_idx").on(table.isBestSeller, table.deletedAt),
 }));
 
 export const orders = pgTable("orders", {

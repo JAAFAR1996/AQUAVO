@@ -7,6 +7,24 @@ import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 
+// ─── Server-side in-memory cache ──────────────────────────────
+// Prevents repeated DB round-trips for the same product query.
+// Cache TTL = 60s. Cleared on any product mutation (create/update/delete).
+const productsCache = new Map<string, { data: { products: any[] }; expires: number }>();
+const CACHE_TTL = 60 * 1000; // 60 seconds
+
+export function clearProductsCache() {
+    productsCache.clear();
+}
+
+// Periodically clean up expired entries to prevent memory accumulation
+setInterval(() => {
+    const now = Date.now();
+    for (const [key, val] of productsCache) {
+        if (now > val.expires) productsCache.delete(key);
+    }
+}, 5 * 60 * 1000); // sweep every 5 minutes
+
 export function createProductRouter(): RouterType {
     const router = Router();
 
@@ -23,18 +41,29 @@ export function createProductRouter(): RouterType {
                 isNew: query.isNew !== undefined ? query.isNew === 'true' : undefined,
                 isBestSeller: query.isBestSeller !== undefined ? query.isBestSeller === 'true' : undefined,
                 search: query.search as string,
-                // Default pagination: limit to 500 products
-                // Increased from 50 to show all products (currently ~180)
+                // Default: fetch all products — client does filtering/sorting
                 limit: query.limit ? Number(query.limit) : 500,
                 offset: query.offset ? Number(query.offset) : undefined,
                 sortBy: query.sortBy as any,
                 sortOrder: query.sortOrder as 'asc' | 'desc',
             };
 
+            // Serve from cache if available
+            const cacheKey = JSON.stringify(filters);
+            const cached = productsCache.get(cacheKey);
+            if (cached && Date.now() < cached.expires) {
+                res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+                return res.json(cached.data);
+            }
+
             const products = await storage.getProducts(filters);
-            // Cache product listings for 60s, allow stale for 5 minutes while revalidating
+            const responseData = { products };
+
+            // Store in cache
+            productsCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL });
+
             res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-            res.json({ products });
+            res.json(responseData);
         } catch (err) {
             next(err);
         }
@@ -302,6 +331,8 @@ export function createProductRouter(): RouterType {
     router.get("/attributes", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const attributes = await storage.getProductAttributes();
+            // Cache for 10 minutes — attributes (categories, brands, prices) rarely change
+            res.set('Cache-Control', 'public, max-age=600, stale-while-revalidate=1800');
             res.json(attributes);
         } catch (err) {
             next(err);

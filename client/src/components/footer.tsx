@@ -291,7 +291,7 @@ export default function Footer() {
                   <div className="p-2 bg-slate-800 group-hover:bg-primary/20 rounded-full transition-colors">
                     <Phone className="h-4 w-4 text-primary" />
                   </div>
-                  <span dir="ltr">+964 772 609 0012</span>
+                  <span dir="ltr">+964 774 788 0673</span>
                 </a>
               </li>
               <li>

@@ -59,78 +59,298 @@
 
 ### 📸 صورة 1 — الركن قبل (BEFORE)
 
-```
-Photorealistic photo of a neglected corner inside a typical Iraqi home.
-
-SETTING:
-Small corner where two walls meet. One wall has faded cream paint with slight dirt marks near the baseboard. The floor is old ceramic tile — beige or light brown, slightly dusty. The corner contains: 2-3 stacked old cardboard boxes of different sizes, one plastic bag on top, a forgotten old chair pushed against the wall with a dusty jacket thrown over it. Very lived-in and cluttered.
-
-LIGHTING:
-Dim indoor room light — single overhead fluorescent or yellow bulb. Flat, boring, uninspiring lighting. Slight shadows in the corner. No natural light visible. Realistic home lighting that feels ordinary and forgettable.
-
-CAMERA:
-Shot from about 1.5 meters away. Straight-on view of the corner. 9:16 vertical. Smartphone quality — slightly imperfect focus, real photo feel. NO tripod perfection — slightly handheld look.
-
-ATMOSPHERE:
-Sad, forgotten, wasted space. The kind of corner everyone has but nobody does anything about.
-
-QUALITY:
-Ultra-realistic, NOT AI-looking. Natural colors. NO people, NO faces, NO animals. NO text or logos.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone indoor photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, no tripod",
+  "subject": {
+    "main": "Photorealistic photo of a typical unused corner in a modern Iraqi home. Corner where two walls meet. Walls painted warm beige. Floor is large-format glossy porcelain tile, light beige.",
+    "objects_in_corner": {
+      "boxes": "2 USED brown cardboard boxes stacked. Boxes must look REAL and USED: visible packing tape strips (clear or brown), top flaps slightly bent and not perfectly closed, natural cardboard corrugation texture visible on edges, small dent or crush mark on one corner, slight color variation between the two boxes (different age/source). NOT smooth, NOT perfect, NOT new-looking.",
+      "chair": "One white plastic monobloc chair (the cheap stackable kind found everywhere in Iraq). Chair must have: consistent parallel lines on the backrest, all 4 legs touching the floor evenly, slight scuff marks or light dirt on legs from floor contact, natural plastic molding seam line visible along edges. Chair turned slightly sideways.",
+      "blanket": "A folded patterned blanket draped over the chair seat. Blanket must show: visible fabric weave texture, real fold creases where it bends, a specific recognizable pattern (plaid or geometric), slight pilling or fuzz on surface — NOT smooth blended colors, must look like REAL fabric photographed up close.",
+      "bag": "A crumpled small white plastic bag on the floor next to the boxes. Bag must look: deflated and wrinkled with natural nylon creases, lying flat or slumped — NOT standing upright, handles limp and separate from bag body — NOT fused together."
+    },
+    "composition": "Shot from about 1.5 meters away. Full corner visible from floor to about 2 meters up the wall. Straight-on wide view."
+  },
+  "environment": {
+    "lighting": { "type": "White fluorescent tube on ceiling", "quality": "Flat, bright white fluorescent light typical of Iraqi homes" },
+    "background": "Warm beige walls, glossy porcelain tile floor.",
+    "color_palette": { "dominant": "#D4C5A9 (Warm Beige Wall)", "accent": "#8B7355 (Cardboard Brown)" }
+  },
+  "imperfections": {
+    "focus": "Slightly imperfect focus — real smartphone photo feel",
+    "noise": "Subtle digital noise in shadow areas",
+    "framing": "Slightly off-level — natural handheld tilt of 1-2 degrees",
+    "critical_realism": "Every object must have WORN, USED texture. Nothing should look brand new, factory-perfect, or digitally smooth. Real objects have scratches, tape residue, uneven surfaces, dust, and minor damage."
+  },
+  "style": { "artistic": "Casual smartphone snapshot", "mood": "Ordinary, everyday — a corner everyone has" },
+  "technical": { "resolution": "4k", "aspect_ratio":": "9:16" },
+  "constraints": { "exclusions": ["smooth perfect surfaces", "brand new objects", "digitally smooth textures", "perfectly straight lines on organic objects", "objects floating above floor", "fused or merged object parts", "text on objects", "writing on boxes", "logos", "AI-looking", "Western-style home", "wooden floors", "professional camera", "studio lighting", "people", "faces"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 2 — الركن بعد (AFTER)
 
-```
-Photorealistic photo of the same corner of an Iraqi home, completely transformed.
-
-SETTING:
-Exact same corner — same two walls, same floor tile. The cardboard boxes and clutter are GONE. In their place: a beautiful modern rectangular aquarium (80-100 liters) on a sleek dark wooden stand. The aquarium is filled with lush green aquatic plants, white and dark gravel substrate, small colorful tropical fish (a school of neon tetras swimming together). The aquarium has a black frame, clear glass sides, internal LED lighting glowing warm blue-green.
-
-LIGHTING:
-The room is dim — almost dark. The ONLY significant light source is the aquarium LED light casting a beautiful ambient blue-green glow on the surrounding cream walls and floor. The aquarium light creates a stunning ripple-reflection pattern on the ceiling above. The corner is transformed from forgotten to magical.
-
-CAMERA:
-Same angle as the BEFORE photo — same distance, same height, same 9:16 vertical framing. The transition should be recognizable as the exact same corner.
-
-ATMOSPHERE:
-Magical, calm, alive. The kind of transformation that makes people say "I want this in MY house."
-
-QUALITY:
-Ultra-realistic, NOT AI-looking. Deep rich blues and greens from aquarium light. NO people, NO faces. Natural colors for fish and plants. Sharp glass and water reflections.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone aquarium room photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld — same angle as صورة 1",
+  "subject": {
+    "main": "Photorealistic photo of the same corner of an Iraqi home, completely transformed. Exact same corner — same warm beige walls, same glossy porcelain tile floor. Same overhead white fluorescent light is ON — same flat bright lighting as صورة 1.",
+    "aquarium_setup": {
+      "tank": "Standard rectangular glass aquarium, approximately 60cm wide x 30cm deep x 36cm tall (wider than tall). Simple black plastic rim at top and bottom. A glass lid sits on top. Water level is 2-3cm below the top rim. The aquarium internal LED light is ON — creating a blue-green glow INSIDE the water only. The aquarium glow does NOT light up the room or walls because the overhead fluorescent light is much brighter.",
+      "stand": "Simple dark melamine cabinet with two closed doors. Cabinet sits flat on the tile floor. ONE single black power cord visible running from behind the cabinet down to a wall outlet on the right wall — just one simple cord, neatly running along the baseboard. NO tangled wires, NO power strips, NO multiple cables.",
+      "inside_tank": "8-10 small neon tetras in a loose natural group — NOT lined up. Some facing different directions. Water is slightly green-tinted — NOT crystal clear. 3-4 types of green aquatic plants of different heights — taller ones at the back, short ones in front. Mixed gravel substrate — white and dark stones, varied sizes. A small piece of driftwood with java fern tied to it.",
+      "glass_condition": "Glass has: slight algae green film on one corner (bottom), faint waterline calcium deposit. NOT perfectly clean."
+    },
+    "composition": "Same angle as BEFORE photo — same distance, same height. The aquarium replaces the boxes from صورة 1. Same wall, same floor, same overhead light."
+  },
+  "environment": {
+    "lighting": { "type": "SAME white fluorescent tube on ceiling as صورة 1 — room is bright and evenly lit", "quality": "Normal bright flat indoor lighting — SAME as صورة 1. The aquarium LED is visible inside the water but does NOT project light onto walls or floor. NO glow on walls. NO light rays. NO dramatic lighting. The room looks exactly like صورة 1 lighting-wise." },
+    "background": "Same warm beige walls in normal flat fluorescent light — NO blue-green tint on walls. Floor is same glossy porcelain tile with normal flat reflection of fluorescent light — NO colored reflections from aquarium.",
+    "color_palette": { "dominant": "#D4C5A9 (Same Beige Wall as صورة 1)", "accent": "#004D40 (Aquarium Glow — inside tank only)" }
+  },
+  "imperfections": {
+    "focus": "Slightly imperfect focus — same smartphone quality as صورة 1",
+    "noise": "Subtle digital noise — same as صورة 1",
+    "framing": "Same slight tilt as صورة 1 — maintaining consistency",
+    "critical_realism": "This must look like the SAME ROOM with the SAME LIGHTING as صورة 1 — the ONLY difference is the boxes are replaced by an aquarium. The walls should NOT have any colored glow. The floor should NOT have dramatic reflections. Think of it as a normal daytime photo with the lights on."
+  },
+  "style": { "artistic": "Casual smartphone photo — same person, same room, same time of day as صورة 1, just the corner changed", "mood": "Simple transformation — the corner went from boring storage to a living aquarium" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["light rays on walls", "star-shaped light patterns", "blue-green glow on walls", "colored wall lighting from aquarium", "dramatic aquarium lighting on room", "mirror-like floor reflection of aquarium", "strong floor reflections", "dark room lit only by aquarium", "dim room", "multiple cables or wires", "tangled wires", "power strips", "cube-shaped aquarium", "aquarium taller than wide", "text", "logos", "AI-looking", "Western-style home", "professional camera", "studio lighting", "people", "faces"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 3 — اختياري: يد تزيل صندوق (للكليب 2)
 
-```
-Photorealistic close-up of a man's hand reaching into frame from the right side, gripping the side of an old cardboard box. The corner floor and wall visible in background (same Iraqi home setting). The hand is mid-grab — natural movement captured. Slightly out-of-focus background. 9:16 vertical. Smartphone quality. NO face visible — just wrist and hand. Natural skin tone, clean but not manicured. Realistic.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone action close-up",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld",
+  "subject": {
+    "main": "Photorealistic close-up of a man's hand reaching into frame from the right side, gripping the side of a brown cardboard box.",
+    "hand_details": "Iraqi man's hand with natural olive skin tone. Hand must show: visible knuckle creases and skin texture, natural fingernail length with slight dirt under one nail, visible palm lines where gripping box, slight vein definition on back of hand. Fingers pressing into cardboard causing slight indentation. Wrist has natural arm hair.",
+    "box_details": "Same used cardboard box from صورة 1. Visible tape and corrugation texture. The grip is causing slight cardboard flex/bend where fingers press.",
+    "composition": "Hand enters from right edge. Background (Iraqi home corner — warm beige walls, glossy porcelain tile) slightly out of focus. Only wrist and hand visible — NO face."
+  },
+  "environment": {
+    "lighting": { "type": "Same white fluorescent tube as صورة 1", "quality": "Flat indoor fluorescent light" },
+    "background": "Same Iraqi home corner — warm beige walls, glossy porcelain tile floor, remaining box slightly blurred.",
+    "color_palette": { "dominant": "#D4C5A9 (Beige Wall)", "accent": "#8B7355 (Cardboard Brown)" }
+  },
+  "imperfections": {
+    "focus": "Slight motion blur on fingertips — movement captured by smartphone",
+    "noise": "Subtle indoor sensor noise",
+    "framing": "Slightly rushed composition — as if someone quickly held up their phone",
+    "critical_realism": "Hand must look like a REAL working hand — not smooth, not perfect. Real hands have uneven skin texture, visible pores, slight calluses."
+  },
+  "text_overlay": {
+    "text": "هاي الزاوية من 3 سنين...",
+    "position": "center",
+    "style": "White Arabic font, large, no background behind text"
+  },
+  "style": { "artistic": "Quick smartphone capture of someone clearing storage", "mood": "Ordinary moment — someone finally decided to use that corner differently" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["smooth perfect skin", "manicured hands", "text on boxes", "writing on boxes", "face visible", "AI-looking", "Western-style home", "professional camera", "studio lighting"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 4 — الركن فارغ بعد إزالة الصناديق (IMAGE_CORNER_EMPTY)
 
-```
-Photorealistic photo of the same corner of an Iraqi home with the boxes and clutter removed. Empty corner — bare cream walls meeting, old ceramic tile floor, slightly dusty. The space looks bigger but still uninspiring and boring. Same flat dim indoor fluorescent lighting. 9:16 vertical. Smartphone quality — slightly handheld look. NO people, NO faces, NO animals, NO text or logos. Ultra-realistic.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone indoor photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld — same angle as صورة 1",
+  "subject": {
+    "main": "Photorealistic photo of the same corner of an Iraqi home with boxes removed. Empty corner — warm beige painted walls meeting, glossy porcelain tile floor (light beige).",
+    "wall_details": "Walls show signs of use: faint rectangular shadow where a picture frame used to hang (slightly different paint shade), one or two tiny nail holes, slight scuff mark near floor level from boxes being dragged. Paint has natural slight sheen variation — not perfectly uniform matte.",
+    "floor_details": "Glossy porcelain tile is clean but shows: faint drag marks from sliding boxes, natural tile grout lines visible, slight dust in the corner where walls meet floor. Individual tiles have slight color variation between them.",
+    "composition": "Same straight-on angle as صورة 1. Empty corner fills frame. The space looks bigger and ready for something."
+  },
+  "environment": {
+    "lighting": { "type": "Same white fluorescent tube on ceiling", "quality": "Flat, typical Iraqi home fluorescent" },
+    "background": "Bare warm beige walls, glossy tile floor.",
+    "color_palette": { "dominant": "#D4C5A9 (Warm Beige)", "accent": "#C4B896 (Floor Tile)" }
+  },
+  "imperfections": {
+    "focus": "Slightly soft — low-effort smartphone photo",
+    "noise": "Indoor sensor noise",
+    "framing": "Same handheld tilt as previous photos",
+    "critical_realism": "Empty corner must NOT look like a 3D render. Walls must have natural paint texture. Floor must have realistic light reflection. Corner where walls meet should not be a perfect sharp line — real corners have slight irregularity."
+  },
+  "style": { "artistic": "Casual snapshot of an empty corner", "mood": "Empty, plain — the in-between moment before transformation" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["perfectly smooth walls", "uniform paint", "perfect corner lines", "people", "faces", "animals", "text", "logos", "AI-looking", "Western-style home", "professional camera"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 5 — كلوز أب الحوض مع السمك (IMAGE_AFTER_CORNER_FISH_CLOSE)
 
-```
-Photorealistic close-up photo of a modern rectangular aquarium in an Iraqi home corner. Shot from about 0.5 meters — aquarium glass fills most of the frame. Through clear glass: lush green aquatic plants, white and dark gravel substrate, a school of neon tetras swimming calmly. Internal LED glowing warm blue-green. Room is dim — aquarium light is the dominant source. Sharp focus on fish and plants through glass. Slight natural glass reflections visible. 9:16 vertical. Ultra-realistic aquarium photography. NO people, NO faces, NO text.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone aquarium close-up photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, about 0.5 meters from glass",
+  "subject": {
+    "main": "Photorealistic close-up of a modern rectangular aquarium in an Iraqi home corner.",
+    "through_glass": {
+      "fish": "8-10 neon tetras in natural loose formation. Each fish has: individual blue iridescent stripe from nose to tail, red stripe on lower body, translucent tail fin with visible fin rays. Fish NOT identical — slight size differences. Some facing camera, some turned sideways. One fish slightly separated from group.",
+      "plants": "Java fern and anubias plants. Leaves show: visible vein patterns, varying shades of green (new leaves lighter), 1-2 leaves with slight brown edge (natural aging). Plants attached to small driftwood pieces — roots visible gripping wood.",
+      "substrate": "Mixed gravel — individual stones clearly visible, varying sizes from 2mm to 8mm, whites and dark greys mixed unevenly. Small debris particles between stones. Slight algae film on some stones.",
+      "equipment": "Heater suction-cupped to back glass partially visible. Filter intake tube in one corner. Thin airline tubing along back glass."
+    },
+    "glass_surface": "Glass shows: faint water droplets on OUTSIDE from condensation, tiny calcium deposit at water line, faint smudge fingerprint near bottom edge. Water surface visible at top with slight surface film.",
+    "composition": "Aquarium glass fills most of the frame. Slight angle — not perfectly straight-on. Focus on fish and plants through glass."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only — warm blue-green", "quality": "Aquarium light is dominant. Creates visible light rays in slightly cloudy water." },
+    "background": "Dim room behind camera faintly reflected in glass — phone silhouette and hand barely visible.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#00E676 (Aquatic Plant Green)" }
+  },
+  "imperfections": {
+    "focus": "Focus on fish at mid-depth — glass surface and background plants slightly softer (natural depth of field through glass)",
+    "noise": "Subtle noise in darker water areas and shadows behind plants",
+    "glass": "Faint phone and hand reflection visible in glass",
+    "framing": "Not perfectly level — handheld close-up, slightly tilted",
+    "critical_realism": "This must look like a REAL aquarium photograph — not a computer render. Water must have natural slight cloudiness. Fish must have organic movement poses. Glass must have real-world imperfections."
+  },
+  "style": { "artistic": "Someone admiring their aquarium up close", "mood": "Intimate, alive, peaceful" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["crystal clear water", "perfectly clean glass", "identical fish", "fish in rows", "cartoon fish", "CGI water", "smooth gravel", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 6 — الغرفة كاملة بالليل (IMAGE_ROOM_WIDE_NIGHT)
 
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night mode room photography",
+  "camera_setup": "iPhone 15 Pro Max, night mode, handheld, shot from across room",
+  "subject": {
+    "main": "Photorealistic wide photo of an Iraqi home room at night — all lights off. In the corner, the aquarium glows as the only light source.",
+    "room_details": {
+      "aquarium_glow": "Aquarium casts warm blue-green light that illuminates the warm beige walls closest to it, creating a natural light falloff — bright near aquarium, fading to darkness further away. Gentle ripple-light reflections dance on ceiling directly above aquarium.",
+      "furniture_silhouettes": "Dark silhouettes of real Iraqi home furniture barely visible: edge of a sofa or majlis cushion, corner of a TV stand, maybe a side table. NOT perfectly defined — just dark shapes suggesting a lived-in room.",
+      "floor_reflections": "Glossy porcelain floor tile catches and reflects the aquarium's blue-green glow — creating a pool of colored light on the floor near the stand.",
+      "depth": "Room has natural depth — far wall is completely dark, middle area has faint glow, near-aquarium area well lit. This creates a natural gradient of darkness."
+    },
+    "composition": "Wide shot from across room showing full transformed space. Aquarium glow is the only focal point in otherwise dark room."
+  },
+  "environment": {
+    "lighting": { "type": "Only aquarium LED light — complete darkness otherwise", "quality": "Natural ambient glow with realistic light falloff" },
+    "background": "Dark room with furniture silhouettes. Far walls invisible in darkness.",
+    "color_palette": { "dominant": "#0A0F14 (Dark Room)", "accent": "#004D40 (Aquarium Teal Glow)" }
+  },
+  "imperfections": {
+    "focus": "Night mode slight softness — smartphone processing in low light causes slight glow/halo around bright aquarium",
+    "noise": "Heavy natural night grain throughout dark areas — typical smartphone night mode. Grain is coarser in shadows, finer near light source.",
+    "framing": "Slightly off-center — casual handheld shot",
+    "lens": "Slight lens flare from aquarium light — natural smartphone artifact",
+    "critical_realism": "Night mode photos have a characteristic look: slightly over-processed, noise reduction creates slight watercolor effect in dark areas, bright areas have slight bloom. This must look like a REAL night mode smartphone photo."
+  },
+  "style": { "artistic": "Smartphone night mode photo of a cozy room", "mood": "Peaceful, beautiful, transformed" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["evenly lit room", "visible room details in darkness", "studio lighting", "perfect clarity in dark areas", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
+}
 ```
-Photorealistic wide photo of an Iraqi home room at night — all lights off. In the corner, a modern aquarium glows with warm blue-green LED light, casting beautiful ambient light on cream walls and nearby furniture. Gentle ripple-light reflections visible on the ceiling above. Shot from across the room showing the full transformed space. 9:16 vertical. Smartphone night mode quality — slight grain. NO people, NO faces, NO text. Ultra-realistic.
+
+---
+
+### 📸 صورة 7 — الركن بعد مع إيموجي (IMAGE_AFTER_CORNER_EMOJI)
+
+> ⚠️ نفس صورة 2 (AFTER) بس مع إيموجي على الشاشة — تستخدم كـ first_frame لكليب 4
+
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone aquarium room photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld — same angle as صورة 2",
+  "subject": {
+    "main": "Photorealistic photo — IDENTICAL scene to صورة 2. Same corner, same aquarium (60cm wide rectangular, wider than tall), same melamine cabinet stand with closed doors, same soft diffused blue-green glow (NO star reflections, NO dramatic light patterns), CLEAN floor around stand (no wires, no cables). Must match all realism details from صورة 2: slight algae on glass corner, calcium line, slightly green water, heater hidden behind plant.",
+    "composition": "Same angle as صورة 2. Corner with aquarium fills frame."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green ambient glow — same as صورة 2" },
+    "background": "Same warm beige walls illuminated by aquarium. Same glossy tile floor with reflections.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#1A237E (Deep Blue)" }
+  },
+  "imperfections": {
+    "focus": "Same as صورة 2 — slightly soft corners",
+    "noise": "Same natural noise level as صورة 2",
+    "framing": "Same tilt as صورة 2 — consistency",
+    "critical_realism": "Must match صورة 2 realism quality exactly. Same lived-in aquarium look."
+  },
+  "text_overlay": {
+    "text": "😶",
+    "position": "center",
+    "style": "Large emoji, centered on screen"
+  },
+  "style": { "artistic": "Same as صورة 2 but with emoji reaction", "mood": "Speechless amazement at the transformation" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["perfectly clean glass", "crystal clear water", "brand new look", "smooth surfaces", "text", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
+}
+```
+
+---
+
+### 📸 صورة 8 — كلوز أب الحوض مع نص (IMAGE_FISH_CLOSE_TEXT)
+
+> ⚠️ نفس صورة 5 بس مع نص — تستخدم كـ first_frame لكليب 5
+
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone aquarium close-up photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, close to glass",
+  "subject": {
+    "main": "Photorealistic close-up — IDENTICAL scene to صورة 5. Same aquarium, same angle, same fish, same plants. Must use all the same realism details from صورة 5: individual fish scale detail, plant leaf veins and brown tips, mixed gravel sizes, water droplets on glass, calcium line at water surface, equipment visible, water not crystal clear.",
+    "composition": "Same as صورة 5 — aquarium glass fills frame."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green dominant light — same as صورة 5" },
+    "background": "Same as صورة 5 — dim room reflected in glass.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#00E676 (Plant Green)" }
+  },
+  "imperfections": {
+    "focus": "Same depth of field as صورة 5",
+    "noise": "Same noise pattern as صورة 5",
+    "glass": "Same glass imperfections — fingerprints, condensation, calcium",
+    "critical_realism": "Must match صورة 5 realism quality exactly."
+  },
+  "text_overlay": {
+    "text": "الروابط بالبايو 🐟",
+    "position": "bottom_center",
+    "style": "White Arabic font, small size"
+  },
+  "style": { "artistic": "Same as صورة 5 with CTA text", "mood": "Inviting — link in bio call to action" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["crystal clear water", "perfectly clean glass", "identical fish", "CGI water", "smooth gravel", "AI-looking", "professional camera", "people", "faces"], "style_raw": true }
+}
 ```
 
 ---
@@ -153,21 +373,21 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
     "resolution": "4K"
   },
   "scene": {
-    "setting": "Neglected corner of Iraqi home interior",
+    "setting": "Unused storage corner of Iraqi home interior",
     "time": "Day — indoor flat lighting",
-    "atmosphere": "Still, quiet, forgotten space"
+    "atmosphere": "Still, quiet, ordinary space"
   },
   "shot": {
     "type": "Fixed wide shot",
     "camera_movement": "Absolutely static — no pan, no zoom, no shake"
   },
   "action": {
-    "description": "The corner sits completely still. Dust visible in the air near the boxes. Very subtle atmospheric motion — a tiny dust particle drifts. Otherwise completely frozen like a photograph come to life."
+    "description": "The corner sits completely still. Very subtle atmospheric motion — natural room air movement. Otherwise completely frozen like a photograph come to life. The boxes sit quietly stacked. Ordinary home corner."
   },
   "lighting": {
     "type": "Dim flat indoor room light",
     "color_temperature": "3000K warm yellow",
-    "quality": "Flat, boring, uninspiring"
+    "quality": "Flat, ordinary, everyday"
   },
   "audio": {
     "type": "quiet indoor ambient room tone — very subtle — distant street noise barely audible"
@@ -226,8 +446,8 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
   },
   "constraints": [
     "No face visible — only wrist and hand",
-    "No text overlays",
-    "Keep corner walls and floor consistent"
+    "Keep corner walls and floor consistent",
+    "No text overlays"
   ]
 }
 ```
@@ -292,7 +512,7 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
   "version": "veo-3.1",
   "global_rule": "No humans. Photorealistic aquarium footage.",
   "input": {
-    "first_frame": "IMAGE_AFTER_CORNER.jpg",
+    "first_frame": "IMAGE_AFTER_CORNER_EMOJI.jpg",
     "last_frame": "IMAGE_AFTER_CORNER_FISH_CLOSE.jpg"
   },
   "output": {
@@ -325,9 +545,9 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
   },
   "constraints": [
     "No people or faces",
-    "No text overlays",
     "Fish must look realistic — no cartoon or stylized fish",
-    "Aquarium glass must look real with slight reflections"
+    "Aquarium glass must look real with slight reflections",
+    "No text overlays"
   ]
 }
 ```
@@ -341,7 +561,7 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
   "version": "veo-3.1",
   "global_rule": "No humans. Show the full room with aquarium glow.",
   "input": {
-    "first_frame": "IMAGE_AFTER_CORNER_FISH_CLOSE.jpg",
+    "first_frame": "IMAGE_FISH_CLOSE_TEXT.jpg",
     "last_frame": "IMAGE_ROOM_WIDE_NIGHT.jpg"
   },
   "output": {
@@ -402,6 +622,8 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
                  "الروابط بالبايو 🐟"
                  صغير، أسفل الشاشة
 ```
+
+> **⚠️ ملاحظة:** النصوص أعلاه تُولّد مع الصور (start/end frames) وليس في الفيديو. راجع صور 3، 7، 8.
 
 ### الكابشن الكامل (أسفل الريلز):
 
@@ -507,52 +729,164 @@ Photorealistic wide photo of an Iraqi home room at night — all lights off. In 
 
 ### 📸 صورة 1 — الغرفة المظلمة بالليل
 
-```
-Photorealistic photo of a dark Iraqi bedroom at 2AM.
-
-SETTING:
-Bedroom interior at night — all lights off. One person sleeping in bed in the background, barely visible (silhouette only, face NOT visible). In the corner of the room, one aquarium glowing with warm blue-green LED light — this is the ONLY significant light source. The aquarium casts a beautiful calm glow on the nearby wall.
-
-LIGHTING:
-Almost completely dark. Only the aquarium light illuminates the scene. Aquarium casts warm blue-green light on adjacent wall — beautiful light ripple effect visible on the wall. The sleeping person in background is in near-darkness — just a shape under blanket. NO face visible.
-
-CAMERA:
-9:16 vertical. Shot from the doorway — looking into the dark bedroom. Smartphone camera with slight night noise grain — realistic dark photography.
-
-ATMOSPHERE:
-Peaceful 2AM quiet. The kind of calm that only exists deep in the night.
-
-QUALITY:
-Ultra-realistic, natural night colors. The aquarium should look warm and magical against the darkness. NO people faces visible. NO text.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night mode bedroom photography",
+  "camera_setup": "iPhone 15 Pro Max, night mode, handheld, shot from doorway",
+  "subject": {
+    "main": "Photorealistic photo of a dark Iraqi bedroom at 2AM. Bedroom interior at night — all lights off. One person sleeping in bed in the background, barely visible (silhouette only, face NOT visible). In the corner of the room, one aquarium glowing with warm blue-green LED light — the ONLY significant light source. Aquarium casts a beautiful calm glow on the nearby wall.",
+    "composition": "Shot from the doorway — looking into the dark bedroom. Aquarium glow is the main focal point."
+  },
+  "environment": {
+    "lighting": { "type": "Only aquarium LED light — blue-green warm glow", "quality": "Almost completely dark. Aquarium casts warm light on wall with beautiful ripple effect. Sleeping person in near-darkness — just a shape." },
+    "background": "Dark bedroom — bed, furniture barely visible as silhouettes.",
+    "color_palette": { "dominant": "#0A0F14 (Dark Room)", "accent": "#004D40 (Aquarium Teal Glow)" }
+  },
+  "imperfections": {
+    "focus": "Night mode processing artifacts — slight softness in darkest areas",
+    "noise": "Natural night grain throughout — typical smartphone night mode at 2AM",
+    "framing": "Slightly off-center — peeking into room feel",
+    "lens": "Slight lens flare from aquarium light source"
+  },
+  "style": { "artistic": "Late night smartphone photo of a peaceful bedroom", "mood": "Peaceful 2AM quiet — the kind of calm that only exists deep in the night" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["faces visible", "text", "professional camera", "studio lighting", "AI-looking", "daytime lighting"], "style_raw": true }
+}
 ```
 
 ### 📸 صورة 2 — كلوز أب على الحوض بالليل
 
-```
-Photorealistic extreme close-up of an aquarium at night — dark room.
-
-SETTING:
-Close-up shot of aquarium glass from outside. Behind the glass: lush green plants, colorful sleeping fish (slightly less active than daytime), fine substrate. Aquarium LED creating the only warm light in the dark room.
-
-LIGHTING:
-Complete darkness outside the aquarium. The aquarium interior is warmly lit — blue-green LED. The glass shows a slight reflection of the dark room behind the camera.
-
-CAMERA:
-9:16 vertical. Very close — glass fills most of the frame. Slight condensation visible on outer glass edge. Sharp focus on fish and plants inside.
-
-ATMOSPHERE:
-Intimate, peaceful, alive while the world sleeps.
-
-QUALITY:
-Ultra-realistic. Rich aquarium colors against pure darkness.
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night aquarium macro photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, very close to glass",
+  "subject": {
+    "main": "Photorealistic extreme close-up of an aquarium at night in a dark room. Close-up shot of aquarium glass from outside. Behind the glass: lush green plants, colorful fish slightly less active than daytime (hovering gently), fine substrate. Aquarium LED creating the only warm light.",
+    "composition": "Very close — glass fills most of the frame. Sharp focus on fish and plants inside."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only — blue-green warm", "quality": "Complete darkness outside the aquarium. Interior warmly lit." },
+    "background": "Glass shows slight reflection of the dark room behind the camera.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal Water)", "accent": "#00E676 (Aquatic Plant Green)" }
+  },
+  "imperfections": {
+    "focus": "Slight focus hunting between glass surface and fish depth",
+    "noise": "Night noise grain in dark areas outside the tank",
+    "glass": "Slight condensation visible on outer glass edge",
+    "framing": "Slightly tilted — 2AM handheld casualness"
+  },
+  "style": { "artistic": "Intimate late-night aquarium photo", "mood": "Peaceful, alive while the world sleeps" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["people", "faces", "text", "professional camera", "daytime lighting", "AI-looking"], "style_raw": true }
+}
 ```
 
 ---
 
 ### 📸 صورة 3 — منظر من باب الغرفة (IMAGE_DARK_ROOM_DOOR)
 
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night mode doorway photography",
+  "camera_setup": "iPhone 15 Pro Max, night mode, handheld, from just outside doorway",
+  "subject": {
+    "main": "Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM. Looking through a half-open door into the dark room. The only visible light is a faint warm blue-green aquarium glow in the far corner of the room.",
+    "composition": "Doorframe silhouette visible on left and right edges. Almost completely dark — just the distant aquarium glow drawing the eye inward."
+  },
+  "environment": {
+    "lighting": { "type": "Distant aquarium glow only", "quality": "Very faint — room is almost completely dark" },
+    "background": "Dark hallway behind camera. Dark bedroom through the door.",
+    "color_palette": { "dominant": "#050505 (Near Black)", "accent": "#004D40 (Distant Aquarium Glow)" }
+  },
+  "imperfections": {
+    "focus": "Night mode processing — slight motion blur from handheld in dark",
+    "noise": "Heavy night grain — very dark scene pushes smartphone sensor limit",
+    "framing": "Door not perfectly centered — candid doorway peek"
+  },
+  "style": { "artistic": "Creeping into a dark room to admire the aquarium", "mood": "Mysterious, peaceful — drawn to the distant glow" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["faces", "text", "professional camera", "daytime", "AI-looking"], "style_raw": true }
+}
 ```
-Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM. Looking through a half-open door into the dark room. The only visible light is a faint warm blue-green aquarium glow in the far corner of the room. The doorframe silhouette visible on left and right edges. Almost completely dark — just the distant aquarium glow drawing the eye inward. 9:16 vertical. Smartphone night mode with slight grain. NO faces, NO text. Ultra-realistic.
+
+---
+
+### 📸 صورة 4 — الغرفة المظلمة مع نص (IMAGE_DARK_ROOM_TEXT1)
+
+> ⚠️ نفس صورة 1 بس مع نص — تستخدم كـ last_frame لكليب 1
+
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night mode bedroom photography",
+  "camera_setup": "iPhone 15 Pro Max, night mode, handheld",
+  "subject": {
+    "main": "Photorealistic interior of dark Iraqi bedroom at 2AM. Modern aquarium in the corner glowing warm blue-green LED. Sleeping shape under blankets visible in background — no face. Room 90% dark.",
+    "composition": "Same as صورة 1 — aquarium glow as focal point. Wide enough to see room context."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only", "quality": "Warm glow casting ripple patterns on wall" },
+    "background": "Dark bedroom with sleeping shape barely visible.",
+    "color_palette": { "dominant": "#0A0F14 (Dark Room)", "accent": "#004D40 (Aquarium Teal)" }
+  },
+  "imperfections": {
+    "focus": "Night mode softness — same as صورة 1",
+    "noise": "Same night grain as صورة 1",
+    "framing": "Same angle and tilt as صورة 1"
+  },
+  "text_overlay": {
+    "text": "الساعة 2 الليل...",
+    "position": "top_left",
+    "style": "White thin Arabic font, subtle"
+  },
+  "style": { "artistic": "Same as صورة 1 with text overlay", "mood": "Late night loneliness — the aquarium is your companion" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["faces", "professional camera", "AI-looking"], "style_raw": true }
+}
+```
+
+---
+
+### 📸 صورة 5 — ماكرو الحوض بالليل مع نص (IMAGE_AQUARIUM_NIGHT_TEXT2)
+
+> ⚠️ نفس صورة 2 بس مع نصوص — تستخدم كـ last_frame لكليب 2
+
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "smartphone night aquarium macro photography",
+  "camera_setup": "iPhone 15 Pro Max, standard lens, handheld, close to glass",
+  "subject": {
+    "main": "Photorealistic close-up of aquarium glass at night. Behind glass: lush green plants, colorful fish hovering gently, fine substrate. Aquarium LED warm blue-green. Complete darkness outside.",
+    "composition": "Same as صورة 2 — glass fills most of frame."
+  },
+  "environment": {
+    "lighting": { "type": "Aquarium LED only", "quality": "Warm blue-green against total darkness" },
+    "background": "Complete darkness outside the tank.",
+    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#00E676 (Plant Green)" }
+  },
+  "imperfections": {
+    "focus": "Same as صورة 2",
+    "noise": "Same night noise as صورة 2",
+    "glass": "Slight condensation on outer glass edge"
+  },
+  "text_overlay": {
+    "text": "وهو صاحي لكلش",
+    "position": "center",
+    "style": "White Arabic font, centered"
+  },
+  "style": { "artistic": "Same as صورة 2 with emotional text", "mood": "The fish is awake for everything — your silent companion" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["people", "faces", "professional camera", "AI-looking"], "style_raw": true }
+}
 ```
 
 ---
@@ -567,7 +901,7 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   "global_rule": "No visible faces. Dark night atmosphere. Photorealistic only.",
   "input": {
     "first_frame": "IMAGE_DARK_ROOM_DOOR.jpg",
-    "last_frame": "IMAGE_DARK_ROOM_NIGHT.jpg"
+    "last_frame": "IMAGE_DARK_ROOM_TEXT1.jpg"
   },
   "output": {
     "duration_seconds": 4,
@@ -599,9 +933,9 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   },
   "constraints": [
     "No faces visible — sleeping person is a shape only",
-    "No text overlays",
     "No sudden movements — everything slow and quiet",
-    "Aquarium must be the dominant visual element"
+    "Aquarium must be the dominant visual element",
+    "No text overlays"
   ]
 }
 ```
@@ -616,7 +950,7 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   "global_rule": "No humans. Night aquarium macro footage.",
   "input": {
     "first_frame": "IMAGE_DARK_ROOM_NIGHT.jpg",
-    "last_frame": "IMAGE_AQUARIUM_NIGHT_CLOSEUP.jpg"
+    "last_frame": "IMAGE_AQUARIUM_NIGHT_TEXT2.jpg"
   },
   "output": {
     "duration_seconds": 6,
@@ -647,8 +981,8 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   },
   "constraints": [
     "No humans or faces",
-    "No text overlays",
-    "Fish must look real — natural colors, natural movement"
+    "Fish must look real — natural colors, natural movement",
+    "No text overlays"
   ]
 }
 ```
@@ -690,8 +1024,7 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
     "style": "Photorealistic"
   },
   "constraints": [
-    "No faces visible",
-    "No text overlays"
+    "No faces visible"
   ]
 }
 ```
@@ -716,6 +1049,8 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 
 [لا نص حتى النهاية]
 ```
+
+> **⚠️ ملاحظة:** النصوص أعلاه تُولّد مع الصور (start/end frames) وليس في الفيديو. راجع صور 4، 5.
 
 ### كابشن الريلز:
 
@@ -909,9 +1244,9 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   },
   "constraints": [
     "No humans or faces",
-    "No text overlays",
     "Fish must look realistic and alive",
-    "Camera stays still — only fish moves"
+    "Camera stays still — only fish moves",
+    "No text overlays"
   ]
 }
 ```
@@ -955,7 +1290,6 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
   },
   "constraints": [
     "No humans or faces",
-    "No text overlays",
     "Fish eye must be the only thing in sharp focus by end"
   ]
 }
@@ -979,6 +1313,8 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 [بدون نص حتى النهاية]
 ```
 
+> **⚠️ ملاحظة:** ريلز 3 — النصوص تضاف يدوياً بعد التصدير (ليس من ال AI).
+
 ### كابشن الريلز:
 
 ```
@@ -990,11 +1326,88 @@ Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM
 #اكواريوم #يتابعني
 ```
 
-### موسيقى:
+### 🎵 الموسيقى — Suno AI (بحث علمي عميق)
+
+> **🧠 الصيغة العلمية للنغمة الإدمانية:**
+> - **BPM:** 110 (النقطة الحلوة بين الهدوء والإثارة — أبحاث earworm تقول 100-130 BPM أكثر شي يعلق بالراس)
+> - **المبدأ:** تكرار + مفاجأة بسيطة = دوبامين = إدمان (Zeigarnik Effect — اللحن ما يكمل فيرجع المخ يعيد تشغيله)
+> - **النمط اللحني:** صعود نوتتين → وقفة → تكرار (نمط peek-a-boo — أثبت علمياً إنه أكثر نمط "يتبعك")
+> - **الآلة:** كاليمبا = الأكثر ارتباطاً بمحتوى الحيوانات اللطيف على انستا 2025
+> - **النهاية:** مقطوعة بشكل مقصود — ما تكمل — المخ يبي يسمعها مرة ثانية (= replay)
+
+---
+
+#### ⚠️ كل الخيارات نغمات فقط — بدون أي غناء أو كلمات
+
+> **📱 طريقة الاستخدام بـ Suno:**
+> 1. اختر **Custom** mode
+> 2. خانة **Lyrics**: اتركها **فارغة تماماً** (أو اكتب `instrumental`)
+> 3. خانة **Styles**: أنسخ الـ Style من تحت
+> 4. اختر **v4.5-all**
+> 5. اضغط **Create**
+> 6. ولّد 4-5 نسخ واختر الأكثر إدماناً
+
+---
+
+#### 🎹 نغمة 1 — كاليمبا مائية (⭐ الأقوى)
+
+**📌 Lyrics:** `اتركها فارغة`
+
+**📌 Styles (أنسخ هذا):**
+```
+bright kalimba earworm hook, C-E-G rising pattern, underwater lo-fi, gentle water bubble percussion, warm sub-bass hum, cute and mysterious, 110 BPM, minimalist ambient, soft lo-fi beat, playful curiosity, Rhodes piano pad, short instrumental loop, no vocals
+```
+
+**ليش يشتغل:** الكاليمبا + صعود 3 نوتات = فضول + دوبامين. النغمة تحاكي حركة السمكة وهي تقترب.
+
+---
+
+#### 🎹 نغمة 2 — بيانو غامض + فقاعات
+
+**📌 Lyrics:** `اتركها فارغة`
+
+**📌 Styles (أنسخ هذا):**
+```
+haunting 3-note piano hook, C-Eb-G minor, dark cinematic lo-fi, water drip percussion, deep atmospheric reverb, mysterious intimate, 108 BPM, ambient underwater, dramatic pause, sparse kalimba accent, short instrumental, no vocals, earworm melody
+```
+
+**ليش يشتغل:** البيانو الماينور = شعور "شايفني" — غموض + حميمية. مثالي للحظة العين بالعين.
+
+---
+
+#### � نغمة 3 — لو-فاي حالم + إيقاع خفيف
+
+**📌 Lyrics:** `اتركها فارغة`
+
+**📌 Styles (أنسخ هذا):**
+```
+dreamy lo-fi instrumental, soft plucked kalimba melody, gentle finger snap rhythm, warm analog synth pad, underwater ambience, cute playful hook, 112 BPM, tape-warm aesthetic, vinyl crackle, cozy aquarium vibe, bouncy minimal beat, short loop, no vocals, addictive earworm
+```
+
+**ليش يشتغل:** اللو-فاي الحالم + الفنقر سناب = vibes لطيفة. أكثر خيار "cute" يناسب مشاركات البنات.
+
+---
+
+#### 🔬 ليش هاي الصيغة بالذات؟ (العلم ورا الإدمان)
 
 ```
-أغنية funny أو cute — إيقاع خفيف
-أو: صمت كامل مع صوت ماء فقط
+✅ 108-112 BPM — النقطة الحلوة: يحفز الدوبامين بدون ما يتعب المستمع
+✅ كاليمبا — الآلة #1 لمحتوى الحيوانات على السوشال ميديا
+✅ نمط 2-3 نوتات صاعد — نفس بنية أشهر earworms عالمياً
+✅ بدون كلمات — يشتغل بكل اللغات + ما يتعارض مع نص الريلز
+✅ أقل من 15 ثانية لحن = المخ ما يشبع = يعيد تشغيل (Zeigarnik Effect)
+✅ صوت الماء/فقاعات — ارتباط مباشر بالمشهد + ASMR
+```
+
+#### 💡 نصائح التنفيذ:
+
+```
+1. ولّد 4-5 نسخ من كل نغمة واختر الأكثر إدماناً
+2. اختبار الإدمان: اسمعها مرة وحدة — لو رجعت براسك بعد 5 دقايق = صحيحة
+3. HOOK فوري — لازم النغمة تبدأ من الثانية 0 بدون مقدمة
+4. اقطع النغمة قبل ما يخلص الريلز بثانية = يجبر المشاهد يعيد
+5. مكس الصوت: 60% نغمة — 40% صوت ماء/فقاعات طبيعي
+6. لو Suno طلع نسخة فيها humming أو vocals — ارفضها وولّد غيرها
 ```
 
 ---

@@ -5,6 +5,7 @@ import { requireAdmin, getSession } from "../middleware/auth.js";
 import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
+import { clearProductsCache } from "./products.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -487,6 +488,7 @@ export function createAdminRouter(): RouterType {
 
             const parsed = insertProductSchema.parse(data);
             const product = await storage.createProduct(parsed);
+            clearProductsCache(); // Invalidate products cache on new product
 
             // Auto-generate embedding for new product (fire-and-forget)
             embeddingGenerator.generateProductEmbedding(product.id).catch((err) => {
@@ -576,6 +578,7 @@ export function createAdminRouter(): RouterType {
             }
 
             const product = await storage.updateProduct(id, updates);
+            clearProductsCache(); // Invalidate cache on product update
 
             if (!product) {
                 res.status(404).json({ message: "Product not found" });
@@ -620,6 +623,8 @@ export function createAdminRouter(): RouterType {
         try {
             const { id } = req.params as { id: string };
             const success = await storage.deleteProduct(id);
+            clearProductsCache(); // Invalidate cache on product delete
+
             if (!success) {
                 res.status(404).json({ message: "Product not found" });
                 return;

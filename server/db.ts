@@ -18,6 +18,18 @@ if (!databaseUrl) {
 
   const pool = new Pool({ connectionString: databaseUrl });
   db = drizzle(pool, { schema });
+
+  // Keep Neon serverless DB warm — Neon idles after ~5 min inactivity causing
+  // 500ms-2s cold start penalty on the next request. Ping every 4 minutes.
+  if (process.env.NODE_ENV !== "test") {
+    setInterval(async () => {
+      try {
+        await pool.query("SELECT 1");
+      } catch {
+        // Silently ignore — Neon will reconnect on next real query
+      }
+    }, 4 * 60 * 1000);
+  }
 }
 
 export function getDb(): DbClient | null {
