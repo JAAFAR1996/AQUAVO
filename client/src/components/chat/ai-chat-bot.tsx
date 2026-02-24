@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo, memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLocation } from "wouter";
 import { useAuth } from "@/contexts/auth-context";
+import { useCart } from "@/contexts/cart-context";
+import { useToast } from "@/hooks/use-toast";
 import {
     MessageCircle,
     Send,
@@ -19,14 +21,19 @@ import {
     Minimize2,
     Fish,
     ExternalLink,
-    Star
+    Star,
+    ShoppingCart,
+    ThumbsUp,
+    ThumbsDown,
+    Headphones,
+    ChevronRight,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 interface Product {
     id: string;
-    slug?: string; // Add slug for navigation
+    slug?: string;
     name: string;
     price: string;
     image: string;
@@ -39,8 +46,158 @@ interface ChatMessage {
     content: string;
     timestamp: Date;
     products?: Product[];
+    feedback?: "up" | "down" | null;
 }
 
+// ============================================================
+// Lightweight Markdown Renderer (no external deps)
+// Handles: **bold**, • bullets, ⚠️ warnings, line breaks
+// ============================================================
+const ChatMarkdown = memo(function ChatMarkdown({ text }: { text: string }) {
+    const rendered = useMemo(() => {
+        const lines = text.split("\n");
+        return lines.map((line, i) => {
+            const trimmed = line.trim();
+            if (!trimmed) return <br key={i} />;
+
+            // Warning line styling
+            const isWarning = trimmed.startsWith("⚠️") || trimmed.startsWith("تحذير") || trimmed.startsWith("خطر");
+
+            // Bullet point detection
+            const isBullet = trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
+            const bulletContent = isBullet ? trimmed.replace(/^[•\-*]\s*/, "") : trimmed;
+
+            // Process inline **bold** markers
+            const parts = (isBullet ? bulletContent : trimmed).split(/(\*\*[^*]+\*\*)/g);
+            const processed = parts.map((part, j) => {
+                if (part.startsWith("**") && part.endsWith("**")) {
+                    return <strong key={j} className="font-bold">{part.slice(2, -2)}</strong>;
+                }
+                return <span key={j}>{part}</span>;
+            });
+
+            if (isWarning) {
+                return (
+                    <div key={i} className="bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1.5 my-1 text-red-200">
+                        {processed}
+                    </div>
+                );
+            }
+
+            if (isBullet) {
+                return (
+                    <div key={i} className="flex gap-1.5 items-start pr-1 my-0.5">
+                        <span className="text-primary mt-0.5 flex-shrink-0">•</span>
+                        <span>{processed}</span>
+                    </div>
+                );
+            }
+
+            return <p key={i} className="my-0.5">{processed}</p>;
+        });
+    }, [text]);
+
+    return <div className="space-y-0.5">{rendered}</div>;
+});
+
+// ============================================================
+// Compact Product Card with Add-to-Cart (2026 Conversational Commerce)
+// ============================================================
+const ChatProductCard = memo(function ChatProductCard({
+    product,
+    onView,
+    onAddToCart,
+}: {
+    product: Product;
+    onView: () => void;
+    onAddToCart: () => void;
+}) {
+    return (
+        <div className="flex items-center gap-2 p-1.5 rounded-lg bg-background/50 border border-border/50 hover:border-primary/40 hover:bg-background/80 transition-all group">
+            <img
+                src={product.image}
+                alt={product.name}
+                className="w-10 h-10 object-cover rounded-md flex-shrink-0 cursor-pointer"
+                loading="lazy"
+                onClick={onView}
+            />
+            <div className="flex-1 min-w-0 cursor-pointer" onClick={onView}>
+                <h4 className="text-[11px] font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                    {product.name}
+                </h4>
+                <div className="flex items-center gap-1.5">
+                    {product.rating && (
+                        <span className="text-[10px] text-amber-400 flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5 fill-amber-400" />
+                            {product.rating}
+                        </span>
+                    )}
+                    <span className="text-[11px] font-bold text-primary">
+                        {Number(product.price).toLocaleString()} د.ع
+                    </span>
+                </div>
+            </div>
+            {/* 🛒 Add to Cart — 2026 Conversational Commerce */}
+            <Button
+                size="icon"
+                variant="ghost"
+                className="h-7 w-7 flex-shrink-0 hover:bg-primary/20 hover:text-primary"
+                onClick={(e) => { e.stopPropagation(); onAddToCart(); }}
+                aria-label={`أضف ${product.name} للسلة`}
+            >
+                <ShoppingCart className="w-3.5 h-3.5" />
+            </Button>
+        </div>
+    );
+});
+
+// ============================================================
+// 👍/👎 Feedback Buttons (2026 Data-Driven Improvement)
+// ============================================================
+const FeedbackButtons = memo(function FeedbackButtons({
+    feedback,
+    onFeedback,
+}: {
+    feedback?: "up" | "down" | null;
+    onFeedback: (type: "up" | "down") => void;
+}) {
+    if (feedback) {
+        return (
+            <div className="flex items-center gap-1 mt-1">
+                <span className="text-[10px] text-muted-foreground/60">
+                    {feedback === "up" ? "👍 شكراً!" : "👎 نتعلم ونتحسن"}
+                </span>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-0.5 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button
+                size="icon"
+                variant="ghost"
+                className="h-5 w-5 hover:bg-green-500/20 hover:text-green-400"
+                onClick={() => onFeedback("up")}
+                aria-label="رد مفيد"
+            >
+                <ThumbsUp className="w-3 h-3" />
+            </Button>
+            <Button
+                size="icon"
+                variant="ghost"
+                className="h-5 w-5 hover:bg-red-500/20 hover:text-red-400"
+                onClick={() => onFeedback("down")}
+                aria-label="رد غير مفيد"
+            >
+                <ThumbsDown className="w-3 h-3" />
+            </Button>
+        </div>
+    );
+});
+
+// ============================================================
+// API Call
+// ============================================================
 async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
     const response = await fetch("/api/ai/chat", {
         method: "POST",
@@ -53,7 +210,6 @@ async function sendChatMessage(message: string, history: ChatMessage[], userName
         }),
     });
 
-    // Handle non-OK responses
     if (!response.ok) {
         let errorMessage = "فشل الاتصال";
         try {
@@ -78,8 +234,55 @@ async function sendChatMessage(message: string, history: ChatMessage[], userName
     };
 }
 
+// ============================================================
+// Proactive Chat Triggers (2026 Predictive Automation)
+// ============================================================
+function useProactiveChat(isOpen: boolean, setIsOpen: (v: boolean) => void, messages: ChatMessage[], setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>) {
+    const [hasTriggered, setHasTriggered] = useState(false);
+    const [showProactiveHint, setShowProactiveHint] = useState(false);
+
+    useEffect(() => {
+        if (isOpen || hasTriggered) return;
+
+        // Trigger after 45 seconds of browsing
+        const timer = setTimeout(() => {
+            setShowProactiveHint(true);
+            setHasTriggered(true);
+
+            // Auto-hide after 8 seconds
+            setTimeout(() => setShowProactiveHint(false), 8000);
+        }, 45000);
+
+        return () => clearTimeout(timer);
+    }, [isOpen, hasTriggered]);
+
+    // Product page detection
+    useEffect(() => {
+        if (isOpen || hasTriggered) return;
+
+        const path = window.location.pathname;
+        if (path.includes("/products/") && !path.endsWith("/products")) {
+            // User is viewing a specific product — wait 15 sec then hint
+            const timer = setTimeout(() => {
+                setShowProactiveHint(true);
+                setHasTriggered(true);
+                setTimeout(() => setShowProactiveHint(false), 8000);
+            }, 15000);
+
+            return () => clearTimeout(timer);
+        }
+    }, [isOpen, hasTriggered]);
+
+    return { showProactiveHint, setShowProactiveHint };
+}
+
+// ============================================================
+// Main Chat Component — 2026 Edition
+// ============================================================
 export function AIChatBot() {
     const { user } = useAuth();
+    const { addItem } = useCart();
+    const { toast } = useToast();
     const [, setLocation] = useLocation();
     const userName = user?.fullName || user?.email?.split('@')[0];
 
@@ -89,11 +292,14 @@ export function AIChatBot() {
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Initialize with personalized greeting
+    // Proactive chat triggers
+    const { showProactiveHint, setShowProactiveHint } = useProactiveChat(isOpen, setIsOpen, messages, setMessages);
+
+    // Personalized greeting
     useEffect(() => {
         const greeting = userName
-            ? `أهلاً ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nكيف أقدر أساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات`
-            : "مرحباً! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nكيف يمكنني مساعدتك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات";
+            ? `أهلاً ${userName}! 🦐 أنا شريمب، مساعدك الشخصي في AQUAVO.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات`
+            : "مرحباً! 🦐 أنا شريمب، مساعد AQUAVO الذكي.\n\nشلون اكدر اساعدك اليوم؟\n• أسئلة عن الأسماك\n• نصائح رعاية\n• توصيات منتجات";
 
         setMessages([{
             role: "assistant",
@@ -102,10 +308,13 @@ export function AIChatBot() {
         }]);
     }, [userName]);
 
-    // Auto-scroll
+    // Smooth auto-scroll
     useEffect(() => {
         if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+            const el = scrollRef.current;
+            requestAnimationFrame(() => {
+                el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+            });
         }
     }, [messages]);
 
@@ -119,6 +328,7 @@ export function AIChatBot() {
                     role: "assistant",
                     content: data.response,
                     products: data.products,
+                    feedback: null,
                     timestamp: new Date()
                 },
             ]);
@@ -131,7 +341,7 @@ export function AIChatBot() {
         },
     });
 
-    const handleSend = () => {
+    const handleSend = useCallback(() => {
         if (!input.trim() || chatMutation.isPending) return;
 
         setMessages((prev) => [
@@ -140,7 +350,37 @@ export function AIChatBot() {
         ]);
         chatMutation.mutate(input.trim());
         setInput("");
-    };
+    }, [input, chatMutation]);
+
+    // Handle feedback
+    const handleFeedback = useCallback((messageIndex: number, type: "up" | "down") => {
+        setMessages(prev => prev.map((msg, i) =>
+            i === messageIndex ? { ...msg, feedback: type } : msg
+        ));
+
+        // Send feedback to server (fire-and-forget)
+        fetch("/api/ai/feedback", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({ type, messageIndex }),
+        }).catch(() => { /* best-effort */ });
+    }, []);
+
+    // Handle add to cart from chat
+    const handleAddToCart = useCallback((product: Product) => {
+        addItem(product as any);
+        toast({
+            title: "تمت الإضافة! 🛒",
+            description: `${product.name} انضاف للسلة`,
+        });
+    }, [addItem, toast]);
+
+    // Handle contact support
+    const handleContactSupport = useCallback(() => {
+        // Open WhatsApp or Instagram
+        window.open("https://wa.me/9647700000000?text=مرحباً، أحتاج مساعدة من فريق AQUAVO", "_blank");
+    }, []);
 
     // Quick questions
     const quickQuestions = [
@@ -151,6 +391,34 @@ export function AIChatBot() {
 
     return (
         <>
+            {/* Proactive Chat Hint — 2026 Predictive Automation */}
+            <AnimatePresence>
+                {showProactiveHint && !isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, x: -10 }}
+                        animate={{ opacity: 1, y: 0, x: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="fixed bottom-[88px] left-6 z-50"
+                    >
+                        <div
+                            className="bg-card border border-primary/30 rounded-2xl rounded-bl-none shadow-xl px-4 py-3 max-w-[260px] cursor-pointer hover:border-primary/60 transition-all"
+                            onClick={() => {
+                                setShowProactiveHint(false);
+                                setIsOpen(true);
+                            }}
+                        >
+                            <p className="text-xs text-foreground leading-relaxed">
+                                🦐 هلا! تحتاج مساعدة؟ اسألني عن أي شي — أسماك، أحواض، أو منتجات!
+                            </p>
+                            <div className="flex items-center gap-1 mt-1.5 text-primary">
+                                <span className="text-[10px] font-medium">ابدأ محادثة</span>
+                                <ChevronRight className="w-3 h-3" />
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Floating Button */}
             <AnimatePresence>
                 {!isOpen && (
@@ -161,7 +429,7 @@ export function AIChatBot() {
                         className="fixed bottom-6 left-6 z-50"
                     >
                         <Button
-                            onClick={() => setIsOpen(true)}
+                            onClick={() => { setIsOpen(true); setShowProactiveHint(false); }}
                             className="w-14 h-14 rounded-full shadow-2xl bg-gradient-to-br from-primary via-cyan-500 to-blue-600 hover:from-primary/90 hover:to-blue-700 p-0"
                             aria-label="فتح مساعد AQUAVO الذكي"
                         >
@@ -182,14 +450,18 @@ export function AIChatBot() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
                         transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                        className="fixed bottom-6 left-6 z-50 w-[420px] max-w-[calc(100vw-32px)]"
+                        className={cn(
+                            "fixed z-50",
+                            "inset-0 sm:inset-auto",
+                            "sm:bottom-6 sm:left-6 sm:w-[420px] sm:max-w-[calc(100vw-32px)]"
+                        )}
                     >
                         <Card className={cn(
-                            "shadow-2xl border-primary/20 overflow-hidden",
+                            "shadow-2xl border-primary/20 overflow-hidden h-full sm:h-auto sm:rounded-xl rounded-none flex flex-col",
                             isMinimized && "h-auto"
                         )}>
                             {/* Header */}
-                            <CardHeader className="p-3 bg-gradient-to-r from-primary via-cyan-500 to-blue-600 text-white">
+                            <CardHeader className="p-3 bg-gradient-to-r from-primary via-cyan-500 to-blue-600 text-white flex-shrink-0">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="p-1.5 bg-white/20 rounded-lg">
@@ -208,6 +480,17 @@ export function AIChatBot() {
                                             <Sparkles className="w-3 h-3" />
                                             AI
                                         </Badge>
+                                        {/* 📞 Contact Support — 2026 Hybrid Handoff */}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-white hover:bg-white/20"
+                                            onClick={handleContactSupport}
+                                            aria-label="تواصل مع الدعم البشري"
+                                            title="تواصل مع فريق الدعم"
+                                        >
+                                            <Headphones className="w-4 h-4" aria-hidden="true" />
+                                        </Button>
                                         <Button
                                             variant="ghost"
                                             size="icon"
@@ -232,111 +515,97 @@ export function AIChatBot() {
 
                             {/* Content */}
                             {!isMinimized && (
-                                <CardContent className="p-0">
+                                <CardContent className="p-0 flex flex-col flex-1 overflow-hidden">
                                     {/* Messages */}
-                                    <ScrollArea className="h-[400px] p-3" ref={scrollRef}>
+                                    <ScrollArea className="flex-1 sm:h-[420px] p-3" ref={scrollRef}>
                                         <div className="space-y-3">
-                                            {messages.map((message) => (
+                                            {messages.map((message, messageIndex) => (
                                                 <div
                                                     key={`${message.timestamp.getTime()}-${message.role}`}
                                                     className={cn(
-                                                        "flex gap-2",
+                                                        "flex gap-2 group",
                                                         message.role === "user" ? "flex-row-reverse" : ""
                                                     )}
                                                 >
+                                                    {/* Avatar */}
                                                     <div
                                                         className={cn(
-                                                            "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0",
+                                                            "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5",
                                                             message.role === "user"
                                                                 ? "bg-primary text-white"
                                                                 : "bg-gradient-to-br from-cyan-500 to-blue-500 text-white"
                                                         )}
                                                     >
                                                         {message.role === "user" ? (
-                                                            <User className="w-3.5 h-3.5" />
+                                                            <User className="w-3 h-3" />
                                                         ) : (
-                                                            <Bot className="w-3.5 h-3.5" />
+                                                            <Bot className="w-3 h-3" />
                                                         )}
                                                     </div>
-                                                    <div className="flex-1">
+
+                                                    {/* Message Content */}
+                                                    <div className="flex-1 max-w-[88%]">
                                                         <div
                                                             className={cn(
-                                                                "max-w-[85%] rounded-2xl px-3 py-2 text-xs",
+                                                                "rounded-2xl px-3 py-2 text-xs leading-relaxed",
                                                                 message.role === "user"
                                                                     ? "bg-primary text-white rounded-tr-none ml-auto"
                                                                     : "bg-muted rounded-tl-none"
                                                             )}
                                                         >
-                                                            <p className="whitespace-pre-wrap leading-relaxed">
-                                                                {message.content}
-                                                            </p>
+                                                            {message.role === "assistant" ? (
+                                                                <ChatMarkdown text={message.content} />
+                                                            ) : (
+                                                                <p className="whitespace-pre-wrap">{message.content}</p>
+                                                            )}
                                                         </div>
 
-                                                        {/* Product Cards */}
+                                                        {/* Product Cards — 2026 Conversational Commerce */}
                                                         {message.role === "assistant" && message.products && message.products.length > 0 && (
-                                                            <div className="mt-2 space-y-1.5">
-                                                                {message.products.filter(p => Number(p.price) > 0).slice(0, 3).map((product) => (
-                                                                    <Card
-                                                                        key={product.id}
-                                                                        className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer max-w-[280px]"
-                                                                        onClick={() => {
-                                                                            // Use slug if available, otherwise fall back to id
-                                                                            const productPath = product.slug || product.id;
-                                                                            setLocation(`/products/${productPath}`);
-                                                                            setIsOpen(false);
-                                                                        }}
-                                                                    >
-                                                                        <div className="flex gap-2 p-2">
-                                                                            <img
-                                                                                src={product.image}
-                                                                                alt={product.name}
-                                                                                className="w-16 h-16 object-cover rounded"
-                                                                            />
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <h4 className="text-xs font-medium line-clamp-2 mb-1">
-                                                                                    {product.name}
-                                                                                </h4>
-                                                                                <div className="flex items-center gap-1 mb-1">
-                                                                                    {product.rating && (
-                                                                                        <>
-                                                                                            <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-                                                                                            <span className="text-xs">{product.rating}</span>
-                                                                                        </>
-                                                                                    )}
-                                                                                </div>
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <span className="text-xs font-bold text-primary">
-                                                                                        {product.price} د.ع
-                                                                                    </span>
-                                                                                    <Button
-                                                                                        size="sm"
-                                                                                        variant="ghost"
-                                                                                        className="h-6 text-xs px-2"
-                                                                                    >
-                                                                                        <ExternalLink className="w-3 h-3 ml-1" />
-                                                                                        عرض
-                                                                                    </Button>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </Card>
-                                                                ))}
+                                                            <div className="mt-1.5 space-y-1">
+                                                                {message.products
+                                                                    .filter(p => Number(p.price) > 0)
+                                                                    .slice(0, 3)
+                                                                    .map((product) => (
+                                                                        <ChatProductCard
+                                                                            key={product.id}
+                                                                            product={product}
+                                                                            onView={() => {
+                                                                                const productPath = product.slug || product.id;
+                                                                                setLocation(`/products/${productPath}`);
+                                                                                setIsOpen(false);
+                                                                            }}
+                                                                            onAddToCart={() => handleAddToCart(product)}
+                                                                        />
+                                                                    ))}
                                                             </div>
+                                                        )}
+
+                                                        {/* 👍/👎 Feedback — 2026 Data-Driven Improvement */}
+                                                        {message.role === "assistant" && messageIndex > 0 && (
+                                                            <FeedbackButtons
+                                                                feedback={message.feedback}
+                                                                onFeedback={(type) => handleFeedback(messageIndex, type)}
+                                                            />
                                                         )}
                                                     </div>
                                                 </div>
                                             ))}
 
-                                            {/* Loading */}
+                                            {/* Typing Indicator */}
                                             {chatMutation.isPending && (
                                                 <div className="flex gap-2">
-                                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                                                        <Bot className="w-3.5 h-3.5 text-white" />
+                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                                                        <Bot className="w-3 h-3 text-white" />
                                                     </div>
                                                     <div className="bg-muted rounded-2xl rounded-tl-none px-3 py-2">
-                                                        <div className="flex items-center gap-1">
-                                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                                            <span className="text-xs text-muted-foreground">يكتب...</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="flex gap-1">
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                                            </div>
+                                                            <span className="text-[10px] text-muted-foreground">شريمب يكتب...</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -346,15 +615,15 @@ export function AIChatBot() {
 
                                     {/* Quick Questions */}
                                     {messages.length <= 1 && (
-                                        <div className="p-3 border-t bg-muted/30">
-                                            <p className="text-xs text-muted-foreground mb-2">أسئلة سريعة:</p>
+                                        <div className="p-3 border-t bg-muted/30 flex-shrink-0">
+                                            <p className="text-[10px] text-muted-foreground mb-2">أسئلة سريعة:</p>
                                             <div className="flex flex-wrap gap-1.5">
                                                 {quickQuestions.map((q) => (
                                                     <Button
                                                         key={q}
                                                         variant="outline"
                                                         size="sm"
-                                                        className="text-xs h-7"
+                                                        className="text-[10px] h-6 px-2"
                                                         onClick={() => setInput(q)}
                                                     >
                                                         {q}
@@ -364,8 +633,22 @@ export function AIChatBot() {
                                         </div>
                                     )}
 
+                                    {/* Contact Support Banner — 2026 Hybrid Handoff */}
+                                    {messages.length > 4 && (
+                                        <div className="px-3 py-1.5 border-t bg-muted/20 flex-shrink-0">
+                                            <button
+                                                onClick={handleContactSupport}
+                                                className="w-full flex items-center justify-center gap-1.5 text-[10px] text-muted-foreground hover:text-primary transition-colors"
+                                            >
+                                                <Headphones className="w-3 h-3" />
+                                                تحتاج مساعدة بشرية؟ تواصل مع فريق الدعم
+                                                <ChevronRight className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    )}
+
                                     {/* Input */}
-                                    <div className="p-3 border-t">
+                                    <div className="p-3 border-t flex-shrink-0">
                                         <div className="flex gap-2">
                                             <Input
                                                 value={input}
@@ -373,7 +656,7 @@ export function AIChatBot() {
                                                 onKeyDown={(e) => e.key === "Enter" && handleSend()}
                                                 placeholder="اكتب سؤالك..."
                                                 disabled={chatMutation.isPending}
-                                                className="flex-1 h-9 text-sm"
+                                                className="flex-1 h-9 text-xs"
                                             />
                                             <Button
                                                 onClick={handleSend}
