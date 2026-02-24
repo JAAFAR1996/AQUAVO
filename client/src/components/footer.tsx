@@ -187,7 +187,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://wa.me/9647726090012"
+                href="https://wa.me/9647747880673"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="تواصل معنا على واتساب"
@@ -285,7 +285,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
                 <a
-                  href="tel:+9647726090012"
+                  href="tel:+9647747880673"
                   className="flex items-center gap-3 hover:text-primary transition-colors group"
                 >
                   <div className="p-2 bg-slate-800 group-hover:bg-primary/20 rounded-full transition-colors">
@@ -296,18 +296,18 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="mailto:info@aquavo.iq"
+                  href="mailto:info@aquavoiq.com"
                   className="flex items-center gap-3 hover:text-primary transition-colors group"
                 >
                   <div className="p-2 bg-slate-800 group-hover:bg-primary/20 rounded-full transition-colors">
                     <Mail className="h-4 w-4 text-primary" />
                   </div>
-                  <span>info@aquavo.iq</span>
+                  <span>info@aquavoiq.com</span>
                 </a>
               </li>
               <li>
                 <a
-                  href="https://wa.me/9647726090012"
+                  href="https://wa.me/9647747880673"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 hover:text-green-500 transition-colors group"
@@ -396,7 +396,7 @@ export default function Footer() {
                     <span>📊</span> العرض التقديمي
                   </button>
                 </Link>
-                <a href="https://wa.me/9647726090012?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
+                <a href="https://wa.me/9647747880673?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
                   <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
                     <MessageCircle className="w-4 h-4" /> تواصل معنا
                   </button>

@@ -421,7 +421,7 @@ export function OrdersManagement() {
               {/* Footer */}
               <div className="text-center text-xs text-muted-foreground border-t pt-4">
                 <p>شكراً لتسوقكم من AQUAVO</p>
-                <p>للاستفسارات: support@aquavo.iq</p>
+                <p>للاستفسارات: info@aquavoiq.com</p>
               </div>
             </div>
           )}

@@ -18,7 +18,7 @@ interface SettingsData {
 
 const defaultSettings: SettingsData = {
     store_name: "AQUAVO",
-    support_email: "support@aquavo.iq",
+    support_email: "info@aquavoiq.com",
     maintenance_mode: "false",
     orders_enabled: "true",
 };

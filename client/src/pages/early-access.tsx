@@ -291,10 +291,10 @@ export default function EarlyAccessPage() {
                                                 <div>
                                                     <span className="text-slate-300 text-sm">المقاعد المتبقية:</span>
                                                     <span className={`text-3xl font-bold mx-2 ${spotsRemaining <= 5
-                                                            ? 'text-red-400'
-                                                            : spotsRemaining <= 10
-                                                                ? 'text-amber-400'
-                                                                : 'text-cyan-400'
+                                                        ? 'text-red-400'
+                                                        : spotsRemaining <= 10
+                                                            ? 'text-amber-400'
+                                                            : 'text-cyan-400'
                                                         }`}>
                                                         {spotsRemaining}
                                                     </span>
@@ -465,7 +465,7 @@ export default function EarlyAccessPage() {
                                             <div className="space-y-3">
                                                 {/* Send to Shrimp Button */}
                                                 <motion.a
-                                                    href={`https://wa.me/9647726090012?text=${encodeURIComponent(
+                                                    href={`https://wa.me/9647747880673?text=${encodeURIComponent(
                                                         `مرحبا! انا من اوائل المسجلين في AQUAVO\n\n` +
                                                         `كود الخصم الخاص بي:\n` +
                                                         `${couponCode}\n\n` +

@@ -313,7 +313,7 @@ export default function PrivacyPolicy() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
                   <a
-                    href="tel:+9647726090012"
+                    href="tel:+9647747880673"
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
                   >
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
@@ -325,7 +325,7 @@ export default function PrivacyPolicy() {
                     </div>
                   </a>
                   <a
-                    href="https://wa.me/9647726090012"
+                    href="https://wa.me/9647747880673"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
@@ -339,7 +339,7 @@ export default function PrivacyPolicy() {
                     </div>
                   </a>
                   <a
-                    href="mailto:privacy@aquavo.iq"
+                    href="mailto:info@aquavoiq.com"
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
                   >
                     <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
@@ -347,7 +347,7 @@ export default function PrivacyPolicy() {
                     </div>
                     <div>
                       <p className="font-medium">البريد الإلكتروني</p>
-                      <p className="text-sm text-muted-foreground">privacy@aquavo.iq</p>
+                      <p className="text-sm text-muted-foreground">info@aquavoiq.com</p>
                     </div>
                   </a>
                 </div>

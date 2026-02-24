@@ -282,10 +282,10 @@ export default function InvestPage() {
                                     واتساب: 077 166 66543
                                 </Button>
                             </a>
-                            <a href="mailto:invest@aquavo.iq">
+                            <a href="mailto:info@aquavoiq.com">
                                 <Button size="lg" variant="outline" className="gap-2 text-lg px-8 py-6">
                                     <Mail className="w-5 h-5" />
-                                    invest@aquavo.iq
+                                    info@aquavoiq.com
                                 </Button>
                             </a>
                         </div>

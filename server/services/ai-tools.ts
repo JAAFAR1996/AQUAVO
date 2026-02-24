@@ -283,6 +283,7 @@ export class AIToolsExecutor {
                     priceDisplay: variantPrices ?? (parseFloat(p.price) > 0 ? `${parseInt(p.price).toLocaleString()} د.ع` : "اتصل للسعر"),
                     stock: p.stock,
                     rating: p.rating,
+                    thumbnail: p.thumbnail,
                     hasVariants: p.hasVariants,
                     description: p.description ? p.description.slice(0, 150) + "..." : null,
                     hasDiscount: p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price),

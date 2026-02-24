@@ -63,12 +63,20 @@ const ChatMarkdown = memo(function ChatMarkdown({ text }: { text: string }) {
             // Warning line styling
             const isWarning = trimmed.startsWith("⚠️") || trimmed.startsWith("تحذير") || trimmed.startsWith("خطر");
 
+            // Numbered list detection (1. 2. 3. etc.)
+            const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)$/);
+            const isNumbered = !!numberedMatch;
+
             // Bullet point detection
-            const isBullet = trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("* ");
+            const isBullet = !isNumbered && (trimmed.startsWith("•") || trimmed.startsWith("- ") || trimmed.startsWith("* "));
             const bulletContent = isBullet ? trimmed.replace(/^[•\-*]\s*/, "") : trimmed;
 
+            // Bold-only header detection (line is entirely **text**)
+            const isHeader = !isNumbered && !isBullet && /^\*\*[^*]+\*\*[:\s]*$/.test(trimmed);
+
             // Process inline **bold** markers
-            const parts = (isBullet ? bulletContent : trimmed).split(/(\*\*[^*]+\*\*)/g);
+            const rawContent = isNumbered ? numberedMatch![2] : (isBullet ? bulletContent : trimmed);
+            const parts = rawContent.split(/(\*\*[^*]+\*\*)/g);
             const processed = parts.map((part, j) => {
                 if (part.startsWith("**") && part.endsWith("**")) {
                     return <strong key={j} className="font-bold">{part.slice(2, -2)}</strong>;
@@ -80,6 +88,21 @@ const ChatMarkdown = memo(function ChatMarkdown({ text }: { text: string }) {
                 return (
                     <div key={i} className="bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1.5 my-1 text-red-200">
                         {processed}
+                    </div>
+                );
+            }
+
+            if (isHeader) {
+                return (
+                    <p key={i} className="font-bold text-foreground mt-2 mb-0.5">{processed}</p>
+                );
+            }
+
+            if (isNumbered) {
+                return (
+                    <div key={i} className="flex gap-2 items-start my-0.5">
+                        <span className="text-primary font-bold flex-shrink-0 min-w-[1.2rem] text-right">{numberedMatch![1]}.</span>
+                        <span>{processed}</span>
                     </div>
                 );
             }
@@ -379,14 +402,14 @@ export function AIChatBot() {
     // Handle contact support
     const handleContactSupport = useCallback(() => {
         // Open WhatsApp or Instagram
-        window.open("https://wa.me/9647700000000?text=مرحباً، أحتاج مساعدة من فريق AQUAVO", "_blank");
+        window.open("https://wa.me/9647747880673?text=مرحباً، أحتاج مساعدة من فريق AQUAVO", "_blank");
     }, []);
 
     // Quick questions
     const quickQuestions = [
-        "أفضل سمكة للمبتدئين؟",
-        "كيف أنظف الحوض؟",
-        "درجة حرارة الماء المثالية؟",
+        "أحسن سمكة للمبتدئ؟",
+        "شلون أنظف الحوض؟",
+        "شنو حرارة الماء المناسبة؟",
     ];
 
     return (

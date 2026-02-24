@@ -86,7 +86,7 @@ Ultra-realistic, NOT AI-looking. Natural colors. NO people, NO faces, NO animals
 Photorealistic photo of the same corner of an Iraqi home, completely transformed.
 
 SETTING:
-Exact same corner — same two walls, same floor tile. The cardboard boxes and clutter are GONE. In their place: a beautiful modern rectangular aquarium (80-100 liters) on a sleek dark wooden stand. The aquarium is filled with lush green aquatic plants, white and dark gravel substrate, small colorful tropical fish (neon tetras + one betta fish visible). The aquarium has a black frame, clear glass sides, internal LED lighting glowing warm blue-green.
+Exact same corner — same two walls, same floor tile. The cardboard boxes and clutter are GONE. In their place: a beautiful modern rectangular aquarium (80-100 liters) on a sleek dark wooden stand. The aquarium is filled with lush green aquatic plants, white and dark gravel substrate, small colorful tropical fish (a school of neon tetras swimming together). The aquarium has a black frame, clear glass sides, internal LED lighting glowing warm blue-green.
 
 LIGHTING:
 The room is dim — almost dark. The ONLY significant light source is the aquarium LED light casting a beautiful ambient blue-green glow on the surrounding cream walls and floor. The aquarium light creates a stunning ripple-reflection pattern on the ceiling above. The corner is transformed from forgotten to magical.
@@ -107,6 +107,30 @@ Ultra-realistic, NOT AI-looking. Deep rich blues and greens from aquarium light.
 
 ```
 Photorealistic close-up of a man's hand reaching into frame from the right side, gripping the side of an old cardboard box. The corner floor and wall visible in background (same Iraqi home setting). The hand is mid-grab — natural movement captured. Slightly out-of-focus background. 9:16 vertical. Smartphone quality. NO face visible — just wrist and hand. Natural skin tone, clean but not manicured. Realistic.
+```
+
+---
+
+### 📸 صورة 4 — الركن فارغ بعد إزالة الصناديق (IMAGE_CORNER_EMPTY)
+
+```
+Photorealistic photo of the same corner of an Iraqi home with the boxes and clutter removed. Empty corner — bare cream walls meeting, old ceramic tile floor, slightly dusty. The space looks bigger but still uninspiring and boring. Same flat dim indoor fluorescent lighting. 9:16 vertical. Smartphone quality — slightly handheld look. NO people, NO faces, NO animals, NO text or logos. Ultra-realistic.
+```
+
+---
+
+### 📸 صورة 5 — كلوز أب الحوض مع السمك (IMAGE_AFTER_CORNER_FISH_CLOSE)
+
+```
+Photorealistic close-up photo of a modern rectangular aquarium in an Iraqi home corner. Shot from about 0.5 meters — aquarium glass fills most of the frame. Through clear glass: lush green aquatic plants, white and dark gravel substrate, a school of neon tetras swimming calmly. Internal LED glowing warm blue-green. Room is dim — aquarium light is the dominant source. Sharp focus on fish and plants through glass. Slight natural glass reflections visible. 9:16 vertical. Ultra-realistic aquarium photography. NO people, NO faces, NO text.
+```
+
+---
+
+### 📸 صورة 6 — الغرفة كاملة بالليل (IMAGE_ROOM_WIDE_NIGHT)
+
+```
+Photorealistic wide photo of an Iraqi home room at night — all lights off. In the corner, a modern aquarium glows with warm blue-green LED light, casting beautiful ambient light on cream walls and nearby furniture. Gentle ripple-light reflections visible on the ceiling above. Shot from across the room showing the full transformed space. 9:16 vertical. Smartphone night mode quality — slight grain. NO people, NO faces, NO text. Ultra-realistic.
 ```
 
 ---
@@ -138,8 +162,7 @@ Photorealistic close-up of a man's hand reaching into frame from the right side,
     "camera_movement": "Absolutely static — no pan, no zoom, no shake"
   },
   "action": {
-    "description": "The corner sits completely still. Dust visible in the air near the boxes. Very subtle atmospheric motion — a tiny dust particle drifts. Otherwise completely frozen like a photograph come to life.",
-    "lips": "N/A"
+    "description": "The corner sits completely still. Dust visible in the air near the boxes. Very subtle atmospheric motion — a tiny dust particle drifts. Otherwise completely frozen like a photograph come to life."
   },
   "lighting": {
     "type": "Dim flat indoor room light",
@@ -189,8 +212,7 @@ Photorealistic close-up of a man's hand reaching into frame from the right side,
     "camera_movement": "Static"
   },
   "action": {
-    "description": "A man's hand enters from the right side of frame and grips a cardboard box. The box is pulled out of frame. The corner becomes slightly more empty. Natural movement, not staged.",
-    "lips": "N/A"
+    "description": "A man's hand enters from the right side of frame and grips a cardboard box. The box is pulled out of frame. The corner becomes slightly more empty. Natural movement, not staged."
   },
   "lighting": {
     "type": "Same dim indoor lighting as clip 1"
@@ -237,8 +259,7 @@ Photorealistic close-up of a man's hand reaching into frame from the right side,
     "camera_movement": "Absolutely static — camera never moves"
   },
   "action": {
-    "description": "The corner undergoes a slow cinematic cross-dissolve transformation. The cluttered boxes fade away, replaced by the aquarium and stand appearing. As the aquarium appears, its LED light begins glowing, slowly brightening from zero to full warm blue-green. The room dims slightly as the aquarium becomes the primary light source. The walls catch the aquarium light ripple. Fish become visible through the glass, swimming calmly.",
-    "lips": "N/A"
+    "description": "The corner undergoes a slow cinematic cross-dissolve transformation. The cluttered boxes fade away, replaced by the aquarium and stand appearing. As the aquarium appears, its LED light begins glowing, slowly brightening from zero to full warm blue-green. The room dims slightly as the aquarium becomes the primary light source. The walls catch the aquarium light ripple. Fish become visible through the glass, swimming calmly."
   },
   "lighting": {
     "transition": "From flat yellow overhead light → aquarium blue-green glow becoming dominant",
@@ -288,8 +309,7 @@ Photorealistic close-up of a man's hand reaching into frame from the right side,
     "camera_movement": "Very slow gentle zoom toward the aquarium — 10% zoom over 5 seconds"
   },
   "action": {
-    "description": "Camera slowly pushes in toward the aquarium glass. Colorful tropical fish swim naturally — some toward camera, some away. Aquatic plants sway gently from water current. Aquarium light creates beautiful caustic light patterns. The scene is peaceful and hypnotic.",
-    "lips": "N/A"
+    "description": "Camera slowly pushes in toward the aquarium glass. Colorful tropical fish swim naturally — some toward camera, some away. Aquatic plants sway gently from water current. Aquarium light creates beautiful caustic light patterns. The scene is peaceful and hypnotic."
   },
   "lighting": {
     "type": "Aquarium LED light only — warm blue-green",
@@ -338,8 +358,7 @@ Photorealistic close-up of a man's hand reaching into frame from the right side,
     "camera_movement": "Slow zoom out to reveal the full room corner with aquarium glowing"
   },
   "action": {
-    "description": "Camera slowly pulls back to reveal the full transformed corner in context of the room. The aquarium light fills the space beautifully. The room looks completely different from how it started.",
-    "lips": "N/A"
+    "description": "Camera slowly pulls back to reveal the full transformed corner in context of the room. The aquarium light fills the space beautifully. The room looks completely different from how it started."
   },
   "lighting": {
     "type": "Only aquarium ambient light — dark room",
@@ -530,6 +549,14 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
 
 ---
 
+### 📸 صورة 3 — منظر من باب الغرفة (IMAGE_DARK_ROOM_DOOR)
+
+```
+Photorealistic photo taken from just outside a dark Iraqi bedroom doorway at 2AM. Looking through a half-open door into the dark room. The only visible light is a faint warm blue-green aquarium glow in the far corner of the room. The doorframe silhouette visible on left and right edges. Almost completely dark — just the distant aquarium glow drawing the eye inward. 9:16 vertical. Smartphone night mode with slight grain. NO faces, NO text. Ultra-realistic.
+```
+
+---
+
 ## 🎥 بروموتات Veo 3.1 JSON
 
 ### 🎥 كليب 1 — دخول الغرفة (4 ثوانٍ)
@@ -556,8 +583,7 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
     "camera_movement": "Very slow gentle forward drift into the dark room — as if someone is quietly tiptoeing in"
   },
   "action": {
-    "description": "Camera slowly and quietly enters the dark room. The aquarium glow becomes the focal point. A sleeping shape under blankets in background, face never visible. The aquarium light ripples on the wall. Complete stillness except the slow camera drift and subtle water motion inside tank.",
-    "lips": "N/A"
+    "description": "Camera slowly and quietly enters the dark room. The aquarium glow becomes the focal point. A sleeping shape under blankets in background, face never visible. The aquarium light ripples on the wall. Complete stillness except the slow camera drift and subtle water motion inside tank."
   },
   "lighting": {
     "type": "Only aquarium LED light — blue-green warm glow",
@@ -606,8 +632,7 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
     "camera_movement": "Very slow gentle zoom in to aquarium — ending on fish face"
   },
   "action": {
-    "description": "Camera slowly pushes into the aquarium glass. Fish are slightly less active than daytime — almost hovering in place, slow gentle fin movements. Plants barely sway. The scene is hypnotic and meditative. One small fish hovers near the glass, eye visible.",
-    "lips": "N/A"
+    "description": "Camera slowly pushes into the aquarium glass. Fish are slightly less active than daytime — almost hovering in place, slow gentle fin movements. Plants barely sway. The scene is hypnotic and meditative. One small fish hovers near the glass, eye visible."
   },
   "lighting": {
     "type": "Aquarium LED only — blue-green warm",
@@ -653,8 +678,7 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
     "camera_movement": "Slow gentle backward drift"
   },
   "action": {
-    "description": "Camera slowly pulls back from the aquarium to reveal the full peaceful bedroom. The sleeping silhouette in background. The aquarium glow fills the space with calm blue-green light. The last frame holds still for a moment — peaceful, complete.",
-    "lips": "N/A"
+    "description": "Camera slowly pulls back from the aquarium to reveal the full peaceful bedroom. The sleeping silhouette in background. The aquarium glow fills the space with calm blue-green light. The last frame holds still for a moment — peaceful, complete."
   },
   "lighting": {
     "type": "Aquarium LED only — beautiful dark room atmosphere"
@@ -801,6 +825,32 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
 
 ---
 
+### 📸 صورة 3 — ماكرو عين السمكة (IMAGE_FISH_EYE_MACRO)
+
+```json
+{
+  "model": "gemini-2.5-flash-image",
+  "task_type": "generation",
+  "prompt_style": "extreme macro aquarium photography",
+  "camera_setup": "Sony A7R V, 90mm Macro, f/2.0, ISO 800",
+  "subject": {
+    "main": "Photorealistic extreme macro of a single betta fish eye filling the entire frame. The iris shows incredible detail — color gradients, tiny reflection of the aquarium interior visible in the eye surface. Surrounding iridescent scales barely visible at frame edges, completely out of focus.",
+    "composition": "Fish eye fills 80% of frame. Razor-sharp focus on iris and pupil. Everything else falls to soft bokeh."
+  },
+  "environment": {
+    "lighting": { "type": "Warm aquarium LED light", "quality": "Intimate, creating a single bright catchlight in the iris" },
+    "background": "Pure soft bokeh — indistinct warm aquarium tones",
+    "color_palette": { "dominant": "#004D40 (Deep Teal)", "accent": "#1A1A1A (Deep Black Pupil)" }
+  },
+  "style": { "artistic": "Nature documentary extreme macro", "mood": "Hypnotic, impossibly detailed, intimate" },
+  "aquavo_branding": { "logo_text": "AQUAVO", "position": "bottom_right", "font": "SF Pro Display Bold, 10px, #FFFFFF at 40% opacity" },
+  "technical": { "resolution": "4k", "aspect_ratio": "9:16" },
+  "constraints": { "exclusions": ["cartoon", "AI-looking", "text on image", "full fish body visible"], "style_raw": true }
+}
+```
+
+---
+
 ## 🎥 بروموتات Veo 3.1 JSON
 
 ### 🎥 كليب 1 — السمكة تجي ناحيتك (5 ثوانٍ)
@@ -827,8 +877,7 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
     "camera_movement": "Static — fish swims toward camera"
   },
   "action": {
-    "description": "A betta fish at the back of the aquarium notices the camera. It slowly, purposefully swims toward the camera glass — getting closer and closer. Its face grows larger in frame as it approaches. It stops right at the glass — eye-to-eye with the camera. The fish hovers at the glass, eye looking directly into the lens, fins gently waving.",
-    "lips": "N/A"
+    "description": "A betta fish at the back of the aquarium notices the camera. It slowly, purposefully swims toward the camera glass — getting closer and closer. Its face grows larger in frame as it approaches. It stops right at the glass — eye-to-eye with the camera. The fish hovers at the glass, eye looking directly into the lens, fins gently waving."
   },
   "lighting": {
     "type": "Warm aquarium LED — blue-green tones",
@@ -876,8 +925,7 @@ Ultra-realistic. Rich aquarium colors against pure darkness.
     "camera_movement": "Extremely slow gentle zoom into the fish eye"
   },
   "action": {
-    "description": "Camera very slowly zooms into the betta fish eye. The eye fills the frame — impossibly detailed, beautiful. The fish holds position at the glass — hovering gently. The iris reflects the aquarium interior. The scene is hypnotic.",
-    "lips": "N/A"
+    "description": "Camera very slowly zooms into the betta fish eye. The eye fills the frame — impossibly detailed, beautiful. The fish holds position at the glass — hovering gently. The iris reflects the aquarium interior. The scene is hypnotic."
   },
   "lighting": {
     "type": "Aquarium LED — the eye catches the light beautifully — slight catchlight visible in iris"
