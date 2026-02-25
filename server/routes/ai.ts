@@ -207,6 +207,7 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                     category: p.category,
                     rating: p.rating ? parseFloat(p.rating) : null,
                 })),
+                cartAction: result.cartAction,
                 timestamp: new Date().toISOString(),
             },
         });
@@ -354,6 +355,100 @@ router.post("/journey-recommendations", aiRateLimiter, async (req: Request, res:
             success: false,
             error: error instanceof Error ? error.message : "Error generating recommendations"
         });
+    }
+});
+
+// POST /api/ai/feedback - Handle 👍/👎 feedback + self-learning
+router.post("/feedback", aiRateLimiter, async (req: Request, res: Response) => {
+    try {
+        const { type, messageIndex, userMessage, aiResponse } = req.body as {
+            type: "up" | "down";
+            messageIndex?: number;
+            userMessage?: string;
+            aiResponse?: string;
+        };
+
+        if (!type || !["up", "down"].includes(type)) {
+            return res.status(400).json({ success: false, error: "Invalid feedback type" });
+        }
+
+        const db = getDb();
+        const sess = getSession(req);
+        const userId = sess?.userId;
+
+        if (type === "up") {
+            // Positive feedback — just log it
+            if (db) {
+                await db.insert(schema.aiMonitoringLogs).values({
+                    event: "positive_feedback",
+                    level: "info",
+                    userId,
+                    details: { messageIndex, userMessage: userMessage?.slice(0, 200), aiResponse: aiResponse?.slice(0, 200) },
+                } as any);
+            }
+            return res.json({ success: true });
+        }
+
+        // Negative feedback — analyze with AI and create learning
+        if (!userMessage || !aiResponse) {
+            return res.json({ success: true }); // Missing data, just acknowledge
+        }
+
+        // Call Groq to analyze the bad response
+        const { groqClient } = await import("../services/groq-client.js");
+        let analysis = { correctedBehavior: "", rule: "", severity: "medium" as string };
+
+        if (groqClient.hasKeys()) {
+            try {
+                const analysisPrompt = `حلل هذا الرد السيء من بوت مبيعات احواض اسماك عراقي:
+
+سؤال الزبون: "${userMessage.slice(0, 300)}"
+رد البوت: "${aiResponse.slice(0, 500)}"
+
+الزبون اعطى 👎 (غير راضي).
+
+رد بـ JSON فقط بدون اي نص ثاني:
+{"correctedBehavior": "شرح قصير بالعراقي شنو الخطأ", "rule": "قاعدة قصيرة بالعراقي للتجنب مستقبلاً", "severity": "low|medium|high"}`;
+
+                const result = await groqClient.chatText(
+                    [{ role: "user", content: analysisPrompt }],
+                    { temperature: 0.3, maxTokens: 512 }
+                );
+
+                const jsonMatch = result.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    const parsed = JSON.parse(jsonMatch[0]);
+                    analysis = {
+                        correctedBehavior: parsed.correctedBehavior || "",
+                        rule: parsed.rule || "",
+                        severity: ["low", "medium", "high"].includes(parsed.severity) ? parsed.severity : "medium",
+                    };
+                }
+            } catch (err) {
+                console.error("AI learning analysis failed:", err);
+            }
+        }
+
+        // Save to ai_learnings table
+        if (db) {
+            await db.insert(schema.aiLearnings).values({
+                type: "negative_feedback",
+                userMessage: userMessage.slice(0, 1000),
+                aiResponse: aiResponse.slice(0, 2000),
+                correctedBehavior: analysis.correctedBehavior,
+                rule: analysis.rule,
+                severity: analysis.severity,
+                applied: analysis.severity === "high", // Auto-apply high severity
+                appliedAt: analysis.severity === "high" ? new Date() : null,
+                metadata: { userId, messageIndex },
+            });
+        }
+
+        return res.json({ success: true, learning: { severity: analysis.severity } });
+
+    } catch (error) {
+        console.error("Feedback Error:", error);
+        res.status(500).json({ success: false, error: "Failed to process feedback" });
     }
 });
 

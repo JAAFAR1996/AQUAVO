@@ -226,7 +226,8 @@ async function streamChatMessage(
     userName: string | undefined,
     onChunk: (text: string) => void,
     onDone: (products: Product[], normalizedText?: string) => void,
-    onError: (msg: string) => void
+    onError: (msg: string) => void,
+    onCartAction?: (productId: string, productName: string) => void
 ): Promise<void> {
     const response = await fetch("/api/ai/chat/stream", {
         method: "POST",
@@ -265,6 +266,8 @@ async function streamChatMessage(
                 const event = JSON.parse(data);
                 if (event.type === "chunk") {
                     onChunk(event.text);
+                } else if (event.type === "cart_action") {
+                    onCartAction?.(event.productId, event.productName);
                 } else if (event.type === "done") {
                     onDone(event.products || [], event.normalizedText);
                 } else if (event.type === "error") {
@@ -324,7 +327,7 @@ function useProactiveChat(isOpen: boolean, setIsOpen: (v: boolean) => void, mess
 // ============================================================
 export function AIChatBot() {
     const { user } = useAuth();
-    const { addItem } = useCart();
+    const { addItem, refetchCart } = useCart();
     const { toast } = useToast();
     const [, setLocation] = useLocation();
     const userName = user?.fullName || user?.email?.split('@')[0];
@@ -433,6 +436,14 @@ export function AIChatBot() {
                     return updated;
                 });
                 setIsStreaming(false);
+            },
+            // onCartAction
+            (_productId, productName) => {
+                refetchCart();
+                toast({
+                    title: "تمت الإضافة! 🛒",
+                    description: `${productName} انضاف للسلة`,
+                });
             }
         );
 
@@ -442,17 +453,30 @@ export function AIChatBot() {
 
     // Handle feedback
     const handleFeedback = useCallback((messageIndex: number, type: "up" | "down") => {
-        setMessages(prev => prev.map((msg, i) =>
-            i === messageIndex ? { ...msg, feedback: type } : msg
-        ));
+        setMessages(prev => {
+            const updated = prev.map((msg, i) =>
+                i === messageIndex ? { ...msg, feedback: type } : msg
+            );
 
-        // Send feedback to server (fire-and-forget)
-        fetch("/api/ai/feedback", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "include",
-            body: JSON.stringify({ type, messageIndex }),
-        }).catch(() => { /* best-effort */ });
+            // Extract user message + AI response for learning
+            const aiResponse = updated[messageIndex]?.content;
+            const userMessage = messageIndex > 0 ? updated[messageIndex - 1]?.content : undefined;
+
+            // Send feedback to server (fire-and-forget)
+            fetch("/api/ai/feedback", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
+                body: JSON.stringify({
+                    type,
+                    messageIndex,
+                    userMessage: userMessage,
+                    aiResponse: aiResponse,
+                }),
+            }).catch(() => { /* best-effort */ });
+
+            return updated;
+        });
     }, []);
 
     // Handle add to cart from chat

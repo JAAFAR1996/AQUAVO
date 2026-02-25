@@ -1951,4 +1951,27 @@ export const aiMonitoringLogs = pgTable("ai_monitoring_logs", {
 
 export type AiMonitoringLog = typeof aiMonitoringLogs.$inferSelect;
 
+// ========================================
+// AI Self-Learning System (نظام التعلم الذاتي)
+// ========================================
+
+export const aiLearnings = pgTable("ai_learnings", {
+  id: serial("id").primaryKey(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  type: text("type").notNull(), // 'negative_feedback' | 'self_correction' | 'pattern_learned'
+  userMessage: text("user_message").notNull(),
+  aiResponse: text("ai_response").notNull(),
+  correctedBehavior: text("corrected_behavior"), // What the AI learned
+  rule: text("rule"), // The rule extracted, injected into future prompts
+  severity: text("severity").default("medium"), // 'low' | 'medium' | 'high'
+  applied: boolean("applied").default(false), // Whether this learning is active in prompt
+  appliedAt: timestamp("applied_at"),
+  metadata: jsonb("metadata").$type<Record<string, any>>(),
+}, (table) => ({
+  typeIdx: index("ai_learnings_type_idx").on(table.type),
+  appliedIdx: index("ai_learnings_applied_idx").on(table.applied),
+  createdAtIdx: index("ai_learnings_created_at_idx").on(table.createdAt),
+}));
+
+export type AiLearning = typeof aiLearnings.$inferSelect;
 

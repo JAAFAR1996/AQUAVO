@@ -91,7 +91,7 @@
 ║     (نظّفه شوية بالبداية 😉)           ║
 ║                                        ║
 ║  ②  انشره على إنستغرام (ستوري أو بوست)  ║
-║     تاگنا ← @aquavo.iq               ║
+║     تاگنا ← @aquavo_iq               ║
 ║     هاشتاگ ← #حوضي_مع_اكوافو         ║
 ║                                        ║
 ║  ─────────────────────────             ║
@@ -110,8 +110,8 @@
 ║                                        ║
 ║  💙 كل حوض قصة... شنو قصتك؟          ║
 ║                                        ║
-║  📱 @aquavo.iq                         ║
-║  🌐 aquavo.iq                          ║
+║  📱 @aquavo_iq                         ║
+║  🌐 aquavoiq.com                          ║
 ║                                        ║
 ╚════════════════════════════════════════╝
 ```
@@ -140,6 +140,12 @@
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
+  "reference_image": {
+    "instruction": "استخدم صورة اللوگو المرجعية المرفقة (AQUAVO logo) بالضبط كما هي — لا تغيّرها ولا تولّد لوگو جديد. انسخ اللوگو من الصورة المرجعية وحطّه على البطاقة.",
+    "instruction_en": "Use the EXACT logo from the attached reference image. Do NOT generate or modify the logo — copy it precisely as shown in the reference. The logo is an infinity-fish symbol with 'AQUAVO' text below it.",
+    "logo_file": "aquavo-logo-print.png",
+    "logo_description": "Infinity symbol (∞) shaped like a fish — left loop is a teal (#22B8C2) fish with a visible eye, right loop is a dark navy (#0A1F3B) leaf shape. Below: 'AQUAVO' in dark navy Montserrat Bold uppercase. The two loops intertwine elegantly."
+  },
   "prompt_narrative": "Top-down flat lay photograph of a premium square card (100x100mm) for an aquarium e-commerce brand called AQUAVO. The FRONT SIDE of the card features a stunning full-bleed photograph of a breathtaking freshwater Nature Aquarium aquascape — lush green plants (Rotala, Bucephalandra, Monte Carlo carpet, tall Vallisneria), natural driftwood arrangement, Seiryu stones, crystal clear water, and a school of Cardinal Tetras (red and blue) swimming through the plants. The photo is vivid and inspiring. Over the bottom 40% of the image: a smooth gradient overlay fading from fully transparent at the top to solid deep navy (#0A1F3B) at the bottom edge. On this navy gradient area, RIGHT-TO-LEFT Arabic text is printed in white: the main headline in large bold Arabic calligraphy reads 'راوينا حوضك!' (meaning 'Show us your tank!') with a small camera emoji 📸 next to it — this text is in Cairo Bold font, approximately 18pt equivalent, pure white (#FFFFFF), centered horizontally. Below the headline: a smaller line of Arabic text 'حوضك ممكن يكون النجم الجاي على صفحتنا! 🌟' (meaning 'Your tank could be the next star on our page!') in Cairo Regular font, approximately 10pt, white with slight transparency (rgba 255,255,255,0.85). Below that: the Arabic hashtag '#حوضي_مع_اكوافو' in Cairo SemiBold font, approximately 9pt, in gold color (#FFD700) — standing out from the white text. In the upper-right corner: a small white AQUAVO infinity-fish logo with subtle glossy Spot UV shine catching light. The card has rounded corners (3mm radius) and sits on a dark walnut wood surface. Next to the card: an iPhone showing an Instagram profile page (blurred), and a small teal AQUAVO shipping box partially visible. The card has a luxurious Soft-Touch matte finish. Professional product photography, warm directional lighting from upper-left. 4K resolution.",
   "arabic_text_specs": {
     "headline": {
@@ -232,7 +238,13 @@
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
-  "prompt_narrative": "Top-down flat lay photograph of the BACK SIDE of a premium square card (100x100mm) for AQUAVO aquarium brand. The back has a CLEAN WHITE (#FFFFFF) background with a well-organized minimalist RTL (right-to-left) Arabic layout. At the top-right (RTL layout): a small teal (#0D7377) AQUAVO infinity-fish logo with 'AQUAVO' brand name beside it. Below: a thin teal horizontal divider line. Then a bold Arabic heading '✨ حوضك يستاهل ينشاف!' (meaning 'Your tank deserves to be seen!') in Cairo Bold font, 11pt, teal color (#0D7377). Below: another thin divider line. Then a section titled 'الخطوات بسيطة:' (meaning 'Simple steps:') in Cairo SemiBold, 9pt, navy (#0A1F3B). Two numbered steps in RTL layout with teal circle badges containing white numbers: Step ① with text 'صوّر حوضك 📸' and a playful sub-note '(نظّفه شوية بالبداية 😉)' in Cairo Regular 7pt gray (#666666). Step ② with text 'انشره على إنستغرام (ستوري أو بوست) — تاگنا @aquavo.iq — هاشتاگ #حوضي_مع_اكوافو' in Cairo Regular 8pt navy. A small Instagram icon in gradient pink-purple next to step ② for visual emphasis. Below: another thin divider. Then a rewards section: '🎁 شنو تحصل؟' (meaning 'What do you get?') in Cairo SemiBold 9pt navy. Three reward lines with teal checkmarks: '🏆 حوضك راح يكون واجهة لصفحتنا! (يشوفه كل مجتمع الأكواسكيب!)' and '🏷️ كود خصم ١٠٪ على طلبك الجاي' and '⭐ فرصة تفوز بـ حوض الأسبوع + هدية مجانية!' — all in Cairo Regular 8pt navy. Near bottom: an emotional closing in Cairo Medium Italic 8pt teal: '💙 كل حوض قصة... شنو قصتك؟'. At the very bottom: a solid teal (#0D7377) footer bar with white text: '📱 @aquavo.iq • 🌐 aquavo.iq' in Cairo Regular 7pt white. The overall design is CLEAN, SCANNABLE, and beautifully organized — generous white space, clear Arabic typography hierarchy. NO QR code, NO WhatsApp references. The card sits on dark walnut surface, positioned next to the front side of the card (face up, showing the aquascape). A smartphone nearby with Instagram app open showing the @aquavo.iq profile (blurred). Professional product photography, soft even lighting. 4K resolution.",
+  "reference_image": {
+    "instruction": "استخدم صورة اللوگو المرجعية المرفقة (AQUAVO logo) بالضبط كما هي — لا تغيّرها ولا تولّد لوگو جديد.",
+    "instruction_en": "Use the EXACT logo from the attached reference image. Do NOT generate or modify the logo — copy it precisely as shown in the reference.",
+    "logo_file": "aquavo-logo-print.png",
+    "logo_description": "Infinity symbol (∞) shaped like a fish — left loop is a teal (#22B8C2) fish with a visible eye, right loop is a dark navy (#0A1F3B) leaf shape. Below: 'AQUAVO' in dark navy Montserrat Bold uppercase."
+  },
+  "prompt_narrative": "Top-down flat lay photograph of the BACK SIDE of a premium square card (100x100mm) for AQUAVO aquarium brand. The back has a CLEAN WHITE (#FFFFFF) background with a well-organized minimalist RTL (right-to-left) Arabic layout. At the top-right (RTL layout): a small teal (#0D7377) AQUAVO infinity-fish logo with 'AQUAVO' brand name beside it. Below: a thin teal horizontal divider line. Then a bold Arabic heading '✨ حوضك يستاهل ينشاف!' (meaning 'Your tank deserves to be seen!') in Cairo Bold font, 11pt, teal color (#0D7377). Below: another thin divider line. Then a section titled 'الخطوات بسيطة:' (meaning 'Simple steps:') in Cairo SemiBold, 9pt, navy (#0A1F3B). Two numbered steps in RTL layout with teal circle badges containing white numbers: Step ① with text 'صوّر حوضك 📸' and a playful sub-note '(نظّفه شوية بالبداية 😉)' in Cairo Regular 7pt gray (#666666). Step ② with text 'انشره على إنستغرام (ستوري أو بوست) — تاگنا @aquavo_iq — هاشتاگ #حوضي_مع_اكوافو' in Cairo Regular 8pt navy. A small Instagram icon in gradient pink-purple next to step ② for visual emphasis. Below: another thin divider. Then a rewards section: '🎁 شنو تحصل؟' (meaning 'What do you get?') in Cairo SemiBold 9pt navy. Three reward lines with teal checkmarks: '🏆 حوضك راح يكون واجهة لصفحتنا! (يشوفه كل مجتمع الأكواسكيب!)' and '🏷️ كود خصم ١٠٪ على طلبك الجاي' and '⭐ فرصة تفوز بـ حوض الأسبوع + هدية مجانية!' — all in Cairo Regular 8pt navy. Near bottom: an emotional closing in Cairo Medium Italic 8pt teal: '💙 كل حوض قصة... شنو قصتك؟'. At the very bottom: a solid teal (#0D7377) footer bar with white text: '📱 @aquavo_iq • 🌐 aquavoiq.com' in Cairo Regular 7pt white. The overall design is CLEAN, SCANNABLE, and beautifully organized — generous white space, clear Arabic typography hierarchy. NO QR code, NO WhatsApp references. The card sits on dark walnut surface, positioned next to the front side of the card (face up, showing the aquascape). A smartphone nearby with Instagram app open showing the @aquavo_iq profile (blurred). Professional product photography, soft even lighting. 4K resolution.",
   "arabic_text_specs": {
     "section_heading": {
       "text": "✨ حوضك يستاهل ينشاف!",
@@ -255,7 +267,7 @@
       "color": "#0A1F3B (main) / #666666 gray (sub)"
     },
     "step_2": {
-      "text": "انشره على إنستغرام (ستوري أو بوست)\nتاگنا ← @aquavo.iq\nهاشتاگ ← #حوضي_مع_اكوافو",
+      "text": "انشره على إنستغرام (ستوري أو بوست)\nتاگنا ← @aquavo_iq\nهاشتاگ ← #حوضي_مع_اكوافو",
       "font": "Cairo Regular",
       "size": "8pt",
       "color": "#0A1F3B (navy)",
@@ -293,7 +305,7 @@
       "color": "#0D7377 (teal)"
     },
     "footer": {
-      "text": "📱 @aquavo.iq  •  🌐 aquavo.iq",
+      "text": "📱 @aquavo_iq  •  🌐 aquavoiq.com",
       "font": "Cairo Regular",
       "size": "7pt",
       "color": "#FFFFFF (white on teal bar)",
@@ -335,12 +347,12 @@
       "Small Instagram gradient icon next to step ②",
       "Arabic rewards section with emoji bullets",
       "Arabic closing '💙 كل حوض قصة... شنو قصتك؟' in teal italic",
-      "Teal footer bar with white '@aquavo.iq'",
+      "Teal footer bar with white '@aquavo_iq'",
       "Front card visible at edge for context"
     ],
     "exclusions": ["English body text on card", "cluttered design", "photos on back", "multiple colors beyond teal+navy", "broken Arabic", "QR code", "WhatsApp references"],
     "critical_rules": [
-      "ALL text on card is Arabic (RTL) except '@aquavo.iq' and 'aquavo.iq'",
+      "ALL text on card is Arabic (RTL) except '@aquavo_iq' and 'aquavo.iq'",
       "CLEAN AND SCANNABLE — customer must understand in 5 seconds",
       "NO QR CODE — Instagram is the only sharing method",
       "Cairo font family throughout — consistent Arabic typography",
@@ -360,6 +372,12 @@
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
+  "reference_image": {
+    "instruction": "استخدم صورة اللوگو المرجعية المرفقة (AQUAVO logo) بالضبط كما هي على الكرتونة والبطاقة.",
+    "instruction_en": "Use the EXACT logo from the attached reference image on the mailer box and card. Do NOT generate or modify the logo.",
+    "logo_file": "aquavo-logo-print.png",
+    "logo_description": "Infinity symbol (∞) shaped like a fish — left loop is a teal (#22B8C2) fish, right loop is a dark navy (#0A1F3B) leaf. Below: 'AQUAVO' in navy Montserrat Bold."
+  },
   "prompt_narrative": "Lifestyle flat lay photograph showing the UGC card in context — the MOMENT a customer opens their AQUAVO package and discovers the card. An open teal AQUAVO mailer box (with infinity-fish logo sticker seal broken open) sits on a cozy desk. Inside the box: bubble wrap partially pulled aside revealing aquarium products (a bottle of water conditioner, a small plant). The square UGC card (100x100mm) is prominently displayed — it was tucked on top of everything, the FIRST thing the customer sees. The card shows its front face: a beautiful aquascape photo covering the full card, with a navy gradient at the bottom containing visible Arabic text — the bold white headline 'راوينا حوضك!' (meaning 'Show us your tank!') is clearly readable in Cairo Bold font, with a gold hashtag '#حوضي_مع_اكوافو' below it, and the AQUAVO logo in the upper-right corner. The Arabic text on the card is RIGHT-TO-LEFT, clean and professional. Next to the open box: the customer's iPhone with Instagram app open showing the camera/new post screen (as if they're about to photograph and post their own tank), a cup of tea/coffee, and in the blurred background: an actual lit aquarium with green plants and swimming fish visible — this is the customer's tank they could photograph and share! The scene tells a story: 'I opened my package → found this card → looked at my tank → opened Instagram → about to post!' Warm cozy lifestyle photography, natural daylight from a window, shallow depth of field with the card sharp and aquarium softly blurred. 4K resolution.",
   "arabic_on_card": {
     "note": "The card in this scene shows Arabic text as printed — it should be visible but not the focus. The focus is the LIFESTYLE MOMENT.",
@@ -420,7 +438,13 @@
 {
   "model": "gemini-2.5-flash-image",
   "task_type": "generation",
-  "prompt_narrative": "Split-screen lifestyle photograph showing the RESULT of the UGC card campaign. LEFT HALF: a hand holding an iPhone showing an Instagram post — a beautiful photo of a planted freshwater aquarium posted by a customer. The post shows: visible likes count (500+), the tag '@aquavo.iq' visible on the photo, and the Arabic hashtag '#حوضي_مع_اكوافو' visible in the caption area below the image. The phone screen shows engagement (red heart icon, comment bubble with number). RIGHT HALF: the same photo reposted on what appears to be the AQUAVO brand's Instagram Story — with a decorative star frame labeled '🏆 حوض الأسبوع' (meaning 'Tank of the Week') in Cairo Bold 14pt white text with gold star accents on a teal (#0D7377) banner overlay at the top of the story. The story also shows '@aquavo.iq' and the Arabic text 'مبروك! 🎉' (meaning 'Congratulations!') in Cairo SemiBold 12pt white at the bottom. Between the two phones (or below them): the original UGC square card that started it all, lying on the desk with its Arabic headline 'راوينا حوضك!' visible. The composition tells the complete cycle: 'Customer shared → Brand featured → Community celebrated!' Bright, optimistic, celebratory mood. Clean white desk surface. Natural lighting with warm tones. Confetti or sparkle elements optional. 4K resolution.",
+  "reference_image": {
+    "instruction": "استخدم صورة اللوگو المرجعية المرفقة (AQUAVO logo) بالضبط كما هي على البطاقة وشاشات التلفونات.",
+    "instruction_en": "Use the EXACT logo from the attached reference image on the card and phone screens. Do NOT generate or modify the logo.",
+    "logo_file": "aquavo-logo-print.png",
+    "logo_description": "Infinity symbol (∞) shaped like a fish — left loop is a teal (#22B8C2) fish, right loop is a dark navy (#0A1F3B) leaf. Below: 'AQUAVO' in navy Montserrat Bold."
+  },
+  "prompt_narrative": "Split-screen lifestyle photograph showing the RESULT of the UGC card campaign. LEFT HALF: a hand holding an iPhone showing an Instagram post — a beautiful photo of a planted freshwater aquarium posted by a customer. The post shows: visible likes count (500+), the tag '@aquavo_iq' visible on the photo, and the Arabic hashtag '#حوضي_مع_اكوافو' visible in the caption area below the image. The phone screen shows engagement (red heart icon, comment bubble with number). RIGHT HALF: the same photo reposted on what appears to be the AQUAVO brand's Instagram Story — with a decorative star frame labeled '🏆 حوض الأسبوع' (meaning 'Tank of the Week') in Cairo Bold 14pt white text with gold star accents on a teal (#0D7377) banner overlay at the top of the story. The story also shows '@aquavo_iq' and the Arabic text 'مبروك! 🎉' (meaning 'Congratulations!') in Cairo SemiBold 12pt white at the bottom. Between the two phones (or below them): the original UGC square card that started it all, lying on the desk with its Arabic headline 'راوينا حوضك!' visible. The composition tells the complete cycle: 'Customer shared → Brand featured → Community celebrated!' Bright, optimistic, celebratory mood. Clean white desk surface. Natural lighting with warm tones. Confetti or sparkle elements optional. 4K resolution.",
   "arabic_text_specs": {
     "instagram_hashtag": {
       "text": "#حوضي_مع_اكوافو",
@@ -461,7 +485,7 @@
   "constraints": {
     "must_include": [
       "iPhone showing Instagram post with '#حوضي_مع_اكوافو' hashtag visible",
-      "'@aquavo.iq' tag visible on the post photo",
+      "'@aquavo_iq' tag visible on the post photo",
       "Visible engagement (500+ likes, comments)",
       "Instagram Story with '🏆 حوض الأسبوع' teal banner in Arabic",
       "'مبروك! 🎉' text on Story bottom",
@@ -522,7 +546,7 @@
 
 ## 🔍 سياسة فلترة المحتوى — "مو كل حوض ينّشر"
 
-> **⚙️ آلية العمل:** نتابع الهاشتاگ `#حوضي_مع_اكوافو` + التاگ `@aquavo.iq` على إنستغرام.
+> **⚙️ آلية العمل:** نتابع الهاشتاگ `#حوضي_مع_اكوافو` + التاگ `@aquavo_iq` على إنستغرام.
 > كل ما زبون ينشر + يتاگنا، ندخل خاصه (DM) وندزله كود الخصم.
 > **ميزة هالطريقة:** الصورة منشورة علنياً على صفحة الزبون = **إعلان مجاني** يشوفه متابعينه.
 

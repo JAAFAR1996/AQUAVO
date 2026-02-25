@@ -20,6 +20,7 @@ import { sentimentAnalyzer } from "./sentiment-analyzer.js";
 import { aiMonitor } from "./ai-monitor.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
+import { eq } from "drizzle-orm";
 import type { ChatMessage as GroqChatMessage } from "./groq-client.js";
 
 // Timeout Configuration
@@ -186,6 +187,7 @@ export interface ChatContext {
 export interface SendMessageResult {
     text: string;
     products: any[];
+    cartAction?: { added: boolean; productName?: string; productId?: string };
 }
 
 // Friendly fallback messages in Iraqi Arabic
@@ -297,6 +299,8 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 13. دائما تحقق من حجم الحوض! اذا الحوض صغير على السمكة حذر فورا. راجع قسم [حجم الحوض المناسب]. حوض صغير = موت بطيء.
 14. لا تخترع اسماء منتجات ابدا! لا تقول "فلايفريد" او "حبوب بروتين" او اي اسم مو موجود بالقائمة المرفقة. اذا ماكو منتج مناسب بالقائمة قول "ماكو عدنا هسه بس تواصل وياانا ونوفرلك".
 15. اللهجة العراقية اجبارية! لا تستخدم: "بينما"، "الأفضل"، "يمكنك"، "يفضّل"، "الجمع"، "بالإضافة". استخدم بدالها: "بس"، "احسن"، "تكدر"، "يحب"، "تحطهم سوه"، "وبعد".
+16. **ممنوع تخترع خصومات أو أسعار مشطوبة!** اذا المنتج ما عليه خصم بالبيانات المرفقة، لا تكتب "~~سعر قديم~~ سعر جديد". لا تخترع "باقة" بسعر مخفض. السعر الموجود بالبيانات هو السعر الوحيد.
+17. لمن الزبون يطلب اضافة منتج للسلة، قوله "حاضر حبي، ضفت [اسم المنتج] للسلة! 🛒". النظام يضيف تلقائيا. بس **فقط** اذا الزبون طلب صراحة (ضيفه، ابي اشتريه، حطه بالسلة).
 
 [استراتيجية الرد الذكي — متى تسأل ومتى تجاوب]
 
@@ -327,10 +331,10 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 - البراندات: YEE, HOUYI, HYGGER
 
 [استراتيجيات البيع]
-- المبتدئ "ابدي حوض": باقة واضحة: حوض 40-60 لتر + فلتر اسفنجي + سخان + مزيل كلور + طعام. بالاسعار.
+- المبتدئ "ابدي حوض": اقترح منتجات مناسبة من [المنتجات المتوفرة] فقط. **كل منتج بسعره الحقيقي من البيانات.** لا تخترع "سعر الباقة" ولا "سعر كلي مخفض".
 - Cross-sell: فلتر فاقترح مادة ترشيح | حوض فاقترح سخان + ديكور | سمك فاقترح طعام مناسب
 - Upsell: "عدنا نوع احسن بفرق بسيط، يدوم اكثر"
-- الخصومات: اذا اكو خصم بالبيانات نبه عليه!
+- الخصومات: **فقط** اذا المنتج مكتوب بجنبه "(خصم X%)" بالبيانات المرفقة فاذكره. **ممنوع تخترع خصم من عندك ابدا!** لا تكتب سعر مشطوب اذا مو موجود بالبيانات.
 - لا تبيع اكثر من حاجته: المبتدئ يحتاج 3-5 منتجات، مو 14.
 
 [توافق الاسماك — قاعدة بيانات شاملة]
@@ -384,7 +388,7 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 • سخان 50W — لو عندك سمك استوائي
 • مزيل كلور — ضروري لماء الصنبور
 
-السعر بالمتجر هسه. تريد أضيفه للسلة؟ 🛒🦐"
+تكدر تضيفه للسلة من الزر اللي تحت المنتج 🛒🦐"
 
 مثال 5: يسال سؤال عام بدون تفاصيل (مو واضح):
 "خوش سؤال! بس لازم أعرف شوية تفاصيل حتى انصحك صح:
@@ -518,7 +522,6 @@ pH: 6.5-7.5 لاغلب الاسماك. التغيير المفاجئ اخطر م
 عراقي بغدادي: "شلونك"، "اكو"، "هواية"، "بلا زحمة"، "عدنا"، "شنو"، "خوش"، "هسه"، "حبي"، "يسلمون"
 ايموجي باعتدال: 🐠 🦐 ✨ 🌿 💙 ⚠️ 🔥 💔
 السعر: "بس **25,000 د.ع** 🔥"
-الخصم: "~~35,000~~ **25,000 د.ع** (خصم 28%!) 🎉"
 عدم التوفر: "مع الاسف مو متوفر حاليا 😔 بس خليني اشوفلك بديل!"
 اذا الزبون حزين: "الله يعوضك 💔" لا تبيع. عزيه اول.
 
@@ -795,6 +798,80 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
 }
 
 // ============================================================
+// SELF-LEARNING: Inject learned rules into prompt
+// ============================================================
+
+async function getAppliedLearnings(): Promise<string> {
+    try {
+        const db = getDb();
+        if (!db) return "";
+        const learnings = await db
+            .select()
+            .from(schema.aiLearnings)
+            .where(eq(schema.aiLearnings.applied, true))
+            .orderBy(schema.aiLearnings.createdAt)
+            .limit(20);
+        if (learnings.length === 0) return "";
+        const lines = learnings.map(l =>
+            `- ❌ لمن سالوني "${(l.userMessage || "").slice(0, 60)}" غلطت وقلت "${(l.aiResponse || "").slice(0, 60)}". ✅ الصح: "${l.rule || l.correctedBehavior || ""}"`
+        );
+        return `\n\n[دروس مستفادة — لا تكرر هذي الاخطاء]\n${lines.join("\n")}`;
+    } catch {
+        return "";
+    }
+}
+
+// ============================================================
+// POST-EXECUTE: Detect cart intent and add to cart
+// ============================================================
+
+const CART_INTENT_KEYWORDS = [
+    "ضيفها للسلة", "ضيفه للسلة", "ضيفهم للسلة",
+    "حطها بالسلة", "حطه بالسلة", "حطهم بالسلة",
+    "اضيفه", "اضيفها", "اضيف", "ضيفه", "ضيفها",
+    "ابي اشتريه", "ابي اشتريها", "ابي اخذه", "ابي اخذها",
+    "اريد اشتريه", "اريد اشتريها",
+    "خذلي", "خذ لي", "اخذه", "اخذها",
+    "شريه", "شريها", "اشتريه", "اشتريها",
+    "حطه سلة", "حطها سلة", "بالسلة",
+    "اضافة للسلة", "للسلة", "add to cart",
+];
+
+async function postExecuteCartAction(
+    userMessage: string,
+    userId: string | undefined,
+    products: any[]
+): Promise<{ added: boolean; productName?: string; productId?: string }> {
+    if (!userId || products.length === 0) return { added: false };
+
+    const msg = userMessage.toLowerCase();
+    const hasCartIntent = CART_INTENT_KEYWORDS.some(kw => msg.includes(kw));
+    if (!hasCartIntent) return { added: false };
+
+    // Pick the first product (or try to match "الأول", "الثاني", etc.)
+    let targetProduct = products[0];
+    if (msg.includes("الثاني") || msg.includes("ثاني") || msg.includes("التاني")) {
+        targetProduct = products[1] || products[0];
+    } else if (msg.includes("الثالث") || msg.includes("ثالث")) {
+        targetProduct = products[2] || products[0];
+    }
+
+    try {
+        const result = await aiToolsExecutor.addToCart({
+            userId,
+            productId: targetProduct.id,
+            quantity: 1,
+        });
+        if (result.success) {
+            return { added: true, productName: targetProduct.name, productId: targetProduct.id };
+        }
+    } catch (err) {
+        console.error("postExecuteCartAction error:", err);
+    }
+    return { added: false };
+}
+
+// ============================================================
 // MAIN CHAT FUNCTION - Pre-execute tools approach
 // ============================================================
 
@@ -820,8 +897,10 @@ export async function sendMessage(
             }
         }
 
-        // 2. Create system prompt (with context for admin data injection)
-        const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+        // 2. Create system prompt (with context for admin data injection) + inject learnings
+        let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+        const learnings = await getAppliedLearnings();
+        if (learnings) systemPrompt += learnings;
 
         // 3. Check Groq availability
         if (!groqClient.hasKeys()) {
@@ -969,7 +1048,10 @@ export async function sendMessage(
             }
         }
 
-        return { text: responseText, products: uniqueProducts };
+        // 10. Post-execute cart action (if user asked to add to cart)
+        const cartAction = await postExecuteCartAction(message, userId, uniqueProducts);
+
+        return { text: responseText, products: uniqueProducts, cartAction: cartAction.added ? cartAction : undefined };
 
     } catch (error) {
         console.error("Groq AI Error:", error);
@@ -1016,6 +1098,7 @@ export async function sendMessage(
 export type StreamEvent =
     | { type: "chunk"; text: string }
     | { type: "done"; products: any[]; normalizedText?: string }
+    | { type: "cart_action"; productId: string; productName: string }
     | { type: "error"; message: string };
 
 export async function* sendMessageStream(
@@ -1037,8 +1120,10 @@ export async function* sendMessageStream(
         } catch { }
     }
 
-    // 2. System prompt
-    const systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+    // 2. System prompt + inject learnings
+    let systemPrompt = createSalesAgentPrompt(context?.userName, customerProfile, isAdmin, context);
+    const learningsText = await getAppliedLearnings();
+    if (learningsText) systemPrompt += learningsText;
 
     // 3. Check Groq availability
     if (!groqClient.hasKeys()) {
@@ -1119,6 +1204,13 @@ export async function* sendMessageStream(
     const uniqueProducts = toolProducts.filter((p, i, arr) =>
         arr.findIndex(x => x.id === p.id) === i
     );
+
+    // 10. Post-execute cart action
+    const cartAction = await postExecuteCartAction(message, userId, uniqueProducts);
+    if (cartAction.added && cartAction.productName && cartAction.productId) {
+        yield { type: "cart_action", productId: cartAction.productId, productName: cartAction.productName };
+    }
+
     yield {
         type: "done",
         products: uniqueProducts,

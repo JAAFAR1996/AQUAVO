@@ -44,6 +44,7 @@ import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { CouponsManagement } from "@/components/admin/coupons-management";
 import { AuditLogsTab } from "@/components/admin/audit-logs-tab";
 import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
+import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 
 import SecurityManagement from "@/components/admin/security-management";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
@@ -728,6 +729,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="early-access" className="gap-1"><Ticket className="w-3 h-3" />الحجز المبكر</TabsTrigger>
           <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
           <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
+          <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
           <TabsTrigger value="customers">العملاء</TabsTrigger>
@@ -758,6 +760,11 @@ export default function AdminDashboard() {
         {/* AI Monitor Tab */}
         <TabsContent value="ai-monitor" className="space-y-4">
           <AiMonitorPanel />
+        </TabsContent>
+
+        {/* AI Learnings Tab */}
+        <TabsContent value="ai-learnings" className="space-y-4">
+          <AiLearningsPanel />
         </TabsContent>
 
         <TabsContent value="coupons" className="space-y-4">

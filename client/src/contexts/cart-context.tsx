@@ -34,6 +34,7 @@ interface CartContextType {
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
+  refetchCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
 }
@@ -426,6 +427,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [user, removeItem]);
 
+  const refetchCart = useCallback(async () => {
+    if (!user) return;
+    try {
+      const cartRes = await fetch("/api/cart", { credentials: "include" });
+      if (cartRes.ok) {
+        const serverItems = await cartRes.json();
+        if (Array.isArray(serverItems)) {
+          const mappedItems = serverItems.map((item: ServerCartItem) => ({
+            id: item.product.id,
+            name: item.product.name,
+            price: Number(item.product.price),
+            quantity: item.quantity,
+            image: item.product.thumbnail || item.product.images?.[0] || '',
+            slug: item.product.slug,
+          }));
+          setItems(mappedItems);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refetch cart:", err);
+    }
+  }, [user]);
+
   const clearCart = async () => {
     if (user) {
       try {
@@ -452,6 +476,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        refetchCart,
         totalItems: items.reduce((sum, item) => sum + item.quantity, 0),
         totalPrice: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
       }}

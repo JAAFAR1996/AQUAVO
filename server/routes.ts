@@ -27,6 +27,7 @@ import earlyAccessRoutes from "./routes/early-access.js";
 import socialAnalyticsRoutes from "./routes/social-analytics.js";
 import blogRouter from "./routes/blog.js";
 import aiMonitorRouter from "./routes/ai-monitor.js";
+import aiLearningsRouter from "./routes/ai-learnings.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -79,6 +80,7 @@ export async function registerRoutes(
   // Advanced AI routes (Visual AI, Sentiment, Predictive, etc.)
   app.use("/api/ai-advanced", aiAdvancedRoutes);
   app.use("/api/admin/ai-monitor", aiMonitorRouter);
+  app.use("/api/admin/ai-learnings", aiLearningsRouter);
 
   // Pricing AI routes
   app.use("/api/pricing", pricingRoutes);
