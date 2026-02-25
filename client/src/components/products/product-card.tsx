@@ -69,35 +69,33 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
           </div>
 
           {/* Image */}
-          <div className="relative pt-[100%] overflow-hidden" data-protected="true">
-            <div className="absolute inset-0 p-3 sm:p-6 flex items-center justify-center bg-muted/30 rounded-t-xl">
+          <div className="relative pt-[100%] overflow-hidden rounded-t-xl" data-protected="true">
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
               {/* Skeleton placeholder shown while image is loading */}
               {!imgLoaded && (
-                <div className="absolute inset-0 rounded-t-xl animate-pulse bg-muted/60" />
+                <div className="absolute inset-0 animate-pulse bg-muted/60" />
               )}
-              <div className="transition-transform duration-500 group-hover:scale-105 relative z-10">
-                <img
-                  src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
-                  alt={`صورة منتج ${product.name} من ${product.brand}`}
-                  className={`w-full h-full object-contain filter drop-shadow-2xl select-none transition-opacity duration-300 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
-                  loading={priority ? "eager" : "lazy"}
-                  fetchPriority={priority ? "high" : "auto"}
-                  width={400}
-                  height={400}
-                  decoding="async"
-                  draggable={false}
-                  onContextMenu={(e) => e.preventDefault()}
-                  onDragStart={(e) => e.preventDefault()}
-                  onLoad={() => setImgLoaded(true)}
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.endsWith("/logo_aquavo.png")) {
-                      target.src = "/logo_aquavo.png";
-                    }
-                    setImgLoaded(true);
-                  }}
-                />
-              </div>
+              <img
+                src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
+                alt={`صورة منتج ${product.name} من ${product.brand}`}
+                className={`absolute inset-0 w-full h-full object-cover select-none transition-all duration-500 group-hover:scale-105 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                loading={priority ? "eager" : "lazy"}
+                fetchPriority={priority ? "high" : "auto"}
+                width={400}
+                height={400}
+                decoding="async"
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                onDragStart={(e) => e.preventDefault()}
+                onLoad={() => setImgLoaded(true)}
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.endsWith("/logo_aquavo.png")) {
+                    target.src = "/logo_aquavo.png";
+                  }
+                  setImgLoaded(true);
+                }}
+              />
             </div>
 
             {/* Quick Actions Overlay - Hidden on mobile */}
