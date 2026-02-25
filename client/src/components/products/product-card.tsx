@@ -70,7 +70,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
           {/* Image */}
           <div className="relative pt-[100%] overflow-hidden" data-protected="true">
-            <div className="absolute inset-0 p-3 sm:p-6 flex items-center justify-center bg-transparent">
+            <div className="absolute inset-0 p-3 sm:p-6 flex items-center justify-center bg-muted/30 rounded-t-xl">
               {/* Skeleton placeholder shown while image is loading */}
               {!imgLoaded && (
                 <div className="absolute inset-0 rounded-t-xl animate-pulse bg-muted/60" />

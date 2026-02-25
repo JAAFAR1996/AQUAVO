@@ -6,7 +6,7 @@
 
 type Quality = "auto" | "auto:best" | "auto:good" | "auto:eco" | "auto:low";
 type Format = "auto" | "webp" | "avif";
-type Crop = "limit" | "fill" | "fit" | "scale" | "thumb";
+type Crop = "limit" | "fill" | "fit" | "scale" | "thumb" | "pad";
 
 interface ImageOptions {
   width?: number;
@@ -14,6 +14,8 @@ interface ImageOptions {
   quality?: Quality;
   format?: Format;
   crop?: Crop;
+  gravity?: string;
+  background?: string;
 }
 
 /**
@@ -38,12 +40,16 @@ export function optimizeCloudinaryUrl(
     quality = "auto",
     format = "auto",
     crop = "limit",
+    gravity,
+    background,
   } = options;
 
   const parts: string[] = [`f_${format}`, `q_${quality}`];
   if (width) parts.push(`w_${width}`);
   if (height) parts.push(`h_${height}`);
   if ((width || height) && crop) parts.push(`c_${crop}`);
+  if (gravity) parts.push(`g_${gravity}`);
+  if (background) parts.push(`b_${background}`);
 
   const transformStr = parts.join(",");
   return url.replace("/upload/", `/upload/${transformStr}/`);
@@ -56,7 +62,8 @@ export function cardImage(url: string | null | undefined): string {
     height: 400,
     quality: "auto",
     format: "auto",
-    crop: "limit",
+    crop: "pad",
+    background: "auto",
   });
 }
 
