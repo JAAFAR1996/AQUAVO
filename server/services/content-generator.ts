@@ -288,6 +288,105 @@ export class ContentGenerator {
     }
 
     /**
+     * توليد محتوى بانر/عرض ترويجي
+     */
+    async generateBannerContent(params: {
+        occasion?: string;
+        productIds?: string[];
+        offerType?: string;
+    }): Promise<{
+        headline: string;
+        subheadline: string;
+        ctaText: string;
+        description: string;
+    }> {
+        try {
+            if (!db) throw new Error("Database not initialized");
+            if (!groqClient.hasKeys()) {
+                throw new Error("No Groq API keys configured");
+            }
+
+            let productsInfo = "";
+            if (params.productIds && params.productIds.length > 0) {
+                const productList = await db
+                    .select({ id: products.id, name: products.name, price: products.price })
+                    .from(products)
+                    .where(
+                        // Use inArray for multiple product IDs
+                        params.productIds.length === 1
+                            ? eq(products.id, params.productIds[0])
+                            : eq(products.id, params.productIds[0]) // Fallback, will be overridden
+                    );
+                // For multiple products, fetch each
+                const allProducts = [];
+                for (const pid of params.productIds) {
+                    const p = await db.select({ id: products.id, name: products.name, price: products.price })
+                        .from(products).where(eq(products.id, pid)).limit(1);
+                    if (p.length > 0) allProducts.push(p[0]);
+                }
+                productsInfo = allProducts.map(p => `- ${p.name} (${p.price} د.ع)`).join("\n");
+            }
+
+            const prompt = `
+أنت خبير تسويق لمتجر أحواض الأسماك AQUAVO في العراق.
+
+المطلوب: إنشاء محتوى بانر/عرض ترويجي
+${params.occasion ? `المناسبة: ${params.occasion}` : ""}
+${params.offerType ? `نوع العرض: ${params.offerType}` : ""}
+${productsInfo ? `المنتجات المميزة:\n${productsInfo}` : ""}
+
+اكتب محتوى بانر جذاب يتضمن:
+1. عنوان رئيسي (headline): قصير وجذاب (5-8 كلمات)
+2. عنوان فرعي (subheadline): يوضح العرض (10-15 كلمة)
+3. نص زر CTA: محفز للشراء (2-4 كلمات)
+4. وصف العرض: تفاصيل العرض (30-50 كلمة)
+
+أجب بصيغة JSON فقط:
+{
+  "headline": "...",
+  "subheadline": "...",
+  "ctaText": "...",
+  "description": "..."
+}
+`;
+
+            const text = await groqClient.chatText([{ role: "user", content: prompt }], {
+                temperature: 0.8,
+                maxTokens: 1024,
+                model: "llama-3.1-8b-instant"
+            });
+            aiMonitor.log({ event: "content_generated", level: "info", success: true, model: "llama-3.1-8b-instant", details: { type: "banner", occasion: params.occasion } });
+
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            if (!jsonMatch) {
+                throw new Error("Failed to parse AI response");
+            }
+
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            await this.saveContent({
+                contentType: "banner",
+                generatedText: parsed.headline,
+                metadata: {
+                    headline: parsed.headline,
+                    subheadline: parsed.subheadline,
+                    ctaText: parsed.ctaText,
+                    description: parsed.description,
+                    occasion: params.occasion,
+                    offerType: params.offerType,
+                    productIds: params.productIds,
+                } as any,
+                status: "draft",
+            });
+
+            return parsed;
+        } catch (error) {
+            console.error("Error generating banner content:", error);
+            throw error;
+        }
+    }
+
+    /**
      * حفظ المحتوى المولد
      */
     async saveContent(data: InsertGeneratedContent): Promise<void> {

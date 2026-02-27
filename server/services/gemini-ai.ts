@@ -827,33 +827,87 @@ async function getAppliedLearnings(): Promise<string> {
 
 const CART_INTENT_KEYWORDS = [
     "ضيفها للسلة", "ضيفه للسلة", "ضيفهم للسلة",
+    "ضيفها لل سلة", "ضيفه لل سلة", "ضيفهم لل سلة",
     "حطها بالسلة", "حطه بالسلة", "حطهم بالسلة",
-    "اضيفه", "اضيفها", "اضيف", "ضيفه", "ضيفها",
+    "حطها بال سلة", "حطه بال سلة",
+    "اضيفه", "اضيفها", "اضيف", "ضيفه", "ضيفها", "ضيف",
     "ابي اشتريه", "ابي اشتريها", "ابي اخذه", "ابي اخذها",
     "اريد اشتريه", "اريد اشتريها",
     "خذلي", "خذ لي", "اخذه", "اخذها",
     "شريه", "شريها", "اشتريه", "اشتريها",
-    "حطه سلة", "حطها سلة", "بالسلة",
-    "اضافة للسلة", "للسلة", "add to cart",
+    "حطه سلة", "حطها سلة", "بالسلة", "بال سلة",
+    "اضافة للسلة", "للسلة", "لل سلة", "add to cart",
 ];
+
+/**
+ * Extract product names from the last assistant message in chat history.
+ * Products are usually mentioned as **Name** (bold) in the AI response.
+ */
+function extractProductNamesFromHistory(history: ChatMessage[]): string[] {
+    // Walk backwards to find the last assistant message
+    for (let i = history.length - 1; i >= 0; i--) {
+        if (history[i].role === "assistant") {
+            const text = history[i].content;
+            // Extract **bold** product names
+            const boldMatches = text.match(/\*\*([^*]+)\*\*/g);
+            if (boldMatches && boldMatches.length > 0) {
+                return boldMatches
+                    .map(m => m.replace(/\*\*/g, "").trim())
+                    .filter(name =>
+                        // Filter out non-product bold text (section headers, prices, etc.)
+                        name.length > 3 &&
+                        !name.startsWith("ليش") &&
+                        !name.startsWith("شنو") &&
+                        !name.includes("د.ع") &&
+                        !/^\d/.test(name)
+                    );
+            }
+        }
+    }
+    return [];
+}
 
 async function postExecuteCartAction(
     userMessage: string,
     userId: string | undefined,
-    products: any[]
+    products: any[],
+    history: ChatMessage[] = []
 ): Promise<{ added: boolean; productName?: string; productId?: string }> {
-    if (!userId || products.length === 0) return { added: false };
+    if (!userId) return { added: false };
 
     const msg = userMessage.toLowerCase();
     const hasCartIntent = CART_INTENT_KEYWORDS.some(kw => msg.includes(kw));
     if (!hasCartIntent) return { added: false };
 
+    // If no products from current turn, try to find products from chat history
+    let availableProducts = products;
+    if (availableProducts.length === 0 && history.length > 0) {
+        const productNames = extractProductNamesFromHistory(history);
+        if (productNames.length > 0) {
+            // Search for the mentioned products
+            for (const name of productNames.slice(0, 3)) {
+                try {
+                    const result = await aiToolsExecutor.searchProducts({ query: name, limit: 2 });
+                    if (result.success && result.data) {
+                        availableProducts = [...availableProducts, ...result.data];
+                    }
+                } catch { /* best-effort */ }
+            }
+            // Deduplicate
+            availableProducts = availableProducts.filter((p, i, arr) =>
+                arr.findIndex(x => x.id === p.id) === i
+            );
+        }
+    }
+
+    if (availableProducts.length === 0) return { added: false };
+
     // Pick the first product (or try to match "الأول", "الثاني", etc.)
-    let targetProduct = products[0];
+    let targetProduct = availableProducts[0];
     if (msg.includes("الثاني") || msg.includes("ثاني") || msg.includes("التاني")) {
-        targetProduct = products[1] || products[0];
+        targetProduct = availableProducts[1] || availableProducts[0];
     } else if (msg.includes("الثالث") || msg.includes("ثالث")) {
-        targetProduct = products[2] || products[0];
+        targetProduct = availableProducts[2] || availableProducts[0];
     }
 
     try {
@@ -1049,7 +1103,7 @@ export async function sendMessage(
         }
 
         // 10. Post-execute cart action (if user asked to add to cart)
-        const cartAction = await postExecuteCartAction(message, userId, uniqueProducts);
+        const cartAction = await postExecuteCartAction(message, userId, uniqueProducts, history);
 
         return { text: responseText, products: uniqueProducts, cartAction: cartAction.added ? cartAction : undefined };
 
@@ -1206,7 +1260,7 @@ export async function* sendMessageStream(
     );
 
     // 10. Post-execute cart action
-    const cartAction = await postExecuteCartAction(message, userId, uniqueProducts);
+    const cartAction = await postExecuteCartAction(message, userId, uniqueProducts, history);
     if (cartAction.added && cartAction.productName && cartAction.productId) {
         yield { type: "cart_action", productId: cartAction.productId, productName: cartAction.productName };
     }

@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Slider } from "@/components/ui/slider";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
 import { useCart } from "@/contexts/cart-context";
@@ -18,75 +16,98 @@ import {
     Droplets,
     Thermometer,
     Lightbulb,
-    Package,
     ShoppingCart,
     ChevronRight,
     ChevronLeft,
     Check,
     Sparkles,
     Waves,
-    TreePine,
-    Leaf
+    UtensilsCrossed,
+    Ruler,
+    Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Product } from "@/types";
 
-// Wizard steps
+// Wizard steps (3 steps instead of 4)
 const STEPS = [
-    { id: 1, title: "حجم الحوض", icon: Droplets },
-    { id: 2, title: "نوع الأسماك", icon: Fish },
-    { id: 3, title: "الميزانية", icon: Package },
-    { id: 4, title: "المعدات الموصى بها", icon: Sparkles },
+    { id: 1, title: "حجم الحوض", icon: Ruler },
+    { id: 2, title: "نوع أسماكك", icon: Fish },
+    { id: 3, title: "التوصيات الذكية", icon: Sparkles },
 ];
 
-// Tank sizes with recommendations
-const TANK_SIZES = [
-    { id: "small", label: "صغير", size: "20-40 لتر", liters: 30, description: "للمبتدئين - أسماك صغيرة" },
-    { id: "medium", label: "متوسط", size: "50-100 لتر", liters: 75, description: "الأكثر شعبية - تنوع أكبر" },
-    { id: "large", label: "كبير", size: "100-200 لتر", liters: 150, description: "للهواة - أسماك متنوعة" },
-    { id: "xlarge", label: "ضخم", size: "200+ لتر", liters: 250, description: "للمحترفين - أسماك كبيرة" },
-];
+// Quick-select preset tank sizes in liters
+const PRESET_SIZES = [20, 50, 100, 150, 200, 300];
 
-// Fish types
+// Fish types the customer might OWN (not selling fish)
 const FISH_TYPES = [
-    { id: "goldfish", label: "أسماك ذهبية", icon: "🐠", description: "سهلة الرعاية، ألوان زاهية", difficulty: "مبتدئ" },
-    { id: "tropical", label: "أسماك استوائية", icon: "🐡", description: "ألوان متنوعة، ماء دافئ", difficulty: "متوسط" },
-    { id: "betta", label: "بيتا (السيامي)", icon: "🐟", description: "جميلة، تعيش منفردة", difficulty: "مبتدئ" },
-    { id: "cichlid", label: "سيكليد", icon: "🐠", description: "ألوان مذهلة، شخصية قوية", difficulty: "متقدم" },
-    { id: "community", label: "مجتمع متنوع", icon: "🐠", description: "أنواع متعددة متوافقة", difficulty: "متوسط" },
-    { id: "planted", label: "حوض نباتي", icon: "🌿", description: "نباتات + أسماك صغيرة", difficulty: "متوسط" },
+    { id: "goldfish", label: "أسماك ذهبية", icon: "🐠", description: "سهلة الرعاية، ألوان زاهية", difficulty: "مبتدئ", needsHeater: false },
+    { id: "tropical", label: "أسماك استوائية", icon: "🐡", description: "ألوان متنوعة، ماء دافئ", difficulty: "متوسط", needsHeater: true },
+    { id: "betta", label: "بيتا (السيامي)", icon: "🐟", description: "جميلة، تعيش منفردة", difficulty: "مبتدئ", needsHeater: true },
+    { id: "cichlid", label: "سيكليد", icon: "🐠", description: "ألوان مذهلة، شخصية قوية", difficulty: "متقدم", needsHeater: true },
+    { id: "community", label: "مجتمع متنوع", icon: "🐠", description: "أنواع متعددة متوافقة", difficulty: "متوسط", needsHeater: true },
+    { id: "planted", label: "حوض نباتي", icon: "🌿", description: "نباتات + أسماك صغيرة", difficulty: "متوسط", needsHeater: true },
 ];
 
-// Budget ranges
-const BUDGET_RANGES = [
-    { id: "budget", label: "اقتصادي", range: "50,000 - 100,000", min: 50000, max: 100000, description: "المعدات الأساسية" },
-    { id: "standard", label: "معياري", range: "100,000 - 200,000", min: 100000, max: 200000, description: "جودة جيدة" },
-    { id: "premium", label: "متميز", range: "200,000 - 400,000", min: 200000, max: 400000, description: "معدات احترافية" },
-    { id: "luxury", label: "فاخر", range: "400,000+", min: 400000, max: 1000000, description: "أعلى جودة" },
+// Equipment recommendation rules based on tank size and fish type
+// Maps to REAL product categories in the database
+const RECOMMENDATION_GROUPS = [
+    {
+        key: "filtration",
+        label: "💧 الفلتر المناسب",
+        icon: Droplets,
+        categoryKeywords: ["filtration", "فلتر", "filter"],
+        getReason: (liters: number) => `فلتر مناسب لحوض ${liters} لتر`,
+    },
+    {
+        key: "food",
+        label: "🍽️ الأكل المناسب",
+        icon: UtensilsCrossed,
+        categoryKeywords: ["food", "أغذية", "أكل", "طعام", "أعلاف", "feed"],
+        getReason: (_liters: number, fishLabel: string) => `طعام مناسب لـ${fishLabel}`,
+    },
+    {
+        key: "heating",
+        label: "🌡️ السخان",
+        icon: Thermometer,
+        categoryKeywords: ["heating", "سخان", "heater"],
+        getReason: (liters: number) => `سخان مناسب لحوض ${liters} لتر`,
+    },
+    {
+        key: "lighting",
+        label: "💡 الإضاءة",
+        icon: Lightbulb,
+        categoryKeywords: ["lighting", "إضاءة", "light", "led"],
+        getReason: (liters: number) => `إضاءة مناسبة لحوض ${liters} لتر`,
+    },
+    {
+        key: "water-care",
+        label: "🧪 العناية بالماء",
+        icon: Waves,
+        categoryKeywords: ["water-care", "water", "مكيف", "conditioner", "معالج"],
+        getReason: () => "ضروري لصحة الأسماك وتهيئة الماء",
+    },
 ];
 
-// Equipment categories to recommend
-const EQUIPMENT_CATEGORIES = [
-    { category: "أحواض", icon: Waves, priority: 1 },
-    { category: "فلاتر", icon: Droplets, priority: 2 },
-    { category: "سخانات", icon: Thermometer, priority: 3 },
-    { category: "إضاءة", icon: Lightbulb, priority: 4 },
-    { category: "ديكور", icon: TreePine, priority: 5 },
-    { category: "نباتات", icon: Leaf, priority: 6 },
-];
+// Get tank size label from liters
+function getTankLabel(liters: number): string {
+    if (liters <= 30) return "حوض صغير 🐟";
+    if (liters <= 80) return "حوض متوسط 🐠";
+    if (liters <= 200) return "حوض كبير 🐡";
+    return "حوض ضخم 🐳";
+}
 
 export default function AquariumWizard() {
     const [currentStep, setCurrentStep] = useState(1);
-    const [tankSize, setTankSize] = useState<string>("");
+    const [tankLiters, setTankLiters] = useState<number>(0);
     const [fishType, setFishType] = useState<string>("");
-    const [budget, setBudget] = useState<string>("");
     const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
 
     const { addItem } = useCart();
     const { toast } = useToast();
 
-    // Fetch products
-    const { data: productsData } = useQuery({
+    // Fetch products from REAL database
+    const { data: productsData, isLoading } = useQuery({
         queryKey: ["products"],
         queryFn: () => fetchProducts(),
     });
@@ -96,53 +117,68 @@ export default function AquariumWizard() {
     // Calculate progress
     const progress = ((currentStep - 1) / (STEPS.length - 1)) * 100;
 
-    // Get recommended products based on selections
-    const recommendedProducts = useMemo(() => {
-        if (!tankSize || !fishType || !budget) return [];
+    const selectedFish = FISH_TYPES.find(f => f.id === fishType);
 
-        const selectedTank = TANK_SIZES.find(t => t.id === tankSize);
-        const selectedBudget = BUDGET_RANGES.find(b => b.id === budget);
+    // Get recommended products grouped by category
+    const recommendationsByGroup = useMemo(() => {
+        if (!tankLiters || !fishType) return [];
 
-        if (!selectedTank || !selectedBudget) return [];
+        const groups = RECOMMENDATION_GROUPS
+            // Filter out heater if fish doesn't need it
+            .filter(group => {
+                if (group.key === "heating" && selectedFish && !selectedFish.needsHeater) {
+                    return false;
+                }
+                return true;
+            })
+            .map(group => {
+                // Match products by category keywords
+                const matchingProducts = products.filter((p: Product) => {
+                    const cat = (p.category || "").toLowerCase();
+                    const subcat = (p.subcategory || "").toLowerCase();
+                    const name = (p.name || "").toLowerCase();
 
-        // Filter products by category and price
-        const categorizedProducts: Record<string, Product[]> = {};
+                    return group.categoryKeywords.some(keyword => {
+                        const kw = keyword.toLowerCase();
+                        return cat.includes(kw) || subcat.includes(kw) || name.includes(kw);
+                    });
+                });
 
-        EQUIPMENT_CATEGORIES.forEach(eq => {
-            const categoryProducts = products.filter((p: Product) => {
-                const matchesCategory = p.category?.includes(eq.category) ||
-                    p.name?.includes(eq.category.slice(0, -1));
-                const matchesPrice = p.price <= selectedBudget.max / 3; // Each item shouldn't exceed 1/3 of budget
-                return matchesCategory && matchesPrice && (p.stock ?? 0) > 0;
-            });
+                // Sort by rating, pick top 3
+                const topProducts = matchingProducts
+                    .sort((a: Product, b: Product) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+                    .slice(0, 3);
 
-            if (categoryProducts.length > 0) {
-                // Sort by rating and pick best
-                categorizedProducts[eq.category] = categoryProducts
-                    .sort((a: Product, b: Product) => (b.rating || 0) - (a.rating || 0))
-                    .slice(0, 2);
-            }
-        });
+                return {
+                    ...group,
+                    products: topProducts,
+                    reason: group.getReason(tankLiters, selectedFish?.label || ""),
+                };
+            })
+            .filter(group => group.products.length > 0);
 
-        // Flatten and return
-        return Object.values(categorizedProducts).flat();
-    }, [tankSize, fishType, budget, products]);
+        return groups;
+    }, [tankLiters, fishType, products, selectedFish]);
+
+    // Flatten all recommended products
+    const allRecommended = useMemo(
+        () => recommendationsByGroup.flatMap(g => g.products),
+        [recommendationsByGroup]
+    );
 
     // Calculate total price
     const totalPrice = useMemo(() => {
-        return recommendedProducts
+        return allRecommended
             .filter(p => selectedProducts.has(p.id))
-            .reduce((sum, p) => sum + p.price, 0);
-    }, [recommendedProducts, selectedProducts]);
+            .reduce((sum, p) => sum + Number(p.price), 0);
+    }, [allRecommended, selectedProducts]);
 
-    // Handle add all to cart
+    // Handle add all selected to cart
     const handleAddAllToCart = () => {
-        const productsToAdd = recommendedProducts.filter(p => selectedProducts.has(p.id));
-
+        const productsToAdd = allRecommended.filter(p => selectedProducts.has(p.id));
         productsToAdd.forEach(product => {
             addItem(product, 1);
         });
-
         toast({
             title: "🎉 تمت الإضافة!",
             description: `تم إضافة ${productsToAdd.length} منتجات إلى سلة التسوق`,
@@ -162,16 +198,15 @@ export default function AquariumWizard() {
 
     // Select all products
     const selectAllProducts = () => {
-        setSelectedProducts(new Set(recommendedProducts.map(p => p.id)));
+        setSelectedProducts(new Set(allRecommended.map(p => p.id)));
     };
 
     // Navigation
     const canProceed = () => {
         switch (currentStep) {
-            case 1: return !!tankSize;
+            case 1: return tankLiters >= 10;
             case 2: return !!fishType;
-            case 3: return !!budget;
-            case 4: return selectedProducts.size > 0;
+            case 3: return selectedProducts.size > 0;
             default: return false;
         }
     };
@@ -179,9 +214,9 @@ export default function AquariumWizard() {
     const nextStep = () => {
         if (currentStep < STEPS.length && canProceed()) {
             setCurrentStep(currentStep + 1);
-            // Auto-select all products when reaching step 4
-            if (currentStep === 3) {
-                selectAllProducts();
+            // Auto-select all products when reaching recommendations step
+            if (currentStep === 2) {
+                setTimeout(() => selectAllProducts(), 100);
             }
         }
     };
@@ -192,11 +227,23 @@ export default function AquariumWizard() {
         }
     };
 
+    // Handle liter input change
+    const handleLitersChange = (value: string) => {
+        const num = parseInt(value, 10);
+        if (isNaN(num) || num < 0) {
+            setTankLiters(0);
+        } else if (num > 2000) {
+            setTankLiters(2000);
+        } else {
+            setTankLiters(num);
+        }
+    };
+
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-b from-blue-50 to-cyan-50 dark:from-slate-900 dark:to-slate-800">
             <MetaTags
                 title="مساعد إنشاء الحوض | AQUAVO"
-                description="دليلك التفاعلي لإنشاء حوض أسماك مثالي. اختر الحجم والنوع والميزانية واحصل على توصيات مخصصة."
+                description="دليلك التفاعلي لإنشاء حوض أسماك مثالي. حدد الحجم واختر نوع أسماكك واحصل على توصيات مخصصة للمعدات والأكل."
             />
             <Navbar />
 
@@ -211,11 +258,11 @@ export default function AquariumWizard() {
                         🧙 مساعد إنشاء الحوض
                     </h1>
                     <p className="text-muted-foreground text-lg">
-                        أجب على بضعة أسئلة واحصل على توصيات مخصصة لحوضك
+                        حدد حجم حوضك ونوع أسماكك واحصل على توصيات مخصصة من منتجاتنا
                     </p>
                 </div>
 
-                {/* Progress */}
+                {/* Progress Steps */}
                 <div className="max-w-3xl mx-auto mb-8">
                     <div className="flex justify-between mb-2">
                         {STEPS.map((step) => {
@@ -272,165 +319,223 @@ export default function AquariumWizard() {
                     </CardHeader>
 
                     <CardContent className="p-6">
-                        {/* Step 1: Tank Size */}
+                        {/* ═══════════════════════════════════════════════ */}
+                        {/* Step 1: Tank Size in Liters (manual input)     */}
+                        {/* ═══════════════════════════════════════════════ */}
                         {currentStep === 1 && (
-                            <RadioGroup value={tankSize} onValueChange={setTankSize} className="grid gap-4">
-                                {TANK_SIZES.map((tank) => (
-                                    <Label
-                                        key={tank.id}
-                                        htmlFor={tank.id}
-                                        className={cn(
-                                            "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5",
-                                            tankSize === tank.id && "border-primary bg-primary/10"
-                                        )}
-                                    >
-                                        <RadioGroupItem value={tank.id} id={tank.id} />
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-lg">{tank.label}</span>
-                                                <Badge variant="secondary">{tank.size}</Badge>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {tank.description}
-                                            </p>
-                                        </div>
-                                        <Droplets className="w-8 h-8 text-blue-500" />
-                                    </Label>
-                                ))}
-                            </RadioGroup>
-                        )}
-
-                        {/* Step 2: Fish Type */}
-                        {currentStep === 2 && (
-                            <RadioGroup value={fishType} onValueChange={setFishType} className="grid gap-4 md:grid-cols-2">
-                                {FISH_TYPES.map((fish) => (
-                                    <Label
-                                        key={fish.id}
-                                        htmlFor={fish.id}
-                                        className={cn(
-                                            "flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5",
-                                            fishType === fish.id && "border-primary bg-primary/10"
-                                        )}
-                                    >
-                                        <RadioGroupItem value={fish.id} id={fish.id} className="mt-1" />
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-2xl">{fish.icon}</span>
-                                                <span className="font-bold">{fish.label}</span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {fish.description}
-                                            </p>
-                                            <Badge variant="outline" className="mt-2">
-                                                {fish.difficulty}
-                                            </Badge>
-                                        </div>
-                                    </Label>
-                                ))}
-                            </RadioGroup>
-                        )}
-
-                        {/* Step 3: Budget */}
-                        {currentStep === 3 && (
-                            <RadioGroup value={budget} onValueChange={setBudget} className="grid gap-4">
-                                {BUDGET_RANGES.map((b) => (
-                                    <Label
-                                        key={b.id}
-                                        htmlFor={b.id}
-                                        className={cn(
-                                            "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5",
-                                            budget === b.id && "border-primary bg-primary/10"
-                                        )}
-                                    >
-                                        <RadioGroupItem value={b.id} id={b.id} />
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-bold text-lg">{b.label}</span>
-                                                <Badge variant="secondary">{b.range} د.ع</Badge>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mt-1">
-                                                {b.description}
-                                            </p>
-                                        </div>
-                                        <Package className="w-8 h-8 text-green-500" />
-                                    </Label>
-                                ))}
-                            </RadioGroup>
-                        )}
-
-                        {/* Step 4: Recommended Products */}
-                        {currentStep === 4 && (
                             <div className="space-y-6">
-                                <div className="flex items-center justify-between">
-                                    <p className="text-muted-foreground">
-                                        اخترنا لك {recommendedProducts.length} منتج بناءً على اختياراتك
-                                    </p>
-                                    <Button variant="outline" size="sm" onClick={selectAllProducts}>
-                                        تحديد الكل
-                                    </Button>
+                                {/* Main input */}
+                                <div className="text-center space-y-4">
+                                    <label htmlFor="tank-liters" className="text-lg font-semibold block">
+                                        كم حجم حوضك باللتر؟
+                                    </label>
+                                    <div className="flex items-center justify-center gap-3 max-w-xs mx-auto">
+                                        <Input
+                                            id="tank-liters"
+                                            type="number"
+                                            min={10}
+                                            max={2000}
+                                            value={tankLiters || ""}
+                                            onChange={(e) => handleLitersChange(e.target.value)}
+                                            placeholder="مثال: 100"
+                                            className="text-center text-2xl font-bold h-14 text-primary"
+                                        />
+                                        <span className="text-lg font-medium text-muted-foreground whitespace-nowrap">لتر</span>
+                                    </div>
+
+                                    {/* Dynamic tank label */}
+                                    {tankLiters >= 10 && (
+                                        <p className="text-primary font-semibold text-lg animate-in fade-in">
+                                            {getTankLabel(tankLiters)}
+                                        </p>
+                                    )}
                                 </div>
 
+                                {/* Quick-select preset buttons */}
+                                <div className="space-y-2">
+                                    <p className="text-sm text-muted-foreground text-center">أو اختر حجم سريع:</p>
+                                    <div className="flex flex-wrap justify-center gap-2">
+                                        {PRESET_SIZES.map((size) => (
+                                            <Button
+                                                key={size}
+                                                variant={tankLiters === size ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => setTankLiters(size)}
+                                                className={cn(
+                                                    "min-w-[70px] transition-all",
+                                                    tankLiters === size && "shadow-lg scale-105"
+                                                )}
+                                            >
+                                                {size}L
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Info tip */}
+                                <div className="flex items-start gap-2 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-muted-foreground">
+                                    <Info className="w-5 h-5 mt-0.5 text-blue-500 flex-shrink-0" />
+                                    <p>
+                                        إذا ما تعرف حجم حوضك باللتر، احسبه: الطول × العرض × الارتفاع (بالسنتيمتر) ÷ 1000
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══════════════════════════════════════════════ */}
+                        {/* Step 2: Fish Type (what fish do you OWN)       */}
+                        {/* ═══════════════════════════════════════════════ */}
+                        {currentStep === 2 && (
+                            <div className="space-y-4">
+                                <p className="text-center text-muted-foreground mb-4">
+                                    شنو نوع الأسماك اللي عندك (أو تخطط تربيها)؟
+                                </p>
                                 <div className="grid gap-4 md:grid-cols-2">
-                                    {recommendedProducts.map((product) => (
+                                    {FISH_TYPES.map((fish) => (
                                         <div
-                                            key={product.id}
-                                            onClick={() => toggleProduct(product.id)}
+                                            key={fish.id}
+                                            onClick={() => setFishType(fish.id)}
                                             className={cn(
-                                                "flex items-center gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50",
-                                                selectedProducts.has(product.id) && "border-primary bg-primary/10"
+                                                "flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50 hover:bg-primary/5",
+                                                fishType === fish.id && "border-primary bg-primary/10 shadow-md"
                                             )}
                                         >
                                             <div className={cn(
-                                                "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                                                selectedProducts.has(product.id)
+                                                "w-6 h-6 rounded-full border-2 flex items-center justify-center mt-1 flex-shrink-0 transition-all",
+                                                fishType === fish.id
                                                     ? "bg-primary border-primary text-white"
                                                     : "border-muted-foreground/30"
                                             )}>
-                                                {selectedProducts.has(product.id) && <Check className="w-4 h-4" />}
+                                                {fishType === fish.id && <Check className="w-4 h-4" />}
                                             </div>
-                                            <img
-                                                src={product.thumbnail || product.image || "/placeholder-product.svg"}
-                                                alt={product.name}
-                                                className="w-16 h-16 object-contain rounded-lg bg-white"
-                                            />
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-semibold truncate">{product.name}</h4>
-                                                <p className="text-sm text-muted-foreground">{product.category}</p>
-                                                <p className="text-primary font-bold">
-                                                    {Number(product.price).toLocaleString('en-US')} د.ع
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-2xl">{fish.icon}</span>
+                                                    <span className="font-bold">{fish.label}</span>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground mt-1">
+                                                    {fish.description}
                                                 </p>
+                                                <Badge variant="outline" className="mt-2">
+                                                    {fish.difficulty}
+                                                </Badge>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        )}
 
-                                {recommendedProducts.length === 0 && (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                                        <p>لا توجد منتجات متطابقة مع اختياراتك</p>
-                                        <p className="text-sm">جرب تغيير الميزانية أو حجم الحوض</p>
+                        {/* ═══════════════════════════════════════════════ */}
+                        {/* Step 3: Smart Recommendations from OUR products */}
+                        {/* ═══════════════════════════════════════════════ */}
+                        {currentStep === 3 && (
+                            <div className="space-y-6">
+                                {/* Summary of choices */}
+                                <div className="flex flex-wrap items-center justify-center gap-2 p-3 bg-muted/50 rounded-lg">
+                                    <Badge variant="secondary" className="gap-1">
+                                        <Ruler className="w-3 h-3" />
+                                        {tankLiters} لتر
+                                    </Badge>
+                                    <Badge variant="secondary" className="gap-1">
+                                        <Fish className="w-3 h-3" />
+                                        {selectedFish?.label}
+                                    </Badge>
+                                </div>
+
+                                {isLoading ? (
+                                    <div className="text-center py-8">
+                                        <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+                                        <p className="text-muted-foreground">جاري تحميل المنتجات...</p>
                                     </div>
-                                )}
+                                ) : recommendationsByGroup.length === 0 ? (
+                                    <div className="text-center py-8 text-muted-foreground">
+                                        <ShoppingCart className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                        <p>لا توجد منتجات متطابقة حالياً</p>
+                                        <p className="text-sm">جرب تغيير نوع الأسماك أو حجم الحوض</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-muted-foreground text-sm">
+                                                نرشحلك هالمنتجات بناءً على حوضك وأسماكك 👇
+                                            </p>
+                                            <Button variant="outline" size="sm" onClick={selectAllProducts}>
+                                                تحديد الكل
+                                            </Button>
+                                        </div>
 
-                                {selectedProducts.size > 0 && (
-                                    <Card className="bg-gradient-to-r from-primary/10 to-cyan-500/10 border-primary/20">
-                                        <CardContent className="p-4">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        المنتجات المختارة: {selectedProducts.size}
-                                                    </p>
-                                                    <p className="text-2xl font-bold text-primary">
-                                                        {totalPrice.toLocaleString('en-US')} د.ع
-                                                    </p>
+                                        {/* Products grouped by category */}
+                                        {recommendationsByGroup.map((group) => {
+                                            const GroupIcon = group.icon;
+                                            return (
+                                                <div key={group.key} className="space-y-3">
+                                                    {/* Category header */}
+                                                    <div className="flex items-center gap-2">
+                                                        <GroupIcon className="w-5 h-5 text-primary" />
+                                                        <h3 className="font-bold text-lg">{group.label}</h3>
+                                                        <span className="text-xs text-muted-foreground">— {group.reason}</span>
+                                                    </div>
+
+                                                    {/* Products in this category */}
+                                                    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                                                        {group.products.map((product) => (
+                                                            <div
+                                                                key={product.id}
+                                                                onClick={() => toggleProduct(product.id)}
+                                                                className={cn(
+                                                                    "flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all hover:border-primary/50",
+                                                                    selectedProducts.has(product.id) && "border-primary bg-primary/10"
+                                                                )}
+                                                            >
+                                                                <div className={cn(
+                                                                    "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all",
+                                                                    selectedProducts.has(product.id)
+                                                                        ? "bg-primary border-primary text-white"
+                                                                        : "border-muted-foreground/30"
+                                                                )}>
+                                                                    {selectedProducts.has(product.id) && <Check className="w-3 h-3" />}
+                                                                </div>
+                                                                <img
+                                                                    src={product.thumbnail || product.image || "/placeholder-product.svg"}
+                                                                    alt={product.name}
+                                                                    className="w-14 h-14 object-contain rounded-lg bg-white flex-shrink-0"
+                                                                />
+                                                                <div className="flex-1 min-w-0">
+                                                                    <h4 className="font-semibold text-sm truncate">{product.name}</h4>
+                                                                    <p className="text-primary font-bold text-sm">
+                                                                        {Number(product.price).toLocaleString('en-US')} د.ع
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                                <Button size="lg" onClick={handleAddAllToCart} className="gap-2">
-                                                    <ShoppingCart className="w-5 h-5" />
-                                                    أضف الكل للسلة
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
+                                            );
+                                        })}
+
+                                        {/* Total and add to cart */}
+                                        {selectedProducts.size > 0 && (
+                                            <Card className="bg-gradient-to-r from-primary/10 to-cyan-500/10 border-primary/20">
+                                                <CardContent className="p-4">
+                                                    <div className="flex items-center justify-between flex-wrap gap-3">
+                                                        <div>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                المنتجات المختارة: {selectedProducts.size}
+                                                            </p>
+                                                            <p className="text-2xl font-bold text-primary">
+                                                                {totalPrice.toLocaleString('en-US')} د.ع
+                                                            </p>
+                                                        </div>
+                                                        <Button size="lg" onClick={handleAddAllToCart} className="gap-2">
+                                                            <ShoppingCart className="w-5 h-5" />
+                                                            أضف الكل للسلة
+                                                        </Button>
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
@@ -470,28 +575,22 @@ export default function AquariumWizard() {
                     </CardContent>
                 </Card>
 
-                {/* Summary Card */}
-                {(tankSize || fishType || budget) && (
+                {/* Summary Card - show selections made so far */}
+                {(tankLiters >= 10 || fishType) && (
                     <Card className="max-w-3xl mx-auto mt-6 bg-muted/30">
                         <CardContent className="p-4">
                             <h4 className="font-semibold mb-3">📋 ملخص اختياراتك:</h4>
                             <div className="flex flex-wrap gap-2">
-                                {tankSize && (
+                                {tankLiters >= 10 && (
                                     <Badge variant="secondary" className="gap-1">
-                                        <Droplets className="w-3 h-3" />
-                                        {TANK_SIZES.find(t => t.id === tankSize)?.label}
+                                        <Ruler className="w-3 h-3" />
+                                        {tankLiters} لتر — {getTankLabel(tankLiters)}
                                     </Badge>
                                 )}
                                 {fishType && (
                                     <Badge variant="secondary" className="gap-1">
                                         <Fish className="w-3 h-3" />
-                                        {FISH_TYPES.find(f => f.id === fishType)?.label}
-                                    </Badge>
-                                )}
-                                {budget && (
-                                    <Badge variant="secondary" className="gap-1">
-                                        <Package className="w-3 h-3" />
-                                        {BUDGET_RANGES.find(b => b.id === budget)?.label}
+                                        {selectedFish?.label}
                                     </Badge>
                                 )}
                             </div>

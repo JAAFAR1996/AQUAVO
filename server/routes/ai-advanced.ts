@@ -18,6 +18,9 @@ import { aquariumAdvisor } from "../services/aquarium-advisor.js";
 import { triggerJob, getJobStatus } from "../cron/scheduled-jobs.js";
 import { fraudDetector } from "../services/fraud-detector.js";
 import { aiDashboard } from "../services/ai-dashboard.js";
+import { db } from "../db.js";
+import { generatedContent, products } from "../../shared/schema.js";
+import { eq, desc, and, sql } from "drizzle-orm";
 
 const router = Router();
 
@@ -461,6 +464,256 @@ router.post("/content/social-post", requireAdmin as any, async (req, res) => {
       success: false,
       error: error instanceof Error ? error.message : "فشل توليد المنشور",
     });
+  }
+});
+
+/**
+ * GET /api/ai-advanced/content
+ * List all generated content (paginated, filterable)
+ */
+router.get("/content", requireAdmin as any, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
+    const { contentType, status, page = "1", limit = "20" } = req.query;
+    const offset = (parseInt(page as string) - 1) * parseInt(limit as string);
+
+    const conditions = [];
+    if (contentType) conditions.push(eq(generatedContent.contentType, contentType as string));
+    if (status) conditions.push(eq(generatedContent.status, status as string));
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    const items = await db
+      .select()
+      .from(generatedContent)
+      .where(whereClause)
+      .orderBy(desc(generatedContent.createdAt))
+      .limit(parseInt(limit as string))
+      .offset(offset);
+
+    const countResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(generatedContent)
+      .where(whereClause);
+
+    res.json({
+      success: true,
+      data: items,
+      total: Number(countResult[0]?.count || 0),
+      page: parseInt(page as string),
+      limit: parseInt(limit as string),
+    });
+  } catch (error) {
+    console.error("Content list error:", error);
+    res.status(500).json({ success: false, error: "فشل جلب المحتوى" });
+  }
+});
+
+/**
+ * GET /api/ai-advanced/content/:id
+ * Get single content item
+ */
+router.get("/content/:id", requireAdmin as any, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
+    const item = await db
+      .select()
+      .from(generatedContent)
+      .where(eq(generatedContent.id, req.params.id))
+      .limit(1);
+
+    if (item.length === 0) {
+      return res.status(404).json({ success: false, error: "المحتوى غير موجود" });
+    }
+
+    res.json({ success: true, data: item[0] });
+  } catch (error) {
+    console.error("Content get error:", error);
+    res.status(500).json({ success: false, error: "فشل جلب المحتوى" });
+  }
+});
+
+/**
+ * PATCH /api/ai-advanced/content/:id/status
+ * Update content status (draft → approved → published / rejected)
+ */
+router.patch("/content/:id/status", requireAdmin as any, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
+    const { status } = req.body;
+    if (!["draft", "approved", "published", "rejected", "archived"].includes(status)) {
+      return res.status(400).json({ success: false, error: "حالة غير صالحة" });
+    }
+
+    await contentGenerator.updateContentStatus(req.params.id, status);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Content status update error:", error);
+    res.status(500).json({ success: false, error: "فشل تحديث الحالة" });
+  }
+});
+
+/**
+ * DELETE /api/ai-advanced/content/:id
+ * Delete content item
+ */
+router.delete("/content/:id", requireAdmin as any, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
+    await db.delete(generatedContent).where(eq(generatedContent.id, req.params.id));
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Content delete error:", error);
+    res.status(500).json({ success: false, error: "فشل حذف المحتوى" });
+  }
+});
+
+/**
+ * POST /api/ai-advanced/content/email
+ * Generate email content
+ */
+router.post("/content/email", requireAdmin as any, async (req, res) => {
+  try {
+    const { type, context } = req.body;
+    if (!type) {
+      return res.status(400).json({ success: false, error: "نوع الإيميل مطلوب" });
+    }
+
+    const email = await contentGenerator.generateEmailContent(type, context || {});
+    res.json({ success: true, data: email });
+  } catch (error) {
+    console.error("Email generation error:", error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "فشل توليد الإيميل",
+    });
+  }
+});
+
+/**
+ * POST /api/ai-advanced/content/banner
+ * Generate banner/offer content
+ */
+router.post("/content/banner", requireAdmin as any, async (req, res) => {
+  try {
+    const { occasion, productIds, offerType } = req.body;
+
+    const banner = await contentGenerator.generateBannerContent({
+      occasion,
+      productIds,
+      offerType,
+    });
+
+    res.json({ success: true, data: banner });
+  } catch (error) {
+    console.error("Banner generation error:", error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : "فشل توليد البانر",
+    });
+  }
+});
+
+/**
+ * POST /api/ai-advanced/content/bulk-descriptions
+ * Generate descriptions for multiple products
+ */
+router.post("/content/bulk-descriptions", requireAdmin as any, async (req, res) => {
+  try {
+    const { productIds } = req.body;
+    if (!productIds || !Array.isArray(productIds) || productIds.length === 0) {
+      return res.status(400).json({ success: false, error: "productIds مطلوبة" });
+    }
+
+    if (productIds.length > 10) {
+      return res.status(400).json({ success: false, error: "الحد الأقصى 10 منتجات" });
+    }
+
+    const results = [];
+    for (const productId of productIds) {
+      try {
+        const content = await contentGenerator.generateProductDescription(productId);
+        results.push({ productId, success: true, data: content });
+      } catch (error) {
+        results.push({
+          productId,
+          success: false,
+          error: error instanceof Error ? error.message : "فشل التوليد",
+        });
+      }
+    }
+
+    res.json({ success: true, data: results });
+  } catch (error) {
+    console.error("Bulk description error:", error);
+    res.status(500).json({ success: false, error: "فشل التوليد الجماعي" });
+  }
+});
+
+/**
+ * POST /api/ai-advanced/content/:id/apply-to-product
+ * Apply published description/SEO to product record
+ */
+router.post("/content/:id/apply-to-product", requireAdmin as any, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
+
+    // Get the content item
+    const items = await db
+      .select()
+      .from(generatedContent)
+      .where(eq(generatedContent.id, req.params.id))
+      .limit(1);
+
+    if (items.length === 0) {
+      return res.status(404).json({ success: false, error: "المحتوى غير موجود" });
+    }
+
+    const item = items[0];
+
+    if (!item.productId) {
+      return res.status(400).json({ success: false, error: "هذا المحتوى غير مرتبط بمنتج" });
+    }
+
+    if (item.contentType !== "description") {
+      return res.status(400).json({ success: false, error: "يمكن تطبيق أوصاف المنتجات فقط" });
+    }
+
+    const metadata = item.metadata as any;
+    if (!metadata) {
+      return res.status(400).json({ success: false, error: "لا توجد بيانات وصفية" });
+    }
+
+    // Get current product to preserve existing specifications
+    const currentProduct = await db
+      .select({ specifications: products.specifications })
+      .from(products)
+      .where(eq(products.id, item.productId))
+      .limit(1);
+
+    const existingSpecs = (currentProduct[0]?.specifications as any) || {};
+
+    // Update product with description + SEO in specifications
+    await db
+      .update(products)
+      .set({
+        description: metadata.longDescription || metadata.shortDescription || item.generatedText,
+        specifications: {
+          ...existingSpecs,
+          seoTitle: metadata.seoTitle,
+          seoDescription: metadata.seoDescription,
+          seoKeywords: metadata.keywords,
+        },
+      })
+      .where(eq(products.id, item.productId));
+
+    // Mark content as published
+    await contentGenerator.updateContentStatus(req.params.id, "published");
+
+    res.json({ success: true, message: "تم تطبيق الوصف على المنتج بنجاح" });
+  } catch (error) {
+    console.error("Apply to product error:", error);
+    res.status(500).json({ success: false, error: "فشل تطبيق المحتوى على المنتج" });
   }
 });
 

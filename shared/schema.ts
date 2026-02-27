@@ -1138,6 +1138,8 @@ export const aiEmailMetrics = pgTable("ai_email_metrics", {
   openedAt: timestamp("opened_at"),
   clickedAt: timestamp("clicked_at"),
   convertedAt: timestamp("converted_at"),
+  campaignId: text("campaign_id"),  // Links to campaign group
+  status: text("status").default("scheduled"), // scheduled, sent, failed
   sentAt: timestamp("sent_at").defaultNow().notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
@@ -1145,6 +1147,7 @@ export const aiEmailMetrics = pgTable("ai_email_metrics", {
   openedIdx: index("ai_email_metrics_opened_idx").on(table.opened),
   convertedIdx: index("ai_email_metrics_converted_idx").on(table.converted),
   sentAtIdx: index("ai_email_metrics_sent_at_idx").on(table.sentAt),
+  campaignIdx: index("ai_email_metrics_campaign_idx").on(table.campaignId),
 }));
 
 // 6. Inventory Recommendations - توصيات المخزون الذكية
@@ -1533,6 +1536,8 @@ export const insertAIEmailMetricSchema = z.object({
   subject: z.string().min(1),
   personalizedContent: z.boolean().optional(),
   aiGenerated: z.boolean().optional(),
+  campaignId: z.string().optional(),
+  status: z.enum(["scheduled", "sent", "failed"]).optional(),
 });
 
 export type AIEmailMetric = typeof aiEmailMetrics.$inferSelect;
