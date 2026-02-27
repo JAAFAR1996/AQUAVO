@@ -25,6 +25,7 @@ export const STEPS: JourneyStepDefinition[] = [
 
 export const INITIAL_WIZARD_DATA = {
     tankSize: "",
+    tankLiters: 0,
     tankType: "",
     location: [],
     filterType: "",

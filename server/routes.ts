@@ -28,6 +28,7 @@ import socialAnalyticsRoutes from "./routes/social-analytics.js";
 import blogRouter from "./routes/blog.js";
 import aiMonitorRouter from "./routes/ai-monitor.js";
 import aiLearningsRouter from "./routes/ai-learnings.js";
+import cronRouter from "./routes/cron.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -96,6 +97,9 @@ export async function registerRoutes(
 
   // Social Media Analytics routes (TikTok, Facebook, Instagram)
   app.use("/api/social-analytics", socialAnalyticsRoutes);
+
+  // Cron job routes (Vercel Cron calls these endpoints)
+  app.use("/api/cron", cronRouter);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

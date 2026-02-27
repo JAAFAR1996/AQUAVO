@@ -124,10 +124,15 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 <div className="bg-background rounded-lg p-3">
                                     <div className="text-xs text-muted-foreground mb-1">حوضك</div>
                                     <div className="text-lg font-bold text-primary">
-                                        {wizardData.tankSize === "small" && "~40 لتر"}
-                                        {wizardData.tankSize === "medium" && "~100 لتر"}
-                                        {wizardData.tankSize === "large" && "~200 لتر"}
-                                        {wizardData.tankSize === "xlarge" && "~400 لتر"}
+                                        {wizardData.tankLiters > 0
+                                            ? `${wizardData.tankLiters} لتر`
+                                            : <>
+                                                {wizardData.tankSize === "small" && "~40 لتر"}
+                                                {wizardData.tankSize === "medium" && "~100 لتر"}
+                                                {wizardData.tankSize === "large" && "~200 لتر"}
+                                                {wizardData.tankSize === "xlarge" && "~400 لتر"}
+                                            </>
+                                        }
                                     </div>
                                 </div>
                                 <div className="bg-background rounded-lg p-3">

@@ -6,10 +6,20 @@
   "functions": {
     "api/index.ts": {
       "memory": 1024,
-      "maxDuration": 30,
+      "maxDuration": 60,
       "includeFiles": "{server/**,shared/**}"
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/nightly",
+      "schedule": "30 22 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-blog",
+      "schedule": "0 2 * * 0"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",

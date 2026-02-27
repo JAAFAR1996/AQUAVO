@@ -89,10 +89,15 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                             <div className="flex justify-between">
                                 <span className="text-muted-foreground">الحجم:</span>
                                 <span className="font-bold">
-                                    {wizardData.tankSize === "small" && "صغير (20-60 لتر)"}
-                                    {wizardData.tankSize === "medium" && "متوسط (60-150 لتر)"}
-                                    {wizardData.tankSize === "large" && "كبير (150-300 لتر)"}
-                                    {wizardData.tankSize === "xlarge" && "كبير جداً (+300 لتر)"}
+                                    {wizardData.tankLiters > 0
+                                        ? `${wizardData.tankLiters} لتر`
+                                        : <>
+                                            {wizardData.tankSize === "small" && "صغير (20-60 لتر)"}
+                                            {wizardData.tankSize === "medium" && "متوسط (60-150 لتر)"}
+                                            {wizardData.tankSize === "large" && "كبير (150-300 لتر)"}
+                                            {wizardData.tankSize === "xlarge" && "كبير جداً (+300 لتر)"}
+                                        </>
+                                    }
                                 </span>
                             </div>
                             <div className="flex justify-between">

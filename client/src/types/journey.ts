@@ -1,5 +1,6 @@
 export interface WizardData {
     tankSize: string;
+    tankLiters: number;
     tankType: string;
     location: string[];
     filterType: string;

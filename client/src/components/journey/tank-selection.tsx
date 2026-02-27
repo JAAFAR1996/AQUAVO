@@ -2,8 +2,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { Package, Ruler, Lightbulb } from "lucide-react";
+import { Package, Ruler, Lightbulb, Info } from "lucide-react";
 import { WizardData } from "@/types/journey";
 
 interface TankSelectionProps {
@@ -11,7 +12,39 @@ interface TankSelectionProps {
     updateData: <K extends keyof WizardData>(key: K, value: WizardData[K]) => void;
 }
 
+// Map presets to approximate liter values
+const PRESET_TO_LITERS: Record<string, number> = {
+    small: 40,
+    medium: 100,
+    large: 200,
+    xlarge: 400,
+};
+
 export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
+    // Handle preset selection - also sets liters automatically
+    const handlePresetSelect = (val: string) => {
+        updateData("tankSize", val);
+        updateData("tankLiters", PRESET_TO_LITERS[val] || 0);
+    };
+
+    // Handle manual liter input
+    const handleLitersChange = (value: string) => {
+        const num = parseInt(value, 10);
+        if (isNaN(num) || num < 0) {
+            updateData("tankLiters", 0);
+        } else if (num > 2000) {
+            updateData("tankLiters", 2000);
+        } else {
+            updateData("tankLiters", num);
+        }
+
+        // Auto-select preset based on liters
+        if (num <= 60) updateData("tankSize", "small");
+        else if (num <= 150) updateData("tankSize", "medium");
+        else if (num <= 300) updateData("tankSize", "large");
+        else updateData("tankSize", "xlarge");
+    };
+
     return (
         <Card className="border-2">
             <CardContent className="p-6 md:p-8 space-y-8">
@@ -25,13 +58,38 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                     </p>
                 </div>
 
-                {/* Tank Size */}
-                <div className="space-y-4">
+                {/* Manual Liter Input */}
+                <div className="space-y-3">
                     <Label className="text-lg font-bold flex items-center gap-2">
                         <Ruler className="h-5 w-5 text-primary" />
                         حجم الحوض (باللترات)
                     </Label>
-                    <RadioGroup value={wizardData.tankSize} onValueChange={(val) => updateData("tankSize", val)}>
+                    <div className="flex items-center gap-3 max-w-xs">
+                        <Input
+                            type="number"
+                            min={10}
+                            max={2000}
+                            value={wizardData.tankLiters || ""}
+                            onChange={(e) => handleLitersChange(e.target.value)}
+                            placeholder="مثال: 100"
+                            className="text-center text-xl font-bold h-12 text-primary"
+                        />
+                        <span className="text-lg font-medium text-muted-foreground whitespace-nowrap">لتر</span>
+                    </div>
+                    {wizardData.tankLiters >= 10 && (
+                        <p className="text-sm text-primary font-semibold">
+                            {wizardData.tankLiters <= 30 && "🐟 حوض صغير — مناسب لأسماك البيتا"}
+                            {wizardData.tankLiters > 30 && wizardData.tankLiters <= 80 && "🐠 حوض متوسط — خيار ممتاز للمبتدئين"}
+                            {wizardData.tankLiters > 80 && wizardData.tankLiters <= 200 && "🐡 حوض كبير — مستقر وسهل الصيانة"}
+                            {wizardData.tankLiters > 200 && "🐳 حوض ضخم — للمحترفين!"}
+                        </p>
+                    )}
+                </div>
+
+                {/* Quick-Select Presets */}
+                <div className="space-y-3">
+                    <Label className="text-sm text-muted-foreground">أو اختر حجم سريع:</Label>
+                    <RadioGroup value={wizardData.tankSize} onValueChange={handlePresetSelect}>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {[
                                 { value: "small", label: "صغير (20-60 لتر)", desc: "مناسب للمبتدئين" },
@@ -95,6 +153,17 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                             ))}
                         </div>
                     </RadioGroup>
+                </div>
+
+                {/* Formula Tip */}
+                <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex gap-3">
+                    <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-1" />
+                    <div>
+                        <div className="font-bold text-foreground mb-1 text-right">ما تعرف حجم حوضك؟</div>
+                        <p className="text-sm text-muted-foreground text-right">
+                            احسبه بالمعادلة: الطول × العرض × الارتفاع (بالسنتيمتر) ÷ 1000 = الحجم باللتر
+                        </p>
+                    </div>
                 </div>
 
                 {/* Pro Tip */}

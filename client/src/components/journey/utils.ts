@@ -103,5 +103,47 @@ export function getJourneyRecommendations(products: Product[] = [], wizardData: 
 
     // Remove duplicates and limit to 8 products
     const uniqueRecommendations = Array.from(new Map(recommendations.map(p => [p.id, p])).values());
-    return uniqueRecommendations.slice(0, 8);
+    return uniqueRecommendations.slice(0, 10);
+}
+
+/**
+ * Get food recommendations based on fish types selected
+ */
+export function getFoodRecommendations(products: Product[] = [], wizardData: WizardData): Product[] {
+    if (!products.length || !wizardData.fishTypes.length) return [];
+
+    const foodProducts = products.filter(p => {
+        const cat = (p.category || "").toLowerCase();
+        const subcat = (p.subcategory || "").toLowerCase();
+        const name = (p.name || "").toLowerCase();
+        return cat.includes("food") || cat.includes("feed") || cat.includes("أغذية") || cat.includes("أعلاف") ||
+            subcat.includes("food") || subcat.includes("feed") ||
+            name.includes("food") || name.includes("feed") || name.includes("pellet") || name.includes("flake");
+    });
+
+    // Sort by rating, return top 3
+    return foodProducts
+        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+        .slice(0, 3);
+}
+
+/**
+ * Get filter recommendations based on tank size
+ */
+export function getFilterRecommendations(products: Product[] = [], wizardData: WizardData): Product[] {
+    if (!products.length) return [];
+
+    const filterProducts = products.filter(p => {
+        const cat = (p.category || "").toLowerCase();
+        const subcat = (p.subcategory || "").toLowerCase();
+        const name = (p.name || "").toLowerCase();
+        return cat.includes("filtration") || cat.includes("filter") || cat.includes("فلتر") ||
+            subcat.includes("filter") ||
+            name.includes("filter") || name.includes("فلتر");
+    });
+
+    // Sort by rating, return top 3
+    return filterProducts
+        .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+        .slice(0, 3);
 }
