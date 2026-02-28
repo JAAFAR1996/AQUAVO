@@ -224,7 +224,10 @@ export class RecommendationEngine {
           )
         )
         .groupBy(schema.productInteractions.productId)
-        .orderBy(desc(sql`score`))
+        .orderBy(desc(sql`
+            COUNT(CASE WHEN ${schema.productInteractions.interactionType} = 'view' THEN 1 END) * 0.5 +
+            COUNT(CASE WHEN ${schema.productInteractions.interactionType} = 'purchase' THEN 1 END) * 5
+          `))
         .limit(limit);
 
       const recommendations = trendingProducts.map(p => p.productId);

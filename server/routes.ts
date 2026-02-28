@@ -50,6 +50,7 @@ export async function registerRoutes(
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
   app.use("/api/admin/analytics", createAnalyticsRouter());
+  app.use("/api/analytics", createAnalyticsRouter());
   app.use("/api/notifications", createNotificationsRouter());
   app.use("/api/gallery", createGalleryRouter());
   app.use("/api/referral", createReferralRouter());

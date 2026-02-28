@@ -11,6 +11,7 @@ export interface WizardData {
     waterSource: string;
     cyclingMethod: string;
     fishTypes: string[];
+    selectedSpecies: string[];
     stockingLevel: string;
     maintenancePreference: string;
 }

@@ -3,10 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Package, Filter, Mountain, Fish, Clock, ShoppingCart, Sparkles, Leaf, Droplets, TestTube, Calendar, Loader2 } from "lucide-react";
+import { CheckCircle2, Package, Filter, Mountain, Fish, Clock, ShoppingCart, Sparkles, Leaf, Droplets, TestTube, Calendar, Loader2, Utensils } from "lucide-react";
 import { WizardData } from "@/types/journey";
 import { Product } from "@/types";
 import { getJourneyRecommendations } from "./utils";
+import { getSpeciesById } from "./fish-species-data";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 
@@ -167,14 +168,45 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                                 <span className="font-bold">{wizardData.stockingLevel}</span>
                             </div>
                             <div>
-                                <span className="text-muted-foreground">الأنواع:</span>
+                                <span className="text-muted-foreground">الأنواع المختارة:</span>
                                 <div className="flex flex-wrap gap-1 mt-1">
-                                    {wizardData.fishTypes.map(type => (
-                                        <Badge key={type} variant="outline" className="text-xs">{type}</Badge>
-                                    ))}
+                                    {(wizardData.selectedSpecies && wizardData.selectedSpecies.length > 0)
+                                        ? getSpeciesById(wizardData.selectedSpecies).map(species => (
+                                            <Badge key={species.id} variant="outline" className="text-xs gap-1">
+                                                <span>{species.emoji}</span>
+                                                <span>{species.nameAr}</span>
+                                            </Badge>
+                                        ))
+                                        : wizardData.fishTypes.map(type => (
+                                            <Badge key={type} variant="outline" className="text-xs">{type}</Badge>
+                                        ))
+                                    }
                                 </div>
                             </div>
                         </div>
+                        {/* Feeding summary for selected species */}
+                        {wizardData.selectedSpecies && wizardData.selectedSpecies.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-purple-500/10">
+                                <div className="flex items-center gap-1 mb-2 text-xs font-bold text-purple-600">
+                                    <Utensils className="h-3 w-3" />
+                                    ملخص التغذية
+                                </div>
+                                <div className="space-y-1">
+                                    {getSpeciesById(wizardData.selectedSpecies).map(species => (
+                                        <div key={species.id} className="text-[11px] text-muted-foreground flex items-center gap-1">
+                                            <span>{species.emoji}</span>
+                                            <span className="font-medium">{species.nameAr}:</span>
+                                            <span>
+                                                {species.feedingInfo.frequencyPerDay === 0
+                                                    ? "طحالب طبيعية"
+                                                    : `${species.feedingInfo.frequencyPerDay}x يومياً - ${species.feedingInfo.foodTypes.slice(0, 2).join(", ")}`
+                                                }
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

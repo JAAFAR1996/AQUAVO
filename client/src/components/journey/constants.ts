@@ -36,6 +36,7 @@ export const INITIAL_WIZARD_DATA = {
     waterSource: "",
     cyclingMethod: "",
     fishTypes: [],
+    selectedSpecies: [],
     stockingLevel: "",
     maintenancePreference: ""
 };

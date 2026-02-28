@@ -74,6 +74,25 @@ vi.mock('@/lib/api', () => ({
     fetchProducts: vi.fn(() => Promise.resolve({ products: [] })),
 }));
 
+// Mock navbar preferences context
+vi.mock('@/hooks/use-navbar-preferences', () => ({
+    useNavbarPreferences: () => ({
+        isCompact: false,
+        setIsCompact: vi.fn(),
+        isVisible: true,
+        setIsVisible: vi.fn(),
+        style: 'default',
+        setStyle: vi.fn(),
+    }),
+    NavbarPreferencesProvider: ({ children }: { children: React.ReactNode }) => children,
+    NAVBAR_STYLES: [{ value: 'default', label: 'Default' }],
+}));
+
+// Mock NavbarStyleSwitcher
+vi.mock('@/components/navbar/NavbarStyleSwitcher', () => ({
+    NavbarStyleSwitcher: () => null,
+}));
+
 const createWrapper = () => {
     const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     return ({ children }: { children: React.ReactNode }) => (
@@ -103,6 +122,7 @@ describe('JourneyPage', () => {
             waterSource: 'tap',
             cyclingMethod: 'fishless',
             fishTypes: [],
+            selectedSpecies: [],
             stockingLevel: 'light',
             maintenancePreference: 'moderate',
             startedAt: new Date().toISOString()

@@ -1,5 +1,6 @@
 import { Product } from "@/types";
 import { WizardData } from "@/types/journey";
+import { getSpeciesById, type FishSpeciesInfo } from "./fish-species-data";
 
 export function getJourneyRecommendations(products: Product[] = [], wizardData: WizardData): Product[] {
     if (!products.length) return [];
@@ -8,14 +9,14 @@ export function getJourneyRecommendations(products: Product[] = [], wizardData: 
 
     // 1. Tank based on size/type
     if (wizardData.tankSize) {
-        const tankSizeKeywords = {
+        const tankSizeKeywords: Record<string, string[]> = {
             small: ["20", "30", "40", "50", "60", "small", "nano"],
             medium: ["80", "100", "120", "medium"],
             large: ["150", "200", "250", "large"],
             xlarge: ["300", "400", "500", "xl"]
         };
 
-        const keywords = tankSizeKeywords[wizardData.tankSize as keyof typeof tankSizeKeywords] || [];
+        const keywords = tankSizeKeywords[wizardData.tankSize] || [];
         const tanks = products.filter(p =>
             (p.category.toLowerCase().includes("tank") || p.category.toLowerCase().includes("aquarium")) &&
             keywords.some(k => p.name.toLowerCase().includes(k))
@@ -101,16 +102,76 @@ export function getJourneyRecommendations(products: Product[] = [], wizardData: 
         if (rocks) recommendations.push(rocks);
     }
 
-    // Remove duplicates and limit to 8 products
+    // 8. Species-specific food recommendations (NEW - based on selectedSpecies)
+    const speciesFood = getSpeciesFoodRecommendations(products, wizardData);
+    recommendations.push(...speciesFood);
+
+    // 9. Species-specific filter recommendations
+    const filterRecs = getFilterRecommendations(products, wizardData);
+    recommendations.push(...filterRecs);
+
+    // Remove duplicates and limit to 12 products
     const uniqueRecommendations = Array.from(new Map(recommendations.map(p => [p.id, p])).values());
-    return uniqueRecommendations.slice(0, 10);
+    return uniqueRecommendations.slice(0, 12);
 }
 
 /**
- * Get food recommendations based on fish types selected
+ * Get food recommendations based on selected fish species (species-specific matching)
+ */
+export function getSpeciesFoodRecommendations(products: Product[] = [], wizardData: WizardData): Product[] {
+    const selectedSpecies = getSpeciesById(wizardData.selectedSpecies || []);
+    if (!products.length || selectedSpecies.length === 0) {
+        // Fallback to generic food matching
+        return getFoodRecommendations(products, wizardData);
+    }
+
+    // Collect all unique product keywords from selected species
+    const allKeywords = new Set<string>();
+    selectedSpecies.forEach(species => {
+        species.feedingInfo.productKeywords.forEach(kw => allKeywords.add(kw.toLowerCase()));
+    });
+
+    // Find food products matching species keywords
+    const foodProducts = products.filter(p => {
+        const name = (p.name || "").toLowerCase();
+        const cat = (p.category || "").toLowerCase();
+        const subcat = (p.subcategory || "").toLowerCase();
+        const searchable = `${name} ${cat} ${subcat}`;
+
+        // Must be a food/feed product
+        const isFood = cat.includes("food") || cat.includes("feed") || cat.includes("أغذية") ||
+            cat.includes("أعلاف") || subcat.includes("food") || subcat.includes("feed") ||
+            name.includes("food") || name.includes("feed") || name.includes("pellet") ||
+            name.includes("flake") || name.includes("algae wafer") || name.includes("spirulina");
+
+        if (!isFood) return false;
+
+        // Check if any species keyword matches
+        return Array.from(allKeywords).some(kw => searchable.includes(kw));
+    });
+
+    // If keyword matching finds results, use them; otherwise fallback to all food
+    if (foodProducts.length > 0) {
+        return foodProducts
+            .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
+            .slice(0, 4);
+    }
+
+    // Broader fallback: return any food products
+    return getFoodRecommendations(products, wizardData);
+}
+
+/**
+ * Get food recommendations based on fish types selected (generic fallback)
  */
 export function getFoodRecommendations(products: Product[] = [], wizardData: WizardData): Product[] {
-    if (!products.length || !wizardData.fishTypes.length) return [];
+    if (!products.length) return [];
+
+    const fishTypes = wizardData.fishTypes || [];
+    const selectedSpecies = wizardData.selectedSpecies || [];
+
+    // If no fish selected at all, no food recs
+    if (fishTypes.length === 0 && selectedSpecies.length === 0) return [];
 
     const foodProducts = products.filter(p => {
         const cat = (p.category || "").toLowerCase();
@@ -142,8 +203,8 @@ export function getFilterRecommendations(products: Product[] = [], wizardData: W
             name.includes("filter") || name.includes("فلتر");
     });
 
-    // Sort by rating, return top 3
+    // Sort by rating, return top 2
     return filterProducts
         .sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0))
-        .slice(0, 3);
+        .slice(0, 2);
 }
