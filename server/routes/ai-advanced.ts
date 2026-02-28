@@ -19,7 +19,7 @@ import { triggerJob, getJobStatus } from "../cron/scheduled-jobs.js";
 import { fraudDetector } from "../services/fraud-detector.js";
 import { aiDashboard } from "../services/ai-dashboard.js";
 import { db } from "../db.js";
-import { generatedContent, products } from "../../shared/schema.js";
+import { generatedContent } from "../../shared/schema.js";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 const router = Router();
@@ -647,73 +647,6 @@ router.post("/content/bulk-descriptions", requireAdmin as any, async (req, res) 
   } catch (error) {
     console.error("Bulk description error:", error);
     res.status(500).json({ success: false, error: "فشل التوليد الجماعي" });
-  }
-});
-
-/**
- * POST /api/ai-advanced/content/:id/apply-to-product
- * Apply published description/SEO to product record
- */
-router.post("/content/:id/apply-to-product", requireAdmin as any, async (req, res) => {
-  try {
-    if (!db) return res.status(500).json({ success: false, error: "Database not initialized" });
-
-    // Get the content item
-    const items = await db
-      .select()
-      .from(generatedContent)
-      .where(eq(generatedContent.id, req.params.id))
-      .limit(1);
-
-    if (items.length === 0) {
-      return res.status(404).json({ success: false, error: "المحتوى غير موجود" });
-    }
-
-    const item = items[0];
-
-    if (!item.productId) {
-      return res.status(400).json({ success: false, error: "هذا المحتوى غير مرتبط بمنتج" });
-    }
-
-    if (item.contentType !== "description") {
-      return res.status(400).json({ success: false, error: "يمكن تطبيق أوصاف المنتجات فقط" });
-    }
-
-    const metadata = item.metadata as any;
-    if (!metadata) {
-      return res.status(400).json({ success: false, error: "لا توجد بيانات وصفية" });
-    }
-
-    // Get current product to preserve existing specifications
-    const currentProduct = await db
-      .select({ specifications: products.specifications })
-      .from(products)
-      .where(eq(products.id, item.productId))
-      .limit(1);
-
-    const existingSpecs = (currentProduct[0]?.specifications as any) || {};
-
-    // Update product with description + SEO in specifications
-    await db
-      .update(products)
-      .set({
-        description: metadata.longDescription || metadata.shortDescription || item.generatedText,
-        specifications: {
-          ...existingSpecs,
-          seoTitle: metadata.seoTitle,
-          seoDescription: metadata.seoDescription,
-          seoKeywords: metadata.keywords,
-        },
-      })
-      .where(eq(products.id, item.productId));
-
-    // Mark content as published
-    await contentGenerator.updateContentStatus(req.params.id, "published");
-
-    res.json({ success: true, message: "تم تطبيق الوصف على المنتج بنجاح" });
-  } catch (error) {
-    console.error("Apply to product error:", error);
-    res.status(500).json({ success: false, error: "فشل تطبيق المحتوى على المنتج" });
   }
 });
 
