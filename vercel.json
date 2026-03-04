@@ -8,6 +8,11 @@
       "memory": 1024,
       "maxDuration": 60,
       "includeFiles": "{server/**,shared/**}"
+    },
+    "api/ssr-meta.ts": {
+      "memory": 256,
+      "maxDuration": 10,
+      "includeFiles": "{dist/public/index.html,shared/**}"
     }
   },
   "crons": [
@@ -73,8 +78,8 @@
       "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt"
     },
     {
-      "source": "/((?!.*\\.txt$).*)",
-      "destination": "/index.html"
+      "source": "/((?!.*\\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$).*)",
+      "destination": "/api/ssr-meta"
     }
   ]
 }
