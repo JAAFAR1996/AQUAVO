@@ -179,9 +179,9 @@ export default function ProductDetails() {
   const inStock = displayStock > 0;
 
   const breadcrumbItems = [
-    { name: "الرئيسية", url: "https://aquavo.iq/" },
-    { name: "المنتجات", url: "https://aquavo.iq/products" },
-    { name: product.name, url: `https://aquavo.iq/products/${product.slug}` }
+    { name: "الرئيسية", url: "https://www.aquavoiq.com/" },
+    { name: "المنتجات", url: "https://www.aquavoiq.com/products" },
+    { name: product.name, url: `https://www.aquavoiq.com/products/${product.slug}` }
   ];
 
   return (
@@ -189,7 +189,7 @@ export default function ProductDetails() {
       <MetaTags
         title={product.name}
         description={product.specs?.substring(0, 160) || `تسوق ${product.name} من AQUAVO بأفضل الأسعار.`}
-        image={product.image || 'https://aquavo.iq/og-image.jpg'}
+        image={product.image || 'https://www.aquavoiq.com/og-image.jpg'}
         type="product"
         price={product.price}
       />

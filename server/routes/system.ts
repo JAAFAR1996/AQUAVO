@@ -2,6 +2,9 @@ import type { Router as RouterType, Request, Response } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
+import { db } from "../db.js";
+import { blogPosts } from "../../shared/schema.js";
+import { eq, desc } from "drizzle-orm";
 
 export function createSystemRouter(): RouterType {
     const router = Router();
@@ -10,13 +13,14 @@ export function createSystemRouter(): RouterType {
     router.get("/sitemap.xml", async (req: Request, res: Response): Promise<void> => {
         try {
             const products = await storage.getProducts();
-            const baseUrl = "https://aquavo.iq";
+            const baseUrl = "https://www.aquavoiq.com";
             const today = new Date().toISOString().split('T')[0];
 
             const staticPages = [
-                "/", "/products", "/fish-encyclopedia", "/journey", "/calculators",
-                "/fish-finder", "/fish-health", "/tank-builder", "/community-gallery",
-                "/blog", "/faq", "/sustainability", "/contact"
+                "/", "/products", "/deals", "/fish-encyclopedia", "/journey", "/calculators",
+                "/fish-finder", "/fish-health", "/fish-compatibility", "/beginner-guide",
+                "/tank-builder", "/community-gallery", "/blog", "/faq",
+                "/sustainability", "/shipping", "/terms", "/privacy-policy", "/return-policy"
             ];
 
             let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
@@ -32,6 +36,20 @@ export function createSystemRouter(): RouterType {
                 xml += `\n  <url>\n    <loc>${baseUrl}/products/${p.slug}</loc>\n    <lastmod>${updated}</lastmod>\n  </url>`;
             });
 
+            // Blog posts
+            if (db) {
+                try {
+                    const posts = await db.select({ slug: blogPosts.slug, publishedAt: blogPosts.publishedAt })
+                        .from(blogPosts)
+                        .where(eq(blogPosts.status, "published"))
+                        .orderBy(desc(blogPosts.publishedAt));
+                    posts.forEach(p => {
+                        const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : today;
+                        xml += `\n  <url>\n    <loc>${baseUrl}/blog/${p.slug}</loc>\n    <lastmod>${date}</lastmod>\n  </url>`;
+                    });
+                } catch { /* blog table might not exist yet */ }
+            }
+
             xml += `\n</urlset>`;
             res.header("Content-Type", "application/xml");
             res.send(xml);
@@ -43,7 +61,7 @@ export function createSystemRouter(): RouterType {
 
     // Robots.txt
     router.get("/robots.txt", (req: Request, res: Response): void => {
-        const robots = `User-agent: *\nDisallow: /admin\nDisallow: /api/\nSitemap: https://aquavo.iq/sitemap.xml`;
+        const robots = `User-agent: *\nDisallow: /admin\nDisallow: /api/\nSitemap: https://www.aquavoiq.com/sitemap.xml`;
         res.header("Content-Type", "text/plain");
         res.send(robots);
     });

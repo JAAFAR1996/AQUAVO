@@ -1,5 +1,5 @@
 # Robots.txt for AQUAVO
-# https://aquavo.iq
+# https://www.aquavoiq.com
 
 User-agent: *
 Allow: /
@@ -13,7 +13,7 @@ Disallow: /forgot-password
 Disallow: /reset-password
 
 # Sitemaps
-Sitemap: https://aquavo.iq/sitemap.xml
+Sitemap: https://www.aquavoiq.com/sitemap.xml
 
 # Crawl-delay (optional, respected by some bots)
 Crawl-delay: 1

@@ -92,7 +92,8 @@ export function corsConfig(req: Request, res: Response, next: NextFunction) {
     // Only allow localhost in development
     ...(!isProduction ? ['http://localhost:5000', 'http://localhost:3000'] : []),
     'https://fist-live.vercel.app', // Production Vercel domain
-    'https://aquavo.iq', // Custom domain if any
+    'https://www.aquavoiq.com', // Custom domain
+    'https://aquavoiq.com', // Without www
     process.env.CLIENT_URL
   ].filter(Boolean);
 

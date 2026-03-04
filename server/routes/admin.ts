@@ -84,7 +84,7 @@ export function createAdminRouter(): RouterType {
 
                         if (db && VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY && (order as any).userId) {
                             webPush.default.setVapidDetails(
-                                process.env.VAPID_SUBJECT || "mailto:info@aquavo.iq",
+                                process.env.VAPID_SUBJECT || "mailto:info@aquavoiq.com",
                                 VAPID_PUBLIC_KEY,
                                 VAPID_PRIVATE_KEY
                             );

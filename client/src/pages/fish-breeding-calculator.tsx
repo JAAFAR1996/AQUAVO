@@ -1035,7 +1035,7 @@ export default function FishBreedingCalculator() {
 
             {/* Footer */}
             <div className="mt-12 pt-8 border-t border-slate-200 text-center text-slate-500 flex justify-between items-center">
-              <span className="text-sm">www.aquavo.iq</span>
+              <span className="text-sm">www.aquavoiq.com</span>
               <span className="text-sm font-bold">AQUAVO © {new Date().getFullYear()} - جميع الحقوق محفوظة</span>
             </div>
           </div>

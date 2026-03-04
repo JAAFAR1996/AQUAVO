@@ -54,7 +54,7 @@ export default function BlogPost() {
             <ArticleSchema
                 title={post.title}
                 description={post.excerpt || post.title}
-                image={post.imageUrl || "https://aquavo.iq/logo_aquavo.png"}
+                image={post.imageUrl || "https://www.aquavoiq.com/logo_aquavo.png"}
                 datePublished={post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString()}
                 author={post.author || "AQUAVO"}
             />

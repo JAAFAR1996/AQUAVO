@@ -271,7 +271,7 @@ export function createUserRouter(): RouterType {
                 const expiresAt = new Date(Date.now() + 3600000); // 1 hour
 
                 await storage.createPasswordResetToken(user.id, tokenHash, expiresAt);
-                await sendPasswordResetEmail(email, token, "https://aquavo.iq");
+                await sendPasswordResetEmail(email, token, "https://www.aquavoiq.com");
             }
             res.json({ message: "If account exists, email sent" });
         } catch (err) {
