@@ -38,8 +38,13 @@ export function serveStatic(app: Express) {
   }));
 
   // fall through to index.html if the file doesn't exist (SPA routing)
+  // Check ssr-template first (build moves index.html there for SSR meta injection)
+  const ssrTemplatePath = path.resolve(__dirname, "ssr-template", "index.html");
+  const publicIndexPath = path.resolve(distPath, "index.html");
+  const indexPath = fs.existsSync(publicIndexPath) ? publicIndexPath : ssrTemplatePath;
+
   app.use("*", (_req, res) => {
     res.setHeader("Cache-Control", "no-cache");
-    res.sendFile(path.resolve(distPath, "index.html"));
+    res.sendFile(indexPath);
   });
 }

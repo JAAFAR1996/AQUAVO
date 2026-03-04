@@ -17,20 +17,25 @@ function getPool(): Pool | null {
 let htmlTemplate: string | null = null;
 function getTemplate(): string {
   if (!htmlTemplate) {
-    // In Vercel, the built files are at the output directory root
+    // Try multiple paths: SSR template (moved by build), then fallbacks
     const possiblePaths = [
+      join(process.cwd(), "dist", "ssr-template", "index.html"),
+      join(process.cwd(), "ssr-template", "index.html"),
+      join(__dirname, "..", "ssr-template", "index.html"),
+      join(__dirname, "..", "dist", "ssr-template", "index.html"),
       join(process.cwd(), "dist", "public", "index.html"),
       join(process.cwd(), "index.html"),
-      join(__dirname, "..", "index.html"),
     ];
     for (const p of possiblePaths) {
       try {
         htmlTemplate = readFileSync(p, "utf-8");
+        console.log("SSR meta: loaded template from", p);
         break;
       } catch { /* try next */ }
     }
     if (!htmlTemplate) {
       htmlTemplate = "<!DOCTYPE html><html><body>Error loading template</body></html>";
+      console.error("SSR meta: could not find index.html template!");
     }
   }
   return htmlTemplate;

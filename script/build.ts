@@ -1,6 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
-import { rm, readFile } from "fs/promises";
+import { rm, readFile, rename, mkdir } from "fs/promises";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -45,6 +45,12 @@ async function buildAll() {
     ...Object.keys(pkg.devDependencies || {}),
   ];
   const externals = allDeps.filter((dep) => !allowlist.includes(dep));
+
+  // Move index.html out of public so Vercel CDN doesn't serve it directly
+  // The ssr-meta serverless function will read it from dist/ssr-template/
+  console.log("moving index.html for SSR meta injection...");
+  await mkdir("dist/ssr-template", { recursive: true });
+  await rename("dist/public/index.html", "dist/ssr-template/index.html");
 
   await esbuild({
     entryPoints: ["server/index.ts"],
