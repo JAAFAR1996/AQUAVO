@@ -78,7 +78,7 @@
       "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt"
     },
     {
-      "source": "/((?!.*\\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$).*)",
+      "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)",
       "destination": "/api/ssr-meta"
     }
   ]
