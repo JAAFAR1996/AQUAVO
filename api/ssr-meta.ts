@@ -1,8 +1,7 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+import { HTML_TEMPLATE } from "./_html-template.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -13,32 +12,9 @@ function getPool(): Pool | null {
   return pool;
 }
 
-// ─── Read built index.html once ─────────────────────────────────────────────
-let htmlTemplate: string | null = null;
+// ─── HTML template (imported from build-generated file) ─────────────────────
 function getTemplate(): string {
-  if (!htmlTemplate) {
-    // Try multiple paths: SSR template (moved by build), then fallbacks
-    const possiblePaths = [
-      join(process.cwd(), "dist", "ssr-template", "index.html"),
-      join(process.cwd(), "ssr-template", "index.html"),
-      join(__dirname, "..", "ssr-template", "index.html"),
-      join(__dirname, "..", "dist", "ssr-template", "index.html"),
-      join(process.cwd(), "dist", "public", "index.html"),
-      join(process.cwd(), "index.html"),
-    ];
-    for (const p of possiblePaths) {
-      try {
-        htmlTemplate = readFileSync(p, "utf-8");
-        console.log("SSR meta: loaded template from", p);
-        break;
-      } catch { /* try next */ }
-    }
-    if (!htmlTemplate) {
-      htmlTemplate = "<!DOCTYPE html><html><body>Error loading template</body></html>";
-      console.error("SSR meta: could not find index.html template!");
-    }
-  }
-  return htmlTemplate;
+  return HTML_TEMPLATE;
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────
