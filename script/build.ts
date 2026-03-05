@@ -52,6 +52,9 @@ async function buildAll() {
   const htmlTemplate = await readFile("dist/public/index.html", "utf-8");
   await mkdir("dist/ssr-template", { recursive: true });
   await rename("dist/public/index.html", "dist/ssr-template/index.html");
+  // Also remove compressed variants so Vercel CDN doesn't serve them directly
+  await rm("dist/public/index.html.br", { force: true });
+  await rm("dist/public/index.html.gz", { force: true });
   // Also write as importable JS for the serverless function
   const { writeFile } = await import("fs/promises");
   await writeFile(
