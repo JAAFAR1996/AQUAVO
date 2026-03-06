@@ -1,5 +1,5 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
-import { lazy, Suspense, useEffect } from "react";
+import { lazy, Suspense, useEffect, useRef, useCallback } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -529,9 +529,46 @@ function App() {
   );
 }
 
-// Track page views on route changes + scroll to top
+// Generate or reuse a client-side session ID (persists across page loads in same tab)
+function getClientSessionId(): string {
+  let sid = sessionStorage.getItem("aq_sid");
+  if (!sid) {
+    sid = `cs_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem("aq_sid", sid);
+  }
+  return sid;
+}
+
+// Track page views on route changes + scroll to top + dwell time
 function PageViewTracker() {
   const [location] = useLocation();
+
+  // Refs to track current page view state without causing re-renders
+  const viewIdRef = useRef<string | null>(null);
+  const startTimeRef = useRef<number>(Date.now());
+  const locationRef = useRef<string>(location);
+
+  // Send duration for the previous page view
+  const sendDuration = useCallback(() => {
+    const vid = viewIdRef.current;
+    if (!vid) return;
+    const durationSec = Math.round((Date.now() - startTimeRef.current) / 1000);
+    if (durationSec < 1) return; // ignore sub-second visits
+
+    // Use sendBeacon for reliability on tab close, fallback to fetch
+    const payload = JSON.stringify({ viewId: vid, duration: durationSec });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon("/api/analytics/update-visit", new Blob([payload], { type: "application/json" }));
+    } else {
+      fetch("/api/analytics/update-visit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true,
+      }).catch(() => {});
+    }
+    viewIdRef.current = null;
+  }, []);
 
   // Disable browser's automatic scroll restoration
   useEffect(() => {
@@ -540,7 +577,22 @@ function PageViewTracker() {
     }
   }, []);
 
+  // Handle tab visibility changes (send duration when tab is hidden/closed)
   useEffect(() => {
+    const handleVisChange = () => {
+      if (document.visibilityState === "hidden") sendDuration();
+    };
+    document.addEventListener("visibilitychange", handleVisChange);
+    return () => document.removeEventListener("visibilitychange", handleVisChange);
+  }, [sendDuration]);
+
+  useEffect(() => {
+    // Send duration for the PREVIOUS page before tracking the new one
+    if (locationRef.current !== location) {
+      sendDuration();
+    }
+    locationRef.current = location;
+
     // Immediate scroll
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
     // Delayed scroll to handle lazy-loaded content
@@ -549,24 +601,31 @@ function PageViewTracker() {
     }, 100);
     trackPageView(location);
 
-    // ── UTM + referrer tracking ──────────────────────────────
+    // ── Start new page view tracking ──────────────────────────
+    startTimeRef.current = Date.now();
+    viewIdRef.current = null;
+
     try {
       const params = new URLSearchParams(window.location.search);
       const utmSource   = params.get("utm_source")   ?? undefined;
       const utmMedium   = params.get("utm_medium")   ?? undefined;
       const utmCampaign = params.get("utm_campaign") ?? undefined;
       const referrer    = document.referrer || undefined;
+      const clientSessionId = getClientSessionId();
 
       fetch("/api/analytics/track-visit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ pagePath: location, referrer, utmSource, utmMedium, utmCampaign }),
-      }).catch(() => {});
+        body: JSON.stringify({ pagePath: location, referrer, utmSource, utmMedium, utmCampaign, clientSessionId }),
+      })
+        .then(r => r.json())
+        .then(data => { if (data?.viewId) viewIdRef.current = data.viewId; })
+        .catch(() => {});
     } catch { /* never crash the app */ }
 
     return () => clearTimeout(timer);
-  }, [location]);
+  }, [location, sendDuration]);
 
   return null;
 }

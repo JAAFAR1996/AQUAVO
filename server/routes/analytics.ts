@@ -466,18 +466,20 @@ router.post("/track-visit", async (req: Request, res: Response): Promise<void> =
         const db = getDb();
         if (!db) { res.status(200).json({ ok: true }); return; }
 
-        const { pagePath, referrer, utmSource, utmMedium, utmCampaign } = req.body as {
+        const { pagePath, referrer, utmSource, utmMedium, utmCampaign, clientSessionId } = req.body as {
             pagePath?: string;
             referrer?: string;
             utmSource?: string;
             utmMedium?: string;
             utmCampaign?: string;
+            clientSessionId?: string;
         };
 
         if (!pagePath) { res.status(200).json({ ok: true }); return; }
 
         const userId = (req.session as any)?.userId ?? null;
-        const sessionId = (req.session as any)?.id ?? null;
+        // Prefer client-side sessionId (always available), fallback to server session
+        const sessionId = clientSessionId ?? (req.session as any)?.id ?? null;
         const detectedSource = detectSourceFromReferrer(referrer ?? null, utmSource ?? null);
         const userAgent = req.headers["user-agent"] ?? null;
         const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ?? req.socket?.remoteAddress ?? null;
@@ -487,7 +489,7 @@ router.post("/track-visit", async (req: Request, res: Response): Promise<void> =
             : "desktop"
             : null;
 
-        await db.insert(pageViews).values({
+        const [inserted] = await db.insert(pageViews).values({
             pagePath: pagePath.slice(0, 255),
             userId,
             sessionId,
@@ -499,12 +501,119 @@ router.post("/track-visit", async (req: Request, res: Response): Promise<void> =
             userAgent: userAgent?.slice(0, 500) ?? null,
             ipAddress: ip?.slice(0, 50) ?? null,
             deviceType,
-        });
+        }).returning({ id: pageViews.id });
 
-        res.status(200).json({ ok: true });
+        res.status(200).json({ ok: true, viewId: inserted?.id ?? null });
     } catch {
         // Tracking failures must never break the site
         res.status(200).json({ ok: true });
+    }
+});
+
+// ─── POST /api/analytics/update-visit — update duration on page exit ─────────
+router.post("/update-visit", async (req: Request, res: Response): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) { res.status(200).json({ ok: true }); return; }
+
+        const { viewId, duration } = req.body as { viewId?: string; duration?: number };
+        if (!viewId || typeof duration !== "number" || duration < 0) {
+            res.status(200).json({ ok: true }); return;
+        }
+
+        // Cap duration at 30 minutes (1800s) to prevent outliers
+        const cappedDuration = Math.min(Math.round(duration), 1800);
+
+        await db.update(pageViews)
+            .set({ duration: cappedDuration })
+            .where(eq(pageViews.id, viewId));
+
+        res.status(200).json({ ok: true });
+    } catch {
+        res.status(200).json({ ok: true });
+    }
+});
+
+// ─── GET /api/admin/analytics/journeys — per-session page journey ────────────
+router.get("/journeys", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) { res.json([]); return; }
+
+        const days = Math.min(Number(req.query.days) || 7, 30);
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+        // Get recent page views with sessions, ordered by session then time
+        const rows = await db
+            .select({
+                id: pageViews.id,
+                sessionId: pageViews.sessionId,
+                userId: pageViews.userId,
+                pagePath: pageViews.pagePath,
+                duration: pageViews.duration,
+                detectedSource: pageViews.detectedSource,
+                deviceType: pageViews.deviceType,
+                createdAt: pageViews.createdAt,
+                fullName: users.fullName,
+                email: users.email,
+            })
+            .from(pageViews)
+            .leftJoin(users, eq(pageViews.userId, users.id))
+            .where(and(
+                gte(pageViews.createdAt, since),
+                sql`${pageViews.sessionId} IS NOT NULL`
+            ))
+            .orderBy(desc(pageViews.createdAt))
+            .limit(500);
+
+        // Group by sessionId
+        const sessionsMap = new Map<string, {
+            sessionId: string;
+            userId: string | null;
+            fullName: string | null;
+            email: string | null;
+            source: string;
+            deviceType: string | null;
+            startedAt: string;
+            pages: { path: string; duration: number | null; timestamp: string }[];
+        }>();
+
+        for (const row of rows) {
+            const sid = row.sessionId!;
+            if (!sessionsMap.has(sid)) {
+                sessionsMap.set(sid, {
+                    sessionId: sid,
+                    userId: row.userId,
+                    fullName: row.fullName,
+                    email: row.email,
+                    source: row.detectedSource ?? "direct",
+                    deviceType: row.deviceType,
+                    startedAt: (row.createdAt as Date).toISOString(),
+                    pages: [],
+                });
+            }
+            sessionsMap.get(sid)!.pages.push({
+                path: row.pagePath,
+                duration: row.duration,
+                timestamp: (row.createdAt as Date).toISOString(),
+            });
+        }
+
+        // Sort pages within each session chronologically (oldest first)
+        const journeys = Array.from(sessionsMap.values()).map(s => {
+            s.pages.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+            // Use the earliest page timestamp as startedAt
+            if (s.pages.length > 0) s.startedAt = s.pages[0].timestamp;
+            return s;
+        });
+
+        // Sort sessions by most recent first
+        journeys.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+
+        // Return top 50 sessions
+        res.json(journeys.slice(0, 50));
+    } catch (err: any) {
+        next(err);
     }
 });
 

@@ -18,6 +18,10 @@ import {
     PieChart,
     Activity,
     Loader2,
+    Route,
+    Clock,
+    Monitor,
+    Smartphone,
 } from "lucide-react";
 import {
     LineChart,
@@ -122,6 +126,27 @@ export function AnalyticsDashboard() {
                     timestamp: v.createdAt,
                 })),
             }));
+        },
+        refetchInterval: 60_000,
+    });
+
+    interface JourneySession {
+        sessionId: string;
+        userId: string | null;
+        fullName: string | null;
+        email: string | null;
+        source: string;
+        deviceType: string | null;
+        startedAt: string;
+        pages: { path: string; duration: number | null; timestamp: string }[];
+    }
+
+    const { data: journeysData } = useQuery<JourneySession[]>({
+        queryKey: ["admin-analytics-journeys"],
+        queryFn: async () => {
+            const res = await fetch("/api/admin/analytics/journeys?days=7", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
         },
         refetchInterval: 60_000,
     });
@@ -293,7 +318,7 @@ export function AnalyticsDashboard() {
 
             {/* Charts */}
             <Tabs defaultValue="sales" dir="rtl">
-                <TabsList className="grid w-full grid-cols-3">
+                <TabsList className="grid w-full grid-cols-4">
                     <TabsTrigger value="sales">
                         <BarChart3 className="w-4 h-4 ml-2" />
                         المبيعات
@@ -305,6 +330,10 @@ export function AnalyticsDashboard() {
                     <TabsTrigger value="traffic">
                         <PieChart className="w-4 h-4 ml-2" />
                         الزيارات
+                    </TabsTrigger>
+                    <TabsTrigger value="journeys">
+                        <Route className="w-4 h-4 ml-2" />
+                        رحلات الزوار
                     </TabsTrigger>
                 </TabsList>
 
@@ -507,6 +536,90 @@ export function AnalyticsDashboard() {
                             </CardContent>
                         </Card>
                     </div>
+                </TabsContent>
+
+                {/* Journeys Tab */}
+                <TabsContent value="journeys" className="mt-4 space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>رحلات الزوار</CardTitle>
+                            <CardDescription>تتبع مسار كل زائر — أي صفحات زارها وكم ثانية بقي في كل صفحة</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {journeysData && journeysData.length > 0 ? (
+                                <div className="space-y-4">
+                                    {journeysData.slice(0, 30).map((session) => {
+                                        const cfg = PLATFORM_CONFIG[session.source] ?? PLATFORM_CONFIG["other"];
+                                        const totalDuration = session.pages.reduce((s, p) => s + (p.duration ?? 0), 0);
+                                        const visitorName = session.fullName ?? (session.email ? session.email.split("@")[0] : "زائر مجهول");
+                                        const startDate = new Date(session.startedAt);
+                                        const timeStr = startDate.toLocaleString("ar-IQ", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
+
+                                        return (
+                                            <div key={session.sessionId} className={`border rounded-lg p-4 ${cfg.bg}`}>
+                                                {/* Session Header */}
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                                                            style={{ backgroundColor: cfg.color }}>
+                                                            {visitorName.charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-semibold text-sm">{visitorName}</p>
+                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                                <span>{cfg.emoji} {cfg.label}</span>
+                                                                <span>•</span>
+                                                                <span>{timeStr}</span>
+                                                                <span>•</span>
+                                                                {session.deviceType === "mobile" ? <Smartphone className="w-3 h-3" /> : <Monitor className="w-3 h-3" />}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-left">
+                                                        <p className="text-sm font-bold">{session.pages.length} صفحات</p>
+                                                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" />
+                                                            {totalDuration >= 60 ? `${Math.floor(totalDuration / 60)}د ${totalDuration % 60}ث` : `${totalDuration}ث`}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Page Timeline */}
+                                                <div className="relative mr-4">
+                                                    {session.pages.map((page, i) => (
+                                                        <div key={i} className="flex items-start gap-3 relative">
+                                                            {/* Timeline line + dot */}
+                                                            <div className="flex flex-col items-center">
+                                                                <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${i === 0 ? "bg-green-500" : i === session.pages.length - 1 ? "bg-red-400" : "bg-blue-400"}`} />
+                                                                {i < session.pages.length - 1 && (
+                                                                    <div className="w-0.5 h-6 bg-muted-foreground/20" />
+                                                                )}
+                                                            </div>
+                                                            {/* Content */}
+                                                            <div className="flex items-center justify-between w-full pb-2 -mt-1">
+                                                                <span className="text-xs font-mono truncate max-w-[200px]" dir="ltr">{page.path}</span>
+                                                                {page.duration != null && page.duration > 0 ? (
+                                                                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
+                                                                        {page.duration >= 60 ? `${Math.floor(page.duration / 60)}د ${page.duration % 60}ث` : `${page.duration}ث`}
+                                                                    </Badge>
+                                                                ) : (
+                                                                    <span className="text-[10px] text-muted-foreground">—</span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="py-8 text-center text-muted-foreground text-sm">
+                                    لا توجد رحلات مسجلة بعد — ستظهر تلقائياً عند بدء الزيارات
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
         </div>
