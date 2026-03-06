@@ -548,47 +548,47 @@ export function AnalyticsDashboard() {
                         </CardHeader>
                         <CardContent>
                             {journeysData && journeysData.length > 0 ? (
-                                <div className="space-y-4">
+                                <div className="space-y-3">
                                     {journeysData.slice(0, 30).map((session, idx) => {
                                         const cfg = PLATFORM_CONFIG[session.source] ?? PLATFORM_CONFIG["other"];
                                         const totalDuration = session.pages.reduce((s, p) => s + (p.duration ?? 0), 0);
-                                        // Show name > email > IP > visitor number
+                                        const isLoggedIn = !!session.fullName || !!session.email;
+                                        // Visitor display name
                                         const visitorName = session.fullName
                                             ?? (session.email ? session.email.split("@")[0] : null)
-                                            ?? (session.ipAddress ? `🌐 ${session.ipAddress}` : null)
                                             ?? `زائر #${idx + 1}`;
-                                        const isAnonymous = !session.fullName && !session.email;
                                         const startDate = new Date(session.startedAt);
                                         const timeStr = startDate.toLocaleString("ar-IQ", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
 
                                         return (
-                                            <div key={session.sessionId} className={`border rounded-lg p-4 ${cfg.bg}`}>
+                                            <div key={session.sessionId}
+                                                className="border border-border rounded-lg p-4 bg-card text-card-foreground">
                                                 {/* Session Header */}
                                                 <div className="flex items-center justify-between mb-3">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
                                                             style={{ backgroundColor: cfg.color }}>
-                                                            {visitorName.charAt(0)}
+                                                            {isLoggedIn ? visitorName.charAt(0).toUpperCase() : `#${idx + 1}`}
                                                         </div>
                                                         <div>
-                                                            <p className="font-semibold text-sm">{visitorName}</p>
-                                                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                                            <p className="font-bold text-sm text-foreground">{visitorName}</p>
+                                                            <div className="flex items-center gap-1.5 text-xs text-muted-foreground flex-wrap">
+                                                                {!isLoggedIn && session.ipAddress && (
+                                                                    <>
+                                                                        <span className="font-mono text-[11px]">IP: {session.ipAddress}</span>
+                                                                        <span>•</span>
+                                                                    </>
+                                                                )}
                                                                 <span>{cfg.emoji} {cfg.label}</span>
                                                                 <span>•</span>
                                                                 <span>{timeStr}</span>
                                                                 <span>•</span>
                                                                 {session.deviceType === "mobile" ? <Smartphone className="w-3 h-3" /> : <Monitor className="w-3 h-3" />}
-                                                                {isAnonymous && session.ipAddress && (
-                                                                    <>
-                                                                        <span>•</span>
-                                                                        <span className="font-mono text-[10px] opacity-60">{session.ipAddress}</span>
-                                                                    </>
-                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div className="text-left">
-                                                        <p className="text-sm font-bold">{session.pages.length} صفحات</p>
+                                                    <div className="text-left shrink-0">
+                                                        <p className="text-sm font-bold text-foreground">{session.pages.length} صفحات</p>
                                                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             {totalDuration >= 60 ? `${Math.floor(totalDuration / 60)}د ${totalDuration % 60}ث` : `${totalDuration}ث`}
@@ -604,12 +604,12 @@ export function AnalyticsDashboard() {
                                                             <div className="flex flex-col items-center">
                                                                 <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${i === 0 ? "bg-green-500" : i === session.pages.length - 1 ? "bg-red-400" : "bg-blue-400"}`} />
                                                                 {i < session.pages.length - 1 && (
-                                                                    <div className="w-0.5 h-6 bg-muted-foreground/20" />
+                                                                    <div className="w-0.5 h-6 bg-border" />
                                                                 )}
                                                             </div>
                                                             {/* Content */}
                                                             <div className="flex items-center justify-between w-full pb-2 -mt-1">
-                                                                <span className="text-xs font-mono truncate max-w-[200px]" dir="ltr">{page.path}</span>
+                                                                <span className="text-xs font-mono truncate max-w-[200px] text-foreground" dir="ltr">{page.path}</span>
                                                                 {page.duration != null && page.duration > 0 ? (
                                                                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 shrink-0">
                                                                         {page.duration >= 60 ? `${Math.floor(page.duration / 60)}د ${page.duration % 60}ث` : `${page.duration}ث`}
