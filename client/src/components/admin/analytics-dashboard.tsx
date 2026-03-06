@@ -135,6 +135,7 @@ export function AnalyticsDashboard() {
         userId: string | null;
         fullName: string | null;
         email: string | null;
+        ipAddress: string | null;
         source: string;
         deviceType: string | null;
         startedAt: string;
@@ -548,10 +549,15 @@ export function AnalyticsDashboard() {
                         <CardContent>
                             {journeysData && journeysData.length > 0 ? (
                                 <div className="space-y-4">
-                                    {journeysData.slice(0, 30).map((session) => {
+                                    {journeysData.slice(0, 30).map((session, idx) => {
                                         const cfg = PLATFORM_CONFIG[session.source] ?? PLATFORM_CONFIG["other"];
                                         const totalDuration = session.pages.reduce((s, p) => s + (p.duration ?? 0), 0);
-                                        const visitorName = session.fullName ?? (session.email ? session.email.split("@")[0] : "زائر مجهول");
+                                        // Show name > email > IP > visitor number
+                                        const visitorName = session.fullName
+                                            ?? (session.email ? session.email.split("@")[0] : null)
+                                            ?? (session.ipAddress ? `🌐 ${session.ipAddress}` : null)
+                                            ?? `زائر #${idx + 1}`;
+                                        const isAnonymous = !session.fullName && !session.email;
                                         const startDate = new Date(session.startedAt);
                                         const timeStr = startDate.toLocaleString("ar-IQ", { hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
 
@@ -572,6 +578,12 @@ export function AnalyticsDashboard() {
                                                                 <span>{timeStr}</span>
                                                                 <span>•</span>
                                                                 {session.deviceType === "mobile" ? <Smartphone className="w-3 h-3" /> : <Monitor className="w-3 h-3" />}
+                                                                {isAnonymous && session.ipAddress && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span className="font-mono text-[10px] opacity-60">{session.ipAddress}</span>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         </div>
                                                     </div>

@@ -553,6 +553,7 @@ router.get("/journeys", requireAdmin, async (req: Request, res: Response, next: 
                 duration: pageViews.duration,
                 detectedSource: pageViews.detectedSource,
                 deviceType: pageViews.deviceType,
+                ipAddress: pageViews.ipAddress,
                 createdAt: pageViews.createdAt,
                 fullName: users.fullName,
                 email: users.email,
@@ -572,6 +573,7 @@ router.get("/journeys", requireAdmin, async (req: Request, res: Response, next: 
             userId: string | null;
             fullName: string | null;
             email: string | null;
+            ipAddress: string | null;
             source: string;
             deviceType: string | null;
             startedAt: string;
@@ -586,6 +588,7 @@ router.get("/journeys", requireAdmin, async (req: Request, res: Response, next: 
                     userId: row.userId,
                     fullName: row.fullName,
                     email: row.email,
+                    ipAddress: row.ipAddress,
                     source: row.detectedSource ?? "direct",
                     deviceType: row.deviceType,
                     startedAt: (row.createdAt as Date).toISOString(),
