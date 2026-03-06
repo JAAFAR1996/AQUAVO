@@ -129,4 +129,43 @@ router.get("/weekly-blog", async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * GET /api/cron/email-campaigns
+ * 
+ * Called by Vercel Cron weekly (Monday at 10:00 AM Baghdad = 7:00 AM UTC).
+ * Sends automated email campaigns to target audiences.
+ */
+router.get("/email-campaigns", async (req: Request, res: Response) => {
+    // Security: Validate CRON_SECRET
+    const authHeader = req.headers["authorization"];
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    console.log("[Cron] 📧 Starting weekly email campaign...");
+    const startTime = Date.now();
+
+    try {
+        const result = await triggerJob("email_campaigns");
+        const duration = Date.now() - startTime;
+
+        aiMonitor.log({
+            event: "cron_job",
+            level: "info",
+            success: result.success,
+            responseTimeMs: duration,
+            details: { job: "email_campaigns", status: result.success ? "completed" : "failed", source: "vercel_cron" },
+        });
+
+        console.log(`[Cron] 📧 Email Campaign: ${result.message} (${duration}ms)`);
+        res.status(200).json({ success: result.success, message: result.message, duration });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[Cron] ❌ Email campaign failed: ${msg}`);
+        res.status(500).json({ success: false, error: msg });
+    }
+});
+
 export default router;

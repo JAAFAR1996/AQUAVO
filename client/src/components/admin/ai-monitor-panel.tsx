@@ -57,6 +57,7 @@ const CRON_JOB_NAMES: Record<string, string> = {
     churn:           "👤 كشف العزوف (3ص)",
     conversions:     "🔄 فحص التحويلات (4ص)",
     smart_reminders: "🔔 إشعارات ذكية (4:30ص)",
+    email_campaigns: "📧 حملات البريد (اثنين 10ص)",
 };
 
 // ─── Helpers ──────────────────────────────────────────────────

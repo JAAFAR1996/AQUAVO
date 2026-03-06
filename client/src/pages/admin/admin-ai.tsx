@@ -1,16 +1,18 @@
 /**
  * AI Dashboard - لوحة الذكاء الاصطناعي للمدير
  * تعرض جميع ميزات AI المتقدمة في مكان واحد
+ * يجلب الحالة الحقيقية من قاعدة البيانات
  */
 
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 import {
     Brain,
     TrendingUp,
@@ -26,37 +28,120 @@ import {
     Mail,
     Sparkles,
     Activity,
+    Play,
+    Power,
+    Clock,
+    CheckCircle,
+    XCircle,
+    Search,
+    Globe,
+    Heart,
+    Bell,
+    ShoppingCart,
+    Cpu,
+    FileText,
+    Layers,
+    LayoutDashboard,
+    RotateCcw,
+    BookOpen,
 } from "lucide-react";
+
+// ─── Types ────────────────────────────────────────────────────
+interface AgentSetting {
+    id: number;
+    agentName: string;
+    displayName: string;
+    description: string;
+    isEnabled: boolean;
+    autoRun: boolean;
+    runFrequency: string;
+    lastRunAt: string | null;
+    lastRunStatus: string | null;
+    actionsToday: number;
+    totalActions: number;
+    config: Record<string, unknown> | null;
+}
+
+// ─── Feature definitions mapping agent names to icons ─────────
+const FEATURE_ICON_MAP: Record<string, { icon: typeof Brain; color: string }> = {
+    sales:     { icon: Brain,          color: "text-blue-400" },
+    inventory: { icon: Package,        color: "text-orange-400" },
+    pricing:   { icon: BarChart3,      color: "text-teal-400" },
+    marketing: { icon: Mail,           color: "text-rose-400" },
+    sentiment: { icon: Heart,          color: "text-pink-400" },
+    visual:    { icon: Cpu,            color: "text-fuchsia-400" },
+    content:   { icon: FileText,       color: "text-purple-400" },
+    aquarium:  { icon: Layers,         color: "text-sky-400" },
+};
+
+// ─── API helpers ──────────────────────────────────────────────
+async function fetchAgentSettings(): Promise<AgentSetting[]> {
+    const response = await fetch("/api/ai/settings", { credentials: "include" });
+    if (!response.ok) throw new Error("Failed to fetch AI settings");
+    const data = await response.json();
+    return data.data ?? [];
+}
+
+async function toggleAgent(agentName: string): Promise<AgentSetting> {
+    const response = await fetch(`/api/ai/settings/${agentName}/toggle`, {
+        method: "POST",
+        credentials: "include",
+    });
+    if (!response.ok) throw new Error("Failed to toggle agent");
+    const data = await response.json();
+    return data.data;
+}
+
+async function runAgent(agentName: string): Promise<{ message: string; result?: unknown }> {
+    const response = await fetch(`/api/ai/settings/${agentName}/run`, {
+        method: "POST",
+        credentials: "include",
+    });
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to run agent");
+    }
+    const data = await response.json();
+    return { message: data.message, result: data.result };
+}
 
 // Fetch AI Dashboard Summary
 async function fetchAIDashboard() {
-    const response = await fetch("/api/ai-advanced/dashboard/summary");
+    const response = await fetch("/api/ai-advanced/dashboard/summary", { credentials: "include" });
     if (!response.ok) return null;
     return response.json();
 }
 
 // Fetch High Risk Customers (Churn)
 async function fetchChurnRisk() {
-    const response = await fetch("/api/ai-advanced/churn-high-risk");
+    const response = await fetch("/api/ai-advanced/churn-high-risk", { credentials: "include" });
     if (!response.ok) return { success: false, data: [] };
     return response.json();
 }
 
 // Fetch Inventory Recommendations
 async function fetchInventoryRecommendations() {
-    const response = await fetch("/api/ai-advanced/inventory/recommendations");
+    const response = await fetch("/api/ai-advanced/inventory/recommendations", { credentials: "include" });
     if (!response.ok) return { success: false, data: [] };
     return response.json();
 }
 
 export default function AdminAI() {
     const [activeTab, setActiveTab] = useState("overview");
+    const { toast } = useToast();
+    const queryClient = useQueryClient();
 
     // Queries
+    const { data: agents, isLoading: agentsLoading, refetch: refetchAgents } = useQuery({
+        queryKey: ["ai-agent-settings"],
+        queryFn: fetchAgentSettings,
+        staleTime: 1000 * 30,
+    });
+
     const { data: dashboardData, isLoading: dashboardLoading, refetch: refetchDashboard } = useQuery({
         queryKey: ["ai-dashboard"],
         queryFn: fetchAIDashboard,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60 * 5,
     });
 
     const { data: churnData, isLoading: churnLoading, refetch: refetchChurn } = useQuery({
@@ -71,11 +156,42 @@ export default function AdminAI() {
         staleTime: 1000 * 60 * 10,
     });
 
+    // Mutations
+    const toggleMutation = useMutation({
+        mutationFn: toggleAgent,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["ai-agent-settings"] });
+            toast({
+                title: data.isEnabled ? "✅ تم تفعيل الوكيل" : "⏸️ تم تعطيل الوكيل",
+                description: data.displayName,
+            });
+        },
+        onError: (error: Error) => {
+            toast({ title: "❌ خطأ", description: error.message, variant: "destructive" });
+        },
+    });
+
+    const runMutation = useMutation({
+        mutationFn: runAgent,
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ["ai-agent-settings"] });
+            toast({ title: "✅ تم التشغيل", description: data.message });
+        },
+        onError: (error: Error) => {
+            toast({ title: "❌ فشل التشغيل", description: error.message, variant: "destructive" });
+        },
+    });
+
     const handleRefreshAll = () => {
+        refetchAgents();
         refetchDashboard();
         refetchChurn();
         refetchInventory();
     };
+
+    // Computed stats
+    const enabledCount = agents?.filter(a => a.isEnabled).length ?? 0;
+    const totalCount = agents?.length ?? 0;
 
     return (
         <div className="p-6 space-y-6">
@@ -114,17 +230,17 @@ export default function AdminAI() {
                 />
                 <StatCard
                     title="خدمات AI نشطة"
-                    value={14}
+                    value={agentsLoading ? "..." : `${enabledCount}/${totalCount}`}
                     icon={<Sparkles className="h-5 w-5" />}
                     color="purple"
-                    loading={false}
+                    loading={agentsLoading}
                 />
                 <StatCard
                     title="حالة النظام"
-                    value="يعمل"
+                    value={enabledCount > 0 ? "يعمل" : "متوقف"}
                     icon={<Activity className="h-5 w-5" />}
-                    color="green"
-                    loading={false}
+                    color={enabledCount > 0 ? "green" : "red"}
+                    loading={agentsLoading}
                 />
             </div>
 
@@ -349,72 +465,149 @@ export default function AdminAI() {
                     </Card>
                 </TabsContent>
 
-                {/* Features Tab */}
+                {/* Features Tab — REAL DATA from ai_agent_settings */}
                 <TabsContent value="features" className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <FeatureCard
-                            title="مساعد المبيعات"
-                            description="دردشة ذكية للرد على استفسارات العملاء"
-                            icon={<Brain className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="محلل الصور"
-                            description="تحليل صور الأسماك والأحواض"
-                            icon={<Sparkles className="h-6 w-6" />}
-                            status="active"
-                            link="/ai-tools"
-                        />
-                        <FeatureCard
-                            title="تحليل المشاعر"
-                            description="فهم مشاعر العملاء في المحادثات"
-                            icon={<Activity className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="كشف المغادرة"
-                            description="تحديد العملاء المعرضين للترك"
-                            icon={<UserX className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="كشف الاحتيال"
-                            description="تحليل الطلبات المشبوهة"
-                            icon={<ShieldAlert className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="تحسين المخزون"
-                            description="توصيات ذكية لإعادة الطلب"
-                            icon={<Package className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="التحليلات التنبؤية"
-                            description="توقع احتياجات العملاء"
-                            icon={<TrendingUp className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="توليد المحتوى"
-                            description="إنشاء وصف ومنشورات تلقائياً"
-                            icon={<Lightbulb className="h-6 w-6" />}
-                            status="active"
-                        />
-                        <FeatureCard
-                            title="حملات البريد"
-                            description="إدارة حملات البريد الذكية"
-                            icon={<Mail className="h-6 w-6" />}
-                            status="active"
-                        />
-                    </div>
+                    {agentsLoading ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {[1, 2, 3, 4, 5, 6].map(i => (
+                                <Card key={i}>
+                                    <CardContent className="p-4">
+                                        <Skeleton className="h-24 w-full" />
+                                    </CardContent>
+                                </Card>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {(agents ?? []).map((agent) => (
+                                <AgentFeatureCard
+                                    key={agent.agentName}
+                                    agent={agent}
+                                    onToggle={(name) => toggleMutation.mutate(name)}
+                                    onRun={(name) => runMutation.mutate(name)}
+                                    isToggling={toggleMutation.isPending}
+                                    isRunning={runMutation.isPending}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </TabsContent>
             </Tabs>
         </div>
     );
 }
 
-// Stat Card Component
+// ─── Agent Feature Card — shows real DB status ────────────────
+function AgentFeatureCard({
+    agent,
+    onToggle,
+    onRun,
+    isToggling,
+    isRunning,
+}: {
+    agent: AgentSetting;
+    onToggle: (name: string) => void;
+    onRun: (name: string) => void;
+    isToggling: boolean;
+    isRunning: boolean;
+}) {
+    const featureStyle = FEATURE_ICON_MAP[agent.agentName] ?? { icon: Sparkles, color: "text-purple-400" };
+    const Icon = featureStyle.icon;
+
+    const freqLabel = agent.runFrequency === "manual" ? "يدوي"
+        : agent.runFrequency === "daily" ? "يومي"
+        : agent.runFrequency === "weekly" ? "أسبوعي"
+        : agent.runFrequency;
+
+    const lastRunTime = agent.lastRunAt
+        ? new Date(agent.lastRunAt).toLocaleString("ar-IQ", {
+            day: "2-digit", month: "2-digit",
+            hour: "2-digit", minute: "2-digit", hour12: false,
+        })
+        : null;
+
+    return (
+        <Card className={`transition-all ${agent.isEnabled ? "hover:shadow-md" : "opacity-60"}`}>
+            <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                    <div className={`p-2 rounded-lg ${agent.isEnabled
+                        ? "bg-purple-100 dark:bg-purple-950/50"
+                        : "bg-slate-100 dark:bg-slate-800"
+                    }`}>
+                        <Icon className={`h-6 w-6 ${agent.isEnabled ? featureStyle.color : "text-slate-400"}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                            <h3 className="font-medium truncate">{agent.displayName}</h3>
+                            <Badge variant={agent.isEnabled ? "default" : "secondary"}>
+                                {agent.isEnabled ? "مفعل" : "معطل"}
+                            </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">{agent.description}</p>
+
+                        {/* Stats row */}
+                        <div className="flex items-center gap-3 mt-3 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {freqLabel}
+                            </span>
+                            {agent.totalActions > 0 && (
+                                <span className="flex items-center gap-1">
+                                    <Activity className="h-3 w-3" />
+                                    {agent.totalActions} عملية
+                                </span>
+                            )}
+                            {agent.lastRunStatus && (
+                                <span className="flex items-center gap-1">
+                                    {agent.lastRunStatus === "success"
+                                        ? <CheckCircle className="h-3 w-3 text-emerald-500" />
+                                        : <XCircle className="h-3 w-3 text-red-500" />
+                                    }
+                                    {agent.lastRunStatus === "success" ? "نجح" : "فشل"}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Last run time */}
+                        {lastRunTime && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                                آخر تشغيل: {lastRunTime}
+                            </p>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className="flex items-center gap-2 mt-3">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-1 text-xs h-7"
+                                onClick={() => onToggle(agent.agentName)}
+                                disabled={isToggling}
+                            >
+                                <Power className="h-3 w-3" />
+                                {agent.isEnabled ? "تعطيل" : "تفعيل"}
+                            </Button>
+                            {agent.isEnabled && agent.runFrequency !== "manual" && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-1 text-xs h-7"
+                                    onClick={() => onRun(agent.agentName)}
+                                    disabled={isRunning || !agent.isEnabled}
+                                >
+                                    <Play className="h-3 w-3" />
+                                    تشغيل الآن
+                                </Button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+// ─── Stat Card Component ──────────────────────────────────────
 function StatCard({
     title,
     value,
@@ -455,45 +648,4 @@ function StatCard({
             </CardContent>
         </Card>
     );
-}
-
-// Feature Card Component
-function FeatureCard({
-    title,
-    description,
-    icon,
-    status,
-    link,
-}: {
-    title: string;
-    description: string;
-    icon: React.ReactNode;
-    status: "active" | "inactive";
-    link?: string;
-}) {
-    const content = (
-        <Card className="hover:shadow-md transition-shadow cursor-pointer">
-            <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                    <div className="p-2 rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-950/50 dark:text-purple-400">
-                        {icon}
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-medium">{title}</h3>
-                            <Badge variant={status === "active" ? "default" : "secondary"}>
-                                {status === "active" ? "نشط" : "معطل"}
-                            </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{description}</p>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-    );
-
-    if (link) {
-        return <a href={link}>{content}</a>;
-    }
-    return content;
 }

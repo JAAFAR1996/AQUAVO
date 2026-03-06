@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>AQUAVO — بريف المصمم — دليل البداية السريعة</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Cairo',sans-serif;background:#f5f5f5;color:#0A1F3B;line-height:1.7;padding:20px}
+.page{max-width:900px;margin:20px auto;background:#fff;padding:40px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.1);page-break-after:always}
+h1{font-size:28px;color:#0D7377;text-align:center;margin-bottom:5px}
+h2{font-size:22px;color:#0D7377;border-bottom:3px solid #0D7377;padding-bottom:8px;margin:25px 0 15px}
+h3{font-size:18px;color:#0A1F3B;margin:15px 0 10px}
+table{width:100%;border-collapse:collapse;margin:10px 0}
+th,td{padding:8px 12px;border:1px solid #ddd;text-align:right}
+th{background:#0D7377;color:#fff}
+.subtitle{text-align:center;color:#666;font-size:16px;margin-bottom:20px}
+.color-swatch{display:inline-block;width:20px;height:20px;border-radius:4px;vertical-align:middle;margin-left:5px;border:1px solid #ccc}
+.panel-container{border:3px solid #0D7377;border-radius:12px;overflow:hidden;margin:15px 0}
+.panel-header{background:#0D7377;color:#fff;padding:10px 15px;font-size:18px;font-weight:700}
+.panel-mood{background:#E0F2F1;padding:10px 15px;font-style:italic;color:#0A1F3B;border-bottom:1px solid #B2DFDB}
+.panel-layout{position:relative;min-height:500px;padding:15px;overflow:hidden}
+.zone{position:absolute;border:2px dashed;border-radius:8px;padding:8px;font-size:12px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+.zone-label{position:absolute;top:-10px;right:10px;background:#fff;padding:0 5px;font-size:10px;font-weight:700;color:#0D7377}
+.scene-desc{padding:15px;background:#FAFAFA;border-top:2px solid #0D7377}
+.scene-desc p{margin:8px 0;font-size:14px}
+.text-list{padding:15px;background:#f0fffe}
+.text-list li{margin:5px 0;font-size:13px}
+.warn{background:#FFF3E0;border-right:4px solid #FF6B6B;padding:10px 15px;margin:10px 0;border-radius:0 8px 8px 0}
+.tip{background:#E0F7FA;border-right:4px solid #0D7377;padding:10px 15px;margin:10px 0;border-radius:0 8px 8px 0}
+.flow-step{display:flex;align-items:center;gap:10px;margin:5px 0;padding:8px 12px;background:#fff;border-radius:8px;border:1px solid #ddd}
+.flow-arrow{font-size:20px;color:#0D7377}
+.split-container{display:flex;gap:15px;margin:10px 0}
+.split-box{flex:1;border-radius:8px;padding:12px;text-align:center}
+.split-correct{background:#E8F5E9;border:2px solid #4CAF50}
+.split-wrong{background:#FFEBEE;border:2px solid #FF6B6B}
+.equipment-card{display:flex;gap:10px;margin:8px 0}
+.eq-box{flex:1;border-radius:8px;padding:10px;text-align:center}
+.gradient-bar{height:40px;border-radius:8px;margin:10px 0;display:flex;overflow:hidden}
+.gradient-bar div{flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700}
+@media print{body{background:#fff;padding:0}.page{box-shadow:none;border-radius:0;margin:0;padding:20px}}
+</style>
+</head>
+<body>
+
+<!-- PAGE 1: SPECS -->
+<div class="page">
+<h1>🎨 بريف المصمم — دليل البداية السريعة AQUAVO</h1>
+<p class="subtitle">Accordion Fold — 8 Panels — تفاصيل كاملة للتنفيذ</p>
+
+<h2>📐 المواصفات الطباعية</h2>
+<table>
+<tr><th>المواصفة</th><th>القيمة</th></tr>
+<tr><td>النوع</td><td>أكورديون (زجزاج) — 4 طيات = 8 ألواح</td></tr>
+<tr><td>الحجم مفتوح</td><td>70 × 9 سم</td></tr>
+<tr><td>كل لوح</td><td>8.75 × 9 سم (مربع تقريباً)</td></tr>
+<tr><td>الورق</td><td>كرتون مطفي 250-300 gsm</td></tr>
+<tr><td>Bleed</td><td>3mm كل جهة</td></tr>
+<tr><td>الدقة</td><td>350 DPI — CMYK</td></tr>
+<tr><td>القراءة</td><td>يمين ← يسار (عربي)</td></tr>
+</table>
+
+<h2>🎨 الألوان الرسمية</h2>
+<table>
+<tr><th>اللون</th><th>الكود</th><th>الاستخدام</th></tr>
+<tr><td><span class="color-swatch" style="background:#0D7377"></span> تيل أساسي</td><td>#0D7377</td><td>عناوين، أيقونات، إطارات</td></tr>
+<tr><td><span class="color-swatch" style="background:#0A1F3B"></span> كحلي</td><td>#0A1F3B</td><td>نصوص، خلفيات داكنة</td></tr>
+<tr><td><span class="color-swatch" style="background:#fff;border:2px solid #ccc"></span> أبيض</td><td>#FFFFFF</td><td>خلفيات فاتحة، نص على غامق</td></tr>
+<tr><td><span class="color-swatch" style="background:#FF6B6B"></span> أحمر تحذير</td><td>#FF6B6B</td><td>❌ وتحذيرات</td></tr>
+<tr><td><span class="color-swatch" style="background:#FFD54F"></span> أصفر ذهبي</td><td>#FFD54F</td><td>⚠️ ونصائح</td></tr>
+<tr><td><span class="color-swatch" style="background:#4CAF50"></span> أخضر</td><td>#4CAF50</td><td>✅ ونباتات</td></tr>
+</table>
+
+<h2>🔤 الخطوط</h2>
+<p><strong>العناوين:</strong> Cairo Bold — 14-16pt &nbsp;|&nbsp; <strong>النص:</strong> Cairo Regular — 10-12pt &nbsp;|&nbsp; <strong>الأرقام بالدوائر:</strong> Cairo Black — 18-20pt</p>
+
+<h2>🎨 الأسلوب الفني</h2>
+<p>رسومات توضيحية بأسلوب <strong>Guidebook فاخر</strong> — مزيج من flat illustration مع عمق 3D خفيف — نسيج watercolor ناعم — حس سحري وتعليمي. <strong>مو كرتون أطفال ومو صور واقعية</strong> — بين الاثنين.</p>
+
+<h2>🌊 تدرج الألوان عبر الألواح</h2>
+<p><strong>الفكرة:</strong> كل لوح أغمق من اللي قبله — كأن الزبون ينزل أعمق تحت الماء مع كل خطوة:</p>
+<div class="gradient-bar">
+<div style="background:#FFF5E6;color:#333">1</div>
+<div style="background:#E0F2F1;color:#333">2</div>
+<div style="background:#B2DFDB;color:#333">3</div>
+<div style="background:#4DB6AC">4</div>
+<div style="background:#0D7377">5</div>
+<div style="background:#00695C">6</div>
+<div style="background:#0A1F3B">7</div>
+<div style="background:linear-gradient(135deg,#0D7377,#FFD700)">8</div>
+</div>
+
+<h2>⛔ ممنوعات مطلقة</h2>
+<div class="warn">
+❌ شعاب مرجانية / سمك بحري / كلاون فش / عناصر محيط<br>
+❌ كرتون أطفال / أنمي<br>
+❌ نص إنجليزي (إلا AQUAVO)<br>
+❌ ألوان نيون صارخة<br>
+❌ حروف عربية مقطعة أو مفككة
+</div>
+
+<h2>✅ السمك والنباتات المسموحة (ماء عذب فقط!)</h2>
+<div class="tip">
+<strong>سمك:</strong> بيتا (زعانف طويلة)، نيون تيترا (مضيء)، جوبي (ملون)، كوريدوراس (قاع)، جمبري كرزي<br>
+<strong>نباتات:</strong> أنوبياس (أوراق عريضة)، جافا فيرن (مدببة)، فاليسنيريا (طويلة)، جافا موس (على خشب)
+</div>
+</div>
+
+<!-- PAGE 2: PANEL 1 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header">🔵 اللوح 1 — الغلاف: "البوابة" &nbsp; | &nbsp; خلفية: #FFF5E6 ذهبي دافئ → #0D7377 تيل</div>
+<div class="panel-mood">💡 الحس العام: بوابة سحرية بين عالمين — فوق: غرفة بيت دافئة. تحت: جنة تحت الماء من خلال الزجاج. الحوض الفارغ = البوابة.</div>
+<div class="panel-layout" style="background:linear-gradient(to bottom,#FFF5E6 33%,#aaa 34%,#aaa 35%,#0D7377 36%)">
+  <div class="zone" style="top:5%;right:25%;width:50%;height:10%;border-color:#0D7377;background:rgba(13,115,119,0.15)">
+    <span>∞🐠 شعار AQUAVO</span><span style="font-size:10px">علامة مائية تيل — شفافية 60%</span>
+  </div>
+  <div class="zone" style="top:17%;right:15%;width:70%;height:13%;border-color:#8B6914;background:rgba(255,245,230,0.8)">
+    <span>🪵 رف خشبي أنيق</span><span>عليه حوض زجاجي فارغ جديد يتوهج بضوء خافت</span>
+  </div>
+  <div style="position:absolute;top:33%;right:5%;width:90%;text-align:center;color:#666;font-size:11px;font-weight:700;letter-spacing:2px">▓▓▓▓ حافة الزجاج = خط الفصل بين العالمين ▓▓▓▓</div>
+  <div class="zone" style="top:38%;right:5%;width:42%;height:20%;border-color:#2E7D32;background:rgba(76,175,80,0.1)">
+    <span>🌿 نباتات ماء عذب</span><span style="font-size:10px">أنوبياس عريضة، جافا فيرن مدببة، فاليسنيريا تتمايل</span>
+  </div>
+  <div class="zone" style="top:38%;left:5%;width:42%;height:20%;border-color:#E65100;background:rgba(255,152,0,0.1)">
+    <span>🐟 أسماك ملونة</span><span style="font-size:10px">بيتا بزعانف حريرية، نيون تيترا متوهج، جوبي</span>
+  </div>
+  <div class="zone" style="top:60%;right:10%;width:35%;height:8%;border-color:#795548;background:rgba(121,85,72,0.1)">
+    <span>🪵 خشب طافي + 🪨 صخور</span>
+  </div>
+  <div class="zone" style="top:60%;left:10%;width:35%;height:8%;border-color:#FFD54F;background:rgba(255,213,79,0.1)">
+    <span>☀️ أشعة God Rays تخترق الماء</span>
+  </div>
+  <div class="zone" style="top:72%;right:10%;width:80%;height:12%;border-color:#fff;background:rgba(0,0,0,0.5);color:#fff;border-style:solid">
+    <span style="font-size:16px;font-weight:700">دليل البداية السريعة 🚀</span><span style="font-size:11px">28px أبيض — على gradient شفاف غامق</span>
+  </div>
+  <div class="zone" style="top:85%;right:15%;width:70%;height:6%;border-color:#E0F7FA;background:rgba(224,247,250,0.2);color:#E0F7FA">
+    <span style="color:#0D7377;font-size:12px">حوضك فارغ اليوم... بس بعد 8 خطوات راح يصير عالم! 🌊 — 16px</span>
+  </div>
+  <div class="zone" style="top:92%;right:25%;width:50%;height:5%;border-color:#00BCD4;background:rgba(0,188,212,0.1)">
+    <span style="font-size:11px;color:#00BCD4">← افتح وابدأ الرحلة — 14px</span>
+  </div>
+</div>
+<div class="scene-desc">
+<h3>🎬 وصف المشهد للمصمم:</h3>
+<p>غلاف يمثل <strong>بوابة سحرية</strong>. الثلث العلوي = غرفة بيت دافئة بضوء ذهبي (3000K)، رف خشبي عليه حوض زجاجي فارغ جديد يلمع. الثلثين السفليين = جنة مائية خلابة مرئية <strong>من خلال زجاج الحوض</strong> كبوابة لعالم ثاني. نباتات كثيفة، أسماك ملونة، خشب طافي مغطى بطحلب، صخور. أشعة ضوء إلهية (God rays) تخترق الماء. التدرج من ذهبي/عنبري (فوق) إلى تيل عميق (تحت).</p>
+<p><strong>الإحساس:</strong> سحري، جذاب، مثل غلاف كتاب مغامرات — مو مجرد "دليل تعليمات".</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 3: PANEL 2 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header">🔵 اللوح 2 — "اختار عرشك" (الخطوة 1) &nbsp; | &nbsp; خلفية: #E0F2F1 نعناعي</div>
+<div class="panel-mood">💡 المشهد من تحت الماء ننظر للأعلى. مكان صح ✅ مقابل مكان غلط ❌ — التضاد فوري وواضح بنظرة وحدة.</div>
+
+<div style="padding:15px">
+<div style="background:#0D7377;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:15px">
+  الخطوة 1 📍 اختار عرش حوضك — 24px أبيض على gradient غامق
+</div>
+
+<div class="split-container">
+  <div class="split-correct">
+    <div style="font-size:24px">✅</div>
+    <h3 style="color:#2E7D32">المكان الصحيح</h3>
+    <div style="background:#C8E6C9;padding:10px;border-radius:8px;margin:8px 0">
+      <p>🪵 ستاند خشبي متين</p>
+      <p>🏠 زاوية هادية بعيدة عن الشبابيك</p>
+      <p>🔌 مخرج كهرباء قريب</p>
+      <p>💚 توهج تيل هادئ ومستقر</p>
+    </div>
+    <p style="font-size:12px;color:#2E7D32">إطار أخضر/تيل حول المشهد</p>
+  </div>
+  <div class="split-wrong">
+    <div style="font-size:24px">❌</div>
+    <h3 style="color:#D32F2F">المكان الغلط</h3>
+    <div style="background:#FFCDD2;padding:10px;border-radius:8px;margin:8px 0">
+      <p>🪟 جنب شباك كبير</p>
+      <p>☀️ أشعة شمس قاسية حارقة</p>
+      <p>🟢 طحالب بدأت تنمو</p>
+      <p>📐 طاولة رفيعة هزازة</p>
+    </div>
+    <p style="font-size:12px;color:#D32F2F">إطار أحمر حول المشهد</p>
+  </div>
+</div>
+
+<div style="text-align:center;padding:10px;background:#E3F2FD;border-radius:8px;margin:10px 0">
+  <strong>أيقونات طافية بين المشهدين:</strong> 🌡️✓ ثرمومتر &nbsp;|&nbsp; ☀️✗ شمس &nbsp;|&nbsp; ⚖️ 1 لتر = 1 كيلو
+</div>
+
+<div class="warn">⚠️ حوض 60 لتر = 60 كيلو! — 15px بلون #FFD54F على gradient غامق بالأسفل</div>
+<div class="tip">🌿 نباتات مائية (أنوبياس، جافا فيرن، سالفينيا) تؤطر الحواف السفلية بشكل طبيعي</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد للمصمم:</h3>
+<p><strong>زاوية الكاميرا تحت مائية</strong> — ننظر للأعلى عبر سطح الماء المتموج نحو الغرفة. الجهة اليسرى: ستاند خشبي متين بزاوية هادية — الحوض يجلس عليه <strong>كعرش ملكي</strong> يصدر توهج تيل هادئ. الجهة اليمنى: نفس الحوض على طاولة رفيعة هزازة جنب شباك — شمس قاسية تضرب الزجاج، طحالب تنمو. أيقونات معلوماتية صغيرة تطفو بالماء بين المشهدين.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 4: PANEL 3 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header">🔵 اللوح 3 — "ابني عالمك" (الخطوة 2) &nbsp; | &nbsp; خلفية: #B2DFDB تيل فاتح</div>
+<div class="panel-mood">💡 أنت داخل الحوض! حصى يسقط كنجوم متلألئة بالسلو موشن. أيدي من فوق سطح الماء ترتب ديكور كأنها تبني مدينة صغيرة.</div>
+
+<div style="padding:15px;background:linear-gradient(to bottom,#B2DFDB,#80CBC4);border-radius:0 0 8px 8px">
+<div style="background:#0D7377;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:15px">
+  الخطوة 2 🧹 ابني عالمك
+</div>
+
+<div style="text-align:center;padding:8px;background:rgba(255,255,255,0.5);border-radius:8px;margin:8px 0">
+  ✋ <strong>أيدي بشرية</strong> تُرى من فوق سطح الماء — مشوهة قليلاً بانكسار الضوء (refraction)
+</div>
+
+<div class="flow-step" style="border-right:4px solid #0D7377">
+  <span style="background:#0D7377;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700">①</span>
+  <div><strong>اغسل الحصى</strong> — بدون صابون أبداً! 🚫<br><span style="font-size:11px;color:#666">أيقونة: حوض + ماء — قارورة صابون مشطوبة بخط أحمر</span></div>
+</div>
+
+<div style="text-align:center;padding:5px">✨ حصى ملون يسقط عبر الماء <strong>بالسلو موشن مثل نجوم متلألئة</strong> ✨</div>
+
+<div class="flow-step" style="border-right:4px solid #0D7377">
+  <span style="background:#0D7377;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700">②</span>
+  <div><strong>حط الحصى (3-5 سم سمك)</strong><br><span style="font-size:11px;color:#666">أيقونة: مقطع جانبي (cross-section) للقاع — سهم عمودي يوضح السمك "3-5 سم"</span></div>
+</div>
+
+<div class="flow-step" style="border-right:4px solid #0D7377">
+  <span style="background:#0D7377;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700">③</span>
+  <div><strong>رتب الديكور: كبير بالخلف ← صغير بالأمام</strong><br><span style="font-size:11px;color:#666">أيقونة: 🪵 خشب طافي + 🪨 صخور مثل أطلال مدينة صغيرة — سهم "كبير←صغير"</span></div>
+</div>
+
+<div class="flow-step" style="border-right:4px solid #FFD54F">
+  <span style="background:#FFD54F;color:#0A1F3B;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700">④</span>
+  <div><strong>💡 حيلة ذكية: صب الماء على صحن!</strong><br><span style="font-size:11px;color:#666">أيقونة: صحن سيراميك أبيض داخل الحوض — ماء يُصب بلطف عليه — الحصى حوله ما يتخرب</span></div>
+</div>
+
+<div style="text-align:center;padding:8px;color:#0D7377">°○°○° فقاعات هواء تتصاعد بمسارات لولبية °○°○°<br>☀️ أشعة god rays + أنماط caustic على الحصى</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p>الكاميرا <strong>داخل الحوض الفارغ</strong>. حصى طبيعي ملون يسقط عبر الماء بحركة بطيئة مثل نجوم. أيدي بشرية من فوق ترتب خشب وصخور. صحن أبيض يحمي الترتيب. فقاعات تتصاعد. ضوء عنبري دافئ من فوق. الأجواء <strong>تأملية وسحرية</strong>.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 5: PANEL 4 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header">🔵 اللوح 4 — "نبض الحياة" (الخطوة 3) &nbsp; | &nbsp; خلفية: #4DB6AC تيل متوسط</div>
+<div class="panel-mood">💡 المعدات مو آلات — هي أعضاء حية! الفلتر = قلب ينبض. السخان = شمس صغيرة. الإضاءة = ضوء الحياة. كلها متصلة بخطوط طاقة.</div>
+
+<div style="padding:15px">
+<div style="background:#0D7377;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:15px">
+  الخطوة 3 ⚙️ نبض الحياة
+</div>
+
+<div style="text-align:center;padding:10px;background:#FFF8E1;border:2px solid #FFD54F;border-radius:8px;margin-bottom:10px">
+  💡 <strong>الإضاءة — فوق اللوح</strong><br>
+  أشعة ذهبية تنزل عبر سطح الماء<br>
+  ⏰ ساعة تقول "8 ساعات فقط" &nbsp;|&nbsp; 🟢🟢 وحوش طحالب لطيفة بالحواف كتحذير مرح
+</div>
+
+<div style="text-align:center;font-size:24px;color:#0D7377;margin:5px 0">↕ خطوط طاقة متدفقة ↕</div>
+
+<div class="equipment-card">
+  <div class="eq-box" style="background:#E0F2F1;border:2px solid #0D7377">
+    <div style="font-size:30px">💨</div>
+    <h3 style="color:#0D7377">الفلتر = قلب</h3>
+    <p style="font-size:12px">مرسوم كـ <strong>قلب بيولوجي متوهج بلون تيل</strong></p>
+    <p style="font-size:11px;color:#666">خطوط تيار ماء تنبض مثل نبضات القلب — جسيمات تتنظف تاركة مسارات لامعة</p>
+    <p style="font-size:12px;color:#0D7377"><strong>ينظف ويحرك</strong></p>
+  </div>
+  <div class="eq-box" style="background:#FFF3E0;border:2px solid #FF8A65">
+    <div style="font-size:30px">🌡️</div>
+    <h3 style="color:#E65100">السخان = شمس</h3>
+    <p style="font-size:12px">يتوهج بهالة <strong>عنبرية دافئة</strong></p>
+    <p style="font-size:11px;color:#666">مقياس حرارة دائري 25°C — حلقات حرارة متحدة المركز مثل شمس صغيرة</p>
+    <p style="font-size:12px;color:#E65100"><strong>25°م — انتظر 30 دق!</strong></p>
+  </div>
+</div>
+
+<div style="text-align:center;font-size:18px;color:#0D7377;margin:5px 0">←→ خطوط طاقة دائرية تربط كل المعدات ←→</div>
+<div style="text-align:center;font-size:12px;color:#666">✨ جسيمات bioluminescent مضيئة تطفو بكسل — الأجواء: عالم نائم على وشك الاستيقاظ ✨</div>
+
+<div class="warn" style="margin-top:10px">⏰ استخدم تايمر! أكثر من 8 ساعات = 🟢 طحالب! — 14px بلون #FFD54F</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p>3 قطع معدات مرسومة <strong>كأعضاء حية سحرية</strong> متصلة بخطوط طاقة متدفقة دائرية. الفلتر = قلب تيل ينبض. السخان = شمس عنبرية بـ 25°C. الإضاءة = أشعة ذهبية مع ساعة 8hr. الأجواء: مظلمة متلألئة — <strong>عالم يستيقظ</strong>. المعدات لازم تبين كأعضاء حية مو آلات!</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 6: PANEL 5 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header" style="background:#0A1F3B">🔵 اللوح 5 — "إكسير الحياة" (الخطوة 4) ⚠️ الأهم! &nbsp; | &nbsp; خلفية: #0A1F3B كحلي غامق</div>
+<div class="panel-mood" style="background:#FFF3E0;border:2px solid #FF6B6B">⚠️ أكثر لوح دراماتيكي! كيمياء سحرية — ماء عادي ميت يتحول لماء حي. بكتيريا نافعة كغبار نجوم. كلور سام كجزيئات غاضبة.</div>
+
+<div style="padding:15px;background:linear-gradient(to bottom,#1a2f4b,#0A1F3B);color:#fff">
+<div style="text-align:center;padding:8px;border:2px solid #FF6B6B;border-radius:8px;margin-bottom:10px">
+  <span style="font-size:18px;font-weight:700">الخطوة 4 💧 إكسير الحياة</span><br>
+  <span style="color:#FF6B6B;font-size:16px;font-weight:700">⚠️ الخطوة الأهم!</span>
+</div>
+
+<div class="flow-step" style="background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.3)">
+  <span style="font-size:24px">🚰</span>
+  <div style="color:#fff"><strong>ماء حنفية</strong> — ينزل مثل شلال متلألئ من أعلى</div>
+</div>
+<div style="text-align:center;font-size:20px">↓↓↓</div>
+
+<div class="flow-step" style="background:rgba(13,115,119,0.3);border:2px solid #0D7377">
+  <span style="font-size:24px">🧪</span>
+  <div style="color:#fff"><strong>➕ قارورة 1: مزيل كلور</strong> — قارورة سحرية متوهجة بالتيل<br>
+  <span style="font-size:11px">💥 جزيئات كلور حمراء/برتقالية غاضبة 😡 بوجوه شريرة — تذوب وتنفجر بشرارات!</span></div>
+</div>
+<div style="text-align:center;font-size:20px">↓↓↓</div>
+
+<div class="flow-step" style="background:rgba(255,215,0,0.2);border:2px solid #FFD700">
+  <span style="font-size:24px">🧪</span>
+  <div style="color:#fff"><strong>➕ قارورة 2: بكتيريا نافعة</strong><br>
+  <span style="font-size:11px">✨ ملايين بكتيريا متوهجة تنتشر مثل <strong>غبار نجوم ذهبي+تيل</strong> — مثل مجرات تتشكل!</span></div>
+</div>
+<div style="text-align:center;font-size:20px">↓↓↓</div>
+
+<div style="display:flex;gap:10px;align-items:center">
+  <div class="flow-step" style="flex:1;background:rgba(0,188,212,0.2);border:2px solid #00BCD4">
+    <span style="font-size:24px">✅</span>
+    <div style="color:#fff"><strong>الماء صار حي!</strong> — صافي كريستالي متوهج بذهبي خفيف</div>
+  </div>
+  <div style="background:rgba(255,215,0,0.2);border:2px solid #FFD700;border-radius:8px;padding:10px;text-align:center;min-width:80px;color:#FFD700">
+    <span style="font-size:24px">⏳</span><br><strong>24-48</strong><br>ساعة
+  </div>
+</div>
+
+<div style="background:rgba(255,0,0,0.2);border:2px solid #FF4444;border-radius:8px;padding:10px;margin:10px 0;text-align:center">
+  <span style="font-size:18px">🔴 ☠️</span><br>
+  <strong style="color:#FF4444;font-size:14px">لا تحط سمك بماء جديد = الكلور يگتله!</strong>
+</div>
+
+<div style="text-align:center;color:#00BCD4;font-size:13px">💊 تحتاج: مزيل كلور + بكتيريا (موجودة عدنا! 😉)</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p>أكثر لوح دراماتيكي! خلفية <strong>كحلي غامق ضرورية</strong>. فلو عمودي: ماء حنفية ينزل كشلال → قارورة تيل تذيب كلور غاضب → قارورة ثانية تطلق بكتيريا كغبار نجوم → ماء يتحول لسائل حي. ساعة رملية 24-48hr. جمجمة تحذيرية. <strong>تضاد عالي — عناصر مشعة ضد كحلي مظلم</strong>.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 7: PANEL 6 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header" style="background:#00695C">🔵 اللوح 6 — "الضيوف الأوائل" (الخطوة 5) &nbsp; | &nbsp; خلفية: #00695C تيل-أخضر</div>
+<div class="panel-mood">💡 أكثر لوح عاطفي! أول سمكة تدخل قصرها الجديد — لحظة عجب وسحر. عيون السمكة مندهشة 😲. النباتات ترحب بها!</div>
+
+<div style="padding:15px">
+<div style="background:#00695C;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:10px">
+  الخطوة 5 🐟 الضيوف الأوائل &nbsp;|&nbsp; ☀️ أشعة god rays ذهبية سماوية من فوق
+</div>
+
+<p style="text-align:center;font-size:12px;color:#666;margin-bottom:10px">الكاميرا داخل حوض مجهز جميل — حصى، نباتات خضراء، خشب أنيق، صخور ناعمة</p>
+
+<div class="flow-step" style="border-right:4px solid #00695C;background:#E8F5E9">
+  <span style="background:#00695C;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">①</span>
+  <div><strong>حط الكيس يطفو 15 دق ⏱️</strong> (تعديل الحرارة)<br>
+  <span style="font-size:11px;color:#666">رسمة: كيس بلاستيكي شفاف مغلق يطفو على سطح الماء — فيه سمكة بعيون واسعة فضولية مندهشة 😲 تنظر لبيتها الجديد</span></div>
+</div>
+<div style="text-align:center;font-size:20px;color:#00695C">↓</div>
+
+<div class="flow-step" style="border-right:4px solid #00695C;background:#E8F5E9">
+  <span style="background:#00695C;color:#fff;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">②</span>
+  <div><strong>افتح الكيس + أضف ماء الحوض شوية شوية — 15 دق</strong><br>
+  <span style="font-size:11px;color:#666">رسمة: الكيس مفتوح — كوب صغير يصب ماء الحوض داخل الكيس بلطف</span></div>
+</div>
+<div style="text-align:center;font-size:20px;color:#00695C">↓</div>
+
+<div class="flow-step" style="border-right:4px solid #FFD700;background:#FFFDE7">
+  <span style="background:#FFD700;color:#0A1F3B;border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0">③</span>
+  <div><strong>طلع السمكة بالشبچة! 🎉</strong><br>
+  <span style="font-size:11px;color:#666">رسمة: شبكة لطيفة تحرر السمكة — ✨ فقاعات احتفالية + لمعات ذهبية + ذيول ضوء تحيط بلحظة الإطلاق!</span><br>
+  <span style="font-size:11px;color:#D32F2F">🚫 لا تصب ماء الكيس بالحوض!</span></div>
+</div>
+
+<div class="tip" style="margin-top:10px">🌿 النباتات أوراقها مائلة قليلاً نحو السمكة — كأن النظام البيئي <strong>يرحب بأول ساكن فيه!</strong></div>
+
+<div style="background:#1a2f4b;color:#FFD54F;text-align:center;padding:8px;border-radius:8px;margin-top:10px">
+  🌙 طفي الضوء أول يوم — خليهم يتعودون بهدوء
+</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p>أكثر لوح <strong>عاطفي — عجب صرف</strong>. سمكة بيتا أو نيون تيترا بعيون واسعة مندهشة تنظر لبيتها الجديد من داخل الكيس. ضوء ذهبي سماوي. 3 خطوات أقلمة. لحظة الإطلاق = فقاعات احتفالية ولمعات. النباتات ترحب. <strong>المشاهد يحس بالعجب</strong>.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 8: PANEL 7 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header" style="background:#0A1F3B">🔵 اللوح 7 — "الحب اليومي" (الخطوة 6+7) &nbsp; | &nbsp; خلفية: #0A1F3B كحلي</div>
+<div class="panel-mood">💡 الحوض حي ومزدهر! الروتين اليومي مو شغل — هو طقس حب. الإطعام = هدية. التنظيف = عناية بلوحة ثمينة.</div>
+
+<div style="padding:15px">
+<div style="background:#0A1F3B;color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:16px;font-weight:700;margin-bottom:15px">
+  الخطوة 6+7 الحب اليومي 💙
+</div>
+
+<h3 style="color:#0D7377;border-bottom:2px solid #0D7377;padding-bottom:5px">🍽️ النصف العلوي — التغذية</h3>
+<div style="background:#E8F5E9;padding:12px;border-radius:8px;margin:8px 0">
+<p>✋ <strong>رسمة:</strong> يد عناية لطيفة من فوق ترش رشة صغيرة من حبيبات الأكل — <strong>تسقط مثل كونفيتي ملون</strong></p>
+<p>🐟🐟🐟 <strong>رسمة:</strong> أسماك متحمسة (نيون تيترا، جوبي، كوريدوراس، بيتا) تسبح للأعلى بفرح!</p>
+</div>
+
+<div class="split-container">
+  <div class="split-correct"><strong>✅ رشة صغيرة</strong><br><span style="font-size:11px">بدقيقتين ياكلونها</span></div>
+  <div class="split-wrong"><strong>❌ كومة كبيرة</strong><br><span style="font-size:11px">الغلطة #1: أكل كثير!</span></div>
+</div>
+<p style="text-align:center;font-size:12px">⏰ مرتين باليوم بس — كمية ياكلونها بدقيقتين</p>
+
+<div style="height:3px;background:linear-gradient(to left,#0D7377,#80CBC4,#0D7377);margin:15px 0;border-radius:2px"></div>
+<p style="text-align:center;font-size:11px;color:#666">≋≋≋ ماء متدفق يربط القسمين ≋≋≋</p>
+
+<h3 style="color:#0D7377;border-bottom:2px solid #0D7377;padding-bottom:5px">🔄 النصف السفلي — الصيانة الأسبوعية</h3>
+<div style="background:#E3F2FD;padding:12px;border-radius:8px;margin:8px 0">
+<p>✋🔧 <strong>رسمة:</strong> يد لطيفة تمسك سيفون حصى تسحب 25% من الماء — 📏 خط قياس 25% مرسوم على الزجاج</p>
+<p>🧲 <strong>رسمة:</strong> مغناطيس كاشط طحالب ينظف الزجاج — يكشف صفاء كريستالي</p>
+<p>🪣 <strong>رسمة:</strong> دلو ماء مكيف جديد مع ✨ لمعات ينتظر</p>
+<p>📅 <strong>رسمة:</strong> تقويم أسبوعي مع علامات ✓</p>
+</div>
+
+<div style="background:#FFF3E0;border:2px solid #FFD54F;border-radius:8px;padding:10px;margin:8px 0">
+  🧽 <strong>رسمة مهمة:</strong> شخصية بكتيريا نافعة <strong>لطيفة وقلقة 😟</strong> جالسة على إسفنجة الفلتر — تمسك لافتة تحذير:<br>
+  <span style="color:#E65100;font-weight:700">⚠️ "اغسلني بماء الحوض القديم — مو بماء الحنفية! تموت البكتيريا!"</span>
+</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p>حوض كامل حي مزدهر مقسوم بأناقة لمشهدين متصلين بماء متدفق. فوق = تغذية (يد ترش أكل مثل كونفيتي + أسماك فرحة). تحت = صيانة (سيفون + مغناطيس + دلو). شخصية بكتيريا لطيفة قلقة. <strong>الحس: عناية وحب — مو أعمال شاقة</strong>.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 9: PANEL 8 -->
+<div class="page">
+<div class="panel-container">
+<div class="panel-header" style="background:linear-gradient(to left,#0D7377,#FFD700)">🔵 اللوح 8 — "عالمك صار جاهز!" (الفينالي) &nbsp; | &nbsp; خلفية: تيل + ذهبي متوهج</div>
+<div class="panel-mood">💡 الختام العظيم! أخلب مشهد تحت مائي — الحوض بأبهى صوره. بيولومنسنت. أشعة ذهبية. سحر. فخر. + دعوة للتصوير والمشاركة.</div>
+
+<div style="padding:15px">
+<div style="background:linear-gradient(135deg,#0D7377,#00695C);color:#fff;text-align:center;padding:8px;border-radius:8px;font-size:18px;font-weight:700;margin-bottom:10px">
+  ✨ عالمك صار جاهز!
+</div>
+
+<h3 style="color:#0D7377">🌊 70% العلوي — الجنة المائية (أجمل مشهد بالدليل!)</h3>
+<div style="background:linear-gradient(to bottom,#004D40,#00695C);color:#fff;padding:15px;border-radius:8px;margin:8px 0">
+  <p>☀️ <strong>أشعة god rays ذهبية رائعة</strong> تخترق ماء صافي تماماً — أنماط caustic راقصة</p>
+  <p>✨ <strong>جسيمات bioluminescent</strong> ذهبية + تيل تطفو مثل يراعات سحرية</p>
+  <p>🌿 <strong>غابة نباتات كثيفة:</strong> فاليسنيريا طويلة (خلف) + جافا فيرن وأنوبياس (وسط) + سجادية (أمام)</p>
+  <p>🐟 <strong>أسماك بانسجام:</strong> سرب نيون تيترا متوهج | بيتا ملكي بزعانف حريرية | كوريدوراس بالقاع | 🦐 جمبري كرزي على خشب</p>
+  <p>🪵 أقواس خشب مغطاة بطحلب = أطلال سحرية &nbsp;|&nbsp; 🪨 صخور كمصاطب طبيعية</p>
+  <p style="text-align:center;margin-top:10px;font-size:14px;color:#E0F7FA">💙 شفت شلون 8 خطوات حولت علبة زجاج فارغة لعالم كامل؟ أنت سويت هذا.</p>
+</div>
+
+<div style="text-align:center;font-size:11px;color:#888;margin:5px 0">▓▓▓ انتقال أنيق وسلس: المشهد المائي → منطقة بيضاء نظيفة ▓▓▓</div>
+
+<h3 style="color:#0D7377">⬜ 30% السفلي — منطقة بيضاء نظيفة</h3>
+<div style="display:flex;gap:15px;margin:8px 0">
+  <div style="flex:1;background:#f5f5f5;padding:10px;border-radius:8px;border:1px solid #ddd">
+    <h3 style="font-size:14px">🆘 تحتاج مساعدة؟</h3>
+    <p style="font-size:12px">📱 @aquavo_iq<br>💬 واتساب: [رقم]<br>🌐 aquavo.iq</p>
+  </div>
+  <div style="flex:1;background:#FFFDE7;padding:10px;border-radius:8px;border:2px solid #FFD700">
+    <h3 style="font-size:14px">🎁 تبي خصم؟</h3>
+    <p style="font-size:12px">📸 صوّر حوضك → 📱 ستوري → 🏷️ تاگ @aquavo_iq → نرسلك كود الخصم!</p>
+  </div>
+</div>
+<div style="display:flex;gap:15px;align-items:center;margin:8px 0">
+  <div style="width:70px;height:70px;border:3px solid #0D7377;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;text-align:center;flex-shrink:0">QR Code<br>إنستغرام</div>
+  <div style="text-align:center;flex:1">
+    <p style="font-size:16px;font-weight:700;color:#0D7377">#حوضي_مع_اكوافو 💙</p>
+  </div>
+  <div style="text-align:center;flex-shrink:0">
+    <div style="font-size:24px">∞🐠</div>
+    <div style="font-size:12px;font-weight:700;color:#0D7377">AQUAVO</div>
+    <div style="font-size:10px">شعار كامل بارز</div>
+  </div>
+</div>
+</div>
+
+<div class="scene-desc">
+<h3>🎬 وصف المشهد:</h3>
+<p><strong>الفينالي الكبير</strong> — أجمل لوح! مشهد تحت مائي خلاب يخطف الأنفاس. حوض ناضج بأقصى جماله. غابة نباتات + أسماك بانسجام + bioluminescent + god rays. جودة National Geographic. الأسفل ينتقل بأناقة لمنطقة بيضاء نظيفة فيها تواصل + عرض خصم + QR + شعار.</p>
+</div>
+</div>
+</div>
+
+<!-- PAGE 10: DELIVERY -->
+<div class="page" style="page-break-after:avoid">
+<h2>📦 التسليم المطلوب</h2>
+<table>
+<tr><th>#</th><th>الملف</th><th>الصيغة</th></tr>
+<tr><td>1</td><td>ملف مفتوح بالكامل (70×9 سم)</td><td>PDF + AI/PSD</td></tr>
+<tr><td>2</td><td>كل لوح منفصل (8 ملفات)</td><td>PNG/PDF</td></tr>
+<tr><td>3</td><td>موك أب مطوي</td><td>PNG/PDF</td></tr>
+<tr><td>4</td><td>ملف طباعة جاهز</td><td>350 DPI, CMYK, bleed, crop marks</td></tr>
+</table>
+
+<h2>📝 ملاحظة أخيرة للمصمم</h2>
+<div class="tip">
+<strong>أي سؤال على أي تفصيل — تواصل وياي قبل لا تبدأ.</strong> أفضل نوضح الأمور من البداية بدال ما نعدل بعدين. 💙
+</div>
+<p style="text-align:center;color:#999;margin-top:30px">آخر تحديث: مارس 2026 — AQUAVO</p>
+</div>
+
+</body>
+</html>

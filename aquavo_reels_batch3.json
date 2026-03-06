@@ -1,0 +1,352 @@
+[
+    {
+        "text_overlay_standard": {
+            "description": "Global text overlay specifications for ALL reels — applied in CapCut post-production",
+            "safe_zone": {
+                "canvas": "1080 x 1920 px (9:16)",
+                "top_margin": "250 px — avoid username/close button area",
+                "bottom_margin": "350 px — avoid captions/CTA/engagement buttons",
+                "side_margins": "65 px each side",
+                "safe_area": "950 x 1320 px centered rectangle"
+            },
+            "arabic_text": {
+                "font": "Cairo Bold (Google Fonts)",
+                "alt_fonts": [
+                    "Noto Sans Arabic Bold",
+                    "Tajawal Bold"
+                ],
+                "size": "42-48 pt for headlines, 32 pt for body",
+                "max_words_per_line": 6,
+                "color": "#FFFFFF (pure white)",
+                "outline": "2 px black outline for contrast on any background",
+                "shadow": "soft drop shadow, 4px offset, 60% opacity black",
+                "contrast_ratio": "minimum 4.5:1",
+                "direction": "RTL (right-to-left)",
+                "position": "center of safe zone, vertically between 400-1200 px",
+                "note": "Cairo font chosen for modern readability on screens + clean geometric shapes optimized for Arabic Instagram Reels"
+            },
+            "label_text": {
+                "font": "Cairo Bold",
+                "size": "48-56 pt for labels",
+                "color": "#FFFFFF",
+                "background": "semi-transparent dark pill (rgba 0,0,0,0.6) with 12px padding and 8px radius",
+                "position": "upper-center of safe zone, around 300-400 px from top"
+            }
+        }
+    },
+    {
+        "reel_id": "R5",
+        "title": "طعام الأسماك له تاريخ صلاحية",
+        "category": "myth_busting",
+        "total_duration_sec": 16,
+        "videos": 2,
+        "anti_ai_global": "All prompts use: natural film grain, slight lens dust, realistic shadows, imperfect edges, phone camera EXIF metadata. Avoid: oversmoothed, plastic-like, digitally rendered, cartoonish, perfect symmetry, AI sheen.",
+        "scientific_facts": {
+            "source": "Multiple aquarium nutrition studies + globalseafood.org + fishtankhobbyist.com",
+            "key_facts": [
+                "Opened fish food loses fat-soluble vitamins (A, E) and water-soluble vitamins (C, B1) through oxidation within 1-3 months",
+                "Highly unsaturated fatty acids form unstable free radicals and peroxides when exposed to air",
+                "Flake food loses nutritional potency fastest — within 30 days of opening",
+                "Signs of expired food: faded color, rancid smell, clumping from moisture, fish refusal to eat",
+                "Fish fed oxidized food show decreased growth and increased oxidative stress",
+                "Store in airtight container, cool dark place, and buy small quantities that can be consumed within 6 months"
+            ]
+        },
+        "frames": [
+            {
+                "id": "R5-IMG-01",
+                "role": "old_expired_food",
+                "nano_banana_prompt": "Hyperrealistic photograph of a close-up tabletop scene on a white granite kitchen counter against a tiled backsplash wall in an Iraqi home. CENTER OF FRAME: an opened cylindrical fish food container (Tetra brand style, red lid removed and placed beside it) that has been open for months — the flakes inside look faded, slightly brownish-yellow instead of vibrant red-orange, clumped together in chunks from moisture absorption. Lid interior has a faint ring of old food residue. A small pile of crumbled faded flakes spilled on the counter beside the container. The label on the container is slightly curled from humidity. BACKGROUND: out-of-focus 30L aquarium against the wall with 3 platies swimming, HOB filter running. Warm fluorescent kitchen ceiling light. A glass of chai tea on a saucer near the edge. TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a semi-transparent dark pill-shaped banner (black at 70% opacity, rounded corners 8px, 14px padding). Inside the banner, display the Arabic text 'فتحت علبة الأكل قبل 6 شهور وما تزال تستخدمها؟' in bold Cairo Bold font, pure white color, large prominently readable size, RTL, drop shadow. Camera: Samsung Galaxy S24, close-up overhead at 45-degree angle. ISO 800, 1/60s, f/2.4. Warm yellow kitchen cast. File: 20260305_191204.jpg. Vertical 9:16. Mood: everyday mistake, unaware danger. NEGATIVE: oversmoothed, bright studio lighting, cartoon, fresh vibrant food, AI sheen, watermark, no wall behind aquarium.",
+                "text_overlay": "فتحت علبة الأكل قبل 6 شهور وما تزال تستخدمها؟",
+                "continuity_notes": "REFERENCE IMAGE. Same counter, same backsplash, same old container. 45-degree overhead. Kitchen setting. All physical details preserved in IMG-02."
+            },
+            {
+                "id": "R5-IMG-02",
+                "role": "fresh_food_correct",
+                "nano_banana_prompt": "USE R5-IMG-01 AS REFERENCE IMAGE. Preserve EVERY physical detail exactly: same white granite counter, same tiled backsplash wall, same kitchen, same background aquarium against wall, same chai glass. DO NOT add new objects or change the room. ONLY CHANGE THE FOLLOWING: (1) OLD CONTAINER: pushed to the back-left of counter, lid back on, with a clear red X drawn on it with marker (indicating discard). (2) NEW CONTAINER: a brand new SEALED fish food container (same brand) front-center — shrink wrap still on, vibrant red-orange label, factory seal intact using text 'EXP 2027' visible on the bottom. (3) NEXT TO NEW CONTAINER: a small dark opaque airtight clip-lock container (for transferring small portions) with lid open showing a small amount of vibrant fresh flakes inside. (4) LIGHTING: same warm kitchen light but slightly brighter — morning daylight mixing through window. TEXT OVERLAY ON IMAGE: At the lower-center of the frame, render a semi-transparent dark pill-shaped banner (black at 60% opacity, rounded corners). Inside the banner, display the Arabic text 'علبة صغيرة + محكمة = طعام طازج' in bold, clean, modern sans-serif Arabic font (like Cairo Bold), pure white color, large readable size. Below it in smaller text: 'aquavoiq.com' in white. The text must be sharp, legible, and RTL (right-to-left). Camera: SAME Samsung Galaxy S24, SAME 45-degree overhead angle. ISO 400, 1/100s. Slightly cooler white balance from morning light. File: 20260306_082015.jpg. Vertical 9:16. Mood: problem solved, proper storage. NEGATIVE: oversmoothed, cartoon, same old food, AI sheen, watermark, different room.",
+                "text_overlay": "علبة صغيرة + محكمة = طعام طازج — aquavoiq.com",
+                "text_placement": "lower-center safe zone, 1350px from top, Cairo Bold 38pt white on dark semi-transparent pill rgba(0,0,0,0.6), 12px padding, 8px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same kitchen, same counter. Old container pushed back with X. New sealed container + transfer container."
+            },
+            {
+                "id": "R5-IMG-03",
+                "role": "fresh_feeding_tips",
+                "nano_banana_prompt": "Hyperrealistic photograph of a hand dropping fresh vibrant red-orange fish food flakes from a small dark airtight clip-lock container into a 30L home aquarium against a tiled backsplash wall in an Iraqi kitchen. The flakes scatter beautifully on the water surface — bright, fresh, colorful. Three platy fish rush upward toward the surface, mouths open excitedly, fins spread wide. The water surface ripples from the feeding frenzy. The LED light catches the falling flakes mid-air. Counter is clean — only the new food container and a glass of chai visible. Morning light from window. The old expired container is gone (thrown away). TEXT OVERLAY ON IMAGE: At the lower-center of the frame, render a semi-transparent dark pill-shaped banner (black at 65% opacity, rounded corners 8px, 14px padding). Inside the banner, display two lines of Arabic text: Line 1: 'الفيتامينات تتأكسد بعد شهر — غيّر كل ٣ شهور' in bold Cairo Bold font, pure white, large. Line 2: 'دزه لصاحبك — aquavoiq.com' in Cairo Bold, white, smaller size. Both RTL, drop shadow. Camera: Samsung Galaxy S24, eye-level through glass, close-up on feeding moment. ISO 500, 1/100s. Vertical 9:16. Mood: vibrant health, happy fish, problem solved. NEGATIVE: oversmoothed, cartoon, old food, faded flakes, AI sheen, watermark.",
+                "text_overlay": "الفيتامينات تتأكسد بعد شهر — غيّر كل ٣ شهور | دزه لصاحبك — aquavoiq.com",
+                "text_placement": "lower-center safe zone, 1300px from top, Cairo Bold 36pt white on dark semi-transparent pill rgba(0,0,0,0.65), 14px padding, 8px radius",
+                "continuity_notes": "DERIVED FROM IMG-02. Same kitchen. New food container. Fish eating fresh food happily. Old container gone."
+            }
+        ],
+        "veo3_segments": [
+            {
+                "id": "R5-VID-01",
+                "from": "R5-IMG-01",
+                "to": "R5-IMG-02",
+                "duration_sec": 8,
+                "veo3_prompt": "Kitchen counter in an Iraqi home. A hand enters frame from the right, picks up a cylindrical fish food container that's been open for months. Tilts it toward camera revealing faded, clumped flakes. The hand shakes it — flakes barely move, stuck together. Camera holds on the stale food. Then the hand pushes the old container aside. Tears shrink wrap off a brand new sealed container — crisp crinkle. Lid pops open revealing vibrant deep-red fresh flakes. A small dark airtight container sits nearby. The hand transfers fresh flakes with a spoon, clips the small container shut with a satisfying click. Old container dropped into bin. Morning daylight. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            },
+            {
+                "id": "R5-VID-02",
+                "from": "R5-IMG-02",
+                "to": "R5-IMG-03",
+                "duration_sec": 8,
+                "veo3_prompt": "Same Iraqi kitchen, morning light. A hand reaches for the small dark airtight container on the clean white granite counter. Opens the clip-lock lid — fresh vibrant red-orange flakes visible inside. The hand pinches a small portion and lifts it above the aquarium against the wall. Camera follows the hand upward. Flakes scatter and fall onto the water surface in slow motion — bright colors against the blue-green water. Three platy fish immediately rush upward, mouths opening wide, catching flakes at the surface. A small feeding frenzy — ripples, movement, life. The fish will eat well today. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            }
+        ],
+        "capcut_notes": "ALL text is rendered in NanoBanana image prompts only. No text needed in CapCut or Veo 3. Just assemble videos and add audio."
+    },
+    {
+        "reel_id": "R9",
+        "title": "كيف تعرف سمكتك مريضة",
+        "category": "educational",
+        "total_duration_sec": 16,
+        "videos": 2,
+        "anti_ai_global": "All prompts use: natural film grain, slight lens dust, realistic shadows, imperfect edges, phone camera EXIF metadata. Avoid: oversmoothed, plastic-like, digitally rendered, cartoonish, perfect symmetry, AI sheen.",
+        "scientific_facts": {
+            "source": "Multiple veterinary aquarium health databases + petbarn.com.au + chewy.com + buceplant.com",
+            "key_facts": [
+                "Sign 1 — Clamped fins: fish holds fins tight against body = universal stress/disease indicator",
+                "Sign 2 — White spots (Ich/Ichthyophthirius multifiliis): small salt-grain white dots = parasitic infection, highly contagious",
+                "Sign 3 — Gasping at surface: fish hovering at waterline gulping air = low oxygen, ammonia burn, or gill infection",
+                "Other signs: loss of appetite, erratic swimming, faded colors, hiding, bloating, fin rot",
+                "Root cause #1 is always poor water quality — test ammonia, nitrite, nitrate, pH first",
+                "Immediate action: 25% water change + test water parameters + quarantine sick fish"
+            ]
+        },
+        "frames": [
+            {
+                "id": "R9-IMG-01",
+                "role": "clamped_fins_sign",
+                "nano_banana_prompt": "Hyperrealistic extreme close-up photograph through the front glass of a 60cm home aquarium pushed against a painted wall in an Iraqi living room. SUBJECT: a single red platy fish hovering near mid-water, visibly STRESSED — all fins tightly clamped against its body (dorsal fin flat, pectoral fins pressed in, tail fin narrowed). The fish's body color is slightly faded/pale compared to normal vibrant red. Body posture slightly tilted, sluggish. BEHIND THE FISH: Anubias nana on a small rock to the left, fine gravel substrate, wall visible through back glass. Water slightly hazy. LED light bar above. The rest of the tank has 2 other platies swimming normally in the background (out of focus) for contrast. TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a semi-transparent dark pill-shaped banner (black at 60% opacity, rounded corners 8px). Inside the banner, display two lines of Arabic text: Line 1: '٣ علامات = سمكتك مريضة' in bold Cairo Bold font, pure white, large, RTL, drop shadow. Line 2: 'العلامة ١: زعانف مقفلة' in Cairo Bold, white, medium, RTL. Camera: iPhone 15 Pro, pressed close to front glass, manual focus. ISO 1000, 1/60s, f/1.8. Very shallow DOF. Vertical 9:16. Mood: quiet alarm, something is wrong. NEGATIVE: oversmoothed, cartoon, dead fish, AI sheen, watermark, tank not against wall.",
+                "text_overlay": "٣ علامات = سمكتك مريضة | العلامة ١: زعانف مقفلة",
+                "text_placement": "upper-center safe zone, 350px from top, Cairo Bold 46pt white on dark semi-transparent pill rgba(0,0,0,0.6), 14px padding, 8px radius",
+                "continuity_notes": "REFERENCE IMAGE. Same 60cm tank against wall. Same room. Front view through glass, eye-level. Same 3 platies (1 sick + 2 healthy). SAME camera angle for ALL 3 frames."
+            },
+            {
+                "id": "R9-IMG-02",
+                "role": "white_spots_ich",
+                "nano_banana_prompt": "USE R9-IMG-01 AS REFERENCE IMAGE. SAME 60cm aquarium against SAME wall, SAME room, SAME lighting, SAME camera angle (front view through glass, eye-level), SAME background plants and gravel. DO NOT add new objects or fish. CHANGE FOCUS TO: the SAME sick red platy from IMG-01, now photographed even closer — ultra close-up macro shot through glass. The fish now shows visible small WHITE SPOTS (like grains of salt) scattered across its body, tail fin, and dorsal area. Approximately 15-20 tiny white dots clearly visible on the red body. The fish is rubbing its body against the Anubias leaf — caught mid-scratch, body angled against the leaf edge. Fins still clamped. Eyes look dull. One of the healthy background platies now also shows 2-3 white spots beginning to appear (contagion spreading). TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a solid red rectangle banner (#CC2222, rounded corners 6px, 14px padding). Inside the banner, display the Arabic text 'العلامة ٢: نقاط بيضاء = مرض الإيك' in bold, clean, modern sans-serif Arabic font (like Cairo Bold), pure white color, large readable size. The text must be sharp, crisp, and RTL (right-to-left). Camera: SAME iPhone 15 Pro, even closer macro. ISO 1250, 1/50s, f/1.8. Extremely shallow DOF — only the fish's flank in focus. Slight condensation on outside glass caught in flash. File: IMG_5509.HEIC. Vertical 9:16. Mood: escalating concern, disease spreading. NEGATIVE: oversmoothed, cartoon, clean healthy fish, no white spots visible, AI sheen, watermark, different room.",
+                "text_overlay": "العلامة ٢: نقاط بيضاء = مرض الإيك",
+                "text_placement": "upper-center safe zone, 350px from top, Cairo Bold 42pt white on solid red rectangle #CC2222, 14px padding, 6px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same tank, same room. Ultra close-up on sick fish showing Ich spots. Second fish starting to show spots."
+            },
+            {
+                "id": "R9-IMG-03",
+                "role": "gasping_surface",
+                "nano_banana_prompt": "USE R9-IMG-01 AS REFERENCE IMAGE. SAME 60cm aquarium against SAME wall, SAME room. CHANGE CAMERA to slightly lower angle — shooting upward toward the WATER SURFACE from below eye-level. The sick red platy with white spots is now at the TOP of the water, mouth breaking the surface, GASPING — mouth open wide, gills flared and reddened, body vertical with nose pointing up. Desperate posture. The water surface is visible in frame. Below, the other 2 platies swim nervously at mid-level. Anubias and gravel visible in lower background. LED light bar creates surface reflections. A small API Master Test Kit box sits on the aquarium rim, partially visible at the top-right edge. TEXT OVERLAY ON IMAGE: Two banners on the image. BANNER 1 (center): solid red rectangle banner (#CC2222, rounded corners 6px, 14px padding). Arabic text 'العلامة ٣: يلهث فوق = خطر فوري' in bold Cairo Bold, white, large, RTL. BANNER 2 (lower-center): green solid pill (#22CC66, rounded corners 8px). Arabic text 'الحل: افحص الماي + غيّر 25% + اعزل المريضة' in Cairo Bold, white, medium, RTL. Camera: SAME iPhone 15 Pro, slightly below eye-level shooting up. ISO 1600, 1/40s, f/1.8. Vertical 9:16. Mood: emergency, act NOW. NEGATIVE: oversmoothed, cartoon, fish swimming normally, AI sheen, watermark.",
+                "text_overlay": "العلامة ٣: يلهث فوق = خطر فوري | الحل: افحص الماي + غيّر 25% + اعزل المريضة",
+                "text_placement": "lower-center safe zone, 1200px from top, Cairo Bold 44pt white on solid red rectangle #CC2222, 14px padding, 6px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same tank, same room. Lower angle. Fish at surface gasping. Test kit hint on rim."
+            }
+        ],
+        "veo3_segments": [
+            {
+                "id": "R9-VID-01",
+                "from": "R9-IMG-01",
+                "to": "R9-IMG-02",
+                "duration_sec": 8,
+                "veo3_prompt": "Front view through the glass of a home aquarium against a wall. A red platy fish hovers in mid-water with fins pressed flat against its body — clamped, tense, wrong. Camera holds static for 2 seconds establishing the abnormality. Then begins a slow deliberate dolly push toward the fish. As the camera nears, tiny white specks become visible on the fish's flank — salt-grain Ich spots materializing as focus sharpens. The fish twitches, scrapes its body against an Anubias leaf. The LED light catches each white dot. In the background, another platy swims past with the first hint of spots on its tail. Contagion. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            },
+            {
+                "id": "R9-VID-02",
+                "from": "R9-IMG-02",
+                "to": "R9-IMG-03",
+                "duration_sec": 8,
+                "veo3_prompt": "Same aquarium against the wall. The spotted platy drifts upward from mid-water toward the surface. Camera slowly tilts up to follow. The fish's movements become more labored. It reaches the surface. Mouth breaks through the water tension, gulping air with visible gill flares. Small ripples expand from each gasp. Camera settles at water level. A hand enters from the left holding an API Master Test Kit tube — squeezes reagent drops into it. The liquid shifts to alarming yellow (high ammonia). Another hand begins pouring dechlorinated water into the tank. The beginning of recovery. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            }
+        ],
+        "capcut_notes": "ALL text is rendered in NanoBanana image prompts only. No text needed in CapCut or Veo 3. Just assemble videos and add audio."
+    },
+    {
+        "reel_id": "R10",
+        "title": "درجة الحرارة المثالية لكل سمكة",
+        "category": "educational",
+        "total_duration_sec": 20,
+        "videos": 2,
+        "anti_ai_global": "All prompts use: natural film grain, slight lens dust, realistic shadows, imperfect edges, phone camera EXIF metadata. Avoid: oversmoothed, plastic-like, digitally rendered, cartoonish, perfect symmetry, AI sheen.",
+        "brand_note": "AQUAVO = educational and approachable, not dramatic or fear-based. Show common mistakes gently → then show the solution with pride. Never show graphic fish suffering.",
+        "scientific_facts": {
+            "source": "Multiple aquarium care databases + aquariumstoredepot.com + petmd.com + buceplant.com + advancedaquariumconcepts.com",
+            "key_facts": [
+                "Goldfish: 18-22°C (65-72°F) — COLDWATER species, NOT tropical. Higher temps increase metabolism unnaturally, halve lifespan, increase waste production",
+                "Guppy/Platy/Molly: 22-26°C (72-79°F) — tropical, adaptable, best at 24-25°C",
+                "Betta: 25-27°C (78-81°F) — tropical, needs heater always, gets lethargic in cold water",
+                "Neon Tetra: 22-26°C (72-78°F) — prefers cooler tropical, sensitive to temperature swings",
+                "Corydoras: 22-25.5°C (72-78°F) — cooler end of tropical range",
+                "Goldfish produce 3-5x more waste than tropical fish of same size — need strong filtration and cooler water",
+                "Betta + Goldfish in same tank = INCOMPATIBLE on every level (temp, aggression, waste, pH preference)",
+                "Temperature stability more important than exact degree — fluctuations cause immune suppression and stress",
+                "General tropical community: 24-26°C (75-78°F)",
+                "Common Iraqi home mistake: goldfish + guppies in one small tank at room temp (30°C+ in summer) — goldfish suffers, all fish stressed"
+            ]
+        },
+        "frames": [
+            {
+                "id": "R10-IMG-01",
+                "role": "common_mistake_mixed_tank",
+                "nano_banana_prompt": "Hyperrealistic photograph of a 30L aquarium pushed against a wall in an Iraqi living room. Front view, eye-level, centered on tank. A COMMON BEGINNER mistake: 2 small goldfish and 3 guppies in the same small tank. Digital thermometer suctioned to front glass reads 30°C — no color indication, just the number. The goldfish look slightly sluggish near the bottom (they're too warm — goldfish are coldwater 18-22°C). The guppies swim mid-water but the tank looks crowded and understocked with decor. Fine gravel substrate, single plastic plant, small internal filter with weak flow. No heater (Iraqi summer heat makes the room hot naturally). Wall behind with a clock. Ceiling fan reflection on glass. Simple laminate stand. TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a semi-transparent dark pill-shaped banner (black at 70% opacity, rounded corners 8px, 14px padding). Inside the banner, display Arabic text 'كل سمكة لها درجتها — وأنت تخلطهن!' in bold Cairo Bold, pure white, large readable, RTL. Camera: Samsung Galaxy S24, front view eye-level. ISO 640, 1/80s. Warm yellowish indoor light. Vertical 9:16. Mood: common mistake, educational — not dramatic. NEGATIVE: oversmoothed, cartoon, betta fish, fighter fish, AI sheen, watermark, tank not against wall.",
+                "text_overlay": "كل سمكة لها درجتها — وأنت تخلطهن!",
+                "text_placement": "upper-center safe zone, 350px from top, Cairo Bold 42pt white on dark semi-transparent pill rgba(0,0,0,0.7), 14px padding, 8px radius",
+                "continuity_notes": "REFERENCE IMAGE. Tank against wall. Front view centered. Shows goldfish + guppies mixed at 30°C — the common Iraqi mistake. NO Betta in this tank (unrealistic combo)."
+            },
+            {
+                "id": "R10-IMG-02",
+                "role": "correct_species_setup",
+                "nano_banana_prompt": "USE R10-IMG-01 AS REFERENCE. SAME room, SAME wall, SAME stand. Now showing TWO SEPARATE TANKS side by side — species-appropriate setups. LEFT TANK (30L): a proper tropical community tank — 4 guppies (colorful males, orange and blue tails) swimming actively, 2 Corydoras catfish on fine sand bottom. Adjustable heater with green indicator light on. Thermometer showing 25°C in GREEN digits. Java Fern on small driftwood, Anubias nana on rock. HOB filter running. Fish vibrant and active. RIGHT TANK (30L): a proper coldwater tank — 2 goldfish (same ones from IMG-01, now looking lively and active) swimming with energy. NO heater (not needed). Thermometer reads 20°C in GREEN digits — room fan on nearby keeps it cool. Fine gravel, oxygenating plant (Elodea), stronger filter running (goldfish are messy). LED light bars on both tanks. Wall behind both tanks. TEXT OVERLAY ON IMAGE: At the lower-center of the frame, render a semi-transparent dark pill-shaped banner (black at 60% opacity, rounded corners 8px, 12px padding). Inside the banner, display Arabic text 'فصلناهن — وكل وحدة ارتاحت ✅' in bold Cairo Bold, pure white, large readable, RTL. Below it smaller: 'aquavoiq.com' in white. Camera: Samsung Galaxy S24, SAME front view, slightly wider. Vertical 9:16. Mood: solution, species-specific pride, educational. NEGATIVE: oversmoothed, cartoon, betta fish, mixed tank, AI sheen, watermark, tanks not against wall.",
+                "text_overlay": "فصلناهن — وكل وحدة ارتاحت ✅ — aquavoiq.com",
+                "text_placement": "lower-center safe zone, 1350px from top, Cairo Bold 40pt white on dark semi-transparent pill rgba(0,0,0,0.6), 12px padding, 8px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same room, same wall. Two separate tanks side by side. LEFT = tropical guppies at 25°C, RIGHT = coldwater goldfish at 20°C."
+            },
+            {
+                "id": "R10-IMG-03",
+                "role": "temp_guide_cta",
+                "nano_banana_prompt": "Hyperrealistic close-up photograph of two digital thermometers side by side on the front glass of two aquariums against a wall in an Iraqi living room. LEFT thermometer reads 25°C in GREEN (tropical guppy/community tank with colorful guppies visible behind). RIGHT thermometer reads 20°C in GREEN (goldfish tank with active goldfish behind). Both fish healthy and active compared to the sluggish start. LED light bars above both tanks. A small handwritten sticky note on the stand between tanks with temp ranges in marker. TEXT OVERLAY ON IMAGE: Two banners. BANNER 1 (upper-center): semi-transparent dark pill banner (black 65% opacity, rounded corners 8px). Arabic text 'كولدفش: 18-22° | قبي: 24-26° | بيتا: 25-27°' in bold Cairo Bold, white, medium, RTL. BANNER 2 (lower-center): semi-transparent dark pill banner (black 60% opacity). Arabic text 'احفظ الجدول ودزه لصاحبك — aquavoiq.com' in Cairo Bold, white, large, RTL, drop shadow. Camera: Samsung Galaxy S24, close-up on thermometers. Vertical 9:16. NEGATIVE: oversmoothed, cartoon, AI sheen, watermark.",
+                "text_overlay": "كولدفش: 18-22° | قبي: 24-26° | بيتا: 25-27° | احفظ الجدول ودزه لصاحبك",
+                "text_placement": "upper + lower banners, Cairo Bold white on dark pills",
+                "continuity_notes": "DERIVED FROM IMG-02. Same room, same two tanks. Close-up on thermometers showing correct temps."
+            }
+        ],
+        "veo3_segments": [
+            {
+                "id": "R10-VID-01",
+                "from": "R10-IMG-01",
+                "to": "R10-IMG-02",
+                "duration_sec": 10,
+                "veo3_prompt": "Front view of a home aquarium against a wall in an Iraqi living room. Camera opens on a small crowded tank — goldfish and guppies mixed together. Slow dolly push toward the digital thermometer reading 30 degrees. Camera holds on the thermometer, then racks focus to the goldfish near the bottom — moving slowly, sluggish in water too warm for them. The guppies dart around nervously above. The ceiling fan shadow rotates slowly across the glass. Then a hand enters frame — reaches in with a net and gently scoops a goldfish. Cut to the hand lowering the goldfish into a second tank now placed beside the first. The goldfish swims with noticeably more energy in the cooler water. Calm. Educational. No subtitles. No text. 10 seconds. 4K 24fps. Vertical 9:16."
+            },
+            {
+                "id": "R10-VID-02",
+                "from": "R10-IMG-02",
+                "to": "R10-IMG-03",
+                "duration_sec": 10,
+                "veo3_prompt": "Same room, same wall. A slow lateral tracking shot slides from left to right revealing two properly set up tanks side by side. The LEFT tank — guppies swimming actively in warm tropical water, heater glowing green, 25 degrees on thermometer. Camera continues tracking RIGHT to the goldfish tank — both goldfish now swimming energetically in cooler water, 20 degrees on thermometer, stronger filter flow. Both tanks lit by LED bars. Camera slowly pushes in toward the two thermometers showing green numbers side by side. The contrast between the cramped start and this proper setup is clear. Calm and educational. No subtitles. No text. 10 seconds. 4K 24fps. Vertical 9:16."
+            }
+        ],
+        "capcut_notes": "ALL text is rendered in NanoBanana image prompts only. No text needed in CapCut or Veo 3. Just assemble videos and add audio."
+    },
+    {
+        "reel_id": "R12",
+        "title": "أفضل نباتات حوض للمبتدئين",
+        "category": "educational",
+        "total_duration_sec": 24,
+        "videos": 3,
+        "anti_ai_global": "All prompts use: natural film grain, slight lens dust, realistic shadows, imperfect edges, phone camera EXIF metadata. Avoid: oversmoothed, plastic-like, digitally rendered, cartoonish, perfect symmetry, AI sheen.",
+        "scientific_facts": {
+            "source": "Multiple planted tank resources + aquariumcoop.com + buceplant.com + virtual-aquarium.com",
+            "key_facts": [
+                "Anubias nana: attach to rocks/wood, NEVER bury rhizome, extremely hardy, low light, no CO2",
+                "Java Fern (Microsorum pteropus): attach to hardscape, propagates from leaf tips, very forgiving",
+                "Java Moss (Taxiphyllum barbieri): tie to wood/rock, grows in any light, provides fry cover",
+                "Cryptocoryne wendtii: root feeder (use root tabs), may melt initially then recovers strong",
+                "Vallisneria: grass-like background plant, spreads by runners, hardy in low light, grows tall fast",
+                "All 5 plants: no CO2 injection needed, no expensive fertilizers, thrive on fish waste nutrients",
+                "Key rule: epiphytes (Anubias, Java Fern, Java Moss) = attach to hardscape; rooted (Crypto, Vals) = plant in substrate"
+            ]
+        },
+        "frames": [
+            {
+                "id": "R12-IMG-01",
+                "role": "beautiful_plants_intro",
+                "nano_banana_prompt": "Hyperrealistic overhead flat-lay photograph on a clean wooden surface in an Iraqi living room. Five REAL LIVING aquarium plants displayed beautifully in small clear containers with water, arranged in a neat arc formation — each plant dripping wet, freshly received from an aquatic nursery. From left to right: (1) REAL Anubias nana — thick waxy dark green leaves with visible natural venation and subtle leaf texture, exposed rhizome showing brown root hairs hanging into water, one leaf with a tiny natural algae spot proving it is a real living specimen, (2) REAL Java Fern (Microsorum pteropus) — tall textured fronds with clearly visible branching vein patterns on the leaf surface, brown spore bumps (sori) visible along the underside of mature fronds, dark brown wiry root system visible in water, (3) a golf-ball-sized clump of REAL Java Moss (Taxiphyllum barbieri) — intricate fine branching green filaments creating a natural irregular texture NOT uniform like fake moss, tiny trapped air bubbles between filaments, some strands lighter green at tips showing new growth, (4) REAL Cryptocoryne wendtii — natural bronze-green wavy ruffled leaves with organic color gradation from dark green at base to bronze-red at leaf margins, white fleshy root crown visible, some leaves showing natural melt damage at edges typical of newly shipped crypts, (5) REAL Vallisneria — long translucent grass-like stalks with visible internal cellular structure when backlit, white runner roots dangling in water, some leaf tips with natural browning. Each plant sits in slightly tinted aquarium water with fine organic debris floating — NOT sterile display. Behind the plants: a clean 30L glass aquarium filled with clear water, fine gravel substrate, and a piece of character driftwood — ready and waiting to be planted. A soft LED light bar rests on the tank rim. Warm natural daylight from a window. Wall in background. TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a semi-transparent dark pill-shaped banner (black 70% opacity, rounded corners 8px, 14px padding). Arabic text 'نباتات ما تحتاج CO2 ولا سماد كثير' in Cairo Bold, white, large, RTL, drop shadow. Camera: iPhone 15 Pro, overhead flat-lay. ISO 400, 1/160s. Vertical 9:16. Mood: fresh start, nature's beauty, accessible — these are real living things not plastic decorations. NEGATIVE: oversmoothed, cartoon, plastic plants, fake plants, artificial plants, uniform color, perfect leaves, neon colors, AI sheen, watermark.",
+                "text_overlay": "نباتات ما تحتاج CO2 ولا سماد كثير",
+                "continuity_notes": "REFERENCE IMAGE. Overhead flat-lay of 5 plants + clean tank ready for planting. SAME room, SAME tank for all 3 frames."
+            },
+            {
+                "id": "R12-IMG-02",
+                "role": "planting_process",
+                "nano_banana_prompt": "USE R12-IMG-01 AS REFERENCE. SAME room, SAME tank. Now the tank is on a laminate wood stand pushed against a wall. Overhead 45-degree angle looking down into the tank. MID-PLANTING moment — water already filled halfway, hands wet. A real human hand holds stainless steel aquascaping tweezers pressing a REAL Cryptocoryne wendtii with natural bronze-green ruffled leaves and visible white fleshy roots into the gravel substrate — roots spreading naturally in the gravel, not stiff like plastic. Already planted and looking naturally placed: REAL Anubias nana with thick dark green waxy leaves showing natural venation tied to the driftwood with cotton thread (thread visible, rhizome exposed above substrate as proper technique requires — never buried), one leaf slightly older with darker color. REAL Java Fern attached to a smooth river rock with fishing line, fronds showing natural brown spore dots (sori) on the undersides, dark wiry roots gripping the rock surface. REAL Java Moss pressed into a crevice on the driftwood with fine green filaments spreading irregularly in natural branching patterns, some strands floating loosely in the water — clearly organic texture NOT a uniform mat. Vallisneria stalks standing in a water cup on the stand beside the tank, waiting to be planted — translucent green leaves with visible internal veins, white roots dangling in the cup water. Water in tank slightly cloudy from planting disturbance and substrate dust. The empty plant containers from IMG-01 visible on the side of the stand with residual dirty water. TEXT OVERLAY ON IMAGE: At the lower-center, render a semi-transparent dark pill-shaped banner (black at 60% opacity, rounded corners 8px, 12px padding). Inside the banner, display Arabic text '١.أنوبياس ٢.جافافيرن ٣.موس ٤.كريبتو ٥.فاليسنيريا' in bold Cairo Bold, pure white, medium readable, RTL. Below it: 'ما تحتاج CO2 ولا سماد كثير' in Cairo Bold, white, smaller. Camera: iPhone 15 Pro, overhead 45-degree. Vertical 9:16. Mood: hands-on planting, anyone can do this. NEGATIVE: oversmoothed, cartoon, plastic plants, fake plants, uniform green, stiff leaves, AI sheen, watermark.",
+                "text_overlay": "١.أنوبياس ٢.جافافيرن ٣.موس ٤.كريبتو ٥.فاليسنيريا | ما تحتاج CO2 ولا سماد كثير",
+                "text_placement": "lower-center safe zone, 1300px from top, Cairo Bold 40pt white on dark semi-transparent pill rgba(0,0,0,0.6), 12px padding, 8px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same room, same tank now on stand against wall. Overhead 45-degree into tank. Mid-planting with hand and tweezers."
+            },
+            {
+                "id": "R12-IMG-03",
+                "role": "4_weeks_later_grown",
+                "nano_banana_prompt": "USE R12-IMG-01 AS REFERENCE. SAME room, SAME wall, SAME stand, SAME tank. 4 WEEKS LATER. The tank is now a lush low-tech planted paradise with ALL REAL LIVING plants showing authentic natural growth patterns: REAL Anubias nana on driftwood with new baby leaves unfurling lighter green among darker mature waxy leaves — the younger leaves visibly smaller and brighter, older leaves with thick texture and natural tiny algae spots on edges proving they are real living specimens. REAL Java Fern propagated with tiny baby plantlets (adventitious shoots) growing directly from the tips and margins of mature fronds — a biological hallmark exclusive to REAL Java Fern that no plastic plant can replicate, brown spore lines visible on frond undersides, dark wiry roots gripping the rock. REAL Java Moss carpet covering the driftwood surface with fine intricate branching green filaments creating natural irregular organic texture — some areas thicker and darker, some areas sparse with new bright green growth at tips, NOT a uniform artificial sheet. REAL Cryptocoryne wendtii with full natural bronze-green ruffled leaves fanned out from the substrate, organic color variation from deep green at leaf center to bronze-reddish at wavy margins — some leaves naturally taller than others in irregular organic arrangement. REAL Vallisneria runners reaching toward the surface creating a natural grass curtain at the back — translucent leaves with visible internal cellular veins when LED light passes through them, baby runner plants sprouting along the substrate at different growth stages. 4 guppies and 3 neon tetras swimming through this natural green landscape. Crystal clear water with subtle caustic light patterns on substrate — the kind of water clarity only real plants can achieve through biological filtration. LED light bar on rim, warm white glow. A cherry shrimp perched on the Java Moss, its orange body contrasting with the green. TEXT OVERLAY ON IMAGE: Two banners. BANNER 1 (center): solid green rectangle banner (#22AA44, rounded corners 6px, 14px padding). Arabic text '4 أسابيع بدون CO2 — كلهن على فضلات السمك' in bold Cairo Bold, white, large. BANNER 2 (lower-center): semi-transparent dark pill. Arabic text 'احفظها ودزها لصديقك — aquavoiq.com' in Cairo Bold, white, medium, RTL, drop shadow. Camera: iPhone 15 Pro, front view, eye-level. Vertical 9:16. Mood: transformation complete, nature thrives, real living beauty. NEGATIVE: oversmoothed, cartoon, algae bloom, plastic plants, fake plants, uniform green, stiff leaves, neon colors, AI sheen, watermark.",
+                "text_overlay": "4 أسابيع بدون CO2 — كلهن على فضلات السمك | احفظها ودزها — aquavoiq.com",
+                "text_placement": "lower-center safe zone, 1350px from top, Cairo Bold 36pt white on solid green rectangle #22AA44, 14px padding, 6px radius",
+                "continuity_notes": "DERIVED FROM IMG-01. Same room, same wall, same tank. Now fully grown planted paradise after 4 weeks."
+            }
+        ],
+        "veo3_segments": [
+            {
+                "id": "R12-VID-01",
+                "from": "R12-IMG-01",
+                "to": "R12-IMG-02",
+                "duration_sec": 12,
+                "veo3_prompt": "Beautiful overhead flat-lay of five REAL LIVING aquarium plants in clear water containers on a wooden surface — water dripping, roots dangling, organic and alive. Camera starts tight on the lush green plants — the intricate fine branching filaments of real Java Moss with tiny air bubbles trapped between strands, the thick waxy dark leaves of real Anubias showing natural venation patterns, the elegant fronds of real Java Fern with visible spore dots on undersides. Each plant has natural imperfections: slight browning on older leaf edges, organic color variation, roots that move naturally in water. Camera begins to rise and pull back, revealing the clean 30L tank behind the plants. A hand enters frame, picks up the real Anubias — water drips from its brown root hairs as it lifts, a rootlet catches on the container edge and springs free. The hand lowers the living plant through the water surface — a gentle splash, ripples spread, the roots sway naturally underwater. Then hands work calmly with tweezers inside the tank, pressing real Cryptocoryne with its bronze-green ruffled leaves into gravel, tying real Java Moss onto driftwood with cotton thread — the fine green filaments wrapping organically around the wood grain. Each movement purposeful, calm. These are living things being placed into their new home. Warm daylight. No subtitles. No text. 12 seconds. 4K 24fps. Vertical 9:16."
+            },
+            {
+                "id": "R12-VID-02",
+                "from": "R12-IMG-02",
+                "to": "R12-IMG-03",
+                "duration_sec": 12,
+                "veo3_prompt": "Time-lapse transformation of the planted tank. Camera holds locked front view. The freshly planted sparse tank with real living plants rapidly fills in with authentic biological growth — Vallisneria sends out real runners across substrate, baby plants sprouting at intervals along the runner (a natural propagation method unique to real Vallisneria), Java Moss filaments gradually carpet the driftwood with intricate organic branching texture filling in irregularly NOT uniformly, Anubias pushes out new lighter green baby leaves from the rhizome tip that slowly unfurl and darken as they mature, Cryptocoryne regenerates with bronze-green shoots emerging from the substrate crown after initial melt-back (a real phenomenon with crypts). Fish appear — guppies swimming through the natural plant canopy, then neon tetras schooling between the Java Fern fronds. Cherry shrimp climbs the moss, picking at the natural biofilm. Water clarifies to crystal as the real plants establish biological filtration. Caustic light patterns dance on the substrate through the clear water. 4 weeks of real natural growth compressed into 12 seconds. The organic, imperfect, alive beauty of a real planted tank. No subtitles. No text. 12 seconds. 4K 24fps. Vertical 9:16."
+            }
+        ],
+        "capcut_notes": "ALL text is rendered in NanoBanana image prompts only. No text needed in CapCut or Veo 3. Just assemble videos and add audio."
+    },
+    {
+        "reel_id": "R15",
+        "title": "تصميم حوض بميزانية 50 ألف دينار",
+        "category": "aquascape",
+        "total_duration_sec": 16,
+        "videos": 2,
+        "anti_ai_global": "All prompts use: natural film grain, slight lens dust, realistic shadows, imperfect edges, phone camera EXIF metadata. Avoid: oversmoothed, plastic-like, digitally rendered, cartoonish, perfect symmetry, AI sheen.",
+        "budget_breakdown_iqd": {
+            "total": "50,000 IQD (approximately $33 USD)",
+            "tank_10L_used": "5,000 IQD — second-hand from Facebook marketplace",
+            "pool_filter_sand_2kg": "3,000 IQD — from hardware store, not pet store",
+            "river_rocks_collected": "0 IQD — collected from Tigris riverbank",
+            "driftwood_small": "7,000 IQD — from local fish store or collected and treated",
+            "java_moss_portion": "5,000 IQD — one small portion from local hobbyist",
+            "anubias_nana_1pc": "8,000 IQD — one small plant from fish store",
+            "vallisneria_3_stalks": "5,000 IQD — from local hobbyist trimmings",
+            "HOB_filter_small": "12,000 IQD — basic small filter from Shopee/Ali Express or local store",
+            "water_conditioner_small": "5,000 IQD — Seachem Prime small bottle",
+            "note": "Prices are realistic Iraqi market estimates as of early 2026. Guppies not included in budget — often given free by local hobbyists."
+        },
+        "frames": [
+            {
+                "id": "R15-IMG-01",
+                "role": "empty_materials_laid_out",
+                "nano_banana_prompt": "Hyperrealistic overhead flat-lay photograph on a worn concrete outdoor balcony floor in an Iraqi apartment. All budget aquascaping materials laid out neatly in a grid-like arrangement: TOP-LEFT: a clean second-hand 10L glass tank (small cube format, slight water stain visible on one corner from previous use). TOP-RIGHT: a ziplock bag of pool filter sand (pale beige, washed, slightly damp). MIDDLE-LEFT: 4 collected river rocks of varying sizes (grey-brown, natural rounded shapes, some with interesting texture and stripes — clearly from a riverbank, not a pet store). MIDDLE-CENTER: a small piece of twisted driftwood with character (branch-like, boiled clean, still damp). MIDDLE-RIGHT: a small clear container with a golf-ball-sized clump of Java Moss and a tiny Anubias nana plant with visible rhizome. BOTTOM-LEFT: a small clear HOB filter still in packaging. BOTTOM-RIGHT: a small bottle of Seachem Prime water conditioner. SCATTERED: 3 stalks of Vallisneria in a cup of water. A printed receipt from a local Iraqi store (blurry but visible) showing total: 50,000 IQD. A 25,000 IQD banknote placed casually near the receipt for context. TEXT OVERLAY ON IMAGE: At the upper-center of the frame, render a semi-transparent dark pill-shaped banner (black at 70% opacity, rounded corners 8px, 14px padding). Inside the banner, display the Arabic text 'ميزانية: 50 ألف دينار — كل شي تحتاجه' in bold, clean, modern sans-serif Arabic font (like Cairo Bold), pure white color, large prominently readable size. The text must be sharp, crisp, and RTL (right-to-left). Bright natural daylight from above. Camera: Samsung Galaxy S24, directly overhead flat-lay. ISO 200, 1/250s. Hard outdoor shadows. File: 20260315_103022.jpg. Vertical 9:16. Mood: accessible, achievable, let's build this. NEGATIVE: oversmoothed, cartoon, expensive equipment, CO2 systems, AI sheen, watermark, indoor studio.",
+                "text_overlay": "ميزانية: 50 ألف دينار — كل شي تحتاجه",
+                "text_placement": "upper-center safe zone, 350px from top, Cairo Bold 42pt white on dark semi-transparent pill rgba(0,0,0,0.7), 14px padding, 8px radius",
+                "continuity_notes": "REFERENCE IMAGE. Overhead flat-lay of all materials. RECOGNIZABLE items must appear in subsequent frames."
+            },
+            {
+                "id": "R15-IMG-02",
+                "role": "mid_build_process",
+                "nano_banana_prompt": "Hyperrealistic photograph of the SAME 10L tank from R15-IMG-01, now placed on a small wooden side table pushed against a wall in a modest Iraqi bedroom. MID-BUILD: pool filter sand already poured as substrate. River rocks placed in triangular arrangement. Driftwood arch positioned. A hand holds the third river rock, positioning it against the driftwood base. Anubias tied to driftwood with thread. Java Moss pressed into crevice. Vallisneria stalks in a water cup on table. Tank DRY. HOB filter unpacked on table. YouTube aquascaping tutorial on phone behind tank. TEXT OVERLAY ON IMAGE: Two banners. BANNER 1 (upper-center): semi-transparent dark pill banner (black 60% opacity, rounded corners 8px). Arabic text 'خشبة 7K + نباتات 18K + فلتر 12K + معالج 5K' in Cairo Bold, white, medium, RTL. BANNER 2 (lower-center): green solid pill (#22CC66, rounded corners 8px). Arabic text 'السر: صخور من النهر + رمل من البناء' in Cairo Bold, white, large, RTL. Camera: Samsung Galaxy S24, slightly above eye-level. ISO 800, 1/60s. Warm bedroom light. Vertical 9:16. Mood: DIY pride. NEGATIVE: oversmoothed, cartoon, water in tank, AI sheen, watermark.",
+                "text_overlay": "خشبة 7K + نباتات 18K + فلتر 12K + معالج 5K | السر: صخور من النهر + رمل من البناء",
+                "continuity_notes": "DERIVED FROM IMG-01. Same materials. Now in bedroom against wall. Dry setup phase. Hand placing rocks."
+            },
+            {
+                "id": "R15-IMG-03",
+                "role": "finished_beautiful_result",
+                "nano_banana_prompt": "Hyperrealistic photograph of the SAME 10L tank, SAME wooden table, SAME bedroom wall. NOW FULLY SET UP AND CYCLED (2 weeks later). Water filled and CRYSTAL CLEAR. HOB filter running. LED clip-light on rim, warm white golden glow. Pool filter sand substrate with natural gradient. River rocks in iwagumi-inspired layout. Driftwood arch with Java Moss carpet. Anubias with new leaf. Vallisneria reaching surface. 3 endler guppies swimming. Cherry shrimp on moss. Caustic light patterns on sand. Phone shows AQUAVO Instagram. 25,000 IQD banknote pinned to wall behind tank. TEXT OVERLAY ON IMAGE: Two banners. BANNER 1 (center): solid green rectangle banner (#22AA44, rounded corners 6px, 14px padding). Arabic text '50 ألف دينار فقط — النتيجة بعد أسبوعين = تحفة' in bold Cairo Bold, white, large. BANNER 2 (lower-center): semi-transparent dark pill. Arabic text 'دزه لشخص يقول الأكواسكيب غالي — aquavoiq.com' in Cairo Bold, white, medium, RTL, drop shadow. Camera: Samsung Galaxy S24, front view, eye-level. Evening. Vertical 9:16. Mood: jaw-dropping transformation. NEGATIVE: oversmoothed, cartoon, dirty water, algae, AI sheen, watermark.",
+                "text_overlay": "50 ألف دينار فقط — النتيجة = تحفة | دزه لشخص يقول غالي — aquavoiq.com",
+                "text_placement": "lower-center safe zone, 1350px from top, Cairo Bold 36pt white on solid green rectangle #22AA44, 14px padding, 6px radius",
+                "continuity_notes": "DERIVED FROM IMG-01 and IMG-02. Same tank, same table, same wall, same materials. Now filled, cycled, beautiful."
+            }
+        ],
+        "veo3_segments": [
+            {
+                "id": "R15-VID-01",
+                "from": "R15-IMG-01",
+                "to": "R15-IMG-02",
+                "duration_sec": 8,
+                "veo3_prompt": "Overhead shot of materials laid out on a concrete balcony. A hand picks up the small glass tank. Cut to bedroom — the hand sets the tank on a wooden table against the wall. Pool filter sand pours from a ziplock bag into the tank in a satisfying stream. The hand levels the sand with a playing card. River rocks placed one by one with deliberate care — clinking softly on glass. Driftwood slides into position creating an arch. Plants are attached: tweezers press Vallisneria into sand, Java Moss wedged into driftwood. Anubias glued to the base. Anyone-can-do-this energy. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            },
+            {
+                "id": "R15-VID-02",
+                "from": "R15-IMG-02",
+                "to": "R15-IMG-03",
+                "duration_sec": 8,
+                "veo3_prompt": "Two-week time compression. Same bedroom, same tank. Camera locked front view at eye-level. Water pours slowly from a jug along the glass wall — the first fill. Sand clouds briefly then settles. The HOB filter hums to life. The freshly filled cloudy water clarifies rapidly. Plants establish — Vallisneria sends up new blades, Java Moss spreads across the driftwood arch, Anubias produces a new leaf. Tiny guppies appear — swimming through the arch. Cherry shrimp materializes on moss. LED clip-light clicks on as room darkens to evening — golden light bathes the miniature landscape. The 25,000 IQD note on the wall behind catches the edge of the light. Fifty thousand dinars. This is what it built. No subtitles. No text. 8 seconds. 4K 24fps. Vertical 9:16."
+            }
+        ],
+        "capcut_notes": "ALL text is rendered in NanoBanana image prompts only. No text needed in CapCut or Veo 3. Just assemble videos and add audio."
+    }
+]
