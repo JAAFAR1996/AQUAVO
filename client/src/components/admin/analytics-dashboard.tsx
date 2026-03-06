@@ -105,7 +105,23 @@ export function AnalyticsDashboard() {
         queryFn: async () => {
             const res = await fetch("/api/admin/analytics/sources", { credentials: "include" });
             if (!res.ok) throw new Error("Failed");
-            return res.json();
+            const json = await res.json();
+
+            // API returns { sources: [...], recentBySource: { [src]: [...] } }
+            const rawSources: { source: string; visits: number; uniqueUsers: number }[] = json.sources ?? [];
+            const recentBySource: Record<string, { userFullName: string | null; userEmail: string | null; pagePath: string; createdAt: string }[]> = json.recentBySource ?? {};
+
+            return rawSources.map(s => ({
+                source: s.source,
+                visits: s.visits,
+                uniqueUsers: s.uniqueUsers,
+                recentVisitors: (recentBySource[s.source] ?? []).map(v => ({
+                    fullName: v.userFullName ?? null,
+                    email: v.userEmail ?? null,
+                    pagePath: v.pagePath,
+                    timestamp: v.createdAt,
+                })),
+            }));
         },
         refetchInterval: 60_000,
     });
