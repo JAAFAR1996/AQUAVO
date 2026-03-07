@@ -26,6 +26,15 @@ interface PushSubscriptionBody {
     };
 }
 
+// Get VAPID public key (client needs this to subscribe)
+router.get("/vapid-key", (_req: Request, res: Response): void => {
+    if (!VAPID_PUBLIC_KEY) {
+        res.status(500).json({ error: "VAPID keys not configured" });
+        return;
+    }
+    res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
 // Subscribe to push notifications
 router.post("/subscribe", requireAuth, async (req: Request<object, object, PushSubscriptionBody>, res: Response, next: NextFunction): Promise<void> => {
     try {

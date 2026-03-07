@@ -51,6 +51,27 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
+ * Get VAPID public key — from server first, then env var fallback
+ */
+async function getVapidPublicKey(): Promise<string | null> {
+    // Try env var first (fast, no network)
+    if (VAPID_PUBLIC_KEY) return VAPID_PUBLIC_KEY;
+
+    // Fetch from server
+    try {
+        const res = await fetch('/api/notifications/vapid-key');
+        if (res.ok) {
+            const data = await res.json();
+            return data.publicKey || null;
+        }
+    } catch (e) {
+        console.error('Failed to fetch VAPID key from server:', e);
+    }
+
+    return null;
+}
+
+/**
  * Subscribe user to push notifications
  */
 export async function subscribeToPush(): Promise<PushSubscription | null> {
@@ -66,6 +87,13 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
             return null;
         }
 
+        // Get VAPID key (server → env var)
+        const vapidKey = await getVapidPublicKey();
+        if (!vapidKey) {
+            console.error('No VAPID public key available');
+            return null;
+        }
+
         // Register service worker
         const registration = await navigator.serviceWorker.register('/sw-push.js');
         await navigator.serviceWorker.ready;
@@ -73,9 +101,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         // Subscribe to push
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: VAPID_PUBLIC_KEY
-                ? urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as unknown as ArrayBuffer // Cast to satisfy TS
-                : undefined,
+            applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as ArrayBuffer,
         });
 
         // Send subscription to server
