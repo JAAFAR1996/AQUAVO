@@ -2001,6 +2001,7 @@ export const notificationLog = pgTable("notification_log", {
   }>(),
   sentAt: timestamp("sent_at").defaultNow().notNull(),
   deliveredAt: timestamp("delivered_at"),
+  readAt: timestamp("read_at"),
   clickedAt: timestamp("clicked_at"),
   failedAt: timestamp("failed_at"),
   failReason: text("fail_reason"),

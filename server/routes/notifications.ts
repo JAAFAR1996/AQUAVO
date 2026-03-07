@@ -279,6 +279,87 @@ router.get("/my-status", requireAuth, async (req: Request, res: Response, next: 
     }
 });
 
+// ==================== User In-App Notifications ====================
+
+// Get notifications for logged-in user
+router.get("/my-notifications", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const sess = getSession(req);
+        const userId = sess!.userId!;
+        const db = getDb();
+        if (!db) { res.json([]); return; }
+
+        const { notificationLog } = await import("../../shared/schema.js");
+        const { eq, desc } = await import("drizzle-orm");
+
+        const notifications = await db
+            .select({
+                id: notificationLog.id,
+                type: notificationLog.type,
+                channel: notificationLog.channel,
+                title: notificationLog.title,
+                body: notificationLog.body,
+                url: notificationLog.url,
+                metadata: notificationLog.metadata,
+                sentAt: notificationLog.sentAt,
+                readAt: notificationLog.readAt,
+            })
+            .from(notificationLog)
+            .where(eq(notificationLog.userId, userId))
+            .orderBy(desc(notificationLog.sentAt))
+            .limit(50);
+
+        res.json(notifications);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Mark notification(s) as read
+router.post("/mark-read", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const sess = getSession(req);
+        const userId = sess!.userId!;
+        const { ids } = req.body as { ids: string[] };
+        const db = getDb();
+        if (!db || !ids?.length) { res.json({ success: true }); return; }
+
+        const { notificationLog } = await import("../../shared/schema.js");
+        const { eq, and, inArray } = await import("drizzle-orm");
+
+        await db
+            .update(notificationLog)
+            .set({ readAt: new Date() })
+            .where(and(eq(notificationLog.userId, userId), inArray(notificationLog.id, ids)));
+
+        res.json({ success: true });
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Mark all notifications as read
+router.post("/mark-all-read", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const sess = getSession(req);
+        const userId = sess!.userId!;
+        const db = getDb();
+        if (!db) { res.json({ success: true }); return; }
+
+        const { notificationLog } = await import("../../shared/schema.js");
+        const { eq, isNull, and } = await import("drizzle-orm");
+
+        await db
+            .update(notificationLog)
+            .set({ readAt: new Date() })
+            .where(and(eq(notificationLog.userId, userId), isNull(notificationLog.readAt)));
+
+        res.json({ success: true });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // ==================== Admin: Notification Log ====================
 
 // Get all notification logs (admin only)
