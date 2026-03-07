@@ -46,6 +46,7 @@ import { AuditLogsTab } from "@/components/admin/audit-logs-tab";
 import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
 import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 import { AiContentHub } from "@/components/admin/ai-content-hub";
+import { NotificationLogPanel } from "@/components/admin/notification-log-panel";
 
 import SecurityManagement from "@/components/admin/security-management";
 import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
@@ -732,6 +733,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
           <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
           <TabsTrigger value="ai-content">✍️ محتوى AI</TabsTrigger>
+          <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
           <TabsTrigger value="customers">العملاء</TabsTrigger>
@@ -772,6 +774,11 @@ export default function AdminDashboard() {
         {/* AI Content Hub Tab */}
         <TabsContent value="ai-content" className="space-y-4">
           <AiContentHub />
+        </TabsContent>
+
+        {/* Notification Log Tab */}
+        <TabsContent value="notifications" className="space-y-4">
+          <NotificationLogPanel />
         </TabsContent>
 
         <TabsContent value="coupons" className="space-y-4">

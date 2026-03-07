@@ -279,6 +279,105 @@ router.get("/my-status", requireAuth, async (req: Request, res: Response, next: 
     }
 });
 
+// ==================== Admin: Notification Log ====================
+
+// Get all notification logs (admin only)
+router.get("/admin-log", requireAdmin, async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) {
+            res.json([]);
+            return;
+        }
+
+        const { notificationLog, users } = await import("../../shared/schema.js");
+        const { desc, sql } = await import("drizzle-orm");
+
+        const logs = await db
+            .select({
+                id: notificationLog.id,
+                userId: notificationLog.userId,
+                userName: users.fullName,
+                userEmail: users.email,
+                type: notificationLog.type,
+                channel: notificationLog.channel,
+                title: notificationLog.title,
+                body: notificationLog.body,
+                url: notificationLog.url,
+                metadata: notificationLog.metadata,
+                sentAt: notificationLog.sentAt,
+                clickedAt: notificationLog.clickedAt,
+                failedAt: notificationLog.failedAt,
+                failReason: notificationLog.failReason,
+            })
+            .from(notificationLog)
+            .leftJoin(users, sql`${notificationLog.userId} = ${users.id}`)
+            .orderBy(desc(notificationLog.sentAt))
+            .limit(200);
+
+        res.json(logs);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// Get notification stats (admin only)
+router.get("/admin-stats", requireAdmin, async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) {
+            res.json({ total: 0, byType: {}, byChannel: {} });
+            return;
+        }
+
+        const { notificationLog } = await import("../../shared/schema.js");
+        const { sql, count, gte } = await import("drizzle-orm");
+
+        // Total count
+        const totalResult = await db.select({ count: count() }).from(notificationLog);
+        const total = Number(totalResult[0]?.count || 0);
+
+        // Last 7 days count
+        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const weekResult = await db
+            .select({ count: count() })
+            .from(notificationLog)
+            .where(gte(notificationLog.sentAt, weekAgo));
+        const lastWeek = Number(weekResult[0]?.count || 0);
+
+        // By type
+        const byTypeResult = await db
+            .select({
+                type: notificationLog.type,
+                count: count(),
+            })
+            .from(notificationLog)
+            .groupBy(notificationLog.type);
+
+        const byType: Record<string, number> = {};
+        for (const row of byTypeResult) {
+            byType[row.type] = Number(row.count);
+        }
+
+        // Clicked count
+        const clickedResult = await db
+            .select({ count: count() })
+            .from(notificationLog)
+            .where(sql`${notificationLog.clickedAt} IS NOT NULL`);
+        const clicked = Number(clickedResult[0]?.count || 0);
+
+        res.json({
+            total,
+            lastWeek,
+            clicked,
+            clickRate: total > 0 ? Math.round((clicked / total) * 100) : 0,
+            byType,
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
 export function createNotificationsRouter(): RouterType {
     return router;
 }
