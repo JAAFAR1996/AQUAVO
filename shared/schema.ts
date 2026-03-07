@@ -1982,3 +1982,35 @@ export const aiLearnings = pgTable("ai_learnings", {
 
 export type AiLearning = typeof aiLearnings.$inferSelect;
 
+// ==================== AI Notification Log ====================
+
+export const notificationLog = pgTable("notification_log", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'replenishment' | 'churn_prevention' | 'welcome' | 'cart_abandonment' | 'new_product' | 'seasonal_tip'
+  channel: text("channel").notNull(), // 'push' | 'email'
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  url: text("url"),
+  metadata: jsonb("metadata").$type<{
+    productId?: string;
+    churnScore?: number;
+    probability?: number;
+    aiGenerated?: boolean;
+    variant?: string;
+  }>(),
+  sentAt: timestamp("sent_at").defaultNow().notNull(),
+  deliveredAt: timestamp("delivered_at"),
+  clickedAt: timestamp("clicked_at"),
+  failedAt: timestamp("failed_at"),
+  failReason: text("fail_reason"),
+}, (table) => ({
+  userIdx: index("notification_log_user_idx").on(table.userId),
+  typeIdx: index("notification_log_type_idx").on(table.type),
+  sentAtIdx: index("notification_log_sent_at_idx").on(table.sentAt),
+  userSentIdx: index("notification_log_user_sent_idx").on(table.userId, table.sentAt),
+}));
+
+export type NotificationLog = typeof notificationLog.$inferSelect;
+export type InsertNotificationLog = typeof notificationLog.$inferInsert;
+

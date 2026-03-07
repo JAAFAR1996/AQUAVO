@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope, Bell } from "lucide-react";
+import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect, useMemo, useRef } from "react";
@@ -27,6 +27,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Package as PackageIcon } from "lucide-react";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { NavbarStyleSwitcher } from "@/components/navbar/NavbarStyleSwitcher";
@@ -65,18 +66,7 @@ export default function Navbar() {
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
 
-  // Smart notification badge
-  const { data: notifStatus } = useQuery({
-    queryKey: ["notification-status"],
-    queryFn: async () => {
-      const res = await fetch("/api/notifications/my-status", { credentials: "include" });
-      if (!res.ok) return { pendingReminders: 0 };
-      return res.json();
-    },
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000,
-  });
-  const pendingReminders = notifStatus?.pendingReminders ?? 0;
+  // Notification bell is now a dedicated component with its own state management
 
   const handleApplyCoupon = async () => {
     if (!couponCode.trim()) return;
@@ -338,23 +328,7 @@ export default function Navbar() {
               </Button>
             </Link>
 
-            {user && (
-              <Link href="/#predicted-needs">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="relative"
-                  aria-label={`التذكيرات الذكية${pendingReminders > 0 ? ` - ${pendingReminders} تذكير` : ""}`}
-                >
-                  <Bell className="h-5 w-5" aria-hidden="true" />
-                  {pendingReminders > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                      {pendingReminders}
-                    </span>
-                  )}
-                </Button>
-              </Link>
-            )}
+            <NotificationBell />
 
             <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
               <SheetTrigger asChild>

@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react';
-import { addCsrfHeader } from '@/lib/csrf';
 
 interface BeforeInstallPromptEvent extends Event {
     prompt: () => Promise<void>;
@@ -126,41 +125,5 @@ export async function requestNotificationPermission(): Promise<boolean> {
     return permission === 'granted';
 }
 
-export async function subscribeToPush(): Promise<PushSubscription | null> {
-    try {
-        const registration = await navigator.serviceWorker.ready;
-
-        // Get public VAPID key from server
-        const response = await fetch('/api/push/vapid-key');
-        const { publicKey } = await response.json();
-
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(publicKey),
-        });
-
-        // Send subscription to server
-        await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
-            body: JSON.stringify(subscription),
-            credentials: 'include',
-        });
-
-        return subscription;
-    } catch (error) {
-        console.error('Push subscription failed:', error);
-        return null;
-    }
-}
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
+// Re-export push subscription functions from the dedicated module
+export { subscribeToPush, unsubscribeFromPush, isSubscribedToPush, isPushSupported } from '@/lib/push-notifications';

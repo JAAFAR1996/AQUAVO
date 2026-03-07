@@ -100,21 +100,21 @@ export function initializeScheduledJobs(): void {
         } finally { jobStatus.embeddingsRunning = false; }
     }, { timezone: "Asia/Baghdad" });
 
-    // ==================== Smart Reminders at 4:30 AM ====================
+    // ==================== AI Notification Engine at 4:30 AM ====================
     cron.schedule("30 4 * * *", async () => {
         if (jobStatus.smartRemindersRunning) return;
         jobStatus.smartRemindersRunning = true;
         const t = Date.now();
-        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "smart_reminders", status: "started" } });
+        aiMonitor.log({ event: "cron_job", level: "info", success: true, details: { job: "ai_notifications", status: "started" } });
         try {
-            const result = await smartNotifications.sendReplenishmentReminders();
-            console.log(`[ScheduledJobs] Smart reminders: ${result.usersNotified} users, ${result.emailsSent} emails, ${result.pushSent} push`);
+            const result = await smartNotifications.runAINotificationEngine();
+            console.log(`[ScheduledJobs] AI Notifications: ${result.totalProcessed} processed, ${result.pushSent} push, ${result.skippedFrequencyCap} freq-capped`);
             aiMonitor.log({ event: "notification_sent", level: "info", success: true, responseTimeMs: Date.now() - t, details: { ...result } });
-            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "smart_reminders", status: "completed", ...result } });
+            aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "ai_notifications", status: "completed", ...result } });
         } catch (error) {
             const msg = error instanceof Error ? error.message : String(error);
-            console.error("[ScheduledJobs] Smart reminders failed:", error);
-            aiMonitor.logError(`Cron smart_reminders failed: ${msg}`, {}, { event: "cron_job", details: { job: "smart_reminders", status: "failed" } } as any);
+            console.error("[ScheduledJobs] AI Notifications failed:", error);
+            aiMonitor.logError(`Cron ai_notifications failed: ${msg}`, {}, { event: "cron_job", details: { job: "ai_notifications", status: "failed" } } as any);
         } finally { jobStatus.smartRemindersRunning = false; }
     }, { timezone: "Asia/Baghdad" });
 
@@ -163,7 +163,7 @@ export function initializeScheduledJobs(): void {
     console.log("  - Daily Predictions: 2:00 AM (Asia/Baghdad)");
     console.log("  - Churn Analysis: 3:00 AM (Asia/Baghdad)");
     console.log("  - Conversions Check: 4:00 AM (Asia/Baghdad)");
-    console.log("  - 🔔 Smart Reminders: 4:30 AM (Asia/Baghdad)");
+    console.log("  - 🧠 AI Notification Engine: 4:30 AM (Asia/Baghdad)");
     console.log("  - 📝 Weekly Auto-Blog: Sunday 5:00 AM (Asia/Baghdad)");
     console.log("  - 📧 Weekly Email Campaign: Monday 10:00 AM (Asia/Baghdad)");
 }

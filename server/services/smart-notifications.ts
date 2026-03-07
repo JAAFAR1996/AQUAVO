@@ -1,318 +1,897 @@
 import { getDb } from "../db.js";
 import { predictiveAnalytics } from "./predictive-analytics.js";
+import { churnDetector } from "./churn-detector.js";
+import { groqClient } from "./groq-client.js";
 import { sendEmail } from "../utils/email.js";
-import { pushSubscriptions, users, products, predictedNeeds } from "../../shared/schema.js";
-import { eq, and, desc } from "drizzle-orm";
+import {
+  pushSubscriptions, users, products, predictedNeeds,
+  churnPredictions, notificationLog, orders, orderItems,
+} from "../../shared/schema.js";
+import { eq, and, desc, gte, sql, count } from "drizzle-orm";
 import webPush from "web-push";
 
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const VAPID_SUBJECT = process.env.VAPID_SUBJECT || "mailto:info@aquavoiq.com";
+const BASE_URL = process.env.VITE_PUBLIC_BASE_URL || "https://www.aquavoiq.com";
+
+// Configure web-push if keys are available
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  try {
+    webPush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
+  } catch (e) {
+    console.error("[SmartNotifications] VAPID config error:", e);
+  }
+}
+
+// Notification types
+type NotificationType =
+  | "replenishment"
+  | "churn_prevention"
+  | "welcome"
+  | "cart_abandonment"
+  | "new_product"
+  | "seasonal_tip";
+
+interface NotificationPayload {
+  title: string;
+  body: string;
+  url: string;
+  type: NotificationType;
+  metadata?: Record<string, unknown>;
+}
+
+// Priority order (higher = more important, sent first)
+const PRIORITY: Record<NotificationType, number> = {
+  churn_prevention: 100,
+  cart_abandonment: 90,
+  replenishment: 80,
+  welcome: 70,
+  new_product: 50,
+  seasonal_tip: 30,
+};
+
+// Frequency caps
+const FREQUENCY_CAPS = {
+  maxPerDay: 1,
+  maxPerWeek: 3,
+  cooldownMinutes: 60, // Min time between two notifications
+};
 
 /**
- * Smart Notifications Service
- * Sends proactive notifications based on AI predictions
+ * AI Notification Engine — محرك الإشعارات الذكي
+ * يقود جميع الإشعارات بالذكاء الاصطناعي
  */
 export class SmartNotifications {
-    private db = getDb();
+  private db = getDb();
 
-    /**
-     * Check and send replenishment reminders for all users
-     * Should run daily via cron or admin trigger
-     */
-    async sendReplenishmentReminders(): Promise<{
-        emailsSent: number;
-        pushSent: number;
-        usersNotified: number;
-    }> {
-        console.log("[SmartNotifications] Starting replenishment check...");
+  // ==================== MAIN ENGINE ====================
 
-        let emailsSent = 0;
-        let pushSent = 0;
-        let usersNotified = 0;
+  /**
+   * Run the full AI notification engine
+   * Called daily by cron job at 4:30 AM
+   */
+  async runAINotificationEngine(): Promise<{
+    totalProcessed: number;
+    pushSent: number;
+    emailsSent: number;
+    skippedFrequencyCap: number;
+    byType: Record<string, number>;
+  }> {
+    console.log("[AI-Notifications] 🧠 Starting AI Notification Engine...");
 
+    const results = {
+      totalProcessed: 0,
+      pushSent: 0,
+      emailsSent: 0,
+      skippedFrequencyCap: 0,
+      byType: {} as Record<string, number>,
+    };
+
+    try {
+      const db = getDb();
+      if (!db) return results;
+
+      // Gather all notification candidates from all AI systems
+      const candidates: Array<{
+        userId: string;
+        payload: NotificationPayload;
+        priority: number;
+      }> = [];
+
+      // 1. Replenishment reminders (from predictive analytics)
+      const replenishment = await this.gatherReplenishmentCandidates();
+      candidates.push(...replenishment);
+
+      // 2. Churn prevention notifications
+      const churn = await this.gatherChurnCandidates();
+      candidates.push(...churn);
+
+      // 3. Welcome notifications for new users
+      const welcome = await this.gatherWelcomeCandidates();
+      candidates.push(...welcome);
+
+      // 4. Cart abandonment reminders
+      const cart = await this.gatherCartAbandonmentCandidates();
+      candidates.push(...cart);
+
+      // 5. New product alerts
+      const newProducts = await this.gatherNewProductCandidates();
+      candidates.push(...newProducts);
+
+      // 6. Seasonal tips (once a week)
+      const seasonal = await this.gatherSeasonalTipCandidates();
+      candidates.push(...seasonal);
+
+      console.log(`[AI-Notifications] 📋 ${candidates.length} notification candidates gathered`);
+
+      // Sort by priority (highest first)
+      candidates.sort((a, b) => b.priority - a.priority);
+
+      // Process each candidate with frequency capping
+      for (const candidate of candidates) {
         try {
-            const db = getDb();
-            if (!db) return { emailsSent, pushSent, usersNotified };
+          // Check frequency cap
+          const canSend = await this.checkFrequencyCap(candidate.userId);
+          if (!canSend) {
+            results.skippedFrequencyCap++;
+            continue;
+          }
 
-            // Get predictions with high probability that haven't been notified
-            const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 7); // Predictions due in next 7 days
+          // Send via push
+          const pushSent = await this.sendPushToUser(candidate.userId, candidate.payload);
+          if (pushSent) results.pushSent++;
 
-            const predictions = await db
-                .select({
-                    predictionId: predictedNeeds.id,
-                    userId: predictedNeeds.userId,
-                    productId: predictedNeeds.productId,
-                    probability: predictedNeeds.probability,
-                    reason: predictedNeeds.reason,
-                    predictedDate: predictedNeeds.predictedDate,
-                })
-                .from(predictedNeeds)
-                .where(
-                    and(
-                        eq(predictedNeeds.converted, false),
-                        eq(predictedNeeds.notified, false),
-                    )
-                )
-                .orderBy(desc(predictedNeeds.probability));
+          // Log the notification
+          await this.logNotification(candidate.userId, candidate.payload, pushSent ? "push" : "skipped");
 
-            // Filter: only high probability (>= 60%) predictions
-            const highProbPredictions = predictions.filter(
-                p => Number(p.probability) >= 60
-            );
-
-            // Group by user
-            const userPredictions = new Map<string, typeof highProbPredictions>();
-            for (const pred of highProbPredictions) {
-                if (!pred.userId) continue;
-                const existing = userPredictions.get(pred.userId) || [];
-                existing.push(pred);
-                userPredictions.set(pred.userId, existing);
-            }
-
-            console.log(`[SmartNotifications] Found ${userPredictions.size} users with due predictions`);
-
-            for (const [userId, preds] of userPredictions) {
-                try {
-                    // Get user info
-                    const user = await db
-                        .select()
-                        .from(users)
-                        .where(eq(users.id, userId))
-                        .limit(1);
-
-                    if (!user[0]) continue;
-
-                    // Get product details for top 3 predictions
-                    const topPreds = preds.slice(0, 3);
-                    const productDetails = await Promise.all(
-                        topPreds.map(async (pred) => {
-                            const product = await db
-                                .select()
-                                .from(products)
-                                .where(eq(products.id, pred.productId))
-                                .limit(1);
-                            return product[0] ? { ...pred, product: product[0] } : null;
-                        })
-                    );
-
-                    const validPreds = productDetails.filter(Boolean) as Array<
-                        (typeof topPreds)[0] & { product: typeof products.$inferSelect }
-                    >;
-
-                    if (validPreds.length === 0) continue;
-
-                    // Send email notification
-                    if (user[0].email) {
-                        const sent = await this.sendReplenishmentEmail(
-                            user[0].email,
-                            user[0].fullName || "عزيزي العميل",
-                            validPreds
-                        );
-                        if (sent) emailsSent++;
-                    }
-
-                    // Send push notification
-                    const pushResult = await this.sendReplenishmentPush(
-                        userId,
-                        validPreds[0]
-                    );
-                    if (pushResult) pushSent++;
-
-                    usersNotified++;
-
-                    // Mark predictions as notified
-                    for (const pred of topPreds) {
-                        await db
-                            .update(predictedNeeds)
-                            .set({ notified: true })
-                            .where(eq(predictedNeeds.id, pred.predictionId));
-                    }
-                } catch (error) {
-                    console.error(`[SmartNotifications] Error notifying user ${userId}:`, error);
-                }
-            }
-
-            console.log(`[SmartNotifications] Done: ${usersNotified} users, ${emailsSent} emails, ${pushSent} push`);
+          results.totalProcessed++;
+          results.byType[candidate.payload.type] = (results.byType[candidate.payload.type] || 0) + 1;
         } catch (error) {
-            console.error("[SmartNotifications] Error:", error);
+          console.error(`[AI-Notifications] Error processing ${candidate.payload.type} for ${candidate.userId}:`, error);
         }
+      }
 
-        return { emailsSent, pushSent, usersNotified };
+      console.log(`[AI-Notifications] ✅ Done: ${results.totalProcessed} processed, ${results.pushSent} push, ${results.skippedFrequencyCap} skipped (freq cap)`);
+      console.log(`[AI-Notifications] 📊 By type:`, results.byType);
+
+    } catch (error) {
+      console.error("[AI-Notifications] ❌ Engine error:", error);
     }
 
-    /**
-     * Send replenishment email to a user
-     */
-    private async sendReplenishmentEmail(
-        email: string,
-        name: string,
-        predictions: Array<{
-            product: typeof products.$inferSelect;
-            probability: string;
-            reason: string | null;
-        }>
-    ): Promise<boolean> {
-        const productListHtml = predictions
-            .map(
-                (p) => `
-                <tr>
-                    <td style="padding: 12px; border-bottom: 1px solid #eee;">
-                        <strong style="color: #1a1a2e;">${p.product.name}</strong>
-                        <br/>
-                        <span style="color: #666; font-size: 13px;">${p.reason || "بناءً على نمط الشراء"}</span>
-                    </td>
-                    <td style="padding: 12px; text-align: center; border-bottom: 1px solid #eee;">
-                        <span style="color: #ccff00; font-weight: bold;">${Number(p.product.price).toLocaleString("en-US")} د.ع</span>
-                    </td>
-                </tr>`
-            )
-            .join("");
+    return results;
+  }
 
-        const html = `
-        <div style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 600px; margin: 0 auto; direction: rtl;">
-            <div style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); padding: 30px; text-align: center; border-radius: 12px 12px 0 0;">
-                <h1 style="color: #ccff00; margin: 0; font-size: 24px;">AQUAVO</h1>
-                <p style="color: #ccc; margin: 8px 0 0;">تذكير ذكي</p>
-            </div>
-            <div style="background: #fff; padding: 30px; border: 1px solid #eee;">
-                <h2 style="color: #1a1a2e; margin-top: 0;">مرحباً ${name} 👋</h2>
-                <p style="color: #444; line-height: 1.8;">
-                    بناءً على سجل مشترياتك، نعتقد أنك قد تحتاج هذه المنتجات قريباً:
-                </p>
-                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
-                    <thead>
-                        <tr style="background: #f8f9fa;">
-                            <th style="padding: 10px; text-align: right; color: #666;">المنتج</th>
-                            <th style="padding: 10px; text-align: center; color: #666;">السعر</th>
-                        </tr>
-                    </thead>
-                    <tbody>${productListHtml}</tbody>
-                </table>
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://aquavo.iq'}/products"
-                       style="background: #ccff00; color: #1a1a2e; padding: 14px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block;">
-                        تسوق الآن
-                    </a>
-                </div>
-            </div>
-            <div style="background: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 12px 12px; border: 1px solid #eee; border-top: 0;">
-                <p style="color: #999; font-size: 12px; margin: 0;">
-                    هذا التذكير مبني على تحليل ذكي لسجل مشترياتك
-                </p>
-            </div>
-        </div>`;
+  // ==================== NOTIFICATION GATHERERS ====================
 
-        return await sendEmail({
-            to: email,
-            subject: `🐠 ${name}، منتجاتك قد تنفذ قريباً!`,
-            html,
+  /**
+   * 1. Replenishment reminders — products predicted to run out
+   */
+  private async gatherReplenishmentCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
+
+    try {
+      const db = getDb();
+      if (!db) return candidates;
+
+      const predictions = await db
+        .select({
+          userId: predictedNeeds.userId,
+          productId: predictedNeeds.productId,
+          probability: predictedNeeds.probability,
+          reason: predictedNeeds.reason,
+          productName: products.name,
+          productSlug: products.slug,
+        })
+        .from(predictedNeeds)
+        .innerJoin(products, eq(predictedNeeds.productId, products.id))
+        .where(
+          and(
+            eq(predictedNeeds.converted, false),
+            eq(predictedNeeds.notified, false),
+          )
+        )
+        .orderBy(desc(predictedNeeds.probability))
+        .limit(50);
+
+      const highProb = predictions.filter(p => Number(p.probability) >= 60);
+
+      // Group by user, take top prediction per user
+      const byUser = new Map<string, typeof highProb[0]>();
+      for (const pred of highProb) {
+        if (pred.userId && !byUser.has(pred.userId)) {
+          byUser.set(pred.userId, pred);
+        }
+      }
+
+      for (const [userId, pred] of byUser) {
+        const content = await this.generateAIContent("replenishment", {
+          productName: pred.productName,
+          reason: pred.reason,
         });
+
+        candidates.push({
+          userId,
+          payload: {
+            title: content.title,
+            body: content.body,
+            url: `/products/${pred.productSlug || pred.productId}`,
+            type: "replenishment",
+            metadata: { productId: pred.productId, probability: Number(pred.probability), aiGenerated: true },
+          },
+          priority: PRIORITY.replenishment,
+        });
+
+        // Mark as notified
+        await db.update(predictedNeeds)
+          .set({ notified: true })
+          .where(and(
+            eq(predictedNeeds.userId, userId),
+            eq(predictedNeeds.productId, pred.productId),
+          ));
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] Replenishment gather error:", error);
     }
 
-    /**
-     * Send push notification for replenishment
-     */
-    private async sendReplenishmentPush(
-        userId: string,
-        prediction: {
-            product: typeof products.$inferSelect;
-            reason: string | null;
+    return candidates;
+  }
+
+  /**
+   * 2. Churn prevention — users at risk of leaving
+   */
+  private async gatherChurnCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
+
+    try {
+      const db = getDb();
+      if (!db) return candidates;
+
+      // Get high/critical churn users
+      const highRiskUsers = await db
+        .select({
+          userId: churnPredictions.userId,
+          churnScore: churnPredictions.churnScore,
+          riskLevel: churnPredictions.riskLevel,
+          actionPlan: churnPredictions.actionPlan,
+        })
+        .from(churnPredictions)
+        .where(sql`${churnPredictions.riskLevel} IN ('high', 'critical')`)
+        .orderBy(desc(churnPredictions.churnScore))
+        .limit(20);
+
+      for (const user of highRiskUsers) {
+        if (!user.userId) continue;
+
+        // Check if we already sent a churn notification in the last 7 days
+        const recentChurn = await db
+          .select({ count: count() })
+          .from(notificationLog)
+          .where(and(
+            eq(notificationLog.userId, user.userId),
+            eq(notificationLog.type, "churn_prevention"),
+            gte(notificationLog.sentAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)),
+          ));
+
+        if (Number(recentChurn[0]?.count) > 0) continue;
+
+        const content = await this.generateAIContent("churn_prevention", {
+          churnScore: Number(user.churnScore),
+          riskLevel: user.riskLevel,
+          actionPlan: user.actionPlan,
+        });
+
+        candidates.push({
+          userId: user.userId,
+          payload: {
+            title: content.title,
+            body: content.body,
+            url: "/products",
+            type: "churn_prevention",
+            metadata: { churnScore: Number(user.churnScore), aiGenerated: true },
+          },
+          priority: PRIORITY.churn_prevention + (user.riskLevel === "critical" ? 10 : 0),
+        });
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] Churn gather error:", error);
+    }
+
+    return candidates;
+  }
+
+  /**
+   * 3. Welcome notifications — new users < 24h
+   */
+  private async gatherWelcomeCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
+
+    try {
+      const db = getDb();
+      if (!db) return candidates;
+
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const newUsers = await db
+        .select({ id: users.id, fullName: users.fullName })
+        .from(users)
+        .where(gte(users.createdAt, oneDayAgo))
+        .limit(50);
+
+      for (const user of newUsers) {
+        if (!user.id) continue;
+
+        // Check if already welcomed
+        const alreadyWelcomed = await db
+          .select({ count: count() })
+          .from(notificationLog)
+          .where(and(
+            eq(notificationLog.userId, user.id),
+            eq(notificationLog.type, "welcome"),
+          ));
+
+        if (Number(alreadyWelcomed[0]?.count) > 0) continue;
+
+        const name = user.fullName || "صديقنا الجديد";
+
+        candidates.push({
+          userId: user.id,
+          payload: {
+            title: `مرحباً بك في AQUAVO! 🐠`,
+            body: `أهلاً ${name}! اكتشف مجموعتنا من منتجات الأحواض والأسماك. تسوّق الآن واحصل على تجربة مميزة.`,
+            url: "/products",
+            type: "welcome",
+            metadata: { aiGenerated: false },
+          },
+          priority: PRIORITY.welcome,
+        });
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] Welcome gather error:", error);
+    }
+
+    return candidates;
+  }
+
+  /**
+   * 4. Cart abandonment — items in cart for > 2 hours
+   */
+  private async gatherCartAbandonmentCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
+
+    try {
+      const db = getDb();
+      if (!db) return candidates;
+
+      // Cart data is stored in session/localStorage on client, so check from product interactions
+      // Users who added to cart but didn't purchase in last 24h
+      const { productInteractions } = await import("../../shared/schema.js");
+
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+
+      // Find users who added to cart > 2h ago but didn't purchase
+      const cartAdders = await db
+        .select({
+          userId: productInteractions.userId,
+          productId: productInteractions.productId,
+        })
+        .from(productInteractions)
+        .where(and(
+          eq(productInteractions.interactionType, "cart_add"),
+          gte(productInteractions.createdAt, oneDayAgo),
+        ))
+        .limit(50);
+
+      // Group by user
+      const userCarts = new Map<string, string[]>();
+      for (const item of cartAdders) {
+        if (!item.userId) continue;
+        const existing = userCarts.get(item.userId) || [];
+        if (item.productId) existing.push(item.productId);
+        userCarts.set(item.userId, existing);
+      }
+
+      for (const [userId, productIds] of userCarts) {
+        // Check if user purchased recently
+        const recentPurchase = await db
+          .select({ count: count() })
+          .from(productInteractions)
+          .where(and(
+            eq(productInteractions.userId, userId),
+            eq(productInteractions.interactionType, "purchase"),
+            gte(productInteractions.createdAt, oneDayAgo),
+          ));
+
+        if (Number(recentPurchase[0]?.count) > 0) continue;
+
+        // Check if already notified about cart today
+        const alreadyNotified = await db
+          .select({ count: count() })
+          .from(notificationLog)
+          .where(and(
+            eq(notificationLog.userId, userId),
+            eq(notificationLog.type, "cart_abandonment"),
+            gte(notificationLog.sentAt, oneDayAgo),
+          ));
+
+        if (Number(alreadyNotified[0]?.count) > 0) continue;
+
+        const content = await this.generateAIContent("cart_abandonment", {
+          itemCount: productIds.length,
+        });
+
+        candidates.push({
+          userId,
+          payload: {
+            title: content.title,
+            body: content.body,
+            url: "/cart",
+            type: "cart_abandonment",
+            metadata: { aiGenerated: true },
+          },
+          priority: PRIORITY.cart_abandonment,
+        });
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] Cart abandonment gather error:", error);
+    }
+
+    return candidates;
+  }
+
+  /**
+   * 5. New product alerts — products added in last 24h matching user interests
+   */
+  private async gatherNewProductCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
+
+    try {
+      const db = getDb();
+      if (!db) return candidates;
+
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      // Get products added in last 24h
+      const newProducts = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          slug: products.slug,
+          category: products.category,
+        })
+        .from(products)
+        .where(gte(products.createdAt, oneDayAgo))
+        .limit(10);
+
+      if (newProducts.length === 0) return candidates;
+
+      // For each new product, find users who bought from same category
+      for (const product of newProducts) {
+        if (!product.category) continue;
+
+        // Find users who purchased products in this category
+        const interestedUsers = await db
+          .selectDistinct({ userId: orders.userId })
+          .from(orders)
+          .innerJoin(orderItems, eq(orders.id, orderItems.orderId))
+          .innerJoin(products, eq(orderItems.productId, products.id))
+          .where(eq(products.category, product.category))
+          .limit(30);
+
+        for (const user of interestedUsers) {
+          if (!user.userId) continue;
+
+          // Check if already notified today
+          const alreadyNotified = await db
+            .select({ count: count() })
+            .from(notificationLog)
+            .where(and(
+              eq(notificationLog.userId, user.userId),
+              eq(notificationLog.type, "new_product"),
+              gte(notificationLog.sentAt, oneDayAgo),
+            ));
+
+          if (Number(alreadyNotified[0]?.count) > 0) continue;
+
+          candidates.push({
+            userId: user.userId,
+            payload: {
+              title: `منتج جديد يناسبك! 🆕`,
+              body: `وصل "${product.name}" — شوفه الحين!`,
+              url: `/products/${product.slug || product.id}`,
+              type: "new_product",
+              metadata: { productId: product.id, aiGenerated: false },
+            },
+            priority: PRIORITY.new_product,
+          });
         }
-    ): Promise<boolean> {
-        if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return false;
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] New product gather error:", error);
+    }
 
-        try {
-            const db = getDb();
-            if (!db) return false;
+    return candidates;
+  }
 
-            const subscriptions = await db
-                .select()
-                .from(pushSubscriptions)
-                .where(
-                    and(
-                        eq(pushSubscriptions.userId, userId),
-                        eq(pushSubscriptions.isActive, true)
-                    )
-                );
+  /**
+   * 6. Seasonal tips — AI-generated aquarium advice (weekly)
+   */
+  private async gatherSeasonalTipCandidates(): Promise<Array<{
+    userId: string;
+    payload: NotificationPayload;
+    priority: number;
+  }>> {
+    const candidates: Array<{ userId: string; payload: NotificationPayload; priority: number }> = [];
 
-            if (subscriptions.length === 0) return false;
+    try {
+      const db = getDb();
+      if (!db) return candidates;
 
-            const payload = JSON.stringify({
-                title: "تذكير ذكي من AQUAVO 🐠",
-                body: `قد تحتاج "${prediction.product.name}" قريباً - ${prediction.reason || "بناءً على مشترياتك السابقة"}`,
-                url: `/products/${prediction.product.slug}`,
-                icon: "/icons/icon-192x192.png",
-                badge: "/icons/badge-72x72.png",
-            });
+      // Only send on specific days (Saturday = weekend in Iraq)
+      const today = new Date();
+      if (today.getDay() !== 6) return candidates; // Saturday only
 
-            let sent = false;
-            for (const sub of subscriptions) {
-                try {
-                    await webPush.sendNotification(
-                        {
-                            endpoint: sub.endpoint,
-                            keys: { p256dh: sub.p256dh, auth: sub.auth },
-                        },
-                        payload
-                    );
-                    sent = true;
-                } catch {
-                    // Skip failed subscriptions
-                }
+      // Get month context for seasonal tips
+      const month = today.getMonth(); // 0-11
+      const seasons: Record<number, string> = {
+        0: "شتاء", 1: "شتاء", 2: "ربيع",
+        3: "ربيع", 4: "صيف", 5: "صيف",
+        6: "صيف", 7: "صيف", 8: "خريف",
+        9: "خريف", 10: "شتاء", 11: "شتاء",
+      };
+      const season = seasons[month] || "صيف";
+
+      const content = await this.generateAIContent("seasonal_tip", { season, month });
+
+      // Get subscribed users
+      const subscribedUsers = await db
+        .selectDistinct({ userId: pushSubscriptions.userId })
+        .from(pushSubscriptions)
+        .where(eq(pushSubscriptions.isActive, true))
+        .limit(100);
+
+      for (const sub of subscribedUsers) {
+        if (!sub.userId) continue;
+
+        // Check if already received seasonal tip this week
+        const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        const alreadySent = await db
+          .select({ count: count() })
+          .from(notificationLog)
+          .where(and(
+            eq(notificationLog.userId, sub.userId),
+            eq(notificationLog.type, "seasonal_tip"),
+            gte(notificationLog.sentAt, oneWeekAgo),
+          ));
+
+        if (Number(alreadySent[0]?.count) > 0) continue;
+
+        candidates.push({
+          userId: sub.userId,
+          payload: {
+            ...content,
+            url: "/blog",
+            type: "seasonal_tip",
+            metadata: { aiGenerated: true, variant: season },
+          },
+          priority: PRIORITY.seasonal_tip,
+        });
+      }
+    } catch (error) {
+      console.error("[AI-Notifications] Seasonal tip gather error:", error);
+    }
+
+    return candidates;
+  }
+
+  // ==================== AI CONTENT GENERATION ====================
+
+  /**
+   * Generate notification content using Groq AI
+   */
+  private async generateAIContent(
+    type: NotificationType,
+    context: Record<string, unknown>,
+  ): Promise<{ title: string; body: string }> {
+    // Fallback content (always have a backup)
+    const fallbacks: Record<NotificationType, { title: string; body: string }> = {
+      replenishment: {
+        title: "وقت التجديد! 🐠",
+        body: `"${context.productName || "منتجك"}" قد يحتاج تجديد — اطلبه الحين!`,
+      },
+      churn_prevention: {
+        title: "وحشتنا! 💚",
+        body: "مرّت فترة من آخر زيارة. تعال شوف العروض الجديدة!",
+      },
+      welcome: {
+        title: "مرحباً بك في AQUAVO! 🐠",
+        body: "اكتشف عالم الأحواض والأسماك معنا. تسوّق الآن!",
+      },
+      cart_abandonment: {
+        title: "لسّه بالسلة! 🛒",
+        body: `عندك ${context.itemCount || ""} منتجات بالسلة. خلّص طلبك الحين!`,
+      },
+      new_product: {
+        title: "منتج جديد يناسبك! 🆕",
+        body: "وصل منتج جديد يناسب اهتماماتك. شوفه الحين!",
+      },
+      seasonal_tip: {
+        title: `نصيحة ${context.season || "الموسم"} لحوضك 🌿`,
+        body: "نصائح مهمة عشان حوضك يبقى صحي وجميل.",
+      },
+    };
+
+    // Try AI generation via Groq
+    if (groqClient.hasKeys()) {
+      try {
+        const prompts: Record<NotificationType, string> = {
+          replenishment: `أنت مساعد متجر AQUAVO (أحواض أسماك عراقي).
+اكتب إشعار push بالعربي العراقي.
+النوع: تذكير شراء
+المنتج: ${context.productName}
+السبب: ${context.reason || "وقت التجديد"}
+
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي", "body": "أقل من 80 حرف، لهجة عراقية ودية"}`,
+
+          churn_prevention: `أنت مساعد متجر AQUAVO (أحواض أسماك عراقي).
+اكتب إشعار push لاستعادة عميل غائب بالعربي العراقي.
+سكور الخطر: ${context.churnScore}%
+مستوى: ${context.riskLevel}
+
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي، يجذب الانتباه", "body": "أقل من 80 حرف، عرض خاص أو ترحيب حار"}`,
+
+          welcome: `أنت مساعد متجر AQUAVO العراقي.
+اكتب إشعار ترحيب بمستخدم جديد بالعراقي.
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي", "body": "أقل من 80 حرف، ترحيب حار"}`,
+
+          cart_abandonment: `أنت مساعد متجر AQUAVO العراقي.
+اكتب إشعار تذكير بالسلة المتروكة بالعراقي.
+عدد المنتجات: ${context.itemCount}
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي", "body": "أقل من 80 حرف، تحفيز لإتمام الشراء"}`,
+
+          new_product: `أنت مساعد متجر AQUAVO العراقي.
+اكتب إشعار عن منتج جديد بالعراقي.
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي", "body": "أقل من 80 حرف، إثارة وتشويق"}`,
+
+          seasonal_tip: `أنت خبير أحواض أسماك في العراق.
+اكتب نصيحة موسمية قصيرة لـ${context.season} لأصحاب الأحواض بالعراقي.
+الشهر: ${context.month}
+اكتب JSON فقط: {"title": "أقل من 40 حرف + إيموجي", "body": "أقل من 100 حرف، نصيحة عملية"}`,
+        };
+
+        const prompt = prompts[type];
+        if (prompt) {
+          const response = await groqClient.chatText(
+            [{ role: "user", content: prompt }],
+            { temperature: 0.7, maxTokens: 200, model: "llama-3.1-8b-instant" }
+          );
+
+          if (response) {
+            // Extract JSON from response
+            const jsonMatch = response.match(/\{[\s\S]*"title"[\s\S]*"body"[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              if (parsed.title && parsed.body) {
+                return { title: parsed.title, body: parsed.body };
+              }
             }
-            return sent;
-        } catch {
-            return false;
+          }
         }
+      } catch (error) {
+        console.error("[AI-Notifications] AI content generation failed, using fallback:", error);
+      }
     }
 
-    /**
-     * Get notification history/status for a user
-     */
-    async getUserNotificationStatus(userId: string): Promise<{
-        pendingReminders: number;
-        lastNotified: Date | null;
-    }> {
+    return fallbacks[type] || fallbacks.replenishment;
+  }
+
+  // ==================== DELIVERY ====================
+
+  /**
+   * Send push notification to a specific user
+   */
+  private async sendPushToUser(userId: string, payload: NotificationPayload): Promise<boolean> {
+    if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return false;
+
+    try {
+      const db = getDb();
+      if (!db) return false;
+
+      const subscriptions = await db
+        .select()
+        .from(pushSubscriptions)
+        .where(and(
+          eq(pushSubscriptions.userId, userId),
+          eq(pushSubscriptions.isActive, true),
+        ));
+
+      if (subscriptions.length === 0) return false;
+
+      const pushPayload = JSON.stringify({
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        icon: "/icons/icon-192x192.png",
+        badge: "/icons/badge-72x72.png",
+      });
+
+      let sent = false;
+      for (const sub of subscriptions) {
         try {
-            const db = getDb();
-            if (!db) return { pendingReminders: 0, lastNotified: null };
-
-            // Count un-notified high-probability predictions
-            const pending = await db
-                .select()
-                .from(predictedNeeds)
-                .where(
-                    and(
-                        eq(predictedNeeds.userId, userId),
-                        eq(predictedNeeds.converted, false),
-                        eq(predictedNeeds.notified, false)
-                    )
-                );
-
-            const highProb = pending.filter(p => Number(p.probability) >= 60);
-
-            // Last notified prediction
-            const lastNotified = await db
-                .select({ updatedAt: predictedNeeds.updatedAt })
-                .from(predictedNeeds)
-                .where(
-                    and(
-                        eq(predictedNeeds.userId, userId),
-                        eq(predictedNeeds.notified, true)
-                    )
-                )
-                .orderBy(desc(predictedNeeds.updatedAt))
-                .limit(1);
-
-            return {
-                pendingReminders: highProb.length,
-                lastNotified: lastNotified[0]?.updatedAt ?? null,
-            };
-        } catch {
-            return { pendingReminders: 0, lastNotified: null };
+          await webPush.sendNotification(
+            {
+              endpoint: sub.endpoint,
+              keys: { p256dh: sub.p256dh, auth: sub.auth },
+            },
+            pushPayload,
+          );
+          sent = true;
+        } catch (pushError: any) {
+          // Remove invalid subscriptions (410 Gone)
+          if (pushError?.statusCode === 410 || pushError?.statusCode === 404) {
+            await db.update(pushSubscriptions)
+              .set({ isActive: false })
+              .where(eq(pushSubscriptions.id, sub.id));
+          }
         }
+      }
+
+      return sent;
+    } catch {
+      return false;
     }
+  }
+
+  // ==================== FREQUENCY CAPPING ====================
+
+  /**
+   * Check if we can send a notification to this user (frequency caps)
+   */
+  private async checkFrequencyCap(userId: string): Promise<boolean> {
+    try {
+      const db = getDb();
+      if (!db) return true;
+
+      const now = new Date();
+
+      // Check daily cap
+      const todayStart = new Date(now);
+      todayStart.setHours(0, 0, 0, 0);
+
+      const todayCount = await db
+        .select({ count: count() })
+        .from(notificationLog)
+        .where(and(
+          eq(notificationLog.userId, userId),
+          gte(notificationLog.sentAt, todayStart),
+        ));
+
+      if (Number(todayCount[0]?.count) >= FREQUENCY_CAPS.maxPerDay) return false;
+
+      // Check weekly cap
+      const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const weekCount = await db
+        .select({ count: count() })
+        .from(notificationLog)
+        .where(and(
+          eq(notificationLog.userId, userId),
+          gte(notificationLog.sentAt, weekAgo),
+        ));
+
+      if (Number(weekCount[0]?.count) >= FREQUENCY_CAPS.maxPerWeek) return false;
+
+      return true;
+    } catch {
+      return true; // On error, allow sending
+    }
+  }
+
+  // ==================== LOGGING ====================
+
+  /**
+   * Log a sent notification
+   */
+  private async logNotification(userId: string, payload: NotificationPayload, channel: string): Promise<void> {
+    try {
+      const db = getDb();
+      if (!db) return;
+
+      await db.insert(notificationLog).values({
+        userId,
+        type: payload.type,
+        channel,
+        title: payload.title,
+        body: payload.body,
+        url: payload.url,
+        metadata: payload.metadata as any,
+        sentAt: new Date(),
+      });
+    } catch (error) {
+      console.error("[AI-Notifications] Log error:", error);
+    }
+  }
+
+  // ==================== LEGACY COMPATIBILITY ====================
+
+  /**
+   * Legacy method — still used by old cron job / routes
+   */
+  async sendReplenishmentReminders(): Promise<{
+    emailsSent: number;
+    pushSent: number;
+    usersNotified: number;
+  }> {
+    // Delegate to the full engine now
+    const result = await this.runAINotificationEngine();
+    return {
+      emailsSent: result.emailsSent,
+      pushSent: result.pushSent,
+      usersNotified: result.totalProcessed,
+    };
+  }
+
+  /**
+   * Get notification history/status for a user
+   */
+  async getUserNotificationStatus(userId: string): Promise<{
+    pendingReminders: number;
+    lastNotified: Date | null;
+  }> {
+    try {
+      const db = getDb();
+      if (!db) return { pendingReminders: 0, lastNotified: null };
+
+      // Count un-notified high-probability predictions
+      const pending = await db
+        .select()
+        .from(predictedNeeds)
+        .where(
+          and(
+            eq(predictedNeeds.userId, userId),
+            eq(predictedNeeds.converted, false),
+            eq(predictedNeeds.notified, false)
+          )
+        );
+
+      const highProb = pending.filter(p => Number(p.probability) >= 60);
+
+      // Last notification
+      const lastNotif = await db
+        .select({ sentAt: notificationLog.sentAt })
+        .from(notificationLog)
+        .where(eq(notificationLog.userId, userId))
+        .orderBy(desc(notificationLog.sentAt))
+        .limit(1);
+
+      return {
+        pendingReminders: highProb.length,
+        lastNotified: lastNotif[0]?.sentAt ?? null,
+      };
+    } catch {
+      return { pendingReminders: 0, lastNotified: null };
+    }
+  }
 }
 
 export const smartNotifications = new SmartNotifications();
