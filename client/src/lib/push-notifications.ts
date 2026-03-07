@@ -51,119 +51,107 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
- * Get the push service worker registration
- * Uses the main service worker if it exists, otherwise registers sw-push.js
- */
-async function getPushRegistration(): Promise<ServiceWorkerRegistration> {
-    // Check if there's already an active service worker we can use
-    const existingReg = await navigator.serviceWorker.getRegistration('/');
-    if (existingReg?.active) {
-        return existingReg;
-    }
-
-    // Register push service worker
-    const reg = await navigator.serviceWorker.register('/sw-push.js');
-    // Wait for it to be active (with timeout)
-    await waitForActive(reg, 10000);
-    return reg;
-}
-
-/**
- * Wait for service worker to become active with timeout
- */
-function waitForActive(registration: ServiceWorkerRegistration, timeoutMs: number): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        if (registration.active) {
-            resolve();
-            return;
-        }
-
-        const timeout = setTimeout(() => {
-            reject(new Error('Service worker activation timeout'));
-        }, timeoutMs);
-
-        const sw = registration.installing || registration.waiting;
-        if (sw) {
-            sw.addEventListener('statechange', () => {
-                if (sw.state === 'activated' || sw.state === 'activating') {
-                    clearTimeout(timeout);
-                    resolve();
-                }
-            });
-        } else {
-            clearTimeout(timeout);
-            resolve();
-        }
-    });
-}
-
-/**
  * Get VAPID public key — from env var first, then server
  */
-async function getVapidPublicKey(): Promise<string | null> {
+async function getVapidPublicKey(): Promise<string> {
     // Try env var first (fast, no network)
     if (VAPID_PUBLIC_KEY) return VAPID_PUBLIC_KEY;
 
     // Fetch from server
-    try {
-        const res = await fetch('/api/notifications/vapid-key');
-        if (res.ok) {
-            const data = await res.json();
-            return data.publicKey || null;
-        }
-    } catch (e) {
-        console.error('Failed to fetch VAPID key from server:', e);
+    const res = await fetch('/api/notifications/vapid-key');
+    if (!res.ok) {
+        throw new Error(`VAPID key fetch failed: ${res.status}`);
     }
-
-    return null;
+    const data = await res.json();
+    if (!data.publicKey) {
+        throw new Error('Server returned empty VAPID key');
+    }
+    return data.publicKey;
 }
 
 /**
  * Subscribe user to push notifications
+ * Throws detailed errors so UI can show exactly what failed
  */
-export async function subscribeToPush(): Promise<PushSubscription | null> {
+export async function subscribeToPush(): Promise<PushSubscription> {
+    // Step 1: Check support
+    if (!isPushSupported()) {
+        throw new Error('STEP1_NOT_SUPPORTED: المتصفح لا يدعم الإشعارات');
+    }
+
+    // Step 2: Request permission
+    const permission = await requestNotificationPermission();
+    if (permission !== 'granted') {
+        throw new Error(`STEP2_PERMISSION: صلاحية الإشعارات: ${permission}`);
+    }
+
+    // Step 3: Get VAPID key
+    let vapidKey: string;
     try {
-        if (!isPushSupported()) {
-            console.warn('Push notifications not supported');
-            return null;
+        vapidKey = await getVapidPublicKey();
+    } catch (e) {
+        throw new Error(`STEP3_VAPID: فشل جلب مفتاح VAPID - ${e instanceof Error ? e.message : e}`);
+    }
+
+    // Step 4: Register service worker
+    let registration: ServiceWorkerRegistration;
+    try {
+        registration = await navigator.serviceWorker.register('/sw-push.js');
+    } catch (e) {
+        throw new Error(`STEP4_SW_REGISTER: فشل تسجيل Service Worker - ${e instanceof Error ? e.message : e}`);
+    }
+
+    // Step 5: Wait for SW to be ready
+    try {
+        if (!registration.active) {
+            await new Promise<void>((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error('timeout 15s')), 15000);
+                const sw = registration.installing || registration.waiting || registration.active;
+                if (!sw) {
+                    clearTimeout(timeout);
+                    resolve(); // No worker to wait for
+                    return;
+                }
+                if (sw.state === 'activated') {
+                    clearTimeout(timeout);
+                    resolve();
+                    return;
+                }
+                sw.addEventListener('statechange', () => {
+                    if (sw.state === 'activated') {
+                        clearTimeout(timeout);
+                        resolve();
+                    }
+                    if (sw.state === 'redundant') {
+                        clearTimeout(timeout);
+                        reject(new Error('SW became redundant'));
+                    }
+                });
+            });
         }
+    } catch (e) {
+        throw new Error(`STEP5_SW_ACTIVATE: Service Worker لم يتفعل - ${e instanceof Error ? e.message : e}`);
+    }
 
-        const permission = await requestNotificationPermission();
-        if (permission !== 'granted') {
-            console.warn('Notification permission denied');
-            return null;
-        }
-
-        // Get VAPID key (env var → server)
-        const vapidKey = await getVapidPublicKey();
-        if (!vapidKey) {
-            console.error('No VAPID public key available');
-            return null;
-        }
-
-        // Get service worker registration (reuse existing or register new)
-        const registration = await getPushRegistration();
-
+    // Step 6: Subscribe to push manager
+    let subscription: PushSubscription;
+    try {
         // Check for existing subscription first
         const existing = await registration.pushManager.getSubscription();
         if (existing) {
-            // Already subscribed, just save to server
-            const response = await fetch('/api/notifications/subscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify(existing),
+            subscription = existing;
+        } else {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as BufferSource,
             });
-            if (response.ok) return existing;
         }
+    } catch (e) {
+        throw new Error(`STEP6_PUSH_SUBSCRIBE: فشل الاشتراك - ${e instanceof Error ? e.message : e}`);
+    }
 
-        // Subscribe to push
-        const subscription = await registration.pushManager.subscribe({
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
-        });
-
-        // Send subscription to server
+    // Step 7: Save to server
+    try {
         const response = await fetch('/api/notifications/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -172,17 +160,14 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to save subscription to server');
+            const text = await response.text().catch(() => '');
+            throw new Error(`Server ${response.status}: ${text.slice(0, 100)}`);
         }
-
-        if (import.meta.env.DEV) {
-            console.log('Push subscription successful');
-        }
-        return subscription;
-    } catch (error) {
-        console.error('Push subscription failed:', error);
-        return null;
+    } catch (e) {
+        throw new Error(`STEP7_SAVE: فشل حفظ الاشتراك - ${e instanceof Error ? e.message : e}`);
     }
+
+    return subscription;
 }
 
 /**

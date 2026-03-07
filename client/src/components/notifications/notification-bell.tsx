@@ -16,7 +16,6 @@ import {
   subscribeToPush,
   unsubscribeFromPush,
   isSubscribedToPush,
-  getNotificationPermission,
 } from "@/lib/push-notifications";
 import { cn } from "@/lib/utils";
 import { Link } from "wouter";
@@ -79,39 +78,32 @@ export function NotificationBell() {
 
     setIsSubscribing(true);
     try {
-      const subscription = await subscribeToPush();
-      if (subscription) {
-        toast({
-          title: "تم تفعيل الإشعارات ✅",
-          description: "راح توصلك إشعارات بالعروض والتذكيرات الذكية",
-        });
-        await refetchSubscription();
-        setPermissionStatus("granted");
-      } else {
-        // Check if permission was denied
-        const perm = getNotificationPermission();
-        setPermissionStatus(perm);
-        if (perm === "denied") {
-          toast({
-            title: "الإشعارات محظورة ❌",
-            description: "فعّل الإشعارات من إعدادات المتصفح ثم حاول مرة ثانية",
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "فشل تفعيل الإشعارات",
-            description: "حاول مرة ثانية لاحقاً",
-            variant: "destructive",
-          });
-        }
-      }
+      await subscribeToPush();
+      toast({
+        title: "تم تفعيل الإشعارات ✅",
+        description: "راح توصلك إشعارات بالعروض والتذكيرات الذكية",
+      });
+      await refetchSubscription();
+      setPermissionStatus("granted");
     } catch (error) {
       console.error("Subscription error:", error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء تفعيل الإشعارات",
-        variant: "destructive",
-      });
+      const msg = error instanceof Error ? error.message : String(error);
+
+      // Check if permission was denied
+      if (msg.includes("STEP2_PERMISSION") || msg.includes("denied")) {
+        setPermissionStatus("denied");
+        toast({
+          title: "الإشعارات محظورة ❌",
+          description: "فعّل الإشعارات من إعدادات المتصفح ثم حاول مرة ثانية",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "فشل تفعيل الإشعارات",
+          description: msg,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubscribing(false);
     }
