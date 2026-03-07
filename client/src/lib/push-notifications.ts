@@ -2,7 +2,7 @@
  * Push Notifications utility for AQUAVO
  */
 
-// VAPID public key (generate your own in production)
+// VAPID public key (fallback — primary source is server)
 const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || '';
 
 /**
@@ -51,7 +51,54 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 /**
- * Get VAPID public key — from server first, then env var fallback
+ * Get the push service worker registration
+ * Uses the main service worker if it exists, otherwise registers sw-push.js
+ */
+async function getPushRegistration(): Promise<ServiceWorkerRegistration> {
+    // Check if there's already an active service worker we can use
+    const existingReg = await navigator.serviceWorker.getRegistration('/');
+    if (existingReg?.active) {
+        return existingReg;
+    }
+
+    // Register push service worker
+    const reg = await navigator.serviceWorker.register('/sw-push.js');
+    // Wait for it to be active (with timeout)
+    await waitForActive(reg, 10000);
+    return reg;
+}
+
+/**
+ * Wait for service worker to become active with timeout
+ */
+function waitForActive(registration: ServiceWorkerRegistration, timeoutMs: number): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+        if (registration.active) {
+            resolve();
+            return;
+        }
+
+        const timeout = setTimeout(() => {
+            reject(new Error('Service worker activation timeout'));
+        }, timeoutMs);
+
+        const sw = registration.installing || registration.waiting;
+        if (sw) {
+            sw.addEventListener('statechange', () => {
+                if (sw.state === 'activated' || sw.state === 'activating') {
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            });
+        } else {
+            clearTimeout(timeout);
+            resolve();
+        }
+    });
+}
+
+/**
+ * Get VAPID public key — from env var first, then server
  */
 async function getVapidPublicKey(): Promise<string | null> {
     // Try env var first (fast, no network)
@@ -87,21 +134,33 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
             return null;
         }
 
-        // Get VAPID key (server → env var)
+        // Get VAPID key (env var → server)
         const vapidKey = await getVapidPublicKey();
         if (!vapidKey) {
             console.error('No VAPID public key available');
             return null;
         }
 
-        // Register service worker
-        const registration = await navigator.serviceWorker.register('/sw-push.js');
-        await navigator.serviceWorker.ready;
+        // Get service worker registration (reuse existing or register new)
+        const registration = await getPushRegistration();
+
+        // Check for existing subscription first
+        const existing = await registration.pushManager.getSubscription();
+        if (existing) {
+            // Already subscribed, just save to server
+            const response = await fetch('/api/notifications/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify(existing),
+            });
+            if (response.ok) return existing;
+        }
 
         // Subscribe to push
         const subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(vapidKey) as unknown as ArrayBuffer,
+            applicationServerKey: urlBase64ToUint8Array(vapidKey).buffer as ArrayBuffer,
         });
 
         // Send subscription to server
@@ -113,7 +172,7 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to save subscription');
+            throw new Error('Failed to save subscription to server');
         }
 
         if (import.meta.env.DEV) {
@@ -131,9 +190,10 @@ export async function subscribeToPush(): Promise<PushSubscription | null> {
  */
 export async function unsubscribeFromPush(): Promise<boolean> {
     try {
-        const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.getSubscription();
+        const registration = await navigator.serviceWorker.getRegistration('/');
+        if (!registration) return true;
 
+        const subscription = await registration.pushManager.getSubscription();
         if (!subscription) {
             return true;
         }
@@ -163,7 +223,9 @@ export async function isSubscribedToPush(): Promise<boolean> {
     try {
         if (!isPushSupported()) return false;
 
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await navigator.serviceWorker.getRegistration('/');
+        if (!registration) return false;
+
         const subscription = await registration.pushManager.getSubscription();
         return !!subscription;
     } catch {
@@ -185,7 +247,9 @@ export async function showLocalNotification(
             if (newPermission !== 'granted') return false;
         }
 
-        const registration = await navigator.serviceWorker.ready;
+        const registration = await navigator.serviceWorker.getRegistration('/');
+        if (!registration) return false;
+
         await registration.showNotification(title, {
             icon: '/icons/icon-192x192.png',
             badge: '/icons/badge-72x72.png',
