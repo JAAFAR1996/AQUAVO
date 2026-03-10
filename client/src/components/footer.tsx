@@ -167,7 +167,7 @@ export default function Footer() {
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href="https://instagram.com/aquavo.iq"
+                href="https://instagram.com/aquavo_iq"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="تابعنا على إنستغرام"

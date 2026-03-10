@@ -18,7 +18,7 @@ Sitemap: https://www.aquavoiq.com/sitemap.xml
 # Crawl-delay (optional, respected by some bots)
 Crawl-delay: 1
 
-# Specific bot rules
+# ─── Search Engine Bots ───────────────────────────
 User-agent: Googlebot
 Allow: /
 
@@ -27,3 +27,65 @@ Allow: /
 
 User-agent: DuckDuckBot
 Allow: /
+
+User-agent: Yandex
+Allow: /
+
+# ─── AI Answer Engine Bots ────────────────────────
+# ChatGPT / OpenAI
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
+# Google AI (Gemini, AI Overviews)
+User-agent: Google-Extended
+Allow: /
+
+# Claude / Anthropic
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
+User-agent: anthropic-ai
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
+# Apple Intelligence / Siri
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Meta AI
+User-agent: FacebookBot
+Allow: /
+
+# Bing Copilot / Microsoft AI
+User-agent: Bingbot
+Allow: /
+
+# Cohere AI
+User-agent: cohere-ai
+Allow: /
+
+# ─── LLMs.txt reference ──────────────────────────
+# See /llms.txt for AI content guidance

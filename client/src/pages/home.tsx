@@ -17,7 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { PersonalizedSection } from "@/components/home/personalized-section";
 import { BackToTop } from "@/components/back-to-top";
-import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
+import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
 import { QuickViewModal } from "@/components/products/quick-view-modal";
 import { Product } from "@/types";
@@ -60,6 +60,8 @@ export default function Home() {
         description="AQUAVO - وجهتك الأولى لمستلزمات أحواض الأسماك، نباتات الزينة، والعناية بالحياة المائية في العراق."
       />
       <OrganizationSchema />
+      <WebsiteSchema />
+      <LocalBusinessSchema />
 
       <Navbar />
 

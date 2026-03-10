@@ -56,8 +56,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         geo: { "@type": "GeoCoordinates", latitude: "33.3152", longitude: "44.3661" },
         telephone: "+964-774-788-0673",
         contactPoint: { "@type": "ContactPoint", telephone: "+964-774-788-0673", contactType: "customer service", availableLanguage: ["Arabic", "ar"] },
-        sameAs: ["https://instagram.com/aquavo.iq", "https://www.tiktok.com/@aquavo.iq"],
+        sameAs: ["https://instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
         areaServed: { "@type": "Country", name: "العراق" },
+        openingHoursSpecification: [
+          { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "21:00" },
+        ],
         potentialAction: {
           "@type": "SearchAction",
           target: `${BASE}/products?search={search_term_string}`,
@@ -77,20 +80,36 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           "query-input": "required name=search_term_string",
         },
       },
+      {
+        "@context": "https://schema.org",
+        "@type": "SpeakableSpecification",
+        cssSelector: ["h1", ".hero-section", "[data-speakable]"],
+      },
     ],
   },
   "/products": {
     title: "مستلزمات احواض اسماك الزينة في العراق - فلاتر، سخانات، اغذية | AQUAVO",
     description: "تسوق جميع مستلزمات احواض اسماك الزينة في العراق: فلاتر، سخانات، أغذية، علاجات، نباتات مائية، إضاءة LED، ديكورات وأكثر. أسعار منافسة وتوصيل لكل المحافظات.",
     keywords: "مستلزمات احواض سمك العراق، فلاتر احواض بغداد، سخانات احواض، اغذية اسماك زينة، نباتات مائية، شراء اونلاين",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "CollectionPage",
-      name: "جميع مستلزمات احواض اسماك الزينة",
-      description: "تصفح جميع مستلزمات احواض اسماك الزينة في العراق",
-      url: `${BASE}/products`,
-      isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
-    },
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: "جميع مستلزمات احواض اسماك الزينة",
+        description: "تصفح جميع مستلزمات احواض اسماك الزينة في العراق",
+        url: `${BASE}/products`,
+        inLanguage: "ar",
+        isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
+        ],
+      },
+    ],
   },
   "/deals": {
     title: "عروض وتخفيضات اسماك الزينة ومستلزمات الأحواض في العراق | AQUAVO",
@@ -101,6 +120,14 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     title: "مدونة اسماك الزينة - نصائح تربية وعناية بالاحواض في العراق | AQUAVO",
     description: "مقالات ونصائح متخصصة عن تربية اسماك الزينة في العراق، العناية بالاحواض، معالجة أمراض الأسماك، وأفضل الممارسات للمبتدئين والمحترفين في بغداد والعراق.",
     keywords: "تربية اسماك زينة العراق، نصائح احواض سمك، امراض اسماك، عناية بالاحواض، مدونة اسماك بغداد",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+        { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
+      ],
+    },
   },
   "/fish-encyclopedia": {
     title: "موسوعة اسماك الزينة - أنواع الأسماك المتوفرة في العراق | AQUAVO",
@@ -142,6 +169,41 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     title: "دليل المبتدئين لتربية اسماك الزينة في العراق | AQUAVO",
     description: "دليل شامل للمبتدئين في تربية اسماك الزينة في العراق. من اختيار الحوض والفلتر إلى إضافة الأسماك والعناية اليومية. كل ما تحتاجه لبدء هوايتك في بغداد.",
     keywords: "دليل مبتدئين اسماك زينة العراق، بداية هواية اسماك بغداد، نصائح اول حوض سمك، تربية اسماك للمبتدئين",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "كيف تبدأ بتربية اسماك الزينة في العراق - دليل خطوة بخطوة",
+        description: "دليل شامل للمبتدئين لإنشاء حوض اسماك زينة ناجح من الصفر",
+        totalTime: "P7D",
+        estimatedCost: { "@type": "MonetaryAmount", currency: "IQD", value: "100000" },
+        supply: [
+          { "@type": "HowToSupply", name: "حوض زجاجي (60 لتر على الأقل)" },
+          { "@type": "HowToSupply", name: "فلتر مناسب لحجم الحوض" },
+          { "@type": "HowToSupply", name: "سخان مائي" },
+          { "@type": "HowToSupply", name: "إضاءة LED" },
+          { "@type": "HowToSupply", name: "حصى أو ركيزة" },
+          { "@type": "HowToSupply", name: "مزيل كلور" },
+        ],
+        step: [
+          { "@type": "HowToStep", name: "اختيار الحوض", text: "اختر حوضاً بحجم 60 لتر على الأقل. الأحواض الأكبر أسهل في الصيانة وأكثر استقراراً." },
+          { "@type": "HowToStep", name: "تركيب المعدات", text: "ركّب الفلتر والسخان والإضاءة حسب تعليمات الشركة المصنعة." },
+          { "@type": "HowToStep", name: "إضافة الركيزة والديكور", text: "أضف الحصى أو الركيزة ثم النباتات والصخور والديكورات." },
+          { "@type": "HowToStep", name: "ملء الحوض بالماء", text: "املأ الحوض بالماء المعالج بمزيل الكلور ببطء لتجنب تحريك الديكور." },
+          { "@type": "HowToStep", name: "تدوير الحوض", text: "شغّل الفلتر والسخان وانتظر 5-7 أيام قبل إضافة أي أسماك لتنمو البكتيريا النافعة." },
+          { "@type": "HowToStep", name: "إضافة الأسماك", text: "أضف 2-3 أسماك صغيرة في البداية ثم زد العدد تدريجياً كل أسبوع." },
+        ],
+        inLanguage: "ar",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: "دليل المبتدئين", item: `${BASE}/beginner-guide` },
+        ],
+      },
+    ],
   },
   "/fish-compatibility": {
     title: "توافق اسماك الزينة - أي الأسماك تعيش مع بعض | AQUAVO",
@@ -161,32 +223,62 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     title: "أسئلة شائعة عن اسماك الزينة واحواض السمك في العراق | AQUAVO",
     description: "إجابات على أكثر الأسئلة شيوعاً حول تربية اسماك الزينة في العراق، العناية بالأحواض، التوصيل، والطلب من AQUAVO. كل ما يسأله المبتدئين والهواة.",
     keywords: "اسئلة اسماك زينة، اسئلة احواض سمك، كيف اربي اسماك زينة، متجر اسماك العراق",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "كيف أبدأ بتربية اسماك الزينة في العراق؟",
-          acceptedAnswer: { "@type": "Answer", text: "ابدأ بحوض مناسب (60 لتر على الأقل)، فلتر جيد، سخان، ثم أضف الماء وشغّل الحوض لمدة أسبوع قبل إضافة الأسماك. يمكنك طلب كل المستلزمات من AQUAVO مع توصيل لكل العراق." },
-        },
-        {
-          "@type": "Question",
-          name: "هل يتوفر توصيل لجميع محافظات العراق؟",
-          acceptedAnswer: { "@type": "Answer", text: "نعم، AQUAVO يوفر خدمة توصيل لجميع محافظات العراق. التوصيل خلال 1-5 أيام عمل حسب المحافظة." },
-        },
-        {
-          "@type": "Question",
-          name: "ما هي أفضل اسماك الزينة للمبتدئين؟",
-          acceptedAnswer: { "@type": "Answer", text: "أفضل اسماك الزينة للمبتدئين هي: الجوبي، المولي، البلاتي، النيون تيترا، والكوري كاتفش. هذه الأنواع سهلة العناية ومتوفرة في العراق." },
-        },
-        {
-          "@type": "Question",
-          name: "كم سعر حوض سمك الزينة في العراق؟",
-          acceptedAnswer: { "@type": "Answer", text: "تتراوح أسعار أحواض اسماك الزينة في العراق حسب الحجم والنوع. تصفح قسم المنتجات في AQUAVO لمعرفة الأسعار الحالية مع عروض وخصومات مستمرة." },
-        },
-      ],
-    },
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        name: "الأسئلة الشائعة - AQUAVO",
+        description: "إجابات شاملة على أكثر الأسئلة شيوعاً حول اسماك الزينة ومستلزمات الأحواض في العراق",
+        url: `${BASE}/faq`,
+        inLanguage: "ar",
+        mainEntity: [
+          // الشحن والتوصيل
+          { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى جميع محافظات العراق. التوصيل داخل بغداد خلال 24-48 ساعة، والمحافظات الأخرى خلال 3-5 أيام عمل." } },
+          { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "التوصيل مجاني للطلبات فوق 50,000 دينار داخل بغداد. للطلبات الأقل، رسوم التوصيل 5,000 دينار لبغداد و10,000-15,000 دينار للمحافظات." } },
+          { "@type": "Question", name: "هل يمكن تتبع طلبي؟", acceptedAnswer: { "@type": "Answer", text: "نعم! بمجرد شحن طلبك، ستتلقى رسالة نصية ورسالة واتساب تحتوي على رابط التتبع المباشر ورقم الشحنة." } },
+          { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
+          { "@type": "Question", name: "هل تشحنون الأسماك الحية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نشحن الأسماك الحية بعناية فائقة باستخدام أكياس أكسجين خاصة وعزل حراري. الشحن متاح فقط داخل بغداد والمناطق القريبة لضمان سلامة الأسماك." } },
+          // الدفع والفواتير
+          { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نقبل الدفع نقداً عند الاستلام، التحويل البنكي، كي كارد، زين كاش، وآسيا حوالة. جميع طرق الدفع آمنة ومضمونة." } },
+          { "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },
+          { "@type": "Question", name: "هل يمكنني الحصول على فاتورة؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نرسل فاتورة إلكترونية مع كل طلب عبر البريد الإلكتروني وواتساب. يمكنك أيضاً طلب فاتورة مطبوعة مع الطلب." } },
+          { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي. لا توجد رسوم خفية. رسوم التوصيل (إن وجدت) تظهر بوضوح قبل إتمام الطلب." } },
+          { "@type": "Question", name: "هل يمكن الدفع بالتقسيط؟", acceptedAnswer: { "@type": "Answer", text: "نعم، للطلبات فوق 200,000 دينار نوفر خيار التقسيط على دفعتين أو ثلاث دفعات بدون فوائد. تواصل معنا للتفاصيل." } },
+          // الإرجاع والاستبدال
+          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "يمكنك إرجاع المنتجات خلال 7 أيام من الاستلام بشرط أن تكون في حالتها الأصلية. الأسماك والنباتات الحية غير قابلة للإرجاع." } },
+          { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب الإرجاع. سنرسل لك تأكيد ويمكننا استلام المنتج من موقعك مجاناً في بغداد." } },
+          { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "للدفع النقدي، يتم الاسترداد فوراً عند استلام المنتج. للتحويلات البنكية، خلال 3-7 أيام عمل." } },
+          { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الاستبدال متاح ومجاني. يمكنك استبدال المنتج بمنتج آخر بنفس القيمة أو دفع/استرداد الفرق." } },
+          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 24 ساعة. سنقوم بالاستبدال أو الاسترداد الكامل مع اعتذارنا." } },
+          // العناية بالأسماك
+          { "@type": "Question", name: "كيف أختار الحوض المناسب؟", acceptedAnswer: { "@type": "Answer", text: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة." } },
+          { "@type": "Question", name: "كم مرة يجب تغيير الماء؟", acceptedAnswer: { "@type": "Answer", text: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض." } },
+          { "@type": "Question", name: "ما هي درجة الحرارة المناسبة؟", acceptedAnswer: { "@type": "Answer", text: "معظم الأسماك الاستوائية تحتاج 24-28 درجة مئوية. الأسماك الذهبية تفضل 18-24 درجة. تحقق من متطلبات كل نوع." } },
+          { "@type": "Question", name: "كم مرة أطعم الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "مرتين يومياً بكمية تستهلكها الأسماك خلال 2-3 دقائق. الإفراط في التغذية أخطر من التقليل ويلوث الماء." } },
+          { "@type": "Question", name: "لماذا تموت أسماكي رغم العناية بها؟", acceptedAnswer: { "@type": "Answer", text: "الأسباب الشائعة: عدم تدوير الحوض قبل إضافة الأسماك، تغيير الماء بكميات كبيرة، أو اكتظاظ الحوض. تواصل معنا للتشخيص المجاني." } },
+          // المنتجات والجودة
+          { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع منتجاتنا أصلية 100% ومستوردة من الشركات المصنعة مباشرة. نوفر ضمان الأصالة على جميع المنتجات." } },
+          { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المعدات الإلكترونية (فلاتر، مضخات، سخانات، إضاءة) مغطاة بضمان من 6 أشهر إلى سنتين حسب المنتج." } },
+          { "@type": "Question", name: "من أين مصدر الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "أسماكنا من مزارع محلية موثوقة ومستوردين معتمدين. جميع الأسماك تخضع لفترة حجر صحي قبل البيع لضمان صحتها." } },
+          { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة بكل ما تحتاجه، وأسماك سهلة الرعاية، مع دليل عناية مجاني." } },
+          { "@type": "Question", name: "هل يمكن طلب منتج غير متوفر؟", acceptedAnswer: { "@type": "Answer", text: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة." } },
+          // الضمان والدعم
+          { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الفلاتر والمضخات: سنة واحدة. السخانات والإضاءة LED: 6 أشهر. الأحواض: ضمان ضد التسريب لمدة سنة." } },
+          { "@type": "Question", name: "ماذا يغطي الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الضمان يغطي عيوب التصنيع والأعطال غير الناتجة عن سوء الاستخدام. لا يشمل الأضرار الناتجة عن الكهرباء غير المستقرة." } },
+          { "@type": "Question", name: "كيف أستفيد من الضمان؟", acceptedAnswer: { "@type": "Answer", text: "احتفظ بفاتورة الشراء. عند حدوث مشكلة، تواصل معنا مع صور المنتج ورقم الفاتورة. سنوجهك للخطوات التالية." } },
+          { "@type": "Question", name: "هل تقدمون دعماً فنياً؟", acceptedAnswer: { "@type": "Answer", text: "نعم! نوفر دعماً فنياً مجانياً عبر واتساب والهاتف. كما نقدم زيارات منزلية للمساعدة في تركيب وصيانة الأحواض الكبيرة." } },
+          { "@type": "Question", name: "هل تتوفر قطع غيار؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نوفر قطع غيار لمعظم المنتجات التي نبيعها. تواصل معنا مع موديل المنتج وسنخبرك بالتوفر والسعر." } },
+        ],
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: "الأسئلة الشائعة", item: `${BASE}/faq` },
+        ],
+      },
+    ],
   },
   "/shipping": {
     title: "شحن وتوصيل مستلزمات اسماك الزينة لكل العراق | AQUAVO",

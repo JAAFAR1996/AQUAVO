@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags, FAQSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -234,6 +235,20 @@ export default function FAQ() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="faq-page">
+      <MetaTags
+        title="الأسئلة الشائعة"
+        description="إجابات على أكثر الأسئلة شيوعاً حول تربية اسماك الزينة في العراق، العناية بالأحواض، التوصيل، والطلب من AQUAVO."
+        keywords={["اسئلة اسماك زينة", "اسئلة احواض سمك", "كيف اربي اسماك زينة", "متجر اسماك العراق"]}
+      />
+      <FAQSchema
+        questions={categories.flatMap(cat => cat.faqs.map(faq => ({ question: faq.question, answer: faq.answer })))}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "الرئيسية", url: "https://www.aquavoiq.com" },
+          { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" },
+        ]}
+      />
       <Navbar />
 
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">

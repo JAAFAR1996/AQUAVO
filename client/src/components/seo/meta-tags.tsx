@@ -265,8 +265,8 @@ export function OrganizationSchema() {
             areaServed: "IQ",
         },
         sameAs: [
-            "https://www.facebook.com/profile.php?id=61586032750706",
-            "https://instagram.com/aquavo.iq",
+            "https://www.facebook.com/profile.php?id=61587249730248",
+            "https://instagram.com/aquavo_iq",
             "https://www.tiktok.com/@aquavo.iq",
         ],
         address: {
