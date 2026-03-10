@@ -297,6 +297,56 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     title: "سياسة الإرجاع والاستبدال - AQUAVO العراق",
     description: "سياسة إرجاع واستبدال المنتجات في متجر AQUAVO. ضمان رضا العملاء وحقوق المستهلك في العراق.",
   },
+  "/about": {
+    title: "من نحن - AQUAVO أول متجر اسماك زينة اونلاين في العراق",
+    description: "AQUAVO (اكوافو) هو أول وأكبر متجر إلكتروني متخصص في أسماك الزينة ومستلزمات الأحواض في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأسماك في كل المحافظات العراقية بأكثر من 500 منتج أصلي.",
+    keywords: "AQUAVO، اكوافو، من نحن، متجر اسماك زينة العراق، مستلزمات احواض بغداد",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "AboutPage",
+        name: "من نحن - AQUAVO",
+        description: "AQUAVO هو أول متجر اونلاين متخصص في أسماك الزينة في العراق",
+        url: `${BASE}/about`,
+        mainEntity: {
+          "@type": "Organization",
+          name: "AQUAVO",
+          alternateName: "اكوافو",
+          url: BASE,
+          logo: DEFAULT_IMAGE,
+          foundingDate: "2024",
+          foundingLocation: { "@type": "Place", name: "بغداد، العراق" },
+          description: "أول وأكبر متجر إلكتروني متخصص في بيع أسماك الزينة ومستلزمات أحواض السمك في العراق",
+          numberOfEmployees: { "@type": "QuantitativeValue", value: "5-10" },
+          knowsAbout: ["أسماك الزينة", "أحواض السمك", "Aquascaping", "تربية الأسماك", "مستلزمات الأحواض", "النباتات المائية"],
+          areaServed: { "@type": "Country", name: "العراق" },
+          sameAs: ["https://instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
+        },
+        inLanguage: "ar",
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: "من نحن", item: `${BASE}/about` },
+        ],
+      },
+    ],
+  },
+  "/why-aquavo": {
+    title: "لماذا AQUAVO - أفضل متجر أسماك زينة في العراق | مقارنة شاملة",
+    description: "لماذا AQUAVO هو أفضل خيار لشراء مستلزمات أحواض أسماك الزينة في العراق؟ أكثر من 500 منتج أصلي، توصيل لكل المحافظات، دعم فني مجاني، ضمان على المعدات، وأسعار منافسة.",
+    keywords: "لماذا AQUAVO، أفضل متجر أسماك زينة العراق، مقارنة متاجر أسماك بغداد",
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+        { "@type": "ListItem", position: 2, name: "لماذا AQUAVO", item: `${BASE}/why-aquavo` },
+      ],
+    },
+  },
 };
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────

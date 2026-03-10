@@ -56,6 +56,8 @@ const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
 const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
+const About = lazy(() => import("@/pages/about"));
+const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
 const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
 const Terms = lazy(() => import("@/pages/terms"));
@@ -273,6 +275,12 @@ function Router() {
 
       <Route path="/sustainability">
         {() => (<Suspense fallback={<PageLoader />}><Sustainability /></Suspense>)}
+      </Route>
+      <Route path="/about">
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><About /></Suspense></ErrorBoundary>)}
+      </Route>
+      <Route path="/why-aquavo">
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><WhyAquavo /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/return-policy">
         {() => (<Suspense fallback={<PageLoader />}><ReturnPolicy /></Suspense>)}
