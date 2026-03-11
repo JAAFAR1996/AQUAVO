@@ -180,14 +180,18 @@ const mockDiseases: DiagnosisResult[] = [
 
 export default function FishHealthDiagnosis() {
   const [image, setImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [diagnosis, setDiagnosis] = useState<DiagnosisResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setImageFile(file);
+      setError(null);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImage(reader.result as string);
@@ -197,22 +201,59 @@ export default function FishHealthDiagnosis() {
     }
   };
 
-  const analyzeFish = () => {
-    if (!image) return;
+  const analyzeFish = async () => {
+    if (!imageFile) return;
 
     setIsAnalyzing(true);
+    setError(null);
 
-    // Simulate API call
-    setTimeout(() => {
-      const randomDisease = mockDiseases[Math.floor(Math.random() * mockDiseases.length)];
-      setDiagnosis(randomDisease);
+    try {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      formData.append('analysisType', 'health');
+
+      const response = await fetch('/api/ai-advanced/visual/analyze-upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        if (response.status === 401) {
+          throw new Error('يجب تسجيل الدخول لاستخدام خدمة التشخيص');
+        }
+        throw new Error(errorData?.error || 'فشل تحليل الصورة');
+      }
+
+      const result = await response.json();
+      const details = result.data?.analysis?.details || {};
+
+      const diagnosisResult: DiagnosisResult = {
+        disease: details.disease || 'غير محدد',
+        arabicName: details.arabicName || 'غير محدد',
+        confidence: Math.round((result.data?.analysis?.confidence || 0.7) * 100),
+        symptoms: details.symptoms || result.data?.analysis?.detected || [],
+        causes: details.causes || [],
+        treatment: details.treatment || result.data?.analysis?.suggestions || [],
+        prevention: details.prevention || [],
+        urgency: details.urgency || 'medium',
+        waterParameters: details.waterParameters,
+      };
+
+      setDiagnosis(diagnosisResult);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'حدث خطأ أثناء التحليل';
+      setError(message);
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const resetAnalysis = () => {
     setImage(null);
+    setImageFile(null);
     setDiagnosis(null);
+    setError(null);
   };
 
   const urgencyConfig = {
@@ -264,15 +305,43 @@ export default function FishHealthDiagnosis() {
               {!image ? (
                 <div className="flex flex-col items-center justify-center p-12 text-center space-y-4">
                   <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
-                    <Sparkles className="h-12 w-12 text-primary animate-pulse" />
+                    <Camera className="h-12 w-12 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold">قريباً في AQUAVO AI</h3>
-                  <p className="text-muted-foreground max-w-md">
-                    نعمل حالياً على تطوير نظام تشخيص ذكي ومتطور جداً لمساعدتك في الحفاظ على صحة أسماكك.
+                  <h3 className="text-xl font-bold">التقط أو ارفع صورة سمكتك</h3>
+                  <p className="text-muted-foreground max-w-md text-sm">
+                    صورة واضحة من الجانب تساعد الذكاء الاصطناعي على تشخيص المرض بدقة أعلى
                   </p>
-                  <Badge variant="outline" className="mt-4 text-lg py-2 px-6">
-                    انتظرونا... 🚀
-                  </Badge>
+                  <div className="flex gap-3 mt-4">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <input
+                      type="file"
+                      ref={cameraInputRef}
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button onClick={() => fileInputRef.current?.click()} className="gap-2">
+                      <Upload className="h-4 w-4" />
+                      رفع صورة
+                    </Button>
+                    <Button variant="outline" onClick={() => cameraInputRef.current?.click()} className="gap-2">
+                      <Camera className="h-4 w-4" />
+                      التقاط صورة
+                    </Button>
+                  </div>
+                  {error && (
+                    <Alert className="mt-4 bg-red-50 dark:bg-red-950 border-red-200">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-sm text-red-700">{error}</AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
