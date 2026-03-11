@@ -377,6 +377,12 @@ export default function FishHealthDiagnosis() {
                       )}
                     </Button>
                   </div>
+                  {error && (
+                    <Alert className="mt-4 bg-red-50 dark:bg-red-950 border-red-200">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <AlertDescription className="text-sm text-red-700 dark:text-red-400">{error}</AlertDescription>
+                    </Alert>
+                  )}
                 </div>
               )}
             </CardContent>

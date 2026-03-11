@@ -32,19 +32,9 @@ const aiAdvancedLimiter = rateLimit({
 });
 router.use(aiAdvancedLimiter);
 
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/ai-analysis/");
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, "analysis-" + uniqueSuffix + path.extname(file.originalname));
-  },
-});
-
+// Configure multer for image uploads (memory storage for Vercel serverless)
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024, // 5MB max
   },
@@ -116,7 +106,7 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
 
 /**
  * POST /api/ai-advanced/visual/analyze-upload
- * تحليل صورة مرفوعة
+ * تحليل صورة مرفوعة (memory storage for Vercel)
  */
 router.post(
   "/visual/analyze-upload",
@@ -139,11 +129,10 @@ router.post(
         });
       }
 
-      // Create public URL for uploaded image
-      const imageUrl = `${req.protocol}://${req.get("host")}/uploads/ai-analysis/${req.file.filename}`;
-
-      const result = await visualAI.analyzeImage(
-        imageUrl,
+      // Use buffer directly (no disk storage needed for Vercel)
+      const result = await visualAI.analyzeImageBuffer(
+        req.file.buffer,
+        req.file.mimetype,
         analysisType,
         req.body.userId,
         req.body.sessionId
@@ -154,9 +143,8 @@ router.post(
         data: {
           ...result,
           uploadedFile: {
-            filename: req.file.filename,
+            filename: req.file.originalname,
             size: req.file.size,
-            url: imageUrl,
           },
         },
         message: "تم رفع وتحليل الصورة بنجاح",

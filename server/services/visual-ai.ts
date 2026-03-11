@@ -86,6 +86,70 @@ export class VisualAI {
   }
 
   /**
+   * تحليل صورة من Buffer مباشرة (للاستخدام مع multer memoryStorage)
+   */
+  async analyzeImageBuffer(
+    imageBuffer: Buffer,
+    mimeType: string,
+    analysisType: "fish" | "tank" | "problem" | "health",
+    userId?: string,
+    sessionId?: string
+  ) {
+    const startTime = Date.now();
+
+    try {
+      const base64 = imageBuffer.toString("base64");
+      const prompt = this.generatePrompt(analysisType);
+
+      const text = await geminiClient.executeWithFallback(async (client) => {
+        const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: base64,
+              mimeType: mimeType,
+            },
+          },
+        ]);
+        return result.response.text();
+      });
+
+      const analysis = this.parseAnalysis(text, analysisType);
+      const recommendedProducts = await this.getProductRecommendations(
+        analysis.detected,
+        analysisType
+      );
+
+      const processingTime = Date.now() - startTime;
+      const savedAnalysis = await this.saveAnalysis({
+        userId,
+        sessionId,
+        imageUrl: `buffer://${Date.now()}`,
+        analysisType,
+        aiAnalysis: analysis,
+        recommendedProducts: recommendedProducts.map((p) => p.id),
+        processingTimeMs: processingTime,
+      });
+
+      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: "gemini-2.5-flash", userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence } });
+      return {
+        id: savedAnalysis.id,
+        analysisType,
+        analysis,
+        recommendedProducts,
+        processingTimeMs: processingTime,
+      };
+    } catch (error) {
+      aiMonitor.logError(error instanceof Error ? error.message : "Visual AI buffer failed", { analysisType }, { event: "visual_analysis", userId, sessionId, responseTimeMs: Date.now() - startTime });
+      console.error("Visual AI Buffer Error:", error);
+      throw new Error(
+        `فشل تحليل الصورة: ${error instanceof Error ? error.message : "خطأ غير معروف"}`
+      );
+    }
+  }
+
+  /**
    * Fetch image from URL and convert to base64
    */
   private async fetchImageAsBase64(imageUrl: string) {
