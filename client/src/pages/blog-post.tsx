@@ -124,11 +124,17 @@ export default function BlogPost() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 transition={{ delay: 0.3 }}
-                                className="prose prose-lg dark:prose-invert max-w-none prose-headings:font-bold prose-headings:text-primary prose-img:rounded-2xl"
+                                className="prose prose-lg dark:prose-invert max-w-none 
+                                prose-headings:font-bold prose-headings:text-primary prose-headings:tracking-tight 
+                                prose-p:text-foreground/90 prose-p:leading-relaxed prose-p:text-lg
+                                prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                                prose-blockquote:border-r-4 prose-blockquote:border-l-0 prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:p-6 prose-blockquote:rounded-l-2xl prose-blockquote:text-lg prose-blockquote:font-medium prose-blockquote:italic
+                                prose-li:marker:text-primary prose-img:rounded-3xl prose-img:shadow-2xl
+                                mb-20"
                                 dangerouslySetInnerHTML={{
                                     __html: DOMPurify.sanitize(post.content, {
-                                        ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img'],
-                                        ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title', 'target', 'rel']
+                                        ALLOWED_TAGS: ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'br', 'blockquote', 'code', 'pre', 'img', 'div', 'span', 'section', 'article'],
+                                        ALLOWED_ATTR: ['href', 'class', 'src', 'alt', 'title', 'target', 'rel', 'style']
                                     })
                                 }}
                             />
