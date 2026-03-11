@@ -1,9 +1,11 @@
 import { geminiClient } from "./gemini-client.js";
 import { db } from "../db.js";
-import { imageAnalyses, products, type InsertImageAnalysis } from "../../shared/schema.js";
-import { eq, desc, inArray, sql } from "drizzle-orm";
+import { imageAnalyses, products, diagnosisCases, diagnosisFeedback, type InsertImageAnalysis } from "../../shared/schema.js";
+import { eq, desc, inArray, sql, and } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 import OpenAI from "openai";
+import { vetRAG } from "./vet-rag.js";
+import { embeddingGenerator } from "./embedding-generator.js";
 
 /**
  * Visual AI Service
@@ -52,8 +54,8 @@ export class VisualAI {
       const analysis = this.parseAnalysis(text, analysisType);
 
       // 5. Get product recommendations based on analysis
-      const recommendedProducts = await this.getProductRecommendations(
-        analysis.detected,
+      const recommendedProducts = await this.getSmartProductRecommendations(
+        analysis,
         analysisType
       );
 
@@ -65,7 +67,7 @@ export class VisualAI {
         imageUrl,
         analysisType,
         aiAnalysis: analysis,
-        recommendedProducts: recommendedProducts.map((p) => p.id),
+        recommendedProducts: recommendedProducts.map((p: any) => p.id),
         processingTimeMs: processingTime,
       });
 
@@ -91,50 +93,86 @@ export class VisualAI {
    * يستخدم Gemini أولاً ← إذا فشل يتحول تلقائياً لـ OpenAI GPT-4o
    */
   async analyzeImageBuffer(
-    imageBuffer: Buffer,
+    buffer: Buffer,
     mimeType: string,
     analysisType: "fish" | "tank" | "problem" | "health",
     userId?: string,
     sessionId?: string
   ) {
     const startTime = Date.now();
-    const base64 = imageBuffer.toString("base64");
-    const prompt = this.generatePrompt(analysisType);
-    let usedModel = "gemini-2.5-flash";
 
     try {
-      // 🔵 محاولة أولى: Gemini Vision (مجاني)
+      const base64 = buffer.toString("base64");
+      let prompt = this.generatePrompt(analysisType);
+      let ragContext = "";
+      let similarCasesContext = "";
       let text: string;
+      let usedModel = "gemini-2.5-flash";
+
+      // ═══ Phase 3: RAG — Inject veterinary knowledge (health only) ═══
+      if (analysisType === "health") {
+        try {
+          const ragChunks = await vetRAG.searchKnowledge(
+            ["fish disease symptoms diagnosis treatment"],
+            3
+          );
+          if (ragChunks.length > 0) {
+            ragContext = vetRAG.formatForPrompt(ragChunks);
+            console.log(`[VisualAI] 📖 RAG: injected ${ragChunks.length} knowledge chunks`);
+          }
+        } catch (ragError) {
+          console.error("[VisualAI] RAG search failed (non-blocking):", ragError);
+        }
+
+        // ═══ Phase 4: Similar Cases ═══
+        try {
+          const similarCases = await this.findSimilarCases(3);
+          if (similarCases.length > 0) {
+            const caseSummary = similarCases.map(c =>
+              `• ${c.disease} (${c.arabicName || ''}) — ثقة ${c.confidence || 'N/A'}% — نتيجة: ${c.outcome || 'غير معروفة'} ${c.verified ? '✅ مؤكد' : ''}`
+            ).join("\n");
+            similarCasesContext = `\n═══════════════════════════════════════════════════════\n📊 إحصائيات من قاعدة الحالات (${similarCases.length} حالة حديثة):\n═══════════════════════════════════════════════════════\n${caseSummary}\n═══════════════════════════════════════════════════════\nاستخدم هذه الحالات السابقة كمرجع إضافي في تشخيصك.\n`;
+            console.log(`[VisualAI] 📊 Cases: found ${similarCases.length} similar cases`);
+          }
+        } catch (caseError) {
+          console.error("[VisualAI] Similar cases lookup failed (non-blocking):", caseError);
+        }
+      }
+
+      // Combine prompt with RAG context and similar cases
+      const enhancedPrompt = prompt + ragContext + similarCasesContext;
+
       try {
+        // Try Gemini first
         text = await geminiClient.executeWithFallback(async (client) => {
           const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
           const result = await model.generateContent([
-            prompt,
+            enhancedPrompt,
             {
               inlineData: {
                 data: base64,
-                mimeType: mimeType,
+                mimeType,
               },
             },
           ]);
-          return result.response.text();
+          const responseText = result.response.text();
+          if (!responseText) throw new Error("Empty Gemini response");
+          return responseText;
         });
       } catch (geminiError) {
-        // 🟢 محاولة ثانية: OpenAI GPT-4o Vision (احتياطي)
-        console.warn("⚠️ Gemini failed, falling back to OpenAI GPT-4o:", (geminiError as Error).message);
-        
+        console.error("Gemini failed, trying OpenAI:", geminiError);
         const openaiKey = process.env.OPENAI_API_KEY;
-        if (!openaiKey) {
-          throw geminiError; // إذا ما موجود مفتاح OpenAI، ارجع الخطأ الأصلي
-        }
+        if (!openaiKey) throw geminiError;
 
-        text = await this.analyzeWithOpenAI(base64, mimeType, prompt, openaiKey);
+        text = await this.analyzeWithOpenAI(base64, mimeType, enhancedPrompt, openaiKey);
         usedModel = "gpt-4o";
       }
 
       const analysis = this.parseAnalysis(text, analysisType);
-      const recommendedProducts = await this.getProductRecommendations(
-        analysis.detected,
+
+      // ═══ Phase 2: Smart Product Recommendations ═══
+      const recommendedProducts = await this.getSmartProductRecommendations(
+        analysis,
         analysisType
       );
 
@@ -149,7 +187,16 @@ export class VisualAI {
         processingTimeMs: processingTime,
       });
 
-      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: usedModel, userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence } });
+      // ═══ Phase 1: Auto-save as case in database ═══
+      if (analysisType === "health" && analysis.details?.disease) {
+        try {
+          await this.saveDiagnosisCase(savedAnalysis.id, analysis, userId);
+        } catch (caseErr) {
+          console.error("[VisualAI] Failed to save case (non-blocking):", caseErr);
+        }
+      }
+
+      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: usedModel, userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence, ragUsed: ragContext.length > 0, casesUsed: similarCasesContext.length > 0 } });
       return {
         id: savedAnalysis.id,
         analysisType,
@@ -157,6 +204,10 @@ export class VisualAI {
         recommendedProducts,
         processingTimeMs: processingTime,
         model: usedModel,
+        intelligence: {
+          ragContextUsed: ragContext.length > 0,
+          similarCasesUsed: similarCasesContext.length > 0,
+        },
       };
     } catch (error) {
       aiMonitor.logError(error instanceof Error ? error.message : "Visual AI buffer failed", { analysisType }, { event: "visual_analysis", userId, sessionId, responseTimeMs: Date.now() - startTime });
@@ -698,46 +749,239 @@ export class VisualAI {
   }
 
   /**
-   * Get product recommendations based on detected items
+   * Phase 2: Smart Product Recommendations — uses semantic search + disease mapping
    */
-  private async getProductRecommendations(
-    detectedItems: string[],
+  private async getSmartProductRecommendations(
+    analysis: { detected: string[]; confidence: number; suggestions: string[]; details?: Record<string, any> },
     analysisType: string
   ) {
     try {
-      // Map analysis type to product categories
+      const details = analysis.details || {};
+
+      // Build search query from diagnosis details
+      const searchTerms: string[] = [...analysis.detected];
+
+      if (analysisType === "health") {
+        // Map disease treatments to product search terms
+        const treatmentToProductMap: Record<string, string[]> = {
+          "malachite green": ["malachite", "ich treatment", "white spot", "علاج النقط البيضاء"],
+          "copper sulfate": ["copper", "velvet treatment", "cupramine", "نحاس"],
+          "methylene blue": ["methylene", "fungus treatment", "مضاد فطريات"],
+          "praziquantel": ["prazipro", "fluke treatment", "ديدان"],
+          "kanamycin": ["kanamycin", "bacterial treatment", "seachem kanaplex", "مضاد بكتيري"],
+          "erythromycin": ["erythromycin", "maracyn", "مضاد حيوي"],
+          "metronidazole": ["metronidazole", "metroplex", "hexamita", "ثقب الرأس"],
+          "nitrofurazone": ["furan", "nitrofurazone", "مضاد بكتيري"],
+          "salt": ["aquarium salt", "ملح مائي"],
+          "seachem prime": ["prime", "water conditioner", "معالج ماء"],
+          "epsom salt": ["epsom", "ملح إنجليزي"],
+        };
+
+        // Extract medication names from treatment
+        const treatments = (details.treatment as string[]) || analysis.suggestions || [];
+        for (const treatment of treatments) {
+          const treatmentLower = treatment.toLowerCase();
+          for (const [med, productTerms] of Object.entries(treatmentToProductMap)) {
+            if (treatmentLower.includes(med)) {
+              searchTerms.push(...productTerms);
+            }
+          }
+        }
+
+        // Add category-based terms
+        if (details.category) {
+          const categoryTerms: Record<string, string[]> = {
+            parasitic: ["anti-parasite", "مضاد طفيليات", "علاج طفيلي"],
+            bacterial: ["antibiotic", "مضاد بكتيري", "مضاد حيوي"],
+            fungal: ["antifungal", "مضاد فطري", "فطريات"],
+            environmental: ["water conditioner", "test kit", "معالج ماء", "اختبار"],
+            nutritional: ["vitamin", "food", "فيتامين", "غذاء", "طعام"],
+          };
+          searchTerms.push(...(categoryTerms[details.category] || []));
+        }
+      }
+
+      // Try semantic search first using existing embedding infrastructure
+      try {
+        const semanticQuery = searchTerms.join(" ");
+        const semanticResults = await embeddingGenerator.semanticSearch(semanticQuery, 5);
+        if (semanticResults.length > 0) {
+          const productIds = semanticResults.map(r => r.productId);
+          const semanticProducts = db ? await db
+            .select()
+            .from(products)
+            .where(and(inArray(products.id, productIds), sql`${products.stock} > 0`))
+            .limit(5)
+            : [];
+
+          if (semanticProducts.length > 0) {
+            console.log(`[VisualAI] 🛒 Semantic product match: ${semanticProducts.length} products`);
+            return semanticProducts;
+          }
+        }
+      } catch {
+        // Semantic search failed, fall through to regex
+      }
+
+      // Fallback: regex search
       const categoryMap: Record<string, string[]> = {
         fish: ["fish-food", "fish-health", "fish-care"],
         tank: ["aquarium-equipment", "decoration", "lighting"],
         problem: ["water-treatment", "cleaning-tools", "test-kits"],
-        health: ["fish-health", "medication", "supplements"],
+        health: ["fish-health", "medication", "supplements", "water-treatment"],
       };
-
       const categories = categoryMap[analysisType] || [];
+      const allTerms = [...searchTerms, ...categories];
+      const searchPattern = allTerms.map(t => t.replace(/[%_]/g, '')).join('|');
 
-      // Search for products matching detected items or categories
-      const searchTerms = [...detectedItems, ...categories];
-      const searchPattern = searchTerms.map(t => t.replace(/[%_]/g, '')).join('|');
-
-      // Get top 5 relevant products matching detected items
+      if (!db) return [];
       const recommendedProducts = searchPattern
         ? await db
             .select()
             .from(products)
             .where(
-              sql`${products.inStock} = true AND (${products.name} ~* ${searchPattern} OR ${products.category} ~* ${searchPattern} OR ${products.description} ~* ${searchPattern})`
+              sql`${products.stock} > 0 AND (${products.name} ~* ${searchPattern} OR ${products.category} ~* ${searchPattern} OR ${products.description} ~* ${searchPattern})`
             )
             .limit(5)
         : await db
             .select()
             .from(products)
-            .where(eq(products.inStock, true))
+            .where(sql`${products.stock} > 0`)
             .limit(5);
 
       return recommendedProducts;
     } catch (error) {
       console.error("Failed to get product recommendations:", error);
       return [];
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // Phase 1: Case Database + Feedback Methods
+  // ═══════════════════════════════════════════════════════
+
+  /**
+   * Save diagnosis result as a case in the database
+   */
+  private async saveDiagnosisCase(
+    analysisId: string,
+    analysis: { detected: string[]; confidence: number; suggestions: string[]; details?: Record<string, any> },
+    userId?: string
+  ) {
+    if (!db) return;
+    const details = analysis.details || {};
+    await db.insert(diagnosisCases).values({
+      analysisId,
+      disease: details.disease || "unknown",
+      arabicName: details.arabicName || null,
+      category: details.category || null,
+      symptoms: details.symptoms || analysis.detected || [],
+      confidence: String(analysis.confidence || 0),
+      treatment: details.treatment || analysis.suggestions || [],
+      outcome: "unknown",
+      verified: false,
+      speciesName: details.speciesIdentification?.commonName || null,
+      imageUrl: null,
+      userId: userId || null,
+    });
+    console.log(`[VisualAI] 📋 Case saved: ${details.disease}`);
+  }
+
+  /**
+   * Find similar past diagnosis cases
+   */
+  async findSimilarCases(limit: number = 5) {
+    try {
+      if (!db) return [];
+      return await db
+        .select()
+        .from(diagnosisCases)
+        .orderBy(desc(diagnosisCases.createdAt))
+        .limit(limit);
+    } catch {
+      return [];
+    }
+  }
+
+  /**
+   * Submit user feedback on a diagnosis
+   */
+  async submitFeedback(data: {
+    analysisId: string;
+    userId?: string;
+    isCorrect: boolean;
+    correctDisease?: string;
+    notes?: string;
+    treatmentWorked?: boolean;
+    rating?: number;
+  }) {
+    if (!db) throw new Error("Database not initialized");
+    const [feedback] = await db.insert(diagnosisFeedback).values(data).returning();
+
+    // If user confirmed the diagnosis, mark the case as verified
+    if (data.isCorrect) {
+      if (db) await db
+        .update(diagnosisCases)
+        .set({ verified: true })
+        .where(eq(diagnosisCases.analysisId, data.analysisId));
+    }
+
+    // If user provided correct disease, update the case
+    if (data.correctDisease) {
+      if (db) await db
+        .update(diagnosisCases)
+        .set({ disease: data.correctDisease, verified: true })
+        .where(eq(diagnosisCases.analysisId, data.analysisId));
+    }
+
+    // If treatment worked, update case outcome
+    if (data.treatmentWorked !== undefined) {
+      if (db) await db
+        .update(diagnosisCases)
+        .set({ outcome: data.treatmentWorked ? "recovered" : "unknown" })
+        .where(eq(diagnosisCases.analysisId, data.analysisId));
+    }
+
+    console.log(`[VisualAI] 📝 Feedback saved for analysis: ${data.analysisId} — correct: ${data.isCorrect}`);
+    return feedback;
+  }
+
+  /**
+   * Get diagnosis case statistics
+   */
+  async getCaseStats() {
+    try {
+      if (!db) return { totalCases: 0, verifiedCases: 0, totalFeedback: 0, correctDiagnoses: 0, accuracyRate: 0, topDiseases: [] };
+      const allCases = await db.select().from(diagnosisCases);
+      const allFeedback = await db.select().from(diagnosisFeedback);
+
+      const totalCases = allCases.length;
+      const verifiedCases = allCases.filter(c => c.verified).length;
+      const correctDiagnoses = allFeedback.filter(f => f.isCorrect).length;
+      const totalFeedback = allFeedback.length;
+      const accuracyRate = totalFeedback > 0 ? Math.round((correctDiagnoses / totalFeedback) * 100) : 0;
+
+      // Disease frequency
+      const diseaseCount: Record<string, number> = {};
+      for (const c of allCases) {
+        diseaseCount[c.disease] = (diseaseCount[c.disease] || 0) + 1;
+      }
+
+      const topDiseases = Object.entries(diseaseCount)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 10)
+        .map(([disease, count]) => ({ disease, count }));
+
+      return {
+        totalCases,
+        verifiedCases,
+        totalFeedback,
+        correctDiagnoses,
+        accuracyRate,
+        topDiseases,
+      };
+    } catch {
+      return { totalCases: 0, verifiedCases: 0, totalFeedback: 0, correctDiagnoses: 0, accuracyRate: 0, topDiseases: [] };
     }
   }
 

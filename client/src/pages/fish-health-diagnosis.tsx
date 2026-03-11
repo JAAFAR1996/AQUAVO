@@ -36,6 +36,7 @@ import {
   ChevronDown,
   ChevronUp,
   Fish,
+  XCircle,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════
@@ -200,6 +201,8 @@ export default function FishHealthDiagnosis() {
     quarantine: false,
     prognosis: true,
   });
+  const [feedbackSent, setFeedbackSent] = useState(false);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -256,9 +259,6 @@ export default function FishHealthDiagnosis() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        if (response.status === 401) {
-          throw new Error('يجب تسجيل الدخول لاستخدام خدمة التشخيص');
-        }
         throw new Error(errorData?.error || 'فشل تحليل الصورة');
       }
 
@@ -291,6 +291,8 @@ export default function FishHealthDiagnosis() {
       };
 
       setDiagnosis(diagnosisResult);
+      setAnalysisId(result.data?.id || null);
+      setFeedbackSent(false);
 
       // Scroll to results
       setTimeout(() => {
@@ -924,6 +926,64 @@ export default function FishHealthDiagnosis() {
                               </li>
                             ))}
                           </ul>
+                        </div>
+                      </>
+                    )}
+
+                    {/* ── Feedback Loop ── */}
+                    {analysisId && !feedbackSent && (
+                      <>
+                        <Separator />
+                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl border border-blue-200 dark:border-blue-800">
+                          <h4 className="font-bold mb-3 flex items-center gap-2 text-sm">
+                            📊 هل التشخيص صحيح؟
+                          </h4>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            ملاحظاتك تساعد Dr. AQUAVO يصير أذكى مع كل حالة
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/ai-advanced/diagnosis/feedback', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ analysisId, isCorrect: true, rating: 5 }),
+                                  });
+                                  setFeedbackSent(true);
+                                } catch { /* ignore */ }
+                              }}
+                              className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                            >
+                              <CheckCircle className="h-3.5 w-3.5" /> صحيح
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={async () => {
+                                try {
+                                  await fetch('/api/ai-advanced/diagnosis/feedback', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ analysisId, isCorrect: false }),
+                                  });
+                                  setFeedbackSent(true);
+                                } catch { /* ignore */ }
+                              }}
+                              className="border-red-300 text-red-600 hover:bg-red-50 gap-1"
+                            >
+                              <XCircle className="h-3.5 w-3.5" /> غير دقيق
+                            </Button>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {feedbackSent && (
+                      <>
+                        <Separator />
+                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg text-center text-sm text-green-700 dark:text-green-300">
+                          ✅ شكراً لملاحظتك! Dr. AQUAVO يتعلم من كل حالة
                         </div>
                       </>
                     )}

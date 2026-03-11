@@ -110,7 +110,6 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
  */
 router.post(
   "/visual/analyze-upload",
-  requireAuth as any,
   upload.single("image"),
   async (req, res) => {
     try {
@@ -224,6 +223,90 @@ router.get("/visual/stats", requireAdmin as any, async (req, res) => {
     res.status(500).json({
       success: false,
       error: "فشل جلب الإحصائيات",
+    });
+  }
+});
+
+// ==================== Diagnosis Intelligence Endpoints ====================
+
+/**
+ * POST /api/ai-advanced/diagnosis/feedback
+ * تقديم ملاحظات على التشخيص (Feedback Loop)
+ */
+router.post("/diagnosis/feedback", async (req, res) => {
+  try {
+    const { analysisId, isCorrect, correctDisease, notes, treatmentWorked, rating } = req.body;
+
+    if (!analysisId || typeof isCorrect !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        error: "يجب تحديد معرف التحليل وحالة الصحة",
+      });
+    }
+
+    const userId = (req as any).user?.id;
+    const feedback = await visualAI.submitFeedback({
+      analysisId,
+      userId,
+      isCorrect,
+      correctDisease,
+      notes,
+      treatmentWorked,
+      rating,
+    });
+
+    res.json({
+      success: true,
+      data: feedback,
+      message: isCorrect ? "شكراً لتأكيد التشخيص! ✅" : "شكراً لملاحظتك، سنتحسن 🔄",
+    });
+  } catch (error) {
+    console.error("Diagnosis feedback error:", error);
+    res.status(500).json({
+      success: false,
+      error: "فشل حفظ الملاحظات",
+    });
+  }
+});
+
+/**
+ * GET /api/ai-advanced/diagnosis/stats
+ * إحصائيات منظومة التشخيص الذكية
+ */
+router.get("/diagnosis/stats", async (req, res) => {
+  try {
+    const stats = await visualAI.getCaseStats();
+    res.json({
+      success: true,
+      data: stats,
+    });
+  } catch (error) {
+    console.error("Diagnosis stats error:", error);
+    res.status(500).json({
+      success: false,
+      error: "فشل جلب إحصائيات التشخيص",
+    });
+  }
+});
+
+/**
+ * GET /api/ai-advanced/diagnosis/cases
+ * الحالات المشخصة الحديثة
+ */
+router.get("/diagnosis/cases", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit as string) || 10;
+    const cases = await visualAI.findSimilarCases(limit);
+    res.json({
+      success: true,
+      data: cases,
+      count: cases.length,
+    });
+  } catch (error) {
+    console.error("Diagnosis cases error:", error);
+    res.status(500).json({
+      success: false,
+      error: "فشل جلب الحالات",
     });
   }
 });

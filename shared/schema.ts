@@ -2015,3 +2015,77 @@ export const notificationLog = pgTable("notification_log", {
 export type NotificationLog = typeof notificationLog.$inferSelect;
 export type InsertNotificationLog = typeof notificationLog.$inferInsert;
 
+// ==================== Diagnosis Intelligence System ====================
+
+// Diagnosis Feedback — ملاحظات المستخدم على التشخيص
+export const diagnosisFeedback = pgTable("diagnosis_feedback", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  analysisId: text("analysis_id").references(() => imageAnalyses.id).notNull(),
+  userId: text("user_id").references(() => users.id),
+  isCorrect: boolean("is_correct").notNull(), // هل التشخيص صحيح؟
+  correctDisease: text("correct_disease"), // المرض الصحيح إذا كان التشخيص خاطئ
+  notes: text("notes"), // ملاحظات إضافية
+  treatmentWorked: boolean("treatment_worked"), // هل العلاج نجح؟
+  rating: integer("rating"), // تقييم 1-5
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  analysisIdx: index("diagnosis_feedback_analysis_idx").on(table.analysisId),
+  userIdx: index("diagnosis_feedback_user_idx").on(table.userId),
+  correctIdx: index("diagnosis_feedback_correct_idx").on(table.isCorrect),
+}));
+
+// Diagnosis Cases — قاعدة الحالات المشخصة (يتعلم منها AI)
+export const diagnosisCases = pgTable("diagnosis_cases", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  analysisId: text("analysis_id").references(() => imageAnalyses.id),
+  disease: text("disease").notNull(), // اسم المرض الإنجليزي
+  arabicName: text("arabic_name"), // الاسم العربي
+  category: text("category"), // parasitic, bacterial, fungal, viral, environmental, nutritional, physical, healthy
+  symptoms: jsonb("symptoms").$type<string[]>(), // الأعراض المكتشفة
+  confidence: numeric("confidence"), // نسبة الثقة
+  treatment: jsonb("treatment").$type<string[]>(), // العلاج المستخدم
+  outcome: text("outcome"), // recovered, partially_recovered, died, unknown
+  verified: boolean("verified").default(false), // هل تم التحقق من التشخيص (عبر feedback)
+  speciesName: text("species_name"), // نوع السمكة
+  imageUrl: text("image_url"), // رابط الصورة
+  userId: text("user_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  diseaseIdx: index("diagnosis_cases_disease_idx").on(table.disease),
+  categoryIdx: index("diagnosis_cases_category_idx").on(table.category),
+  verifiedIdx: index("diagnosis_cases_verified_idx").on(table.verified),
+  createdAtIdx: index("diagnosis_cases_created_at_idx").on(table.createdAt),
+}));
+
+// Zod Schemas
+export const insertDiagnosisFeedbackSchema = z.object({
+  analysisId: z.string().min(1),
+  userId: z.string().optional(),
+  isCorrect: z.boolean(),
+  correctDisease: z.string().optional(),
+  notes: z.string().optional(),
+  treatmentWorked: z.boolean().optional(),
+  rating: z.number().min(1).max(5).optional(),
+});
+
+export const insertDiagnosisCaseSchema = z.object({
+  analysisId: z.string().optional(),
+  disease: z.string().min(1),
+  arabicName: z.string().optional(),
+  category: z.string().optional(),
+  symptoms: z.array(z.string()).optional(),
+  confidence: z.string().optional(),
+  treatment: z.array(z.string()).optional(),
+  outcome: z.enum(["recovered", "partially_recovered", "died", "unknown"]).optional(),
+  verified: z.boolean().optional(),
+  speciesName: z.string().optional(),
+  imageUrl: z.string().optional(),
+  userId: z.string().optional(),
+});
+
+// Types
+export type DiagnosisFeedback = typeof diagnosisFeedback.$inferSelect;
+export type InsertDiagnosisFeedback = z.infer<typeof insertDiagnosisFeedbackSchema>;
+export type DiagnosisCase = typeof diagnosisCases.$inferSelect;
+export type InsertDiagnosisCase = z.infer<typeof insertDiagnosisCaseSchema>;
+
