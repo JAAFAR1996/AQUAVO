@@ -65,9 +65,9 @@ describe('Fish Health Diagnosis Page', () => {
             expect(heading).toBeInTheDocument();
         });
 
-        it('should display AI diagnosis badge', () => {
+        it('should display AI diagnosis badge with Dr. AQUAVO branding', () => {
             render(<FishHealthDiagnosis />);
-            const elements = screen.getAllByText(/تشخيص ذكي/);
+            const elements = screen.getAllByText(/Dr\. AQUAVO/);
             expect(elements.length).toBeGreaterThan(0);
         });
 
@@ -75,13 +75,41 @@ describe('Fish Health Diagnosis Page', () => {
             render(<FishHealthDiagnosis />);
             expect(screen.getByText(/ارفع صورة السمكة/)).toBeInTheDocument();
         });
+
+        it('should display diagnosis result placeholder', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText(/نتيجة التشخيص/)).toBeInTheDocument();
+        });
+
+        it('should display disease categories reference section', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText(/قاعدة بيانات الأمراض/)).toBeInTheDocument();
+        });
+
+        it('should display all 4 disease category cards', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText('طفيلية')).toBeInTheDocument();
+            expect(screen.getByText('بكتيرية')).toBeInTheDocument();
+            expect(screen.getByText(/فطرية/)).toBeInTheDocument();
+            expect(screen.getByText(/بيئية/)).toBeInTheDocument();
+        });
+
+        it('should show upload tips', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText(/نصائح لأفضل نتيجة/)).toBeInTheDocument();
+        });
     });
 
     describe('Diagnosis Tool', () => {
         it('should display diagnosis form or tool', () => {
             render(<FishHealthDiagnosis />);
-            // Check for main content area as the tool is dynamically rendered
             expect(screen.getByRole('main')).toBeInTheDocument();
+        });
+
+        it('should have upload and camera buttons', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText('رفع صورة')).toBeInTheDocument();
+            expect(screen.getByText('التقاط صورة')).toBeInTheDocument();
         });
     });
 
@@ -90,6 +118,11 @@ describe('Fish Health Diagnosis Page', () => {
             render(<FishHealthDiagnosis />);
             const headings = screen.getAllByRole('heading');
             expect(headings.length).toBeGreaterThan(0);
+        });
+
+        it('should have disclaimer notice', () => {
+            render(<FishHealthDiagnosis />);
+            expect(screen.getByText(/تقديري يعتمد على الذكاء الاصطناعي/)).toBeInTheDocument();
         });
     });
 });
