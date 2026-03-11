@@ -103,6 +103,28 @@ const STATIC_PAGES: Record<string, PageMeta> = {
       },
       {
         "@context": "https://schema.org",
+        "@type": "ItemList",
+        name: "فئات منتجات AQUAVO",
+        description: "جميع فئات مستلزمات احواض اسماك الزينة المتوفرة في العراق",
+        url: `${BASE}/products`,
+        numberOfItems: 12,
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
+          { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
+          { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
+          { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
+          { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
+          { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
+          { "@type": "ListItem", position: 7, name: "نباتات مائية", url: `${BASE}/products?category=plants` },
+          { "@type": "ListItem", position: 8, name: "ديكورات", url: `${BASE}/products?category=decorations` },
+          { "@type": "ListItem", position: 9, name: "ركائز", url: `${BASE}/products?category=substrates` },
+          { "@type": "ListItem", position: 10, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
+          { "@type": "ListItem", position: 11, name: "أسماك حية", url: `${BASE}/products?category=live-fish` },
+          { "@type": "ListItem", position: 12, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
+        ],
+      },
+      {
+        "@context": "https://schema.org",
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
@@ -396,25 +418,49 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT title, excerpt, "imageUrl", author, "publishedAt" FROM blog_posts WHERE slug = $1 AND status = 'published' LIMIT 1`,
+      `SELECT title, excerpt, "imageUrl", author, "publishedAt", "updatedAt", content FROM blog_posts WHERE slug = $1 AND status = 'published' LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
     const post = rows[0];
+    const wordCount = post.content ? post.content.split(/\s+/).length : undefined;
+    const datePublished = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
+    const dateModified = post.updatedAt ? new Date(post.updatedAt).toISOString() : datePublished;
     return {
       title: `${post.title} | مدونة AQUAVO`,
       description: post.excerpt || post.title,
       ogType: "article",
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Article",
-        headline: post.title,
-        description: post.excerpt || post.title,
-        image: post.imageUrl || DEFAULT_IMAGE,
-        author: { "@type": "Person", name: post.author || "AQUAVO" },
-        publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
-        datePublished: post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined,
-      },
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Article",
+          headline: post.title,
+          description: post.excerpt || post.title,
+          image: post.imageUrl || DEFAULT_IMAGE,
+          author: { "@type": "Person", name: post.author || "AQUAVO" },
+          publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
+          datePublished,
+          dateModified,
+          wordCount,
+          inLanguage: "ar",
+          mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
+          isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "SpeakableSpecification",
+          cssSelector: ["h1", "article p:first-of-type", "[data-speakable]"],
+        },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+            { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
+            { "@type": "ListItem", position: 3, name: post.title, item: `${BASE}/blog/${slug}` },
+          ],
+        },
+      ],
     };
   } catch (err) {
     console.error("SSR meta: blog query error", err);

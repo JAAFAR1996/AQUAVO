@@ -45,6 +45,13 @@ Disallow: /admin
 Disallow: /api/
 Disallow: /profile
 
+# OpenAI Search (new 2025)
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
 # Google AI (Gemini, AI Overviews)
 User-agent: Google-Extended
 Allow: /
@@ -79,6 +86,9 @@ Allow: /
 User-agent: FacebookBot
 Allow: /
 
+User-agent: Meta-ExternalAgent
+Allow: /
+
 # Bing Copilot / Microsoft AI
 User-agent: Bingbot
 Allow: /
@@ -87,5 +97,46 @@ Allow: /
 User-agent: cohere-ai
 Allow: /
 
+# ByteDance / TikTok AI
+User-agent: Bytespider
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
+# You.com AI
+User-agent: YouBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+
+# Allen AI (AI2)
+User-agent: AI2Bot
+Allow: /
+
+# Diffbot
+User-agent: Diffbot
+Allow: /
+
+# Amazon AI
+User-agent: Amazonbot
+Allow: /
+
+# Imagesift AI
+User-agent: ImagesiftBot
+Allow: /
+
+# Timpi AI
+User-agent: Timpibot
+Allow: /
+
+# Common Crawl (used by many AI models)
+User-agent: CCBot
+Allow: /
+Disallow: /admin
+Disallow: /api/
+Disallow: /profile
+
 # ─── LLMs.txt reference ──────────────────────────
-# See /llms.txt for AI content guidance
+# See /llms.txt for AI content guidance (summary)
+# See /llms-full.txt for comprehensive documentation
