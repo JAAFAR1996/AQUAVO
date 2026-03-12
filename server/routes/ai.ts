@@ -101,6 +101,49 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
             isAdmin,
         };
 
+        // Fetch user's fish patients if logged in (for personalized chatbot)
+        if (db && userId && !isAdmin) {
+            try {
+                const fishData = await db
+                    .select()
+                    .from(schema.fishPatients)
+                    .where(and(eq(schema.fishPatients.userId, userId), eq(schema.fishPatients.isActive, true)))
+                    .limit(10);
+
+                if (fishData.length > 0) {
+                    const fishWithRecords = await Promise.all(
+                        fishData.slice(0, 5).map(async (fish) => {
+                            const records = await db
+                                .select()
+                                .from(schema.fishMedicalRecords)
+                                .where(eq(schema.fishMedicalRecords.fishPatientId, fish.id))
+                                .orderBy(schema.fishMedicalRecords.createdAt)
+                                .limit(3);
+                            return {
+                                id: fish.id,
+                                name: fish.name,
+                                species: fish.species || undefined,
+                                age: fish.age || undefined,
+                                records: records.map(r => ({
+                                    diagnosis: r.diagnosis || undefined,
+                                    arabicDiagnosis: r.arabicDiagnosis || undefined,
+                                    category: r.category || undefined,
+                                    treatment: r.treatment as string[] || undefined,
+                                    followUpDate: r.followUpDate?.toISOString() || undefined,
+                                    followUpCompleted: r.followUpCompleted || false,
+                                    outcome: r.outcome || undefined,
+                                    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
+                                })),
+                            };
+                        })
+                    );
+                    context.fishPatients = fishWithRecords;
+                }
+            } catch (fishErr) {
+                console.error("Fish patients fetch error:", fishErr);
+            }
+        }
+
         if (db) {
             try {
                 // Get product counts for context
@@ -245,12 +288,52 @@ router.post("/chat/stream", aiRateLimiter, async (req: Request, res: Response) =
             } catch { }
         }
 
-        // Build context
         let context: ChatContext = {
             userName, userId,
             sessionId: (req as any).sessionID,
             isAdmin,
         };
+
+        // Fetch fish patients for stream endpoint too
+        if (db && userId && !isAdmin) {
+            try {
+                const fishData = await db
+                    .select()
+                    .from(schema.fishPatients)
+                    .where(and(eq(schema.fishPatients.userId, userId), eq(schema.fishPatients.isActive, true)))
+                    .limit(5);
+
+                if (fishData.length > 0) {
+                    const fishWithRecords = await Promise.all(
+                        fishData.slice(0, 3).map(async (fish) => {
+                            const records = await db
+                                .select()
+                                .from(schema.fishMedicalRecords)
+                                .where(eq(schema.fishMedicalRecords.fishPatientId, fish.id))
+                                .orderBy(schema.fishMedicalRecords.createdAt)
+                                .limit(2);
+                            return {
+                                id: fish.id,
+                                name: fish.name,
+                                species: fish.species || undefined,
+                                age: fish.age || undefined,
+                                records: records.map(r => ({
+                                    diagnosis: r.diagnosis || undefined,
+                                    arabicDiagnosis: r.arabicDiagnosis || undefined,
+                                    category: r.category || undefined,
+                                    treatment: r.treatment as string[] || undefined,
+                                    followUpDate: r.followUpDate?.toISOString() || undefined,
+                                    followUpCompleted: r.followUpCompleted || false,
+                                    outcome: r.outcome || undefined,
+                                    createdAt: r.createdAt?.toISOString() || new Date().toISOString(),
+                                })),
+                            };
+                        })
+                    );
+                    context.fishPatients = fishWithRecords;
+                }
+            } catch { /* fish data is best-effort */ }
+        }
 
         if (db) {
             try {

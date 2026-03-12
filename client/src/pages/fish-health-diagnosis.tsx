@@ -206,6 +206,13 @@ export default function FishHealthDiagnosis() {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
 
+  // Save-to-Fish-Record State
+  const [showSaveToFish, setShowSaveToFish] = useState(false);
+  const [myFish, setMyFish] = useState<Array<{id: string; name: string; species?: string}>>([]);
+  const [savingToFish, setSavingToFish] = useState(false);
+  const [savedToFish, setSavedToFish] = useState<string | null>(null);
+  const [newFishName, setNewFishName] = useState("");
+
   // User Context State
   const [userContextSpecies, setUserContextSpecies] = useState("");
   const [userContextEating, setUserContextEating] = useState("");
@@ -226,6 +233,84 @@ export default function FishHealthDiagnosis() {
   const toggleSection = useCallback((section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   }, []);
+
+  // Fetch user's registered fish
+  const fetchMyFish = useCallback(async () => {
+    try {
+      const res = await fetch("/api/fish-patients");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) setMyFish(data.data || []);
+      }
+    } catch { /* ignore - user might not be logged in */ }
+  }, []);
+
+  // Save diagnosis to a fish record
+  const saveDiagnosisToFishRecord = async (fishId: string) => {
+    if (!diagnosis) return;
+    setSavingToFish(true);
+    try {
+      const severityMap: Record<string, number> = {
+        critical: 2, high: 3, moderate: 5, low: 7, healthy: 14
+      };
+      const daysUntilFollowUp = severityMap[(diagnosis as any).severity || "moderate"] || 5;
+      const followUpDate = new Date();
+      followUpDate.setDate(followUpDate.getDate() + daysUntilFollowUp);
+
+      const diagData = diagnosis as any;
+      const res = await fetch(`/api/fish-patients/${fishId}/records`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          diagnosis: diagData.primaryDiagnosis?.diseaseName || diagData.diagnosis,
+          arabicDiagnosis: diagData.primaryDiagnosis?.arabicName || diagData.arabicDiagnosis,
+          confidence: String(diagData.confidence || diagData.primaryDiagnosis?.probability || ""),
+          category: diagData.primaryDiagnosis?.category || diagData.category,
+          symptoms: diagData.symptoms || [],
+          treatment: diagData.primaryDiagnosis?.treatment?.steps || diagData.treatment || [],
+          waterParams: {
+            temperature: waterTemperature || undefined,
+            ph: waterPh || undefined,
+            ammonia: waterAmmonia || undefined,
+            nitrite: waterNitrite || undefined,
+            nitrate: waterNitrate || undefined,
+          },
+          followUpDate: followUpDate.toISOString(),
+          imageUrl: image || undefined,
+        }),
+      });
+
+      if (res.ok) {
+        const fishName = myFish.find(f => f.id === fishId)?.name || "";
+        setSavedToFish(fishName);
+      }
+    } catch { /* ignore */ }
+    setSavingToFish(false);
+  };
+
+  // Register new fish + save record
+  const registerAndSave = async () => {
+    if (!newFishName.trim()) return;
+    setSavingToFish(true);
+    try {
+      const res = await fetch("/api/fish-patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newFishName.trim(),
+          species: userContextSpecies || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.data?.id) {
+          await saveDiagnosisToFishRecord(data.data.id);
+          setSavedToFish(newFishName.trim());
+        }
+      }
+    } catch { /* ignore */ }
+    setSavingToFish(false);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1262,30 +1347,105 @@ export default function FishHealthDiagnosis() {
           </div>
         </div>
 
-        {/* ═══════════ Link to Fish Records ═══════════ */}
-        <div className="mt-10 mb-16">
-          <div
-            className="p-6 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 border border-cyan-500/20 cursor-pointer hover:border-cyan-500/40 transition-all group"
-            onClick={() => window.location.href = '/fish-patients'}
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/30 transition-colors">
-                  <Heart className="w-7 h-7 text-cyan-400" />
+        {/* ═══════════ Save to Fish Record ═══════════ */}
+        {diagnosis && (
+          <div className="mt-10 mb-16">
+            {savedToFish ? (
+              /* ── Success message ── */
+              <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 text-center">
+                <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                <h3 className="text-lg font-bold text-emerald-300 mb-1">✅ تم حفظ التشخيص بسجل "{savedToFish}"!</h3>
+                <p className="text-sm text-slate-400">Dr. AQUAVO سوف يذكرك بموعد المتابعة 📅</p>
+                <Button
+                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
+                  onClick={() => window.location.href = '/fish-patients'}
+                >
+                  <Fish className="w-4 h-4" /> شوف السجل الطبي
+                </Button>
+              </div>
+            ) : showSaveToFish ? (
+              /* ── Fish selection modal ── */
+              <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-slate-800/50 to-teal-500/10 border border-cyan-500/20">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                  <Fish className="w-5 h-5 text-cyan-400" />
+                  احفظ التشخيص لأي سمكة؟
+                </h3>
+
+                {myFish.length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {myFish.map(fish => (
+                      <button
+                        key={fish.id}
+                        disabled={savingToFish}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-700/40 border border-slate-600/30 hover:border-cyan-500/40 hover:bg-slate-700/60 transition-all text-right"
+                        onClick={() => saveDiagnosisToFishRecord(fish.id)}
+                      >
+                        <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                          <Fish className="w-5 h-5 text-cyan-400" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-white">{fish.name}</p>
+                          {fish.species && <p className="text-xs text-slate-400">{fish.species}</p>}
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-slate-500" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* New fish inline */}
+                <div className="flex gap-2 items-center">
+                  <input
+                    placeholder="أو سجّل سمكة جديدة..."
+                    value={newFishName}
+                    onChange={e => setNewFishName(e.target.value)}
+                    className="flex-1 bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                  />
+                  <Button
+                    disabled={!newFishName.trim() || savingToFish}
+                    className="bg-cyan-600 hover:bg-cyan-500 text-white text-sm"
+                    onClick={registerAndSave}
+                  >
+                    {savingToFish ? "⏳" : "✅ سجّل واحفظ"}
+                  </Button>
                 </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
-                    📋 سجل أسماكي — تابع صحة أسماكك!
-                  </h3>
-                  <p className="text-sm text-slate-400">
-                    سجّل أسماكك واحفظ كل تشخيص — Dr. AQUAVO يتذكر التاريخ الطبي!
-                  </p>
+
+                <button
+                  className="mt-3 text-xs text-slate-500 hover:text-slate-300 transition-colors"
+                  onClick={() => setShowSaveToFish(false)}
+                >
+                  إلغاء
+                </button>
+              </div>
+            ) : (
+              /* ── Save prompt button ── */
+              <div
+                className="p-6 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 border border-cyan-500/20 cursor-pointer hover:border-cyan-500/40 transition-all group"
+                onClick={() => {
+                  setShowSaveToFish(true);
+                  fetchMyFish();
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/30 transition-colors">
+                      <Heart className="w-7 h-7 text-cyan-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                        📋 احفظ التشخيص بسجل سمكتك!
+                      </h3>
+                      <p className="text-sm text-slate-400">
+                        سجّل سمكتك — Dr. AQUAVO يتذكر التاريخ الطبي ويذكرك بالمتابعة!
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform" />
                 </div>
               </div>
-              <ChevronRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform" />
-            </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ═══════════ Disease Categories Reference ═══════════ */}
         <div className="mt-16">

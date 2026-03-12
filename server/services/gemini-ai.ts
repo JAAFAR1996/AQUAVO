@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AQUAVO AI Sales Agent - وكيل المبيعات الذكي
  * Version 4.0 - Powered by Groq with Tool Calling
  *
@@ -182,6 +182,22 @@ export interface ChatContext {
     customerProfile?: any;
     searchPerformed?: boolean;
     productsFound?: number;
+    fishPatients?: Array<{
+        id: string;
+        name: string;
+        species?: string;
+        age?: string;
+        records?: Array<{
+            diagnosis?: string;
+            arabicDiagnosis?: string;
+            category?: string;
+            treatment?: string[];
+            followUpDate?: string;
+            followUpCompleted?: boolean;
+            outcome?: string;
+            createdAt: string;
+        }>;
+    }>;
 }
 
 export interface SendMessageResult {
@@ -527,6 +543,28 @@ pH: 6.5-7.5 لاغلب الاسماك. التغيير المفاجئ اخطر م
 
 ${profileContext}
 
+${context?.fishPatients && context.fishPatients.length > 0 ? `
+[أسماك المستخدم المسجلة — اعرف تاريخها الطبي]
+هذا المستخدم سجل أسماكه عندنا. اذا سال عن سمكته بالاسم او سال عن مرضها السابق، ارجع لهالبيانات:
+${context.fishPatients.map(f => {
+    const recordsSummary = f.records && f.records.length > 0
+        ? f.records.slice(0, 3).map(r => `  - ${r.arabicDiagnosis || r.diagnosis || 'فحص عام'} (${r.category || '-'}) — ${r.outcome || 'بانتظار'} — ${new Date(r.createdAt).toLocaleDateString('ar-IQ')}`).join('\n')
+        : '  لا توجد سجلات طبية بعد';
+    return `🐟 ${f.name}${f.species ? ` (${f.species})` : ''}${f.age ? ` — العمر: ${f.age}` : ''}\n${recordsSummary}`;
+}).join('\n\n')}
+
+اذا المستخدم سال "شلون سمكتي" او ذكر اسم سمكته → ارجع للسجلات واذكر آخر تشخيص وعلاج.
+aذا عنده متابعة قريبة → ذكره فيها: "عندك متابعة قريبة لـ [اسم السمكة]!"
+
+⚠️ قاعدة ذهبية — التحقق من العلاج النشط:
+اذا السمكة عندها سجل طبي حديث (اقل من 14 يوم) والمتابعة ما انتهت بعد → لا تعطي علاج جديد مباشرة!
+اول شي اسأل: "حبي، ${'{اسم السمكة}'} كانت تتعالج من ${'{المرض السابق}'}. شلون صارت بعد العلاج؟ تحسنت ولا لا؟"
+لان ممكن الاعراض الحالية هي اثر جانبي من العلاج القديم وليس مرض جديد.
+
+⚠️ قاعدة ذهبية — عتبة الثقة:
+اذا المستخدم سال عن سمكته بس ما اعطاك صورة جديدة ولا وصف دقيق للاعراض الحالية → لا تشخص بشكل مؤكد!
+بدل ما تقول "هاي Ich" قول: "بدون ما اشوف صورة حديثة، ما اكدر اأكد. صورلي اياها وكلني شنو تشوف بالضبط هسه 📸"
+` : ''}
 [حالة المستخدم]
 الاسم: ${userName || 'صديق'}
 `;
