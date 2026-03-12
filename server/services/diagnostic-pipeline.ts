@@ -150,7 +150,7 @@ export class DiagnosticPipeline {
     // ═══════════════════════════════════════════════════════
     // EARLY STOPPING: If image too blurry, stop pipeline
     // ═══════════════════════════════════════════════════════
-    if (visionReport.imageQuality.score <= 3 || !visionReport.imageQuality.canDiagnose) {
+    if (visionReport.imageQuality.score <= 3 && !visionReport.imageQuality.canDiagnose) {
       console.log(`[Pipeline] 🛑 Early Stop: Image quality too low (${visionReport.imageQuality.score}/10)`);
       return {
         detected: ["الصورة غير واضحة كفاية"],

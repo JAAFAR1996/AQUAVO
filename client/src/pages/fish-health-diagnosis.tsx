@@ -673,36 +673,36 @@ export default function FishHealthDiagnosis() {
 
                     {/* ── Image Quality Feedback ── */}
                     {diagnosis.imageQuality && !diagnosis.imageQuality.canDiagnose && (
-                      <Alert className="bg-amber-50 dark:bg-amber-950 border-amber-200">
-                        <AlertTriangle className="h-4 w-4 text-amber-600" />
-                        <AlertDescription className="text-sm">
-                          <strong>جودة الصورة غير كافية:</strong> {diagnosis.imageQuality.feedback}
+                      <Alert className="bg-amber-500/10 border-amber-400/30 backdrop-blur-sm">
+                        <AlertTriangle className="h-5 w-5 text-amber-400" />
+                        <AlertDescription className="text-base font-medium text-amber-200">
+                          <strong className="text-amber-300">جودة الصورة غير كافية:</strong> {diagnosis.imageQuality.feedback}
                         </AlertDescription>
                       </Alert>
                     )}
 
                     {/* ── Species Identification ── */}
                     {diagnosis.speciesIdentification && (
-                      <div className="p-4 bg-gradient-to-br from-blue-900/40 to-cyan-900/40 dark:from-blue-950/60 dark:to-cyan-950/60 rounded-xl border border-blue-500/30 dark:border-blue-400/20 shadow-inner">
-                        <div className="flex items-center justify-between mb-3 border-b border-blue-500/20 pb-2">
+                      <div className="p-5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl border border-slate-600/30 shadow-xl backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-4 border-b border-slate-600/30 pb-3">
                           <div className="flex items-center gap-2">
-                            <Fish className="h-4 w-4 text-blue-400" />
-                            <span className="font-bold text-sm text-blue-100 dark:text-blue-200">نوع السمكة</span>
+                            <Fish className="h-5 w-5 text-cyan-400" />
+                            <span className="font-bold text-base text-slate-200">نوع السمكة</span>
                           </div>
-                          <Badge variant="outline" className="text-xs bg-blue-950/50 text-blue-200 border-blue-500/30">
+                          <Badge variant="outline" className="text-sm font-bold bg-cyan-500/10 text-cyan-300 border-cyan-500/30 px-3 py-1">
                             ثقة {Math.round(diagnosis.speciesIdentification.confidence * 100)}%
                           </Badge>
                         </div>
-                        <div className="text-center space-y-1 mb-3">
-                          <p className="font-extrabold text-lg text-white drop-shadow-sm">{diagnosis.speciesIdentification.commonName}</p>
-                          <p className="text-xs text-blue-200/70 italic font-mono">{diagnosis.speciesIdentification.scientificName}</p>
+                        <div className="text-center space-y-2 mb-4">
+                          <p className="font-black text-2xl text-white tracking-wide">{diagnosis.speciesIdentification.commonName}</p>
+                          <p className="text-sm text-slate-400 italic font-mono">{diagnosis.speciesIdentification.scientificName}</p>
                         </div>
-                        <div className="flex gap-2 mt-2 flex-wrap">
-                          <Badge variant="secondary" className="text-xs">{diagnosis.speciesIdentification.family}</Badge>
-                          <Badge variant="secondary" className="text-xs">{diagnosis.speciesIdentification.waterType}</Badge>
+                        <div className="flex gap-2 mt-3 flex-wrap justify-center">
+                          <Badge className="text-sm bg-slate-700/60 text-slate-200 border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.family}</Badge>
+                          <Badge className="text-sm bg-slate-700/60 text-slate-200 border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.waterType}</Badge>
                         </div>
                         {diagnosis.speciesIdentification.knownVulnerabilities?.length > 0 && (
-                          <p className="text-xs text-muted-foreground mt-2">
+                          <p className="text-sm text-amber-400/90 mt-3 text-center">
                             ⚠️ عرضة لـ: {diagnosis.speciesIdentification.knownVulnerabilities.join("، ")}
                           </p>
                         )}
@@ -710,66 +710,66 @@ export default function FishHealthDiagnosis() {
                     )}
 
                     {/* ── Disease Name & Urgency ── */}
-                    <div className="text-center space-y-3 mt-6 mb-2">
-                      <div className="inline-flex flex-col items-center justify-center gap-2">
-                        <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 drop-shadow-sm">{diagnosis.arabicName}</h3>
-                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-white text-sm px-3 py-1 shadow-lg ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
+                    <div className="text-center space-y-4 mt-8 mb-4">
+                      <div className="inline-flex flex-col items-center justify-center gap-3">
+                        <h3 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 leading-relaxed pb-1">{diagnosis.arabicName}</h3>
+                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-white text-base px-5 py-2 shadow-lg font-bold tracking-wide ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
                           {urgencyConfig[diagnosis.urgency].text}
                         </Badge>
                       </div>
-                      <div className="flex items-center justify-center gap-2 flex-wrap">
-                        <p className="text-sm border border-border/50 px-3 py-1 rounded-full text-muted-foreground bg-background/50 shadow-sm">{diagnosis.disease}</p>
+                      <div className="flex items-center justify-center gap-3 flex-wrap">
+                        <p className="text-base border border-slate-600/40 px-4 py-1.5 rounded-full text-slate-300 bg-slate-800/50 shadow-sm font-medium">{diagnosis.disease}</p>
                         {diagnosis.category && categoryLabels[diagnosis.category] && (
-                          <Badge variant="secondary" className="text-xs">
+                          <Badge variant="secondary" className="text-sm px-3 py-1">
                             {categoryLabels[diagnosis.category].label}
                           </Badge>
                         )}
                         {diagnosis.pathogen && (
-                          <Badge variant="outline" className="text-xs font-mono bg-background/50">
+                          <Badge variant="outline" className="text-sm font-mono bg-slate-800/50 px-3 py-1">
                             {diagnosis.pathogen}
                           </Badge>
                         )}
                       </div>
                       {/* Confidence bar */}
-                      <div className="flex items-center gap-2 mt-3">
-                        <span className="text-sm text-muted-foreground shrink-0">الدقة:</span>
-                        <div className="flex-1 bg-muted rounded-full h-2.5 overflow-hidden">
+                      <div className="flex items-center gap-3 mt-4 max-w-md mx-auto">
+                        <span className="text-base text-slate-400 shrink-0 font-medium">الدقة:</span>
+                        <div className="flex-1 bg-slate-700/50 rounded-full h-3.5 overflow-hidden">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${urgencyConfig[diagnosis.urgency].gradient} transition-all duration-1000`}
                             style={{ width: `${diagnosis.confidence}%` }}
                           />
                         </div>
-                        <span className="text-sm font-bold shrink-0">{diagnosis.confidence}%</span>
+                        <span className="text-lg font-black shrink-0 text-white">{diagnosis.confidence}%</span>
                       </div>
                     </div>
 
                     {/* ── Diagnosis Explanation ── */}
                     {diagnosis.diagnosis && (
                       <>
-                        <Separator />
-                        <div className={`p-4 rounded-xl shadow-inner ${urgencyConfig[diagnosis.urgency].bgLight} border-l-4 ${urgencyConfig[diagnosis.urgency].border.replace('border', 'border-l')}`}>
-                          <h4 className="font-extrabold mb-3 flex items-center gap-2 text-base">
-                            <Target className="h-5 w-5 opacity-80" />
+                        <Separator className="opacity-30" />
+                        <div className={`p-5 rounded-2xl shadow-lg bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-600/30`}>
+                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                            <Target className="h-5 w-5 text-cyan-400" />
                             تفسير التشخيص:
                           </h4>
-                          <p className="text-sm leading-8 text-foreground/90 font-medium text-justify">{diagnosis.diagnosis}</p>
+                          <p className="text-base leading-9 text-slate-200 font-medium text-justify">{diagnosis.diagnosis}</p>
                         </div>
                       </>
                     )}
 
-                    <Separator />
+                    <Separator className="opacity-30" />
 
                     {/* ── Symptoms ── */}
                     <div>
-                      <h4 className="font-bold mb-3 flex items-center gap-2">
-                        <Activity className="h-4 w-4 text-red-500" />
+                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                        <Activity className="h-5 w-5 text-red-400" />
                         الأعراض المكتشفة:
                       </h4>
-                      <ul className="space-y-2">
+                      <ul className="space-y-2.5">
                         {diagnosis.symptoms.map((symptom, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <span className="text-red-500 mt-1 shrink-0">•</span>
-                            <span>{symptom}</span>
+                          <li key={i} className="flex items-start gap-3 text-base">
+                            <span className="text-red-400 mt-0.5 shrink-0 text-lg">•</span>
+                            <span className="text-slate-200 leading-relaxed">{symptom}</span>
                           </li>
                         ))}
                       </ul>
@@ -816,19 +816,19 @@ export default function FishHealthDiagnosis() {
                       </>
                     )}
 
-                    <Separator />
+                    <Separator className="opacity-30" />
 
                     {/* ── Treatment ── */}
                     <div>
-                      <h4 className="font-bold mb-3 flex items-center gap-2">
-                        <Pill className="h-4 w-4 text-green-500" />
+                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                        <Pill className="h-5 w-5 text-emerald-400" />
                         العلاج:
                       </h4>
-                      <ol className="space-y-2">
+                      <ol className="space-y-3">
                         {diagnosis.treatment.map((step, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm">
-                            <Badge variant="outline" className="shrink-0 w-6 h-6 flex items-center justify-center p-0 text-xs">{i + 1}</Badge>
-                            <span>{step}</span>
+                          <li key={i} className="flex items-start gap-3 text-base">
+                            <Badge className="shrink-0 w-7 h-7 flex items-center justify-center p-0 text-sm bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold">{i + 1}</Badge>
+                            <span className="text-slate-200 leading-relaxed">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -998,13 +998,13 @@ export default function FishHealthDiagnosis() {
                           {expandedSections.prognosis && (
                             <div className="space-y-3">
                               <div className="grid grid-cols-2 gap-3">
-                                <div className="p-3 bg-indigo-50 dark:bg-indigo-950 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                                  <p className="text-xs text-muted-foreground">احتمال الشفاء</p>
-                                  <p className="font-bold text-lg text-indigo-600">{diagnosis.prognosis.recoveryChance}</p>
+                                <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                  <p className="text-sm text-indigo-300 mb-1">احتمال الشفاء</p>
+                                  <p className="font-black text-xl text-indigo-200">{diagnosis.prognosis.recoveryChance}</p>
                                 </div>
-                                <div className="p-3 bg-indigo-50 dark:bg-indigo-950 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                                  <p className="text-xs text-muted-foreground">مدة العلاج</p>
-                                  <p className="font-bold text-lg text-indigo-600">{diagnosis.prognosis.expectedDuration}</p>
+                                <div className="p-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                                  <p className="text-sm text-indigo-300 mb-1">مدة العلاج</p>
+                                  <p className="font-black text-xl text-indigo-200">{diagnosis.prognosis.expectedDuration}</p>
                                 </div>
                               </div>
 
@@ -1050,17 +1050,17 @@ export default function FishHealthDiagnosis() {
                     {/* ── Prevention ── */}
                     {diagnosis.prevention.length > 0 && (
                       <>
-                        <Separator />
+                        <Separator className="opacity-30" />
                         <div>
-                          <h4 className="font-bold mb-3 flex items-center gap-2">
-                            <Shield className="h-4 w-4 text-teal-500" />
+                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                            <Shield className="h-5 w-5 text-teal-400" />
                             الوقاية:
                           </h4>
-                          <ul className="space-y-2">
+                          <ul className="space-y-2.5">
                             {diagnosis.prevention.map((tip, i) => (
-                              <li key={i} className="flex items-start gap-2 text-sm">
-                                <CheckCircle className="h-4 w-4 text-teal-500 mt-0.5 shrink-0" />
-                                <span>{tip}</span>
+                              <li key={i} className="flex items-start gap-3 text-base">
+                                <CheckCircle className="h-5 w-5 text-teal-400 mt-0.5 shrink-0" />
+                                <span className="text-slate-200 leading-relaxed">{tip}</span>
                               </li>
                             ))}
                           </ul>
@@ -1071,12 +1071,12 @@ export default function FishHealthDiagnosis() {
                     {/* ── Feedback Loop ── */}
                     {analysisId && !feedbackSent && (
                       <>
-                        <Separator />
-                        <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 rounded-xl border border-blue-200 dark:border-blue-800">
-                          <h4 className="font-bold mb-3 flex items-center gap-2 text-sm">
+                        <Separator className="opacity-30" />
+                        <div className="p-5 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-2xl border border-cyan-500/20 shadow-lg">
+                          <h4 className="font-black mb-3 flex items-center gap-2 text-lg text-white">
                             📊 هل التشخيص صحيح؟
                           </h4>
-                          <p className="text-xs text-muted-foreground mb-3">
+                          <p className="text-sm text-slate-300 mb-4">
                             ملاحظاتك تساعد Dr. AQUAVO يصير أذكى مع كل حالة
                           </p>
                           <div className="flex gap-2">
