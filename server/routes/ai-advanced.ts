@@ -128,13 +128,21 @@ router.post(
         });
       }
 
+      // Context Alignment (Pre-prompting) data from frontend
+      const userContext = {
+        species: req.body.userContextSpecies || undefined,
+        eating: req.body.userContextEating || undefined,
+        symptoms: req.body.userContextSymptoms || undefined,
+      };
+
       // Use buffer directly (no disk storage needed for Vercel)
       const result = await visualAI.analyzeImageBuffer(
         req.file.buffer,
         req.file.mimetype,
         analysisType,
         req.body.userId,
-        req.body.sessionId
+        req.body.sessionId,
+        userContext
       );
 
       res.json({

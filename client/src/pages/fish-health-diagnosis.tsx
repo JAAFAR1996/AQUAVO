@@ -203,6 +203,12 @@ export default function FishHealthDiagnosis() {
   });
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
+
+  // User Context State
+  const [userContextSpecies, setUserContextSpecies] = useState("");
+  const [userContextEating, setUserContextEating] = useState("");
+  const [userContextSymptoms, setUserContextSymptoms] = useState("");
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -251,6 +257,9 @@ export default function FishHealthDiagnosis() {
       const formData = new FormData();
       formData.append('image', imageFile);
       formData.append('analysisType', 'health');
+      if (userContextSpecies) formData.append('userContextSpecies', userContextSpecies);
+      if (userContextEating) formData.append('userContextEating', userContextEating);
+      if (userContextSymptoms) formData.append('userContextSymptoms', userContextSymptoms);
 
       const response = await fetch('/api/ai-advanced/visual/analyze-upload', {
         method: 'POST',
@@ -438,7 +447,6 @@ export default function FishHealthDiagnosis() {
                       alt="Uploaded fish"
                       className="w-full h-64 object-cover"
                     />
-                    {/* Image quality indicator from AI */}
                     {diagnosis?.imageQuality && (
                       <div className="absolute top-3 left-3">
                         <Badge className={`${diagnosis.imageQuality.score >= 7 ? 'bg-green-500' : diagnosis.imageQuality.score >= 4 ? 'bg-yellow-500' : 'bg-red-500'} text-white shadow-lg`}>
@@ -446,6 +454,48 @@ export default function FishHealthDiagnosis() {
                         </Badge>
                       </div>
                     )}
+                  </div>
+
+                  {/* Context Gathering Form (Pre-prompting) */}
+                  <div className="bg-muted/30 p-4 rounded-lg border border-border/50 text-right space-y-3">
+                    <p className="text-sm font-semibold mb-2">💡 ساعد الذكاء الاصطناعي لنتائج أدق (اختياري)</p>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2">
+                      <div>
+                        <label className="text-xs text-muted-foreground font-medium mb-1 block">شنو نوع السمكة؟ (مثال: جولد فيش، ديسكس)</label>
+                        <input 
+                          type="text" 
+                          placeholder="النوع..."
+                          value={userContextSpecies}
+                          onChange={(e) => setUserContextSpecies(e.target.value)}
+                          className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs text-muted-foreground font-medium mb-1 block">هل السمكة تأكل بصورة طبيعية؟</label>
+                        <select 
+                          value={userContextEating}
+                          onChange={(e) => setUserContextEating(e.target.value)}
+                          className="w-full text-sm p-2 rounded-md border border-input bg-background text-right focus:outline-none focus:ring-1 focus:ring-primary"
+                        >
+                          <option value="">اختر...</option>
+                          <option value="تأكل بشهية ممتازة">تأكل بصورة ممتازة</option>
+                          <option value="تأكل بصعوبة أو قليل">قليل جداً / بصعوبة</option>
+                          <option value="لا تأكل أبداً وتقذف الطعام">لا تأكل أبداً</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-muted-foreground font-medium mb-1 block">هل تلاحظ أي أعراض؟ (مثل: حكة، خمول، بقع)</label>
+                      <input 
+                        type="text" 
+                        placeholder="الأعراض..."
+                        value={userContextSymptoms}
+                        onChange={(e) => setUserContextSymptoms(e.target.value)}
+                        className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
                   </div>
 
                   {/* Analysis Progress Steps */}
@@ -549,16 +599,20 @@ export default function FishHealthDiagnosis() {
 
                     {/* ── Species Identification ── */}
                     {diagnosis.speciesIdentification && (
-                      <div className="p-3 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Fish className="h-4 w-4 text-blue-600" />
-                          <span className="font-bold text-sm text-blue-700 dark:text-blue-400">نوع السمكة</span>
-                          <Badge variant="outline" className="mr-auto text-xs">
+                      <div className="p-4 bg-gradient-to-br from-blue-900/40 to-cyan-900/40 dark:from-blue-950/60 dark:to-cyan-950/60 rounded-xl border border-blue-500/30 dark:border-blue-400/20 shadow-inner">
+                        <div className="flex items-center justify-between mb-3 border-b border-blue-500/20 pb-2">
+                          <div className="flex items-center gap-2">
+                            <Fish className="h-4 w-4 text-blue-400" />
+                            <span className="font-bold text-sm text-blue-100 dark:text-blue-200">نوع السمكة</span>
+                          </div>
+                          <Badge variant="outline" className="text-xs bg-blue-950/50 text-blue-200 border-blue-500/30">
                             ثقة {Math.round(diagnosis.speciesIdentification.confidence * 100)}%
                           </Badge>
                         </div>
-                        <p className="font-semibold">{diagnosis.speciesIdentification.commonName}</p>
-                        <p className="text-xs text-muted-foreground italic">{diagnosis.speciesIdentification.scientificName}</p>
+                        <div className="text-center space-y-1 mb-3">
+                          <p className="font-extrabold text-lg text-white drop-shadow-sm">{diagnosis.speciesIdentification.commonName}</p>
+                          <p className="text-xs text-blue-200/70 italic font-mono">{diagnosis.speciesIdentification.scientificName}</p>
+                        </div>
                         <div className="flex gap-2 mt-2 flex-wrap">
                           <Badge variant="secondary" className="text-xs">{diagnosis.speciesIdentification.family}</Badge>
                           <Badge variant="secondary" className="text-xs">{diagnosis.speciesIdentification.waterType}</Badge>
@@ -572,22 +626,22 @@ export default function FishHealthDiagnosis() {
                     )}
 
                     {/* ── Disease Name & Urgency ── */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2 gap-2">
-                        <h3 className="text-2xl font-bold">{diagnosis.arabicName}</h3>
-                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-white shrink-0 ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
+                    <div className="text-center space-y-3 mt-6 mb-2">
+                      <div className="inline-flex flex-col items-center justify-center gap-2">
+                        <h3 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 drop-shadow-sm">{diagnosis.arabicName}</h3>
+                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-white text-sm px-3 py-1 shadow-lg ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
                           {urgencyConfig[diagnosis.urgency].text}
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm text-muted-foreground">{diagnosis.disease}</p>
+                      <div className="flex items-center justify-center gap-2 flex-wrap">
+                        <p className="text-sm border border-border/50 px-3 py-1 rounded-full text-muted-foreground bg-background/50 shadow-sm">{diagnosis.disease}</p>
                         {diagnosis.category && categoryLabels[diagnosis.category] && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="secondary" className="text-xs">
                             {categoryLabels[diagnosis.category].label}
                           </Badge>
                         )}
                         {diagnosis.pathogen && (
-                          <Badge variant="outline" className="text-xs font-mono">
+                          <Badge variant="outline" className="text-xs font-mono bg-background/50">
                             {diagnosis.pathogen}
                           </Badge>
                         )}
@@ -609,12 +663,12 @@ export default function FishHealthDiagnosis() {
                     {diagnosis.diagnosis && (
                       <>
                         <Separator />
-                        <div className={`p-3 rounded-lg ${urgencyConfig[diagnosis.urgency].bgLight} border ${urgencyConfig[diagnosis.urgency].border}`}>
-                          <h4 className="font-bold mb-2 flex items-center gap-2 text-sm">
-                            <Target className="h-4 w-4" />
+                        <div className={`p-4 rounded-xl shadow-inner ${urgencyConfig[diagnosis.urgency].bgLight} border-l-4 ${urgencyConfig[diagnosis.urgency].border.replace('border', 'border-l')}`}>
+                          <h4 className="font-extrabold mb-3 flex items-center gap-2 text-base">
+                            <Target className="h-5 w-5 opacity-80" />
                             تفسير التشخيص:
                           </h4>
-                          <p className="text-sm leading-relaxed">{diagnosis.diagnosis}</p>
+                          <p className="text-sm leading-8 text-foreground/90 font-medium text-justify">{diagnosis.diagnosis}</p>
                         </div>
                       </>
                     )}
