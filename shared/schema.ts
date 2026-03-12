@@ -2089,3 +2089,120 @@ export type InsertDiagnosisFeedback = z.infer<typeof insertDiagnosisFeedbackSche
 export type DiagnosisCase = typeof diagnosisCases.$inferSelect;
 export type InsertDiagnosisCase = z.infer<typeof insertDiagnosisCaseSchema>;
 
+// ========================================
+// Fish Patient Records (سجلات المرضى)
+// ========================================
+
+// Fish Patients — تسجيل أسماك المستخدم
+export const fishPatients = pgTable("fish_patients", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  name: text("name").notNull(), // اسم السمكة (مثل "نيمو")
+  species: text("species"), // نوع السمكة
+  scientificName: text("scientific_name"),
+  age: text("age"), // عمر تقريبي
+  gender: text("gender"), // ذكر/أنثى/غير محدد
+  tankSize: text("tank_size"), // حجم الحوض
+  waterType: text("water_type"), // عذبة/مالحة
+  photoUrl: text("photo_url"), // صورة السمكة (Cloudflare R2)
+  notes: text("notes"), // ملاحظات عامة
+  isActive: boolean("is_active").default(true), // هل السمكة لا تزال حية
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdx: index("fish_patients_user_idx").on(table.userId),
+  activeIdx: index("fish_patients_active_idx").on(table.isActive),
+}));
+
+// Fish Medical Records — السجل الطبي لكل سمكة
+export const fishMedicalRecords = pgTable("fish_medical_records", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  fishPatientId: text("fish_patient_id").references(() => fishPatients.id).notNull(),
+  analysisId: text("analysis_id").references(() => imageAnalyses.id),
+  diagnosis: text("diagnosis"), // التشخيص
+  arabicDiagnosis: text("arabic_diagnosis"),
+  confidence: numeric("confidence"),
+  category: text("category"), // parasitic, bacterial, etc.
+  symptoms: jsonb("symptoms").$type<string[]>(),
+  treatment: jsonb("treatment").$type<string[]>(),
+  waterParams: jsonb("water_params").$type<{
+    temperature?: string;
+    ph?: string;
+    ammonia?: string;
+    nitrite?: string;
+    nitrate?: string;
+  }>(),
+  userNotes: text("user_notes"), // ملاحظات المالك
+  outcome: text("outcome"), // recovered, worsened, stable, died
+  followUpDate: timestamp("follow_up_date"), // موعد المتابعة
+  followUpCompleted: boolean("follow_up_completed").default(false),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  fishIdx: index("fish_medical_records_fish_idx").on(table.fishPatientId),
+  analysisIdx: index("fish_medical_records_analysis_idx").on(table.analysisId),
+  followUpIdx: index("fish_medical_records_followup_idx").on(table.followUpDate),
+  createdAtIdx: index("fish_medical_records_created_at_idx").on(table.createdAt),
+}));
+
+// Relations
+export const fishPatientsRelations = relations(fishPatients, ({ one, many }) => ({
+  user: one(users, {
+    fields: [fishPatients.userId],
+    references: [users.id],
+  }),
+  medicalRecords: many(fishMedicalRecords),
+}));
+
+export const fishMedicalRecordsRelations = relations(fishMedicalRecords, ({ one }) => ({
+  fishPatient: one(fishPatients, {
+    fields: [fishMedicalRecords.fishPatientId],
+    references: [fishPatients.id],
+  }),
+  analysis: one(imageAnalyses, {
+    fields: [fishMedicalRecords.analysisId],
+    references: [imageAnalyses.id],
+  }),
+}));
+
+// Zod Schemas
+export const insertFishPatientSchema = z.object({
+  userId: z.string().min(1),
+  name: z.string().min(1),
+  species: z.string().optional(),
+  scientificName: z.string().optional(),
+  age: z.string().optional(),
+  gender: z.string().optional(),
+  tankSize: z.string().optional(),
+  waterType: z.string().optional(),
+  photoUrl: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const insertFishMedicalRecordSchema = z.object({
+  fishPatientId: z.string().min(1),
+  analysisId: z.string().optional(),
+  diagnosis: z.string().optional(),
+  arabicDiagnosis: z.string().optional(),
+  confidence: z.string().optional(),
+  category: z.string().optional(),
+  symptoms: z.array(z.string()).optional(),
+  treatment: z.array(z.string()).optional(),
+  waterParams: z.object({
+    temperature: z.string().optional(),
+    ph: z.string().optional(),
+    ammonia: z.string().optional(),
+    nitrite: z.string().optional(),
+    nitrate: z.string().optional(),
+  }).optional(),
+  userNotes: z.string().optional(),
+  outcome: z.string().optional(),
+  followUpDate: z.date().optional(),
+  imageUrl: z.string().optional(),
+});
+
+// Types
+export type FishPatient = typeof fishPatients.$inferSelect;
+export type InsertFishPatient = z.infer<typeof insertFishPatientSchema>;
+export type FishMedicalRecord = typeof fishMedicalRecords.$inferSelect;
+export type InsertFishMedicalRecord = z.infer<typeof insertFishMedicalRecordSchema>;

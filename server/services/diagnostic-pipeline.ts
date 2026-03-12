@@ -24,6 +24,7 @@ import { reviewerAgent, type ReviewVerdict } from "./agents/reviewer-agent.js";
 import { treatmentAgent, type TreatmentPlan } from "./agents/treatment-agent.js";
 import { ruleEngine, type RuleEngineAlert } from "./rule-engine.js";
 import { vetRAG } from "./vet-rag.js";
+import { feedbackRAG } from "./feedback-rag.js";
 
 export interface PipelineResult {
   // Main diagnosis fields (backwards compatible with existing frontend)
@@ -147,6 +148,52 @@ export class DiagnosticPipeline {
     }
 
     // ═══════════════════════════════════════════════════════
+    // EARLY STOPPING: If image too blurry, stop pipeline
+    // ═══════════════════════════════════════════════════════
+    if (visionReport.imageQuality.score <= 3 || !visionReport.imageQuality.canDiagnose) {
+      console.log(`[Pipeline] 🛑 Early Stop: Image quality too low (${visionReport.imageQuality.score}/10)`);
+      return {
+        detected: ["الصورة غير واضحة كفاية"],
+        confidence: 0,
+        suggestions: ["يرجى التقاط صورة أوضح وأقرب للسمكة"],
+        details: {
+          imageQuality: visionReport.imageQuality,
+          speciesIdentification: {
+            commonName: visionReport.species.commonName || "غير محدد",
+            scientificName: visionReport.species.scientificName || "N/A",
+            family: visionReport.species.family || "N/A",
+            waterType: visionReport.species.waterType || "غير محدد",
+            confidence: visionReport.species.confidence,
+            knownVulnerabilities: [],
+          },
+          disease: "Image Too Blurry",
+          arabicName: "الصورة غير واضحة للتشخيص",
+          category: "unknown",
+          pathogen: "N/A",
+          symptoms: [],
+          causes: [],
+          diagnosis: `الصورة حصلت على تقييم ${visionReport.imageQuality.score}/10 وهو غير كافٍ للتشخيص الدقيق. ${visionReport.imageQuality.feedback}`,
+          differentialDiagnosis: [],
+          treatment: [],
+          treatmentTimeline: [],
+          medicationWarnings: [],
+          quarantineProtocol: { required: false, duration: "N/A", tankSetup: "N/A", steps: [] },
+          prevention: [],
+          urgency: "low",
+          prognosis: { recoveryChance: "N/A", expectedDuration: "N/A", signsOfImprovement: [], signsOfDeterioration: [], followUpDate: "N/A" },
+          waterParameters: { temperature: "", ph: "", ammonia: "", nitrite: "", nitrate: "" },
+          followUpQuestions: [
+            "📸 يرجى التقاط صورة أقرب للسمكة مع إضاءة جيدة",
+            "💡 تأكد أن الصورة ليست ضبابية أو مهتزة",
+            "🐟 حاول تصوير السمكة من الجانب بشكل واضح",
+          ],
+          ruleEngineAlerts: ruleEngineAlerts.length > 0 ? ruleEngineAlerts : undefined,
+          pipelineStages: { ...pipelineStages, visionCompleted: true },
+        },
+      };
+    }
+
+    // ═══════════════════════════════════════════════════════
     // RAG: Fetch veterinary knowledge (in parallel with nothing, but structured)
     // ═══════════════════════════════════════════════════════
     let ragContext = "";
@@ -164,6 +211,22 @@ export class DiagnosticPipeline {
     }
 
     // ═══════════════════════════════════════════════════════
+    // FEEDBACK RAG: Fetch past corrections for this species
+    // ═══════════════════════════════════════════════════════
+    let similarCasesContext = "";
+    try {
+      similarCasesContext = await feedbackRAG.getSimilarCasesContext(
+        visionReport.species.commonName,
+        [] // symptoms not yet available at this stage
+      );
+      if (similarCasesContext) {
+        console.log(`[Pipeline] 📊 FeedbackRAG: Found past cases for ${visionReport.species.commonName}`);
+      }
+    } catch (feedbackError) {
+      console.error("[Pipeline] FeedbackRAG failed (non-blocking):", feedbackError);
+    }
+
+    // ═══════════════════════════════════════════════════════
     // STAGE 2: Diagnostician Agent — differential diagnosis
     // ═══════════════════════════════════════════════════════
     console.log("[Pipeline] 🧠 Stage 2: Diagnostician analyzing...");
@@ -172,7 +235,7 @@ export class DiagnosticPipeline {
       diagnosisReport = await diagnosticianAgent.diagnose(
         visionReport,
         ragContext,
-        "", // similar cases context added later if needed
+        similarCasesContext, // Now injecting real past corrections!
         userContext,
         waterParams
       );
@@ -189,7 +252,8 @@ export class DiagnosticPipeline {
     const postCheck = ruleEngine.postCheck(
       visionReport.species.commonName,
       diagnosisReport.primaryDiagnosis.disease,
-      userContext
+      userContext,
+      visionReport
     );
 
     if (postCheck.overrideDiagnosis) {

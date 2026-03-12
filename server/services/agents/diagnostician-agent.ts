@@ -75,6 +75,10 @@ function buildDiagnosticianPrompt(
 5. بطن منتفخ وحده ≠ Dropsy. بقعة بيضاء واحدة ≠ Ich. زعنفة ممزقة ≠ Fin Rot.
 6. إذا المالك قال "تأكل ممتاز" وأنت تشك بمرض قاتل → خفض الثقة 30%.
 7. إذا السمكة سليمة → isHealthy: true + confidence: 0.95.
+8. 🤰 قاعدة الحمل (مهم جداً!):
+   - إذا السمكة من الأنواع الولودة (Molly, Guppy, Platy, Swordtail) + بطن منتفخ متناسق + قشور مسطحة (بدون pine-coning) → الحمل أرجح من Dropsy
+   - إذا يوجد Gravid Spot (بقعة داكنة قرب الزعنفة الشرجية) → الحمل مؤكد تقريباً (confidence 0.9+)
+   - Dropsy يتطلب pine-coning (قشور منتفخة للخارج) — بدونه لا تشخص Dropsy
 
 ═══════════════════════════════════════════════════════
 📊 معايرة الثقة:
@@ -105,6 +109,12 @@ function buildDiagnosticianPrompt(
 • الانطباع العام: ${visionReport.overallImpression}
 
 • جودة الصورة: ${visionReport.imageQuality.score}/10 — ${visionReport.imageQuality.feedback}
+
+• 🤰 مؤشرات الحمل:
+  - شكل البطن: ${visionReport.pregnancyIndicators?.abdominalShape || "غير محدد"}
+  - بقعة الحمل (Gravid Spot): ${visionReport.pregnancyIndicators?.gravidSpot ? "موجودة ✅" : "غير موجودة"}
+  - نوع ولود (Livebearer): ${visionReport.pregnancyIndicators?.isLivebearer ? "نعم ✅" : "لا"}
+  - سلوك يشير للحمل: ${visionReport.pregnancyIndicators?.behaviorSigns || "غير ظاهر"}
 `;
 
   // Add user context

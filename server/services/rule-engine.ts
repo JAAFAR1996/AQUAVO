@@ -200,7 +200,8 @@ export class RuleEngine {
   postCheck(
     species: string,
     diagnosedDisease: string,
-    userContext: UserContext
+    userContext: UserContext,
+    visionReport?: VisionReport
   ): PostCheckResult {
     const speciesLower = species.toLowerCase();
     const diseaseLower = diagnosedDisease.toLowerCase();
@@ -219,16 +220,23 @@ export class RuleEngine {
         };
       }
 
-      // Check pregnant livebearers
+      // Check pregnant livebearers — use vision data for smarter detection
       const isLivebearer = PREGNANT_LIVEBEARERS.some(s => speciesLower.includes(s));
       if (isLivebearer) {
+        const hasGravidSpot = visionReport?.pregnancyIndicators?.gravidSpot === true;
+        const hasSymmetricBelly = visionReport?.pregnancyIndicators?.abdominalShape?.includes("متناسق") || false;
+        const isLivebearerVision = visionReport?.pregnancyIndicators?.isLivebearer === true;
+        const confidenceBoost = hasGravidSpot ? 0.95 : (hasSymmetricBelly || isLivebearerVision) ? 0.85 : 0.7;
+
         return {
           overrideDiagnosis: true,
-          reason: `${species} من الأسماك الولود — البطن المنتفخ قد يكون حمل وليس استسقاء`,
+          reason: hasGravidSpot 
+            ? `${species} ولود + بقعة حمل (Gravid Spot) مرئية → حمل مؤكد تقريباً`
+            : `${species} من الأسماك الولود — البطن المنتفخ قد يكون حمل وليس استسقاء`,
           correctedDisease: "Possible Pregnancy",
-          correctedArabicName: "احتمال حمل — وليس استسقاء",
+          correctedArabicName: hasGravidSpot ? "حمل مؤكد (Gravid Spot مرئي)" : "احتمال حمل — وليس استسقاء",
           correctedCategory: "healthy",
-          correctedConfidence: 0.7,
+          correctedConfidence: confidenceBoost,
         };
       }
     }

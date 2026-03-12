@@ -36,6 +36,12 @@ export interface VisionReport {
     lesionsOrWounds: string[];
     behaviorIfVisible: string;
   };
+  pregnancyIndicators: {
+    abdominalShape: string;     // "rounded symmetric" vs "uneven swelling"
+    gravidSpot: boolean;        // Dark spot near anal fin (livebearers)
+    isLivebearer: boolean;      // Molly, Guppy, Platy, Swordtail
+    behaviorSigns: string;      // Hiding, aggression, etc.
+  };
   overallImpression: string;   // One paragraph summary
 }
 
@@ -62,9 +68,14 @@ const VISION_PROMPT = `أنت "العين البصرية" — خبير تصوي�
 5. الزعانف (سليمة؟ متآكلة الحواف؟ مضمومة؟ طولها؟)
 6. العيون (حجمها طبيعي؟ بارزة؟ غائمة؟)
 7. الخياشيم (لونها؟ مفتوحة؟ متورمة؟)
-8. القشور (مسطحة؟ منتفخة؟ مفقودة؟)
+8. القشور (مسطحة؟ منتفخة للخارج "pine-coning"؟ مفقودة؟)
 9. حجم الجسم والبطن (طبيعي؟ منتفخ؟ هزيل؟)
 10. طفيليات مرئية (أي شيء ملتصق بالجسم؟)
+13. 🤰 مؤشرات الحمل (مهم جداً للتفريق بين الحمل والمرض!):
+   - هل البطن ممتلئ بشكل متساوٍ ومتناسق (= حمل) أم منتفخ بشكل غير طبيعي مع تورم؟
+   - هل هناك بقعة داكنة (Gravid Spot) قرب الزعنفة الشرجية؟ (مؤشر حمل عند الأسماك الولودة)
+   - هل السمكة من الأنواع الولودة (Livebearers): مولي، جوبي، بلاتي، سوردتيل؟
+   - هل القشور مسطحة وطبيعية (= حمل محتمل) أم منتفخة للخارج كالصنوبر (= Dropsy)?
 11. جروح أو تقرحات مرئية
 12. السلوك إذا كان ظاهراً (وضعية السباحة)
 
@@ -89,11 +100,17 @@ const VISION_PROMPT = `أنت "العين البصرية" — خبير تصوي�
     "fins": "وصف حالة الزعانف",
     "eyes": "وصف العيون",
     "gills": "وصف الخياشيم",
-    "scales": "وصف القشور",
+    "scales": "وصف القشور (مسطحة أم منتفخة للخارج pine-coning)",
     "bodySize": "وصف حجم الجسم/البطن",
     "visibleParasites": [],
     "lesionsOrWounds": [],
     "behaviorIfVisible": "وصف السلوك إن ظاهر"
+  },
+  "pregnancyIndicators": {
+    "abdominalShape": "متناسق بيضاوي / غير متناسق / منتفخ جانب واحد",
+    "gravidSpot": false,
+    "isLivebearer": true,
+    "behaviorSigns": "وصف سلوك يشير للحمل مثل الاختباء أو العدوانية"
   },
   "overallImpression": "ملخص بصري شامل بفقرة واحدة"
 }`;
@@ -143,6 +160,12 @@ export class VisionAgent {
             lesionsOrWounds: parsed.visualObservations?.lesionsOrWounds || [],
             behaviorIfVisible: parsed.visualObservations?.behaviorIfVisible || "غير ظاهر",
           },
+          pregnancyIndicators: {
+            abdominalShape: parsed.pregnancyIndicators?.abdominalShape || "غير محدد",
+            gravidSpot: parsed.pregnancyIndicators?.gravidSpot || false,
+            isLivebearer: parsed.pregnancyIndicators?.isLivebearer || false,
+            behaviorSigns: parsed.pregnancyIndicators?.behaviorSigns || "غير ظاهر",
+          },
           overallImpression: parsed.overallImpression || "غير محدد",
         };
       }
@@ -164,6 +187,12 @@ export class VisionAgent {
           visibleParasites: [],
           lesionsOrWounds: [],
           behaviorIfVisible: "غير ظاهر",
+        },
+        pregnancyIndicators: {
+          abdominalShape: "غير محدد",
+          gravidSpot: false,
+          isLivebearer: false,
+          behaviorSigns: "غير ظاهر",
         },
         overallImpression: "تعذر تحليل الصورة",
       };
