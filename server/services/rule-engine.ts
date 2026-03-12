@@ -279,6 +279,35 @@ export class RuleEngine {
       }
     }
 
+    // ── Check 5: Healthy diagnosis BUT strong pregnancy indicators ──
+    // If AI says "healthy" but pregnancy indicators are present, promote to Possible Pregnancy
+    const isHealthyDiagnosis = diseaseLower.includes("healthy") || diseaseLower.includes("no disease") || 
+                               diseaseLower.includes("سليم") || diseaseLower === "n/a";
+    if (isHealthyDiagnosis && visionReport?.pregnancyIndicators) {
+      const pi = visionReport.pregnancyIndicators;
+      const isLivebearer = pi.isLivebearer === true || PREGNANT_LIVEBEARERS.some(s => speciesLower.includes(s));
+      const hasSwollenBelly = pi.abdominalShape?.includes("منتفخ") || pi.abdominalShape?.includes("كروي") || 
+                              pi.abdominalShape?.includes("swollen") || pi.abdominalShape?.includes("round");
+      const hasGravidSpot = pi.gravidSpot === true;
+
+      // If it's a livebearer with swollen belly → most likely pregnant
+      if (isLivebearer && (hasSwollenBelly || hasGravidSpot)) {
+        const confidence = hasGravidSpot ? 0.95 : 0.80;
+        return {
+          overrideDiagnosis: true,
+          reason: hasGravidSpot
+            ? `${species} ولود + بقعة حمل (Gravid Spot) مرئية + بطن منتفخ → حمل شبه مؤكد`
+            : `${species} ولود + بطن منتفخ بشكل ملحوظ → احتمال حمل كبير`,
+          correctedDisease: "Possible Pregnancy",
+          correctedArabicName: hasGravidSpot 
+            ? "حمل شبه مؤكد 🤰 (Gravid Spot مرئي)"
+            : "احتمال حمل كبير 🤰",
+          correctedCategory: "healthy",
+          correctedConfidence: confidence,
+        };
+      }
+    }
+
     return { overrideDiagnosis: false };
   }
 

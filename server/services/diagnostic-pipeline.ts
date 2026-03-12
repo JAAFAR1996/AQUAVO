@@ -25,6 +25,7 @@ import { treatmentAgent, type TreatmentPlan } from "./agents/treatment-agent.js"
 import { ruleEngine, type RuleEngineAlert } from "./rule-engine.js";
 import { vetRAG } from "./vet-rag.js";
 import { feedbackRAG } from "./feedback-rag.js";
+import { FollowUpService } from "./follow-up-service.js";
 
 export interface PipelineResult {
   // Main diagnosis fields (backwards compatible with existing frontend)
@@ -88,6 +89,7 @@ export interface PipelineResult {
     };
     // Pipeline intelligence metadata
     followUpQuestions?: string[];
+    followUpReminder?: string;
     ruleEngineAlerts?: RuleEngineAlert[];
     reviewerCorrections?: string[];
     reviewerWarnings?: string[];
@@ -334,9 +336,23 @@ export class DiagnosticPipeline {
     }
 
     // ═══════════════════════════════════════════════════════
-    // COMBINE: Build final result (backwards compatible)
+    // FOLLOW-UP: Generate smart follow-up reminder
     // ═══════════════════════════════════════════════════════
-    console.log("[Pipeline] ✨ Building final result...");
+    const followUpMessage = FollowUpService.getFollowUpMessage(
+      diagnosisReport.urgency,
+      reviewVerdict.finalDiagnosis.disease
+    );
+    const followUpDays = FollowUpService.getFollowUpDays(
+      diagnosisReport.urgency,
+      reviewVerdict.finalDiagnosis.disease
+    );
+    const followUpDate = new Date();
+    followUpDate.setDate(followUpDate.getDate() + followUpDays);
+
+    // Enhance prognosis with follow-up info
+    if (treatmentPlan.prognosis) {
+      treatmentPlan.prognosis.followUpDate = `بعد ${followUpDays} أيام — ${followUpDate.toLocaleDateString('ar-IQ')}`;
+    }
 
     return {
       detected: diagnosisReport.detectedSymptoms,
@@ -374,6 +390,7 @@ export class DiagnosticPipeline {
         prognosis: treatmentPlan.prognosis,
         waterParameters: treatmentPlan.waterParameters,
         followUpQuestions: diagnosisReport.followUpQuestions,
+        followUpReminder: followUpMessage,
         ruleEngineAlerts: ruleEngineAlerts.length > 0 ? ruleEngineAlerts : undefined,
         reviewerCorrections: reviewVerdict.corrections.length > 0 ? reviewVerdict.corrections : undefined,
         reviewerWarnings: reviewVerdict.warnings.length > 0 ? reviewVerdict.warnings : undefined,

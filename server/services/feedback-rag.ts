@@ -9,6 +9,7 @@
  */
 
 import { db } from "../db.js";
+import { sql } from "drizzle-orm";
 
 export class FeedbackRAG {
 
@@ -26,23 +27,20 @@ export class FeedbackRAG {
     }
 
     try {
+      const speciesFirst = speciesName.split(' ')[0];
       // Query past cases with corrections for this species
-      const cases = await db.execute(
-        `SELECT 
+      const cases = await db.execute(sql`
+        SELECT 
           dc.disease, dc.arabic_name, dc.category, dc.symptoms, dc.outcome,
           df.is_correct, df.correct_disease, df.notes, df.treatment_worked
         FROM diagnosis_cases dc
         LEFT JOIN diagnosis_feedback df ON dc.analysis_id = df.analysis_id
         WHERE 
-          (dc.species_name ILIKE $1 OR dc.species_name ILIKE $2)
+          (dc.species_name ILIKE ${'%' + speciesName + '%'} OR dc.species_name ILIKE ${'%' + speciesFirst + '%'})
           AND dc.created_at > NOW() - INTERVAL '90 days'
         ORDER BY dc.created_at DESC
-        LIMIT 10`,
-        [
-          `%${speciesName}%`,
-          `%${speciesName.split(' ')[0]}%`, // Match first word of species
-        ]
-      );
+        LIMIT 10
+      `);
 
       if (!cases.rows || cases.rows.length === 0) {
         return "";
@@ -97,17 +95,16 @@ export class FeedbackRAG {
     if (!db) return "";
 
     try {
-      const records = await db.execute(
-        `SELECT 
+      const records = await db.execute(sql`
+        SELECT 
           diagnosis, arabic_diagnosis, confidence, category,
           symptoms, treatment, water_params, outcome,
           user_notes, created_at
         FROM fish_medical_records
-        WHERE fish_patient_id = $1
+        WHERE fish_patient_id = ${fishPatientId}
         ORDER BY created_at DESC
-        LIMIT 10`,
-        [fishPatientId]
-      );
+        LIMIT 10
+      `);
 
       if (!records.rows || records.rows.length === 0) {
         return "";

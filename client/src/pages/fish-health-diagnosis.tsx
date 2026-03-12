@@ -114,6 +114,7 @@ interface DiagnosisResult {
   medicationWarnings?: string[];
   quarantineProtocol?: QuarantineProtocol;
   prognosis?: Prognosis;
+  followUpReminder?: string;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -311,6 +312,7 @@ export default function FishHealthDiagnosis() {
         medicationWarnings: details.medicationWarnings,
         quarantineProtocol: details.quarantineProtocol,
         prognosis: details.prognosis,
+        followUpReminder: details.followUpReminder,
       };
 
       setDiagnosis(diagnosisResult);
@@ -1037,9 +1039,14 @@ export default function FishHealthDiagnosis() {
                               )}
 
                               {diagnosis.prognosis.followUpDate && (
-                                <p className="text-xs text-muted-foreground">
-                                  📅 موعد إعادة التقييم: <strong>{diagnosis.prognosis.followUpDate}</strong>
-                                </p>
+                                <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20 mt-2">
+                                  <p className="text-base font-bold text-cyan-300">
+                                    📅 موعد إعادة التقييم: <span className="text-white">{diagnosis.prognosis.followUpDate}</span>
+                                  </p>
+                                  {diagnosis.followUpReminder && (
+                                    <p className="text-sm text-cyan-200/80 mt-2 leading-relaxed">{diagnosis.followUpReminder}</p>
+                                  )}
+                                </div>
                               )}
                             </div>
                           )}
