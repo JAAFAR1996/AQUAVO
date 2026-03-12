@@ -66,6 +66,7 @@ const AdminLogin = lazy(() => import("@/pages/admin-login"));
 const Shipping = lazy(() => import("@/pages/shipping"));
 const Login = lazy(() => import("@/pages/login"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
+const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -260,7 +261,16 @@ function Router() {
         )}
       </Route>
 
-
+      {/* Fish Patient Records */}
+      <Route path="/fish-patients">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FishPatientsPage />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Lazy loaded fish breeding calculator */}
       <Route path="/fish-breeding-calculator">

@@ -37,6 +37,7 @@ import {
   ChevronUp,
   Fish,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════
@@ -1086,7 +1087,7 @@ export default function FishHealthDiagnosis() {
                           <p className="text-sm text-slate-300 mb-4">
                             ملاحظاتك تساعد Dr. AQUAVO يصير أذكى مع كل حالة
                           </p>
-                          <div className="flex gap-2">
+                          <div className="flex gap-2 mb-4">
                             <Button
                               size="sm"
                               onClick={async () => {
@@ -1099,36 +1100,158 @@ export default function FishHealthDiagnosis() {
                                   setFeedbackSent(true);
                                 } catch { /* ignore */ }
                               }}
-                              className="bg-green-600 hover:bg-green-700 text-white gap-1"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-sm"
                             >
-                              <CheckCircle className="h-3.5 w-3.5" /> صحيح
+                              <CheckCircle className="h-4 w-4" /> ✅ صحيح
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={async () => {
-                                try {
-                                  await fetch('/api/ai-advanced/diagnosis/feedback', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ analysisId, isCorrect: false }),
-                                  });
-                                  setFeedbackSent(true);
-                                } catch { /* ignore */ }
-                              }}
-                              className="border-red-300 text-red-600 hover:bg-red-50 gap-1"
+                              onClick={() => setExpandedSections(prev => ({ ...prev, correction: !prev.correction }))}
+                              className="border-red-400/50 text-red-400 hover:bg-red-500/10 gap-1.5 text-sm"
                             >
-                              <XCircle className="h-3.5 w-3.5" /> غير دقيق
+                              <XCircle className="h-4 w-4" /> ❌ غير دقيق
                             </Button>
                           </div>
+
+                          {/* ── Correction Form (slides open) ── */}
+                          {expandedSections.correction && (
+                            <div className="space-y-4 p-4 bg-slate-800/40 rounded-xl border border-slate-600/30 mt-2">
+                              <h5 className="text-base font-bold text-white flex items-center gap-2">
+                                ✏️ ساعدنا نصحح:
+                              </h5>
+
+                              {/* Correct Disease */}
+                              <div>
+                                <label className="text-sm text-slate-300 mb-1.5 block">التشخيص الصحيح (اختياري):</label>
+                                <input
+                                  type="text"
+                                  placeholder="مثال: حمل، استسقاء، فطريات..."
+                                  className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                                  id="correction-disease"
+                                />
+                              </div>
+
+                              {/* Notes */}
+                              <div>
+                                <label className="text-sm text-slate-300 mb-1.5 block">ملاحظاتك (اختياري):</label>
+                                <textarea
+                                  placeholder="شنو اللي غلط بالتشخيص؟ شنو لاحظت انت؟"
+                                  rows={3}
+                                  className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 resize-none"
+                                  id="correction-notes"
+                                />
+                              </div>
+
+                              {/* Treatment Effectiveness */}
+                              <div>
+                                <label className="text-sm text-slate-300 mb-2 block">هل العلاج المقترح نفع؟</label>
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    id="treatment-yes"
+                                    onClick={(e) => {
+                                      document.getElementById('treatment-yes')?.classList.add('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
+                                      document.getElementById('treatment-no')?.classList.remove('bg-red-500/20', 'border-red-500/50', 'text-red-300');
+                                    }}
+                                    className="text-sm border-slate-600/40 text-slate-300 hover:bg-emerald-500/20"
+                                  >
+                                    ✅ نعم نفع
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    id="treatment-no"
+                                    onClick={(e) => {
+                                      document.getElementById('treatment-no')?.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-300');
+                                      document.getElementById('treatment-yes')?.classList.remove('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
+                                    }}
+                                    className="text-sm border-slate-600/40 text-slate-300 hover:bg-red-500/10"
+                                  >
+                                    ❌ ما نفع
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-sm border-slate-600/40 text-slate-400 hover:bg-slate-700/50"
+                                  >
+                                    🤷 ما جربت
+                                  </Button>
+                                </div>
+                              </div>
+
+                              {/* Rating */}
+                              <div>
+                                <label className="text-sm text-slate-300 mb-2 block">تقييمك العام لتجربة التشخيص:</label>
+                                <div className="flex gap-1.5" id="rating-stars">
+                                  {[1, 2, 3, 4, 5].map(star => (
+                                    <button
+                                      key={star}
+                                      onClick={() => {
+                                        const container = document.getElementById('rating-stars');
+                                        if (!container) return;
+                                        container.setAttribute('data-rating', String(star));
+                                        container.querySelectorAll('button').forEach((btn, i) => {
+                                          btn.textContent = i < star ? '⭐' : '☆';
+                                          btn.className = i < star
+                                            ? 'text-2xl transition-transform hover:scale-125 scale-110'
+                                            : 'text-2xl transition-transform hover:scale-125 text-slate-600';
+                                        });
+                                      }}
+                                      className="text-2xl transition-transform hover:scale-125 text-slate-600"
+                                    >
+                                      ☆
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Submit */}
+                              <Button
+                                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2.5 text-base shadow-lg"
+                                onClick={async () => {
+                                  const correctDisease = (document.getElementById('correction-disease') as HTMLInputElement)?.value || undefined;
+                                  const notes = (document.getElementById('correction-notes') as HTMLTextAreaElement)?.value || undefined;
+                                  const treatmentYes = document.getElementById('treatment-yes')?.classList.contains('bg-emerald-500/20');
+                                  const treatmentNo = document.getElementById('treatment-no')?.classList.contains('bg-red-500/20');
+                                  const treatmentWorked = treatmentYes ? true : treatmentNo ? false : undefined;
+                                  const rating = parseInt(document.getElementById('rating-stars')?.getAttribute('data-rating') || '0') || undefined;
+
+                                  try {
+                                    await fetch('/api/ai-advanced/diagnosis/feedback', {
+                                      method: 'POST',
+                                      headers: { 'Content-Type': 'application/json' },
+                                      body: JSON.stringify({
+                                        analysisId,
+                                        isCorrect: false,
+                                        correctDisease,
+                                        notes,
+                                        treatmentWorked,
+                                        rating,
+                                      }),
+                                    });
+                                    setFeedbackSent(true);
+                                  } catch { /* ignore */ }
+                                }}
+                              >
+                                📤 أرسل التصحيح
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </>
                     )}
                     {feedbackSent && (
                       <>
-                        <Separator />
-                        <div className="p-3 bg-green-50 dark:bg-green-950 rounded-lg text-center text-sm text-green-700 dark:text-green-300">
-                          ✅ شكراً لملاحظتك! Dr. AQUAVO يتعلم من كل حالة
+                        <Separator className="opacity-30" />
+                        <div className="p-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-center">
+                          <p className="text-base font-bold text-emerald-300">
+                            ✅ شكراً لملاحظتك!
+                          </p>
+                          <p className="text-sm text-emerald-200/70 mt-1">
+                            Dr. AQUAVO يتعلم من كل حالة — تصحيحك يساعد سمك الناس!
+                          </p>
                         </div>
                       </>
                     )}
@@ -1136,6 +1259,31 @@ export default function FishHealthDiagnosis() {
                 )}
               </CardContent>
             </Card>
+          </div>
+        </div>
+
+        {/* ═══════════ Link to Fish Records ═══════════ */}
+        <div className="mt-10 mb-16">
+          <div
+            className="p-6 rounded-2xl bg-gradient-to-r from-cyan-500/10 via-teal-500/10 to-emerald-500/10 border border-cyan-500/20 cursor-pointer hover:border-cyan-500/40 transition-all group"
+            onClick={() => window.location.href = '/fish-patients'}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/20 group-hover:bg-cyan-500/30 transition-colors">
+                  <Heart className="w-7 h-7 text-cyan-400" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                    📋 سجل أسماكي — تابع صحة أسماكك!
+                  </h3>
+                  <p className="text-sm text-slate-400">
+                    سجّل أسماكك واحفظ كل تشخيص — Dr. AQUAVO يتذكر التاريخ الطبي!
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
         </div>
 
