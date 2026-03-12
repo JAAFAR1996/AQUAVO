@@ -121,12 +121,12 @@ interface DiagnosisResult {
 // ═══════════════════════════════════════════════════════
 
 const analysisSteps = [
-  { id: 1, label: "تقييم جودة الصورة", icon: Eye, duration: 800 },
-  { id: 2, label: "تحديد نوع السمكة", icon: Fish, duration: 1200 },
-  { id: 3, label: "استخراج الأعراض المرئية", icon: Search, duration: 1500 },
-  { id: 4, label: "التشخيص التفاضلي", icon: Microscope, duration: 2000 },
-  { id: 5, label: "إعداد خطة العلاج", icon: Syringe, duration: 1000 },
-  { id: 6, label: "حساب التوقعات", icon: TrendingUp, duration: 800 },
+  { id: 1, label: "فحص بيانات الماء (Rule Engine)", icon: Droplets, duration: 500 },
+  { id: 2, label: "الوكيل البصري — وصف الصورة", icon: Eye, duration: 2500 },
+  { id: 3, label: "وكيل التشخيص — تحليل الأعراض", icon: Microscope, duration: 3000 },
+  { id: 4, label: "وكيل المراجعة — فحص الاستثناءات", icon: Shield, duration: 2500 },
+  { id: 5, label: "وكيل العلاج — خطة العلاج", icon: Syringe, duration: 2500 },
+  { id: 6, label: "تجميع النتائج النهائية", icon: TrendingUp, duration: 500 },
 ];
 
 // ═══════════════════════════════════════════════════════
@@ -209,6 +209,14 @@ export default function FishHealthDiagnosis() {
   const [userContextEating, setUserContextEating] = useState("");
   const [userContextSymptoms, setUserContextSymptoms] = useState("");
 
+  // Water Parameters State
+  const [waterTemperature, setWaterTemperature] = useState("");
+  const [waterPh, setWaterPh] = useState("");
+  const [waterAmmonia, setWaterAmmonia] = useState("");
+  const [waterNitrite, setWaterNitrite] = useState("");
+  const [waterNitrate, setWaterNitrate] = useState("");
+  const [showWaterParams, setShowWaterParams] = useState(false);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
@@ -260,6 +268,12 @@ export default function FishHealthDiagnosis() {
       if (userContextSpecies) formData.append('userContextSpecies', userContextSpecies);
       if (userContextEating) formData.append('userContextEating', userContextEating);
       if (userContextSymptoms) formData.append('userContextSymptoms', userContextSymptoms);
+      // Water Parameters
+      if (waterTemperature) formData.append('waterTemperature', waterTemperature);
+      if (waterPh) formData.append('waterPh', waterPh);
+      if (waterAmmonia) formData.append('waterAmmonia', waterAmmonia);
+      if (waterNitrite) formData.append('waterNitrite', waterNitrite);
+      if (waterNitrate) formData.append('waterNitrate', waterNitrate);
 
       const response = await fetch('/api/ai-advanced/visual/analyze-upload', {
         method: 'POST',
@@ -499,6 +513,76 @@ export default function FishHealthDiagnosis() {
                   </div>
 
                   {/* Analysis Progress Steps */}
+
+                   {/* Water Parameters (Expandable) */}
+                   <div className="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 p-4 rounded-lg border border-cyan-500/20 text-right space-y-3">
+                     <button
+                       type="button"
+                       onClick={() => setShowWaterParams(!showWaterParams)}
+                       className="w-full flex items-center justify-between text-sm font-semibold"
+                     >
+                       <span className="flex items-center gap-2">
+                         <Droplets className="h-4 w-4 text-cyan-400" />
+                         🧪 فحوصات الماء (يرفع الدقة بنسبة كبيرة)
+                       </span>
+                       {showWaterParams ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                     </button>
+                     {showWaterParams && (
+                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+                         <div>
+                           <label className="text-xs text-muted-foreground font-medium mb-1 block">🌡️ الحرارة (°م)</label>
+                           <input
+                             type="text"
+                             placeholder="مثال: 28"
+                             value={waterTemperature}
+                             onChange={(e) => setWaterTemperature(e.target.value)}
+                             className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                           />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground font-medium mb-1 block">⚗️ pH</label>
+                           <input
+                             type="text"
+                             placeholder="مثال: 7.2"
+                             value={waterPh}
+                             onChange={(e) => setWaterPh(e.target.value)}
+                             className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                           />
+                         </div>
+                         <div>
+                           <label className="text-xs text-red-400 font-medium mb-1 block">⚠️ أمونيا (ppm)</label>
+                           <input
+                             type="text"
+                             placeholder="مثال: 0"
+                             value={waterAmmonia}
+                             onChange={(e) => setWaterAmmonia(e.target.value)}
+                             className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-red-500"
+                           />
+                         </div>
+                         <div>
+                           <label className="text-xs text-orange-400 font-medium mb-1 block">⚠️ نيتريت (ppm)</label>
+                           <input
+                             type="text"
+                             placeholder="مثال: 0"
+                             value={waterNitrite}
+                             onChange={(e) => setWaterNitrite(e.target.value)}
+                             className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-orange-500"
+                           />
+                         </div>
+                         <div>
+                           <label className="text-xs text-muted-foreground font-medium mb-1 block">نيترات (ppm)</label>
+                           <input
+                             type="text"
+                             placeholder="مثال: 20"
+                             value={waterNitrate}
+                             onChange={(e) => setWaterNitrate(e.target.value)}
+                             className="w-full text-sm p-2 rounded-md border border-input bg-background focus:outline-none focus:ring-1 focus:ring-cyan-500"
+                           />
+                         </div>
+                       </div>
+                     )}
+                   </div>
+
                   {isAnalyzing && (
                     <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg border">
                       <p className="font-semibold text-sm text-center mb-3">🔬 Dr. AQUAVO يحلل صورتك...</p>

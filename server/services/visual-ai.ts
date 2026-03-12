@@ -6,6 +6,7 @@ import { aiMonitor } from "./ai-monitor.js";
 import OpenAI from "openai";
 import { vetRAG } from "./vet-rag.js";
 import { embeddingGenerator } from "./embedding-generator.js";
+import { diagnosticPipeline } from "./diagnostic-pipeline.js";
 
 /**
  * Visual AI Service
@@ -98,68 +99,108 @@ export class VisualAI {
     analysisType: "fish" | "tank" | "problem" | "health",
     userId?: string,
     sessionId?: string,
-    userContext?: { species?: string; eating?: string; symptoms?: string }
+    userContext?: { species?: string; eating?: string; symptoms?: string },
+    waterParams?: { temperature?: string; ph?: string; ammonia?: string; nitrite?: string; nitrate?: string }
   ) {
     const startTime = Date.now();
 
     try {
       const base64 = buffer.toString("base64");
+
+      // ═══════════════════════════════════════════════════════
+      // HEALTH MODE: Use Multi-Agent Diagnostic Pipeline
+      // ═══════════════════════════════════════════════════════
+      if (analysisType === "health") {
+        console.log("[VisualAI] 🏥 Using Multi-Agent Diagnostic Pipeline");
+
+        const pipelineResult = await diagnosticPipeline.execute(
+          base64,
+          mimeType,
+          {
+            species: userContext?.species,
+            eating: userContext?.eating,
+            symptoms: userContext?.symptoms,
+          },
+          waterParams
+        );
+
+        // Map pipeline result to the standard analysis format
+        const analysis = {
+          detected: pipelineResult.detected,
+          confidence: pipelineResult.confidence,
+          suggestions: pipelineResult.suggestions,
+          details: pipelineResult.details,
+        };
+
+        // ═══ Smart Product Recommendations ═══
+        const recommendedProducts = await this.getSmartProductRecommendations(
+          analysis,
+          analysisType
+        );
+
+        const processingTime = Date.now() - startTime;
+        const savedAnalysis = await this.saveAnalysis({
+          userId,
+          sessionId,
+          imageUrl: `buffer://${Date.now()}`,
+          analysisType,
+          aiAnalysis: analysis,
+          recommendedProducts: recommendedProducts.map((p) => p.id),
+          processingTimeMs: processingTime,
+        });
+
+        // Auto-save diagnosis case
+        if (analysis.details?.disease) {
+          try {
+            await this.saveDiagnosisCase(savedAnalysis.id, analysis, userId);
+          } catch (caseErr) {
+            console.error("[VisualAI] Failed to save case (non-blocking):", caseErr);
+          }
+        }
+
+        const stages = pipelineResult.details.pipelineStages;
+        aiMonitor.log({
+          event: "visual_analysis", level: "info", success: true,
+          model: "multi-agent-pipeline", userId, sessionId,
+          responseTimeMs: processingTime,
+          details: {
+            analysisType,
+            confidence: analysis.confidence,
+            pipeline: true,
+            stagesCompleted: Object.values(stages).filter(Boolean).length,
+            ruleEngineUsed: stages.ruleEngineUsed,
+          },
+        });
+
+        return {
+          id: savedAnalysis.id,
+          analysisType,
+          analysis,
+          recommendedProducts,
+          processingTimeMs: processingTime,
+          model: "multi-agent-pipeline",
+          intelligence: {
+            ragContextUsed: true,
+            similarCasesUsed: false,
+            pipelineStages: stages,
+            ruleEngineAlerts: pipelineResult.details.ruleEngineAlerts,
+            reviewerCorrections: pipelineResult.details.reviewerCorrections,
+          },
+        };
+      }
+
+      // ═══════════════════════════════════════════════════════
+      // NON-HEALTH MODES: Original single-call approach
+      // ═══════════════════════════════════════════════════════
       let prompt = this.generatePrompt(analysisType);
-      let ragContext = "";
-      let similarCasesContext = "";
       let text: string;
       let usedModel = "gemini-2.5-flash";
 
-      // ═══ Phase 3: RAG — Inject veterinary knowledge (health only) ═══
-      if (analysisType === "health") {
-        try {
-          const ragChunks = await vetRAG.searchKnowledge(
-            ["fish disease symptoms diagnosis treatment"],
-            3
-          );
-          if (ragChunks.length > 0) {
-            ragContext = vetRAG.formatForPrompt(ragChunks);
-            console.log(`[VisualAI] 📖 RAG: injected ${ragChunks.length} knowledge chunks`);
-          }
-        } catch (ragError) {
-          console.error("[VisualAI] RAG search failed (non-blocking):", ragError);
-        }
-
-        // ═══ Phase 4: Similar Cases ═══
-        try {
-          const similarCases = await this.findSimilarCases(3);
-          if (similarCases.length > 0) {
-            const caseSummary = similarCases.map(c =>
-              `• ${c.disease} (${c.arabicName || ''}) — ثقة ${c.confidence || 'N/A'}% — نتيجة: ${c.outcome || 'غير معروفة'} ${c.verified ? '✅ مؤكد' : ''}`
-            ).join("\n");
-            similarCasesContext = `\n═══════════════════════════════════════════════════════\n📊 إحصائيات من قاعدة الحالات (${similarCases.length} حالة حديثة):\n═══════════════════════════════════════════════════════\n${caseSummary}\n═══════════════════════════════════════════════════════\nاستخدم هذه الحالات السابقة كمرجع إضافي في تشخيصك.\n`;
-            console.log(`[VisualAI] 📊 Cases: found ${similarCases.length} similar cases`);
-          }
-        } catch (caseError) {
-          console.error("[VisualAI] Similar cases lookup failed (non-blocking):", caseError);
-        }
-      }
-
-      // ═══ Phase 5: User Context Injection (Pre-prompting) ═══
-      let userContextStr = "";
-      if (userContext && (userContext.species || userContext.eating || userContext.symptoms)) {
-        userContextStr = `\n═══════════════════════════════════════════════════════\n👤 معلومات إضافية من المالك (Context Alignment):\n═══════════════════════════════════════════════════════\n`;
-        if (userContext.species) userContextStr += `• نوع السمكة حسب المالك: ${userContext.species}\n`;
-        if (userContext.eating) userContextStr += `• سلوك الأكل: ${userContext.eating}\n`;
-        if (userContext.symptoms) userContextStr += `• الأعراض الملاحظة بالعين: ${userContext.symptoms}\n`;
-        userContextStr += `\n🚨 ركز على هذه المعطيات بقوة (لا تتجاهلها!). خصوصاً إذا قال المالك أنها "تأكل بصورة ممتازة"، فهذا يستبعد الأمراض القاتلة سريعة التطور مثل الاستسقاء الحقيقي.\n`;
-        console.log(`[VisualAI] 👤 User Context injected (Species: ${userContext.species || 'N/A'})`);
-      }
-
-      // Combine prompt with all contexts
-      const enhancedPrompt = prompt + userContextStr + ragContext + similarCasesContext;
-
       try {
-        // Try Gemini first
         text = await geminiClient.executeWithFallback(async (client) => {
           const model = client.getGenerativeModel({ model: "gemini-2.5-flash" });
           const result = await model.generateContent([
-            enhancedPrompt,
+            prompt,
             {
               inlineData: {
                 data: base64,
@@ -176,13 +217,12 @@ export class VisualAI {
         const openaiKey = process.env.OPENAI_API_KEY;
         if (!openaiKey) throw geminiError;
 
-        text = await this.analyzeWithOpenAI(base64, mimeType, enhancedPrompt, openaiKey);
+        text = await this.analyzeWithOpenAI(base64, mimeType, prompt, openaiKey);
         usedModel = "gpt-4o";
       }
 
       const analysis = this.parseAnalysis(text, analysisType);
 
-      // ═══ Phase 2: Smart Product Recommendations ═══
       const recommendedProducts = await this.getSmartProductRecommendations(
         analysis,
         analysisType
@@ -199,16 +239,7 @@ export class VisualAI {
         processingTimeMs: processingTime,
       });
 
-      // ═══ Phase 1: Auto-save as case in database ═══
-      if (analysisType === "health" && analysis.details?.disease) {
-        try {
-          await this.saveDiagnosisCase(savedAnalysis.id, analysis, userId);
-        } catch (caseErr) {
-          console.error("[VisualAI] Failed to save case (non-blocking):", caseErr);
-        }
-      }
-
-      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: usedModel, userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence, ragUsed: ragContext.length > 0, casesUsed: similarCasesContext.length > 0 } });
+      aiMonitor.log({ event: "visual_analysis", level: "info", success: true, model: usedModel, userId, sessionId, responseTimeMs: processingTime, details: { analysisType, confidence: analysis.confidence } });
       return {
         id: savedAnalysis.id,
         analysisType,
@@ -217,8 +248,8 @@ export class VisualAI {
         processingTimeMs: processingTime,
         model: usedModel,
         intelligence: {
-          ragContextUsed: ragContext.length > 0,
-          similarCasesUsed: similarCasesContext.length > 0,
+          ragContextUsed: false,
+          similarCasesUsed: false,
         },
       };
     } catch (error) {

@@ -135,6 +135,15 @@ router.post(
         symptoms: req.body.userContextSymptoms || undefined,
       };
 
+      // Water Parameters from frontend (for Rule Engine + Diagnostician)
+      const waterParams = {
+        temperature: req.body.waterTemperature || undefined,
+        ph: req.body.waterPh || undefined,
+        ammonia: req.body.waterAmmonia || undefined,
+        nitrite: req.body.waterNitrite || undefined,
+        nitrate: req.body.waterNitrate || undefined,
+      };
+
       // Use buffer directly (no disk storage needed for Vercel)
       const result = await visualAI.analyzeImageBuffer(
         req.file.buffer,
@@ -142,7 +151,8 @@ router.post(
         analysisType,
         req.body.userId,
         req.body.sessionId,
-        userContext
+        userContext,
+        waterParams
       );
 
       res.json({
