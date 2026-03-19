@@ -57,6 +57,7 @@ import { ProductVariantsManager } from "@/components/admin/product-variants-mana
 import { EarlyAccessManagement } from "@/components/admin/early-access-management";
 import { WaveProphetPanel } from "@/components/admin/wave-prophet-panel";
 import { CatalogLivePanel } from "@/components/admin/catalog-live-panel";
+import { MiroFishPanel } from "@/components/admin/mirofish-panel";
 import {
   Plus,
   Pencil,
@@ -737,6 +738,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="ai-content">✍️ محتوى AI</TabsTrigger>
           <TabsTrigger value="wave-prophet">🌊 نبي الموجة</TabsTrigger>
           <TabsTrigger value="catalog-live">🛍️ الكتالوج الحي</TabsTrigger>
+          <TabsTrigger value="mirofish">🐠 MiroFish</TabsTrigger>
           <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
@@ -788,6 +790,11 @@ export default function AdminDashboard() {
         {/* Catalog Live Tab */}
         <TabsContent value="catalog-live" className="space-y-4">
           <CatalogLivePanel />
+        </TabsContent>
+
+        {/* MiroFish Deep Simulation Tab */}
+        <TabsContent value="mirofish" className="space-y-4">
+          <MiroFishPanel />
         </TabsContent>
 
         {/* Notification Log Tab */}

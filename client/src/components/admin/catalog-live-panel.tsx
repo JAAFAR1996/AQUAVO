@@ -11,27 +11,13 @@ import {
   TrendingUp, Users, DollarSign, Megaphone, BarChart3,
 } from "lucide-react";
 
-interface FinancialAnalysis {
-  costUSD: number;
-  shippingPerUnitUSD: number;
-  totalCostIQD: number;
-  recommendedPriceIQD: number;
-  profitMarginPercent: number;
-  breakEvenUnits: number;
-  monthlyRevenuePotential: string;
-}
-
-interface MarketSimulation {
-  earlyAdopters: { percent: number; profile: string };
-  massMarket: { percent: number; profile: string };
-  resistors: { percent: number; profile: string };
-}
-
-interface PricingOption {
-  strategy: string;
-  priceIQD: number;
-  expectedMonthlySales: string;
-  isRecommended: boolean;
+interface AgentVerdict {
+  persona: string;
+  willBuy: boolean;
+  confidence: number;
+  maxPriceIQD: number;
+  mainReason: string;
+  priceReaction: string;
 }
 
 interface CatalogSimulation {
@@ -39,12 +25,28 @@ interface CatalogSimulation {
   overallScore: number;
   verdict: string;
   adoptionProbability: number;
-  financialAnalysis: FinancialAnalysis;
-  marketSimulation: MarketSimulation;
-  competitorAnalysis: Array<{ name: string; estimatedPrice: string; ourAdvantage: string }>;
-  pricingOptions: PricingOption[];
+  financialFlags: string[];
+  financialAnalysis: {
+    costUSD: number;
+    costIQD: number;
+    shippingPerUnitIQD: number;
+    totalCostIQD: number;
+    currentPriceIQD: number;
+    recommendedPriceIQD: number;
+    profitMarginPercent: number;
+    breakEvenUnits: number | null;
+    monthlyRevenuePotential: string;
+  };
+  agentVerdicts: AgentVerdict[];
+  marketSimulation: {
+    buyersCount: number;
+    totalAgents: number;
+    avgMaxPriceIQD: number;
+    priceReactionSummary: string;
+  };
+  objections: string[];
+  motivators: string[];
   marketingMessages: { tiktok: string; instagram: string; facebook: string };
-  risks: string[];
   recommendations: string[];
   idealLaunchMonth: string;
   importQuantityAdvice: string;
@@ -155,7 +157,7 @@ export function CatalogLivePanel() {
           <Button onClick={runSimulation} disabled={loading} className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white gap-2">
             {loading ? <><Loader2 className="h-4 w-4 animate-spin" />جاري المحاكاة...</> : <><BarChart3 className="h-4 w-4" />شغّل محاكاة السوق</>}
           </Button>
-          {loading && <p className="text-xs text-muted-foreground animate-pulse">الذكاء الاصطناعي يحاكي 1000 زبون عراقي... (15-25 ثانية)</p>}
+          {loading && <p className="text-xs text-muted-foreground animate-pulse">6 agents زبائن يشتغلون بالتوازي — كل واحد شخصية مختلفة... (20-35 ثانية)</p>}
         </CardContent>
       </Card>
 
@@ -206,76 +208,105 @@ export function CatalogLivePanel() {
               </CardContent>
             </Card>
 
+            {/* Financial Flags */}
+            {result.financialFlags?.length > 0 && (
+              <div className="space-y-2">
+                {result.financialFlags.map((flag, i) => (
+                  <Alert key={i} className="border-red-500/40 bg-red-950/30">
+                    <AlertTriangle className="h-4 w-4 text-red-400 shrink-0" />
+                    <AlertDescription className="text-red-300 font-semibold text-sm">{flag}</AlertDescription>
+                  </Alert>
+                ))}
+              </div>
+            )}
+
             {/* Financial Analysis */}
             {result.financialAnalysis && (
               <Card className="border-emerald-500/20">
-                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4 text-emerald-400" />التحليل المالي</CardTitle></CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {[
-                    { label: "التكلفة الكاملة", value: result.financialAnalysis.totalCostIQD ? `${result.financialAnalysis.totalCostIQD.toLocaleString()} د.ع` : "—" },
-                    { label: "السعر المقترح", value: result.financialAnalysis.recommendedPriceIQD ? `${result.financialAnalysis.recommendedPriceIQD.toLocaleString()} د.ع` : "—" },
-                    { label: "هامش الربح", value: result.financialAnalysis.profitMarginPercent ? `${result.financialAnalysis.profitMarginPercent}%` : "—" },
-                    { label: "نقطة التعادل", value: result.financialAnalysis.breakEvenUnits ? `${result.financialAnalysis.breakEvenUnits} قطعة` : "—" },
-                  ].map((item, i) => (
-                    <div key={i} className="p-3 rounded-lg bg-muted/30 text-center">
-                      <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
-                      <p className="font-black text-sm">{item.value}</p>
-                    </div>
-                  ))}
-                  {result.financialAnalysis.monthlyRevenuePotential && (
-                    <div className="col-span-2 md:col-span-4 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
-                      <p className="text-xs text-emerald-400 mb-1">إيرادات شهرية متوقعة</p>
-                      <p className="font-black text-emerald-300">{result.financialAnalysis.monthlyRevenuePotential}</p>
+                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><DollarSign className="h-4 w-4 text-emerald-400" />التحليل المالي الحقيقي</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { label: "تكلفة الشراء", value: result.financialAnalysis.costIQD ? `${result.financialAnalysis.costIQD.toLocaleString()} د.ع` : "—", color: "" },
+                      { label: "الشحن للقطعة", value: result.financialAnalysis.shippingPerUnitIQD ? `${result.financialAnalysis.shippingPerUnitIQD.toLocaleString()} د.ع` : "—", color: "" },
+                      { label: "التكلفة الكاملة", value: result.financialAnalysis.totalCostIQD ? `${result.financialAnalysis.totalCostIQD.toLocaleString()} د.ع` : "—", color: "" },
+                      { label: "سعرك الحالي", value: result.financialAnalysis.currentPriceIQD ? `${result.financialAnalysis.currentPriceIQD.toLocaleString()} د.ع` : "—", color: "" },
+                      { label: "السعر المقترح (AI)", value: result.financialAnalysis.recommendedPriceIQD ? `${result.financialAnalysis.recommendedPriceIQD.toLocaleString()} د.ع` : "—", color: "emerald" },
+                      { label: "هامش الربح", value: `${result.financialAnalysis.profitMarginPercent}%`, color: result.financialAnalysis.profitMarginPercent >= 30 ? "emerald" : result.financialAnalysis.profitMarginPercent >= 15 ? "amber" : "red" },
+                    ].map((item, i) => (
+                      <div key={i} className="p-3 rounded-lg bg-muted/30 text-center">
+                        <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                        <p className={`font-black text-sm ${item.color === "emerald" ? "text-emerald-400" : item.color === "amber" ? "text-amber-400" : item.color === "red" ? "text-red-400" : ""}`}>{item.value}</p>
+                      </div>
+                    ))}
+                  </div>
+                  {result.financialAnalysis.breakEvenUnits && (
+                    <div className="p-3 rounded-lg bg-muted/20 text-center text-sm">
+                      نقطة التعادل: <span className="font-black">{result.financialAnalysis.breakEvenUnits} قطعة</span>
                     </div>
                   )}
                 </CardContent>
               </Card>
             )}
 
-            {/* Market Simulation */}
-            {result.marketSimulation && (
+            {/* Agent Verdicts */}
+            {result.agentVerdicts?.length > 0 && (
               <Card className="border-blue-500/20">
-                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Users className="h-4 w-4 text-blue-400" />محاكاة السوق</CardTitle></CardHeader>
-                <CardContent className="space-y-3">
-                  {[
-                    { label: "المتبنّون الأوائل", data: result.marketSimulation.earlyAdopters, color: "emerald" },
-                    { label: "السوق الرئيسي", data: result.marketSimulation.massMarket, color: "blue" },
-                    { label: "الرافضون", data: result.marketSimulation.resistors, color: "red" },
-                  ].map((seg, i) => (
-                    <div key={i} className="space-y-1">
-                      <div className="flex justify-between text-sm">
-                        <span className="font-semibold">{seg.label}</span>
-                        <span className={`font-bold text-${seg.color}-400`}>{seg.data?.percent}%</span>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-400" />
+                    رأي الـ {result.agentVerdicts.length} زبائن (agents حقيقية)
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    {result.marketSimulation?.buyersCount} من {result.marketSimulation?.totalAgents} سيشترون •{" "}
+                    متوسط الحد الأقصى: {result.marketSimulation?.avgMaxPriceIQD?.toLocaleString()} د.ع •{" "}
+                    {result.marketSimulation?.priceReactionSummary}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {result.agentVerdicts.map((agent, i) => (
+                    <div key={i} className={`p-3 rounded-lg border text-sm flex items-start gap-3 ${agent.willBuy ? "bg-emerald-500/5 border-emerald-500/20" : "bg-red-500/5 border-red-500/20"}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${agent.willBuy ? "bg-emerald-500 text-white" : "bg-red-500 text-white"}`}>
+                        {agent.willBuy ? "✓" : "✗"}
                       </div>
-                      <div className="h-2 bg-muted rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full bg-${seg.color}-500`} style={{ width: `${seg.data?.percent}%` }} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                          <span className="font-bold text-xs">{agent.persona}</span>
+                          <div className="flex items-center gap-2">
+                            {agent.maxPriceIQD > 0 && <span className="text-xs text-muted-foreground">حده: {agent.maxPriceIQD.toLocaleString()} د.ع</span>}
+                            <Badge className={`text-[10px] px-1.5 py-0 ${agent.priceReaction?.includes("غالي") ? "bg-red-500/20 text-red-400 border-red-500/30" : "bg-muted text-muted-foreground"}`}>
+                              {agent.priceReaction}
+                            </Badge>
+                          </div>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{agent.mainReason}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">{seg.data?.profile}</p>
                     </div>
                   ))}
                 </CardContent>
               </Card>
             )}
 
-            {/* Pricing Options */}
-            {result.pricingOptions?.length > 0 && (
-              <Card className="border-purple-500/20">
-                <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><TrendingUp className="h-4 w-4 text-purple-400" />خيارات التسعير</CardTitle></CardHeader>
-                <CardContent className="space-y-2">
-                  {result.pricingOptions.map((opt, i) => (
-                    <div key={i} className={`p-3 rounded-lg border text-sm ${opt.isRecommended ? "bg-purple-500/10 border-purple-500/30" : "bg-muted/20 border-border/50"}`}>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-semibold">{opt.strategy}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="font-black text-purple-300">{opt.priceIQD?.toLocaleString()} د.ع</span>
-                          {opt.isRecommended && <Badge className="bg-purple-500 text-white text-xs">موصى به</Badge>}
-                        </div>
-                      </div>
-                      <p className="text-xs text-muted-foreground">{opt.expectedMonthlySales}</p>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+            {/* Objections & Motivators */}
+            {(result.objections?.length > 0 || result.motivators?.length > 0) && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {result.objections?.length > 0 && (
+                  <Card className="border-orange-500/20">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-orange-400">الاعتراضات الرئيسية</CardTitle></CardHeader>
+                    <CardContent className="space-y-1.5">
+                      {result.objections.map((o, i) => <p key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-orange-400 shrink-0">→</span>{o}</p>)}
+                    </CardContent>
+                  </Card>
+                )}
+                {result.motivators?.length > 0 && (
+                  <Card className="border-teal-500/20">
+                    <CardHeader className="pb-2"><CardTitle className="text-sm text-teal-400">ما سيجعلهم يشترون</CardTitle></CardHeader>
+                    <CardContent className="space-y-1.5">
+                      {result.motivators.map((m, i) => <p key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-teal-400 shrink-0">✓</span>{m}</p>)}
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
             )}
 
             {/* Marketing Messages */}

@@ -32,6 +32,7 @@ import cronRouter from "./routes/cron.js";
 import fishPatientsRouter from "./routes/fish-patients.js";
 import aiBoardRouter from "./routes/ai-board.js";
 import simulationRouter from "./routes/simulation.js";
+import miroFishRouter from "./routes/mirofish.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -111,8 +112,11 @@ export async function registerRoutes(
   // AI Consultation Board (مجلس الإدارة الذكي)
   app.use("/api/ai-board", aiBoardRouter);
 
-  // MiroFish Simulation Engine (التوأم الثقافي / نبي الموجة / الكتالوج الحي / محكمة الألف سيناريو)
+  // MiroFish Quick Simulation (Groq parallel agents — no Docker needed)
   app.use("/api/simulation", simulationRouter);
+
+  // MiroFish Deep Simulation (full OASIS multi-agent pipeline)
+  app.use("/api/mirofish", miroFishRouter);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
