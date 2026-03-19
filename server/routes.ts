@@ -30,6 +30,8 @@ import aiMonitorRouter from "./routes/ai-monitor.js";
 import aiLearningsRouter from "./routes/ai-learnings.js";
 import cronRouter from "./routes/cron.js";
 import fishPatientsRouter from "./routes/fish-patients.js";
+import aiBoardRouter from "./routes/ai-board.js";
+import simulationRouter from "./routes/simulation.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -105,6 +107,12 @@ export async function registerRoutes(
 
   // Fish Patient Records (سجل الأسماك والتاريخ الطبي)
   app.use("/api/fish-patients", fishPatientsRouter);
+
+  // AI Consultation Board (مجلس الإدارة الذكي)
+  app.use("/api/ai-board", aiBoardRouter);
+
+  // MiroFish Simulation Engine (التوأم الثقافي / نبي الموجة / الكتالوج الحي / محكمة الألف سيناريو)
+  app.use("/api/simulation", simulationRouter);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

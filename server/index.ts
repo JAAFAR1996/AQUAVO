@@ -1,7 +1,5 @@
+import "./env.js";
 import dotenv from 'dotenv';
-// Load .env.local first (if it exists), then .env
-dotenv.config({ path: '.env.local' });
-dotenv.config();
 import http from "http";
 import express, { Request, Response, NextFunction } from "express";
 import session from "express-session";

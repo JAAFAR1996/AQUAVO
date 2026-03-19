@@ -206,6 +206,12 @@ export default function FishHealthDiagnosis() {
   const [feedbackSent, setFeedbackSent] = useState(false);
   const [analysisId, setAnalysisId] = useState<string | null>(null);
 
+  // Thousand Scenarios State
+  const [thousandLoading, setThousandLoading] = useState(false);
+  const [thousandResult, setThousandResult] = useState<any>(null);
+  const [thousandError, setThousandError] = useState<string | null>(null);
+  const [showThousandSection, setShowThousandSection] = useState(false);
+
   // Save-to-Fish-Record State
   const [showSaveToFish, setShowSaveToFish] = useState(false);
   const [myFish, setMyFish] = useState<Array<{id: string; name: string; species?: string}>>([]);
@@ -424,6 +430,39 @@ export default function FishHealthDiagnosis() {
     setDiagnosis(null);
     setError(null);
     setCurrentStep(0);
+    setThousandResult(null);
+    setThousandError(null);
+    setShowThousandSection(false);
+  };
+
+  const runThousandScenarios = async () => {
+    if (!diagnosis) return;
+    setThousandLoading(true);
+    setThousandError(null);
+    setThousandResult(null);
+    setShowThousandSection(true);
+    try {
+      const res = await fetch("/api/simulation/thousand-scenarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          species: userContextSpecies || undefined,
+          symptoms: userContextSymptoms || (diagnosis.symptoms?.join("، ") ?? ""),
+          waterTemp: waterTemperature || undefined,
+          waterPh: waterPh || undefined,
+          waterAmmonia: waterAmmonia || undefined,
+          diagnosis: diagnosis.arabicName || diagnosis.disease,
+          tankSize: undefined,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) setThousandResult(json.data);
+      else setThousandError(json.error || "فشلت المحاكاة");
+    } catch {
+      setThousandError("تعذّر الاتصال بالخادم");
+    } finally {
+      setThousandLoading(false);
+    }
   };
 
   const printDiagnosis = useCallback(() => {
@@ -1442,6 +1481,158 @@ export default function FishHealthDiagnosis() {
                   </div>
                   <ChevronRight className="w-6 h-6 text-cyan-400 group-hover:translate-x-1 transition-transform" />
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ محكمة الألف سيناريو ═══════════ */}
+        {diagnosis && (
+          <div className="mt-10 mb-4">
+            {!showThousandSection ? (
+              <div
+                className="p-6 rounded-2xl bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-blue-500/10 border border-purple-500/20 cursor-pointer hover:border-purple-500/40 transition-all group"
+                onClick={runThousandScenarios}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-purple-500/20 flex items-center justify-center border border-purple-500/20 group-hover:bg-purple-500/30 transition-colors">
+                      <Zap className="w-7 h-7 text-purple-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">
+                        ⚗️ محكمة الألف سيناريو
+                      </h3>
+                      <p className="text-sm text-slate-400">
+                        1000 محاكاة موازية — شوف نسبة نجاح كل طريقة علاج بالأرقام
+                      </p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-6 h-6 text-purple-400 group-hover:translate-x-1 transition-transform" />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-purple-400" />
+                    محكمة الألف سيناريو
+                  </h3>
+                  {!thousandLoading && (
+                    <button onClick={runThousandScenarios} className="text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1">
+                      <RefreshCw className="h-3 w-3" /> إعادة تشغيل
+                    </button>
+                  )}
+                </div>
+
+                {thousandLoading && (
+                  <div className="p-8 rounded-2xl bg-gradient-to-br from-purple-900/30 to-indigo-900/30 border border-purple-500/20 text-center space-y-4">
+                    <div className="flex justify-center">
+                      <div className="relative w-16 h-16">
+                        <div className="absolute inset-0 rounded-full border-4 border-purple-400/20 border-t-purple-400 animate-spin" />
+                        <div className="absolute inset-2 rounded-full border-4 border-indigo-400/20 border-b-indigo-400 animate-spin" style={{ animationDirection: "reverse" }} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-purple-300 font-bold animate-pulse">جاري تشغيل 1000 سيناريو...</p>
+                      <p className="text-xs text-slate-400 mt-1">الذكاء الاصطناعي يحاكي كل طريقة علاج على سمكتك</p>
+                    </div>
+                  </div>
+                )}
+
+                {thousandError && (
+                  <div className="p-4 rounded-xl bg-red-950/30 border border-red-500/20 text-red-400 text-sm text-center">
+                    {thousandError}
+                  </div>
+                )}
+
+                {thousandResult && (
+                  <div className="space-y-4 p-5 rounded-2xl bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-purple-500/20">
+                    {/* Header */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm text-purple-300 font-semibold">نتائج {thousandResult.totalSimulations?.toLocaleString() || "1,000"} سيناريو</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{thousandResult.patientProfile}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-slate-400">الاستعجالية</p>
+                        <p className="text-sm font-bold text-amber-300">{thousandResult.recommendation?.urgency}</p>
+                      </div>
+                    </div>
+
+                    {/* Treatments ranked */}
+                    <div className="space-y-2">
+                      {thousandResult.treatments?.sort((a: any, b: any) => b.successRate - a.successRate).map((t: any, i: number) => (
+                        <div key={t.id || i} className={`p-4 rounded-xl border transition-all ${thousandResult.recommendation?.primaryTreatmentId === t.id ? "bg-purple-500/15 border-purple-500/40" : "bg-slate-800/40 border-slate-700/50"}`}>
+                          <div className="flex items-start justify-between gap-3 mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-slate-400 text-black" : i === 2 ? "bg-amber-700 text-white" : "bg-slate-700 text-slate-300"}`}>
+                                {i + 1}
+                              </span>
+                              <div>
+                                <p className="font-bold text-sm text-white">{t.name}</p>
+                                <p className="text-[10px] text-slate-400 italic">{t.nameEn}</p>
+                              </div>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className={`text-lg font-black ${t.successRate >= 70 ? "text-emerald-400" : t.successRate >= 50 ? "text-amber-400" : "text-red-400"}`}>
+                                {t.successRate}%
+                              </p>
+                              <p className="text-[10px] text-slate-500">نجاح</p>
+                            </div>
+                          </div>
+
+                          {/* Success bar */}
+                          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden mb-3">
+                            <div
+                              className={`h-full rounded-full ${t.successRate >= 70 ? "bg-emerald-500" : t.successRate >= 50 ? "bg-amber-500" : "bg-red-500"}`}
+                              style={{ width: `${t.successRate}%`, transition: "width 1s ease" }}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2 text-xs mb-3">
+                            <div className="text-center">
+                              <p className="text-slate-400">الشفاء</p>
+                              <p className="font-bold text-slate-200">{t.avgRecoveryDays} يوم</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-slate-400">الخطورة</p>
+                              <p className={`font-bold ${t.riskLevel === "low" ? "text-emerald-400" : t.riskLevel === "medium" ? "text-amber-400" : "text-red-400"}`}>
+                                {t.riskLevel === "low" ? "منخفضة" : t.riskLevel === "medium" ? "متوسطة" : "عالية"}
+                              </p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-slate-400">التكلفة</p>
+                              <p className="font-bold text-slate-200">{t.costRangeIQD}</p>
+                            </div>
+                          </div>
+
+                          {t.steps?.length > 0 && (
+                            <div className="space-y-1">
+                              {t.steps.slice(0, 3).map((step: string, j: number) => (
+                                <p key={j} className="text-xs text-slate-300 flex gap-1.5">
+                                  <span className="text-purple-400 shrink-0">{j + 1}.</span>{step}
+                                </p>
+                              ))}
+                            </div>
+                          )}
+
+                          {thousandResult.recommendation?.primaryTreatmentId === t.id && (
+                            <div className="mt-3 pt-2 border-t border-purple-500/20">
+                              <p className="text-xs text-purple-300 font-semibold">✅ التوصية: {thousandResult.recommendation?.reasoning}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {thousandResult.statisticalInsight && (
+                      <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 leading-relaxed">
+                        📊 {thousandResult.statisticalInsight}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>

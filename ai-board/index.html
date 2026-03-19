@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AQUAVO — مجلس الإدارة الذكي</title>
+  <meta name="description" content="مكتب افتراضي ذكي — فريق AI يتناقش بقراراتك التجارية" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg-floor: #1a1f2e;
+      --bg-wall: #0f1320;
+      --bg-desk: #232a3d;
+      --bg-desk-top: #2a3248;
+      --bg-meeting: #1e2436;
+      --border: rgba(255,255,255,0.06);
+      --gold: #d4a853;
+      --gold-light: #f0d48a;
+      --gold-dark: #a07830;
+      --blue: #3b82f6;
+      --pink: #ec4899;
+      --amber: #f59e0b;
+      --text: #f1f5f9;
+      --text-dim: #94a3b8;
+      --text-muted: #64748b;
+      --glass: rgba(255,255,255,0.04);
+      --glass-border: rgba(255,255,255,0.08);
+      --radius: 14px;
+      --transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background: var(--bg-wall);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+      direction: rtl;
+    }
+
+    /* ======== AMBIENT ======== */
+    .ambient {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+    .ambient::before {
+      content: '';
+      position: absolute; top: -20%; right: -15%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(212,168,83,0.05) 0%, transparent 70%);
+      animation: drift 25s ease-in-out infinite;
+    }
+    .ambient::after {
+      content: '';
+      position: absolute; bottom: -15%; left: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%);
+      animation: drift 30s ease-in-out infinite reverse;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0); }
+      50% { transform: translate(30px, -30px); }
+    }
+
+    /* ======== LAYOUT ======== */
+    .app {
+      position: relative; z-index: 1;
+      max-width: 1440px; margin: 0 auto;
+      padding: 16px 20px 140px;
+      min-height: 100vh;
+    }
+
+    /* ======== HEADER ======== */
+    .header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 0 20px; border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 14px; }
+    .logo {
+      width: 44px; height: 44px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 900; color: var(--bg-wall);
+      box-shadow: 0 4px 16px rgba(212,168,83,0.3);
+    }
+    .brand h1 {
+      font-size: 1.35rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .brand p { font-size: 0.75rem; color: var(--text-muted); }
+    .header-btns { display: flex; gap: 8px; }
+    .h-btn {
+      width: 38px; height: 38px; border-radius: 8px;
+      border: 1px solid var(--glass-border); background: var(--glass);
+      color: var(--text-dim); font-size: 1rem; cursor: pointer;
+      transition: var(--transition); display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .h-btn:hover { background: rgba(255,255,255,0.08); color: var(--gold); }
+    .badge {
+      position: absolute; top: -3px; left: -3px;
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--gold); color: var(--bg-wall);
+      font-size: 0.6rem; font-weight: 700;
+      display: none; align-items: center; justify-content: center;
+    }
+
+    /* ======== VIRTUAL OFFICE SCENE ======== */
+    .office {
+      position: relative;
+      background: linear-gradient(180deg, var(--bg-floor) 0%, #161b29 100%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 30px 24px 20px;
+      min-height: 460px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* Floor grid pattern */
+    .office::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+
+    /* Wall */
+    .wall {
+      position: absolute; top: 0; left: 0; right: 0; height: 90px;
+      background: linear-gradient(180deg, var(--bg-wall) 0%, transparent 100%);
+      pointer-events: none; z-index: 1;
+    }
+    .wall-art {
+      position: absolute; top: 20px; right: 50%; transform: translateX(50%);
+      font-size: 0.7rem; color: var(--text-muted); letter-spacing: 4px;
+      text-transform: uppercase; opacity: 0.5;
+    }
+
+    /* Room label */
+    .room-label {
+      position: absolute; top: 12px; right: 20px;
+      display: flex; align-items: center; gap: 6px;
+      z-index: 2;
+    }
+    .room-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #22c55e;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+    .room-label span {
+      font-size: 0.7rem; color: var(--text-muted); letter-spacing: 1px;
+    }
+
+    /* ======== DESKS ROW ======== */
+    .desks {
+      display: flex; justify-content: center; gap: 40px;
+      margin-top: 50px; margin-bottom: 20px;
+      position: relative; z-index: 3;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .desks.meeting-mode {
+      gap: 20px;
+      margin-top: 10px;
+    }
+
+    .desk-unit {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 0; position: relative;
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Character avatar */
+    .char {
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      position: relative; z-index: 5;
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      cursor: default;
+    }
+    .char::after {
+      content: '';
+      position: absolute; inset: -3px; border-radius: 50%;
+      border: 2px solid transparent;
+      transition: var(--transition);
+    }
+
+    .desk-unit[data-role="accountant"] .char {
+      background: linear-gradient(135deg, #1e3a5f, #1a2744);
+      border: 2px solid rgba(59,130,246,0.3);
+    }
+    .desk-unit[data-role="marketer"] .char {
+      background: linear-gradient(135deg, #4a1942, #2d1230);
+      border: 2px solid rgba(236,72,153,0.3);
+    }
+    .desk-unit[data-role="strategist"] .char {
+      background: linear-gradient(135deg, #4a3a10, #2d2308);
+      border: 2px solid rgba(245,158,11,0.3);
+    }
+
+    /* Speaking glow */
+    .desk-unit.speaking .char::after {
+      border-color: var(--char-color);
+      box-shadow: 0 0 20px var(--char-glow);
+      animation: speak-ring 1.5s ease-in-out infinite;
+    }
+    .desk-unit[data-role="accountant"] { --char-color: var(--blue); --char-glow: rgba(59,130,246,0.3); }
+    .desk-unit[data-role="marketer"] { --char-color: var(--pink); --char-glow: rgba(236,72,153,0.3); }
+    .desk-unit[data-role="strategist"] { --char-color: var(--amber); --char-glow: rgba(245,158,11,0.3); }
+
+    @keyframes speak-ring {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.08); opacity: 0.7; }
+    }
+
+    /* Status dot on char */
+    .char-status {
+      position: absolute; bottom: 2px; left: 2px;
+      width: 12px; height: 12px; border-radius: 50%;
+      border: 2px solid var(--bg-floor); background: var(--text-muted);
+      z-index: 6; transition: var(--transition);
+    }
+    .desk-unit.active .char-status { background: #22c55e; }
+    .desk-unit.speaking .char-status { background: var(--char-color); animation: pulse-dot 1s ease-in-out infinite; }
+
+    /* Name tag */
+    .char-name {
+      margin-top: 6px; font-size: 0.78rem; font-weight: 700; color: var(--text);
+      text-align: center;
+    }
+    .char-role {
+      font-size: 0.65rem; color: var(--text-muted); text-align: center;
+    }
+
+    /* Desk surface */
+    .desk-surface {
+      width: 110px; height: 24px; margin-top: 6px;
+      background: var(--bg-desk-top); border-radius: 6px;
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      gap: 4px; font-size: 0.55rem; color: var(--text-muted);
+      transition: opacity 0.5s;
+    }
+    .meeting-mode .desk-surface { opacity: 0; height: 0; margin: 0; }
+
+    /* ======== SPEECH BUBBLES ======== */
+    .bubble-area {
+      position: relative; z-index: 4;
+      min-height: 0;
+      transition: all 0.6s ease;
+    }
+
+    .bubble-area.active {
+      min-height: 120px;
+    }
+
+    .speech-bubble {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 14px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      position: relative;
+      display: none;
+      animation: bubble-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 300px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+
+    .speech-bubble::-webkit-scrollbar { width: 4px; }
+    .speech-bubble::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+    .speech-bubble.show { display: block; }
+
+    @keyframes bubble-in {
+      from { opacity: 0; transform: translateY(10px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* Bubble pointer */
+    .speech-bubble::before {
+      content: '';
+      position: absolute; top: -8px;
+      width: 16px; height: 16px;
+      background: var(--glass);
+      border-top: 1px solid var(--glass-border);
+      border-right: 1px solid var(--glass-border);
+      transform: rotate(-45deg);
+    }
+    .speech-bubble[data-from="accountant"]::before { right: 80%; border-color: rgba(59,130,246,0.15); }
+    .speech-bubble[data-from="marketer"]::before { right: 45%; border-color: rgba(236,72,153,0.15); }
+    .speech-bubble[data-from="strategist"]::before { right: 15%; border-color: rgba(245,158,11,0.15); }
+
+    .bubble-who {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 10px; padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bubble-who-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem;
+    }
+    .bubble-who[data-role="accountant"] .bubble-who-icon { background: rgba(59,130,246,0.15); }
+    .bubble-who[data-role="marketer"] .bubble-who-icon { background: rgba(236,72,153,0.15); }
+    .bubble-who[data-role="strategist"] .bubble-who-icon { background: rgba(245,158,11,0.15); }
+    .bubble-who-name { font-size: 0.8rem; font-weight: 700; }
+    .bubble-who-tag {
+      font-size: 0.65rem; color: var(--text-muted);
+      padding: 2px 8px; border-radius: 100px;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .bubble-text {
+      font-size: 0.88rem; line-height: 1.85; color: var(--text-dim);
+      white-space: pre-wrap; word-wrap: break-word;
+    }
+    .bubble-text strong { color: var(--text); font-weight: 700; }
+
+    /* Typing dots */
+    .typing { display: inline-flex; gap: 4px; padding: 4px 0; }
+    .typing span {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--char-color, var(--text-muted));
+      opacity: 0.4;
+      animation: t-bounce 1.4s ease-in-out infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes t-bounce {
+      0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+      30% { transform: translateY(-5px); opacity: 1; }
+    }
+
+    /* ======== MEETING TABLE ======== */
+    .meeting-table {
+      display: none;
+      margin: 0 auto 16px;
+      width: 80%;
+      height: 8px;
+      background: linear-gradient(90deg, transparent, var(--bg-desk-top), transparent);
+      border-radius: 100px;
+      position: relative;
+    }
+    .meeting-table.show { display: block; }
+    .meeting-table::after {
+      content: '🗓️ جلسة مجلس الإدارة';
+      position: absolute;
+      bottom: -20px; left: 50%; transform: translateX(-50%);
+      font-size: 0.6rem; color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    /* ======== QUESTION BAR ======== */
+    .q-bar {
+      background: rgba(212,168,83,0.06);
+      border: 1px solid rgba(212,168,83,0.12);
+      border-radius: 10px;
+      padding: 12px 16px; margin-bottom: 14px;
+      display: none; align-items: flex-start; gap: 10px;
+    }
+    .q-bar.show { display: flex; }
+    .q-bar-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+    .q-bar-text { font-size: 0.92rem; font-weight: 600; color: var(--text); line-height: 1.5; }
+
+    /* ======== VERDICT ======== */
+    .verdict {
+      background: linear-gradient(135deg, rgba(212,168,83,0.08), rgba(160,120,48,0.03));
+      border: 1px solid rgba(212,168,83,0.18);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: none;
+      animation: v-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .verdict.show { display: block; }
+    @keyframes v-in {
+      from { opacity: 0; transform: translateY(16px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .verdict-head {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 12px; padding-bottom: 10px;
+      border-bottom: 1px solid rgba(212,168,83,0.12);
+    }
+    .verdict-head-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .verdict-head h2 { font-size: 1rem; font-weight: 800; color: var(--gold-light); }
+    .verdict-body {
+      font-size: 0.9rem; line-height: 1.85; color: var(--text-dim);
+      white-space: pre-wrap;
+    }
+    .verdict-body strong { color: var(--gold-light); }
+
+    /* ======== WELCOME ======== */
+    .welcome {
+      text-align: center; padding: 40px 20px 30px;
+    }
+    .welcome h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .welcome p { font-size: 0.85rem; color: var(--text-muted); max-width: 450px; margin: 0 auto 24px; line-height: 1.6; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .chip {
+      padding: 8px 16px; border-radius: 100px;
+      border: 1px solid var(--glass-border); background: var(--glass);
+      color: var(--text-dim); font-size: 0.8rem;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer; transition: var(--transition); white-space: nowrap;
+    }
+    .chip:hover { background: rgba(212,168,83,0.08); border-color: rgba(212,168,83,0.2); color: var(--gold-light); }
+
+    /* ======== INPUT ======== */
+    .input-dock {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: linear-gradient(to top, var(--bg-wall) 70%, transparent);
+      padding: 12px 20px 20px;
+    }
+    .input-wrap { max-width: 1440px; margin: 0 auto; }
+    .input-box {
+      display: flex; gap: 10px;
+      background: rgba(17,24,39,0.85);
+      border: 1px solid var(--glass-border);
+      border-radius: 14px; padding: 7px;
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      transition: var(--transition);
+    }
+    .input-box:focus-within {
+      border-color: rgba(212,168,83,0.3);
+      box-shadow: 0 0 0 3px rgba(212,168,83,0.06);
+    }
+    .input-box textarea {
+      flex: 1; background: transparent; border: none; color: var(--text);
+      font-family: 'Tajawal', sans-serif; font-size: 0.9rem;
+      padding: 10px 12px; resize: none; height: 44px; max-height: 100px;
+      outline: none; direction: rtl; line-height: 1.5;
+    }
+    .input-box textarea::placeholder { color: var(--text-muted); }
+    .send-btn {
+      align-self: flex-end;
+      width: 44px; height: 44px; border-radius: 10px; border: none;
+      background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+      color: var(--bg-wall); font-size: 1.1rem; cursor: pointer;
+      transition: var(--transition); display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 16px rgba(212,168,83,0.35); }
+    .send-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+    .send-btn svg { width: 18px; height: 18px; transform: rotate(180deg); }
+
+    /* ======== HISTORY SIDEBAR ======== */
+    .hist-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+      opacity: 0; visibility: hidden; transition: var(--transition);
+    }
+    .hist-overlay.open { opacity: 1; visibility: visible; }
+    .hist-panel {
+      position: fixed; top: 0; right: -380px; width: 360px; max-width: 88vw;
+      height: 100vh; background: var(--bg-floor);
+      border-left: 1px solid var(--border);
+      z-index: 201; transition: var(--transition);
+      display: flex; flex-direction: column;
+    }
+    .hist-overlay.open .hist-panel { right: 0; }
+    .hist-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+    }
+    .hist-top h2 { font-size: 1rem; font-weight: 700; }
+    .hist-close {
+      width: 32px; height: 32px; border-radius: 6px;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text-dim); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hist-list {
+      flex: 1; overflow-y: auto; padding: 10px;
+      scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.1) transparent;
+    }
+    .hist-empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 160px; color: var(--text-muted);
+      font-size: 0.85rem; gap: 6px;
+    }
+    .hist-item {
+      padding: 12px 14px; border-radius: 10px;
+      border: 1px solid transparent; cursor: pointer;
+      transition: var(--transition); margin-bottom: 6px;
+    }
+    .hist-item:hover { background: rgba(255,255,255,0.04); border-color: var(--border); }
+    .hist-q {
+      font-size: 0.85rem; font-weight: 600; color: var(--text);
+      margin-bottom: 4px;
+      display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
+    }
+    .hist-meta { display: flex; align-items: center; gap: 6px; font-size: 0.7rem; color: var(--text-muted); }
+    .hist-del {
+      margin-right: auto; background: none; border: none;
+      color: var(--text-muted); cursor: pointer; font-size: 0.8rem;
+      padding: 2px 5px; border-radius: 4px; transition: var(--transition);
+    }
+    .hist-del:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+
+    /* ======== RESPONSIVE ======== */
+    @media (max-width: 700px) {
+      .app { padding: 10px 12px 130px; }
+      .brand h1 { font-size: 1.1rem; }
+      .desks { gap: 16px; flex-wrap: wrap; }
+      .char { width: 52px; height: 52px; font-size: 1.3rem; }
+      .desk-surface { width: 90px; }
+      .office { padding: 20px 14px 16px; min-height: 360px; }
+      .welcome h2 { font-size: 1.1rem; }
+    }
+
+    html { scroll-behavior: smooth; }
+    body::-webkit-scrollbar { width: 5px; }
+    body::-webkit-scrollbar-track { background: var(--bg-wall); }
+    body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div class="ambient"></div>
+
+  <div class="app">
+    <!-- HEADER -->
+    <header class="header">
+      <div class="brand">
+        <div class="logo">AQ</div>
+        <div>
+          <h1>مجلس الإدارة الذكي</h1>
+          <p>المكتب الافتراضي — AQUAVO</p>
+        </div>
+      </div>
+      <div class="header-btns">
+        <button class="h-btn" id="btnHist" title="سجل النقاشات">📋<span class="badge" id="hBadge">0</span></button>
+        <button class="h-btn" id="btnNew" title="نقاش جديد">🔄</button>
+      </div>
+    </header>
+
+    <!-- VIRTUAL OFFICE -->
+    <div class="office" id="office">
+      <div class="wall">
+        <div class="wall-art">AQUAVO HEADQUARTERS</div>
+      </div>
+      <div class="room-label"><div class="room-dot"></div><span>OFFICE ONLINE</span></div>
+
+      <!-- Characters at desks -->
+      <div class="desks" id="desks">
+        <div class="desk-unit" data-role="accountant" id="deskAcc">
+          <div class="char">📊<div class="char-status"></div></div>
+          <div class="char-name">المحاسب</div>
+          <div class="char-role">التحليل المالي</div>
+          <div class="desk-surface">📈 💹 🧮</div>
+        </div>
+        <div class="desk-unit" data-role="marketer" id="deskMkt">
+          <div class="char">📱<div class="char-status"></div></div>
+          <div class="char-name">المسوّق</div>
+          <div class="char-role">التسويق الرقمي</div>
+          <div class="desk-surface">🎨 📢 💡</div>
+        </div>
+        <div class="desk-unit" data-role="strategist" id="deskStr">
+          <div class="char">🎯<div class="char-status"></div></div>
+          <div class="char-name">المستشار</div>
+          <div class="char-role">القرار الاستراتيجي</div>
+          <div class="desk-surface">♟️ 📋 ⚡</div>
+        </div>
+      </div>
+
+      <!-- Meeting table -->
+      <div class="meeting-table" id="meetTable"></div>
+
+      <!-- Speech bubbles area -->
+      <div class="bubble-area" id="bubbleArea">
+        <div class="speech-bubble" id="bubAcc" data-from="accountant">
+          <div class="bubble-who" data-role="accountant">
+            <div class="bubble-who-icon">📊</div>
+            <span class="bubble-who-name">المحاسب المالي</span>
+            <span class="bubble-who-tag">يتكلم...</span>
+          </div>
+          <div class="bubble-text" id="txtAcc"></div>
+        </div>
+        <div class="speech-bubble" id="bubMkt" data-from="marketer">
+          <div class="bubble-who" data-role="marketer">
+            <div class="bubble-who-icon">📱</div>
+            <span class="bubble-who-name">المسوّق الرقمي</span>
+            <span class="bubble-who-tag">يتكلم...</span>
+          </div>
+          <div class="bubble-text" id="txtMkt"></div>
+        </div>
+        <div class="speech-bubble" id="bubStr" data-from="strategist">
+          <div class="bubble-who" data-role="strategist">
+            <div class="bubble-who-icon">🎯</div>
+            <span class="bubble-who-name">المستشار الاستراتيجي</span>
+            <span class="bubble-who-tag">يتكلم...</span>
+          </div>
+          <div class="bubble-text" id="txtStr"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Welcome -->
+    <div class="welcome" id="welcome">
+      <h2>🏢 مرحباً بك في المكتب الافتراضي</h2>
+      <p>اطرح أي سؤال تجاري — الفريق راح يقوم من مكاتبه ويجتمع ويتناقش ويعطيك التوصية النهائية</p>
+      <div class="chips">
+        <button class="chip" data-q="كيف نسعّر هيتر ٥٠ واط من YEE مقارنة بالمنافسين؟">💰 تسعير هيتر ٥٠ واط</button>
+        <button class="chip" data-q="هل نطلق حملة إعلانية على تيك توك أم إنستغرام للأسبوع الجاي؟">📱 تيك توك أم إنستغرام</button>
+        <button class="chip" data-q="شنو أفضل استراتيجية لدخول سوق البصرة؟">🗺️ التوسع للبصرة</button>
+        <button class="chip" data-q="نريد نسوي عرض رمضان خاص، شنو المنتجات والأسعار المناسبة؟">🌙 عروض رمضان</button>
+        <button class="chip" data-q="كيف نزيد متوسط قيمة الطلب الواحد؟">📈 زيادة متوسط الطلب</button>
+      </div>
+    </div>
+
+    <!-- Question bar -->
+    <div class="q-bar" id="qBar">
+      <div class="q-bar-icon">❓</div>
+      <div class="q-bar-text" id="qText"></div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict" id="verdict">
+      <div class="verdict-head">
+        <div class="verdict-head-icon">⚡</div>
+        <h2>القرار النهائي</h2>
+      </div>
+      <div class="verdict-body" id="verdictBody"></div>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="input-dock">
+    <div class="input-wrap">
+      <div class="input-box">
+        <textarea id="qInput" placeholder="اكتب سؤالك هنا... مثال: كيف نسعّر المضخة الجديدة؟" rows="1"></textarea>
+        <button class="send-btn" id="btnSend" title="إرسال">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Sidebar -->
+  <div class="hist-overlay" id="histOverlay">
+    <div class="hist-panel">
+      <div class="hist-top">
+        <h2>📋 سجل النقاشات</h2>
+        <button class="hist-close" id="histClose">✕</button>
+      </div>
+      <div class="hist-list" id="histList">
+        <div class="hist-empty"><span>📭</span><span>لا توجد نقاشات سابقة</span></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // AQUAVO VIRTUAL OFFICE — AI BOARD v2
+    // ==========================================
+    const API = '/api/ai-board/discuss';
+    const HKEY = 'aquavo_board_history';
+    const MAX_H = 10;
+    let busy = false;
+    let disc = null;
+
+    const $ = s => document.querySelector(s);
+    const qInput = $('#qInput');
+    const btnSend = $('#btnSend');
+    const desks = $('#desks');
+    const meetTable = $('#meetTable');
+    const bubbleArea = $('#bubbleArea');
+    const welcome = $('#welcome');
+    const qBar = $('#qBar');
+    const qText = $('#qText');
+    const verdict = $('#verdict');
+    const verdictBody = $('#verdictBody');
+    const histOverlay = $('#histOverlay');
+    const histList = $('#histList');
+    const hBadge = $('#hBadge');
+
+    const experts = {
+      accountant: { desk: $('#deskAcc'), bub: $('#bubAcc'), txt: $('#txtAcc') },
+      marketer:   { desk: $('#deskMkt'), bub: $('#bubMkt'), txt: $('#txtMkt') },
+      strategist: { desk: $('#deskStr'), bub: $('#bubStr'), txt: $('#txtStr') },
+    };
+
+    // Auto-resize textarea
+    qInput.addEventListener('input', () => {
+      qInput.style.height = '44px';
+      qInput.style.height = Math.min(qInput.scrollHeight, 100) + 'px';
+    });
+    qInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
+    });
+
+    // Chips
+    document.querySelectorAll('.chip').forEach(c => {
+      c.addEventListener('click', () => { qInput.value = c.dataset.q; go(); });
+    });
+
+    // Buttons
+    btnSend.addEventListener('click', go);
+    $('#btnNew').addEventListener('click', () => { if (!busy) reset(); });
+    $('#btnHist').addEventListener('click', () => { renderHist(); histOverlay.classList.add('open'); });
+    $('#histClose').addEventListener('click', () => histOverlay.classList.remove('open'));
+    histOverlay.addEventListener('click', e => { if (e.target === histOverlay) histOverlay.classList.remove('open'); });
+
+    // ==========================================
+    // MAIN FLOW
+    // ==========================================
+    async function go() {
+      const q = qInput.value.trim();
+      if (!q || busy) return;
+
+      busy = true;
+      btnSend.disabled = true;
+      disc = { question: q, responses: {}, timestamp: Date.now() };
+
+      // UI transitions
+      welcome.style.display = 'none';
+      qBar.classList.add('show');
+      qText.textContent = q;
+      verdict.classList.remove('show');
+      verdictBody.textContent = '';
+      qInput.value = '';
+      qInput.style.height = '44px';
+
+      // Reset bubbles
+      Object.values(experts).forEach(({desk, bub, txt}) => {
+        desk.classList.remove('active', 'speaking');
+        bub.classList.remove('show');
+        txt.innerHTML = '';
+        bub.querySelector('.bubble-who-tag').textContent = 'ينتظر...';
+      });
+
+      // === MEETING MODE: characters gather ===
+      await sleep(300);
+      desks.classList.add('meeting-mode');
+      meetTable.classList.add('show');
+      bubbleArea.classList.add('active');
+
+      // Activate all characters (they moved to meeting)
+      await sleep(600);
+      Object.values(experts).forEach(({desk}) => desk.classList.add('active'));
+
+      try {
+        // Phase 1: Accountant speaks
+        const accText = await runExpert('accountant', q, null, null);
+        disc.responses.accountant = accText;
+
+        // Phase 2: Marketer responds
+        const mktText = await runExpert('marketer', q, accText, null);
+        disc.responses.marketer = mktText;
+
+        // Phase 3: Strategist decides
+        const strText = await runExpert('strategist', q, accText, mktText);
+        disc.responses.strategist = strText;
+
+        // Show verdict
+        showVerdict(strText);
+        saveHist(disc);
+
+      } catch (err) {
+        console.error('Discussion error:', err);
+        showError(err.message || 'حدث خطأ');
+      } finally {
+        busy = false;
+        btnSend.disabled = false;
+      }
+    }
+
+    // ==========================================
+    // RUN EXPERT (streaming)
+    // ==========================================
+    async function runExpert(role, question, accResp, mktResp) {
+      const {desk, bub, txt} = experts[role];
+
+      // Activate speaking
+      desk.classList.add('speaking');
+      bub.classList.add('show');
+      bub.querySelector('.bubble-who-tag').textContent = 'يتكلم...';
+      txt.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+
+      // Scroll to bubble
+      bub.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      try {
+        const res = await fetch(API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            role,
+            question,
+            accountantAnalysis: accResp || '',
+            marketerAnalysis: mktResp || '',
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let full = '';
+        txt.innerHTML = '';
+
+        while (true) {
+          const {done, value} = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, {stream: true});
+          for (const line of chunk.split('\n')) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+            try {
+              const p = JSON.parse(data);
+              if (p.error) {
+                full += `\n⚠️ ${p.error}`;
+                txt.innerHTML = fmt(full);
+                continue;
+              }
+              const c = p.choices?.[0]?.delta?.content || '';
+              if (c) {
+                full += c;
+                txt.innerHTML = fmt(full);
+                bub.scrollTop = bub.scrollHeight;
+              }
+            } catch {}
+          }
+        }
+
+        // Done
+        desk.classList.remove('speaking');
+        bub.querySelector('.bubble-who-tag').textContent = '✅ انتهى';
+        return full;
+
+      } catch (err) {
+        desk.classList.remove('speaking');
+        bub.querySelector('.bubble-who-tag').textContent = '❌ خطأ';
+        txt.innerHTML = `<span style="color:#ef4444;">⚠️ ${err.message}</span>`;
+        throw err;
+      }
+    }
+
+    // ==========================================
+    // HELPERS
+    // ==========================================
+    function fmt(t) {
+      return t
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.*?)__/g, '<strong>$1</strong>')
+        .replace(/\n/g, '<br>');
+    }
+
+    function showVerdict(text) {
+      let v = text;
+      for (const m of ['القرار النهائي', 'التوصية النهائية', 'الخلاصة', 'توصيتي النهائية']) {
+        const i = text.indexOf(m);
+        if (i !== -1) { v = text.substring(i); break; }
+      }
+      verdictBody.innerHTML = fmt(v);
+      verdict.classList.add('show');
+      verdict.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    function showError(msg) {
+      verdictBody.innerHTML = `<span style="color:#ef4444;">⚠️ ${msg}</span>`;
+      verdict.classList.add('show');
+    }
+
+    function reset() {
+      welcome.style.display = 'block';
+      qBar.classList.remove('show');
+      verdict.classList.remove('show');
+      desks.classList.remove('meeting-mode');
+      meetTable.classList.remove('show');
+      bubbleArea.classList.remove('active');
+      disc = null;
+      Object.values(experts).forEach(({desk, bub, txt}) => {
+        desk.classList.remove('active', 'speaking');
+        bub.classList.remove('show');
+        txt.innerHTML = '';
+      });
+      qInput.focus();
+    }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // ==========================================
+    // HISTORY
+    // ==========================================
+    function getH() { try { return JSON.parse(localStorage.getItem(HKEY)) || []; } catch { return []; } }
+
+    function saveHist(d) {
+      const h = getH();
+      h.unshift({ id: Date.now().toString(), question: d.question, responses: d.responses, timestamp: d.timestamp });
+      if (h.length > MAX_H) h.length = MAX_H;
+      localStorage.setItem(HKEY, JSON.stringify(h));
+      updBadge();
+    }
+
+    function delHist(id) {
+      const h = getH().filter(x => x.id !== id);
+      localStorage.setItem(HKEY, JSON.stringify(h));
+      updBadge(); renderHist();
+    }
+
+    function updBadge() {
+      const c = getH().length;
+      hBadge.style.display = c > 0 ? 'flex' : 'none';
+      hBadge.textContent = c;
+    }
+
+    function renderHist() {
+      const h = getH();
+      if (!h.length) {
+        histList.innerHTML = '<div class="hist-empty"><span>📭</span><span>لا توجد نقاشات</span></div>';
+        return;
+      }
+      histList.innerHTML = h.map(x => {
+        const d = new Date(x.timestamp);
+        const t = d.toLocaleDateString('ar-IQ', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return `<div class="hist-item" data-id="${x.id}">
+          <div class="hist-q">${esc(x.question)}</div>
+          <div class="hist-meta"><span>🕐 ${t}</span><button class="hist-del" data-id="${x.id}">🗑️</button></div>
+        </div>`;
+      }).join('');
+
+      histList.querySelectorAll('.hist-item').forEach(el => {
+        el.addEventListener('click', e => {
+          if (e.target.classList.contains('hist-del')) return;
+          loadHist(el.dataset.id);
+        });
+      });
+      histList.querySelectorAll('.hist-del').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); delHist(btn.dataset.id); });
+      });
+    }
+
+    function loadHist(id) {
+      if (busy) return;
+      const entry = getH().find(x => x.id === id);
+      if (!entry) return;
+
+      histOverlay.classList.remove('open');
+      welcome.style.display = 'none';
+      qBar.classList.add('show');
+      qText.textContent = entry.question;
+      desks.classList.add('meeting-mode');
+      meetTable.classList.add('show');
+      bubbleArea.classList.add('active');
+
+      ['accountant', 'marketer', 'strategist'].forEach(r => {
+        const {desk, bub, txt} = experts[r];
+        desk.classList.add('active');
+        desk.classList.remove('speaking');
+        const t = entry.responses?.[r] || '';
+        if (t) {
+          bub.classList.add('show');
+          txt.innerHTML = fmt(t);
+          bub.querySelector('.bubble-who-tag').textContent = '✅ انتهى';
+        }
+      });
+
+      if (entry.responses?.strategist) showVerdict(entry.responses.strategist);
+    }
+
+    updBadge();
+  </script>
+</body>
+</html>

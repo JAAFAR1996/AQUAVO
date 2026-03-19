@@ -55,6 +55,8 @@ import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
 import { EarlyAccessManagement } from "@/components/admin/early-access-management";
+import { WaveProphetPanel } from "@/components/admin/wave-prophet-panel";
+import { CatalogLivePanel } from "@/components/admin/catalog-live-panel";
 import {
   Plus,
   Pencil,
@@ -733,6 +735,8 @@ export default function AdminDashboard() {
           <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
           <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
           <TabsTrigger value="ai-content">✍️ محتوى AI</TabsTrigger>
+          <TabsTrigger value="wave-prophet">🌊 نبي الموجة</TabsTrigger>
+          <TabsTrigger value="catalog-live">🛍️ الكتالوج الحي</TabsTrigger>
           <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
@@ -774,6 +778,16 @@ export default function AdminDashboard() {
         {/* AI Content Hub Tab */}
         <TabsContent value="ai-content" className="space-y-4">
           <AiContentHub />
+        </TabsContent>
+
+        {/* Wave Prophet Tab */}
+        <TabsContent value="wave-prophet" className="space-y-4">
+          <WaveProphetPanel />
+        </TabsContent>
+
+        {/* Catalog Live Tab */}
+        <TabsContent value="catalog-live" className="space-y-4">
+          <CatalogLivePanel />
         </TabsContent>
 
         {/* Notification Log Tab */}

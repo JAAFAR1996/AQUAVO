@@ -67,6 +67,7 @@ const Shipping = lazy(() => import("@/pages/shipping"));
 const Login = lazy(() => import("@/pages/login"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
+const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -267,6 +268,17 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <FishPatientsPage />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* Cultural Twin — التوأم الثقافي */}
+      <Route path="/cultural-twin">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CulturalTwin />
             </Suspense>
           </ErrorBoundary>
         )}
