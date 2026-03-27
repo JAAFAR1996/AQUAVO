@@ -151,13 +151,13 @@ export default function Home() {
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-end gap-2 text-sm">
-                      {Number(product.price) === 0 ? (
-                        <span className="text-xs text-muted-foreground">قريباً ✨</span>
-                      ) : product.hasVariants && product.minPrice ? (
+                      {product.hasVariants && product.variants?.length ? (
                         <span className="font-mono font-bold text-accent text-xs">
                           <span className="text-muted-foreground font-normal">من </span>
-                          {Number(product.minPrice).toLocaleString('en-US')} د.ع
+                          {Math.min(...product.variants.map((v: any) => v.price)).toLocaleString('en-US')} د.ع
                         </span>
+                      ) : Number(product.price) === 0 ? (
+                        <span className="text-xs text-muted-foreground">قريباً ✨</span>
                       ) : (
                         <span className="font-mono font-bold text-accent">{Number(product.price).toLocaleString('en-US')} د.ع</span>
                       )}

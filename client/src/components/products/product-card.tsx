@@ -35,6 +35,10 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     ? EXPERIMENTS.ADD_TO_CART_BUTTON.variants.A
     : EXPERIMENTS.ADD_TO_CART_BUTTON.variants.B;
 
+  const variantMinPrice = (product.hasVariants && product.variants?.length)
+    ? Math.min(...product.variants.map(v => v.price))
+    : undefined;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -144,14 +148,14 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
           <CardContent className="flex-1 p-2 sm:p-4 pt-0">
             <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
-              {Number(product.price) === 0 ? (
-                <span className="text-base sm:text-xl font-bold text-purple-500">
-                  قريباً جداً ✨
-                </span>
-              ) : product.hasVariants && product.minPrice ? (
+              {product.hasVariants && variantMinPrice ? (
                 <span className="text-base sm:text-xl font-bold text-primary">
                   <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-1">يبدأ من</span>
-                  {formatNumber(product.minPrice)} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">د.ع</span>
+                  {formatNumber(variantMinPrice)} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">د.ع</span>
+                </span>
+              ) : Number(product.price) === 0 ? (
+                <span className="text-base sm:text-xl font-bold text-purple-500">
+                  قريباً جداً ✨
                 </span>
               ) : (
                 <>
