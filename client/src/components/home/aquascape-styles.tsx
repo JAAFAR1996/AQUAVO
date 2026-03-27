@@ -139,7 +139,7 @@ export function AquascapeStyles() {
                                                 onClick={() => setCurrentIndex(idx)}
                                                 className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentIndex ? "bg-primary w-8" : "bg-muted-foreground/30 hover:bg-primary/50"
                                                     }`}
-                                                aria-label={`Go to slide ${idx + 1}`}
+                                                aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
                                             />
                                         ))}
                                     </div>

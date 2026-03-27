@@ -148,6 +148,11 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <span className="text-base sm:text-xl font-bold text-purple-500">
                   قريباً جداً ✨
                 </span>
+              ) : product.hasVariants && product.minPrice ? (
+                <span className="text-base sm:text-xl font-bold text-primary">
+                  <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-1">يبدأ من</span>
+                  {formatNumber(product.minPrice)} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">د.ع</span>
+                </span>
               ) : (
                 <>
                   <span className="text-base sm:text-xl font-bold text-primary">

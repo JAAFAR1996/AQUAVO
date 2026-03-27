@@ -118,22 +118,22 @@ export default function Footer() {
             <div className="p-2 bg-blue-500/20 rounded-full mb-2">
               <Lock className="h-5 w-5 text-blue-500" />
             </div>
-            <p className="font-medium text-white text-xs">SSL Certified</p>
-            <p className="text-[10px] text-slate-400">موقع آمن</p>
+            <p className="font-medium text-white text-xs">شهادة SSL</p>
+            <p className="text-[10px] text-slate-400">موقع آمن ومشفر</p>
           </div>
           <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
             <div className="p-2 bg-green-500/20 rounded-full mb-2">
               <Award className="h-5 w-5 text-green-500" />
             </div>
-            <p className="font-medium text-white text-xs">Money-back Guarantee</p>
-            <p className="text-[10px] text-slate-400">ضمان استرجاع المال</p>
+            <p className="font-medium text-white text-xs">ضمان استرداد المبلغ</p>
+            <p className="text-[10px] text-slate-400">راضي أو مردود</p>
           </div>
           <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
             <div className="p-2 bg-amber-500/20 rounded-full mb-2">
               <Shield className="h-5 w-5 text-amber-500" />
             </div>
-            <p className="font-medium text-white text-xs">Authentic Products</p>
-            <p className="text-[10px] text-slate-400">منتجات أصلية</p>
+            <p className="font-medium text-white text-xs">منتجات أصلية 100%</p>
+            <p className="text-[10px] text-slate-400">وكلاء معتمدون</p>
           </div>
         </div>
 
@@ -427,7 +427,7 @@ export default function Footer() {
               <div className="flex gap-1">
                 <div className="bg-slate-800 px-2 py-1 rounded text-xs flex items-center gap-1">كي كارد <span className="text-amber-400 text-[10px]">(قريباً)</span></div>
                 <div className="bg-slate-800 px-2 py-1 rounded text-xs flex items-center gap-1">زين كاش <span className="text-amber-400 text-[10px]">(قريباً)</span></div>
-                <div className="bg-slate-800 px-2 py-1 rounded text-xs flex items-center gap-1">نقدي <span className="text-amber-400 text-[10px]">(قريباً)</span></div>
+                <div className="bg-green-900/50 border border-green-700/50 px-2 py-1 rounded text-xs flex items-center gap-1 text-green-300">نقدي ✓</div>
               </div>
             </div>
           </div>

@@ -27,8 +27,6 @@ import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 // Hero images for rotation on page refresh
 const HERO_IMAGES = [
   "/images/hero/hero-1.png", // Iwagumi Style
-  "/images/hero/hero-2.png", // Planted Paradise
-  "/images/hero/hero-3.png", // Underwater Forest
 ];
 
 export default function Home() {
@@ -153,7 +151,16 @@ export default function Home() {
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-end gap-2 text-sm">
-                      <span className="font-mono font-bold text-accent">{Number(product.price).toLocaleString('en-US')} د.ع</span>
+                      {Number(product.price) === 0 ? (
+                        <span className="text-xs text-muted-foreground">قريباً ✨</span>
+                      ) : product.hasVariants && product.minPrice ? (
+                        <span className="font-mono font-bold text-accent text-xs">
+                          <span className="text-muted-foreground font-normal">من </span>
+                          {Number(product.minPrice).toLocaleString('en-US')} د.ع
+                        </span>
+                      ) : (
+                        <span className="font-mono font-bold text-accent">{Number(product.price).toLocaleString('en-US')} د.ع</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -184,8 +191,14 @@ export default function Home() {
                 <div className="flex-1 text-right space-y-2">
                   <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>
                   <div className="flex gap-2 justify-end items-baseline">
-                    <span className="text-2xl font-black text-primary font-mono">{Number(featuredProduct.price).toLocaleString('en-US')}</span>
-                    <span className="text-xs text-muted-foreground">د.ع</span>
+                    {Number(featuredProduct.price) === 0 ? (
+                      <span className="text-sm text-muted-foreground">قريباً جداً ✨</span>
+                    ) : (
+                      <>
+                        <span className="text-2xl font-black text-primary font-mono">{Number(featuredProduct.price).toLocaleString('en-US')}</span>
+                        <span className="text-xs text-muted-foreground">د.ع</span>
+                      </>
+                    )}
                   </div>
 
                   <Button size="sm" className="w-full bg-secondary hover:bg-secondary/80 dark:bg-white/10 dark:hover:bg-white/20 border border-border dark:border-white/10 text-foreground dark:text-white text-xs h-8">

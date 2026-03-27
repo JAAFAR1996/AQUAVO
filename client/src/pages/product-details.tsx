@@ -80,6 +80,7 @@ export default function ProductDetails() {
   const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
+  const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
 
   const handleAddToCart = () => {
     if (product) {
@@ -270,6 +271,14 @@ export default function ProductDetails() {
                 </div>
 
                 <h1 className="text-xl md:text-2xl font-bold mb-4">{product.name}</h1>
+
+                {/* Display Model */}
+                {displayModel && (
+                  <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground bg-secondary/20 p-2 rounded-md w-fit border border-border/50">
+                    <span className="font-semibold text-xs px-2 py-1 bg-primary/10 text-primary rounded-md uppercase tracking-wider">الموديل</span>
+                    <span className="font-mono text-base font-medium">{displayModel}</span>
+                  </div>
+                )}
 
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-6">
@@ -540,10 +549,10 @@ export default function ProductDetails() {
                       {/* Only show benefits if they exist in database */}
                       {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
                         <div className="space-y-4">
-                          <h4 className="font-bold">الفوائد الرئيسية:</h4>
-                          <ul className="space-y-2 text-sm text-muted-foreground">
+                          <h4 className="font-bold text-right">الفوائد الرئيسية:</h4>
+                          <ul className="space-y-2 text-sm text-muted-foreground" dir="rtl">
                             {product.specifications.benefits.map((benefit: string, index: number) => (
-                              <li key={index} className="flex items-start gap-2">
+                              <li key={index} className="flex items-start gap-2 text-right">
                                 <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
                                 <span>{benefit}</span>
                               </li>
@@ -671,20 +680,20 @@ export default function ProductDetails() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">طريقة الاستخدام</h4>
+                    <div dir="rtl">
+                      <h4 className="font-semibold mb-2 text-right">طريقة الاستخدام</h4>
                       {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
-                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
                           {product.specifications.usageInstructions.map((step: string, idx: number) => (
                             <li key={idx}>{step}</li>
                           ))}
                         </ul>
                       ) : product.specifications?.["طريقة الاستخدام"] ? (
-                        <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+                        <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
                           {product.specifications["طريقة الاستخدام"]}
                         </p>
                       ) : (
-                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground">
+                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
                           <li>اقرأ التعليمات الموجودة على العبوة بعناية</li>
                           <li>استخدم المنتج حسب التوصيات المذكورة</li>
                           <li>احفظ المنتج في مكان بارد وجاف بعيداً عن أشعة الشمس</li>
@@ -692,20 +701,20 @@ export default function ProductDetails() {
                         </ul>
                       )}
                     </div>
-                    <div>
-                      <h4 className="font-semibold mb-2">تحذيرات الأمان</h4>
+                    <div dir="rtl">
+                      <h4 className="font-semibold mb-2 text-right">تحذيرات الأمان</h4>
                       {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
                           {product.specifications.safetyWarnings.map((warning: string, idx: number) => (
                             <li key={idx}>{warning}</li>
                           ))}
                         </ul>
                       ) : product.specifications?.["تحذيرات"] ? (
-                        <p className="text-muted-foreground text-sm leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+                        <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
                           {product.specifications["تحذيرات"]}
                         </p>
                       ) : (
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                        <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
                           <li>احفظ المنتج بعيداً عن متناول الأطفال</li>
                           <li>لا تستخدم المنتج بكميات أكبر من الموصى بها</li>
                           <li>في حالة ملامسة العينين، اغسلهما فوراً بالماء</li>

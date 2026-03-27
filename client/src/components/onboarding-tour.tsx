@@ -297,7 +297,6 @@ export function OnboardingTour() {
             steps={steps}
             run={run}
             continuous
-            showProgress
             showSkipButton
             scrollToFirstStep
             disableOverlayClose
@@ -305,7 +304,7 @@ export function OnboardingTour() {
                 back: 'السابق',
                 close: 'إغلاق',
                 last: 'إنهاء',
-                next: 'التالي',
+                next: 'التالي →',
                 skip: 'تخطي',
             }}
             styles={tourStyles}

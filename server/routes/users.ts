@@ -192,11 +192,11 @@ export function createUserRouter(): RouterType {
         try {
             const sess = getSession(req);
             if (!sess?.userId) {
-                res.sendStatus(401);
+                res.json(null);
                 return;
             }
             const user = await storage.getUser(sess.userId);
-            if (!user) { res.sendStatus(401); return; }
+            if (!user) { res.json(null); return; }
 
             // Check if user is an early access member (phone matches earlyAccessLeads)
             let isEarlyAccess = false;

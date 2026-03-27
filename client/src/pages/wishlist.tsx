@@ -68,7 +68,7 @@ export default function Wishlist() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <MetaTags
-        title="قائمة الأمنيات"
+        title="قائمة المفضلة"
         description="منتجاتك المفضلة في AQUAVO - احفظ ما يعجبك وارجع إليه لاحقاً"
         noIndex={true}
       />
