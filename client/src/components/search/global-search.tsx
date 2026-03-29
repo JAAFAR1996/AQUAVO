@@ -356,9 +356,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       </div>
                     )}
                     {result.price !== undefined && (
-                      <div className="text-xs text-primary font-bold mt-1">
-                        {Number(result.price).toLocaleString('en-US')} د.ع
-                      </div>
+                      <div className="text-xs font-bold text-purple-500 mt-1">قريباً جداً ✨</div>
                     )}
                   </div>
                   <Badge variant="secondary" className="shrink-0">

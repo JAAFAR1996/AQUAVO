@@ -41,29 +41,8 @@ export function ProductCTA({
             {/* Price Section */}
             <div className="space-y-2">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-4xl font-bold text-primary">
-                        {price.toLocaleString()}
-                    </span>
-                    <span className="text-lg text-muted-foreground">{currency}</span>
-
-                    {originalPrice && originalPrice > price && (
-                        <>
-                            <span className="text-xl text-muted-foreground line-through">
-                                {originalPrice.toLocaleString()} {currency}
-                            </span>
-                            <Badge variant="destructive" className="text-sm font-bold">
-                                خصم {discount}%
-                            </Badge>
-                        </>
-                    )}
+                    <span className="text-4xl font-bold text-purple-500">قريباً جداً ✨</span>
                 </div>
-
-                {/* Savings Info */}
-                {originalPrice && originalPrice > price && (
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                        وفّر {(originalPrice - price).toLocaleString()} {currency}
-                    </p>
-                )}
             </div>
 
             {/* Stock Status */}

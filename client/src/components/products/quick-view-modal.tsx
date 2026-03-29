@@ -123,13 +123,8 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
                         {/* Price */}
                         <div className="flex items-baseline gap-3 justify-end mb-4">
-                            {product.originalPrice && (
-                                <span className="text-lg text-muted-foreground line-through">
-                                    {formatNumber(product.originalPrice)} د.ع
-                                </span>
-                            )}
-                            <span className="text-3xl font-bold text-primary">
-                                {formatNumber(product.price)} <span className="text-lg">د.ع</span>
+                            <span className="text-3xl font-bold text-purple-500">
+                                قريباً جداً ✨
                             </span>
                         </div>
 

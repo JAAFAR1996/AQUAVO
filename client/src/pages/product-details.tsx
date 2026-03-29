@@ -298,26 +298,10 @@ export default function ProductDetails() {
                 {/* Price with Discount */}
                 <div className="mb-4">
                   <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-4xl font-bold text-primary">
-                      {formatNumber(displayPrice)}
+                    <span className="text-4xl font-bold text-purple-500">
+                      قريباً جداً ✨
                     </span>
-                    <span className="text-lg text-muted-foreground">د.ع</span>
-                    {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                      <>
-                        <span className="text-xl text-muted-foreground line-through">
-                          {formatNumber(displayOriginalPrice)} د.ع
-                        </span>
-                        <Badge variant="destructive" className="text-sm font-bold">
-                          خصم {Math.round(((displayOriginalPrice - displayPrice) / displayOriginalPrice) * 100)}%
-                        </Badge>
-                      </>
-                    )}
                   </div>
-                  {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                    <p className="text-sm text-green-600 dark:text-green-400 font-medium mt-1">
-                      وفّر {(displayOriginalPrice - displayPrice).toLocaleString('en-US')} د.ع
-                    </p>
-                  )}
                 </div>
 
                 {/* Product Variants - Check for multi-dimensional first, then embedded */}

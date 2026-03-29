@@ -230,20 +230,7 @@ export default function Deals() {
 
                       {/* Price */}
                       <div className="space-y-1">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-2xl font-bold text-primary">
-                            {Number(product.price).toLocaleString('en-US')}{" "}
-                            <span className="text-xs">د.ع</span>
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground line-through">
-                            {Number(product.originalPrice).toLocaleString('en-US')} د.ع
-                          </span>
-                          <Badge variant="outline" className="text-green-600 border-green-600">
-                            وفر {(Number(product.originalPrice) - Number(product.price)).toLocaleString('en-US')} د.ع
-                          </Badge>
-                        </div>
+                        <span className="text-2xl font-bold text-purple-500">قريباً جداً ✨</span>
                       </div>
 
                       {/* Add to Cart Button */}

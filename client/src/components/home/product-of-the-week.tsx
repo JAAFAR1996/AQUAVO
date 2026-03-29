@@ -103,12 +103,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
               <div className="flex flex-col">
-                <span className="text-sm text-muted-foreground line-through">
-                  {product.originalPrice ? product.originalPrice.toLocaleString() : (product.price * 1.1).toLocaleString()} د.ع
-                </span>
-                <span className="text-4xl font-bold text-primary">
-                  {Number(product.price).toLocaleString('en-US')} <span className="text-lg text-foreground">د.ع</span>
-                </span>
+                <span className="text-4xl font-bold text-purple-500">قريباً جداً ✨</span>
               </div>
 
               <div className="flex-1 w-full sm:w-auto flex gap-3">

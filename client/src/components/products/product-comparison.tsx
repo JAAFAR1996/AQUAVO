@@ -300,14 +300,7 @@ export function ProductComparisonTable({
                         <TableCell className="font-medium">السعر</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
-                                <div className="font-bold text-lg text-primary">
-                                    {Number(product.price).toLocaleString('en-US')} د.ع
-                                </div>
-                                {product.originalPrice && product.originalPrice > product.price && (
-                                    <div className="text-sm text-muted-foreground line-through">
-                                        {product.originalPrice.toLocaleString()} د.ع
-                                    </div>
-                                )}
+                                <div className="font-bold text-lg text-purple-500">قريباً جداً ✨</div>
                             </TableCell>
                         ))}
                     </TableRow>

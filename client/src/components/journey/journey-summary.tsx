@@ -279,9 +279,7 @@ export function JourneySummary({ wizardData, products }: JourneySummaryProps) {
                                         />
                                         <div className="flex-1">
                                             <h4 className="font-bold text-sm text-foreground mb-1 line-clamp-2">{product.name}</h4>
-                                            <div className="text-primary font-bold mb-2">
-                                                {Number(product.price).toLocaleString()} د.ع
-                                            </div>
+                                            <div className="text-purple-500 font-bold mb-2">قريباً جداً ✨</div>
                                             <Badge variant="outline" className="text-xs">{product.category}</Badge>
                                         </div>
                                     </div>

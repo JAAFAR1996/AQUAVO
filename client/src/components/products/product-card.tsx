@@ -148,27 +148,9 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
           <CardContent className="flex-1 p-2 sm:p-4 pt-0">
             <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
-              {product.hasVariants && variantMinPrice ? (
-                <span className="text-base sm:text-xl font-bold text-primary">
-                  <span className="text-[10px] sm:text-xs font-normal text-muted-foreground ml-1">يبدأ من</span>
-                  {formatNumber(variantMinPrice)} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">د.ع</span>
-                </span>
-              ) : Number(product.price) === 0 ? (
-                <span className="text-base sm:text-xl font-bold text-purple-500">
-                  قريباً جداً ✨
-                </span>
-              ) : (
-                <>
-                  <span className="text-base sm:text-xl font-bold text-primary">
-                    {formatNumber(product.price)} <span className="text-[10px] sm:text-sm font-normal text-muted-foreground">د.ع</span>
-                  </span>
-                  {product.originalPrice && (
-                    <span className="text-[10px] sm:text-sm text-muted-foreground line-through" aria-label="السعر السابق">
-                      {formatNumber(product.originalPrice)}
-                    </span>
-                  )}
-                </>
-              )}
+              <span className="text-base sm:text-xl font-bold text-purple-500">
+                قريباً جداً ✨
+              </span>
             </div>
             <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm text-amber-500 justify-end" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
               <span aria-hidden="true">★</span>

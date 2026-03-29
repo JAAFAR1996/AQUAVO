@@ -159,15 +159,7 @@ export default function Wishlist() {
 
                   {/* Price */}
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-primary">
-                      {Number(item.price).toLocaleString('ar-IQ')}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">د.ع</span>
-                    </span>
-                    {item.originalPrice && (
-                      <span className="text-sm text-muted-foreground line-through">
-                        {Number(item.originalPrice).toLocaleString('ar-IQ')}
-                      </span>
-                    )}
+                    <span className="text-xl font-bold text-purple-500">قريباً جداً ✨</span>
                   </div>
 
                   {/* Rating */}

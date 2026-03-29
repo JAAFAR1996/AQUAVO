@@ -81,11 +81,6 @@ export function FrequentlyBoughtTogether({
                 <CardTitle className="flex items-center gap-2 text-lg">
                     <Package className="w-5 h-5 text-amber-600" />
                     اشترِ معاً واوفر
-                    {savings > 0 && (
-                        <Badge className="bg-green-500 text-white mr-2">
-                            وفر {savings.toLocaleString()} د.ع
-                        </Badge>
-                    )}
                 </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
@@ -145,12 +140,7 @@ export function FrequentlyBoughtTogether({
 
                                     {/* Price */}
                                     <div className="text-center">
-                                        <span className="text-sm font-bold text-primary">
-                                            {Number(product.price).toLocaleString('en-US')}
-                                        </span>
-                                        <span className="text-[10px] text-muted-foreground mr-1">
-                                            د.ع
-                                        </span>
+                                        <span className="text-sm font-bold text-purple-500">قريباً جداً ✨</span>
                                     </div>
                                 </div>
 
@@ -172,15 +162,7 @@ export function FrequentlyBoughtTogether({
                             المجموع ({selectedProducts.length} منتجات):
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-primary">
-                                {totalPrice.toLocaleString()}
-                            </span>
-                            <span className="text-sm text-muted-foreground">د.ع</span>
-                            {savings > 0 && (
-                                <span className="text-sm text-muted-foreground line-through">
-                                    {totalOriginalPrice.toLocaleString()}
-                                </span>
-                            )}
+                            <span className="text-2xl font-bold text-purple-500">قريباً جداً ✨</span>
                         </div>
                     </div>
 
