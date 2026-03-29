@@ -1,0 +1,36 @@
+﻿DUPLICATED IMAGES (same files for different products):
+
+  houyi-air-distributor <=> houyi-stainless-shunt
+  Files: Gemini_Generated_Image_4sz8dd4sz8dd4sz8.png|Gemini_Generated_Image_enm96penm96penm9.png
+
+  houyi-dophin-skimmer <=> houyi-wave-pump
+  Files: H3c5ae184be744e7fa8e02df5dd128d0dy.jpg|H45372cb3bdab4dc08a38411b3a8b351fo.jpg|Hd12bf6b519bc4e9e98c02e41fa4717d85.jpg
+
+  houyi-koi-fish-net <=> houyi-telescopic-fishnet
+  Files: Gemini_Generated_Image_1qlqn91qlqn91qlq.png|Gemini_Generated_Image_2npvwi2npvwi2npv.png|H0f141b99b5cb48ddb9f89bd18d5f0ac5r.png
+
+  houyi-sucker-buckle <=> houyi-tracheal-suction
+  Files: H1861b4198d874d0e807b59e236ef7b17e.jpg|H9cc0e2d426af482aafb0b9a7eb5e25daZ.jpg|Hc3ae7e913293412c9d32848a77626cbeM.jpg
+
+WRONG FOLDER (uses images from another product folder):
+
+  houyi-air-distributor => uses folder: houyi-air-distributor-4port
+  houyi-connectors-4mm => uses folder: houyi-control-valve-4mm
+  houyi-dophin-skimmer => uses folder: houyi-dophin-electric-skimmer
+  houyi-instant-glue => uses folder: houyi-instant-glue-50g
+  houyi-led-light => uses folder: houyi-led
+  houyi-stainless-shunt => uses folder: houyi-air-distributor-4port
+  houyi-wave-pump => uses folder: houyi-dophin-electric-skimmer
+
+SINGLE IMAGE ONLY:
+
+  houyi-black-slate: 1 image(s)
+  houyi-check-valve: 1 image(s)
+  houyi-moss-tree: 1 image(s)
+  houyi-mountain-wood: 1 image(s)
+  houyi-polished-driftwood: 1 image(s)
+  houyi-silicone-121: 1 image(s)
+  houyi-sinking-wood-large: 1 image(s)
+  houyi-thai-branches: 1 image(s)
+
+

@@ -117,13 +117,12 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            // Get order items and their product info
-            const items = await storage.getOrderItems(order.id);
+            // Get order items from the JSONB field (items are stored inline, not in a separate table)
+            const rawItems = (order.items as any[]) || [];
             const enrichedItems = await Promise.all(
-                items.map(async (item) => {
+                rawItems.map(async (item: any) => {
                     const product = await storage.getProduct(item.productId);
                     return {
-                        id: item.id,
                         name: product?.name || product?.arabicName || "منتج غير معروف",
                         imageUrl: product?.image || "",
                         quantity: item.quantity

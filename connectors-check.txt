@@ -1,0 +1,41 @@
+﻿Current variants: [
+  {
+    "id": "connectors",
+    "label": "┘ê╪╡┘ä╪º╪¬ ╪«╪▒╪º╪╖┘è┘à",
+    "price": 100,
+    "stock": 50,
+    "isDefault": true,
+    "specifications": {
+      "╪º┘ä╪┤┘â┘ä": "┘ê╪╡┘ä╪º╪¬ ╪ú┘å╪º╪¿┘è╪¿",
+      "╪º┘ä┘é╪╖╪▒": "4 ┘à┘ä┘à"
+    }
+  },
+  {
+    "id": "control-valve",
+    "label": "╪╡┘à╪º┘à ╪¬╪¡┘â┘à",
+    "price": 150,
+    "stock": 50,
+    "isDefault": false,
+    "specifications": {
+      "╪º┘ä╪┤┘â┘ä": "╪╡┘à╪º┘à ╪¬╪¡┘â┘à ╪¿╪º┘ä╪¬╪»┘ü┘é",
+      "╪º┘ä┘é╪╖╪▒": "4 ┘à┘ä┘à"
+    }
+  }
+]
+
+Current images: [
+  "/images/products/houyi/houyi-connectors-4mm/Gemini_Generated_Image_gcjcaxgcjcaxgcjc.png",
+  "/images/products/houyi/houyi-connectors-4mm/Gemini_Generated_Image_kz3fevkz3fevkz3f (1).png",
+  "/images/products/houyi/houyi-connectors-4mm/Gemini_Generated_Image_kz3fevkz3fevkz3f.png",
+  "/images/products/houyi/houyi-control-valve-4mm/H17199b252bb449a0a4edd1034ebe0b167.jpg",
+  "/images/products/houyi/houyi-control-valve-4mm/H307583340464474c915e767ef8514e444.jpg",
+  "/images/products/houyi/houyi-control-valve-4mm/Hfcb3c1d503e14afa892f8afbcbb78e16R.jpg"
+]
+
+Control valve product: houyi-control-valve ╪╡┘à╪º┘à ╪¬╪¡┘â┘à ┘ç┘ê╪º╪í 4 ┘à┘ä┘à
+Control valve images: [
+  "/images/products/houyi/houyi-control-valve-4mm/H17199b252bb449a0a4edd1034ebe0b167.jpg",
+  "/images/products/houyi/houyi-control-valve-4mm/H307583340464474c915e767ef8514e444.jpg",
+  "/images/products/houyi/houyi-control-valve-4mm/Hfcb3c1d503e14afa892f8afbcbb78e16R.jpg"
+]
+

@@ -33,14 +33,16 @@ export function createAdminRouter(): RouterType {
                     const enrichedItems = await Promise.all(
                         (order.items as any[]).map(async (item: any) => {
                             let productName = item.productName;
-                            if (!productName && item.productId) {
+                            let price = item.priceAtPurchase || item.price;
+                            if ((!productName || !price) && item.productId) {
                                 const product = await storage.getProduct(item.productId);
-                                productName = product?.name || `منتج #${item.productId.slice(0, 8)}`;
+                                productName = productName || product?.name || `منتج #${item.productId.slice(0, 8)}`;
+                                if (!price) price = product?.price || 0;
                             }
                             return {
                                 ...item,
                                 productName,
-                                price: item.priceAtPurchase || item.price || 0
+                                price: Number(price) || 0
                             };
                         })
                     );

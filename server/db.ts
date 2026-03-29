@@ -5,7 +5,9 @@ import * as schema from "../shared/schema.js";
 
 type DbClient = NeonDatabase<typeof schema>;
 
-const databaseUrl = process.env.DATABASE_URL;
+const rawDbUrl = process.env.DATABASE_URL ?? "";
+const databaseUrl = rawDbUrl.replace(/[&?]channel_binding=require/g, "") || undefined;
+if (rawDbUrl) console.log("[DB] Connecting to Neon (channel_binding stripped):", databaseUrl?.slice(0, 60) + "...");
 let db: DbClient | null = null;
 
 if (!databaseUrl) {

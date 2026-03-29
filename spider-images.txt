@@ -1,0 +1,24 @@
+﻿
+=== houyi-spider-wood-lg ===
+Name: ╪│╪¿╪º┘è╪»╪▒ ┘ê┘ê╪» ΓÇö ┘â╪¿┘è╪▒
+Price: 4.62
+Stock: 10
+Images: ["/images/products/houyi/houyi-wood-products/spider-wood-lg.png"]
+
+=== houyi-spider-wood-md ===
+Name: ╪│╪¿╪º┘è╪»╪▒ ┘ê┘ê╪» ΓÇö ┘ê╪│╪╖
+Price: 7.66
+Stock: 10
+Images: ["/images/products/houyi/houyi-wood-products/spider-wood-md.png"]
+
+=== houyi-spider-wood-root ===
+Name: ╪│╪¿╪º┘è╪»╪▒ ┘ê┘ê╪» ΓÇö ╪¼╪░╪▒ ╪╢╪«┘à
+Price: 5.21
+Stock: 10
+Images: ["/images/products/houyi/houyi-wood-products/spider-wood-root.png"]
+
+=== houyi-spider-wood-sm ===
+Name: ╪│╪¿╪º┘è╪»╪▒ ┘ê┘ê╪» ΓÇö ╪╡╪║┘è╪▒
+Price: 2.77
+Stock: 10
+Images: ["/images/products/houyi/houyi-wood-products/spider-wood-sm.png"]

@@ -31,6 +31,7 @@ interface OrderData {
     id: string;
     total: number;
     status?: string;
+    orderNumber?: string;
     items?: OrderItem[];
     shippingAddress?: ShippingAddress;
     createdAt?: string;
@@ -120,6 +121,7 @@ export default function OrderConfirmation() {
     return (
         <ConfirmationContent
             orderId={orderId || "unknown"}
+            orderNumber={orderData?.orderNumber}
             total={orderData?.total ?? 0}
             itemsCount={orderData?.items?.length ?? 0}
             address={orderData?.shippingAddress?.address ?? ""}
@@ -127,12 +129,14 @@ export default function OrderConfirmation() {
     );
 }
 
-function ConfirmationContent({ orderId, total, itemsCount, address }: { orderId: string, total: number, itemsCount?: number, address?: string }) {
+function ConfirmationContent({ orderId, orderNumber, total, itemsCount, address }: { orderId: string, orderNumber?: string, total: number, itemsCount?: number, address?: string }) {
     const [copied, setCopied] = useState(false);
     const [invoiceOpen, setInvoiceOpen] = useState(false);
 
+    const displayNumber = orderNumber || orderId.slice(0, 8).toUpperCase();
+
     const copyOrderNumber = () => {
-        navigator.clipboard.writeText(orderId);
+        navigator.clipboard.writeText(orderNumber || orderId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
@@ -195,7 +199,7 @@ function ConfirmationContent({ orderId, total, itemsCount, address }: { orderId:
                                     >
                                         {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                                     </Button>
-                                    <span className="font-mono font-bold text-lg text-slate-800 tracking-wider">#{orderId.slice(0, 8).toUpperCase()}</span>
+                                    <span className="font-mono font-bold text-lg text-slate-800 tracking-wider">#{displayNumber}</span>
                                 </div>
                             </div>
 

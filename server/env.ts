@@ -1,3 +1,3 @@
 import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+dotenv.config({ path: ".env.local", override: true });
+dotenv.config({ override: true });

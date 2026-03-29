@@ -51,13 +51,20 @@ export default function Profile() {
         enabled: !!user,
     });
 
-    // Fetch addresses from API
+    // Fetch addresses from API — map DB fields (addressLine1/city) to frontend Address shape
     const { data: apiAddresses = [], refetch: refetchAddresses } = useQuery<Address[]>({
         queryKey: ["/api/user/addresses"],
         queryFn: async () => {
             const res = await fetch("/api/user/addresses", { credentials: "include" });
             if (!res.ok) return [];
-            return res.json();
+            const rows = await res.json();
+            return rows.map((r: any) => ({
+                id: r.id,
+                label: r.label || "",
+                address: r.addressLine1 || r.address || "",
+                phone: r.phone,
+                isDefault: r.isDefault,
+            }));
         },
         enabled: !!user,
     });
@@ -115,8 +122,8 @@ export default function Profile() {
                 credentials: "include",
                 body: JSON.stringify({
                     label: address.label,
-                    address: address.address,
-                    phone: address.phone,
+                    addressLine1: address.address,
+                    city: "بغداد",
                     isDefault: address.isDefault ?? false,
                 }),
             });
@@ -136,7 +143,8 @@ export default function Profile() {
                 credentials: "include",
                 body: JSON.stringify({
                     label: updatedAddress.label,
-                    address: updatedAddress.address,
+                    addressLine1: updatedAddress.address,
+                    city: "بغداد",
                     phone: updatedAddress.phone,
                     isDefault: updatedAddress.isDefault,
                 }),

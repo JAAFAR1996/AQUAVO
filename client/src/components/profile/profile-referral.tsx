@@ -44,15 +44,17 @@ export function ProfileReferral() {
             const response = await fetch("/api/referral/stats", {
                 credentials: "include",
             });
-            if (!response.ok) {
-                // If no code exists, create one
-                const codeResponse = await fetch("/api/referral/code", {
-                    credentials: "include",
-                });
-                if (!codeResponse.ok) throw new Error("فشل في جلب بيانات الإحالة");
-                return codeResponse.json();
+            if (!response.ok) throw new Error("فشل في جلب بيانات الإحالة");
+            const data = await response.json();
+            // Auto-generate referral code if user doesn't have one yet
+            if (!data.referralCode) {
+                const codeResponse = await fetch("/api/referral/code", { credentials: "include" });
+                if (codeResponse.ok) {
+                    const codeData = await codeResponse.json();
+                    return { ...data, referralCode: codeData.code, referralLink: codeData.link };
+                }
             }
-            return response.json();
+            return data;
         },
     });
 

@@ -41,7 +41,8 @@ interface Order {
   customerEmail?: string;
   customerName?: string;
   items: OrderItem[];
-  totalAmount: number;
+  total: number;
+  totalAmount?: number; // legacy alias
   status: string;
   shippingAddress?: string;
   trackingNumber?: string;
@@ -233,7 +234,7 @@ export function OrdersManagement() {
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {order.totalAmount?.toLocaleString()} د.ع
+                      {Number(order.total ?? order.totalAmount ?? 0).toLocaleString()} د.ع
                     </TableCell>
                     <TableCell>
                       <Badge className={`${statusInfo.color} border-none`}>
@@ -397,7 +398,7 @@ export function OrdersManagement() {
                 <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg">
                   <span className="font-bold text-lg">المبلغ الإجمالي:</span>
                   <span className="text-3xl font-bold text-primary">
-                    {selectedOrder.totalAmount?.toLocaleString()} د.ع
+                    {Number(selectedOrder.total ?? selectedOrder.totalAmount ?? 0).toLocaleString()} د.ع
                   </span>
                 </div>
               </div>

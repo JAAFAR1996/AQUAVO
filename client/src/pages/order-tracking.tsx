@@ -280,7 +280,7 @@ export default function OrderTracking() {
                         </div>
                         <Badge className="bg-primary/20 text-primary border-0 px-4 py-2 text-base">
                           <Truck className="w-4 h-4 ml-2" />
-                          {orderDetails.status}
+                          {({ pending: "قيد الانتظار", confirmed: "تم التأكيد", processing: "جاري التجهيز", shipped: "تم التسليم للنقل", delivered: "تم التوصيل", cancelled: "ملغي" } as Record<string, string>)[orderDetails.status] || orderDetails.status}
                         </Badge>
                       </div>
 
@@ -336,7 +336,9 @@ export default function OrderTracking() {
                               <h4 className="font-medium">{item.name}</h4>
                               <p className="text-sm text-muted-foreground">الكمية: {item.quantity}</p>
                             </div>
-                            <p className="font-semibold">{item.price}</p>
+                            {item.price && !item.price.startsWith("undefined") && (
+                              <p className="font-semibold">{item.price}</p>
+                            )}
                           </div>
                         ))}
                       </div>

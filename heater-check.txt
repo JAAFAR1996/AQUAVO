@@ -1,0 +1,44 @@
+﻿=== Heater product ===
+{
+  "id": "yee-c4-1117-1",
+  "slug": "c4-1117",
+  "name": "YEE ╪│╪«╪º┘å ┘à╪│╪¬┘ê┘ë ┘à╪º╪í ┘à┘å╪«┘ü╪╢ 30 ┘ê╪º╪╖ - ┘ä┘ä╪ú╪¡┘ê╪º╪╢ ╪º┘ä╪╡╪║┘è╪▒╪⌐ ┘ê╪º┘ä╪│┘ä╪º╪¡┘ü",
+  "images": [
+    "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_3j1xsb3j1xsb3j1x.png",
+    "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_952ehq952ehq952e.png",
+    "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_fxblwufxblwufxbl.png",
+    "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_o2050ho2050ho205.png",
+    "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_pmqsj1pmqsj1pmqs.png"
+  ],
+  "thumbnail": "/images/products/yee/yee-c4-1117/Gemini_Generated_Image_3j1xsb3j1xsb3j1x.png"
+}
+
+=== Sand Washer product ===
+Not found by name
+
+=== Products with 'sand' in images ===
+houyi-dutch-sand: ╪▒┘à┘ä ┘ç┘ê┘ä┘å╪»┘è ╪º╪¡╪¬╪▒╪º┘ü┘è
+  images: ["/images/products/houyi/houyi-dutch-sand/H9b0ef4a575234477a8e04759ca3e4f87O.jpg","/images/products/houyi/houyi-dutch-sand/Gemini_Generated_Image_vlsac8vlsac8vlsa.png"]
+houyi-white-sand: ╪▒┘à┘ä ╪ú╪¿┘è╪╢ ┘å╪º╪╡╪╣
+  images: ["/images/products/houyi/houyi-white-sand/H03a4f628d8d74391b55e8b98ef98ea842.jpg","/images/products/houyi/houyi-white-sand/H701350da88a546069ad239ef7f376559l.jpg","/images/products/houyi/houyi-white-sand/H99f25256f84b48bd8fa28973b39aedf8K.jpg"]
+houyi-river-sand: ╪▒┘à┘ä ┘å┘ç╪▒┘è ╪╖╪¿┘è╪╣┘è
+  images: ["/images/products/houyi/houyi-river-sand/H8fc4c1ce876e45a284cb26ce1d349d73F.jpg","/images/products/houyi/houyi-river-sand/H608a6a37d5e9400494f67d79c780e6eaR.jpg"]
+houyi-south-american-sand: ╪▒┘à┘ä ╪ú┘à╪º╪▓┘ê┘å┘è ╪░┘ç╪¿┘è
+  images: ["/images/products/houyi/houyi-south-american-sand/1.jpg","/images/products/houyi/houyi-south-american-sand/2.jpg","/images/products/houyi/houyi-south-american-sand/Gemini_Generated_Image_vlrgvcvlrgvcvlrg.png","/images/products/houyi/houyi-south-american-sand/H30b6bb45b6584efab360a67ce1423e010.jpg"]
+houyi-stream-sand: ╪▒┘à┘ä ╪¼╪»╪º┘ê┘ä ╪¼╪º┘ç╪▓ ΓÇö ╪¿╪»┘ê┘å ╪║╪│┘è┘ä
+  images: ["/images/products/houyi/houyi-stream-sand/H010aa328be774f5999b9cd7b47f4be438.png","/images/products/houyi/houyi-stream-sand/H79cd02f171764b499fca67c99178a5f4D.jpg"]
+
+=== All heater products ===
+yee-c4-1432-1 (slug: c4-1432): YEE ╪│╪«╪º┘å ┘â┘ê╪º╪▒╪¬╪▓ 100 ┘ê╪º╪╖ - ╪ú╪»╪º╪í ┘à┘ê╪½┘ê┘é | ┘ä┘ä╪ú╪¡┘ê╪º╪╢ 50-100 ┘ä╪¬╪▒
+  images: ["/images/products/yee/yee-c4-1432/_model_gemini25flashimage_4k_20260_1.jpeg","/images/products/yee/yee-c4-1432/Translate_it_to_4k_202602071303.jpeg","/images/products/yee/yee-c4-1432/_model_gemini25flashimage_4k_20260.jpeg","/images/products/yee/yee-c4-1432/_model_gemini25flashimage_4k_20260_2.jpeg"]
+---
+yee-1-5-1-7 (slug: yee-3006): YEE ╪│╪«╪º┘å ╪│╪¬┘è┘ä ┘à╪»╪▒╪╣ - ╪║┘è╪▒ ┘é╪º╪¿┘ä ┘ä┘ä┘â╪│╪▒ | ╪ú╪¡╪¼╪º┘à ┘à╪¬╪╣╪»╪»╪⌐
+  images: ["/images/products/yee/YEE-3006/_model_gemini25flashimage_4k_20260.jpeg","/images/products/yee/YEE-3006/1.jpeg","/images/products/yee/YEE-3006/2_1.jpeg","/images/products/yee/YEE-3006/2_2.jpeg","/images/products/yee/YEE-3006/_model_gemini25flashimage_4k_20260_1.jpeg"]
+---
+yee-c4-1103-4 (slug: c4-1103): YEE ╪│╪«╪º┘å ╪º┘ä╪│╪º┘à┘ê╪▒╪º┘è ╪º┘ä╪ú╪│┘ê╪» 100 ┘ê╪º╪╖ - ╪¬╪╡┘à┘è┘à ╪ú┘å┘è┘é
+  images: ["/images/products/yee/yee-c4-1103/_model_gemini25flashimage_4k_20260_5.jpeg","/images/products/yee/yee-c4-1103/Translate_to_arabic_4k_202602061743.jpeg","/images/products/yee/yee-c4-1103/_model_gemini25flashimage_4k_20260_6.jpeg"]
+---
+yee-c4-1117-1 (slug: c4-1117): YEE ╪│╪«╪º┘å ┘à╪│╪¬┘ê┘ë ┘à╪º╪í ┘à┘å╪«┘ü╪╢ 30 ┘ê╪º╪╖ - ┘ä┘ä╪ú╪¡┘ê╪º╪╢ ╪º┘ä╪╡╪║┘è╪▒╪⌐ ┘ê╪º┘ä╪│┘ä╪º╪¡┘ü
+  images: ["/images/products/yee/yee-c4-1117/Gemini_Generated_Image_3j1xsb3j1xsb3j1x.png","/images/products/yee/yee-c4-1117/Gemini_Generated_Image_952ehq952ehq952e.png","/images/products/yee/yee-c4-1117/Gemini_Generated_Image_fxblwufxblwufxbl.png","/images/products/yee/yee-c4-1117/Gemini_Generated_Image_o2050ho2050ho205.png","/images/products/yee/yee-c4-1117/Gemini_Generated_Image_pmqsj1pmqsj1pmqs.png"]
+---
+

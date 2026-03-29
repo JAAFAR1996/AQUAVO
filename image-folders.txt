@@ -1,0 +1,87 @@
+﻿=== ALL image folders on server ===
+
+  houyi-5-in-1-cleaning-tool
+  houyi-acrylic-pump-compartment
+  houyi-acrylic-tool-rack
+  houyi-activated-carbon
+  houyi-air-distributor-4port
+  houyi-base-fertilizer
+  houyi-black-slate
+  houyi-blue-dragon-stone
+  houyi-ceramic-ring
+  houyi-check-valve
+  houyi-chubby-thermometer
+  houyi-cleaning-towel
+  houyi-connectors-4mm
+  houyi-control-valve-4mm
+  houyi-dophin-electric-skimmer
+  houyi-dutch-sand
+  houyi-fat-injection
+  houyi-feeding-cup
+  houyi-gauze-isolation-net
+  houyi-hose-brush
+  houyi-hose-clamp
+  houyi-inflatable-fish-bag
+  houyi-instant-glue-50g
+  houyi-koi-fish-net
+  houyi-led
+  houyi-medium-cotton
+  houyi-mesh
+  houyi-moss-line
+  houyi-moss-tree
+  houyi-net-bag
+  houyi-nylon-fishing-net
+  houyi-oxygenation-tube
+  houyi-planting-ring
+  houyi-pumice
+  houyi-river-sand
+  houyi-silicone-121
+  houyi-south-american-sand
+  houyi-stream-sand
+  houyi-sucker-buckle
+  houyi-suction-thermometer
+  houyi-telescopic-fishnet
+  houyi-terminalia-leaves
+  houyi-tool-kit
+  houyi-tracheal-suction
+  houyi-volcanic-stone
+  houyi-water-changer-siphon
+  houyi-white-cotton
+  houyi-white-sand
+  houyi-wood-products
+
+=== Looking for wave-pump folder ===
+houyi-acrylic-pump-compartment
+
+=== Looking for stainless-shunt folder ===
+NOT FOUND
+
+=== Looking for koi/aluminum net folder ===
+houyi-koi-fish-net
+
+=== Deleted products (might have correct images) ===
+  houyi-control-valve: folders=[houyi-control-valve-4mm]
+  houyi-inflatable-fish-bag: folders=[houyi-inflatable-fish-bag]
+  houyi-spider-wood-lg: folders=[houyi-wood-products]
+  houyi-spider-wood-md: folders=[houyi-wood-products]
+  houyi-spider-wood-root: folders=[houyi-wood-products]
+  houyi-tool-kit: folders=[houyi-tool-kit]
+
+=== Cross-reference: Product ID vs Image Folder ===
+  houyi-air-distributor => folder: houyi-air-distributor-4port (!MISMATCH!)
+  houyi-connectors-4mm => folder: houyi-control-valve-4mm (!MISMATCH!)
+  houyi-control-valve => folder: houyi-control-valve-4mm (!MISMATCH!)
+  houyi-dophin-skimmer => folder: houyi-dophin-electric-skimmer (!MISMATCH!)
+  houyi-instant-glue => folder: houyi-instant-glue-50g (!MISMATCH!)
+  houyi-led-light => folder: houyi-led (!MISMATCH!)
+  houyi-mountain-wood => folder: houyi-wood-products (OK-shared)
+  houyi-polished-driftwood => folder: houyi-wood-products (OK-shared)
+  houyi-sinking-wood-large => folder: houyi-wood-products (OK-shared)
+  houyi-spider-wood-lg => folder: houyi-wood-products (OK-shared)
+  houyi-spider-wood-md => folder: houyi-wood-products (OK-shared)
+  houyi-spider-wood-root => folder: houyi-wood-products (OK-shared)
+  houyi-spider-wood-sm => folder: houyi-wood-products (OK-shared)
+  houyi-stainless-shunt => folder: houyi-air-distributor-4port (!MISMATCH!)
+  houyi-thai-branches => folder: houyi-wood-products (OK-shared)
+  houyi-wave-pump => folder: houyi-dophin-electric-skimmer (!MISMATCH!)
+

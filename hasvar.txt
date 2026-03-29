@@ -1,0 +1,16 @@
+﻿houyi-air-distributor:
+  has_variants (bool): false
+  variants data exists: true
+  variant count: 2
+---
+houyi-connectors-4mm:
+  has_variants (bool): true
+  variants data exists: true
+  variant count: 3
+---
+houyi-stainless-shunt:
+  has_variants (bool): true
+  variants data exists: true
+  variant count: 2
+---
+

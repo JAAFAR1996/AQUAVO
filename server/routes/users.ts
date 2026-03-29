@@ -390,9 +390,17 @@ export function createUserRouter(): RouterType {
                 res.sendStatus(401);
                 return;
             }
-            const parsed = insertUserAddressSchema.parse({ ...req.body, userId: sess.userId });
-            const address = await storage.createUserAddress(parsed);
-            res.status(201).json(address);
+            const { label, address: addressText, addressLine1, city, country, isDefault } = req.body;
+            const parsed = insertUserAddressSchema.parse({
+                label: label || null,
+                addressLine1: addressLine1 || addressText || "",
+                city: city || "العراق",
+                country: country || "Iraq",
+                isDefault: isDefault ?? false,
+                userId: sess.userId,
+            });
+            const savedAddress = await storage.createUserAddress(parsed);
+            res.status(201).json(savedAddress);
         } catch (err) {
             next(err);
         }
