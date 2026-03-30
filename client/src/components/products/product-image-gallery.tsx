@@ -88,7 +88,11 @@ export function ProductImageGallery({
                         onDragStart={(e) => e.preventDefault()}
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            if (target.src !== "/logo_aquavo.png") {
+                            // First retry: try raw URL without cloudinary transform
+                            if (!target.dataset.retried && target.src !== currentImage) {
+                                target.dataset.retried = "1";
+                                target.src = currentImage;
+                            } else if (target.src !== "/logo_aquavo.png") {
                                 target.src = "/logo_aquavo.png";
                             }
                         }}
@@ -159,6 +163,15 @@ export function ProductImageGallery({
                                 alt={`${productName} - صورة مصغرة ${galleryImages.indexOf(image) + 1}`}
                                 className="w-full h-full object-contain bg-transparent p-1"
                                 loading="lazy"
+                                onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    if (!target.dataset.retried && target.src !== image) {
+                                        target.dataset.retried = "1";
+                                        target.src = image;
+                                    } else if (target.src !== "/logo_aquavo.png") {
+                                        target.src = "/logo_aquavo.png";
+                                    }
+                                }}
                             />
                             {selectedIndex === galleryImages.indexOf(image) && (
                                 <div className="absolute inset-0 bg-primary/10" />
@@ -232,6 +245,15 @@ export function ProductImageGallery({
                                         src={thumbImage(image) || "/logo_aquavo.png"}
                                         alt={`صورة ${galleryImages.indexOf(image) + 1}`}
                                         className="w-full h-full object-contain bg-transparent"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            if (!target.dataset.retried && target.src !== image) {
+                                                target.dataset.retried = "1";
+                                                target.src = image;
+                                            } else if (target.src !== "/logo_aquavo.png") {
+                                                target.src = "/logo_aquavo.png";
+                                            }
+                                        }}
                                     />
                                 </button>
                             ))}
