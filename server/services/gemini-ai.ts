@@ -132,7 +132,16 @@ export function normalizeToIraqiDialect(text: string): string {
     // Step 3: Replace each token if it matches a fusha word
     const replaced = tokens.map(token => WORD_MAP[token] ?? token);
 
-    return replaced.join("");
+    result = replaced.join("");
+
+    // Step 4: Fix Latin characters embedded inside Arabic words (LLM artifact).
+    // e.g. "Flتر" → "فلتر", "فilter" → "فلتر"
+    // Strategy: remove any Latin run that is directly adjacent (no space) to Arabic chars.
+    // Model numbers like "XY-180" are always space-separated so they are unaffected.
+    result = result.replace(/[A-Za-z]+(?=[\u0600-\u06FF])/g, '');
+    result = result.replace(/(?<=[\u0600-\u06FF])[A-Za-z]+/g, '');
+
+    return result;
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, errorMessage: string): Promise<T> {
@@ -316,7 +325,10 @@ const createSalesAgentPrompt = (userName?: string, customerProfile?: any, isAdmi
 14. لا تخترع اسماء منتجات ابدا! لا تقول "فلايفريد" او "حبوب بروتين" او اي اسم مو موجود بالقائمة المرفقة. اذا ماكو منتج مناسب بالقائمة قول "ماكو عدنا هسه بس تواصل وياانا ونوفرلك".
 15. اللهجة العراقية اجبارية! لا تستخدم: "بينما"، "الأفضل"، "يمكنك"، "يفضّل"، "الجمع"، "بالإضافة". استخدم بدالها: "بس"، "احسن"، "تكدر"، "يحب"، "تحطهم سوه"، "وبعد".
 16. **ممنوع تخترع خصومات أو أسعار مشطوبة!** اذا المنتج ما عليه خصم بالبيانات المرفقة، لا تكتب "~~سعر قديم~~ سعر جديد". لا تخترع "باقة" بسعر مخفض. السعر الموجود بالبيانات هو السعر الوحيد.
-17. لمن الزبون يطلب اضافة منتج للسلة، قوله "حاضر حبي، ضفت [اسم المنتج] للسلة! 🛒". النظام يضيف تلقائيا. بس **فقط** اذا الزبون طلب صراحة (ضيفه، ابي اشتريه، حطه بالسلة).
+${context?.userId
+  ? '17. لمن الزبون يطلب اضافة منتج للسلة، قوله "حاضر حبي، ضفت [اسم المنتج] للسلة! 🛒". النظام يضيف تلقائيا. بس **فقط** اذا الزبون طلب صراحة (ضيفه، ابي اشتريه، حطه بالسلة).'
+  : '17. اذا الزبون طلب اضافة منتج للسلة وهو **مو مسجل دخول**، لا تقول "ضفت للسلة" ابدا! قله: "حبي لازم تسجل دخول أول 🔐 — سجل [هنا](/login) وبعدين اضيفلك! 🛒". ما تدعي انك اضفت شي لان النظام ما يكدر يضيف بدون حساب.'}
+18. عبارة "نستمر بالعلاج؟" **ممنوعة** خارج سياق الأمراض! لا تقولها اذا الموضوع عن سعر او منتج او حوض. فقط بعد بروتوكول علاج مرض موثق.
 
 [استراتيجية الرد الذكي — متى تسأل ومتى تجاوب]
 
@@ -746,6 +758,17 @@ async function preExecuteTools(message: string, userId?: string): Promise<{
     if (diseaseSignals.some(kw => msg.includes(kw))) {
         matchedTerms.clear();
         matchedTerms.add("معالج");
+    }
+
+    // Water change safety: suggest water conditioner when user mentions large water changes
+    const waterChangeSignals = [
+        "100%", "غير الماي كله", "بدل الماي كله", "كلش غيرت", "تغيير كامل",
+        "بدلت الماي", "غيرت الماي", "تغيير الماء", "كل الماي", "كل الماء",
+        "فرغت الحوض", "غسلت الحوض بالكامل",
+    ];
+    if (waterChangeSignals.some(kw => msg.includes(kw))) {
+        matchedTerms.add("معالج مياه");
+        matchedTerms.add("منظف");
     }
 
     // Compatibility questions: skip product search entirely (no shopping intent)

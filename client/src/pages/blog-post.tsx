@@ -65,7 +65,7 @@ export default function BlogPost() {
                 <div className="relative h-[50vh] min-h-[400px]">
                     <div className="absolute inset-0">
                         <img
-                            src={post.imageUrl || "/images/placeholder.jpg"}
+                            src={post.imageUrl || "/logo_aquavo.png"}
                             alt={post.title}
                             className="w-full h-full object-cover"
                         />
@@ -157,7 +157,7 @@ export default function BlogPost() {
                                     {allPosts && allPosts.filter(p => p.id !== post.id).slice(0, 3).map(related => (
                                         <Link key={related.id} href={`/blog/${related.slug}`}>
                                             <a className="flex gap-4 group cursor-pointer">
-                                                <img src={related.imageUrl || "/images/placeholder.jpg"} alt={related.title} className="w-20 h-20 rounded-lg object-cover" />
+                                                <img src={related.imageUrl || "/logo_aquavo.png"} alt={related.title} className="w-20 h-20 rounded-lg object-cover" />
                                                 <div>
                                                     <h4 className="font-bold text-sm group-hover:text-primary transition-colors line-clamp-2">
                                                         {related.title}

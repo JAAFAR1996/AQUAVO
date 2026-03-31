@@ -146,7 +146,7 @@ export default function Blog() {
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
                                         <img
-                                            src={featuredPost.imageUrl || '/images/placeholder.jpg'}
+                                            src={featuredPost.imageUrl || '/logo_aquavo.png'}
                                             alt={featuredPost.title}
                                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                                         />
@@ -191,7 +191,7 @@ export default function Blog() {
                                             <div className="relative h-48 overflow-hidden">
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10 opactiy-60" />
                                                 <img
-                                                    src={post.imageUrl || '/images/placeholder.jpg'}
+                                                    src={post.imageUrl || '/logo_aquavo.png'}
                                                     alt={post.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />

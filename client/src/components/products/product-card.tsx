@@ -13,7 +13,7 @@ import { CompareButton } from "@/components/products/product-comparison";
 import { Link } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
 
 interface ProductCardProps {
@@ -148,9 +148,25 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
           <CardContent className="flex-1 p-2 sm:p-4 pt-0">
             <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
-              <span className="text-base sm:text-xl font-bold text-purple-500">
-                قريباً جداً ✨
-              </span>
+              {(product.price ?? 0) > 0 ? (
+                <>
+                  {(product.originalPrice ?? 0) > (product.price ?? 0) && (
+                    <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
+                      {formatPrice(product.originalPrice!)}
+                    </span>
+                  )}
+                  <span className="text-base sm:text-xl font-bold text-primary">
+                    {formatPrice(product.price!)}
+                  </span>
+                  {(product.hasVariants && variantMinPrice !== undefined) && (
+                    <span className="text-[10px] text-muted-foreground">من</span>
+                  )}
+                </>
+              ) : (
+                <span className="text-sm font-medium text-muted-foreground">
+                  قريباً ✨
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm text-amber-500 justify-end" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
               <span aria-hidden="true">★</span>

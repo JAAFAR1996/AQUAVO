@@ -26,7 +26,7 @@ import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 
 // Hero images for rotation on page refresh
 const HERO_IMAGES = [
-  "/images/hero/hero-1.png", // Iwagumi Style
+  "/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp", // Iwagumi Style
 ];
 
 export default function Home() {

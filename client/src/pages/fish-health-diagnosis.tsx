@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { MetaTags } from "@/components/seo/meta-tags";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -489,6 +490,10 @@ export default function FishHealthDiagnosis() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <MetaTags
+        title="طبيب الأسماك — تشخيص الأمراض بالذكاء الاصطناعي"
+        description="ارفع صورة سمكتك واحصل على تشخيص فوري للأمراض، التوصيات العلاجية، وأفضل المنتجات من AQUAVO."
+      />
       <Navbar />
 
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
