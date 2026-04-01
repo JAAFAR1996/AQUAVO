@@ -68,6 +68,7 @@ const Login = lazy(() => import("@/pages/login"));
 const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
 const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
+const LinksPage = lazy(() => import("@/pages/links"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -492,6 +493,17 @@ function Router() {
         )}
       </Route>
 
+      {/* Links Page - QR Code Landing - No navbar/footer */}
+      <Route path="/links">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <LinksPage />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       <Route>
         {() => (<Suspense fallback={<PageLoader />}><NotFound /></Suspense>)}
       </Route>
@@ -502,6 +514,10 @@ function Router() {
 function App() {
   // Initialize device detection (adds body classes automatically)
   useDeviceDetection();
+  const [location] = useLocation();
+
+  // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
+  const isStandalonePage = ['/links', '/early-access'].includes(location);
 
   useEffect(() => {
     // Initialize Google Analytics
@@ -521,15 +537,19 @@ function App() {
                   <SpeedInsights />
                   <PageViewTracker />
                   {/* Skip to main content for keyboard navigation */}
-                  <a href="#main-content" className="skip-to-main">
-                    الانتقال إلى المحتوى الرئيسي
-                  </a>
-                  <ScrollProgress />
-                  <FloatingActionButton />
+                  {!isStandalonePage && (
+                    <a href="#main-content" className="skip-to-main">
+                      الانتقال إلى المحتوى الرئيسي
+                    </a>
+                  )}
+                  {!isStandalonePage && <ScrollProgress />}
+                  {!isStandalonePage && <FloatingActionButton />}
 
-                  <Suspense fallback={null}>
-                    <WinnerNotificationBanner />
-                  </Suspense>
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <WinnerNotificationBanner />
+                    </Suspense>
+                  )}
                   <Suspense fallback={null}>
                     <UpdateBanner />
                   </Suspense>
@@ -538,16 +558,22 @@ function App() {
                   </Suspense>
 
                   <Toaster />
-                  <Suspense fallback={null}>
-                    <AIChatBot />
-                  </Suspense>
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <AIChatBot />
+                    </Suspense>
+                  )}
                   <Router />
-                  <Suspense fallback={null}>
-                    <OnboardingTour />
-                  </Suspense>
-                  <Suspense fallback={null}>
-                    <InstallPrompt className="fixed bottom-20 left-4 right-4 z-40 max-w-sm mx-auto" />
-                  </Suspense>
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <OnboardingTour />
+                    </Suspense>
+                  )}
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <InstallPrompt className="fixed bottom-20 left-4 right-4 z-40 max-w-sm mx-auto" />
+                    </Suspense>
+                  )}
                 </TooltipProvider>
               </NavbarPreferencesProvider>
             </ComparisonProvider>
