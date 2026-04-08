@@ -69,12 +69,15 @@ BOTTOM ZONE (60%) — BUILDING THE WORLD: A magical Ghibli transition into the u
 The whole scene flows from practical decision above to meditative, zen-like world-building below. Soft sage green (#A8D5BA) and warm cream (#FFF8E7) palette.
 
 ARABIC TEXT RENDERED DIRECTLY ON THE IMAGE (RTL, properly connected Arabic letters, SHARP and READABLE):
-— Title at top on soft dark gradient: "الخطوة 1 📍🧹 جهّز المكان وابني العالم" in white (#FFFFFF), 22px, Cairo Bold
-— Right label: "✅ مكان هادي + سطح قوي + قريب كهرباء" in soft teal (#7EC8C8)
-— Left label: "❌ جنب الشباك ❌ طاولة ضعيفة" in warm rose (#E74C3C)
-— Weight warning: "⚠️ 60 لتر = 60 كيلو!" in warm gold (#F4D03F)
-— Steps ①-④ beside each action in soft teal
-— Bottom: "💡 كل حبة حصى = أساس حياة جديدة" in soft teal, 13px
+— Title at top center on dark gradient: "الخطوة 1 📍🧹 جهّز المكان وابني العالم" in white (#FFFFFF), 22px, Cairo Bold
+— Right side label: "✅ مكان هادي + سطح قوي + قريب كهرباء" in teal (#00BCD4)
+— Left side label: "❌ جنب الشباك ❌ طاولة ضعيفة" in red (#FF6B6B)
+— Weight warning between sides: "⚠️ 60 لتر = 60 كيلو!" in yellow (#FFD54F)
+— Step ① beside gravel: "اغسل الحصى (بدون صابون! 🚫)" in teal
+— Step ② beside substrate depth: "سمك 3-5 سم بالقاع" in teal
+— Step ③ beside driftwood: "ديكور: كبير بالخلف ← صغير بالأمام" in teal
+— Step ④ beside plate: "صب الماء على صحن عشان ما يخرب!" in teal
+— Bottom tip: "💡 كل حبة حصى = أساس حياة جديدة" in teal (#00BCD4), 13px
 
 ABSOLUTELY NO: photorealistic, 3D render, harsh lighting, neon colors, coral reefs, saltwater, cold blue tones, broken Arabic letters.
 ```

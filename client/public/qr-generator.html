@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AQUAVO — مولد QR Code الاحترافي</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --teal: #0D7377;
+      --teal-light: #14b8a6;
+      --teal-glow: rgba(13,115,119,0.2);
+      --navy: #071324;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--navy);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 60px;
+      color: #fff;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px; right: -200px;
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(6,182,212,0.08), transparent 60%);
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -200px; left: -200px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(20,184,166,0.06), transparent 60%);
+      pointer-events: none;
+    }
+    h1 {
+      position: relative; z-index: 1;
+      font-size: 2.2rem; font-weight: 900;
+      background: linear-gradient(135deg, #67e8f9, #2dd4bf, #67e8f9);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 4px; letter-spacing: 3px;
+      animation: shimmer 4s linear infinite;
+    }
+    @keyframes shimmer { to { background-position: 200% center; } }
+    .subtitle {
+      position: relative; z-index: 1;
+      color: rgba(255,255,255,0.35);
+      font-size: 0.9rem; margin-bottom: 32px;
+    }
+    .styles-bar {
+      position: relative; z-index: 1;
+      display: flex; gap: 8px; margin-bottom: 28px;
+      flex-wrap: wrap; justify-content: center;
+    }
+    .style-btn {
+      padding: 8px 16px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.5);
+      font-family: 'Cairo', sans-serif;
+      font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s ease;
+    }
+    .style-btn:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.75); }
+    .style-btn.active {
+      background: linear-gradient(135deg, var(--teal), var(--teal-light));
+      border-color: transparent; color: white;
+      box-shadow: 0 4px 20px var(--teal-glow);
+    }
+    .card {
+      position: relative; z-index: 1;
+      background: rgba(255,255,255,0.035);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 28px; padding: 40px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 24px;
+      max-width: 500px; width: 100%;
+      box-shadow: 0 20px 80px rgba(0,0,0,0.4);
+    }
+    .qr-display {
+      position: relative;
+      width: 320px; height: 320px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qr-glow {
+      position: absolute; inset: -6px;
+      border-radius: 24px;
+      background: linear-gradient(135deg, var(--teal), #2dd4bf, var(--teal));
+      padding: 2px;
+      box-shadow: 0 0 40px var(--teal-glow), 0 0 80px rgba(6,182,212,0.06);
+      transition: all 0.5s ease;
+    }
+    .qr-glow.aquarium-mode {
+      background: linear-gradient(135deg, #1a4a6e, #0d9488, #1a4a6e);
+      box-shadow: 0 0 50px rgba(13,148,136,0.4), 0 0 100px rgba(26,74,110,0.2);
+    }
+    .qr-glow-inner {
+      width: 100%; height: 100%;
+      border-radius: 22px; background: #ffffff;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; position: relative;
+    }
+    /* Aquarium canvas overlaid on top of QR */
+    #aquarium-canvas {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      border-radius: 22px;
+      display: none;
+    }
+    #qr-container { display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+    #qr-container canvas, #qr-container svg { max-width: 100%; max-height: 100%; }
+    .url-chip {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(13, 115, 119, 0.12);
+      border: 1px solid rgba(13, 115, 119, 0.25);
+      border-radius: 100px; padding: 8px 20px;
+      font-size: 0.9rem; color: #67e8f9;
+      font-weight: 700; letter-spacing: 0.5px; direction: ltr;
+    }
+    .url-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal-light);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.5; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .cta-text {
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 0.85rem; line-height: 1.8;
+    }
+    .cta-text strong { color: rgba(255,255,255,0.7); }
+    .btn-group { display: flex; gap: 10px; width: 100%; }
+    .btn {
+      flex: 1; padding: 13px 16px; border: none;
+      border-radius: 14px; font-family: 'Cairo', sans-serif;
+      font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--teal), var(--teal-light));
+      color: white; box-shadow: 0 6px 24px var(--teal-glow);
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    .print-section {
+      width: 100%;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding-top: 24px; text-align: center;
+    }
+    .print-label {
+      font-size: 0.72rem; color: rgba(255,255,255,0.2);
+      text-transform: uppercase; letter-spacing: 2px; margin-bottom: 16px;
+    }
+    #printable-card {
+      display: inline-block; background: white;
+      border-radius: 20px; padding: 22px 22px 18px;
+      text-align: center;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+    }
+    #printable-card .brand-title {
+      font-size: 16px; font-weight: 900;
+      color: var(--teal); letter-spacing: 4px; margin-bottom: 2px;
+    }
+    #printable-card .brand-sub {
+      font-size: 9px; color: #999;
+      margin-bottom: 14px; direction: rtl;
+    }
+    #print-qr-container { display: flex; align-items: center; justify-content: center; }
+    #printable-card .scan-label {
+      margin-top: 12px; font-size: 9px; font-weight: 700;
+      color: var(--teal); letter-spacing: 3px; text-transform: uppercase;
+    }
+    .toast {
+      position: fixed; bottom: 30px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--teal); color: white;
+      padding: 12px 28px; border-radius: 100px;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700; font-size: 0.9rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 999;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+    @media print {
+      body { background: white !important; }
+      body::before, body::after { display: none; }
+      h1, .subtitle, .styles-bar, .card > *:not(.print-section) { display: none !important; }
+      .card { background: none; border: none; box-shadow: none; backdrop-filter: none; padding: 0; }
+      .print-section { border: none; padding: 0; }
+      #printable-card { box-shadow: none; border: 2px solid var(--teal); }
+    }
+  </style>
+</head>
+<body>
+
+<h1>AQUAVO QR</h1>
+<p class="subtitle">مولّد رمز QR الاحترافي — جاهز للطباعة 2026</p>
+
+<div class="styles-bar">
+  <button class="style-btn active" data-style="ocean" onclick="setStyle('ocean')">🌊 أوشن بريميوم</button>
+  <button class="style-btn" data-style="dots" onclick="setStyle('dots')">⚪ دوتس مدوّرة</button>
+  <button class="style-btn" data-style="classy" onclick="setStyle('classy')">💎 كلاسي راقي</button>
+  <button class="style-btn" data-style="gradient" onclick="setStyle('gradient')">🎨 تدرج ذهبي</button>
+  <button class="style-btn" data-style="fish_shapes" onclick="setStyle('fish_shapes')">🐠 أشكال أسماك</button>
+  <button class="style-btn" data-style="aquarium" onclick="setStyle('aquarium')">🌊 أكواريوم (إطار)</button>
+</div>
+
+<div class="card">
+  <div class="qr-display">
+    <div class="qr-glow" id="qr-glow">
+      <div class="qr-glow-inner">
+        <div id="qr-container"></div>
+        <canvas id="aquarium-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="url-chip">
+    <div class="url-dot"></div>
+    aquavoiq.com/links
+  </div>
+
+  <p class="cta-text">
+    امسح هذا الرمز بكاميرا أي موبايل<br>
+    <strong>سيأخذك مباشرة لجميع حسابات AQUAVO 🐟</strong>
+  </p>
+
+  <div class="btn-group">
+    <button class="btn btn-primary" onclick="downloadQR('svg')">⬇️ تحميل SVG</button>
+    <button class="btn btn-secondary" onclick="downloadQR('png')">🖼️ تحميل PNG</button>
+  </div>
+
+  <div class="print-section">
+    <div class="print-label">📄 بطاقة QR جاهزة للطباعة</div>
+    <div id="printable-card">
+      <div class="brand-title">AQUAVO</div>
+      <div class="brand-sub">امسح للتواصل معنا</div>
+      <div id="print-qr-container"></div>
+      <div class="scan-label">↑ Scan Me</div>
+    </div>
+    <br><br>
+    <button class="btn btn-secondary" onclick="window.print()" style="display:inline-flex; width: auto; padding: 10px 28px;">
+      🖨️ طباعة البطاقة
+    </button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Load via CDN served over HTTP -->
+<script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script>
+const URL_TARGET = 'https://aquavoiq.com/links';
+const TEAL = '#0D7377';
+const TEAL_L = '#14b8a6';
+
+// Fish logo as inline SVG data URI
+const FISH_LOGO = (() => {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+    <circle cx="60" cy="60" r="54" fill="${TEAL}" opacity="0.12"/>
+    <circle cx="60" cy="60" r="42" fill="${TEAL}" opacity="0.2"/>
+    <text x="60" y="78" text-anchor="middle" font-size="56">🐟</text>
+  </svg>`;
+  return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg)));
+})();
+
+const PRESETS = {
+  ocean: {
+    dotsOptions: {
+      type: 'rounded',
+      gradient: {
+        type: 'linear', rotation: 0.7,
+        colorStops: [{ offset: 0, color: TEAL }, { offset: 1, color: TEAL_L }]
+      }
+    },
+    cornersSquareOptions: { type: 'extra-rounded', color: TEAL },
+    cornersDotOptions: { type: 'dot', color: TEAL_L },
+  },
+  dots: {
+    dotsOptions: { type: 'dots', color: TEAL },
+    cornersSquareOptions: { type: 'dot', color: TEAL },
+    cornersDotOptions: { type: 'dot', color: TEAL_L },
+  },
+  classy: {
+    dotsOptions: { type: 'classy-rounded', color: '#0a5e61' },
+    cornersSquareOptions: {
+      type: 'extra-rounded',
+      gradient: {
+        type: 'linear', rotation: 0,
+        colorStops: [{ offset: 0, color: '#0a5e61' }, { offset: 1, color: TEAL }]
+      }
+    },
+    cornersDotOptions: { type: 'dot', color: TEAL },
+  },
+  gradient: {
+    dotsOptions: {
+      type: 'rounded',
+      gradient: {
+        type: 'linear', rotation: 0.5,
+        colorStops: [
+          { offset: 0, color: TEAL },
+          { offset: 0.5, color: TEAL_L },
+          { offset: 1, color: '#d4a017' }
+        ]
+      }
+    },
+    cornersSquareOptions: {
+      type: 'extra-rounded',
+      gradient: {
+        type: 'linear', rotation: 0,
+        colorStops: [{ offset: 0, color: TEAL }, { offset: 1, color: '#c8961e' }]
+      }
+    },
+    cornersDotOptions: { type: 'dot', color: '#d4a017' },
+  },
+};
+
+let currentStyle = 'ocean';
+let mainQR = null;
+let printQR = null;
+let aquariumAnimId = null;
+
+function makeConfig(preset, size, logoSize) {
+  return {
+    type: 'svg',
+    width: size,
+    height: size,
+    data: URL_TARGET,
+    margin: Math.round(size * 0.03),
+    qrOptions: { errorCorrectionLevel: 'H' },
+    image: FISH_LOGO,
+    imageOptions: {
+      crossOrigin: 'anonymous',
+      margin: Math.round(size * 0.02),
+      imageSize: logoSize || 0.35,
+    },
+    backgroundOptions: { color: '#ffffff' },
+    ...preset,
+  };
+}
+
+function stopAquarium() {
+  if (aquariumAnimId) { cancelAnimationFrame(aquariumAnimId); aquariumAnimId = null; }
+  const cv = document.getElementById('aquarium-canvas');
+  cv.style.display = 'none';
+  document.getElementById('qr-glow').classList.remove('aquarium-mode');
+}
+
+function startAquarium() {
+  const cv = document.getElementById('aquarium-canvas');
+  const inner = cv.parentElement; // qr-glow-inner
+  const W = inner.offsetWidth;
+  const H = inner.offsetHeight;
+  cv.width = W; cv.height = H;
+  cv.style.display = 'block';
+  document.getElementById('qr-glow').classList.add('aquarium-mode');
+
+  const ctx = cv.getContext('2d');
+  const BORDER = 18; // border thickness for aquarium frame
+
+  // === FISH definitions ===
+  const fishEmojis = ['🐠','🐡','🐟','🦈'];
+  const fishes = Array.from({length: 6}, (_, i) => ({
+    x: Math.random() * W,
+    y: BORDER + Math.random() * (H - BORDER * 2),
+    speed: 0.4 + Math.random() * 0.6,
+    dir: Math.random() > 0.5 ? 1 : -1,
+    size: 14 + Math.random() * 10,
+    emoji: fishEmojis[Math.floor(Math.random() * fishEmojis.length)],
+    waveOffset: Math.random() * Math.PI * 2,
+  }));
+
+  // === BUBBLE definitions ===
+  const bubbles = Array.from({length: 14}, () => ({
+    x: BORDER + Math.random() * (W - BORDER * 2),
+    y: H - BORDER - Math.random() * 20,
+    r: 1 + Math.random() * 3,
+    speed: 0.3 + Math.random() * 0.4,
+    opacity: 0.4 + Math.random() * 0.4,
+    wobble: Math.random() * Math.PI * 2,
+  }));
+
+  // === SEAWEED definitions ===
+  const weeds = Array.from({length: 5}, (_, i) => ({
+    x: BORDER + 10 + i * ((W - BORDER * 2 - 20) / 4),
+    baseY: H - BORDER,
+    h: 20 + Math.random() * 18,
+    phase: Math.random() * Math.PI * 2,
+    segments: 4 + Math.floor(Math.random() * 3),
+  }));
+
+  let t = 0;
+
+  function drawFrame() {
+    ctx.clearRect(0, 0, W, H);
+    t += 0.02;
+
+    // === Water tint overlay on BORDER only ===
+    // Top border
+    const grad = ctx.createLinearGradient(0, 0, 0, BORDER);
+    grad.addColorStop(0, 'rgba(13,115,119,0.85)');
+    grad.addColorStop(1, 'rgba(13,115,119,0.0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, BORDER + 4);
+
+    // Bottom border
+    const grad2 = ctx.createLinearGradient(0, H - BORDER - 4, 0, H);
+    grad2.addColorStop(0, 'rgba(13,115,119,0.0)');
+    grad2.addColorStop(1, 'rgba(13,115,119,0.85)');
+    ctx.fillStyle = grad2;
+    ctx.fillRect(0, H - BORDER - 4, W, BORDER + 4);
+
+    // Left border
+    const grad3 = ctx.createLinearGradient(0, 0, BORDER + 4, 0);
+    grad3.addColorStop(0, 'rgba(13,115,119,0.85)');
+    grad3.addColorStop(1, 'rgba(13,115,119,0.0)');
+    ctx.fillStyle = grad3;
+    ctx.fillRect(0, 0, BORDER + 4, H);
+
+    // Right border
+    const grad4 = ctx.createLinearGradient(W - BORDER - 4, 0, W, 0);
+    grad4.addColorStop(0, 'rgba(13,115,119,0.0)');
+    grad4.addColorStop(1, 'rgba(13,115,119,0.85)');
+    ctx.fillStyle = grad4;
+    ctx.fillRect(W - BORDER - 4, 0, BORDER + 4, H);
+
+    // === Outer glass frame ===
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+    ctx.lineWidth = 2;
+    ctx.roundRect(1, 1, W - 2, H - 2, 22);
+    ctx.stroke();
+    // Inner glass highlight (top)
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(BORDER, BORDER);
+    ctx.lineTo(W - BORDER, BORDER);
+    ctx.stroke();
+    ctx.restore();
+
+    // === Sand at bottom (inside border) ===
+    ctx.save();
+    ctx.fillStyle = 'rgba(210, 180, 120, 0.18)';
+    ctx.fillRect(BORDER, H - BORDER - 6, W - BORDER * 2, 6);
+    ctx.restore();
+
+    // === Seaweed ===
+    weeds.forEach(w => {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(34, 197, 94, 0.55)';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+      const segH = w.h / w.segments;
+      ctx.beginPath();
+      ctx.moveTo(w.x, w.baseY);
+      for (let s = 1; s <= w.segments; s++) {
+        const sw = Math.sin(t + w.phase + s * 0.6) * 4;
+        ctx.lineTo(w.x + sw, w.baseY - s * segH);
+      }
+      ctx.stroke();
+      ctx.restore();
+    });
+
+    // === Bubbles ===
+    bubbles.forEach(b => {
+      b.y -= b.speed;
+      b.wobble += 0.05;
+      if (b.y < BORDER) { b.y = H - BORDER; b.x = BORDER + Math.random() * (W - BORDER * 2); }
+      const bx = b.x + Math.sin(b.wobble) * 2;
+      ctx.save();
+      ctx.globalAlpha = b.opacity * (1 - (H - BORDER - b.y) / (H - BORDER * 2));
+      ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      ctx.arc(bx, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
+      // highlight
+      ctx.fillStyle = 'rgba(255,255,255,0.3)';
+      ctx.beginPath();
+      ctx.arc(bx - b.r * 0.3, b.y - b.r * 0.3, b.r * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    // === Fish (only swim in border zone) ===
+    fishes.forEach(f => {
+      f.x += f.speed * f.dir;
+      f.waveOffset += 0.04;
+      const fy = f.y + Math.sin(f.waveOffset) * 3;
+      // bounce off walls (border zone)
+      if (f.x > W - BORDER - f.size && f.dir > 0) f.dir = -1;
+      if (f.x < BORDER + f.size && f.dir < 0) f.dir = 1;
+      // keep fish in border corridor (top, bottom, left, right bands)
+      const inBorder = fy < BORDER + f.size + 4 ||
+                       fy > H - BORDER - f.size - 4 ||
+                       f.x < BORDER + f.size + 4 ||
+                       f.x > W - BORDER - f.size - 4;
+      if (!inBorder) { f.y = BORDER + Math.random() * 4; }
+
+      ctx.save();
+      ctx.font = `${f.size}px serif`;
+      ctx.textBaseline = 'middle';
+      if (f.dir < 0) {
+        ctx.scale(-1, 1);
+        ctx.fillText(f.emoji, -f.x, fy);
+      } else {
+        ctx.fillText(f.emoji, f.x, fy);
+      }
+      ctx.restore();
+    });
+
+    // === Corner bubbles decoration ===
+    [[BORDER/2, BORDER/2],[W - BORDER/2, BORDER/2],[BORDER/2, H - BORDER/2],[W - BORDER/2, H - BORDER/2]].forEach(([cx,cy]) => {
+      ctx.save();
+      ctx.fillStyle = 'rgba(255,255,255,0.08)';
+      ctx.beginPath();
+      ctx.arc(cx, cy, 5, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    });
+
+    aquariumAnimId = requestAnimationFrame(drawFrame);
+  }
+
+  drawFrame();
+}
+
+function renderCustomFishQR() {
+  if (typeof qrcode === 'undefined') {
+    setTimeout(renderCustomFishQR, 100);
+    return;
+  }
+  
+  const qr = qrcode(0, 'H');
+  qr.addData(URL_TARGET);
+  qr.make();
+  const count = qr.getModuleCount();
+
+  function createSVG(size) {
+    let svg = `<svg width="${size}" height="${size}" viewBox="-1 -1 ${count+2} ${count+2}" xmlns="http://www.w3.org/2000/svg">`;
+    svg += `<rect x="-1" y="-1" width="${count+2}" height="${count+2}" fill="#ffffff" rx="1"/>`; 
+    
+    // Draw markers
+    const drawMarker = (cx, cy) => {
+      svg += `<rect x="${cx}" y="${cy}" width="7" height="7" fill="${TEAL}" rx="1"/>`;
+      svg += `<rect x="${cx+1}" y="${cy+1}" width="5" height="5" fill="#ffffff" rx="0.5"/>`;
+      svg += `<rect x="${cx+2}" y="${cy+2}" width="3" height="3" fill="${TEAL}" rx="0.5"/>`;
+    };
+
+    drawMarker(0, 0);
+    drawMarker(count - 7, 0);
+    drawMarker(0, count - 7);
+
+    const logoSize = Math.floor(count * 0.35); 
+    const centerStart = Math.floor((count - logoSize) / 2);
+    const centerEnd = centerStart + logoSize;
+
+    for (let r = 0; r < count; r++) {
+      for (let c = 0; c < count; c++) {
+        if (!qr.isDark(r, c)) continue;
+        if (r < 7 && c < 7) continue;
+        if (r < 7 && c >= count - 7) continue;
+        if (r >= count - 7 && c < 7) continue;
+        if (r >= centerStart && r < centerEnd && c >= centerStart && c < centerEnd) continue;
+
+        const flip = (r * 13 + c * 7) % 2 === 0;
+        if (flip) {
+          svg += `<path d="M ${c+0.1} ${r+0.5} C ${c+0.3} ${r-0.1}, ${c+0.7} ${r-0.1}, ${c+0.8} ${r+0.5} L ${c+0.95} ${r+0.15} L ${c+0.95} ${r+0.85} L ${c+0.8} ${r+0.5} C ${c+0.7} ${r+1.1}, ${c+0.3} ${r+1.1}, ${c+0.1} ${r+0.5} Z" fill="${TEAL}"/>`;
+        } else {
+          svg += `<path d="M ${c+0.9} ${r+0.5} C ${c+0.7} ${r-0.1}, ${c+0.3} ${r-0.1}, ${c+0.2} ${r+0.5} L ${c+0.05} ${r+0.15} L ${c+0.05} ${r+0.85} L ${c+0.2} ${r+0.5} C ${c+0.3} ${r+1.1}, ${c+0.7} ${r+1.1}, ${c+0.9} ${r+0.5} Z" fill="${TEAL}"/>`;
+        }
+      }
+    }
+
+    svg += `<circle cx="${count/2}" cy="${count/2}" r="${logoSize/2 * 1.1}" fill="#ffffff"/>`;
+    svg += `<text x="${count/2}" y="${count/2 + logoSize * 0.35}" text-anchor="middle" font-size="${logoSize * 0.8}" fill="${TEAL}">🐟</text>`;
+    svg += `</svg>`;
+    return svg;
+  }
+
+  document.getElementById('qr-container').innerHTML = createSVG(290);
+  document.getElementById('print-qr-container').innerHTML = createSVG(140);
+  document.getElementById('qr-container').querySelector('svg').style.borderRadius = "10px";
+  document.getElementById('print-qr-container').querySelector('svg').style.borderRadius = "8px";
+}
+
+function renderQR() {
+  stopAquarium();
+  mainQR = null; printQR = null;
+  document.getElementById('qr-container').innerHTML = '';
+  document.getElementById('print-qr-container').innerHTML = '';
+
+  if (currentStyle === 'fish_shapes') {
+    renderCustomFishQR();
+    return;
+  }
+
+  const isAquarium = currentStyle === 'aquarium';
+  const preset = isAquarium ? PRESETS.dots : PRESETS[currentStyle];
+  document.getElementById('qr-container').innerHTML = '';
+  document.getElementById('print-qr-container').innerHTML = '';
+
+  mainQR = new QRCodeStyling(makeConfig(preset, 290, 0.35));
+  mainQR.append(document.getElementById('qr-container'));
+
+  printQR = new QRCodeStyling(makeConfig(preset, 140, 0.3));
+  printQR.append(document.getElementById('print-qr-container'));
+
+  if (isAquarium) {
+    // Slight delay to let QR SVG render first
+    setTimeout(startAquarium, 200);
+  }
+}
+
+function setStyle(name) {
+  currentStyle = name;
+  document.querySelectorAll('.style-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.style === name)
+  );
+  renderQR();
+}
+
+function downloadQR(ext) {
+  if (currentStyle === 'fish_shapes') {
+    const svgEl = document.querySelector('#qr-container svg');
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    if (ext === 'svg') {
+      const blob = new Blob([svgData], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'AQUAVO_QR_Fish.svg';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast('✅ تم تحميل SVG بنجاح!');
+    } else {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1000; canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      img.onload = () => {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0,0,1000,1000);
+        ctx.drawImage(img, 40, 40, 920, 920);
+        const a = document.createElement('a');
+        a.href = canvas.toDataURL('image/png');
+        a.download = 'AQUAVO_QR_Fish.png';
+        a.click();
+        showToast('✅ تم تحميل PNG بنجاح!');
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    }
+    return;
+  }
+
+  if (!mainQR) return;
+  if (currentStyle === 'aquarium') {
+    // For aquarium: composite QR + canvas frame into PNG
+    const qrSvg = document.querySelector('#qr-container svg');
+    const cv = document.getElementById('aquarium-canvas');
+    const W = cv.width, H = cv.height;
+    const finalCanvas = document.createElement('canvas');
+    finalCanvas.width = W; finalCanvas.height = H;
+    const fctx = finalCanvas.getContext('2d');
+    // Draw white bg
+    fctx.fillStyle = '#fff';
+    fctx.fillRect(0, 0, W, H);
+    // Draw QR SVG
+    const svgData = new XMLSerializer().serializeToString(qrSvg);
+    const img = new Image();
+    img.onload = () => {
+      fctx.drawImage(img, 0, 0, W, H);
+      fctx.drawImage(cv, 0, 0);
+      const a = document.createElement('a');
+      a.download = 'AQUAVO_QR_aquarium.png';
+      a.href = finalCanvas.toDataURL('image/png');
+      a.click();
+      showToast('✅ تم تحميل صورة الأكواريوم!');
+    };
+    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    return;
+  }
+  mainQR.download({ name: `AQUAVO_QR_${currentStyle}`, extension: ext });
+  showToast(`✅ تم تحميل ${ext.toUpperCase()} بنجاح!`);
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// Wait for library to load then render
+if (typeof QRCodeStyling !== 'undefined') {
+  renderQR();
+} else {
+  const interval = setInterval(() => {
+    if (typeof QRCodeStyling !== 'undefined') {
+      clearInterval(interval);
+      renderQR();
+    }
+  }, 200);
+}
+</script>
+</body>
+</html>

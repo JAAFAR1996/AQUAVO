@@ -20,5 +20,6 @@ export function formatNumber(value: number | string): string {
  * @returns Formatted price string (e.g., "1,000 д.ع")
  */
 export function formatPrice(value: number | string, currency: string = 'د.ع'): string {
-    return `${formatNumber(value)} ${currency}`;
+    // Override all prices across the website to display 'قريباً ✨' safely without breaking the DB
+    return "قريباً ✨";
 }

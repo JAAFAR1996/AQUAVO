@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQUAVO — AI Hidden QR Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold-50: #fefce8;
+            --gold-100: #fef9c3;
+            --gold-200: #fef08a;
+            --gold-300: #fde047;
+            --gold-400: #facc15;
+            --gold-500: #eab308;
+            --gold-600: #ca8a04;
+            --gold-700: #a16207;
+            --aqua-50: #ecfdf5;
+            --aqua-100: #d1fae5;
+            --aqua-200: #a7f3d0;
+            --aqua-300: #6ee7b7;
+            --aqua-400: #34d399;
+            --aqua-500: #10b981;
+            --aqua-600: #059669;
+            --aqua-700: #047857;
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-card: rgba(17, 24, 39, 0.8);
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border: rgba(255, 255, 255, 0.08);
+            --glow-gold: rgba(234, 179, 8, 0.3);
+            --glow-aqua: rgba(16, 185, 129, 0.3);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                radial-gradient(ellipse at 20% 20%, rgba(234, 179, 8, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(59, 130, 246, 0.03) 0%, transparent 60%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold-400);
+            border-radius: 50%;
+            opacity: 0;
+            animation: float-particle 8s infinite ease-in-out;
+        }
+
+        @keyframes float-particle {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { opacity: 0; transform: translateY(-20vh) scale(1); }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 4rem 0 3rem;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1.25rem;
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.15), rgba(16, 185, 129, 0.15));
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gold-300);
+            margin-bottom: 1.5rem;
+            animation: pulse-glow 3s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.1); }
+            50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.25); }
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-300), var(--gold-500), var(--aqua-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.2;
+            margin-bottom: 1rem;
+        }
+
+        .hero p {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Comparison Section */
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 2rem;
+            align-items: center;
+            margin: 3rem 0;
+        }
+
+        .comparison-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+        }
+
+        .comparison-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(234, 179, 8, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .comparison-card.before {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .comparison-card.after {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .comparison-card .tag {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1.5rem;
+        }
+
+        .comparison-card.before .tag {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .comparison-card.after .tag {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .qr-traditional {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .qr-traditional canvas {
+            border-radius: 8px;
+        }
+
+        .qr-artistic {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #0d3320, #1a5c3a, #0d4429);
+        }
+
+        .qr-artistic-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ghibli-style artistic QR simulation */
+        .ghibli-scene {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: linear-gradient(180deg, 
+                rgba(251, 191, 36, 0.3) 0%, 
+                rgba(16, 185, 129, 0.2) 30%, 
+                rgba(6, 78, 59, 0.6) 100%);
+        }
+
+        .ghibli-scene .light-ray {
+            position: absolute;
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(251, 191, 36, 0.6), transparent);
+            top: 0;
+            animation: sway 4s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-3deg) translateX(0); }
+            50% { transform: rotate(3deg) translateX(5px); }
+        }
+
+        .ghibli-scene .plant {
+            position: absolute;
+            bottom: 0;
+            width: 20px;
+            background: linear-gradient(0deg, #065f46, #10b981);
+            border-radius: 50% 50% 0 0;
+            animation: grow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes grow {
+            0% { transform: scaleY(0.9) rotate(-2deg); }
+            100% { transform: scaleY(1.1) rotate(2deg); }
+        }
+
+        .ghibli-scene .bubble {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            animation: rise 4s ease-in-out infinite;
+        }
+
+        @keyframes rise {
+            0% { opacity: 0; transform: translateY(0) scale(0.5); }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; transform: translateY(-180px) scale(1.2); }
+        }
+
+        .arrow-between {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arrow-between svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--gold-400);
+            animation: arrow-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes arrow-pulse {
+            0%, 100% { transform: translateX(0); opacity: 0.5; }
+            50% { transform: translateX(-10px); opacity: 1; }
+        }
+
+        .arrow-between span {
+            font-size: 0.7rem;
+            color: var(--gold-400);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Tools Grid */
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            text-align: center;
+            margin: 4rem 0 0.5rem;
+            background: linear-gradient(135deg, var(--gold-300), var(--text-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            margin-bottom: 2.5rem;
+            font-size: 0.95rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .tool-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tool-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold-400), var(--aqua-400));
+            opacity: 0;
+            transition: opacity 0.4s ease;
+        }
+
+        .tool-card:hover::before { opacity: 1; }
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            border-color: rgba(234, 179, 8, 0.2);
+        }
+
+        .tool-card.recommended {
+            border-color: rgba(234, 179, 8, 0.4);
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.05), var(--bg-card));
+        }
+
+        .tool-card.recommended::before { opacity: 1; }
+
+        .tool-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .tool-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .tool-badge {
+            padding: 0.2rem 0.7rem;
+            border-radius: 100px;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .tool-badge.free {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .tool-badge.recommended {
+            background: rgba(234, 179, 8, 0.15);
+            color: var(--gold-300);
+        }
+
+        .tool-badge.pro {
+            background: rgba(139, 92, 246, 0.15);
+            color: #a78bfa;
+        }
+
+        .tool-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+        }
+
+        .tool-meta {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .tool-meta-item .stars {
+            color: var(--gold-400);
+            letter-spacing: -1px;
+        }
+
+        .tool-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1.25rem;
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, var(--gold-600), var(--gold-700));
+            color: white;
+            text-decoration: none;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .tool-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(234, 179, 8, 0.3);
+        }
+
+        /* Prompt Section */
+        .prompt-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 3rem 0;
+            backdrop-filter: blur(20px);
+        }
+
+        .prompt-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .prompt-tab {
+            padding: 0.6rem 1.25rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .prompt-tab.active {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.2), rgba(16, 185, 129, 0.1));
+            border-color: var(--gold-400);
+            color: var(--gold-300);
+        }
+
+        .prompt-tab:hover:not(.active) {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text-primary);
+        }
+
+        .prompt-content {
+            display: none;
+        }
+
+        .prompt-content.active {
+            display: block;
+        }
+
+        .prompt-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 1.5rem;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.85rem;
+            line-height: 1.8;
+            color: var(--aqua-300);
+            white-space: pre-wrap;
+            word-break: break-word;
+            direction: ltr;
+            text-align: left;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            padding: 0.4rem 1rem;
+            background: rgba(234, 179, 8, 0.2);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+            color: var(--gold-300);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(234, 179, 8, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: rgba(16, 185, 129, 0.3);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #34d399;
+        }
+
+        /* Settings Table */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .setting-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .setting-card:hover {
+            border-color: rgba(234, 179, 8, 0.3);
+        }
+
+        .setting-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+
+        .setting-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold-300);
+        }
+
+        .setting-desc {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.3rem;
+            line-height: 1.5;
+        }
+
+        /* Workflow Steps */
+        .workflow {
+            margin: 3rem 0;
+        }
+
+        .workflow-steps {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .workflow-step {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, var(--gold-600), var(--gold-700));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 8px 25px rgba(234, 179, 8, 0.2);
+        }
+
+        .step-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .step-content h4 {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .step-content p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        .step-content .tip {
+            margin-top: 0.75rem;
+            padding: 0.6rem 1rem;
+            background: rgba(234, 179, 8, 0.08);
+            border-right: 3px solid var(--gold-400);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            color: var(--gold-200);
+        }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .warning-box h4 {
+            color: #f87171;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .warning-box ul {
+            color: var(--text-secondary);
+            padding-right: 1.5rem;
+            line-height: 2;
+        }
+
+        /* QR Generator Input */
+        .generator-section {
+            background: linear-gradient(135deg, rgba(234, 179, 8, 0.05), rgba(16, 185, 129, 0.05));
+            border: 1px solid rgba(234, 179, 8, 0.2);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 3rem 0;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            direction: ltr;
+            text-align: left;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--gold-400);
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.15);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--gold-500), var(--gold-600));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(234, 179, 8, 0.3);
+        }
+
+        .generate-btn:active {
+            transform: translateY(0);
+        }
+
+        .qr-output {
+            margin-top: 2rem;
+            text-align: center;
+            display: none;
+        }
+
+        .qr-output.show {
+            display: block;
+        }
+
+        .qr-output canvas {
+            border-radius: 12px;
+            border: 3px solid var(--gold-400);
+            box-shadow: 0 0 40px rgba(234, 179, 8, 0.2);
+        }
+
+        .qr-output .download-btn {
+            margin-top: 1rem;
+            padding: 0.6rem 2rem;
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .qr-output .download-btn:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+
+        .qr-instructions {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(59, 130, 246, 0.08);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: #93c5fd;
+            line-height: 1.8;
+            direction: rtl;
+            text-align: right;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 3rem 0;
+            border-top: 1px solid var(--border);
+            margin-top: 4rem;
+        }
+
+        .footer p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        .footer .brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--gold-400), var(--aqua-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            .arrow-between {
+                transform: rotate(90deg);
+                margin: 1rem 0;
+            }
+            .container { padding: 1rem; }
+            .prompt-section, .generator-section { padding: 1.5rem; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb { 
+            background: linear-gradient(var(--gold-600), var(--aqua-600)); 
+            border-radius: 10px; 
+        }
+    </style>
+</head>
+<body>
+
+<!-- Floating Particles -->
+<div class="particles" id="particles"></div>
+
+<div class="container">
+    <!-- Hero -->
+    <section class="hero">
+        <div class="hero-badge">
+            ✨ تقنية 2026 الأحدث
+        </div>
+        <h1>AI Hidden QR</h1>
+        <p>
+            حوّل الباركود التقليدي القبيح إلى لوحة فنية مذهلة بستايل كيبلي — 
+            الزبون يشوف رسمة خيالية، والكاميرا تقرأ الباركود. 
+            كتيب AQUAVO كله يصير لوحة فنية صافية! 🎨
+        </p>
+    </section>
+
+    <!-- Before/After Comparison -->
+    <section class="comparison">
+        <div class="comparison-card before">
+            <span class="tag">❌ قبل — التقليدي</span>
+            <div class="qr-traditional">
+                <canvas id="qr-before" width="180" height="180"></canvas>
+            </div>
+            <h3>مربع أسود قبيح</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                يكسر التصميم ويبين مثل رقعة غريبة
+            </p>
+        </div>
+
+        <div class="arrow-between">
+            <svg viewBox="0 0 24 24"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+            <span>AI Magic</span>
+        </div>
+
+        <div class="comparison-card after">
+            <span class="tag">✅ بعد — AI Hidden QR</span>
+            <div class="qr-artistic">
+                <div class="ghibli-scene" id="ghibli-scene">
+                    <!-- Dynamic elements added by JS -->
+                </div>
+            </div>
+            <h3>لوحة فنية تخبل!</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 0.5rem;">
+                الزبون يشوف فن — الكاميرا تقرأ باركود
+            </p>
+        </div>
+    </section>
+
+    <!-- QR Generator -->
+    <section class="generator-section">
+        <h2 class="section-title" style="margin-top: 0;">🔲 الخطوة الأولى: ولّد QR عادي</h2>
+        <p class="section-subtitle">هذا الباركود العادي يُرفع لأداة AI لتحويله للوحة فنية</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+            <div>
+                <div class="input-group">
+                    <label>🔗 الرابط</label>
+                    <input type="url" id="qr-url" value="https://linktr.ee/aquavo" placeholder="https://aquavo.store">
+                </div>
+                <div class="input-group">
+                    <label>📐 مستوى تصحيح الخطأ</label>
+                    <select id="qr-ecl">
+                        <option value="L">L - منخفض (7%)</option>
+                        <option value="M">M - متوسط (15%)</option>
+                        <option value="Q">Q - عالي (25%)</option>
+                        <option value="H" selected>H - أعلى (30%) ✅ موصى به</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>📏 حجم الباركود</label>
+                    <select id="qr-size">
+                        <option value="200">200px (صغير)</option>
+                        <option value="400" selected>400px (متوسط) ✅</option>
+                        <option value="600">600px (كبير - للطباعة)</option>
+                        <option value="800">800px (عالي الدقة)</option>
+                    </select>
+                </div>
+                <button class="generate-btn" onclick="generateQR()">
+                    ⚡ ولّد QR Code
+                </button>
+            </div>
+            <div class="qr-output" id="qr-output">
+                <canvas id="qr-canvas"></canvas>
+                <br>
+                <button class="download-btn" onclick="downloadQR()">⬇️ تحميل PNG</button>
+                <div class="qr-instructions">
+                    <strong>📋 الخطوة التالية:</strong><br>
+                    1. حمّل الصورة ⬆️<br>
+                    2. افتح أحد الأدوات أدناه<br>
+                    3. ارفع الصورة + الصق البرومبت<br>
+                    4. ولّد اللوحة الفنية!
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tools Section -->
+    <h2 class="section-title">🛠️ أدوات التحويل الفني</h2>
+    <p class="section-subtitle">ارفع QR العادي لأحد هالأدوات + الصق البرومبت = لوحة فنية!</p>
+
+    <div class="tools-grid">
+        <!-- Quick QR Art -->
+        <div class="tool-card recommended">
+            <div class="tool-header">
+                <span class="tool-name">🎨 Quick QR Art</span>
+                <span class="tool-badge recommended">⭐ الأفضل</span>
+            </div>
+            <p class="tool-desc">
+                أسهل أداة — تدخل الرابط والبرومبت وخلاص! واجهة مباشرة بدون أي تعقيد. النتائج عالية الجودة وقابلة للمسح.
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💰 مجاني + مدفوع</span>
+            </div>
+            <a href="https://quickqr.art" target="_blank" class="tool-link">
+                افتح الأداة →
+            </a>
+        </div>
+
+        <!-- Hugging Face -->
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-name">🤗 Hugging Face</span>
+                <span class="tool-badge free">مجاني 100%</span>
+            </div>
+            <p class="tool-desc">
+                أداة مجتمعية مجانية بالكامل. ابحث عن "QR Code AI Art Generator" بالـ Spaces. جودة ممتازة بدون أي تكلفة!
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💰 مجاني</span>
+            </div>
+            <a href="https://huggingface.co/spaces" target="_blank" class="tool-link">
+                افتح Hugging Face →
+            </a>
+        </div>
+
+        <!-- QR Diffusion -->
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-name">🌊 QR Diffusion</span>
+                <span class="tool-badge free">مجاني</span>
+            </div>
+            <p class="tool-desc">
+                منصة متخصصة بتحويل QR لأعمال فنية. مبني على Stable Diffusion + ControlNet. نتائج ممتازة مع تحكم جيد.
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💰 مجاني + مدفوع</span>
+            </div>
+            <a href="https://qrdiffusion.com" target="_blank" class="tool-link">
+                افتح QR Diffusion →
+            </a>
+        </div>
+
+        <!-- ComfyUI -->
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-name">⚙️ ComfyUI + ControlNet</span>
+                <span class="tool-badge pro">PRO - أقوى</span>
+            </div>
+            <p class="tool-desc">
+                الأقوى للمحترفين — تحكم كامل بالنتيجة. يحتاج GPU قوي محلياً أو سحابي عبر ThinkDiffusion. أعلى جودة ممكنة.
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💻 محلي / سحابي</span>
+            </div>
+            <a href="https://thinkdiffusion.com" target="_blank" class="tool-link">
+                ThinkDiffusion (سحابي) →
+            </a>
+        </div>
+
+        <!-- Canva -->
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-name">🎯 Canva AI QR</span>
+                <span class="tool-badge free">سهل</span>
+            </div>
+            <p class="tool-desc">
+                مدمج داخل Canva — إذا تستخدم كانفا للتصميم، هاي أسهل طريقة. ابحث عن "AI QR Code" بالتطبيقات داخل كانفا.
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💰 مجاني + Pro</span>
+            </div>
+            <a href="https://canva.com" target="_blank" class="tool-link">
+                افتح Canva →
+            </a>
+        </div>
+
+        <!-- Gooey.AI -->
+        <div class="tool-card">
+            <div class="tool-header">
+                <span class="tool-name">🧪 Gooey.AI</span>
+                <span class="tool-badge free">سريع</span>
+            </div>
+            <p class="tool-desc">
+                أداة مبسطة وسريعة — تدخل الرابط والبرومبت وبثواني تحصل النتيجة. ممتاز للتجريب السريع.
+            </p>
+            <div class="tool-meta">
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐</span> الجودة</span>
+                <span class="tool-meta-item"><span class="stars">⭐⭐⭐</span> المسح</span>
+                <span class="tool-meta-item">💰 مجاني (محدود)</span>
+            </div>
+            <a href="https://gooey.ai" target="_blank" class="tool-link">
+                افتح Gooey.AI →
+            </a>
+        </div>
+    </div>
+
+    <!-- Prompts Section -->
+    <section class="prompt-section">
+        <h2 class="section-title" style="margin-top: 0;">✍️ البرومبتات الجاهزة</h2>
+        <p class="section-subtitle">انسخ أي برومبت والصقه بالأداة مباشرة</p>
+
+        <div class="prompt-tabs">
+            <button class="prompt-tab active" onclick="switchPrompt('ghibli')">🌿 كيبلي مائي</button>
+            <button class="prompt-tab" onclick="switchPrompt('golden')">✨ ذهبي فاخر</button>
+            <button class="prompt-tab" onclick="switchPrompt('betta')">🐟 سمكة بيتا</button>
+            <button class="prompt-tab" onclick="switchPrompt('minimal')">🎨 مينمال</button>
+        </div>
+
+        <div class="prompt-content active" id="prompt-ghibli">
+            <div class="prompt-box">
+                <button class="copy-btn" onclick="copyPrompt(this)">📋 نسخ</button>
+A breathtaking Studio Ghibli-style underwater aquascape painting. Lush green 
+aquatic plants (Bucephalandra, Java Fern, Anubias, Monte Carlo carpet) swaying 
+gently in crystal-clear water. Golden sunlight filtering through the surface 
+creating ethereal god rays and warm dappled light. Small colorful fish swimming 
+between the plants. Tiny bubbles rising. Soft watercolor textures, dreamy 
+magical atmosphere, nostalgic warmth. Premium fine art quality, rich details, 
+painterly brushstrokes, vibrant but soft color palette. Highly detailed, 4K.
+            </div>
+        </div>
+
+        <div class="prompt-content" id="prompt-golden">
+            <div class="prompt-box">
+                <button class="copy-btn" onclick="copyPrompt(this)">📋 نسخ</button>
+Luxurious underwater scene with golden hour lighting penetrating deep aquarium 
+water. Elegant aquatic plants arranged like a Japanese zen garden, crystalline 
+water with visible light caustics reflecting on sandy bottom. Gold and emerald 
+green color palette. Cinematic composition, shallow depth of field, bokeh light 
+effects. Premium art print quality, museum gallery aesthetic, sophisticated and 
+serene atmosphere. Black background with gold accents. 4K ultra detailed.
+            </div>
+        </div>
+
+        <div class="prompt-content" id="prompt-betta">
+            <div class="prompt-box">
+                <button class="copy-btn" onclick="copyPrompt(this)">📋 نسخ</button>
+A majestic Halfmoon Betta fish with flowing iridescent fins in deep blue and 
+ruby red, swimming through a lush planted aquarium. Golden sunlight creates 
+dramatic backlight illuminating the translucent fins. Surrounding aquatic plants 
+glow with warm amber light. Studio Ghibli watercolor painting style, magical 
+atmosphere, premium art quality, soft gradients, dreamy bokeh background. 
+Elegant and serene composition. Masterpiece quality, 4K resolution.
+            </div>
+        </div>
+
+        <div class="prompt-content" id="prompt-minimal">
+            <div class="prompt-box">
+                <button class="copy-btn" onclick="copyPrompt(this)">📋 نسخ</button>
+Minimalist Japanese ink wash painting (sumi-e) of underwater aquatic plants. 
+Elegant single brushstroke leaves and stems, negative space filled with gentle 
+water ripples. Touch of gold leaf accent on select plants. Wabi-sabi aesthetic, 
+intentional imperfection, meditative calm. Premium art print on handmade paper 
+texture. Monochrome with gold accents. Museum-quality fine art, serene and 
+contemplative. High contrast, clean composition.
+            </div>
+        </div>
+    </section>
+
+    <!-- Critical Settings -->
+    <h2 class="section-title">⚙️ إعدادات ضمان القراءة</h2>
+    <p class="section-subtitle">هاي الإعدادات لازم تنضبط صح وإلا الباركود ما ينقرأ!</p>
+
+    <div class="settings-grid">
+        <div class="setting-card">
+            <div class="setting-label">مستوى تصحيح الخطأ</div>
+            <div class="setting-value">High (H) — 30%</div>
+            <div class="setting-desc">يسمح بتغطية 30% من الباركود بالفن مع الحفاظ على القراءة</div>
+        </div>
+        <div class="setting-card">
+            <div class="setting-label">ControlNet Weight</div>
+            <div class="setting-value">1.0 — 2.0</div>
+            <div class="setting-desc">كلما زاد الرقم، صار الباركود أوضح (لكن الفن أقل)</div>
+        </div>
+        <div class="setting-card">
+            <div class="setting-label">Control Mode</div>
+            <div class="setting-value">Balanced</div>
+            <div class="setting-desc">توازن مثالي بين الإبداع الفني وبنية الباركود</div>
+        </div>
+        <div class="setting-card">
+            <div class="setting-label">طول الرابط</div>
+            <div class="setting-value">قصير جداً ⚡</div>
+            <div class="setting-desc">استخدم bit.ly أو linktr.ee — أقل بيانات = أسهل إخفاء</div>
+        </div>
+        <div class="setting-card">
+            <div class="setting-label">حجم الطباعة</div>
+            <div class="setting-value">4cm × 4cm كحد أدنى</div>
+            <div class="setting-desc">حجم أكبر = مسح أسهل. للكتيب يفضل 5-8 سم</div>
+        </div>
+        <div class="setting-card">
+            <div class="setting-label">عدد المحاولات</div>
+            <div class="setting-value">5 — 10 نسخ</div>
+            <div class="setting-desc">ليس كل توليد ناجح — ولّد عدة نسخ واختار الأفضل</div>
+        </div>
+    </div>
+
+    <!-- Warning -->
+    <div class="warning-box">
+        <h4>⚠️ تحذيرات مهمة</h4>
+        <ul>
+            <li><strong>ليس كل توليد ينجح!</strong> — توقع 5-10 محاولات للنتيجة المثالية</li>
+            <li><strong>جرب على 3+ أجهزة</strong> — iPhone, Samsung, Huawei بإضاءات مختلفة</li>
+            <li><strong>اطبع بروفة</strong> — الشاشة مختلفة عن الطباعة!</li>
+            <li><strong>الإضاءة تأثر</strong> — جرب بضوء قوي وضعيف</li>
+            <li><strong>لا تنسى "📱 وجّه الكاميرا"</strong> — أضف تعليمة بسيطة جنب اللوحة</li>
+        </ul>
+    </div>
+
+    <!-- Workflow -->
+    <section class="workflow">
+        <h2 class="section-title">📋 خطوات التنفيذ لكتيب AQUAVO</h2>
+        <p class="section-subtitle">اتبع هاي الخطوات بالترتيب</p>
+
+        <div class="workflow-steps">
+            <div class="workflow-step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h4>🔗 قصّر الرابط</h4>
+                    <p>روح لـ <a href="https://bit.ly" target="_blank" style="color: var(--gold-300);">bit.ly</a> وقصّر رابط صفحة Link-in-Bio مالتك. كل ما كان الرابط أقصر، سهّل الإخفاء.</p>
+                    <div class="tip">💡 مثال: <code>bit.ly/aquavo26</code> بدل <code>https://linktr.ee/aquavo</code></div>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h4>🔲 ولّد QR عادي</h4>
+                    <p>استخدم المولّد أعلاه — حدد مستوى H وحجم 400px وحمّل الصورة.</p>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h4>🎨 افتح أداة AI</h4>
+                    <p>افتح <a href="https://quickqr.art" target="_blank" style="color: var(--gold-300);">Quick QR Art</a> أو أي أداة أعلاه. ارفع صورة QR + الصق البرومبت الكيبلي.</p>
+                    <div class="tip">💡 جرب البرومبتات الأربعة واختار اللي يعجبك!</div>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h4>🔄 ولّد 5-10 نسخ</h4>
+                    <p>كل توليد مختلف — ولّد عدة نسخ واختار اللي يجمع بين الجمال والقراءة.</p>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">5</div>
+                <div class="step-content">
+                    <h4>📱 جرب المسح</h4>
+                    <p>جرب كل نسخة على 3 أجهزة — iPhone, Samsung, Huawei — بإضاءات مختلفة (قوية + ضعيفة).</p>
+                    <div class="tip">⚠️ النسخة اللي ما تنقرأ على جهاز واحد، لا تستخدمها!</div>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">6</div>
+                <div class="step-content">
+                    <h4>🖨️ اطبع بروفة</h4>
+                    <p>اطبع أفضل 2-3 نسخ وجربهم مطبوعين. الطباعة تختلف عن الشاشة!</p>
+                </div>
+            </div>
+            <div class="workflow-step">
+                <div class="step-number">7</div>
+                <div class="step-content">
+                    <h4>✅ دمج بالكتيب</h4>
+                    <p>استبدل مربع QR التقليدي باللوحة الفنية. أضف نص بسيط: <strong>"📱 وجّه الكاميرا"</strong></p>
+                    <div class="tip">🎯 النتيجة: كتيب AQUAVO كله لوحة فنية — بدون أي مربع QR ظاهر!</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="brand">AQUAVO</div>
+        <p>AI Hidden QR Generator — تقنية الباركود المخفي ✨</p>
+        <p style="margin-top: 0.25rem; font-size: 0.75rem;">2026 © AQUAVO — Premium Aquarium Experience</p>
+    </footer>
+</div>
+
+<!-- QR Code Library -->
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+
+<script>
+    // Generate floating particles
+    const particlesContainer = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (6 + Math.random() * 6) + 's';
+        particle.style.width = (2 + Math.random() * 4) + 'px';
+        particle.style.height = particle.style.width;
+        if (Math.random() > 0.5) {
+            particle.style.background = '#34d399';
+        }
+        particlesContainer.appendChild(particle);
+    }
+
+    // Generate Ghibli scene elements
+    const scene = document.getElementById('ghibli-scene');
+    
+    // Light rays
+    for (let i = 0; i < 5; i++) {
+        const ray = document.createElement('div');
+        ray.className = 'light-ray';
+        ray.style.left = (15 + i * 18) + '%';
+        ray.style.opacity = 0.3 + Math.random() * 0.4;
+        ray.style.animationDelay = i * 0.5 + 's';
+        scene.appendChild(ray);
+    }
+
+    // Plants
+    for (let i = 0; i < 12; i++) {
+        const plant = document.createElement('div');
+        plant.className = 'plant';
+        plant.style.left = (5 + i * 8) + '%';
+        plant.style.height = (30 + Math.random() * 60) + 'px';
+        plant.style.width = (8 + Math.random() * 15) + 'px';
+        plant.style.animationDelay = Math.random() * 3 + 's';
+        plant.style.opacity = 0.6 + Math.random() * 0.4;
+        scene.appendChild(plant);
+    }
+
+    // Bubbles
+    for (let i = 0; i < 8; i++) {
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.style.left = (10 + Math.random() * 80) + '%';
+        bubble.style.bottom = (5 + Math.random() * 30) + '%';
+        bubble.style.animationDelay = Math.random() * 4 + 's';
+        bubble.style.animationDuration = (3 + Math.random() * 3) + 's';
+        scene.appendChild(bubble);
+    }
+
+    // Generate "before" QR code
+    function generateBeforeQR() {
+        const canvas = document.getElementById('qr-before');
+        if (typeof QRCode !== 'undefined') {
+            QRCode.toCanvas(canvas, 'https://linktr.ee/aquavo', {
+                width: 180,
+                margin: 2,
+                color: { dark: '#000000', light: '#ffffff' },
+                errorCorrectionLevel: 'H'
+            });
+        }
+    }
+
+    // Generate main QR code
+    function generateQR() {
+        const url = document.getElementById('qr-url').value;
+        const ecl = document.getElementById('qr-ecl').value;
+        const size = parseInt(document.getElementById('qr-size').value);
+        const canvas = document.getElementById('qr-canvas');
+        const output = document.getElementById('qr-output');
+
+        if (!url) {
+            alert('ادخل الرابط!');
+            return;
+        }
+
+        QRCode.toCanvas(canvas, url, {
+            width: size,
+            margin: 4,
+            color: { dark: '#000000', light: '#ffffff' },
+            errorCorrectionLevel: ecl
+        }, function(error) {
+            if (error) {
+                console.error(error);
+                alert('خطأ بتوليد الباركود!');
+            } else {
+                output.classList.add('show');
+            }
+        });
+    }
+
+    // Download QR
+    function downloadQR() {
+        const canvas = document.getElementById('qr-canvas');
+        const link = document.createElement('a');
+        link.download = 'AQUAVO-QR-base.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+
+    // Switch prompts
+    function switchPrompt(name) {
+        document.querySelectorAll('.prompt-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.prompt-content').forEach(c => c.classList.remove('active'));
+        
+        event.target.classList.add('active');
+        document.getElementById('prompt-' + name).classList.add('active');
+    }
+
+    // Copy prompt
+    function copyPrompt(btn) {
+        const promptBox = btn.parentElement;
+        const text = promptBox.textContent.replace('📋 نسخ', '').replace('✅ تم النسخ!', '').trim();
+        
+        navigator.clipboard.writeText(text).then(() => {
+            btn.textContent = '✅ تم النسخ!';
+            btn.classList.add('copied');
+            setTimeout(() => {
+                btn.textContent = '📋 نسخ';
+                btn.classList.remove('copied');
+            }, 2000);
+        });
+    }
+
+    // Init
+    window.addEventListener('load', () => {
+        if (typeof QRCode !== 'undefined') {
+            generateBeforeQR();
+        } else {
+            // Retry after script loads
+            setTimeout(generateBeforeQR, 1000);
+        }
+    });
+</script>
+</body>
+</html>
