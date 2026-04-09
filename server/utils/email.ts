@@ -145,48 +145,80 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-        body { font-family: 'Tajawal', Arial, sans-serif; background-color: #f0fdf4; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 20px; text-align: center; color: white; }
-        .content { padding: 40px 30px; color: #334155; line-height: 1.8; }
-        .welcome-text { font-size: 24px; font-weight: 700; color: #1e293b; margin-bottom: 20px; text-align: center; }
-        .message { font-size: 16px; color: #475569; margin-bottom: 30px; text-align: center; }
-        .features { background-color: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 30px; }
-        .feature-item { display: flex; align-items: center; margin-bottom: 12px; color: #0f172a; font-weight: 500; }
-        .feature-icon { margin-left: 10px; color: #10b981; }
-        .btn { display: block; width: fit-content; margin: 0 auto; background-color: #10b981; color: white; padding: 14px 32px; border-radius: 99px; text-decoration: none; font-weight: bold; transition: transform 0.2s; }
-        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
-        .logo-img { max-width: 150px; margin-bottom: 15px; }
+        :root {
+            --bg-body: #f8fafc;
+            --bg-container: #ffffff;
+            --text-main: #334155;
+            --text-heading: #1e293b;
+            --bg-feature: #f1f5f9;
+            --border-color: rgba(0,0,0,0.05);
+            --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.08);
+            --header-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --btn-bg: #10b981;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #0f172a;
+                --bg-container: #1e293b;
+                --text-main: #cbd5e1;
+                --text-heading: #f8fafc;
+                --bg-feature: #334155;
+                --border-color: rgba(255,255,255,0.05);
+                --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.4);
+                --header-gradient: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+                --btn-bg: #10b981;
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 40px 20px; transition: background-color 0.3s; }
+        .container { max-width: 600px; margin: 0 auto; background-color: var(--bg-container); border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-glass); transition: all 0.3s; }
+        .header { background: var(--header-gradient); padding: 50px 30px; text-align: center; color: white; position: relative; }
+        .header::after { content: ''; position: absolute; bottom: -20px; left: 0; right: 0; height: 40px; background: var(--bg-container); border-radius: 50% 50% 0 0; }
+        .content { padding: 40px 35px; color: var(--text-main); line-height: 1.8; font-size: 16px; }
+        .welcome-text { font-size: 28px; font-weight: 800; color: var(--text-heading); margin-bottom: 20px; text-align: center; background: linear-gradient(to right, #10b981, #3b82f6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .message { margin-bottom: 35px; text-align: center; }
+        .features { background-color: var(--bg-feature); padding: 25px; border-radius: 16px; margin-bottom: 35px; border: 1px solid var(--border-color); }
+        .feature-item { display: flex; align-items: center; margin-bottom: 15px; color: var(--text-heading); font-weight: 500; font-size: 17px; }
+        .feature-icon { margin-left: 15px; background: #10b981; color: white; border-radius: 50%; width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; }
+        .btn { display: block; width: fit-content; margin: 0 auto; background-color: var(--btn-bg); color: white !important; padding: 16px 40px; border-radius: 99px; text-decoration: none; font-weight: 700; font-size: 18px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-3px); }
+        .footer { background-color: var(--bg-body); padding: 30px 20px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px dashed var(--border-color); }
+        .logo-img { max-width: 160px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        .contact { margin-top: 20px; font-weight: bold; color: var(--text-heading); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
-            <h1 style="margin:0; font-size: 28px;">أهلاً بك في عائلة AQUAVO! 🌿</h1>
+            <h1 style="margin:0; font-size: 26px; font-weight: 800; letter-spacing: 1px;">عائلة AQUAVO ترحب بك 🌿</h1>
         </div>
         <div class="content">
-            <div class="welcome-text">سعداء جداً بانضمامك إلينا</div>
+            <div class="welcome-text">سعداء جداً لانضمامك</div>
             <div class="message">
-                مرحباً بك في مجتمع AQUAVO. لم تقم بمجرد الاشتراك في نشرة بريدية، بل انضممت إلى عائلة شغوفة بكل ما يتعلق بعالم الأحواض والأسماك.
+                مرحباً بك في مجتمع AQUAVO. لم تقم بمجرد الاشتراك، بل انضممت إلى عائلة شغوفة بكل ما يتعلق بعالم الأحواض والأسماك في العراق.
                 <br><br>
-                نعدك بأن تكون رحلتك معنا مليئة بالإلهام، المعلومات القيمة، وأفضل العروض الحصرية التي نختارها بعناية لأجلك.
+                رحلتك معنا ستكون مليئة بالإلهام، المعلومات القيمة، وأفضل العروض החصرية التي خصصناها لأجلك.
             </div>
 
             <div class="features">
-                <div style="text-align:center; margin-bottom:15px; font-weight:700;">ماذا ستجد في رسائلنا؟</div>
-                <div class="feature-item">✨ نصائح حصرية للعناية بأسماكك</div>
-                <div class="feature-item">🎁 عروض وتخفيضات خاصة للمشتركين فقط</div>
-                <div class="feature-item">🆕 أحدث المنتجات قبل الجميع</div>
+                <div style="text-align:center; margin-bottom:20px; font-weight:800; color: var(--text-heading); font-size: 18px;">ماذا تتوقع منا؟</div>
+                <div class="feature-item"><span class="feature-icon">✨</span> نصائح ممتازة للعناية بأسماكك</div>
+                <div class="feature-item"><span class="feature-icon">🎁</span> تخفيضات خاصة للمشتركين فقط</div>
+                <div class="feature-item"><span class="feature-icon">🆕</span> الوصول للمنتجات قبل الجميع</div>
             </div>
 
-            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}" class="btn">اكتشف منتجاتنا المميزة</a>
+            <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}" class="btn">اكتشف المتجر الآن</a>
+            
+            <div class="contact">
+                <p>هل تحتاج إلى مساعدة؟ فريقنا هنا دائماً.</p>
+                <p>واتساب: 07747880678 | إيميل: info@aquavoiq.com</p>
+            </div>
         </div>
-        <div class="footer">
-            <p>© ${new Date().getFullYear()} AQUAVO. جميع الحقوق محفوظة.</p>
-            <p>صنع بحب 💚 لأجل هواة الأسماك في العراق</p>
-        </div>
+    </div>
+    <div class="footer">
+        <p>© ${new Date().getFullYear()} AQUAVO. جميع الحقوق محفوظة.</p>
+        <p>صُنع بحب 💚 لأجل هواة الأسماك في العراق</p>
     </div>
 </body>
 </html>
@@ -223,29 +255,62 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
-        body { font-family: 'Tajawal', Arial, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        .header { background: #1e293b; padding: 30px; text-align: center; }
-        .badge { background-color: #ef4444; color: white; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        .product-img { width: 100%; height: 300px; object-fit: cover; background-color: #f1f5f9; }
-        .content { padding: 30px; }
-        .product-title { font-size: 24px; font-weight: 700; color: #0f172a; margin: 0 0 10px 0; }
-        .price-container { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .current-price { color: #059669; font-size: 24px; font-weight: 800; }
-        .old-price { color: #94a3b8; text-decoration: line-through; font-size: 16px; }
-        .description-box { background-color: #f8fafc; border-right: 4px solid #3b82f6; padding: 15px; margin: 20px 0; color: #475569; }
-        .btn { display: block; width: 100%; text-align: center; background-color: #3b82f6; color: white; padding: 16px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 18px; margin-top: 25px; transition: background-color 0.2s; }
-        .btn:hover { background-color: #2563eb; }
-        .logo-img { height: 40px; margin-bottom: 10px; }
+        :root {
+            --bg-body: #f8fafc;
+            --bg-container: #ffffff;
+            --text-main: #334155;
+            --text-heading: #0f172a;
+            --bg-feature: #f1f5f9;
+            --border-color: rgba(0,0,0,0.05);
+            --shadow-glass: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --header-bg: #1e293b;
+            --btn-bg: #3b82f6;
+            --desc-box-bg: #f8fafc;
+            --price-new: #059669;
+            --price-old: #94a3b8;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #0f172a;
+                --bg-container: #1e293b;
+                --text-main: #cbd5e1;
+                --text-heading: #f8fafc;
+                --bg-feature: #334155;
+                --border-color: rgba(255,255,255,0.05);
+                --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.4);
+                --header-bg: #111827;
+                --btn-bg: #3b82f6;
+                --desc-box-bg: #334155;
+                --price-new: #10b981;
+                --price-old: #64748b;
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 40px 20px; transition: background-color 0.3s; }
+        .container { max-width: 600px; margin: 0 auto; background-color: var(--bg-container); border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-glass); transition: all 0.3s; }
+        .header { background: var(--header-bg); padding: 40px 30px; text-align: center; border-radius: 24px 24px 0 0; }
+        .badge { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; padding: 8px 16px; border-radius: 99px; font-weight: 800; display: inline-block; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .product-img { width: 100%; height: 350px; object-fit: cover; background-color: var(--bg-feature); }
+        .content { padding: 40px 35px; }
+        .product-title { font-size: 26px; font-weight: 800; color: var(--text-heading); margin: 0 0 15px 0; }
+        .price-container { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .current-price { color: var(--price-new); font-size: 28px; font-weight: 800; }
+        .old-price { color: var(--price-old); text-decoration: line-through; font-size: 18px; }
+        .description-box { background-color: var(--desc-box-bg); border-right: 4px solid var(--btn-bg); padding: 20px; margin: 25px 0; border-radius: 8px 0 0 8px; color: var(--text-main); font-size: 16px; line-height: 1.8; }
+        .btn { display: block; width: 100%; text-align: center; background-color: var(--btn-bg); color: white !important; padding: 18px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 20px; margin-top: 30px; transition: transform 0.2s, background-color 0.2s; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.25); border: none; }
+        .btn:hover { background-color: #2563eb; transform: translateY(-2px); }
+        .logo-img { height: 45px; margin-bottom: 15px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+        .footer { padding: 30px 20px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px dashed var(--border-color); background-color: var(--bg-body); border-radius: 0 0 24px 24px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
-            ${discount > 0 ? `<div class="badge">تخفيض ${discount}% 🔥</div>` : '<div class="badge">منتج مميز ✨</div>'}
-            <h1 style="color:white; margin:0; font-size:24px;">فرصة لا تفوت!</h1>
+            <div>
+                ${discount > 0 ? `<div class="badge">تخفيض ${discount}% 🔥</div>` : '<div class="badge" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">منتج مميز ✨</div>'}
+            </div>
+            <h1 style="color:white; margin:0; font-size:26px; font-weight: 700;">فرصة لا تفوت!</h1>
         </div>
         <img src="${product.image}" alt="${product.name}" class="product-img">
         <div class="content">
@@ -256,10 +321,19 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
             </div>
             
             <div class="description-box">
-                لأنك من عائلتنا المميزة، أردنا أن تكون أول من يعلم بهذا العرض الخاص. الكمية محدودة، لا تضيع الفرصة!
+                لأنك من عائلتنا المميزة، أردنا أن تكون أول من يعلم بهذا العرض الخاص. الكمية محدودة جداً، لا تضيع الفرصة قبل نفاذ المخزون!
             </div>
 
             <a href="${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/product/${product.slug}" class="btn">احصل عليه الآن 🛒</a>
+            
+            <div style="margin-top: 30px; text-align: center; color: var(--text-heading); font-weight: bold;">
+                <p>للطلب السريع عبر واتساب:</p>
+                <p style="color: var(--btn-bg); font-size: 18px; direction: ltr;">+964 774 788 0678</p>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© ${new Date().getFullYear()} AQUAVO. جميع الحقوق محفوظة.</p>
+            <p>صُنع بحب 💚 لأجل هواة الأسماك في العراق</p>
         </div>
     </div>
 </body>

@@ -329,29 +329,63 @@ async function runWeeklyEmailCampaign(): Promise<{
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: 'Tajawal', Arial, sans-serif; background-color: #f0fdf4; margin: 0; padding: 0; }
-        .container { max-width: 600px; margin: 20px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 20px; text-align: center; color: white; }
-        .content { padding: 40px 30px; color: #334155; line-height: 1.8; }
-        .btn { display: block; width: fit-content; margin: 20px auto 0; background-color: #10b981; color: white; padding: 14px 32px; border-radius: 99px; text-decoration: none; font-weight: bold; }
-        .footer { background-color: #f1f5f9; padding: 20px; text-align: center; color: #94a3b8; font-size: 13px; }
-        .logo-img { max-width: 150px; margin-bottom: 15px; }
+        :root {
+            --bg-body: #f8fafc;
+            --bg-container: #ffffff;
+            --text-main: #334155;
+            --text-heading: #1e293b;
+            --bg-feature: #f1f5f9;
+            --border-color: rgba(0,0,0,0.05);
+            --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.08);
+            --header-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --btn-bg: #10b981;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-body: #0f172a;
+                --bg-container: #1e293b;
+                --text-main: #cbd5e1;
+                --text-heading: #f8fafc;
+                --bg-feature: #334155;
+                --border-color: rgba(255,255,255,0.05);
+                --shadow-glass: 0 20px 40px rgba(0, 0, 0, 0.4);
+                --header-gradient: linear-gradient(135deg, #065f46 0%, #064e3b 100%);
+                --btn-bg: #10b981;
+            }
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+        body { font-family: 'Tajawal', Arial, sans-serif; background-color: var(--bg-body); margin: 0; padding: 40px 20px; transition: background-color 0.3s; }
+        .container { max-width: 600px; margin: 0 auto; background-color: var(--bg-container); border-radius: 24px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: var(--shadow-glass); transition: all 0.3s; }
+        .header { background: var(--header-gradient); padding: 50px 30px; text-align: center; color: white; position: relative; }
+        .header::after { content: ''; position: absolute; bottom: -20px; left: 0; right: 0; height: 40px; background: var(--bg-container); border-radius: 50% 50% 0 0; }
+        .content { padding: 40px 35px; color: var(--text-main); line-height: 1.8; font-size: 16px; }
+        .btn { display: block; width: fit-content; margin: 30px auto 0; background-color: var(--btn-bg); color: white !important; padding: 16px 40px; border-radius: 99px; text-decoration: none; font-weight: 800; font-size: 18px; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-3px); }
+        .footer { background-color: var(--bg-body); padding: 30px 20px; text-align: center; color: #64748b; font-size: 14px; border-top: 1px dashed var(--border-color); }
+        .logo-img { max-width: 160px; margin-bottom: 20px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <img src="${logoUrl}" alt="AQUAVO" class="logo-img">
-            <h1 style="margin:0; font-size: 24px;">${campaign.emailContent.subject}</h1>
-            <p style="margin-top:10px; opacity:0.9;">${campaign.emailContent.preheader}</p>
+            <h1 style="margin:0; font-size: 26px; font-weight: 800; letter-spacing: 1px;">${campaign.emailContent.subject}</h1>
+            <p style="margin-top:15px; opacity:0.9; font-size: 16px;">${campaign.emailContent.preheader}</p>
         </div>
         <div class="content">
             ${campaign.emailContent.body}
+            
+            <div style="margin-top: 25px; font-weight: bold; color: var(--text-heading); background: var(--bg-feature); padding: 20px; border-radius: 12px; text-align: center;">
+                <p style="margin: 0 0 10px 0;">هل تحتاج إلى مساعدة؟ فريقنا هنا دائماً.</p>
+                <p style="margin: 0; color: var(--btn-bg); direction: ltr;">+964 774 788 0678</p>
+                <p style="margin: 5px 0 0 0;">info@aquavoiq.com</p>
+            </div>
+            
             <a href="${baseUrl}" class="btn">${campaign.emailContent.ctaText}</a>
         </div>
         <div class="footer">
             <p>© ${new Date().getFullYear()} AQUAVO. جميع الحقوق محفوظة.</p>
-            <p>صنع بحب 💚 لأجل هواة الأسماك في العراق</p>
+            <p>صُنع بحب 💚 لأجل هواة الأسماك في العراق</p>
         </div>
     </div>
 </body>
