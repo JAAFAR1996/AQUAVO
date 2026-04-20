@@ -4,6 +4,8 @@ import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
+import { db } from "../db.js";
+import { sql } from "drizzle-orm";
 
 // Order validation schema
 const createOrderItemSchema = z.object({
@@ -80,6 +82,19 @@ export function createOrderRouter(): RouterType {
                     quantity: item.quantity,
                     price: 0, // Price is calculated server-side in createOrderSecure
                 }).catch(() => { });
+            }
+
+            // === AQUAVO AI CORPORATION - EVENT BUS TRIGGER ===
+            try {
+                if (db) {
+                    await db.execute(sql`
+                        INSERT INTO event_bus (source_agent, target_agent, event_type, payload, status, priority, created_at)
+                        VALUES ('sales', 'logistics', 'new_order_received', ${JSON.stringify({ orderId: order.id, customerAddress: customerInfo.address })}::jsonb, 'pending', 1, NOW())
+                    `);
+                    console.log("[AQUAVO AI] Alerted Logistics Agent for Order", order.id);
+                }
+            } catch (e) {
+                console.error("[AQUAVO AI] EventBus Notification Failed:", e);
             }
 
             res.status(201).json(order);

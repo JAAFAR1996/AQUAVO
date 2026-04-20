@@ -37,7 +37,7 @@
     {
       "id": "R72-IMG-01",
       "role": "hook_shrimp_army",
-      "nano_banana_prompt": "An incredible macro photograph of a swarm of 20+ bright Red Cherry shrimp (Neocaridina davidi) attacking a patch of green algae on a piece of grey Seiryu stone inside a pristine planted aquarium. Their tiny translucent legs are actively picking at the algae. Some shrimp are climbing over each other. The water is crystal clear. Dramatic side-lighting makes the shrimp glow bright red against the green algae and grey stone. Ultra macro aquarium photography. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts to include: 'أقوى فريق تنظيف بالعالم! ' (White   height), 'مجاني... ذاتي... وما يحتاج كهرب!' (Yellow  ), 'شوف شلون يشتغلون! �' (White  ).",
+      "nano_banana_prompt": "An incredible macro photograph of a swarm of 20+ bright Red Cherry shrimp (Neocaridina davidi) attacking a patch of green algae on a piece of grey Seiryu stone inside a pristine planted aquarium. Their tiny translucent legs are actively picking at the algae. Some shrimp are climbing over each other. The water is crystal clear. Dramatic side-lighting makes the shrimp glow bright red against the green algae and grey stone. Ultra macro aquarium photography. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts to include: 'أقوى فريق تنظيف بالعالم! 🦐' (White Bold Large), 'مجاني... ذاتي... وما يحتاج كهرب!' (Yellow Medium), 'شوف شلون يشتغلون! 😍' (White Medium).",
       "capcut_text_overlay": [
         "'أقوى فريق تنظيف بالعالم! 🦐' — عند 30% أبيض بولد كبير",
         "'مجاني... ذاتي... وما يحتاج كهرب!' — عند 42% أصفر",
@@ -58,7 +58,7 @@
     {
       "id": "R72-IMG-03",
       "role": "shrimp_species_lineup",
-      "nano_banana_prompt": "An educational lineup photograph showing 4 different color variants of Neocaridina shrimp side by side on a green moss-covered log inside an aquarium. From left to right: Bright Red Cherry, vibrant Blue Dream, deep Black Rose, and clear Orange Sakura. Each shrimp is perfectly positioned under its own small spotlight. Their colors pop dramatically against the lush green moss. Clean, organized taxonomy-style macro photography. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts to include: 'أنواع الروبيان للمبتدئين ' (White ), 'أحمر  · أزرق  · أسود  · برتقالي ' , 'كلهم يتحملون ماي العراق! ��' (Yellow ), 'سعرهم؟ من 2,000 دينار! �' .",
+      "nano_banana_prompt": "An educational lineup photograph showing 4 different color variants of Neocaridina shrimp side by side on a green moss-covered log inside an aquarium. From left to right: Bright Red Cherry, vibrant Blue Dream, deep Black Rose, and clear Orange Sakura. Each shrimp is perfectly positioned under its own small spotlight. Their colors pop dramatically against the lush green moss. Clean, organized taxonomy-style macro photography. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts to include: 'أنواع الروبيان للمبتدئين 🎨' (White Bold), 'أحمر 🔴 · أزرق 🔵 · أسود ⚫ · برتقالي 🟠' (White Medium), 'كلهم يتحملون ماي العراق! 🇮🇶' (Yellow Bold), 'سعرهم؟ من 2,000 دينار! 💰' (White Medium).",
       "capcut_text_overlay": [
         "'أنواع الروبيان للمبتدئين 🎨' — عند 30% أبيض",
         "'أحمر 🔴 · أزرق 🔵 · أسود ⚫ · برتقالي 🟠' — عند 42%",
@@ -84,7 +84,7 @@
       "from": "R72-IMG-01",
       "to": "R72-IMG-02",
       "duration_sec": 8,
-      "veo3_prompt": "Cinematic vertical macro video. An army of bright Red Cherry shrimp swarms over a rock covered in green algae. Their tiny translucent legs work rapidly, picking and consuming the algae. The camera slowly pushes in closer, revealing microscopic detail of a single shrimp's mouthparts processing food. Transition: a satisfying time-lapse showing the algae disappearing from the rock surface over hours. Upbeat, energetic nature documentary music. 8 seconds. 4K vertical 9:16."
+      "veo3_prompt": "Cinematic vertical macro video, nature documentary style. A colony of vibrant bright-red freshwater shrimp (Neocaridina) exploring a textured stone inside a pristine planted aquarium. The shrimp move naturally over the stone surface, surrounded by lush green aquatic plants. The camera performs a slow, smooth push-in, capturing beautiful close-up detail of a single shrimp resting on the now perfectly clean stone. Crystal-clear water, warm professional aquarium lighting. Upbeat, energetic background music. 8 seconds. 4K vertical 9:16."
     },
     {
       "id": "R72-VID-02",
@@ -184,52 +184,52 @@
   "tier": "S-Tier",
   "total_duration_sec": 40,
   "videos": 4,
-  "anti_ai_global": "A high-urgency, practical survival guide aesthetic. The visual language alternates between scorching Iraqi summer heat and cool aquarium. Vertical 9:16.",
-  "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear.",
+  "anti_ai_global": "A high-urgency, practical survival guide aesthetic for Iraqi aquarium hobbyists facing extreme 50°C summer heat. The visual language alternates between scorching Iraqi summer scenes (blazing sun, heat waves, shimmering hot rooms) and the cool sanctuary of a well-maintained aquarium. Color palette: warm oranges and reds for heat danger, cool blues and greens for solutions. Think documentary-style urgency meets practical DIY tutorial. Real solutions using locally available materials in Iraq. Photography style: clean infographic meets real-life practical demonstration. Avoid: dead fish, animal cruelty imagery, unrealistic cooling methods, product placement for specific brands. Vertical 9:16.",
+  "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear. TikTok safe zone verified.",
   "frames": [
     {
       "id": "R74-IMG-01",
       "role": "hook_danger_heat",
-      "nano_banana_prompt": "A dramatic photograph split into two halves. TOP HALF: Blazing summer heat, thermometer 50°C. BOTTOM HALF: Distressed fish in warm water, thermometer 35°C flashing red. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: 'صيف بغداد قادم! ☀' (Red Bold ), 'حرارة حوضك رح توصل 35°C!' (Yellow ), 'والأسماك تبدي تختنق... �' (White ).",
+      "nano_banana_prompt": "A dramatic photograph split into two halves. TOP HALF: Blazing summer heat, thermometer 50°C. BOTTOM HALF: Distressed fish in warm water, thermometer 35°C flashing red. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: 'صيف بغداد قادم! ☀️🔥' (Red Bold Large), 'حرارة حوضك رح توصل 35°C!' (Yellow Medium), 'والأسماك تبدي تختنق... 😰' (White Medium).",
       "capcut_text_overlay": [
-        "'صيف بغداد قادم! ☀️🔥' — عند 30% أحمر بولد",
-        "'حرارة حوضك رح توصل 35°C!' — عند 42% أصفر",
-        "'والأسماك تبدي تختنق... 😰' — عند 52% أبيض"
+        "'صيف بغداد قادم! ☀️🔥' — عند 33% أحمر بولد",
+        "'حرارة حوضك رح توصل 35°C!' — عند 43% أصفر",
+        "'والأسماك تبدي تختنق... 😰' — عند 53% أبيض"
       ]
     },
     {
       "id": "R74-IMG-02",
       "role": "solution_diy_fan",
-      "nano_banana_prompt": "A practical photograph of a USB-powered clip-on mini fan attached to an aquarium rim, blowing air. Thermometer reads safe 26°C. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: ' الحل ١: مروحة USB — 5,000 دينار!' (Green ), 'تنزل الحرارة 3-5 درجات �' , 'تشتغل بالباور بانك — حتى بقطع الكهرب!' , 'يتبخر ماي + لازم تعوّض �' .",
+      "nano_banana_prompt": "A practical photograph of a USB-powered clip-on mini fan attached to an aquarium rim, blowing air. Thermometer reads safe 26°C. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: '✅ الحل ١: مروحة USB — 5,000 دينار!' (Green Bold), 'تنزل الحرارة 3-5 درجات 🌬️' (White Medium), 'تشتغل بالباور بانك — حتى بقطع الكهرب!' (White Medium), 'يتبخر ماي + لازم تعوّض 💧' (Yellow Medium).",
       "capcut_text_overlay": [
-        "'✅ الحل ١: مروحة USB — 5,000 دينار!' — عند 30% أخضر",
-        "'تنزل الحرارة 3-5 درجات 🌬️' — عند 40%",
-        "'تشتغل بالباور بانك — حتى بقطع الكهرب!' — عند 50%",
-        "'يتبخر ماي + لازم تعوّض 💧' — عند 60%"
+        "'✅ الحل ١: مروحة USB — 5,000 دينار!' — عند 33% أخضر",
+        "'تنزل الحرارة 3-5 درجات 🌬️' — عند 41%",
+        "'تشتغل بالباور بانك — حتى بقطع الكهرب!' — عند 49%",
+        "'يتبخر ماي + لازم تعوّض 💧' — عند 57%"
       ]
     },
     {
       "id": "R74-IMG-03",
       "role": "solution_frozen_bottles",
-      "nano_banana_prompt": "A photograph showing frozen water bottles floating inside a planted aquarium cooling the water. Fish look active. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: ' الحل ٢: قناني ماي مجمدة! �' (Blue ), 'حطها من الفريزر — بدّلها كل 4 ساعات' , 'تنزل 2-3 درجات بسرعة! ' , '⚠ لا تحط ثلج مباشر بالماي!' (Red ).",
+      "nano_banana_prompt": "A photograph showing frozen water bottles floating inside a planted aquarium cooling the water. Fish look active. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: '✅ الحل ٢: قناني ماي مجمدة! 🧊' (Blue Bold), 'حطها من الفريزر — بدّلها كل 4 ساعات' (White Medium), 'تنزل 2-3 درجات بسرعة! ❄️' (White Medium), '⚠️ لا تحط ثلج مباشر بالماي!' (Red Bold).",
       "capcut_text_overlay": [
-        "'✅ الحل ٢: قناني ماي مجمدة! 🧊' — عند 30% أزرق",
-        "'حطها من الفريزر — بدّلها كل 4 ساعات' — عند 40%",
-        "'تنزل 2-3 درجات بسرعة! ❄️' — عند 50%",
-        "'⚠️ لا تحط ثلج مباشر بالماي!' — عند 60% أحمر"
+        "'✅ الحل ٢: قناني ماي مجمدة! 🧊' — عند 33% أزرق",
+        "'حطها من الفريزر — بدّلها كل 4 ساعات' — عند 41%",
+        "'تنزل 2-3 درجات بسرعة! ❄️' — عند 49%",
+        "'⚠️ لا تحط ثلج مباشر بالماي!' — عند 57% أحمر"
       ]
     },
     {
       "id": "R74-IMG-04",
       "role": "bonus_tips",
-      "nano_banana_prompt": "Infographic photograph of an aquarium with summer survival icons (curtain, lights out, air stone). Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: 'نصائح إضافية للصيف �' (White ), ' لا قرب الشباك — الشمس تسخن!' , ' قلل الإضاءة — تنتج حرارة' , ' زِد التهوية — لتوفير أوكسجين' , ' قلل الأكل — يتخمر أسرع' , 'احفظ قبل الصيف! ' .",
+      "nano_banana_prompt": "Infographic photograph of an aquarium with summer survival icons (curtain, lights out, air stone). Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: 'نصائح إضافية للصيف 📋' (White Bold), '❌ لا قرب الشباك — الشمس تسخن!' (White Medium), '💡 قلل الإضاءة — تنتج حرارة' (White Medium), '🫧 زِد التهوية — لتوفير أوكسجين' (White Medium), '🍽️ قلل الأكل — يتخمر أسرع' (White Medium), 'احفظ قبل الصيف! 🔖 · AQUAVO — aquavoiq.com' (Gold Medium).",
       "capcut_text_overlay": [
-        "'نصائح إضافية للصيف 📋' — عند 32% أبيض",
+        "'نصائح إضافية للصيف 📋' — عند 33% أبيض",
         "'❌ لا قرب الشباك — الشمس تسخن!' — عند 38%",
-        "'💡 قلل الإضاءة — تنتج حرارة' — عند 44%",
-        "'🫧 زِد التهوية — لتوفير أوكسجين' — عند 50%",
-        "'🍽️ قلل الأكل — يتخمر أسرع' — عند 56%",
-        "'احفظ قبل الصيف! 🔖' — عند 62%"
+        "'💡 قلل الإضاءة — تنتج حرارة' — عند 43%",
+        "'🫧 زِد التهوية — لتوفير أوكسجين' — عند 48%",
+        "'🍽️ قلل الأكل — يتخمر أسرع' — عند 53%",
+        "'احفظ قبل الصيف! 🔖' — عند 58%"
       ]
     }
   ],
@@ -271,6 +271,7 @@
   "tier": "S-Tier",
   "total_duration_sec": 30,
   "videos": 3,
+  "anti_ai_global": "A visually stunning showcase of Betta fish color transformation through the Marble Gene phenomenon. The aesthetic blends scientific wonder with artistic beauty — like a nature documentary meets art gallery. Studio-quality photography with dramatic lighting that makes the Betta fins and colors pop. Each fish should look like a living painting. The mood is awe-inspiring and educational. DNA/genetic visual elements should feel modern and sleek, not clinical. Color palette: deep blacks and dark backgrounds to make the vibrant Betta colors shine. Avoid: sick fish, dull colors, dirty water, cartoon-style graphics, unrealistic fish anatomy.",
   "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear.",
   "frames": [
     {
@@ -311,14 +312,14 @@
       "from": "R75-IMG-01",
       "to": "R75-IMG-02",
       "duration_sec": 10,
-      "veo3_prompt": "Cinematic vertical video. A breathtaking time-lapse of a Betta fish color transformation from white to blue. 10 seconds. 4K vertical 9:16."
+      "veo3_prompt": "Cinematic vertical video. Opens on a breathtaking close-up of a pure white Marble Betta fish swimming gracefully in a dark, moody aquarium. Dramatic single-point LED spotlight from above creates a halo effect on the flowing fins. Slow camera orbit around the fish. Time-lapse effect: patches of deep royal blue begin appearing on the white fins and body, spreading like watercolor paint on wet paper. The transformation is mesmerizing — white gradually gives way to vivid cobalt blue. Macro detail shows individual scales changing color. Soft, wonder-filled orchestral music with gentle piano notes. The visual evokes the feeling of watching a living painting evolve. 10 seconds. 4K vertical 9:16."
     },
     {
       "id": "R75-VID-02",
       "from": "R75-IMG-02",
       "to": "R75-IMG-03",
       "duration_sec": 10,
-      "veo3_prompt": "A beautiful gallery-style showcase: different Marble Bettas are revealed one by one. 10 seconds. 4K vertical 9:16."
+      "veo3_prompt": "Cinematic vertical video. A dark gallery-style sequence: each Betta is revealed with a dramatic spotlight fading in from darkness. First: a Koi Galaxy Betta with swirling red, white, and blue patterns slowly fans its magnificent tail. Camera slowly pushes in. Crossfade to: a Candy Nemo Betta with pink and white patches, swimming elegantly past a dark Bucephalandra leaf. Crossfade to: a Mustard Gas Betta with deep blue body and bright yellow fins, flaring dramatically at its reflection. Each fish is a masterpiece. Warm, sophisticated gallery ambient music with subtle string instruments. AQUAVO logo appears gently at the end. 10 seconds. 4K vertical 9:16."
     }
   ]
 }
@@ -336,6 +337,7 @@
   "tier": "S-Tier",
   "total_duration_sec": 35,
   "videos": 4,
+  "anti_ai_global": "A dramatic, case-file style educational warning about dangerous fish combinations. The aesthetic blends crime-documentary urgency (red warning graphics, case file layouts) with beautiful aquarium photography. Each 'case' should feel like a forensic investigation into fish compatibility disasters. The fish themselves should look healthy and vibrant — the danger is conceptual (incompatibility), not visual (no injured fish). Color coding: RED for danger/wrong combos, GREEN for solutions. Use dramatic lighting and VS-style confrontational compositions. Avoid: injured fish, blood, animal cruelty, graphic violence, dead fish. Keep it educational and visually striking.",
   "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear.",
   "frames": [
     {
@@ -373,7 +375,7 @@
     {
       "id": "R76-IMG-04",
       "role": "combo_three_temperature",
-      "nano_banana_prompt": "A case-file infographic CASE #3. Goldfish next to tropical Guppy with conflicting thermometers. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: ' #3: كولد فيش + أسماك استوائية' (Red ), 'حرارة مختلفة = واحد رح يتعذب! ' , ' الحل: كولد فيش مع أسماك بنفس الحرارة' (Green ), 'احفظ وشارك — أنقذ أسماك! ' .",
+      "nano_banana_prompt": "A case-file infographic CASE #3. Goldfish next to tropical Guppy with conflicting thermometers. Vertical 9:16. TYPOGRAPHY DESIGN: Generate bold Arabic text directly on the image. CRITICAL LAYOUT RULE: You MUST place all typography exactly in the DEAD CENTER of the frame. DO NOT place any text in the top 30% or the bottom 35% of the image vertical space. Keep all text tightly grouped in the absolute mathematical center. Texts: '❌ #3: كولد فيش + أسماك استوائية' (Red Bold), 'حرارة مختلفة = واحد رح يتعذب! 🌡️' (White Medium), '✅ الحل: كولد فيش مع أسماك بنفس الحرارة' (Green Bold), 'احفظ وشارك — أنقذ أسماك! 🔖' (White Medium).",
       "capcut_text_overlay": [
         "'❌ #3: كولد فيش + أسماك استوائية' — عند 30% أحمر",
         "'حرارة مختلفة = واحد رح يتعذب! 🌡️' — عند 40%",
@@ -389,21 +391,21 @@
       "from": "R76-IMG-01",
       "to": "R76-IMG-02",
       "duration_sec": 8,
-      "veo3_prompt": "Two male Betta fish in separate tanks placed side by side. They see each other and FLARE aggressively. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. Two stunning male Betta fish in separate glass tanks placed side by side on a dark surface. Dramatic warm spotlighting from above. They notice each other — both flare their gill covers aggressively, spreading their magnificent fins wide in a threat display. Their vibrant red and blue colors intensify. Slow-motion capture of the flaring moment. The glass between them reflects dramatic light. Tense, urgent documentary music with deep bass hits. Camera slowly pushes in on the more aggressive Betta's flaring face. 8 seconds. 4K vertical 9:16."
     },
     {
       "id": "R76-VID-02",
       "from": "R76-IMG-02",
       "to": "R76-IMG-03",
       "duration_sec": 8,
-      "veo3_prompt": "Large Oscar cichlid approaches camera, opens massive mouth. Scene cuts to safe alternative. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. A massive Oscar cichlid (15cm+) swims menacingly toward the camera in a large planted tank. Its mouth opens wide, revealing the cavernous interior — large enough to swallow a Neon Tetra whole. Quick dramatic zoom. Cut to: a peaceful community tank with appropriately sized fish (all similar size Tetras, Rasboras) swimming harmoniously together. The contrast is striking — danger vs. safety. Tense music transitions to peaceful, calm music. Warm aquarium lighting. 8 seconds. 4K vertical 9:16."
     },
     {
       "id": "R76-VID-03",
       "from": "R76-IMG-03",
       "to": "R76-IMG-04",
       "duration_sec": 8,
-      "veo3_prompt": "Animated thermometer graphic showing conflicting temperatures. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. Split-screen effect: LEFT side shows a Goldfish swimming in cool 18°C water (blue-tinted lighting, thermometer visible). RIGHT side shows tropical Guppies in warm 26°C water (warm golden lighting, thermometer visible). Animated red X appears between them. Both thermometers pulse. Transition: a beautiful community tank where all compatible fish (same temperature range) swim happily together. Green checkmark appears. Informative, upbeat music with a triumphant resolve. AQUAVO logo gently appears. 8 seconds. 4K vertical 9:16."
     }
   ]
 }
@@ -421,6 +423,7 @@
   "tier": "A-Tier",
   "total_duration_sec": 35,
   "videos": 3,
+  "anti_ai_global": "A deeply calming, therapeutic visual experience that bridges neuroscience with aquarium aesthetics. The mood transitions from clinical/scientific (dark blue brain scan imagery, clean infographic stats) to warm and peaceful (cozy living room lit by aquarium glow). The key emotional message: aquariums are scientifically proven mental health tools. Photography style blends medical/scientific credibility with lifestyle warmth. Color palette: deep calming blues, warm golds, soft whites. Think: the visual equivalent of a deep breath. Avoid: clinical/hospital sterility, depression imagery, sad faces, medication references, overly bright or jarring visuals.",
   "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear.",
   "frames": [
     {
@@ -463,14 +466,14 @@
       "from": "R77-IMG-01",
       "to": "R77-IMG-02",
       "duration_sec": 10,
-      "veo3_prompt": "Heart rate monitor graphic slowing down over peaceful fish tank. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. Opens on a stylized heart rate monitor line pulsing rapidly on a dark screen — stress visualization. The monitor line begins to slow down and smooth out. Dissolve transition: the heart rate line morphs into the gentle silhouette of fish swimming across the screen. Camera pulls back to reveal a stunning planted aquarium in a dimly lit room. Inside: a peaceful school of Neon Tetras glides through lush green plants. Bubbles rise slowly. The camera performs a slow, meditative push-in toward the tank. Serene, ASMR-quality ambient soundtrack: soft water bubbling, distant piano. The viewer’s breathing slows watching this. Warm golden-blue color grading. 10 seconds. 4K vertical 9:16."
     },
     {
       "id": "R77-VID-02",
       "from": "R77-IMG-02",
       "to": "R77-IMG-03",
       "duration_sec": 10,
-      "veo3_prompt": "Calming relaxing room scene with glowing fish tank. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. A cozy living room at night, all lights off except the ethereal blue-green glow of a large planted aquarium against the wall. The camera slowly orbits the room, showing a person sitting in a comfortable armchair, silhouetted against the tank’s warm light, watching the fish swim peacefully. The aquarium contains lush Rotala, Anubias, and a school of Cardinal Tetras whose iridescent stripes catch the light. Macro insert: a single fish swimming in slow motion, serene. Camera returns to the wide room shot. The glow illuminates the entire room in a warm, therapeutic radiance. Ultra-calming lo-fi ambient music with gentle water sounds. AQUAVO logo fades in gently. 10 seconds. 4K vertical 9:16."
     }
   ]
 }
@@ -488,6 +491,7 @@
   "tier": "A-Tier",
   "total_duration_sec": 30,
   "videos": 3,
+  "anti_ai_global": "A futuristic, neon-drenched Cyberpunk aquarium aesthetic that targets the gaming community. The visual language is pure Blade Runner meets underwater world: deep blacks, vibrant purple and cyan LED lighting, fog/mist effects, and angular hardscape. The aquarium should feel like a piece of gaming equipment — it belongs on a setup desk next to RGB peripherals. Fish should genuinely glow or fluoresce under UV/blue LED light (GloFish or neon-colored species). The mood is electric, futuristic, and awe-inspiring. Interior setting: modern gaming desk with mechanical keyboard, monitor with RGB lighting. Avoid: messy cables, dirty tanks, natural/warm aesthetics (this is strictly cool-toned), cartoon fish, unrealistic proportions.",
   "safe_zone_rule": "ALL text overlays added in CapCut between 28% and 68%. RIGHT margin 170px clear.",
   "frames": [
     {
@@ -531,14 +535,14 @@
       "from": "R78-IMG-01",
       "to": "R78-IMG-02",
       "duration_sec": 10,
-      "veo3_prompt": "Cinematic vertical video. Total darkness. Purple and cyan LEDs flicker on revealing cyberpunk tank. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. Total darkness for 1 second. Then: a flickering purple LED strip turns on along the bottom rim of a sleek black aquarium, casting an eerie glow. A second later, cyan LEDs fade in from the top. The tank is gradually revealed: black volcanic rock hardscape arranged in angular, architectural formations. Inside, fluorescent GloFish (electric green, hot pink, electric blue) begin swimming through the neon-lit water, leaving trails of color. A USB mist maker creates fog that drifts across the water surface, catching the purple and cyan light. The effect is pure sci-fi cinema. Pulsing synthwave music builds slowly. Camera performs a dramatic slow push-in from room-wide to close-up of a glowing fish. 10 seconds. 4K vertical 9:16."
     },
     {
       "id": "R78-VID-02",
       "from": "R78-IMG-02",
       "to": "R78-IMG-03",
       "duration_sec": 10,
-      "veo3_prompt": "Quick montage of build process. Triumphant synthwave crescendo. Cinematic 9:16."
+      "veo3_prompt": "Cinematic vertical video. Quick-cut timelapse montage of the Cyberpunk aquarium build process. Shot 1: Hands pour black volcanic sand into the tank base. Shot 2: Angular black stones being placed in dramatic formations. Shot 3: RGB LED strip being adhered to the tank rim. Shot 4: Water pouring in slow-motion, crystal clear. Shot 5: GloFish being gently released — they immediately begin exploring. Shot 6: USB mist maker switched on, fog rolls across the surface. Final shot: the complete setup on a gaming desk — mechanical keyboard, gaming monitor with purple glow, and the Cyberpunk aquarium as the centerpiece. The fish glow magnificently. Triumphant synthwave music crescendo. AQUAVO logo pulses in with a neon glow effect. 10 seconds. 4K vertical 9:16."
     }
   ]
 }

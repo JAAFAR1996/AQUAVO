@@ -48,6 +48,7 @@ interface CatalogSimulation {
   motivators: string[];
   marketingMessages: { tiktok: string; instagram: string; facebook: string };
   recommendations: string[];
+  risks: string[];
   idealLaunchMonth: string;
   importQuantityAdvice: string;
 }
