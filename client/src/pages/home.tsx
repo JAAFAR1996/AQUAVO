@@ -14,6 +14,7 @@ import { Testimonials } from "@/components/home/testimonials";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatPrice } from "@/lib/format";
 
 import { PersonalizedSection } from "@/components/home/personalized-section";
 import { BackToTop } from "@/components/back-to-top";
@@ -151,7 +152,16 @@ export default function Home() {
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
                     <div className="flex items-center justify-end gap-2 text-sm">
-                      <span className="font-bold text-purple-500 text-xs">قريباً جداً ✨</span>
+                      {(product.price ?? 0) > 0 ? (
+                        <>
+                          <span className="font-bold text-primary text-xs">{formatPrice(product.price!)}</span>
+                          {product.originalPrice && product.originalPrice > product.price && (
+                            <span className="text-[10px] text-muted-foreground line-through mr-1">{formatPrice(product.originalPrice)}</span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="font-bold text-muted-foreground text-xs">قريباً ✨</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -182,7 +192,16 @@ export default function Home() {
                 <div className="flex-1 text-right space-y-2">
                   <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>
                   <div className="flex gap-2 justify-end items-baseline">
-                    <span className="text-2xl font-black text-purple-500">قريباً جداً ✨</span>
+                    {(featuredProduct.price ?? 0) > 0 ? (
+                      <>
+                        <span className="text-2xl font-black text-primary">{formatPrice(featuredProduct.price!)}</span>
+                        {featuredProduct.originalPrice && featuredProduct.originalPrice > featuredProduct.price && (
+                          <span className="text-sm text-muted-foreground line-through">{formatPrice(featuredProduct.originalPrice)}</span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-2xl font-black text-muted-foreground">قريباً ✨</span>
+                    )}
                   </div>
 
                   <Button size="sm" className="w-full bg-secondary hover:bg-secondary/80 dark:bg-white/10 dark:hover:bg-white/20 border border-border dark:border-white/10 text-foreground dark:text-white text-xs h-8">

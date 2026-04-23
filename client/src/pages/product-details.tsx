@@ -8,7 +8,7 @@ import Footer from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatNumber } from "@/lib/format";
+import { formatNumber, formatPrice } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -295,12 +295,16 @@ export default function ProductDetails() {
                   </span>
                 </div>
 
-                {/* Price with Discount */}
                 <div className="mb-4">
                   <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-4xl font-bold text-purple-500">
-                      قريباً جداً ✨
+                    <span className="text-4xl font-bold text-primary">
+                      {formatPrice(displayPrice)}
                     </span>
+                    {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+                      <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
+                        {formatPrice(displayOriginalPrice)}
+                      </span>
+                    )}
                   </div>
                 </div>
 
