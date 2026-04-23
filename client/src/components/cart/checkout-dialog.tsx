@@ -333,6 +333,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             isSubmitting={isSubmitting}
             handleBack={handleBack}
             handleConfirmOrder={handleConfirmOrder}
+            couponDiscount={couponDiscount}
+            loyaltyData={loyaltyData}
           />
         )}
       </DialogContent>

@@ -4,10 +4,10 @@
  * نظام نقاط الولاء والعضويات لمتجر أكوافو
  * 
  * المكونات:
- * 1. تقريب الأسعار للسوق العراقي (أقرب 250 دينار)
- * 2. نقاط الشراء (1 نقطة لكل 5,000 دينار)
- * 3. مستويات العضوية (برونزي/فضي/ذهبي/ماسي)
- * 4. استبدال النقاط عند الشراء
+ * 1. تقريب الأسعار للسوق العراقي (أقرب 250 دينار - دائماً لأعلى)
+ * 2. نقاط الولاء (1 نقطة لكل 5,000 دينار) - للعضوية فقط، لا تُستبدل بفلوس أبداً، أبدية
+ * 3. مستويات العضوية (برونزي/فضي/ذهبي/ماسي) - تعتمد على نقاط الولاء
+ * 4. نقاط الباقي (cashback) - تُستبدل كخصم مالي، لها صلاحية
  */
 
 import { eq, sql, desc } from "drizzle-orm";
@@ -30,8 +30,11 @@ const IRAQI_DENOMINATION = 250;
 /** نقطة واحدة لكل هذا المبلغ */
 const POINTS_PER_DINAR = 5000;
 
-/** قيمة نقطة الولاء الواحدة عند الاستبدال (بالدينار) */
-const LOYALTY_POINT_VALUE_IQD = 20;
+/**
+ * ⚠️ نقاط الولاء لا تُستبدل بفلوس أبداً!
+ * تُستخدم فقط لترقية مستوى العضوية. أبدية ولا تنتهي.
+ */
+const LOYALTY_POINT_VALUE_IQD = 0; // لا قيمة مالية - للعضوية فقط
 
 /** قيمة نقطة الباقي عند الاستبدال (بالدينار) - 1:1 لأنها باقي فعلي */
 const CASHBACK_POINT_VALUE_IQD = 1;
@@ -150,11 +153,11 @@ export interface PurchasePointsResult {
 }
 
 export interface RedeemResult {
-  /** نقاط الولاء المستخدمة */
+  /** نقاط الولاء المستخدمة - دائماً 0 لأنها لا تُصرف */
   loyaltyPointsUsed: number;
   /** نقاط الباقي المستخدمة */
   cashbackUsed: number;
-  /** إجمالي الخصم بالدينار */
+  /** إجمالي الخصم بالدينار (من الباقي فقط) */
   totalDiscount: number;
   /** المبلغ النهائي بعد الخصم */
   finalAmount: number;
@@ -244,13 +247,14 @@ export class LoyaltyStorage {
   }
 
   /**
-   * حساب أقصى خصم ممكن من النقاط
+   * حساب أقصى خصم ممكن (من رصيد الباقي فقط - نقاط الولاء لا تُصرف)
    */
   calculateMaxRedemption(
-    loyaltyPoints: number,
+    _loyaltyPoints: number,
     cashbackBalance: number,
   ): number {
-    return (loyaltyPoints * LOYALTY_POINT_VALUE_IQD) + (cashbackBalance * CASHBACK_POINT_VALUE_IQD);
+    // نقاط الولاء لا تُصرف أبداً - فقط الباقي
+    return cashbackBalance * CASHBACK_POINT_VALUE_IQD;
   }
 
   // ----------------------------------------
@@ -288,26 +292,31 @@ export class LoyaltyStorage {
     const currentTotalSpent = user.totalSpent ?? 0;
     const currentTier = (user.loyaltyTier as TierName) || "bronze";
 
-    // 2. حساب الخصم من النقاط
-    const loyaltyDiscount = pointsUsed * LOYALTY_POINT_VALUE_IQD;
-    const cashbackDiscount = cashbackUsed * CASHBACK_POINT_VALUE_IQD;
-    const totalPointsDiscount = loyaltyDiscount + cashbackDiscount;
+    // 2. ⚠️ نقاط الولاء لا تُصرف أبداً - فقط الباقي (cashback) يُصرف
+    const actualPointsUsed = 0; // دائماً صفر - نقاط الولاء للعضوية فقط
+    
+    // 3. ✅ التحقق من رصيد الباقي (بدون حد - فلوسه وحر بيها)
+    const safeCashbackUsed = Math.min(cashbackUsed, currentCashback);
+    const cashbackDiscount = safeCashbackUsed * CASHBACK_POINT_VALUE_IQD;
+    const actualCashbackUsed = safeCashbackUsed;
+    const totalPointsDiscount = cashbackDiscount; // فقط الباقي
+    const loyaltyDiscount = 0; // نقاط الولاء لا تُصرف
 
-    // 3. المبلغ بعد خصم النقاط
+    // 4. المبلغ بعد خصم الباقي
     const amountAfterDiscount = Math.max(0, orderTotal - totalPointsDiscount);
 
-    // 4. تقريب المبلغ
+    // 5. تقريب المبلغ (دائماً لأعلى - Math.ceil)
     const rounding = this.roundToIraqiDenomination(amountAfterDiscount);
 
-    // 5. حساب نقاط الشراء الجديدة (على المبلغ المقرب)
-    const purchasePoints = this.calculatePurchasePoints(rounding.roundedAmount, currentTier);
+    // 6. حساب نقاط الولاء الجديدة (للعضوية - لا تُصرف)
+    const purchasePoints = this.calculatePurchasePoints(amountAfterDiscount, currentTier);
     const roundingPoints = rounding.remainder; // 1 نقطة cashback = 1 دينار
 
-    // 6. تحديث الأرصدة: النقاط المكتسبة تذهب إلى الرصيد المجمد، والمستخدمة تخصم من الفعلي
-    const newLoyaltyPoints = currentLoyalty - pointsUsed;
+    // 7. تحديث الأرصدة - نقاط الولاء لا تنقص أبداً!
+    const newLoyaltyPoints = currentLoyalty; // لا تتغير! أبدية
     const newPendingLoyalty = currentPendingLoyalty + purchasePoints;
     
-    const newCashbackBalance = currentCashback - cashbackUsed;
+    const newCashbackBalance = currentCashback - actualCashbackUsed;
     const newPendingCashback = currentPendingCashback + roundingPoints;
 
     // ملاحظة: لا نحدث totalSpent أو المستوى إلا بعد تأكيد الاستلام (Approve)
@@ -316,7 +325,7 @@ export class LoyaltyStorage {
     await db
       .update(users)
       .set({
-        loyaltyPoints: newLoyaltyPoints,
+        loyaltyPoints: newLoyaltyPoints, // لا تتغير
         pendingLoyaltyPoints: newPendingLoyalty,
         cashbackBalance: newCashbackBalance,
         pendingCashbackBalance: newPendingCashback,
@@ -329,8 +338,8 @@ export class LoyaltyStorage {
       .update(orders)
       .set({
         roundedTotal: String(rounding.roundedAmount),
-        pointsUsed,
-        cashbackUsed,
+        pointsUsed: 0, // نقاط الولاء لا تُصرف
+        cashbackUsed: actualCashbackUsed,
         pointsDiscount: String(totalPointsDiscount),
         pointsEarned: purchasePoints,
         roundingCashback: roundingPoints,
@@ -339,32 +348,20 @@ export class LoyaltyStorage {
 
     // 10. تسجيل حركات النقاط
 
-    // خصم النقاط المستخدمة
-    if (pointsUsed > 0) {
-      await this.logTransaction(userId, {
-        type: "redeem",
-        pointsType: "loyalty",
-        amount: -pointsUsed,
-        balanceAfter: newLoyaltyPoints,
-        orderId,
-        description: `استبدال ${pointsUsed} نقطة ولاء (خصم ${loyaltyDiscount.toLocaleString()} د.ع)`,
-        metadata: { discount: loyaltyDiscount },
-      });
-    }
-
-    if (cashbackUsed > 0) {
+    // خصم الباقي المستخدم فقط (نقاط الولاء لا تُخصم أبداً)
+    if (actualCashbackUsed > 0) {
       await this.logTransaction(userId, {
         type: "redeem",
         pointsType: "cashback",
-        amount: -cashbackUsed,
+        amount: -actualCashbackUsed,
         balanceAfter: newCashbackBalance,
         orderId,
-        description: `استبدال ${cashbackUsed} نقطة باقي (خصم ${cashbackDiscount.toLocaleString()} د.ع)`,
+        description: `استبدال ${actualCashbackUsed} نقطة باقي (خصم ${cashbackDiscount.toLocaleString()} د.ع)`,
         metadata: { discount: cashbackDiscount },
       });
     }
 
-    // إضافة نقاط الشراء (مجمدة)
+    // إضافة نقاط الشراء (مجمدة - للعضوية)
     if (purchasePoints > 0) {
       await this.logTransaction(userId, {
         type: "purchase_earn",
@@ -373,7 +370,7 @@ export class LoyaltyStorage {
         amount: purchasePoints,
         balanceAfter: newPendingLoyalty, // سجلنا الرصيد المجمد هنا مؤقتاً
         orderId,
-        description: `نقاط مجمدة: كسبت ${purchasePoints} نقطة من شراء بقيمة ${rounding.roundedAmount.toLocaleString()} د.ع`,
+        description: `نقاط مجمدة: كسبت ${purchasePoints} نقطة ولاء (للعضوية) من شراء بقيمة ${rounding.roundedAmount.toLocaleString()} د.ع`,
         metadata: { orderTotal: rounding.roundedAmount, tier: currentTier, multiplier: MEMBERSHIP_TIERS[currentTier].pointMultiplier },
       });
     }
@@ -479,12 +476,13 @@ export class LoyaltyStorage {
   // ----------------------------------------
 
   /**
-   * حساب الخصم عند استخدام النقاط (يُعرض في صفحة الدفع)
+   * حساب الخصم عند استخدام رصيد الباقي (يُعرض في صفحة الدفع)
+   * ⚠️ نقاط الولاء لا تُصرف أبداً - فقط الباقي (cashback)
    */
   async previewRedemption(
     userId: string,
     orderTotal: number,
-    useLoyaltyPoints: boolean = true,
+    _useLoyaltyPoints: boolean = false, // لا تُستخدم - نقاط الولاء لا تُصرف
     useCashback: boolean = true,
   ): Promise<RedeemResult> {
     const db = this.ensureDb();
@@ -499,28 +497,18 @@ export class LoyaltyStorage {
       throw new Error("User not found");
     }
 
-    const availableLoyalty = user.loyaltyPoints ?? 0;
     const availableCashback = user.cashbackBalance ?? 0;
 
-    let loyaltyPointsUsed = 0;
+    const loyaltyPointsUsed = 0; // نقاط الولاء لا تُصرف أبداً
     let cashbackUsed = 0;
     let totalDiscount = 0;
 
-    // حساب خصم نقاط الباقي أولاً (قيمتها أقل فلا تأكل من الأرباح)
+    // \u062d\u0633\u0627\u0628 \u062e\u0635\u0645 \u0631\u0635\u064a\u062f \u0627\u0644\u0628\u0627\u0642\u064a (\u0628\u062f\u0648\u0646 \u062d\u062f - \u0641\u0644\u0648\u0633\u0647 \u0648\u062d\u0631 \u0628\u064a\u0647\u0627)
     if (useCashback && availableCashback > 0) {
       const maxCashbackDiscount = availableCashback * CASHBACK_POINT_VALUE_IQD;
       const cashbackDiscount = Math.min(maxCashbackDiscount, orderTotal);
       cashbackUsed = Math.ceil(cashbackDiscount / CASHBACK_POINT_VALUE_IQD);
       totalDiscount += cashbackDiscount;
-    }
-
-    // ثم خصم نقاط الولاء
-    const remainingAmount = orderTotal - totalDiscount;
-    if (useLoyaltyPoints && availableLoyalty > 0 && remainingAmount > 0) {
-      const maxLoyaltyDiscount = availableLoyalty * LOYALTY_POINT_VALUE_IQD;
-      const loyaltyDiscount = Math.min(maxLoyaltyDiscount, remainingAmount);
-      loyaltyPointsUsed = Math.ceil(loyaltyDiscount / LOYALTY_POINT_VALUE_IQD);
-      totalDiscount += loyaltyDiscount;
     }
 
     // لا يمكن أن يصبح المبلغ سالباً
@@ -583,11 +571,11 @@ export class LoyaltyStorage {
     return {
       loyaltyPoints,
       pendingLoyaltyPoints,
-      loyaltyValueIQD: loyaltyPoints * LOYALTY_POINT_VALUE_IQD,
+      loyaltyValueIQD: 0, // نقاط الولاء لا تُصرف - للعضوية فقط
       cashbackBalance,
       pendingCashbackBalance,
       cashbackValueIQD: cashbackBalance * CASHBACK_POINT_VALUE_IQD,
-      totalValueIQD: (loyaltyPoints * LOYALTY_POINT_VALUE_IQD) + (cashbackBalance * CASHBACK_POINT_VALUE_IQD),
+      totalValueIQD: cashbackBalance * CASHBACK_POINT_VALUE_IQD, // فقط الباقي له قيمة مالية
       tier,
       tierInfo,
       totalSpent,

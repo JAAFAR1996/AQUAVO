@@ -95,18 +95,26 @@ export function createOrderRouter(): RouterType {
             }
 
             // === AQUAVO LOYALTY POINTS SYSTEM ===
+            // ⚠️ نقاط الولاء لا تُصرف أبداً - فقط الباقي (cashback)
             let loyaltyResult = null;
             if (userId) {
                 try {
                     const orderTotal = parseFloat(String(order.total)) || 0;
-                    const actualPointsUsed = usePoints ? pointsToUse : 0;
-                    const actualCashbackUsed = useCashback ? cashbackToUse : 0;
+
+                    // ✅ التحقق من رصيد الباقي الفعلي قبل المعالجة
+                    let actualCashbackUsed = 0;
+
+                    if (useCashback && cashbackToUse > 0) {
+                        const balance = await loyaltyStorage.getBalance(userId);
+                        // لا نسمح باستخدام أكثر مما يملك
+                        actualCashbackUsed = Math.min(cashbackToUse, balance.cashbackBalance);
+                    }
 
                     loyaltyResult = await loyaltyStorage.processOrderPoints(
                         userId,
                         order.id,
                         orderTotal,
-                        actualPointsUsed,
+                        0, // نقاط الولاء لا تُصرف أبداً
                         actualCashbackUsed,
                     );
 
