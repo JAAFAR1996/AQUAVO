@@ -72,8 +72,46 @@ export function createAdminRouter(): RouterType {
                     changes: req.body
                 });
 
+                const newStatus = req.body.status;
+                const oldStatus = previousOrder?.status;
+
+                // ✅ فك تجميد النقاط عند تأكيد التوصيل
+                if (newStatus === "delivered" && oldStatus !== "delivered") {
+                    try {
+                        const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                        if ((order as any).userId) {
+                            const orderTotal = parseFloat(String(order.total)) || 0;
+                            await loyaltyStorage.approveOrderPoints(
+                                (order as any).userId,
+                                order.id,
+                                orderTotal
+                            );
+                            console.log(`[Admin] ✅ Approved loyalty points for order ${order.id}`);
+                        }
+                    } catch (loyaltyErr) {
+                        console.error("[Admin] Failed to approve loyalty points:", loyaltyErr);
+                        // Don't block order status update
+                    }
+                }
+
+                // ❌ إلغاء النقاط المجمدة عند إلغاء الطلب
+                if (newStatus === "cancelled" && oldStatus !== "cancelled") {
+                    try {
+                        const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                        if ((order as any).userId) {
+                            await loyaltyStorage.cancelOrderPoints(
+                                (order as any).userId,
+                                order.id
+                            );
+                            console.log(`[Admin] ❌ Cancelled loyalty points for order ${order.id}`);
+                        }
+                    } catch (loyaltyErr) {
+                        console.error("[Admin] Failed to cancel loyalty points:", loyaltyErr);
+                    }
+                }
+
                 // Send push notification when order status changes to shipped
-                if (req.body.status === "shipped" && previousOrder?.status !== "shipped") {
+                if (newStatus === "shipped" && oldStatus !== "shipped") {
                     try {
                         const webPush = await import("web-push");
                         const { getDb } = await import("../db.js");

@@ -106,9 +106,10 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
             .where(gte(cartSessions.createdAt, startDate));
 
         const totalSessions = cartSessionsData[0]?.count || 0;
-        const conversionRate = totalSessions > 0
+        const rawConversionRate = totalSessions > 0
             ? (currentOrders / totalSessions) * 100
-            : 0; // Fallback to 0 if no sessions exist yet
+            : 0;
+        const conversionRate = Math.min(rawConversionRate, 100); // لا يتجاوز 100%
 
         const averageOrderValue = currentOrders > 0 ? currentRevenue / currentOrders : 0;
 

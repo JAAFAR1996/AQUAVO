@@ -39,6 +39,10 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     ? Math.min(...product.variants.map(v => v.price))
     : undefined;
 
+  // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
+  const isYEE = product.brand?.toUpperCase() === "YEE";
+  const hasPrice = isYEE && (product.price ?? 0) > 0;
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -148,7 +152,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
           <CardContent className="flex-1 p-2 sm:p-4 pt-0">
             <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
-              {(product.price ?? 0) > 0 ? (
+              {hasPrice ? (
                 <>
                   {(product.originalPrice ?? 0) > (product.price ?? 0) && (
                     <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
@@ -164,7 +168,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 </>
               ) : (
                 <span className="text-sm font-medium text-muted-foreground">
-                  قريباً ✨
+                  قريباً جداً ✨
                 </span>
               )}
             </div>
@@ -180,12 +184,17 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
               className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
               onClick={handleAddToCart}
               aria-label={`أضف ${product.name} إلى سلة المشتريات`}
-              disabled={(product.stock ?? 0) <= 0}
+              disabled={!hasPrice || (product.stock ?? 0) <= 0}
             >
-              {(product.stock ?? 0) > 0 ? (
+              {hasPrice && (product.stock ?? 0) > 0 ? (
                 <>
                   <ShoppingCart className="w-4 h-4" aria-hidden="true" />
                   {buttonText}
+                </>
+              ) : !hasPrice ? (
+                <>
+                  <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
+                  قريباً جداً
                 </>
               ) : (
                 <>

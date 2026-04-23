@@ -471,6 +471,62 @@ export class LoyaltyStorage {
     }
   }
 
+  /**
+   * إلغاء النقاط المجمدة عند إلغاء الطلب (يستدعى عند رفض أو إلغاء الطلب)
+   */
+  async cancelOrderPoints(userId: string, orderId: string): Promise<void> {
+    const db = this.ensureDb();
+
+    // 1. جلب المستخدم
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) return;
+
+    // 2. جلب الحركات المجمدة لهذا الطلب
+    const pendingTx = await db.select()
+      .from(loyaltyTransactions)
+      .where(
+        sql`${loyaltyTransactions.userId} = ${userId} AND ${loyaltyTransactions.orderId} = ${orderId} AND ${loyaltyTransactions.status} = 'pending'`
+      );
+
+    if (pendingTx.length === 0) return;
+
+    let totalLoyaltyCancelled = 0;
+    let totalCashbackCancelled = 0;
+
+    for (const tx of pendingTx) {
+      if (tx.pointsType === "loyalty") totalLoyaltyCancelled += tx.amount;
+      if (tx.pointsType === "cashback") totalCashbackCancelled += tx.amount;
+      
+      // تحديث حالة الحركة لتصبح ملغاة
+      await db.update(loyaltyTransactions)
+        .set({ status: "cancelled" })
+        .where(eq(loyaltyTransactions.id, tx.id));
+    }
+
+    // 3. إزالة النقاط المجمدة فقط (لا تمس الأرصدة الفعلية)
+    const newPendingLoyalty = Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyCancelled);
+    const newPendingCashback = Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackCancelled);
+
+    await db.update(users)
+      .set({
+        pendingLoyaltyPoints: newPendingLoyalty,
+        pendingCashbackBalance: newPendingCashback,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    // 4. تسجيل حركة الإلغاء
+    await this.logTransaction(userId, {
+      type: "order_cancelled",
+      pointsType: "loyalty",
+      status: "cancelled",
+      amount: -(totalLoyaltyCancelled + totalCashbackCancelled),
+      balanceAfter: user.loyaltyPoints ?? 0,
+      orderId,
+      description: `❌ تم إلغاء الطلب - إزالة ${totalLoyaltyCancelled} نقطة ولاء + ${totalCashbackCancelled} رصيد باقي مجمد`,
+    });
+  }
+
   // ----------------------------------------
   // 4. حساب الخصم المسبق (قبل الدفع)
   // ----------------------------------------
