@@ -61,6 +61,7 @@ const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
 const PrivacyPolicy = lazy(() => import("@/pages/privacy-policy"));
 const Terms = lazy(() => import("@/pages/terms"));
+const VerifyCertificate = lazy(() => import("@/pages/verify-certificate"));
 const OrderTracking = lazy(() => import("@/pages/order-tracking"));
 const AdminLogin = lazy(() => import("@/pages/admin-login"));
 const Shipping = lazy(() => import("@/pages/shipping"));
@@ -313,6 +314,9 @@ function Router() {
       </Route>
       <Route path="/terms">
         {() => (<Suspense fallback={<PageLoader />}><Terms /></Suspense>)}
+      </Route>
+      <Route path="/verify-certificate/yee">
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense></ErrorBoundary>)}
       </Route>
 
 

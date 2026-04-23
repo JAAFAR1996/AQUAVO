@@ -136,12 +136,8 @@ export default function Footer() {
             <p className="text-[10px] text-slate-400">وكلاء معتمدون</p>
           </div>
           {/* YEE Certificate of Authenticity */}
-          <a
-            href="/certificates/yee-certificate.pdf"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer"
-          >
+          <Link href="/verify-certificate/yee">
+            <a className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer">
             <div className="p-2 bg-yellow-500/20 rounded-full mb-2 group-hover:bg-yellow-500/30 transition-colors">
               <FileText className="h-5 w-5 text-yellow-500" />
             </div>
@@ -150,7 +146,8 @@ export default function Footer() {
               <ExternalLink className="h-3 w-3 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
             <p className="text-[10px] text-yellow-400/70">وكيل معتمد — اضغط للتحقق</p>
-          </a>
+            </a>
+          </Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-12">
