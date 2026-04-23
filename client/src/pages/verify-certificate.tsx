@@ -103,7 +103,7 @@ export default function VerifyCertificate() {
                 <div className="w-full aspect-[1/1.4] relative bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
                   {/* We ask user to put yee-certificate.png in public/certificates/ */}
                   <img 
-                    src="/certificates/yee-certificate.png" 
+                    src="/certificates/yee-certificate.jpg" 
                     alt="YEE Official Certificate of Authenticity" 
                     className="w-full h-full object-contain object-center z-10 transition-transform duration-700 group-hover:scale-[1.02]"
                     onError={(e) => {
@@ -114,7 +114,7 @@ export default function VerifyCertificate() {
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center z-0 text-slate-400">
                     <FileText className="w-16 h-16 mb-4 opacity-50" />
-                    <p className="font-tajawal">يرجى إضافة صورة الشهادة yee-certificate.png</p>
+                    <p className="font-tajawal">يرجى إضافة صورة الشهادة yee-certificate.jpg</p>
                   </div>
                 </div>
 
