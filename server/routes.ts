@@ -14,6 +14,7 @@ import { createCouponRouter } from "./routes/coupons.js";
 import { createNewsletterRouter } from "./routes/newsletter.js";
 import { createReferralRouter } from "./routes/referral.js";
 import { createSecurityRouter } from "./routes/security.js";
+import { createLoyaltyRouter } from "./routes/loyalty.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createNotificationsRouter } from "./routes/notifications.js";
@@ -58,6 +59,7 @@ export async function registerRoutes(
   app.use("/api/notifications", createNotificationsRouter());
   app.use("/api/gallery", createGalleryRouter());
   app.use("/api/referral", createReferralRouter());
+  app.use("/api/loyalty", createLoyaltyRouter());
 
   // System routes (sitemap, robots, health) - mount at root for correct paths
   const systemRouter = createSystemRouter();

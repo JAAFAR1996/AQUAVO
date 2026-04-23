@@ -6,6 +6,11 @@ import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
 import { sql } from "drizzle-orm";
+import { loyaltyStorage } from "../storage/loyalty-storage.js";
+import { ReferralStorage } from "../storage/referral-storage.js";
+import { loyaltyNotifications } from "../services/loyalty-notifications.js";
+
+const referralStorage = new ReferralStorage();
 
 // Order validation schema
 const createOrderItemSchema = z.object({
@@ -23,7 +28,12 @@ const createOrderCustomerSchema = z.object({
 const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
-    couponCode: z.string().optional()
+    couponCode: z.string().optional(),
+    // نظام النقاط - اختياري
+    usePoints: z.boolean().optional().default(false),
+    useCashback: z.boolean().optional().default(false),
+    pointsToUse: z.number().int().min(0).optional().default(0),
+    cashbackToUse: z.number().int().min(0).optional().default(0),
 });
 
 export function createOrderRouter(): RouterType {
@@ -48,7 +58,7 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode } = validationResult.data;
+            const { items, customerInfo, couponCode, usePoints, useCashback, pointsToUse, cashbackToUse } = validationResult.data;
 
             const order = await storage.createOrderSecure(
                 userId || null,
@@ -84,6 +94,50 @@ export function createOrderRouter(): RouterType {
                 }).catch(() => { });
             }
 
+            // === AQUAVO LOYALTY POINTS SYSTEM ===
+            let loyaltyResult = null;
+            if (userId) {
+                try {
+                    const orderTotal = parseFloat(String(order.total)) || 0;
+                    const actualPointsUsed = usePoints ? pointsToUse : 0;
+                    const actualCashbackUsed = useCashback ? cashbackToUse : 0;
+
+                    loyaltyResult = await loyaltyStorage.processOrderPoints(
+                        userId,
+                        order.id,
+                        orderTotal,
+                        actualPointsUsed,
+                        actualCashbackUsed,
+                    );
+
+                    console.log(`[AQUAVO Loyalty] Order ${order.id}: +${loyaltyResult.purchasePoints} points, +${loyaltyResult.roundingPoints} cashback, tier: ${loyaltyResult.newTier}${loyaltyResult.tierChanged ? ' (UPGRADED!)' : ''}`);
+
+                    // إرسال إشعارات الولاء (نقاط، ترقية، كوبونات)
+                    loyaltyNotifications.sendPostPurchaseNotifications(
+                        userId,
+                        order.id,
+                        loyaltyResult,
+                    ).catch(err => console.error('[AQUAVO Loyalty Notifications] Failed:', err));
+                    // === REFERRAL: Mark First Purchase ===
+                    try {
+                        const referralResult = await referralStorage.markFirstPurchase(userId, order.id);
+                        if (referralResult.referral) {
+                            // منح نقاط إضافية للمُحيل عند أول شراء للصديق
+                            await loyaltyStorage.awardReferralPurchaseBonus(
+                                referralResult.referral.referrerUserId,
+                                order.id,
+                            );
+                            console.log(`[AQUAVO Referral] First purchase by referred user ${userId}, referrer ${referralResult.referral.referrerUserId} awarded bonus points`);
+                        }
+                    } catch (refErr) {
+                        console.error("[AQUAVO Referral] markFirstPurchase failed:", refErr);
+                    }
+                } catch (loyaltyErr) {
+                    console.error("[AQUAVO Loyalty] Points processing failed:", loyaltyErr);
+                    // لا نوقف الطلب بسبب فشل النقاط
+                }
+            }
+
             // === AQUAVO AI CORPORATION - EVENT BUS TRIGGER ===
             try {
                 if (db) {
@@ -97,7 +151,19 @@ export function createOrderRouter(): RouterType {
                 console.error("[AQUAVO AI] EventBus Notification Failed:", e);
             }
 
-            res.status(201).json(order);
+            // إضافة معلومات النقاط في الرد
+            const response: any = { ...order };
+            if (loyaltyResult) {
+                response.loyalty = {
+                    pointsEarned: loyaltyResult.purchasePoints,
+                    cashbackEarned: loyaltyResult.roundingPoints,
+                    roundedTotal: loyaltyResult.roundedTotal,
+                    tier: loyaltyResult.newTier,
+                    tierUpgraded: loyaltyResult.tierChanged,
+                };
+            }
+
+            res.status(201).json(response);
         } catch (err: any) {
             // Convert known validation errors to 400
             if (err.message?.includes('not found') ||

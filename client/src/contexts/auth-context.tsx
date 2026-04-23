@@ -11,6 +11,8 @@ interface User {
   birthDate?: string | null;
   loyaltyPoints?: number;
   loyaltyTier?: string;
+  cashbackBalance?: number;
+  totalSpent?: number;
   createdAt?: string;
   isEarlyAccess?: boolean;
   preferences?: {

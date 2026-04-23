@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { User, CheckCircle2 } from "lucide-react";
@@ -15,6 +15,7 @@ import { CustomerInfoForm } from "./checkout/customer-info-form";
 import { CouponSection } from "./checkout/coupon-section";
 import { OrderSummary } from "./checkout/order-summary";
 import { ConfirmationView } from "./checkout/confirmation-view";
+import { CheckoutLoyaltySection } from "./checkout/loyalty-section";
 
 interface CheckoutDialogProps {
   open: boolean;
@@ -36,6 +37,21 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     notes: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Loyalty points state
+  const [loyaltyData, setLoyaltyData] = useState({
+    usePoints: false,
+    useCashback: false,
+    pointsToUse: 0,
+    cashbackToUse: 0,
+    pointsDiscount: 0,
+    roundedAmount: 0,
+    cashbackEarned: 0,
+  });
+
+  const handleLoyaltyChange = useCallback((data: typeof loyaltyData) => {
+    setLoyaltyData(data);
+  }, []);
 
   // Auto-fill user data when dialog opens
   useEffect(() => {
@@ -118,7 +134,12 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             productId: item.id
           })),
           total: cartTotal,
-          couponCode: appliedCoupon ? appliedCoupon.code : undefined
+          couponCode: appliedCoupon ? appliedCoupon.code : undefined,
+          // Loyalty points data
+          usePoints: loyaltyData.usePoints,
+          useCashback: loyaltyData.useCashback,
+          pointsToUse: loyaltyData.pointsToUse,
+          cashbackToUse: loyaltyData.cashbackToUse,
         }),
       });
 
@@ -164,8 +185,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   // Shipping Logic
   const deliveryFee = (cartTotal > 100000 || appliedCoupon?.type === "free_shipping") ? 0 : 5000;
   const isFreeShipping = deliveryFee === 0;
-  const discount = couponDiscount;
-  const grandTotal = cartTotal + deliveryFee - discount;
+  const discount = couponDiscount + loyaltyData.pointsDiscount;
+  const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
   const applyCoupon = async () => {
     setCouponError("");
@@ -274,6 +295,14 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                 couponSuccess={couponSuccess}
               />
 
+              {/* Loyalty Points Section - Only for logged-in users */}
+              {user && (
+                <CheckoutLoyaltySection
+                  cartTotal={cartTotal - couponDiscount}
+                  onPointsChange={handleLoyaltyChange}
+                />
+              )}
+
               <OrderSummary
                 cartTotal={cartTotal}
                 deliveryFee={deliveryFee}
@@ -281,6 +310,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                 grandTotal={grandTotal}
                 isFreeShipping={isFreeShipping}
                 getDeliveryEstimate={getDeliveryEstimate}
+                loyaltyDiscount={loyaltyData.pointsDiscount}
+                cashbackEarned={loyaltyData.cashbackEarned}
               />
 
               <Button onClick={handleContinue} className="w-full" size="lg">

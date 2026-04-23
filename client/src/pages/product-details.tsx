@@ -12,7 +12,7 @@ import { formatNumber } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package } from "lucide-react";
+import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package, FileText, ExternalLink } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -474,6 +474,26 @@ export default function ProductDetails() {
                     </div>
                   </CardContent>
                 </Card>
+
+                {/* YEE Certificate of Authenticity - Trust Signal */}
+                <a
+                  href="/certificates/Certificate_of_Authenticity_YEE.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer"
+                >
+                  <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
+                    <FileText className="w-5 h-5 text-yellow-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-1">
+                      وكيل YEE المعتمد
+                      <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </p>
+                    <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">شهادة أصالة رسمية — اضغط للتحقق</p>
+                  </div>
+                  <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                </a>
               </div>
             </div>
 

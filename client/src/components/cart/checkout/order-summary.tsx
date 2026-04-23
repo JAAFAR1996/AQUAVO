@@ -8,9 +8,11 @@ interface OrderSummaryProps {
     grandTotal: number;
     isFreeShipping: boolean;
     getDeliveryEstimate: () => string;
+    loyaltyDiscount?: number;
+    cashbackEarned?: number;
 }
 
-export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate }: OrderSummaryProps) {
+export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned }: OrderSummaryProps) {
     return (
         <div className="bg-muted/50 rounded-lg p-4 space-y-3">
             <div className="flex justify-between text-sm">
@@ -40,11 +42,23 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                     <span>-{formatIQD(discount)}</span>
                 </div>
             )}
+            {loyaltyDiscount && loyaltyDiscount > 0 && (
+                <div className="flex justify-between text-sm text-purple-600">
+                    <span>خصم النقاط:</span>
+                    <span>-{formatIQD(loyaltyDiscount)}</span>
+                </div>
+            )}
             <Separator />
             <div className="flex justify-between font-bold text-lg">
                 <span>المجموع الكلي:</span>
                 <span className="text-primary">{formatIQD(grandTotal)}</span>
             </div>
+
+            {cashbackEarned && cashbackEarned > 0 && (
+                <div className="text-xs text-purple-600 bg-purple-50 dark:bg-purple-950/20 p-2 rounded border border-purple-100 dark:border-purple-800 text-center">
+                    ✨ ستحصل على +{cashbackEarned} نقطة باقي تقريب مع هذا الطلب
+                </div>
+            )}
 
             <div className="mt-2 text-center bg-green-50 text-green-700 py-2 rounded-md text-sm font-bold border border-green-100 dark:bg-green-950/20 dark:text-green-400 dark:border-green-800">
                 💰 طريقة الدفع: الدفع عند الاستلام

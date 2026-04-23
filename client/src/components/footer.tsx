@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Facebook, Instagram, Phone, Mail, MapPin, Fish, CreditCard, Truck, Shield, Clock, ChevronLeft, Youtube, MessageCircle, Lock, Award, Heart } from "lucide-react";
+import { Facebook, Instagram, Phone, Mail, MapPin, Fish, CreditCard, Truck, Shield, Clock, ChevronLeft, Youtube, MessageCircle, Lock, Award, Heart, FileText, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -113,7 +113,7 @@ export default function Footer() {
         </div>
 
         {/* Trust Badges Section */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 py-8 border-b border-slate-800/50">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-b border-slate-800/50">
           <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
             <div className="p-2 bg-blue-500/20 rounded-full mb-2">
               <Lock className="h-5 w-5 text-blue-500" />
@@ -135,6 +135,22 @@ export default function Footer() {
             <p className="font-medium text-white text-xs">منتجات أصلية 100%</p>
             <p className="text-[10px] text-slate-400">وكلاء معتمدون</p>
           </div>
+          {/* YEE Certificate of Authenticity */}
+          <a
+            href="/certificates/Certificate_of_Authenticity_YEE.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer"
+          >
+            <div className="p-2 bg-yellow-500/20 rounded-full mb-2 group-hover:bg-yellow-500/30 transition-colors">
+              <FileText className="h-5 w-5 text-yellow-500" />
+            </div>
+            <p className="font-medium text-white text-xs flex items-center gap-1">
+              شهادة YEE الرسمية
+              <ExternalLink className="h-3 w-3 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </p>
+            <p className="text-[10px] text-yellow-400/70">وكيل معتمد — اضغط للتحقق</p>
+          </a>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 py-12">

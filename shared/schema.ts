@@ -31,6 +31,7 @@ export const users = pgTable("users", {
   loyaltyPoints: integer("loyalty_points").default(0),
   loyaltyTier: text("loyalty_tier").default("bronze"),
   cashbackBalance: integer("cashback_balance").default(0),
+  totalSpent: integer("total_spent").default(0), // إجمالي المشتريات التراكمي بالدينار - لحساب مستوى العضوية
   preferences: jsonb("preferences").$type<{
     tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
     theme?: "light" | "dark" | "system";
@@ -110,9 +111,15 @@ export const orders = pgTable("orders", {
   status: text("status").notNull().default("pending"),
   paymentStatus: text("payment_status").notNull().default("pending"), // pending, paid, failed, refunded
   total: numeric("total").notNull(),
+  roundedTotal: numeric("rounded_total"), // المبلغ بعد التقريب لأقرب 250 دينار
   shippingCost: numeric("shipping_cost").notNull().default("0"),
   couponId: text("coupon_id"),
   discountTotal: numeric("discount_total").default("0"),
+  pointsUsed: integer("points_used").default(0), // نقاط الولاء المستخدمة
+  cashbackUsed: integer("cashback_used").default(0), // نقاط الباقي المستخدمة
+  pointsDiscount: numeric("points_discount").default("0"), // قيمة الخصم من النقاط بالدينار
+  pointsEarned: integer("points_earned").default(0), // نقاط الولاء المكتسبة من هذا الطلب
+  roundingCashback: integer("rounding_cashback").default(0), // نقاط الباقي من التقريب
   // Stronger Typing for JSONB
   items: jsonb("items").notNull().$type<{ productId: string; quantity: number; priceAtPurchase: number; }[]>(),
   shippingAddress: jsonb("shipping_address").$type<{ addressLine1: string; city: string; country: string; }>(),
@@ -2206,3 +2213,39 @@ export type FishPatient = typeof fishPatients.$inferSelect;
 export type InsertFishPatient = z.infer<typeof insertFishPatientSchema>;
 export type FishMedicalRecord = typeof fishMedicalRecords.$inferSelect;
 export type InsertFishMedicalRecord = z.infer<typeof insertFishMedicalRecordSchema>;
+
+// ========================================
+// Loyalty Transactions (سجل حركات النقاط)
+// ========================================
+
+export const loyaltyTransactions = pgTable("loyalty_transactions", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired'
+  pointsType: text("points_type").notNull().default("loyalty"), // 'loyalty' | 'cashback'
+  amount: integer("amount").notNull(), // Positive = earned, Negative = spent
+  balanceAfter: integer("balance_after").notNull(), // الرصيد بعد العملية
+  orderId: text("order_id").references(() => orders.id), // الطلب المرتبط (إن وجد)
+  description: text("description").notNull(), // وصف العملية بالعربي
+  metadata: jsonb("metadata").$type<Record<string, any>>(), // بيانات إضافية
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("loyalty_tx_user_id_idx").on(table.userId),
+  typeIdx: index("loyalty_tx_type_idx").on(table.type),
+  orderIdIdx: index("loyalty_tx_order_id_idx").on(table.orderId),
+  createdAtIdx: index("loyalty_tx_created_at_idx").on(table.createdAt),
+}));
+
+export const insertLoyaltyTransactionSchema = z.object({
+  userId: z.string().min(1),
+  type: z.enum(['purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired']),
+  pointsType: z.enum(['loyalty', 'cashback']).default('loyalty'),
+  amount: z.number().int(),
+  balanceAfter: z.number().int(),
+  orderId: z.string().optional(),
+  description: z.string().min(1),
+  metadata: z.record(z.any()).optional(),
+});
+
+export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
+export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
