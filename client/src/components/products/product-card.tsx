@@ -41,7 +41,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
 
   // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
   const isYEE = product.brand?.toUpperCase() === "YEE";
-  const hasPrice = isYEE && (product.price ?? 0) > 0;
+  const hasPrice = isYEE && ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -154,14 +154,19 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
             <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
               {hasPrice ? (
                 <>
-                  {(product.originalPrice ?? 0) > (product.price ?? 0) && (
+                  {/* سعر شطب (إذا موجود) */}
+                  {!product.hasVariants && (product.originalPrice ?? 0) > (product.price ?? 0) && (
                     <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
                       {formatPrice(product.originalPrice!)}
                     </span>
                   )}
+                  {/* السعر الفعلي: أقل سعر فاريانت أو سعر المنتج */}
                   <span className="text-base sm:text-xl font-bold text-primary">
-                    {formatPrice(product.price!)}
+                    {product.hasVariants && variantMinPrice !== undefined
+                      ? formatPrice(variantMinPrice)
+                      : formatPrice(product.price!)}
                   </span>
+                  {/* كلمة "من" قبل السعر للمنتجات ذات الفاريانتات */}
                   {(product.hasVariants && variantMinPrice !== undefined) && (
                     <span className="text-[10px] text-muted-foreground">من</span>
                   )}

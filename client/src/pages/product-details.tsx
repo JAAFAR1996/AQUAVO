@@ -84,7 +84,10 @@ export default function ProductDetails() {
 
   // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
   const isYEE = product?.brand?.toUpperCase() === "YEE";
-  const hasPrice = isYEE && displayPrice > 0;
+  const variantMinPriceDetail = (product?.hasVariants && product?.variants?.length)
+    ? Math.min(...product.variants.map(v => v.price))
+    : undefined;
+  const hasPrice = isYEE && (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
 
   const handleAddToCart = () => {
     if (product) {
