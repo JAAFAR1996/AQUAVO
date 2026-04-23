@@ -137,7 +137,7 @@ export default function Footer() {
           </div>
           {/* YEE Certificate of Authenticity */}
           <a
-            href="/certificates/Certificate_of_Authenticity_YEE.pdf"
+            href="/certificates/yee-certificate.pdf"
             target="_blank"
             rel="noopener noreferrer"
             className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer"

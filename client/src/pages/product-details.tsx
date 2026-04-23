@@ -478,7 +478,7 @@ export default function ProductDetails() {
                 {/* YEE Certificate of Authenticity - Trust Signal */}
                 {product?.brand?.toLowerCase() === 'yee' && (
                   <a
-                    href="/certificates/Certificate_of_Authenticity_YEE.pdf"
+                    href="/certificates/yee-certificate.pdf"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer"
