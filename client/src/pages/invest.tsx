@@ -153,7 +153,7 @@ export default function InvestPage() {
                                 </CardHeader>
                                 <CardContent>
                                     <p className="text-muted-foreground">
-                                        وكلاء حصريين لمنتجات YEE العالمية بجودة مضمونة وأسعار تنافسية.
+                                        منتجات YEE أصلية 100% بشهادة من الشركة المصنعة وأسعار تنافسية.
                                     </p>
                                 </CardContent>
                             </Card>

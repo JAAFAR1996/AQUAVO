@@ -142,10 +142,10 @@ export default function Footer() {
               <FileText className="h-5 w-5 text-yellow-500" />
             </div>
             <p className="font-medium text-white text-xs flex items-center gap-1">
-              شهادة YEE الرسمية
+              شهادة أصالة YEE
               <ExternalLink className="h-3 w-3 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
-            <p className="text-[10px] text-yellow-400/70">وكيل معتمد — اضغط للتحقق</p>
+            <p className="text-[10px] text-yellow-400/70">منتجات أصلية 100% — اضغط للتحقق</p>
             </a>
           </Link>
         </div>

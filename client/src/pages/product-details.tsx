@@ -484,10 +484,10 @@ export default function ProductDetails() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-1">
-                        وكيل YEE المعتمد
+                        منتجات YEE أصلية 100%
                         <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </p>
-                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">شهادة أصالة رسمية — اضغط للتحقق</p>
+                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">شهادة أصالة من الشركة المصنعة — اضغط للتحقق</p>
                     </div>
                     <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                     </a>

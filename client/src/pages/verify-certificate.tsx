@@ -57,7 +57,7 @@ export default function VerifyCertificate() {
             transition={{ delay: 0.1 }}
             className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 font-cairo"
           >
-            شهادة الوكالة الرسمية <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500">YEE</span>
+            شهادة أصالة المنتجات <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 to-amber-500">YEE</span>
           </motion.h1>
           
           <motion.p 
@@ -66,7 +66,7 @@ export default function VerifyCertificate() {
             transition={{ delay: 0.2 }}
             className="text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-tajawal leading-relaxed"
           >
-            الشفافية هي أساس علاقتنا. هذه الوثيقة الرسمية تثبت أن <strong className="text-slate-900 dark:text-white">AQUAVO</strong> هو الموزع المعتمد لمنتجات YEE الأصلية في العراق.
+            هذه الشهادة الرسمية من شركة Weifang Yipin تؤكد أن جميع منتجات YEE التي يوفرها <strong className="text-slate-900 dark:text-white">AQUAVO</strong> في العراق هي منتجات أصلية 100%.
           </motion.p>
         </div>
 
@@ -150,7 +150,7 @@ export default function VerifyCertificate() {
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900 dark:text-white font-cairo">تم التحقق بنجاح</h3>
-                  <p className="text-sm text-green-600 dark:text-green-500 font-tajawal mt-1 font-medium">شهادة أصلية وصالحة — توثيق رسمي</p>
+                  <p className="text-sm text-green-600 dark:text-green-500 font-tajawal mt-1 font-medium">شهادة أصالة منتجات — وثيقة رسمية</p>
                 </div>
               </div>
 
@@ -160,7 +160,7 @@ export default function VerifyCertificate() {
                   <span className="text-sm font-bold text-slate-900 dark:text-white font-mono">Weifang Yipin Pet Products</span>
                 </div>
                 <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800/50">
-                  <span className="text-sm text-slate-500 dark:text-slate-400 font-tajawal">الوكيل المعتمد</span>
+                  <span className="text-sm text-slate-500 dark:text-slate-400 font-tajawal">المورَّد إليه</span>
                   <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600 dark:from-blue-400 dark:to-cyan-400">AQUAVO (العراق)</span>
                 </div>
                 <div className="flex justify-between items-center pb-2">
