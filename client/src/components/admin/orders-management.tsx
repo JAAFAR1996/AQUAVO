@@ -40,6 +40,7 @@ interface Order {
   userId: string;
   customerEmail?: string;
   customerName?: string;
+  customerPhone?: string;
   items: OrderItem[];
   total: number;
   totalAmount?: number; // legacy alias
@@ -340,6 +341,14 @@ export function OrdersManagement() {
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-2">معلومات العميل</h3>
                   <p className="font-medium">{selectedOrder.customerName || "غير محدد"}</p>
+                  {selectedOrder.customerPhone && (
+                    <p className="text-sm font-mono mt-1 flex items-center gap-1">
+                      <span>📞</span>
+                      <a href={`tel:${selectedOrder.customerPhone}`} className="text-primary hover:underline" dir="ltr">
+                        {selectedOrder.customerPhone}
+                      </a>
+                    </p>
+                  )}
                   <p className="text-sm text-muted-foreground">{selectedOrder.customerEmail || "غير محدد"}</p>
                   {selectedOrder.shippingAddress && (
                     <p className="text-sm mt-1">{selectedOrder.shippingAddress}</p>

@@ -112,26 +112,7 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
                 />
             </div>
 
-            {/* Loyalty Points Info (display only - not redeemable) */}
-            {(balance.loyaltyPoints ?? 0) > 0 && (
-                <div className="flex items-center gap-3 py-2 opacity-60">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        {balance.tier === "gold" || balance.tier === "diamond" ? (
-                            <Crown className="w-4 h-4 text-primary" />
-                        ) : (
-                            <Star className="w-4 h-4 text-primary" />
-                        )}
-                    </div>
-                    <div>
-                        <p className="text-xs text-muted-foreground">
-                            نقاط الولاء: {(balance.loyaltyPoints ?? 0).toLocaleString()} نقطة
-                        </p>
-                        <p className="text-[10px] text-muted-foreground/60">
-                            للعضوية فقط - لا تُصرف كخصم
-                        </p>
-                    </div>
-                </div>
-            )}
+
 
             {/* Preview Summary */}
             {isLoadingPreview ? (
@@ -164,7 +145,7 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
             {/* توضيح */}
             <div className="text-[11px] text-muted-foreground/70 text-center leading-relaxed">
                 <Info className="w-3 h-3 inline ml-1" />
-                رصيد الباقي = فلوسك من فرق التقريب. تقدر تستخدمه كله كخصم
+                رصيد الباقي = فلوسك من فرق التقريب. تگدر تستخدمه كله كخصم
             </div>
         </Card>
     );
