@@ -82,6 +82,10 @@ export default function ProductDetails() {
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
 
+  // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
+  const isYEE = product?.brand?.toUpperCase() === "YEE";
+  const hasPrice = isYEE && displayPrice > 0;
+
   const handleAddToCart = () => {
     if (product) {
       // Create a modified product with variant info in the name
@@ -296,16 +300,22 @@ export default function ProductDetails() {
                 </div>
 
                 <div className="mb-4">
-                  <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-4xl font-bold text-primary">
-                      {formatPrice(displayPrice)}
-                    </span>
-                    {displayOriginalPrice && displayOriginalPrice > displayPrice && (
-                      <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
-                        {formatPrice(displayOriginalPrice)}
+                  {hasPrice ? (
+                    <div className="flex items-baseline gap-3 flex-wrap">
+                      <span className="text-4xl font-bold text-primary">
+                        {formatPrice(displayPrice)}
                       </span>
-                    )}
-                  </div>
+                      {displayOriginalPrice && displayOriginalPrice > displayPrice && (
+                        <span className="text-xl text-muted-foreground line-through decoration-destructive decoration-2">
+                          {formatPrice(displayOriginalPrice)}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-bold text-muted-foreground">قريباً جداً ✨</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Product Variants - Check for multi-dimensional first, then embedded */}
@@ -376,7 +386,7 @@ export default function ProductDetails() {
                 </p>
 
                 {/* Quantity & Add to Cart */}
-                {displayStock > 0 && (
+                {hasPrice && displayStock > 0 && (
                   <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-4">
                       <label className="text-sm font-medium">الكمية:</label>
@@ -437,7 +447,13 @@ export default function ProductDetails() {
                 )}
 
                 {/* Out of Stock Button */}
-                {displayStock <= 0 && (
+                {!hasPrice && (
+                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled>
+                    <Package className="w-5 h-5" />
+                    قريباً جداً
+                  </Button>
+                )}
+                {hasPrice && displayStock <= 0 && (
                   <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6">
                     <Package className="w-5 h-5" />
                     أبلغني عند التوفر
