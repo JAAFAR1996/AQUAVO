@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Crown, Star, Gift, TrendingUp, Users, ShoppingCart, History, Coins, ArrowUpCircle, ArrowDownCircle, Sparkles, Loader2 } from "lucide-react";
+import { CheckCircle, Crown, Star, Gift, TrendingUp, Users, ShoppingCart, History, Coins, ArrowUpCircle, ArrowDownCircle, Sparkles, Loader2, Clock, ShieldCheck } from "lucide-react";
 import { useMemo } from "react";
 import { useLoyaltyBalance, useLoyaltyHistory } from "@/hooks/use-loyalty";
 import { formatIQD } from "@/lib/utils";
@@ -75,6 +75,8 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
     const actualPoints = balance?.loyaltyPoints ?? fallbackPoints;
     const actualTier = (balance?.tier ?? fallbackTier) as TierKey;
     const cashbackBalance = balance?.cashbackBalance ?? 0;
+    const pendingLoyaltyPoints = balance?.pendingLoyaltyPoints ?? 0;
+    const pendingCashbackBalance = balance?.pendingCashbackBalance ?? 0;
     const totalSpent = balance?.totalSpent ?? 0;
     const progressPercent = balance?.progressPercent ?? 0;
     const amountToNextTier = balance?.amountToNextTier;
@@ -154,6 +156,30 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                                 </p>
                             </div>
                         </div>
+
+                        {/* Pending Balances */}
+                        {(pendingLoyaltyPoints > 0 || pendingCashbackBalance > 0) && (
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3 mb-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Clock className="w-4 h-4 text-amber-500 animate-pulse" />
+                                    <span className="text-sm font-semibold text-amber-600 dark:text-amber-400">أرصدة مجمدة (بانتظار تأكيد الاستلام)</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    {pendingLoyaltyPoints > 0 && (
+                                        <div className="text-center">
+                                            <p className="text-lg font-bold text-amber-600 dark:text-amber-400">+{pendingLoyaltyPoints.toLocaleString()}</p>
+                                            <p className="text-xs text-muted-foreground">نقاط ولاء</p>
+                                        </div>
+                                    )}
+                                    {pendingCashbackBalance > 0 && (
+                                        <div className="text-center">
+                                            <p className="text-lg font-bold text-amber-600 dark:text-amber-400">+{pendingCashbackBalance.toLocaleString()}</p>
+                                            <p className="text-xs text-muted-foreground">نقاط باقي</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
 
                         {/* Total Value */}
                         <div className="bg-white/50 dark:bg-white/5 rounded-lg px-4 py-2 mb-4">
@@ -326,8 +352,22 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                                                 })}
                                             </p>
                                         </div>
-                                        <div className={`text-sm font-bold ${tx.amount > 0 ? "text-green-600" : "text-red-500"}`}>
-                                            {tx.amount > 0 ? "+" : ""}{tx.amount}
+                                        <div className="text-sm font-bold flex items-center gap-1.5">
+                                            {tx.status === "pending" && (
+                                                <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium">
+                                                    <Clock className="w-3 h-3" />
+                                                    مجمدة
+                                                </span>
+                                            )}
+                                            {tx.status === "approved" && tx.amount > 0 && (
+                                                <span className="inline-flex items-center gap-0.5 text-[10px] px-1.5 py-0.5 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 font-medium">
+                                                    <ShieldCheck className="w-3 h-3" />
+                                                    مؤكدة
+                                                </span>
+                                            )}
+                                            <span className={tx.amount > 0 ? "text-green-600" : "text-red-500"}>
+                                                {tx.amount > 0 ? "+" : ""}{tx.amount}
+                                            </span>
                                         </div>
                                     </div>
                                 );

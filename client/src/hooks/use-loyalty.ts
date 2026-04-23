@@ -8,8 +8,10 @@ import { useQuery } from "@tanstack/react-query";
 
 export interface LoyaltyBalance {
   loyaltyPoints: number;
+  pendingLoyaltyPoints: number;
   loyaltyValueIQD: number;
   cashbackBalance: number;
+  pendingCashbackBalance: number;
   cashbackValueIQD: number;
   totalValueIQD: number;
   tier: "bronze" | "silver" | "gold" | "diamond";
@@ -38,6 +40,7 @@ export interface LoyaltyTransaction {
   balanceAfter: number;
   orderId: string | null;
   description: string;
+  status: "pending" | "approved" | "rejected";
   metadata: Record<string, any> | null;
   createdAt: string;
 }
