@@ -161,12 +161,16 @@ export interface RedeemResult {
 }
 
 export interface LoyaltyBalance {
-  /** نقاط الولاء */
+  /** نقاط الولاء الفعالة */
   loyaltyPoints: number;
+  /** نقاط الولاء المجمدة */
+  pendingLoyaltyPoints: number;
   /** قيمتها بالدينار */
   loyaltyValueIQD: number;
-  /** نقاط الباقي */
+  /** نقاط الباقي الفعالة */
   cashbackBalance: number;
+  /** نقاط الباقي المجمدة */
+  pendingCashbackBalance: number;
   /** قيمتها بالدينار */
   cashbackValueIQD: number;
   /** إجمالي القيمة */
@@ -278,7 +282,9 @@ export class LoyaltyStorage {
     }
 
     const currentLoyalty = user.loyaltyPoints ?? 0;
+    const currentPendingLoyalty = user.pendingLoyaltyPoints ?? 0;
     const currentCashback = user.cashbackBalance ?? 0;
+    const currentPendingCashback = user.pendingCashbackBalance ?? 0;
     const currentTotalSpent = user.totalSpent ?? 0;
     const currentTier = (user.loyaltyTier as TierName) || "bronze";
 
@@ -297,23 +303,23 @@ export class LoyaltyStorage {
     const purchasePoints = this.calculatePurchasePoints(rounding.roundedAmount, currentTier);
     const roundingPoints = rounding.remainder; // 1 نقطة cashback = 1 دينار
 
-    // 6. تحديث الأرصدة
-    const newLoyaltyPoints = currentLoyalty - pointsUsed + purchasePoints;
-    const newCashbackBalance = currentCashback - cashbackUsed + roundingPoints;
-    const newTotalSpent = currentTotalSpent + Math.round(rounding.roundedAmount);
+    // 6. تحديث الأرصدة: النقاط المكتسبة تذهب إلى الرصيد المجمد، والمستخدمة تخصم من الفعلي
+    const newLoyaltyPoints = currentLoyalty - pointsUsed;
+    const newPendingLoyalty = currentPendingLoyalty + purchasePoints;
+    
+    const newCashbackBalance = currentCashback - cashbackUsed;
+    const newPendingCashback = currentPendingCashback + roundingPoints;
 
-    // 7. تحديث المستوى
-    const newTier = this.calculateTier(newTotalSpent);
-    const tierChanged = newTier !== currentTier;
+    // ملاحظة: لا نحدث totalSpent أو المستوى إلا بعد تأكيد الاستلام (Approve)
 
     // 8. تحديث المستخدم في قاعدة البيانات
     await db
       .update(users)
       .set({
         loyaltyPoints: newLoyaltyPoints,
+        pendingLoyaltyPoints: newPendingLoyalty,
         cashbackBalance: newCashbackBalance,
-        totalSpent: newTotalSpent,
-        loyaltyTier: newTier,
+        pendingCashbackBalance: newPendingCashback,
         updatedAt: new Date(),
       })
       .where(eq(users.id, userId));
@@ -358,43 +364,31 @@ export class LoyaltyStorage {
       });
     }
 
-    // إضافة نقاط الشراء
+    // إضافة نقاط الشراء (مجمدة)
     if (purchasePoints > 0) {
       await this.logTransaction(userId, {
         type: "purchase_earn",
         pointsType: "loyalty",
+        status: "pending",
         amount: purchasePoints,
-        balanceAfter: newLoyaltyPoints,
+        balanceAfter: newPendingLoyalty, // سجلنا الرصيد المجمد هنا مؤقتاً
         orderId,
-        description: `كسبت ${purchasePoints} نقطة من شراء بقيمة ${rounding.roundedAmount.toLocaleString()} د.ع`,
+        description: `نقاط مجمدة: كسبت ${purchasePoints} نقطة من شراء بقيمة ${rounding.roundedAmount.toLocaleString()} د.ع`,
         metadata: { orderTotal: rounding.roundedAmount, tier: currentTier, multiplier: MEMBERSHIP_TIERS[currentTier].pointMultiplier },
       });
     }
 
-    // إضافة نقاط الباقي
+    // إضافة نقاط الباقي (مجمدة)
     if (roundingPoints > 0) {
       await this.logTransaction(userId, {
         type: "rounding_earn",
         pointsType: "cashback",
+        status: "pending",
         amount: roundingPoints,
-        balanceAfter: newCashbackBalance,
+        balanceAfter: newPendingCashback,
         orderId,
-        description: `باقي التقريب: ${roundingPoints} نقطة (${rounding.originalAmount.toLocaleString()} → ${rounding.roundedAmount.toLocaleString()} د.ع)`,
+        description: `باقي تقريب مجمد: ${roundingPoints} نقطة (${rounding.originalAmount.toLocaleString()} → ${rounding.roundedAmount.toLocaleString()} د.ع)`,
         metadata: { original: rounding.originalAmount, rounded: rounding.roundedAmount },
-      });
-    }
-
-    // ترقية المستوى
-    if (tierChanged) {
-      const tierInfo = MEMBERSHIP_TIERS[newTier];
-      await this.logTransaction(userId, {
-        type: "tier_bonus",
-        pointsType: "loyalty",
-        amount: 0,
-        balanceAfter: newLoyaltyPoints,
-        orderId,
-        description: `🎉 تمت ترقيتك إلى عضو ${tierInfo.name}! مبارك!`,
-        metadata: { oldTier: currentTier, newTier, benefits: tierInfo.benefits },
       });
     }
 
@@ -402,9 +396,82 @@ export class LoyaltyStorage {
       purchasePoints,
       roundingPoints,
       roundedTotal: rounding.roundedAmount,
-      newTier,
-      tierChanged,
+      newTier: currentTier, // لم يتغير بعد
+      tierChanged: false,
     };
+  }
+
+  /**
+   * تأكيد النقاط المجمدة وترقية المستوى (يستدعى عند تأكيد استلام الطلب)
+   */
+  async approveOrderPoints(userId: string, orderId: string, orderTotal: number): Promise<void> {
+    const db = this.ensureDb();
+
+    // 1. جلب المستخدم
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new Error("User not found");
+
+    // 2. جلب الحركات المجمدة لهذا الطلب
+    const pendingTx = await db.select()
+      .from(loyaltyTransactions)
+      .where(
+        sql`${loyaltyTransactions.userId} = ${userId} AND ${loyaltyTransactions.orderId} = ${orderId} AND ${loyaltyTransactions.status} = 'pending'`
+      );
+
+    if (pendingTx.length === 0) return; // لا يوجد شيء لتوثيقه
+
+    let totalLoyaltyEarned = 0;
+    let totalCashbackEarned = 0;
+
+    for (const tx of pendingTx) {
+      if (tx.pointsType === "loyalty") totalLoyaltyEarned += tx.amount;
+      if (tx.pointsType === "cashback") totalCashbackEarned += tx.amount;
+      
+      // تحديث حالة الحركة لتصبح معتمدة
+      await db.update(loyaltyTransactions)
+        .set({ status: "approved" })
+        .where(eq(loyaltyTransactions.id, tx.id));
+    }
+
+    // 3. تحديث الأرصدة الفعلية والمجمدة
+    const newLoyaltyPoints = (user.loyaltyPoints ?? 0) + totalLoyaltyEarned;
+    const newPendingLoyalty = Math.max(0, (user.pendingLoyaltyPoints ?? 0) - totalLoyaltyEarned);
+    
+    const newCashbackBalance = (user.cashbackBalance ?? 0) + totalCashbackEarned;
+    const newPendingCashback = Math.max(0, (user.pendingCashbackBalance ?? 0) - totalCashbackEarned);
+
+    const newTotalSpent = (user.totalSpent ?? 0) + Math.round(orderTotal);
+    const currentTier = (user.loyaltyTier as TierName) || "bronze";
+    const newTier = this.calculateTier(newTotalSpent);
+    const tierChanged = newTier !== currentTier;
+
+    // 4. الحفظ في القاعدة
+    await db.update(users)
+      .set({
+        loyaltyPoints: newLoyaltyPoints,
+        pendingLoyaltyPoints: newPendingLoyalty,
+        cashbackBalance: newCashbackBalance,
+        pendingCashbackBalance: newPendingCashback,
+        totalSpent: newTotalSpent,
+        loyaltyTier: newTier,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    // 5. تسجيل حركة الترقية إن حدثت
+    if (tierChanged) {
+      const tierInfo = MEMBERSHIP_TIERS[newTier];
+      await this.logTransaction(userId, {
+        type: "tier_bonus",
+        pointsType: "loyalty",
+        status: "approved",
+        amount: 0,
+        balanceAfter: newLoyaltyPoints,
+        orderId,
+        description: `🎉 تمت ترقيتك إلى عضو ${tierInfo.name}! مبارك!`,
+        metadata: { oldTier: currentTier, newTier, benefits: tierInfo.benefits },
+      });
+    }
   }
 
   // ----------------------------------------
@@ -489,6 +556,8 @@ export class LoyaltyStorage {
 
     const loyaltyPoints = user.loyaltyPoints ?? 0;
     const cashbackBalance = user.cashbackBalance ?? 0;
+    const pendingLoyaltyPoints = user.pendingLoyaltyPoints ?? 0;
+    const pendingCashbackBalance = user.pendingCashbackBalance ?? 0;
     const totalSpent = user.totalSpent ?? 0;
     const tier = (user.loyaltyTier as TierName) || "bronze";
     const tierInfo = MEMBERSHIP_TIERS[tier];
@@ -513,8 +582,10 @@ export class LoyaltyStorage {
 
     return {
       loyaltyPoints,
+      pendingLoyaltyPoints,
       loyaltyValueIQD: loyaltyPoints * LOYALTY_POINT_VALUE_IQD,
       cashbackBalance,
+      pendingCashbackBalance,
       cashbackValueIQD: cashbackBalance * CASHBACK_POINT_VALUE_IQD,
       totalValueIQD: (loyaltyPoints * LOYALTY_POINT_VALUE_IQD) + (cashbackBalance * CASHBACK_POINT_VALUE_IQD),
       tier,
@@ -575,6 +646,7 @@ export class LoyaltyStorage {
     await this.logTransaction(userId, {
       type: "review_earn",
       pointsType: "loyalty",
+      status: "approved",
       amount: REVIEW_POINTS,
       balanceAfter: newBalance,
       description: `كسبت ${REVIEW_POINTS} نقاط لكتابة تقييم`,
@@ -618,6 +690,7 @@ export class LoyaltyStorage {
     await this.logTransaction(referrerUserId, {
       type: "referral_earn",
       pointsType: "loyalty",
+      status: "approved",
       amount: REFERRAL_FIRST_PURCHASE_BONUS,
       balanceAfter: newBalance,
       orderId,

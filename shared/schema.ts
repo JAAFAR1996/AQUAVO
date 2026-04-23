@@ -29,8 +29,10 @@ export const users = pgTable("users", {
   verificationToken: text("verification_token"),
   verificationTokenExpiresAt: timestamp("verification_token_expires_at"),
   loyaltyPoints: integer("loyalty_points").default(0),
+  pendingLoyaltyPoints: integer("pending_loyalty_points").default(0),
   loyaltyTier: text("loyalty_tier").default("bronze"),
   cashbackBalance: integer("cashback_balance").default(0),
+  pendingCashbackBalance: integer("pending_cashback_balance").default(0),
   totalSpent: integer("total_spent").default(0), // إجمالي المشتريات التراكمي بالدينار - لحساب مستوى العضوية
   preferences: jsonb("preferences").$type<{
     tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
@@ -2223,6 +2225,7 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
   userId: text("user_id").references(() => users.id).notNull(),
   type: text("type").notNull(), // 'purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired'
   pointsType: text("points_type").notNull().default("loyalty"), // 'loyalty' | 'cashback'
+  status: text("status").notNull().default("approved"), // 'pending', 'approved', 'rejected'
   amount: integer("amount").notNull(), // Positive = earned, Negative = spent
   balanceAfter: integer("balance_after").notNull(), // الرصيد بعد العملية
   orderId: text("order_id").references(() => orders.id), // الطلب المرتبط (إن وجد)
@@ -2240,6 +2243,7 @@ export const insertLoyaltyTransactionSchema = z.object({
   userId: z.string().min(1),
   type: z.enum(['purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired']),
   pointsType: z.enum(['loyalty', 'cashback']).default('loyalty'),
+  status: z.enum(['pending', 'approved', 'rejected']).default('approved'),
   amount: z.number().int(),
   balanceAfter: z.number().int(),
   orderId: z.string().optional(),
