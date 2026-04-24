@@ -140,3 +140,7 @@ Disallow: /profile
 # ─── LLMs.txt reference ──────────────────────────
 # See /llms.txt for AI content guidance (summary)
 # See /llms-full.txt for comprehensive documentation
+
+# ─── Content Signals (IETF Draft) ─────────────────
+# Declare AI content usage preferences
+Content-Signal: ai-train=no, search=yes, ai-input=yes

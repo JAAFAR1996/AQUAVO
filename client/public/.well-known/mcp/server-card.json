@@ -1,0 +1,25 @@
+{
+  "serverInfo": {
+    "name": "AQUAVO",
+    "version": "2.0.0",
+    "description": "AQUAVO — Iraq's premium aquarium supplies e-commerce platform. Browse products, track orders, and get AI-powered fish care advice."
+  },
+  "transport": {
+    "type": "https",
+    "endpoint": "https://www.aquavoiq.com/api"
+  },
+  "capabilities": {
+    "products": {
+      "description": "Browse aquarium products and supplies",
+      "endpoint": "/api/products"
+    },
+    "fish-encyclopedia": {
+      "description": "Comprehensive fish species database with care guides",
+      "endpoint": "/api/fish"
+    },
+    "health-check": {
+      "description": "Service health status",
+      "endpoint": "/health"
+    }
+  }
+}

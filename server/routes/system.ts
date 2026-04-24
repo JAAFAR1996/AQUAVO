@@ -59,11 +59,130 @@ export function createSystemRouter(): RouterType {
         }
     });
 
-    // Robots.txt
-    router.get("/robots.txt", (req: Request, res: Response): void => {
-        const robots = `User-agent: *\nDisallow: /admin\nDisallow: /api/\nSitemap: https://www.aquavoiq.com/sitemap.xml`;
-        res.header("Content-Type", "text/plain");
-        res.send(robots);
+    // Robots.txt — serve the comprehensive static file instead of inline text
+    router.get("/robots.txt", async (req: Request, res: Response): Promise<void> => {
+        try {
+            const fs = await import("fs/promises");
+            const path = await import("path");
+            const robotsPath = path.default.resolve(
+                process.cwd(),
+                process.env.NODE_ENV === "production" ? "dist/public/robots.txt" : "client/public/robots.txt"
+            );
+            const content = await fs.readFile(robotsPath, "utf-8");
+            res.header("Content-Type", "text/plain; charset=utf-8");
+            res.send(content);
+        } catch {
+            // Fallback if file not found
+            const robots = `User-agent: *\nDisallow: /admin\nDisallow: /api/\nSitemap: https://www.aquavoiq.com/sitemap.xml`;
+            res.header("Content-Type", "text/plain");
+            res.send(robots);
+        }
+    });
+
+    // ─── .well-known Endpoints (Agent Readiness) ─────────────
+    
+    // API Catalog (RFC 9727)
+    router.get("/.well-known/api-catalog", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/linkset+json");
+        res.json({
+            linkset: [{
+                anchor: "https://www.aquavoiq.com/api",
+                "service-desc": [{ href: "https://www.aquavoiq.com/.well-known/openapi.json", type: "application/json" }],
+                "service-doc": [{ href: "https://www.aquavoiq.com/", type: "text/html" }],
+                status: [{ href: "https://www.aquavoiq.com/health", type: "application/json" }]
+            }]
+        });
+    });
+
+    // MCP Server Card (SEP-2127)
+    router.get("/.well-known/mcp/server-card.json", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/json");
+        res.json({
+            serverInfo: {
+                name: "AQUAVO",
+                version: "2.0.0",
+                description: "AQUAVO — Iraq's premium aquarium supplies e-commerce platform. Browse products, track orders, and get AI-powered fish care advice."
+            },
+            transport: { type: "https", endpoint: "https://www.aquavoiq.com/api" },
+            capabilities: {
+                products: { description: "Browse aquarium products and supplies", endpoint: "/api/products" },
+                "fish-encyclopedia": { description: "Comprehensive fish species database with care guides", endpoint: "/api/fish" },
+                "health-check": { description: "Service health status", endpoint: "/health" }
+            }
+        });
+    });
+
+    // Also support the plural and flat paths that scanners check
+    router.get("/.well-known/mcp/server-cards.json", (_req: Request, res: Response): void => {
+        res.redirect(301, "/.well-known/mcp/server-card.json");
+    });
+    router.get("/.well-known/mcp.json", (_req: Request, res: Response): void => {
+        res.redirect(301, "/.well-known/mcp/server-card.json");
+    });
+
+    // Agent Skills Discovery Index (v0.2.0)
+    router.get("/.well-known/agent-skills/index.json", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/json");
+        res.json({
+            "$schema": "https://agentskills.io/schemas/v0.2.0/index.json",
+            skills: [
+                { name: "browse-products", type: "api", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.", url: "https://www.aquavoiq.com/api/products", sha256: "" },
+                { name: "fish-encyclopedia", type: "api", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", url: "https://www.aquavoiq.com/api/fish", sha256: "" },
+                { name: "ai-fish-advisor", type: "api", description: "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.", url: "https://www.aquavoiq.com/api/ai/chat", sha256: "" },
+                { name: "product-reviews", type: "api", description: "Read and submit product reviews from verified buyers.", url: "https://www.aquavoiq.com/api/reviews", sha256: "" },
+                { name: "blog-articles", type: "api", description: "Read aquarium care articles, tips, and guides from AQUAVO blog.", url: "https://www.aquavoiq.com/api/blog", sha256: "" }
+            ]
+        });
+    });
+
+    // Legacy agent-skills path
+    router.get("/.well-known/skills/index.json", (_req: Request, res: Response): void => {
+        res.redirect(301, "/.well-known/agent-skills/index.json");
+    });
+
+    // ACP - Agentic Commerce Protocol
+    router.get("/.well-known/acp.json", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/json");
+        res.json({
+            version: "1.0",
+            merchant: {
+                name: "AQUAVO", description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
+                url: "https://www.aquavoiq.com", logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
+                country: "IQ", currency: "IQD", language: "ar"
+            },
+            capabilities: {
+                catalog: { url: "https://www.aquavoiq.com/api/products", format: "json", description: "Full product catalog with pricing, images, and availability" },
+                search: { url: "https://www.aquavoiq.com/api/products?search={query}", format: "json", description: "Search products by name, category, or brand" }
+            },
+            payment: { methods: ["cash_on_delivery"], currency: "IQD" },
+            shipping: {
+                zones: [
+                    { name: "Baghdad", delivery_time: "1-2 business days", cost: 5000 },
+                    { name: "Other Governorates", delivery_time: "2-4 business days", cost: 5000 }
+                ],
+                free_shipping_threshold: 100000
+            },
+            contact: { phone: "+964 774 788 0673", website: "https://www.aquavoiq.com" }
+        });
+    });
+
+    // UCP - Universal Commerce Protocol (prevent soft-404)
+    router.get("/.well-known/ucp", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "UCP not implemented" });
+    });
+
+    // Prevent soft-404 for common .well-known paths
+    router.get("/.well-known/http-message-signatures-directory", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "Not implemented" });
+    });
+    router.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "Not implemented" });
+    });
+    router.get("/.well-known/openid-configuration", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "Not implemented" });
+    });
+    router.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "Not implemented" });
     });
 
     // Health check (public)
