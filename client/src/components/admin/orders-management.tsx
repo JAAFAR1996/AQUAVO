@@ -54,11 +54,19 @@ interface Order {
   items: OrderItem[];
   total: number;
   totalAmount?: number;
+  roundedTotal?: number;
   status: string;
   shippingAddress?: string;
   trackingNumber?: string;
   orderNumber?: string;
   shippingCost?: number;
+  discountTotal?: number;
+  couponId?: string;
+  pointsUsed?: number;
+  cashbackUsed?: number;
+  pointsDiscount?: number;
+  pointsEarned?: number;
+  roundingCashback?: number;
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -402,10 +410,91 @@ export function OrdersManagement() {
                   </Table>
                 </div>
               </div>
-              <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg">
-                <span className="font-bold text-lg">المبلغ الإجمالي:</span>
-                <span className="text-3xl font-bold text-primary">{Number(selectedOrder.total ?? 0).toLocaleString()} د.ع</span>
+
+              {/* === تفاصيل الحركة المالية الكاملة === */}
+              <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                <h3 className="font-bold text-sm flex items-center gap-2 border-b pb-2 mb-2">💰 تفاصيل الحركة المالية</h3>
+
+                {/* مجموع المنتجات */}
+                <div className="flex justify-between text-sm">
+                  <span>مجموع المنتجات:</span>
+                  <span className="font-semibold">{Number(selectedOrder.total ?? 0).toLocaleString()} د.ع</span>
+                </div>
+
+                {/* تكلفة التوصيل */}
+                <div className="flex justify-between text-sm">
+                  <span>🚚 تكلفة التوصيل:</span>
+                  <span className="font-semibold">
+                    {Number(selectedOrder.shippingCost ?? 0) > 0
+                      ? `${Number(selectedOrder.shippingCost).toLocaleString()} د.ع`
+                      : <span className="text-green-500">مجاناً</span>}
+                  </span>
+                </div>
+
+                {/* خصم الكوبون */}
+                {Number(selectedOrder.discountTotal ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>🎟️ خصم الكوبون {selectedOrder.couponId ? `(${selectedOrder.couponId})` : ''}:</span>
+                    <span className="font-semibold">- {Number(selectedOrder.discountTotal).toLocaleString()} د.ع</span>
+                  </div>
+                )}
+
+                {/* رصيد باقي مستخدم */}
+                {Number(selectedOrder.cashbackUsed ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-blue-600">
+                    <span>💳 رصيد باقي مستخدم:</span>
+                    <span className="font-semibold">- {Number(selectedOrder.cashbackUsed).toLocaleString()} د.ع</span>
+                  </div>
+                )}
+
+                {/* نقاط ولاء مستخدمة */}
+                {Number(selectedOrder.pointsUsed ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-purple-600">
+                    <span>⭐ نقاط ولاء مستخدمة ({selectedOrder.pointsUsed} نقطة):</span>
+                    <span className="font-semibold">- {Number(selectedOrder.pointsDiscount ?? 0).toLocaleString()} د.ع</span>
+                  </div>
+                )}
+
+                {/* التقريب */}
+                {Number(selectedOrder.roundedTotal ?? 0) > 0 && Number(selectedOrder.roundedTotal) !== Number(selectedOrder.total) && (
+                  <div className="flex justify-between text-sm text-orange-600">
+                    <span>🔄 التقريب لأقرب 250:</span>
+                    <span className="font-semibold">
+                      {Number(selectedOrder.roundedTotal ?? 0).toLocaleString()} د.ع
+                      {Number(selectedOrder.roundingCashback ?? 0) > 0 && (
+                        <span className="text-xs mr-1">(+{selectedOrder.roundingCashback} باقي)</span>
+                      )}
+                    </span>
+                  </div>
+                )}
+
+                {/* خط فاصل */}
+                <div className="border-t pt-3 mt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-bold text-lg">💵 المبلغ المدفوع نقداً:</span>
+                    <span className="text-2xl font-bold text-primary">
+                      {Number(selectedOrder.roundedTotal ?? selectedOrder.total ?? 0).toLocaleString()} د.ع
+                    </span>
+                  </div>
+                </div>
+
+                {/* نقاط مكتسبة */}
+                {Number(selectedOrder.pointsEarned ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm bg-green-50 dark:bg-green-950/30 p-2 rounded border border-green-200 dark:border-green-800">
+                    <span className="text-green-700 dark:text-green-400">🎁 نقاط ولاء مكتسبة:</span>
+                    <span className="font-bold text-green-700 dark:text-green-400">+{selectedOrder.pointsEarned} نقطة</span>
+                  </div>
+                )}
+
+                {/* باقي التقريب */}
+                {Number(selectedOrder.roundingCashback ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm bg-blue-50 dark:bg-blue-950/30 p-2 rounded border border-blue-200 dark:border-blue-800">
+                    <span className="text-blue-700 dark:text-blue-400">💰 باقي تقريب (يُضاف للمحفظة):</span>
+                    <span className="font-bold text-blue-700 dark:text-blue-400">+{selectedOrder.roundingCashback} د.ع</span>
+                  </div>
+                )}
               </div>
+
               {selectedOrder.notes && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm font-semibold text-yellow-800">ملاحظات:</p>
