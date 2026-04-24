@@ -180,8 +180,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     setStep('info');
   };
 
-  // Shipping Logic
-  const deliveryFee = (cartTotal > 100000 || appliedCoupon?.type === "free_shipping") ? 0 : 5000;
+  // Shipping Logic: بغداد 5,000 — خارج بغداد 8,000
+  const baseDeliveryFee = customerInfo.governorate === "baghdad" ? 5000 : 8000;
+  const deliveryFee = (cartTotal > 100000 || appliedCoupon?.type === "free_shipping") ? 0 : baseDeliveryFee;
   const isFreeShipping = deliveryFee === 0;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);

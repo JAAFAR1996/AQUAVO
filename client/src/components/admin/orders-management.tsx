@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Eye } from "lucide-react";
+import { Package, Search, Eye, AlertTriangle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { addCsrfHeader } from "@/lib/csrf";
 
 interface OrderItem {
@@ -43,7 +53,7 @@ interface Order {
   customerPhone?: string;
   items: OrderItem[];
   total: number;
-  totalAmount?: number; // legacy alias
+  totalAmount?: number;
   status: string;
   shippingAddress?: string;
   trackingNumber?: string;
@@ -55,12 +65,14 @@ interface Order {
 }
 
 const ORDER_STATUSES = {
-  pending: { label: "قيد الانتظار", variant: "destructive" as const, color: "bg-red-500 hover:bg-red-600" },
-  confirmed: { label: "تم التأكيد", variant: "default" as const, color: "bg-blue-500 hover:bg-blue-600" },
-  processing: { label: "جاري التجهيز", variant: "secondary" as const, color: "bg-yellow-500 hover:bg-yellow-600 text-black" },
-  shipped: { label: "تم التسليم للنقل", variant: "secondary" as const, color: "bg-orange-500 hover:bg-orange-600 text-white" },
-  delivered: { label: "تم التوصيل للزبون", variant: "default" as const, color: "bg-green-500 hover:bg-green-600" },
-  cancelled: { label: "ملغي", variant: "destructive" as const, color: "bg-gray-500 hover:bg-gray-600" },
+  pending: { label: "قيد الانتظار", color: "bg-red-500 hover:bg-red-600" },
+  confirmed: { label: "تم التأكيد", color: "bg-blue-500 hover:bg-blue-600" },
+  processing: { label: "جاري التجهيز", color: "bg-yellow-500 hover:bg-yellow-600 text-black" },
+  shipped: { label: "عند شركة النقل 🚚", color: "bg-orange-500 hover:bg-orange-600 text-white" },
+  delivered: { label: "تم التوصيل ✅", color: "bg-green-500 hover:bg-green-600" },
+  rejected: { label: "رفض الاستلام ❌", color: "bg-red-600 hover:bg-red-700" },
+  returned: { label: "تم الاسترجاع 📦", color: "bg-purple-500 hover:bg-purple-600 text-white" },
+  cancelled: { label: "ملغي", color: "bg-gray-500 hover:bg-gray-600" },
 };
 
 export function OrdersManagement() {
@@ -72,42 +84,32 @@ export function OrdersManagement() {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const { toast } = useToast();
 
+  // Triple confirmation state for rejection
+  const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
+  const [rejectStep, setRejectStep] = useState(0);
+
   useEffect(() => {
     fetchOrders();
   }, []);
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch("/api/admin/orders", {
-        credentials: "include",
-      });
-
+      const response = await fetch("/api/admin/orders", { credentials: "include" });
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          // Authentication or authorization failed
-          console.error("Unauthorized access to orders");
-          toast({
-            title: "غير مصرح",
-            description: "يرجى تسجيل الدخول كمدير للوصول إلى الطلبات",
-            variant: "destructive",
-          });
+          toast({ title: "غير مصرح", description: "يرجى تسجيل الدخول كمدير", variant: "destructive" });
           setOrders([]);
           setLoading(false);
           return;
         }
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
       setOrders(data || []);
       setLoading(false);
     } catch (error) {
       console.error("Error fetching orders:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل الطلبات. يرجى التحقق من تسجيل الدخول.",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: "فشل تحميل الطلبات.", variant: "destructive" });
       setLoading(false);
     }
   };
@@ -123,45 +125,70 @@ export function OrdersManagement() {
 
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          toast({
-            title: "غير مصرح",
-            description: "يرجى تسجيل الدخول كمدير",
-            variant: "destructive",
-          });
+          toast({ title: "غير مصرح", description: "يرجى تسجيل الدخول كمدير", variant: "destructive" });
           return;
         }
-        throw new Error("Failed to update order");
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Failed to update order");
       }
 
-      toast({
-        title: "نجح",
-        description: "تم تحديث حالة الطلب بنجاح",
-      });
+      const statusLabels: Record<string, string> = {
+        processing: "⚡ بدأ تجهيز الطلب",
+        shipped: "🚚 تم تسليم الطلب لشركة النقل",
+        delivered: "✅ تم التوصيل — النقاط أُضيفت للعميل",
+        rejected: "❌ رفض الاستلام — بانتظار استلام من الشركة",
+        returned: "📦 تم الاسترجاع — المخزون رجع لمكانه",
+        cancelled: "🚫 تم إلغاء الطلب",
+      };
+
+      toast({ title: "تم التحديث", description: statusLabels[newStatus] || "تم تحديث الحالة" });
       fetchOrders();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating order:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل تحديث حالة الطلب",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: error.message || "فشل تحديث الحالة", variant: "destructive" });
     }
+  };
+
+  // Triple confirmation rejection
+  const startReject = (orderId: string) => {
+    setRejectOrderId(orderId);
+    setRejectStep(1);
+  };
+
+  const handleRejectConfirm = () => {
+    if (rejectStep < 3) {
+      setRejectStep(rejectStep + 1);
+    } else {
+      if (rejectOrderId) handleStatusChange(rejectOrderId, "rejected");
+      setRejectOrderId(null);
+      setRejectStep(0);
+    }
+  };
+
+  const handleRejectCancel = () => {
+    setRejectOrderId(null);
+    setRejectStep(0);
   };
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.customerEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase());
-
+      order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.orderNumber?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === "all" || order.status === statusFilter;
-
     return matchesSearch && matchesStatus;
   });
 
   const getStatusInfo = (status: string) => {
     return ORDER_STATUSES[status as keyof typeof ORDER_STATUSES] || ORDER_STATUSES.pending;
   };
+
+  const REJECT_MESSAGES = [
+    { title: "⚠️ تأكيد رفض الاستلام (1/3)", desc: "هل أنت متأكد من رفض هذا الطلب؟ سيتم إيقاف النقاط المجمدة." },
+    { title: "⚠️⚠️ تأكيد ثاني (2/3)", desc: "تأكد مرة ثانية! المخزون سيُرجع عند استلامك من شركة النقل." },
+    { title: "🔴 تأكيد نهائي (3/3)", desc: "هذا التأكيد الأخير! بعد الضغط سيتم تسجيل الرفض رسمياً." },
+  ];
 
   return (
     <div className="space-y-4">
@@ -177,7 +204,6 @@ export function OrdersManagement() {
             className="pr-10"
           />
         </div>
-
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="حالة الطلب" />
@@ -185,9 +211,7 @@ export function OrdersManagement() {
           <SelectContent>
             <SelectItem value="all">جميع الحالات</SelectItem>
             {Object.entries(ORDER_STATUSES).map(([key, { label }]) => (
-              <SelectItem key={key} value={key}>
-                {label}
-              </SelectItem>
+              <SelectItem key={key} value={key}>{label}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -200,7 +224,7 @@ export function OrdersManagement() {
             <TableRow>
               <TableHead className="text-right">رقم الطلب</TableHead>
               <TableHead className="text-right">العميل</TableHead>
-              <TableHead className="text-right">المبلغ الإجمالي</TableHead>
+              <TableHead className="text-right">المبلغ</TableHead>
               <TableHead className="text-right">الحالة</TableHead>
               <TableHead className="text-right">التاريخ</TableHead>
               <TableHead className="text-right">الإجراءات</TableHead>
@@ -209,9 +233,7 @@ export function OrdersManagement() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  جاري التحميل...
-                </TableCell>
+                <TableCell colSpan={6} className="text-center py-8">جاري التحميل...</TableCell>
               </TableRow>
             ) : filteredOrders.length === 0 ? (
               <TableRow>
@@ -231,68 +253,59 @@ export function OrdersManagement() {
                     <TableCell>
                       <div>
                         <p className="font-medium">{order.customerName || "غير محدد"}</p>
-                        <p className="text-sm text-gray-500">{order.customerEmail || "غير محدد"}</p>
+                        <p className="text-sm text-gray-500">{order.customerEmail || ""}</p>
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
                       {Number(order.total ?? order.totalAmount ?? 0).toLocaleString()} د.ع
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${statusInfo.color} border-none`}>
-                        {statusInfo.label}
-                      </Badge>
+                      <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
                       {new Date(order.createdAt).toLocaleDateString('en-GB')}
                     </TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedOrder(order);
-                            setIsDetailOpen(true);
-                          }}
-                        >
+                      <div className="flex gap-2 flex-wrap">
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedOrder(order); setIsDetailOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
 
-                        {/* Process Flow Buttons */}
                         {order.status === 'pending' && (
-                          <Button
-                            size="sm"
-                            className="bg-yellow-500 hover:bg-yellow-600 text-black"
-                            onClick={() => handleStatusChange(order.id, 'processing')}
-                          >
+                          <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => handleStatusChange(order.id, 'processing')}>
                             بدء التجهيز ⚡
                           </Button>
                         )}
 
                         {order.status === 'processing' && (
-                          <Button
-                            size="sm"
-                            className="bg-orange-500 hover:bg-orange-600 text-white"
-                            onClick={() => handleStatusChange(order.id, 'shipped')}
-                          >
+                          <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-white" onClick={() => handleStatusChange(order.id, 'shipped')}>
                             تسليم للنقل 🚚
                           </Button>
                         )}
 
                         {order.status === 'shipped' && (
-                          <Button
-                            size="sm"
-                            className="bg-green-500 hover:bg-green-600 text-white"
-                            onClick={() => handleStatusChange(order.id, 'delivered')}
-                          >
-                            تم التوصيل ✅
+                          <>
+                            <Button size="sm" className="bg-green-500 hover:bg-green-600 text-white" onClick={() => handleStatusChange(order.id, 'delivered')}>
+                              استلم الزبون ✅
+                            </Button>
+                            <Button size="sm" variant="destructive" onClick={() => startReject(order.id)}>
+                              رفض الاستلام ❌
+                            </Button>
+                          </>
+                        )}
+
+                        {order.status === 'rejected' && (
+                          <Button size="sm" className="bg-purple-500 hover:bg-purple-600 text-white" onClick={() => handleStatusChange(order.id, 'returned')}>
+                            استلمت من الشركة 📦
                           </Button>
                         )}
 
                         {order.status === 'delivered' && (
-                          <span className="text-green-600 font-bold px-3 py-1 border border-green-200 rounded-md bg-green-50">
-                            مكتمل
-                          </span>
+                          <span className="text-green-600 font-bold px-3 py-1 border border-green-200 rounded-md bg-green-50">مكتمل ✅</span>
+                        )}
+
+                        {order.status === 'returned' && (
+                          <span className="text-purple-600 font-bold px-3 py-1 border border-purple-200 rounded-md bg-purple-50">تم الاسترجاع 📦</span>
                         )}
                       </div>
                     </TableCell>
@@ -304,71 +317,67 @@ export function OrdersManagement() {
         </Table>
       </div>
 
-      {/* Order Detail Dialog - Professional Invoice */}
+      {/* Triple Confirmation Dialog */}
+      <AlertDialog open={rejectStep > 0} onOpenChange={(open) => { if (!open) handleRejectCancel(); }}>
+        <AlertDialogContent dir="rtl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              {rejectStep > 0 && REJECT_MESSAGES[rejectStep - 1]?.title}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-base">
+              {rejectStep > 0 && REJECT_MESSAGES[rejectStep - 1]?.desc}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <AlertDialogCancel onClick={handleRejectCancel}>إلغاء</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRejectConfirm} className="bg-red-600 hover:bg-red-700">
+              {rejectStep < 3 ? `تأكيد (${rejectStep}/3)` : "🔴 رفض نهائي!"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Order Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
           <DialogHeader className="border-b pb-4">
             <div className="flex justify-between items-start">
               <div>
-                <DialogTitle className="text-2xl">
-                  فاتورة الطلب
-                </DialogTitle>
+                <DialogTitle className="text-2xl">فاتورة الطلب</DialogTitle>
                 <DialogDescription>
                   رقم الطلب: <span className="text-primary font-mono font-bold">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span>
                 </DialogDescription>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.print()}
-                className="print:hidden"
-              >
-                🖨️ طباعة
-              </Button>
+              <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">🖨️ طباعة</Button>
             </div>
           </DialogHeader>
-
           {selectedOrder && (
             <div className="space-y-6 print:text-black">
-              {/* Store Header */}
               <div className="text-center border-b pb-4">
                 <h2 className="text-2xl font-bold text-primary">AQUAVO</h2>
                 <p className="text-sm text-muted-foreground">متجر أدوات ومستلزمات الأحواض المائية</p>
               </div>
-
-              {/* Customer Info */}
               <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                 <div>
                   <h3 className="font-semibold text-sm text-muted-foreground mb-2">معلومات العميل</h3>
                   <p className="font-medium">{selectedOrder.customerName || "غير محدد"}</p>
                   {selectedOrder.customerPhone && (
-                    <p className="text-sm font-mono mt-1 flex items-center gap-1">
-                      <span>📞</span>
-                      <a href={`tel:${selectedOrder.customerPhone}`} className="text-primary hover:underline" dir="ltr">
-                        {selectedOrder.customerPhone}
-                      </a>
-                    </p>
+                    <p className="text-sm font-mono mt-1">📞 <a href={`tel:${selectedOrder.customerPhone}`} className="text-primary hover:underline" dir="ltr">{selectedOrder.customerPhone}</a></p>
                   )}
-                  <p className="text-sm text-muted-foreground">{selectedOrder.customerEmail || "غير محدد"}</p>
-                  {selectedOrder.shippingAddress && (
-                    <p className="text-sm mt-1">{selectedOrder.shippingAddress}</p>
-                  )}
+                  {selectedOrder.shippingAddress && <p className="text-sm mt-1">📍 {selectedOrder.shippingAddress}</p>}
                 </div>
                 <div className="text-left">
                   <h3 className="font-semibold text-sm text-muted-foreground mb-2">تفاصيل الطلب</h3>
-                  <p className="text-sm">التاريخ: {new Date(selectedOrder.createdAt).toLocaleDateString('en-GB')}</p>
-                  <p className="text-sm">الوقت: {new Date(selectedOrder.createdAt).toLocaleTimeString('en-GB')}</p>
-                  <Badge className={getStatusInfo(selectedOrder.status).color + " mt-2"}>
+                  <p className="text-sm">{new Date(selectedOrder.createdAt).toLocaleDateString('en-GB')}</p>
+                  <Badge className={getStatusInfo(selectedOrder.status).color + " mt-2 border-none"}>
                     {getStatusInfo(selectedOrder.status).label}
                   </Badge>
                 </div>
               </div>
-
-              {/* Order Items */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
-                  <Package className="h-5 w-5" />
-                  المنتجات المطلوبة
+                  <Package className="h-5 w-5" /> المنتجات
                 </h3>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
@@ -381,57 +390,31 @@ export function OrdersManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedOrder.items?.map((item, index) => (
-                        <TableRow key={index}>
+                      {selectedOrder.items?.map((item, i) => (
+                        <TableRow key={i}>
                           <TableCell className="font-medium">{item.productName}</TableCell>
                           <TableCell className="text-center">{item.quantity}</TableCell>
-                          <TableCell className="text-center">{Number(item.price).toLocaleString('en-US')} د.ع</TableCell>
-                          <TableCell className="text-left font-semibold">
-                            {(item.price * item.quantity).toLocaleString()} د.ع
-                          </TableCell>
+                          <TableCell className="text-center">{Number(item.price).toLocaleString()} د.ع</TableCell>
+                          <TableCell className="text-left font-semibold">{(item.price * item.quantity).toLocaleString()} د.ع</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </div>
               </div>
-
-              {/* Totals */}
-              <div className="border-t pt-4 space-y-2">
-                {selectedOrder.shippingCost && selectedOrder.shippingCost > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">تكلفة الشحن:</span>
-                    <span>{selectedOrder.shippingCost.toLocaleString()} د.ع</span>
-                  </div>
-                )}
-                <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg">
-                  <span className="font-bold text-lg">المبلغ الإجمالي:</span>
-                  <span className="text-3xl font-bold text-primary">
-                    {Number(selectedOrder.total ?? selectedOrder.totalAmount ?? 0).toLocaleString()} د.ع
-                  </span>
-                </div>
+              <div className="flex justify-between items-center p-4 bg-primary/10 rounded-lg">
+                <span className="font-bold text-lg">المبلغ الإجمالي:</span>
+                <span className="text-3xl font-bold text-primary">{Number(selectedOrder.total ?? 0).toLocaleString()} د.ع</span>
               </div>
-
-              {/* Notes */}
               {selectedOrder.notes && (
                 <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm font-semibold text-yellow-800">ملاحظات:</p>
                   <p className="text-sm text-yellow-700">{selectedOrder.notes}</p>
                 </div>
               )}
-
-              {/* Tracking */}
-              {selectedOrder.trackingNumber && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm font-semibold text-blue-800">رقم التتبع:</p>
-                  <p className="text-lg font-mono text-blue-700">{selectedOrder.trackingNumber}</p>
-                </div>
-              )}
-
-              {/* Footer */}
               <div className="text-center text-xs text-muted-foreground border-t pt-4">
                 <p>شكراً لتسوقكم من AQUAVO</p>
-                <p>للاستفسارات: info@aquavoiq.com</p>
+                <p>📞 +964 774 788 0673</p>
               </div>
             </div>
           )}

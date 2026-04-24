@@ -6,6 +6,7 @@ import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
+import { sql } from "drizzle-orm";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -107,6 +108,72 @@ export function createAdminRouter(): RouterType {
                         }
                     } catch (loyaltyErr) {
                         console.error("[Admin] Failed to cancel loyalty points:", loyaltyErr);
+                    }
+                }
+
+                // ❌ رفض الاستلام — إلغاء النقاط + تسجيل عدد الرفضات
+                if (newStatus === "rejected" && oldStatus !== "rejected") {
+                    try {
+                        const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                        if ((order as any).userId) {
+                            await loyaltyStorage.cancelOrderPoints(
+                                (order as any).userId,
+                                order.id
+                            );
+                            console.log(`[Admin] ❌ Rejected order ${order.id} — loyalty points cancelled`);
+                        }
+
+                        // تسجيل عدد الرفضات للمستخدم (حظر بعد 3 رفضات)
+                        const { getDb } = await import("../db.js");
+                        const db = getDb();
+                        if (db && (order as any).userId) {
+                            // زيادة عداد الرفضات
+                            await db.execute(sql`
+                                UPDATE users
+                                SET rejection_count = COALESCE(rejection_count, 0) + 1
+                                WHERE id = ${(order as any).userId}
+                            `);
+
+                            // التحقق من الحظر (3 رفضات = حظر)
+                            const [userData] = await db.execute(sql`
+                                SELECT rejection_count FROM users WHERE id = ${(order as any).userId}
+                            `);
+                            const rejCount = (userData as any)?.rejection_count || 0;
+                            if (rejCount >= 3) {
+                                await db.execute(sql`
+                                    UPDATE users
+                                    SET is_banned = true, ban_reason = 'تم الحظر تلقائياً: رفض استلام 3 طلبات'
+                                    WHERE id = ${(order as any).userId}
+                                `);
+                                console.log(`[Admin] 🚫 User ${(order as any).userId} BANNED after ${rejCount} rejections`);
+                            }
+                        }
+                    } catch (rejectErr) {
+                        console.error("[Admin] Failed to process rejection:", rejectErr);
+                    }
+                }
+
+                // 📦 استلام من شركة النقل — إرجاع المخزون
+                if (newStatus === "returned" && oldStatus !== "returned") {
+                    try {
+                        const orderItems = (order as any).items;
+                        if (Array.isArray(orderItems)) {
+                            for (const item of orderItems) {
+                                const productId = item.productId;
+                                const qty = item.quantity || 1;
+                                if (productId) {
+                                    const product = await storage.getProduct(productId);
+                                    if (product) {
+                                        const newStock = (product.stock || 0) + qty;
+                                        await storage.updateProduct(productId, { stock: newStock });
+                                        console.log(`[Admin] 📦 Restored ${qty}x ${product.name} — new stock: ${newStock}`);
+                                    }
+                                }
+                            }
+                        }
+                        console.log(`[Admin] 📦 Order ${order.id} returned — stock restored`);
+                    } catch (stockErr) {
+                        console.error("[Admin] Failed to restore stock:", stockErr);
                     }
                 }
 
