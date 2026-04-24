@@ -101,14 +101,18 @@ export function createOrderRouter(): RouterType {
                 }
             }
 
-            // Audit Log
-            await storage.createAuditLog({
-                userId: userId || "guest",
-                action: "create",
-                entityType: "order",
-                entityId: order.id,
-                changes: { total: order.total, items: items.length }
-            });
+            // Audit Log (don't crash order if audit fails)
+            try {
+                await storage.createAuditLog({
+                    userId: userId || null,
+                    action: "create",
+                    entityType: "order",
+                    entityId: order.id,
+                    changes: { total: order.total, items: items.length }
+                });
+            } catch (auditErr) {
+                console.error("[AQUAVO] Audit log failed (non-blocking):", auditErr);
+            }
 
             // Mark cart session as converted for accurate analytics
             analyticsTracker.trackSessionStatus(
