@@ -31,6 +31,7 @@ interface ConfirmationViewProps {
     handleConfirmOrder: () => void;
     couponDiscount?: number;
     loyaltyData?: LoyaltyBreakdown;
+    isLoggedIn?: boolean;
 }
 
 export function ConfirmationView({
@@ -48,6 +49,7 @@ export function ConfirmationView({
     handleConfirmOrder,
     couponDiscount = 0,
     loyaltyData,
+    isLoggedIn = false,
 }: ConfirmationViewProps) {
     const pointsDiscount = loyaltyData?.pointsDiscount ?? 0;
     const cashbackEarned = loyaltyData?.cashbackEarned ?? 0;
@@ -155,15 +157,14 @@ export function ConfirmationView({
                     <span className="text-xl font-bold text-primary">{formatIQD(finalAmount)}</span>
                 </div>
 
-                {/* ملاحظة التقريب */}
-                {roundingDifference > 0 && (
+                {/* === مستخدم مسجل: يحصل على باقي + نقاط === */}
+                {isLoggedIn && roundingDifference > 0 && (
                     <p className="text-xs text-muted-foreground text-center">
                         فرق التقريب ({formatIQD(roundingDifference)}) يُحفظ كرصيد بحسابك
                     </p>
                 )}
 
-                {/* المكتسبات */}
-                {(estimatedPoints > 0 || cashbackEarned > 0 || roundingDifference > 0) && (
+                {isLoggedIn && (estimatedPoints > 0 || cashbackEarned > 0 || roundingDifference > 0) && (
                     <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
                         <p className="font-medium text-foreground text-xs">ستكسب من هذا الطلب:</p>
                         {estimatedPoints > 0 && (
@@ -176,6 +177,33 @@ export function ConfirmationView({
                             <Lock className="w-3 h-3" />
                             تُفعّل بعد تأكيد الاستلام
                         </p>
+                    </div>
+                )}
+
+                {/* === مستخدم غير مسجل: رسالة تشجيعية === */}
+                {!isLoggedIn && roundingDifference > 0 && (
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-center space-y-1">
+                        <p className="text-xs font-semibold text-primary">💡 هل تعلم؟</p>
+                        <p className="text-xs text-muted-foreground">
+                            لو كنت مسجّل بالموقع، كان يرجعلك <span className="font-bold text-primary">{formatIQD(roundingDifference)}</span> كرصيد باقي تستخدمه بطلبك الجاي!
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                            + تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء لترقية عضويتك 🌟
+                        </p>
+                        <a href="/auth" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
+                            سجّل الآن واستفاد!
+                        </a>
+                    </div>
+                )}
+                {!isLoggedIn && roundingDifference === 0 && estimatedPoints > 0 && (
+                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-center space-y-1">
+                        <p className="text-xs font-semibold text-primary">💡 سجّل واكسب!</p>
+                        <p className="text-xs text-muted-foreground">
+                            لو كنت مسجّل، كنت تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء من هذا الطلب + رصيد باقي تستخدمه لاحقاً!
+                        </p>
+                        <a href="/auth" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
+                            سجّل الآن مجاناً
+                        </a>
                     </div>
                 )}
 

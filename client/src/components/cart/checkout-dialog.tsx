@@ -298,6 +298,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             handleConfirmOrder={handleConfirmOrder}
             couponDiscount={couponDiscount}
             loyaltyData={loyaltyData}
+            isLoggedIn={!!user}
           />
         )}
       </DialogContent>
