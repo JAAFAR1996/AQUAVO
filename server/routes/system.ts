@@ -197,14 +197,53 @@ export function createSystemRouter(): RouterType {
     router.get("/.well-known/http-message-signatures-directory", (_req: Request, res: Response): void => {
         res.status(404).json({ error: "Not implemented" });
     });
+    // OAuth 2.0 Authorization Server Metadata (RFC 8414)
     router.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response): void => {
-        res.status(404).json({ error: "Not implemented" });
+        res.header("Content-Type", "application/json");
+        res.json({
+            issuer: "https://www.aquavoiq.com",
+            authorization_endpoint: "https://www.aquavoiq.com/login",
+            token_endpoint: "https://www.aquavoiq.com/api/auth/token",
+            jwks_uri: "https://www.aquavoiq.com/.well-known/jwks.json",
+            registration_endpoint: "https://www.aquavoiq.com/register",
+            scopes_supported: ["openid", "profile", "orders", "catalog"],
+            response_types_supported: ["code"],
+            grant_types_supported: ["authorization_code", "client_credentials"],
+            token_endpoint_auth_methods_supported: ["client_secret_post"],
+            service_documentation: "https://www.aquavoiq.com",
+            ui_locales_supported: ["ar", "en"]
+        });
     });
+
+    // OpenID Connect Discovery (openid-connect-discovery-1_0)
     router.get("/.well-known/openid-configuration", (_req: Request, res: Response): void => {
-        res.status(404).json({ error: "Not implemented" });
+        res.header("Content-Type", "application/json");
+        res.json({
+            issuer: "https://www.aquavoiq.com",
+            authorization_endpoint: "https://www.aquavoiq.com/login",
+            token_endpoint: "https://www.aquavoiq.com/api/auth/token",
+            userinfo_endpoint: "https://www.aquavoiq.com/api/auth/me",
+            jwks_uri: "https://www.aquavoiq.com/.well-known/jwks.json",
+            registration_endpoint: "https://www.aquavoiq.com/register",
+            scopes_supported: ["openid", "profile", "orders"],
+            response_types_supported: ["code"],
+            grant_types_supported: ["authorization_code"],
+            subject_types_supported: ["public"],
+            id_token_signing_alg_values_supported: ["RS256"],
+            claims_supported: ["sub", "name", "email", "phone_number"]
+        });
     });
+
+    // OAuth Protected Resource Metadata (RFC 9728)
     router.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response): void => {
-        res.status(404).json({ error: "Not implemented" });
+        res.header("Content-Type", "application/json");
+        res.json({
+            resource: "https://www.aquavoiq.com/api",
+            authorization_servers: ["https://www.aquavoiq.com"],
+            scopes_supported: ["openid", "profile", "orders", "catalog"],
+            bearer_methods_supported: ["header"],
+            resource_documentation: "https://www.aquavoiq.com"
+        });
     });
 
     // Catch-all for any unknown .well-known paths — return proper 404 JSON, not HTML
