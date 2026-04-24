@@ -184,12 +184,37 @@ export function createOrderRouter(): RouterType {
         }
     });
 
+    // Enrich order items with product names/prices from DB (handles old orders missing productName)
+    async function enrichOrderItems(order: any) {
+        const rawItems = (order.items as any[]) || [];
+        const enrichedItems = await Promise.all(
+            rawItems.map(async (item: any) => {
+                // If productName already exists (new orders), use it
+                if (item.productName) return item;
+                // Otherwise fetch from DB (old orders)
+                try {
+                    const product = await storage.getProduct(item.productId);
+                    return {
+                        ...item,
+                        productName: product?.name || item.productId,
+                        priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
+                    };
+                } catch {
+                    return { ...item, productName: item.productId, priceAtPurchase: item.priceAtPurchase || "0" };
+                }
+            })
+        );
+        return { ...order, items: enrichedItems };
+    }
+
     // Get My Orders
     router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const orders = await storage.getOrders(sess?.userId);
-            res.json(orders);
+            // Enrich all orders with product names
+            const enriched = await Promise.all((orders || []).map(enrichOrderItems));
+            res.json(enriched);
         } catch (err) {
             next(err);
         }
@@ -264,7 +289,9 @@ export function createOrderRouter(): RouterType {
                 res.status(403).json({ message: "Access denied" });
                 return;
             }
-            res.json(order);
+            // Enrich with product names
+            const enriched = await enrichOrderItems(order);
+            res.json(enriched);
         } catch (err) {
             next(err);
         }

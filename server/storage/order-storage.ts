@@ -104,6 +104,7 @@ export class OrderStorage {
 
                 orderItemsData.push({
                     productId: product.id,
+                    productName: product.name, // Arabic product name from DB
                     quantity: item.quantity,
                     priceAtPurchase: price.toString(),
                 });
@@ -158,11 +159,11 @@ export class OrderStorage {
             // 5. Generate Order Number (sequential from database)
             const orderNumber = await this.generateOrderNumber(tx);
 
-            // 6. Create Order
+            // 6. Create Order — store enriched items with product names and prices
             const [newOrder] = await tx.insert(orders).values({
                 orderNumber: orderNumber,
                 userId: userId ? userId : undefined,
-                items: items, // Legacy JSON column
+                items: orderItemsData, // Enriched: productId + productName + quantity + priceAtPurchase
                 total: finalTotal.toString(),
                 shippingCost: deliveryFee.toString(),
                 discountTotal: discount.toString(),

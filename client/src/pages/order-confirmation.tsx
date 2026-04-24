@@ -17,6 +17,7 @@ import { formatIQD, formatDate } from "@/lib/utils";
 // Proper interface for order data
 interface OrderItem {
     productId: string;
+    productName?: string;
     quantity: number;
     priceAtPurchase?: string;
 }
@@ -147,6 +148,11 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         setTimeout(() => setCopied(false), 2000);
     };
 
+    // Calculate breakdown from order data
+    const shippingCost = Number(orderData?.shippingCost || 0);
+    const discountAmount = Number(orderData?.discountTotal || 0);
+    const subtotal = items.reduce((sum, item) => sum + (Number(item.priceAtPurchase || 0) * item.quantity), 0);
+
     // Prepare invoice data from real order data
     const invoiceData = {
         customerInfo: {
@@ -157,11 +163,14 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         },
         items: items.map(item => ({
             id: item.productId,
-            name: item.productId,
+            name: item.productName || item.productId,
             quantity: item.quantity,
             price: item.priceAtPurchase ? Number(item.priceAtPurchase) : 0,
         })),
         total: total,
+        subtotal: subtotal,
+        deliveryFee: shippingCost,
+        discount: discountAmount,
         orderNumber: orderData?.orderNumber || orderId,
         orderDate: createdAt,
     };
@@ -269,12 +278,58 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     <span className="font-medium">{formatDate(createdAt)}</span>
                                 </div>
 
+                                {/* Products Breakdown */}
+                                {items.length > 0 && (
+                                    <>
+                                        <Separator />
+                                        <div className="space-y-1.5">
+                                            <p className="text-xs font-semibold text-muted-foreground mb-2">🛒 {items.length} منتجات</p>
+                                            {items.map((item, idx) => (
+                                                <div key={idx} className="flex items-center justify-between text-sm">
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{item.quantity}</span>
+                                                        <span className="line-clamp-1">{item.productName || item.productId}</span>
+                                                    </div>
+                                                    <span className="text-muted-foreground text-xs font-mono mr-2">
+                                                        {formatIQD(Number(item.priceAtPurchase || 0) * item.quantity)}
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+
                                 {total > 0 && (
                                     <>
                                         <Separator />
+                                        <div className="space-y-1.5 text-sm">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-muted-foreground">المجموع الفرعي</span>
+                                                <span>{formatIQD(subtotal)}</span>
+                                            </div>
+                                            {shippingCost > 0 && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-muted-foreground">🚚 التوصيل</span>
+                                                    <span>{formatIQD(shippingCost)}</span>
+                                                </div>
+                                            )}
+                                            {shippingCost === 0 && subtotal > 0 && (
+                                                <div className="flex items-center justify-between text-green-600">
+                                                    <span>🚚 التوصيل</span>
+                                                    <span>مجاني ✨</span>
+                                                </div>
+                                            )}
+                                            {discountAmount > 0 && (
+                                                <div className="flex items-center justify-between text-green-600">
+                                                    <span>🎁 الخصم</span>
+                                                    <span>-{formatIQD(discountAmount)}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                        <Separator />
                                         <div className="flex items-center justify-between">
-                                            <span className="font-semibold">المبلغ الكلي</span>
-                                            <span className="text-lg font-bold text-primary">{formatIQD(total)}</span>
+                                            <span className="font-bold">المبلغ الكلي</span>
+                                            <span className="text-xl font-bold text-primary">{formatIQD(total)}</span>
                                         </div>
                                         <p className="text-xs text-muted-foreground text-center">💰 الدفع نقداً عند الاستلام</p>
                                     </>

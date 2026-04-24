@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
@@ -39,6 +39,10 @@ export default function Profile() {
     const { user, logout } = useAuth();
     const queryClient = useQueryClient();
     const [isEditing, setIsEditing] = useState(false);
+
+    // Read ?tab= from URL to open correct tab (e.g. from navbar "طلباتي" link)
+    const urlTab = new URLSearchParams(window.location.search).get("tab");
+    const [activeTab, setActiveTab] = useState(urlTab || "info");
 
     // Fetch orders
     const { data: orders, isLoading: isLoadingOrders } = useQuery({
@@ -239,7 +243,7 @@ export default function Profile() {
                     </motion.div>
 
                     {/* Profile Tabs */}
-                    <Tabs defaultValue="info" className="space-y-6">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                         <TabsList className="grid w-full grid-cols-6 h-auto p-1">
                             <TabsTrigger value="info" className="py-3 gap-2">
                                 <User className="w-4 h-4" />
