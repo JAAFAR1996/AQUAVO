@@ -111,7 +111,7 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
-                // ❌ رفض الاستلام — إلغاء النقاط + تسجيل عدد الرفضات
+                // ❌ رفض الاستلام — إلغاء النقاط + حظر IP بعد 3 رفضات
                 if (newStatus === "rejected" && oldStatus !== "rejected") {
                     try {
                         const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
@@ -123,29 +123,43 @@ export function createAdminRouter(): RouterType {
                             console.log(`[Admin] ❌ Rejected order ${order.id} — loyalty points cancelled`);
                         }
 
-                        // تسجيل عدد الرفضات للمستخدم (حظر بعد 3 رفضات)
+                        // 🚫 حظر بالـ IP (مو بالحساب)
                         const { getDb } = await import("../db.js");
-                        const db = getDb();
-                        if (db && (order as any).userId) {
-                            // زيادة عداد الرفضات
-                            await db.execute(sql`
-                                UPDATE users
-                                SET rejection_count = COALESCE(rejection_count, 0) + 1
-                                WHERE id = ${(order as any).userId}
+                        const dbConn = getDb();
+                        if (dbConn) {
+                            // جلب IP الطلب
+                            const ipResult = await dbConn.execute(sql`
+                                SELECT client_ip FROM orders WHERE id = ${order.id}
                             `);
+                            const orderIp = (ipResult.rows?.[0] as any)?.client_ip;
 
-                            // التحقق من الحظر (3 رفضات = حظر)
-                            const [userData] = await db.execute(sql`
-                                SELECT rejection_count FROM users WHERE id = ${(order as any).userId}
-                            `);
-                            const rejCount = (userData as any)?.rejection_count || 0;
-                            if (rejCount >= 3) {
-                                await db.execute(sql`
-                                    UPDATE users
-                                    SET is_banned = true, ban_reason = 'تم الحظر تلقائياً: رفض استلام 3 طلبات'
-                                    WHERE id = ${(order as any).userId}
+                            if (orderIp) {
+                                // إضافة أو تحديث عداد الرفضات لهذا IP
+                                await dbConn.execute(sql`
+                                    INSERT INTO banned_ips (ip_address, rejection_count, is_active, last_rejection_at, created_at)
+                                    VALUES (${orderIp}, 1, false, NOW(), NOW())
+                                    ON CONFLICT (ip_address)
+                                    DO UPDATE SET
+                                        rejection_count = banned_ips.rejection_count + 1,
+                                        last_rejection_at = NOW()
                                 `);
-                                console.log(`[Admin] 🚫 User ${(order as any).userId} BANNED after ${rejCount} rejections`);
+
+                                // التحقق: 3 رفضات = حظر
+                                const countResult = await dbConn.execute(sql`
+                                    SELECT rejection_count FROM banned_ips WHERE ip_address = ${orderIp}
+                                `);
+                                const rejCount = (countResult.rows?.[0] as any)?.rejection_count || 0;
+
+                                if (rejCount >= 3) {
+                                    await dbConn.execute(sql`
+                                        UPDATE banned_ips
+                                        SET is_active = true, ban_reason = 'حظر تلقائي: رفض استلام 3 طلبات'
+                                        WHERE ip_address = ${orderIp}
+                                    `);
+                                    console.log(`[Admin] 🚫 IP ${orderIp} BANNED after ${rejCount} rejections`);
+                                } else {
+                                    console.log(`[Admin] ⚠️ IP ${orderIp} rejection count: ${rejCount}/3`);
+                                }
                             }
                         }
                     } catch (rejectErr) {

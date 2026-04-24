@@ -45,6 +45,29 @@ export function createOrderRouter(): RouterType {
             const sess = getSession(req);
             const userId = sess?.userId;
 
+            // 🔒 Get client IP for ban checking
+            const clientIp = (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim()
+                || req.socket.remoteAddress
+                || 'unknown';
+
+            // 🚫 Check if IP is banned
+            if (db && clientIp !== 'unknown') {
+                try {
+                    const banResult = await db.execute(sql`
+                        SELECT 1 FROM banned_ips WHERE ip_address = ${clientIp} AND is_active = true LIMIT 1
+                    `);
+                    if (banResult.rows && banResult.rows.length > 0) {
+                        res.status(403).json({
+                            message: "تم حظر هذا الجهاز من الشراء بسبب رفض استلام طلبات سابقة. تواصل مع الدعم.",
+                        });
+                        return;
+                    }
+                } catch (banErr) {
+                    console.error("[AQUAVO] IP ban check failed:", banErr);
+                    // Don't block order if check fails
+                }
+            }
+
             // Validate input
             const validationResult = createOrderSchema.safeParse(req.body);
             if (!validationResult.success) {
@@ -66,6 +89,17 @@ export function createOrderRouter(): RouterType {
                 customerInfo,
                 couponCode
             );
+
+            // 📝 Store client IP with order for rejection tracking
+            if (db && clientIp !== 'unknown') {
+                try {
+                    await db.execute(sql`
+                        UPDATE orders SET client_ip = ${clientIp} WHERE id = ${order.id}
+                    `);
+                } catch (ipErr) {
+                    console.error("[AQUAVO] Failed to store client IP:", ipErr);
+                }
+            }
 
             // Audit Log
             await storage.createAuditLog({
