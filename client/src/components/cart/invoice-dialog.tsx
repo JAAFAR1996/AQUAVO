@@ -50,11 +50,15 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   // الحسابات — حماية من null
   const grandTotal = orderData?.total ?? 0;
   const roundedTotal = orderData?.roundedTotal ?? grandTotal;
-  const roundingDiff = roundedTotal > grandTotal ? roundedTotal - grandTotal : 0;
   const cashbackUsed = orderData?.cashbackUsed ?? 0;
   const pointsEarned = orderData?.pointsEarned ?? 0;
   const cashbackEarned = orderData?.cashbackEarned ?? 0;
   const orderStatus = orderData?.status ?? 'pending';
+
+  // ⚠️ roundedTotal من الباكند = ceil((grandTotal - cashbackUsed) / 250) * 250
+  // لذلك الباقي = roundedTotal - (grandTotal - cashbackUsed)
+  const baseAfterCashback = grandTotal - cashbackUsed;
+  const roundingDiff = roundedTotal > baseAfterCashback ? roundedTotal - baseAfterCashback : 0;
 
   const calculatedSubtotal = orderData?.subtotal ?? (orderData?.items ?? []).reduce(
     (sum, item) => sum + (item.price * item.quantity), 0
@@ -63,8 +67,8 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const deliveryFee = orderData?.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData?.discount ?? 0));
   const discount = orderData?.discount ?? 0;
 
-  // المبلغ اللي يدفعه نقداً = المقرّب - الباقي المستخدم
-  const actualPayAmount = (roundedTotal > grandTotal ? roundedTotal : grandTotal) - cashbackUsed;
+  // المبلغ اللي يدفعه نقداً = roundedTotal مباشرة (الكاش باك مخصوم قبل التقريب)
+  const actualPayAmount = roundedTotal;
 
   // طباعة الفاتورة فقط — صفحة واحدة نظيفة بدون خلفيات
   const handlePrint = useCallback(() => {
@@ -85,7 +89,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       </tr>`
     ).join('');
 
-    const fullTotal = roundedTotal > grandTotal ? roundedTotal : grandTotal;
+
 
     let totalsHTML = '';
     // مجموع المنتجات
@@ -100,16 +104,16 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     if (discount > 0) {
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🎁 خصم الكوبون:</span><span>-${formatIQD(discount)}</span></div>`;
     }
-    // التقريب
-    if (roundingDiff > 0) {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ:</span><span>+${formatIQD(roundingDiff)}</span></div>`;
-    }
-    // الإجمالي
+    // الإجمالي (قبل الخصم والتقريب)
     totalsHTML += `<hr style="border:none;border-top:1px solid #e2e8f0;margin:6px 0;">`;
-    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:600;"><span>الإجمالي:</span><span>${formatIQD(fullTotal)}</span></div>`;
+    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:600;"><span>الإجمالي:</span><span>${formatIQD(grandTotal)}</span></div>`;
     // مدفوع من الباقي
     if (cashbackUsed > 0) {
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#ea580c;"><span>💰 مدفوع من رصيد الباقي:</span><span>-${formatIQD(cashbackUsed)}</span></div>`;
+    }
+    // التقريب
+    if (roundingDiff > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ:</span><span>+${formatIQD(roundingDiff)}</span></div>`;
     }
 
     // مكافآت مكتسبة
@@ -403,20 +407,12 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                   </div>
                 )}
 
-                {/* التقريب */}
-                {roundingDiff > 0 && (
-                  <div className="total-row flex justify-between text-xs">
-                    <span className="text-muted-foreground">تقريب المبلغ:</span>
-                    <span className="text-muted-foreground">+{formatIQD(roundingDiff)}</span>
-                  </div>
-                )}
-
                 <Separator />
 
-                {/* الإجمالي */}
+                {/* الإجمالي (قبل الخصم والتقريب) */}
                 <div className="total-row flex justify-between text-sm font-medium">
                   <span>الإجمالي:</span>
-                  <span>{formatIQD(roundedTotal > grandTotal ? roundedTotal : grandTotal)}</span>
+                  <span>{formatIQD(grandTotal)}</span>
                 </div>
 
                 {/* مدفوع من الباقي */}
@@ -424,6 +420,14 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                   <div className="total-row flex justify-between text-sm">
                     <span className="text-orange-600">💰 مدفوع من رصيد الباقي:</span>
                     <span className="text-orange-600">-{formatIQD(cashbackUsed)}</span>
+                  </div>
+                )}
+
+                {/* التقريب */}
+                {roundingDiff > 0 && (
+                  <div className="total-row flex justify-between text-xs">
+                    <span className="text-muted-foreground">تقريب المبلغ:</span>
+                    <span className="text-muted-foreground">+{formatIQD(roundingDiff)}</span>
                   </div>
                 )}
 
