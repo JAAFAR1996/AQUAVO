@@ -25,6 +25,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useLoyaltyBalance } from "@/hooks/use-loyalty";
 
 import { ProfileInfo } from "@/components/profile/profile-info";
 import { ProfileOrders } from "@/components/profile/profile-orders";
@@ -86,9 +87,10 @@ export default function Profile() {
         birthDate: user?.birthDate ? new Date(user.birthDate).toISOString().split("T")[0] : "",
     });
 
-    // Get loyalty points and calculate tier based on points
-    const loyaltyPoints = user?.loyaltyPoints ?? 0;
-    const loyaltyTier = getTierFromPoints(loyaltyPoints);
+    // Get real loyalty data from API (same source as loyalty tab)
+    const { data: loyaltyBalance } = useLoyaltyBalance(!!user);
+    const loyaltyPoints = loyaltyBalance?.loyaltyPoints ?? user?.loyaltyPoints ?? 0;
+    const loyaltyTier = (loyaltyBalance?.tier as string) ?? getTierFromPoints(loyaltyPoints);
 
     if (!user) {
         return (

@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 interface Review {
     id: string;
     author: string;
+    authorTier?: string;
     avatar?: string;
     rating: number;
     title?: string;
@@ -63,6 +64,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 interface ServerReview {
                     id: string;
                     author?: string;
+                    authorTier?: string;
                     avatar?: string;
                     rating: number;
                     title?: string;
@@ -75,6 +77,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                 const transformedReviews = data.map((review: ServerReview) => ({
                     id: review.id,
                     author: review.author || "زائر",
+                    authorTier: review.authorTier || "bronze",
                     avatar: review.avatar,
                     rating: review.rating,
                     title: review.title,
@@ -255,6 +258,7 @@ export function ReviewList({ productId, className }: ReviewListProps) {
                             review={{
                                 id: review.id,
                                 author: review.author,
+                                authorTier: review.authorTier,
                                 avatar: review.avatar,
                                 rating: review.rating,
                                 date: formatDate(review.createdAt),

@@ -13,16 +13,19 @@ export function createReviewsRouter(): RouterType {
             const { productId } = req.params as { productId: string };
             const reviews = await storage.getReviews(productId);
 
-            // Transform reviews to include author info
+            // Transform reviews to include author info + tier
             const reviewsWithAuthor = await Promise.all(reviews.map(async (review) => {
                 let authorName = "زائر";
+                let authorTier = "bronze";
                 if (review.userId) {
                     const user = await storage.getUser(review.userId);
                     authorName = user?.fullName || user?.email?.split('@')[0] || "عميل";
+                    authorTier = (user as any)?.loyaltyTier || "bronze";
                 }
                 return {
                     ...review,
                     author: authorName,
+                    authorTier,
                 };
             }));
 

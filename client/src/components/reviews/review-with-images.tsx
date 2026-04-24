@@ -13,6 +13,7 @@ interface ReviewImage {
 interface ReviewProps {
   id: string;
   author: string;
+  authorTier?: string;
   avatar?: string;
   rating: number;
   date: string;
@@ -22,7 +23,16 @@ interface ReviewProps {
   helpfulCount?: number;
 }
 
+const tierBadgeConfig: Record<string, { label: string; className: string }> = {
+  bronze: { label: "برونزي", className: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" },
+  silver: { label: "فضي", className: "bg-slate-100 text-slate-600 dark:bg-slate-900/30 dark:text-slate-400" },
+  gold: { label: "ذهبي", className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400" },
+  diamond: { label: "ماسي", className: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400" },
+};
+
 export function ReviewWithImages({ review }: { review: ReviewProps }) {
+  const tier = tierBadgeConfig[review.authorTier || "bronze"] || tierBadgeConfig.bronze;
+
   return (
     <Card className="border-none shadow-none bg-muted/30 mb-6">
       <CardHeader className="pb-2">
@@ -33,8 +43,11 @@ export function ReviewWithImages({ review }: { review: ReviewProps }) {
               <AvatarFallback>{review.author[0]}</AvatarFallback>
             </Avatar>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h4 className="font-bold text-sm">{review.author}</h4>
+                <Badge variant="secondary" className={`text-[10px] h-5 px-1.5 ${tier.className}`}>
+                  {tier.label}
+                </Badge>
                 {review.verifiedPurchase && (
                   <Badge variant="secondary" className="text-[10px] h-5 gap-1 px-1.5 bg-green-100 text-green-700 hover:bg-green-200">
                     <ShieldCheck className="w-3 h-3" /> شراء مؤكد
