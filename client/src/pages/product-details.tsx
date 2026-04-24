@@ -82,12 +82,11 @@ export default function ProductDetails() {
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
 
-  // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
-  const isYEE = product?.brand?.toUpperCase() === "YEE";
+  // إظهار السعر إذا كان المنتج يمتلك سعر أكبر من صفر
   const variantMinPriceDetail = (product?.hasVariants && product?.variants?.length)
     ? Math.min(...product.variants.map(v => v.price))
     : undefined;
-  const hasPrice = isYEE && (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
+  const hasPrice = (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
 
   const handleAddToCart = () => {
     if (product) {

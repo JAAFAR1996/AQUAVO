@@ -39,9 +39,8 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     ? Math.min(...product.variants.map(v => v.price))
     : undefined;
 
-  // فقط منتجات YEE تظهر أسعارها - الباقي "قريباً جداً"
-  const isYEE = product.brand?.toUpperCase() === "YEE";
-  const hasPrice = isYEE && ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
+  // إظهار السعر إذا كان المنتج يمتلك سعر أكبر من صفر
+  const hasPrice = ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -60,6 +59,10 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
       ),
     });
   };
+
+  const isOutOfStock = product.hasVariants && product.variants?.length
+    ? product.variants.every(v => (v.stock ?? 0) <= 0)
+    : (product.stock ?? 0) <= 0;
 
   return (
     <>
@@ -189,9 +192,9 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
               className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
               onClick={handleAddToCart}
               aria-label={`أضف ${product.name} إلى سلة المشتريات`}
-              disabled={!hasPrice || (product.stock ?? 0) <= 0}
+              disabled={!hasPrice || isOutOfStock}
             >
-              {hasPrice && (product.stock ?? 0) > 0 ? (
+              {hasPrice && !isOutOfStock ? (
                 <>
                   <ShoppingCart className="w-4 h-4" aria-hidden="true" />
                   {buttonText}
