@@ -165,7 +165,7 @@ export function createOrderRouter(): RouterType {
                 response.loyalty = {
                     pointsEarned: loyaltyResult.purchasePoints,
                     cashbackEarned: loyaltyResult.roundingPoints,
-                    cashbackUsed: loyaltyResult.cashbackUsed ?? 0,
+                    cashbackUsed: actualCashbackUsed,
                     roundedTotal: loyaltyResult.roundedTotal,
                     tier: loyaltyResult.newTier,
                     tierUpgraded: loyaltyResult.tierChanged,
@@ -205,7 +205,14 @@ export function createOrderRouter(): RouterType {
                 }
             })
         );
-        return { ...order, items: enrichedItems };
+        // Build loyalty object from stored DB columns
+        const loyalty = {
+            pointsEarned: (order as any).pointsEarned ?? 0,
+            cashbackEarned: (order as any).roundingCashback ?? 0,
+            cashbackUsed: (order as any).cashbackUsed ?? 0,
+            roundedTotal: (order as any).roundedTotal ? parseFloat(String((order as any).roundedTotal)) : undefined,
+        };
+        return { ...order, items: enrichedItems, loyalty };
     }
 
     // Get My Orders
