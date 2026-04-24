@@ -82,11 +82,12 @@ export default function ProductDetails() {
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
 
-  // إظهار السعر إذا كان المنتج يمتلك سعر أكبر من صفر
+  // إظهار السعر فقط لمنتجات YEE و General إذا كان المنتج يمتلك سعر أكبر من صفر
+  const isPurchasableBrand = ["YEE", "GENERAL"].includes(product?.brand?.toUpperCase() || "");
   const variantMinPriceDetail = (product?.hasVariants && product?.variants?.length)
     ? Math.min(...product.variants.map(v => v.price))
     : undefined;
-  const hasPrice = (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
+  const hasPrice = isPurchasableBrand && (displayPrice > 0 || (variantMinPriceDetail !== undefined && variantMinPriceDetail > 0));
 
   const handleAddToCart = () => {
     if (product) {
