@@ -3,70 +3,24 @@
   "skills": [
     {
       "name": "browse-products",
-      "type": "api",
-      "description": "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.",
-      "url": "https://www.aquavoiq.com/api/products",
-      "method": "GET",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "search": { "type": "string" },
-          "category": { "type": "string" }
-        }
-      }
+      "description": "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more. Returns product listings with prices in Iraqi Dinar (IQD).",
+      "type": "skill-md",
+      "url": "https://www.aquavoiq.com/.well-known/agent-skills/browse-products/SKILL.md",
+      "digest": "sha256:"
     },
     {
       "name": "fish-encyclopedia",
-      "type": "api",
       "description": "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.",
-      "url": "https://www.aquavoiq.com/api/fish",
-      "method": "GET",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "search": { "type": "string" }
-        }
-      }
+      "type": "skill-md",
+      "url": "https://www.aquavoiq.com/.well-known/agent-skills/fish-encyclopedia/SKILL.md",
+      "digest": "sha256:"
     },
     {
-      "name": "ai-fish-advisor",
-      "type": "api",
-      "description": "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.",
-      "url": "https://www.aquavoiq.com/api/ai/chat",
-      "method": "POST",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "message": { "type": "string" }
-        },
-        "required": ["message"]
-      }
-    },
-    {
-      "name": "product-reviews",
-      "type": "api",
-      "description": "Read product reviews from verified buyers.",
-      "url": "https://www.aquavoiq.com/api/reviews",
-      "method": "GET",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "productId": { "type": "string" }
-        }
-      }
-    },
-    {
-      "name": "blog-articles",
-      "type": "api",
-      "description": "Read aquarium care articles, tips, and guides from AQUAVO blog.",
-      "url": "https://www.aquavoiq.com/api/blog",
-      "method": "GET",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "category": { "type": "string" }
-        }
-      }
+      "name": "track-order",
+      "description": "Track an AQUAVO order by order number. Returns order status, estimated delivery, and item details.",
+      "type": "skill-md",
+      "url": "https://www.aquavoiq.com/.well-known/agent-skills/track-order/SKILL.md",
+      "digest": "sha256:"
     }
   ]
 }

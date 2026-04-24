@@ -1,9 +1,28 @@
 {
-  "version": "1.0",
   "protocol": {
-    "name": "ACP",
-    "version": "1.0",
-    "spec": "https://agenticcommerceprotocol.com/spec/v1"
+    "name": "acp",
+    "version": "1.0"
+  },
+  "api_base_url": "https://www.aquavoiq.com/api",
+  "transports": ["https"],
+  "capabilities": {
+    "services": [
+      {
+        "name": "product-catalog",
+        "description": "Browse and search aquarium products",
+        "endpoint": "/api/products"
+      },
+      {
+        "name": "order-tracking",
+        "description": "Track order status by order number",
+        "endpoint": "/api/orders/track/{orderNumber}"
+      },
+      {
+        "name": "fish-encyclopedia",
+        "description": "Fish species database with care guides",
+        "endpoint": "/api/fish"
+      }
+    ]
   },
   "merchant": {
     "name": "AQUAVO",
@@ -13,18 +32,6 @@
     "country": "IQ",
     "currency": "IQD",
     "language": "ar"
-  },
-  "capabilities": {
-    "catalog": {
-      "url": "https://www.aquavoiq.com/api/products",
-      "format": "json",
-      "description": "Full product catalog with pricing, images, and availability"
-    },
-    "search": {
-      "url": "https://www.aquavoiq.com/api/products?search={query}",
-      "format": "json",
-      "description": "Search products by name, category, or brand"
-    }
   },
   "payment": {
     "methods": ["cash_on_delivery"],

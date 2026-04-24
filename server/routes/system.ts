@@ -126,11 +126,9 @@ export function createSystemRouter(): RouterType {
         res.json({
             "$schema": "https://agentskills.io/schemas/v0.2.0/index.json",
             skills: [
-                { name: "browse-products", type: "api", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.", url: "https://www.aquavoiq.com/api/products", method: "GET", inputSchema: { type: "object", properties: { search: { type: "string" }, category: { type: "string" } } } },
-                { name: "fish-encyclopedia", type: "api", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", url: "https://www.aquavoiq.com/api/fish", method: "GET", inputSchema: { type: "object", properties: { search: { type: "string" } } } },
-                { name: "ai-fish-advisor", type: "api", description: "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.", url: "https://www.aquavoiq.com/api/ai/chat", method: "POST", inputSchema: { type: "object", properties: { message: { type: "string" } }, required: ["message"] } },
-                { name: "product-reviews", type: "api", description: "Read product reviews from verified buyers.", url: "https://www.aquavoiq.com/api/reviews", method: "GET", inputSchema: { type: "object", properties: { productId: { type: "string" } } } },
-                { name: "blog-articles", type: "api", description: "Read aquarium care articles, tips, and guides from AQUAVO blog.", url: "https://www.aquavoiq.com/api/blog", method: "GET", inputSchema: { type: "object", properties: { category: { type: "string" } } } }
+                { name: "browse-products", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more. Returns product listings with prices in Iraqi Dinar (IQD).", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/browse-products/SKILL.md", digest: "sha256:" },
+                { name: "fish-encyclopedia", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/fish-encyclopedia/SKILL.md", digest: "sha256:" },
+                { name: "track-order", description: "Track an AQUAVO order by order number. Returns order status, estimated delivery, and item details.", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/track-order/SKILL.md", digest: "sha256:" }
             ]
         });
     });
@@ -140,24 +138,43 @@ export function createSystemRouter(): RouterType {
         res.redirect(301, "/.well-known/agent-skills/index.json");
     });
 
-    // ACP - Agentic Commerce Protocol
+    // ACP - Agentic Commerce Protocol (spec: https://agenticcommerce.dev)
     router.get("/.well-known/acp.json", (_req: Request, res: Response): void => {
         res.header("Content-Type", "application/json");
         res.json({
-            version: "1.0",
             protocol: {
-                name: "ACP",
-                version: "1.0",
-                spec: "https://agenticcommerceprotocol.com/spec/v1"
+                name: "acp",
+                version: "1.0"
+            },
+            api_base_url: "https://www.aquavoiq.com/api",
+            transports: ["https"],
+            capabilities: {
+                services: [
+                    {
+                        name: "product-catalog",
+                        description: "Browse and search aquarium products",
+                        endpoint: "/api/products"
+                    },
+                    {
+                        name: "order-tracking",
+                        description: "Track order status by order number",
+                        endpoint: "/api/orders/track/{orderNumber}"
+                    },
+                    {
+                        name: "fish-encyclopedia",
+                        description: "Fish species database with care guides",
+                        endpoint: "/api/fish"
+                    }
+                ]
             },
             merchant: {
-                name: "AQUAVO", description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
-                url: "https://www.aquavoiq.com", logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
-                country: "IQ", currency: "IQD", language: "ar"
-            },
-            capabilities: {
-                catalog: { url: "https://www.aquavoiq.com/api/products", format: "json", description: "Full product catalog with pricing, images, and availability" },
-                search: { url: "https://www.aquavoiq.com/api/products?search={query}", format: "json", description: "Search products by name, category, or brand" }
+                name: "AQUAVO",
+                description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
+                url: "https://www.aquavoiq.com",
+                logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
+                country: "IQ",
+                currency: "IQD",
+                language: "ar"
             },
             payment: { methods: ["cash_on_delivery"], currency: "IQD" },
             shipping: {
