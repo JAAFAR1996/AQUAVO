@@ -43,28 +43,21 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const invoiceRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  if (!orderData) return null;
-
-  // total من الـ API يشمل التوصيل والخصم — لا نعيد حسابه
-  const grandTotal = orderData.total;
-
-  // المبلغ المقرّب (اللي فعلاً يدفعه الزبون)
-  const roundedTotal = orderData.roundedTotal ?? grandTotal;
-  // الفرق بين المقرّب والأصلي (يصير كاش باك)
+  // الحسابات — حماية من null
+  const grandTotal = orderData?.total ?? 0;
+  const roundedTotal = orderData?.roundedTotal ?? grandTotal;
   const roundingDiff = roundedTotal > grandTotal ? roundedTotal - grandTotal : 0;
 
-  // إذا مو متوفر subtotal، نحسبه من items
-  const calculatedSubtotal = orderData.subtotal ?? orderData.items.reduce(
+  const calculatedSubtotal = orderData?.subtotal ?? (orderData?.items ?? []).reduce(
     (sum, item) => sum + (item.price * item.quantity), 0
   );
 
-  // التوصيل: إذا متوفر من البيانات استخدمه، وإلا احسبه
-  const deliveryFee = orderData.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData.discount ?? 0));
-
-  const discount = orderData.discount ?? 0;
+  const deliveryFee = orderData?.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData?.discount ?? 0));
+  const discount = orderData?.discount ?? 0;
 
   // طباعة الفاتورة فقط — صفحة واحدة نظيفة بدون خلفيات
   const handlePrint = useCallback(() => {
+    if (!orderData) return;
     const printWindow = window.open('', '_blank', 'width=600,height=800');
     if (!printWindow) {
       toast({ title: "تعذر فتح نافذة الطباعة", variant: "destructive" });
@@ -99,6 +92,8 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ (الباقي كاش باك):</span><span>+${formatIQD(roundingDiff)}</span></div>`;
     }
 
+    const shortNum = orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber;
+
     printWindow.document.write(`<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -119,7 +114,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     </div>
     <div style="text-align:left;">
       <p style="font-size:10px;color:#64748b;">رقم الطلب</p>
-      <p style="font-weight:bold;font-family:monospace;font-size:14px;">${orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber}</p>
+      <p style="font-weight:bold;font-family:monospace;font-size:14px;">${shortNum}</p>
       <p style="font-size:10px;color:#64748b;margin-top:4px;">${formatDate(orderData.orderDate)}</p>
     </div>
   </div>
@@ -176,6 +171,9 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       printWindow.print();
     }, 250);
   }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount]);
+
+  // Early return AFTER all hooks
+  if (!orderData) return null;
 
   const handleShare = async () => {
     const shareText = `فاتورة AQUAVO
