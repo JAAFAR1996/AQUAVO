@@ -4,7 +4,7 @@ import { Separator } from "@/components/ui/separator";
 import { CustomerInfo, GOVERNORATES } from "./types";
 import { CartItem } from "@/contexts/cart-context";
 import { formatIQD } from "@/lib/utils";
-import { Info, Gift, Coins, ArrowUp, Lock } from "lucide-react";
+import { Truck, Lock } from "lucide-react";
 
 interface LoyaltyBreakdown {
     usePoints: boolean;
@@ -51,72 +51,73 @@ export function ConfirmationView({
 }: ConfirmationViewProps) {
     const pointsDiscount = loyaltyData?.pointsDiscount ?? 0;
     const cashbackEarned = loyaltyData?.cashbackEarned ?? 0;
-    const roundedAmount = loyaltyData?.roundedAmount ?? grandTotal;
 
-    // حساب التقريب المحلي (للعرض فقط)
+    // حساب التقريب
     const amountBeforeRounding = cartTotal + deliveryFee - couponDiscount - pointsDiscount;
     const roundedUp = Math.ceil(Math.max(0, amountBeforeRounding) / 250) * 250;
     const roundingDifference = roundedUp - Math.max(0, amountBeforeRounding);
-    const displayTotal = pointsDiscount > 0 ? roundedUp : grandTotal;
+    const finalAmount = roundingDifference > 0 ? roundedUp : Math.max(0, amountBeforeRounding);
 
-    // حساب النقاط المكتسبة تقريبياً
+    // حساب النقاط المكتسبة
     const estimatedPoints = Math.floor(Math.max(0, amountBeforeRounding) / 5000);
 
     return (
-        <div className="space-y-4 mt-4">
-            {/* معلومات العميل */}
-            <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-4 space-y-3">
-                <h4 className="font-semibold">معلومات العميل</h4>
-                <div className="grid gap-2 text-sm">
+        <div className="space-y-4">
+            {/* === معلومات العميل === */}
+            <div className="border border-border/60 rounded-lg p-4 space-y-2">
+                <h4 className="text-sm font-semibold">معلومات التوصيل</h4>
+                <div className="grid gap-1.5 text-sm">
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">الاسم:</span>
+                        <span className="text-muted-foreground">الاسم</span>
                         <span className="font-medium">{customerInfo.name}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">الهاتف:</span>
+                        <span className="text-muted-foreground">الهاتف</span>
                         <span className="font-medium" dir="ltr">{customerInfo.phone}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">العنوان:</span>
-                        <span className="font-medium">
+                        <span className="text-muted-foreground">العنوان</span>
+                        <span className="font-medium text-left max-w-[60%]">
                             {GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label} - {customerInfo.address}
                         </span>
                     </div>
                     {customerInfo.notes && (
                         <div className="flex justify-between">
-                            <span className="text-muted-foreground">ملاحظات:</span>
-                            <span className="font-medium">{customerInfo.notes}</span>
+                            <span className="text-muted-foreground">ملاحظات</span>
+                            <span className="font-medium text-left max-w-[60%]">{customerInfo.notes}</span>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* المنتجات */}
-            <div className="space-y-2">
-                <h4 className="font-semibold">المنتجات ({cartItems.length})</h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto">
+            {/* === المنتجات === */}
+            <div className="border border-border/60 rounded-lg p-4 space-y-2">
+                <h4 className="text-sm font-semibold">المنتجات ({cartItems.length})</h4>
+                <div className="space-y-1.5 max-h-28 overflow-y-auto">
                     {cartItems.map((item) => (
-                        <div key={item.id} className="flex justify-between items-center text-sm bg-muted/30 rounded p-2">
-                            <span className="truncate flex-1">{item.name} × {item.quantity}</span>
+                        <div key={item.id} className="flex justify-between items-center text-sm">
+                            <span className="truncate flex-1 text-muted-foreground">{item.name} × {item.quantity}</span>
                             <span className="font-medium mr-2">{formatIQD(item.price * item.quantity)}</span>
                         </div>
                     ))}
                 </div>
             </div>
 
-            {/* === تفصيل المبلغ الشفاف === */}
-            <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+            {/* === ملخص الفاتورة === */}
+            <div className="border border-border/60 rounded-lg p-4 space-y-2">
+                <h4 className="text-sm font-semibold">ملخص الفاتورة</h4>
+
                 {/* المجموع الفرعي */}
                 <div className="flex justify-between text-sm">
-                    <span>المجموع الفرعي:</span>
+                    <span className="text-muted-foreground">المجموع الفرعي</span>
                     <span>{formatIQD(cartTotal)}</span>
                 </div>
 
-                {/* رسوم التوصيل */}
+                {/* التوصيل */}
                 <div className="flex justify-between text-sm">
-                    <span>رسوم التوصيل:</span>
+                    <span className="text-muted-foreground">التوصيل</span>
                     {isFreeShipping ? (
-                        <span className="text-green-600 font-bold">مجاني 🎁</span>
+                        <span className="text-green-600 dark:text-green-400 font-medium">مجاني</span>
                     ) : (
                         <span>{formatIQD(deliveryFee)}</span>
                     )}
@@ -124,120 +125,100 @@ export function ConfirmationView({
 
                 {/* خصم الكوبون */}
                 {couponDiscount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                        <span>خصم الكوبون:</span>
-                        <span>-{formatIQD(couponDiscount)}</span>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-green-600 dark:text-green-400">خصم الكوبون</span>
+                        <span className="text-green-600 dark:text-green-400">-{formatIQD(couponDiscount)}</span>
                     </div>
                 )}
 
-                {/* خصم رصيد الباقي (نقاط الولاء لا تُصرف - للعضوية فقط) */}
+                {/* خصم رصيد الباقي */}
                 {loyaltyData && loyaltyData.cashbackToUse > 0 && (
-                    <div className="flex justify-between text-sm text-purple-600">
-                        <span className="flex items-center gap-1">
-                            <Coins className="w-3.5 h-3.5" />
-                            خصم رصيد الباقي ({loyaltyData.cashbackToUse} نقطة باقي):
-                        </span>
-                        <span>-{formatIQD(loyaltyData.cashbackToUse)}</span>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-green-600 dark:text-green-400">خصم رصيد الباقي</span>
+                        <span className="text-green-600 dark:text-green-400">-{formatIQD(loyaltyData.cashbackToUse)}</span>
                     </div>
                 )}
 
-                {/* تفصيل التقريب - فقط إذا يوجد فرق */}
+                {/* التقريب */}
                 {roundingDifference > 0 && (
-                    <>
-                        <Separator className="my-1" />
-                        <div className="flex justify-between text-sm text-muted-foreground">
-                            <span>المبلغ قبل التقريب:</span>
-                            <span>{formatIQD(Math.max(0, amountBeforeRounding))}</span>
-                        </div>
-                        <div className="flex justify-between text-sm text-amber-600">
-                            <span className="flex items-center gap-1">
-                                <ArrowUp className="w-3.5 h-3.5" />
-                                تقريب لأقرب فئة عملة (250 د.ع):
-                            </span>
-                            <span>+{formatIQD(roundingDifference)}</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground bg-amber-50 dark:bg-amber-950/20 rounded p-2 border border-amber-100 dark:border-amber-900">
-                            <Info className="w-3 h-3 inline ml-1 text-amber-500" />
-                            فرق التقريب ({formatIQD(roundingDifference)}) يُحفظ كرصيد في حسابك وتستخدمه في طلبك القادم
-                        </div>
-                    </>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                        <span>تقريب لأقرب 250 د.ع</span>
+                        <span>+{formatIQD(roundingDifference)}</span>
+                    </div>
                 )}
 
                 <Separator />
 
-                {/* المجموع النهائي */}
-                <div className="flex justify-between font-bold text-lg">
-                    <span>المبلغ الذي ستدفعه:</span>
-                    <span className="text-primary">{formatIQD(roundingDifference > 0 ? roundedUp : displayTotal)}</span>
+                {/* المبلغ النهائي */}
+                <div className="flex justify-between items-center">
+                    <span className="font-semibold">المبلغ الكلي</span>
+                    <span className="text-xl font-bold text-primary">{formatIQD(finalAmount)}</span>
                 </div>
 
-                {/* ما سيكسبه العميل */}
+                {/* ملاحظة التقريب */}
+                {roundingDifference > 0 && (
+                    <p className="text-xs text-muted-foreground text-center">
+                        فرق التقريب ({formatIQD(roundingDifference)}) يُحفظ كرصيد بحسابك
+                    </p>
+                )}
+
+                {/* المكتسبات */}
                 {(estimatedPoints > 0 || cashbackEarned > 0 || roundingDifference > 0) && (
-                    <div className="bg-gradient-to-br from-primary/5 to-cyan-500/5 rounded-lg p-3 space-y-1.5 border border-primary/10">
-                        <p className="text-xs font-semibold text-primary flex items-center gap-1">
-                            🎁 ستكسب من هذا الطلب:
-                        </p>
+                    <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
+                        <p className="font-medium text-foreground text-xs">ستكسب من هذا الطلب:</p>
                         {estimatedPoints > 0 && (
-                            <p className="text-xs text-muted-foreground">
-                                • {estimatedPoints} نقطة ولاء (لترقية العضوية)
-                            </p>
+                            <p>• {estimatedPoints} نقطة ولاء (لترقية العضوية)</p>
                         )}
                         {(cashbackEarned > 0 || roundingDifference > 0) && (
-                            <p className="text-xs text-muted-foreground">
-                                • {cashbackEarned || roundingDifference} نقطة باقي (تساوي {formatIQD(cashbackEarned || roundingDifference)})
-                            </p>
+                            <p>• {cashbackEarned || roundingDifference} نقطة رصيد باقي ({formatIQD(cashbackEarned || roundingDifference)})</p>
                         )}
-                        <p className="text-[10px] text-muted-foreground/70 flex items-center gap-1">
+                        <p className="flex items-center gap-1 text-muted-foreground/70">
                             <Lock className="w-3 h-3" />
-                            مجمدة حتى تأكيد استلام الطلب
+                            تُفعّل بعد تأكيد الاستلام
                         </p>
                     </div>
                 )}
 
-                {/* طريقة الدفع */}
-                <div className="mt-2 text-center bg-blue-50 text-blue-700 py-2 rounded-md text-sm font-medium border border-blue-100 dark:bg-blue-950/20 dark:text-blue-400 dark:border-blue-800">
-                    💰 طريقة الدفع: الدفع عند الاستلام
-                    <div className="text-xs font-normal mt-1 opacity-90">
-                        ⏱️ التوصيل المتوقع: {getDeliveryEstimate()}
-                    </div>
+                {/* طريقة الدفع + التوصيل */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground bg-muted/40 rounded-md px-3 py-2.5">
+                    <span className="flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5" />
+                        {getDeliveryEstimate()}
+                    </span>
+                    <span>💰 الدفع عند الاستلام</span>
                 </div>
             </div>
 
-            {/* شرح التقريب - فقط للمرة الأولى أو عند وجود فرق */}
-            {roundingDifference > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-950/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800">
-                    <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-1 flex items-center gap-1">
-                        <Info className="w-3.5 h-3.5" />
-                        لماذا تقريب المبلغ؟
-                    </p>
-                    <p className="text-xs text-blue-600/80 dark:text-blue-400/70 leading-relaxed">
-                        أقل فئة عملة عراقية متداولة هي 250 دينار. نقرّب المبلغ للأعلى ليكون قابلاً للدفع نقداً،
-                        والفرق لا يضيع - يُحفظ بالكامل كرصيد في حسابك تستخدمه كخصم في طلبك القادم.
-                    </p>
-                </div>
-            )}
-
-            {/* الموافقة */}
-            <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+            {/* === الموافقة على الشروط === */}
+            <div className="flex items-start gap-3 py-2">
                 <Checkbox
                     id="agree"
                     checked={agreed}
                     onCheckedChange={(checked) => setAgreed(checked === true)}
                     className="mt-0.5"
                 />
-                <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed">
-                    أوافق على الشروط والأحكام وأؤكد صحة رقم الهاتف المدخل للتواصل بخصوص الطلب
+                <label htmlFor="agree" className="text-sm cursor-pointer leading-relaxed text-muted-foreground">
+                    أوافق على{" "}
+                    <a
+                        href="/terms"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary underline underline-offset-2 hover:text-primary/80 font-medium"
+                    >
+                        الشروط والأحكام
+                    </a>
+                    {" "}وأؤكد صحة رقم الهاتف المدخل
                 </label>
             </div>
 
-            {/* أزرار */}
-            <div className="flex gap-2">
-                <Button variant="outline" onClick={handleBack} className="flex-1">
-                    رجوع
+            {/* === الأزرار === */}
+            <div className="flex gap-3">
+                <Button variant="outline" onClick={handleBack} className="flex-1 h-12">
+                    تعديل البيانات
                 </Button>
                 <Button
                     onClick={handleConfirmOrder}
-                    className="flex-1"
+                    className="flex-1 h-12 text-base font-semibold"
                     size="lg"
                     disabled={!agreed || isSubmitting}
                 >
