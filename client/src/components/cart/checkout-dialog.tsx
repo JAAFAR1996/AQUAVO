@@ -160,9 +160,6 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });
       setAgreed(false);
       onOpenChange(false);
-
-      // Navigate to confirmation page
-      window.location.href = `/order-confirmation/${orderData.id}`;
     } catch (error: unknown) {
       console.error("Checkout error:", error);
       const message = error instanceof Error ? error.message : "حدث خطأ";
