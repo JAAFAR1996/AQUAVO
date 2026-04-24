@@ -1,5 +1,10 @@
 {
   "version": "1.0",
+  "protocol": {
+    "name": "ACP",
+    "version": "1.0",
+    "spec": "https://agenticcommerceprotocol.com/spec/v1"
+  },
   "merchant": {
     "name": "AQUAVO",
     "description": "Iraq's premier aquarium supplies and fish care e-commerce platform",
@@ -27,16 +32,8 @@
   },
   "shipping": {
     "zones": [
-      {
-        "name": "Baghdad",
-        "delivery_time": "1-2 business days",
-        "cost": 5000
-      },
-      {
-        "name": "Other Governorates",
-        "delivery_time": "2-4 business days",
-        "cost": 5000
-      }
+      { "name": "Baghdad", "delivery_time": "1-2 business days", "cost": 5000 },
+      { "name": "Other Governorates", "delivery_time": "2-4 business days", "cost": 5000 }
     ],
     "free_shipping_threshold": 100000
   },

@@ -126,11 +126,11 @@ export function createSystemRouter(): RouterType {
         res.json({
             "$schema": "https://agentskills.io/schemas/v0.2.0/index.json",
             skills: [
-                { name: "browse-products", type: "api", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.", url: "https://www.aquavoiq.com/api/products", sha256: "" },
-                { name: "fish-encyclopedia", type: "api", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", url: "https://www.aquavoiq.com/api/fish", sha256: "" },
-                { name: "ai-fish-advisor", type: "api", description: "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.", url: "https://www.aquavoiq.com/api/ai/chat", sha256: "" },
-                { name: "product-reviews", type: "api", description: "Read and submit product reviews from verified buyers.", url: "https://www.aquavoiq.com/api/reviews", sha256: "" },
-                { name: "blog-articles", type: "api", description: "Read aquarium care articles, tips, and guides from AQUAVO blog.", url: "https://www.aquavoiq.com/api/blog", sha256: "" }
+                { name: "browse-products", type: "api", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.", url: "https://www.aquavoiq.com/api/products", method: "GET", inputSchema: { type: "object", properties: { search: { type: "string" }, category: { type: "string" } } } },
+                { name: "fish-encyclopedia", type: "api", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", url: "https://www.aquavoiq.com/api/fish", method: "GET", inputSchema: { type: "object", properties: { search: { type: "string" } } } },
+                { name: "ai-fish-advisor", type: "api", description: "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.", url: "https://www.aquavoiq.com/api/ai/chat", method: "POST", inputSchema: { type: "object", properties: { message: { type: "string" } }, required: ["message"] } },
+                { name: "product-reviews", type: "api", description: "Read product reviews from verified buyers.", url: "https://www.aquavoiq.com/api/reviews", method: "GET", inputSchema: { type: "object", properties: { productId: { type: "string" } } } },
+                { name: "blog-articles", type: "api", description: "Read aquarium care articles, tips, and guides from AQUAVO blog.", url: "https://www.aquavoiq.com/api/blog", method: "GET", inputSchema: { type: "object", properties: { category: { type: "string" } } } }
             ]
         });
     });
@@ -145,6 +145,11 @@ export function createSystemRouter(): RouterType {
         res.header("Content-Type", "application/json");
         res.json({
             version: "1.0",
+            protocol: {
+                name: "ACP",
+                version: "1.0",
+                spec: "https://agenticcommerceprotocol.com/spec/v1"
+            },
             merchant: {
                 name: "AQUAVO", description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
                 url: "https://www.aquavoiq.com", logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
@@ -183,6 +188,11 @@ export function createSystemRouter(): RouterType {
     });
     router.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response): void => {
         res.status(404).json({ error: "Not implemented" });
+    });
+
+    // Catch-all for any unknown .well-known paths — return proper 404 JSON, not HTML
+    router.get("/.well-known/:path(*)", (_req: Request, res: Response): void => {
+        res.status(404).json({ error: "Not found", path: `/.well-known/${_req.params.path}` });
     });
 
     // Health check (public)

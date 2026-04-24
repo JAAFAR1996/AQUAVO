@@ -30,6 +30,15 @@
   ],
   "headers": [
     {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Link",
+          "value": "</.well-known/api-catalog>; rel=\"api-catalog\", </.well-known/mcp/server-card.json>; rel=\"mcp-server-card\", </.well-known/agent-skills/index.json>; rel=\"agent-skills\", </.well-known/acp.json>; rel=\"acp\""
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -70,6 +79,46 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/api-catalog",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/mcp/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/agent-skills/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/skills/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/acp.json",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/ucp",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/http-message-signatures-directory",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/oauth-authorization-server",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/openid-configuration",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
       "destination": "/api/index"
     },
     {

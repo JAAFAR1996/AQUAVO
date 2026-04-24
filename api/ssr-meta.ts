@@ -549,6 +549,47 @@ function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// ─── Markdown for Agents ────────────────────────────────────────────────────
+function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathname: string): string {
+  const lines: string[] = [];
+  lines.push(`# ${meta.title}\n`);
+  lines.push(`${meta.description}\n`);
+  lines.push(`**URL:** ${meta.url}\n`);
+
+  if (pathname === "/" || pathname === "") {
+    lines.push(`## About AQUAVO\n`);
+    lines.push(`AQUAVO is Iraq's premier online aquarium supplies and fish care e-commerce platform, based in Baghdad.\n`);
+    lines.push(`## Available Services\n`);
+    lines.push(`- **Product Catalog**: Browse aquarium products at [/products](${BASE}/products)`);
+    lines.push(`- **Fish Encyclopedia**: Comprehensive fish species database at [/fish-encyclopedia](${BASE}/fish-encyclopedia)`);
+    lines.push(`- **Calculators**: Free aquarium calculators at [/calculators](${BASE}/calculators)`);
+    lines.push(`- **Blog**: Aquarium care articles at [/blog](${BASE}/blog)`);
+    lines.push(`- **Fish Health**: Disease diagnosis tool at [/fish-health](${BASE}/fish-health)\n`);
+    lines.push(`## API Endpoints\n`);
+    lines.push(`- \`GET /api/products\` — Browse product catalog`);
+    lines.push(`- \`GET /api/products?search={query}\` — Search products`);
+    lines.push(`- \`GET /api/fish\` — Fish species database`);
+    lines.push(`- \`GET /api/blog\` — Blog articles`);
+    lines.push(`- \`GET /api/orders/track/{orderNumber}\` — Track an order\n`);
+    lines.push(`## Agent Discovery\n`);
+    lines.push(`- [API Catalog](${BASE}/.well-known/api-catalog) (RFC 9727)`);
+    lines.push(`- [MCP Server Card](${BASE}/.well-known/mcp/server-card.json)`);
+    lines.push(`- [Agent Skills](${BASE}/.well-known/agent-skills/index.json)`);
+    lines.push(`- [ACP](${BASE}/.well-known/acp.json)\n`);
+    lines.push(`## Contact\n`);
+    lines.push(`- Phone: +964 774 788 0673`);
+    lines.push(`- Website: ${BASE}`);
+    lines.push(`- Instagram: [@aquavo_iq](https://instagram.com/aquavo_iq)`);
+    lines.push(`- TikTok: [@aquavo.iq](https://www.tiktok.com/@aquavo.iq)\n`);
+  }
+
+  if (meta.keywords) {
+    lines.push(`---\n*Keywords: ${meta.keywords}*`);
+  }
+
+  return lines.join("\n");
+}
+
 // ─── Handler ────────────────────────────────────────────────────────────────
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -562,6 +603,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const template = getTemplate();
     const meta = await resolveMetadata(pathname);
     const html = injectMeta(template, meta);
+
+    // Markdown for Agents: If Accept: text/markdown, return markdown version
+    const acceptHeader = (req.headers.accept || "").toLowerCase();
+    if (acceptHeader.includes("text/markdown")) {
+      const md = generateMarkdown(meta, pathname);
+      res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      return res.status(200).send(md);
+    }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");

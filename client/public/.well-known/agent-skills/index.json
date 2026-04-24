@@ -6,35 +6,67 @@
       "type": "api",
       "description": "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more.",
       "url": "https://www.aquavoiq.com/api/products",
-      "sha256": ""
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "search": { "type": "string" },
+          "category": { "type": "string" }
+        }
+      }
     },
     {
       "name": "fish-encyclopedia",
       "type": "api",
       "description": "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.",
       "url": "https://www.aquavoiq.com/api/fish",
-      "sha256": ""
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "search": { "type": "string" }
+        }
+      }
     },
     {
       "name": "ai-fish-advisor",
       "type": "api",
       "description": "Get AI-powered fish care advice, tank setup recommendations, and compatibility checks.",
       "url": "https://www.aquavoiq.com/api/ai/chat",
-      "sha256": ""
+      "method": "POST",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "message": { "type": "string" }
+        },
+        "required": ["message"]
+      }
     },
     {
       "name": "product-reviews",
       "type": "api",
-      "description": "Read and submit product reviews from verified buyers.",
+      "description": "Read product reviews from verified buyers.",
       "url": "https://www.aquavoiq.com/api/reviews",
-      "sha256": ""
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "productId": { "type": "string" }
+        }
+      }
     },
     {
       "name": "blog-articles",
       "type": "api",
       "description": "Read aquarium care articles, tips, and guides from AQUAVO blog.",
       "url": "https://www.aquavoiq.com/api/blog",
-      "sha256": ""
+      "method": "GET",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string" }
+        }
+      }
     }
   ]
 }
