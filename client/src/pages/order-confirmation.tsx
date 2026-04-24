@@ -48,7 +48,7 @@ const getDeliveryEstimate = (address: string) => {
     if (!address) return "خلال 2-4 أيام عمل";
     // Assuming "Baghdad - ..." or "بغداد - ..." format or just checking for the word
     if (address.includes("بغداد") || address.toLowerCase().includes("baghdad")) {
-        return "خلال 24 - 48 ساعة";
+        return "خلال 1 - 2 يوم عمل";
     }
     return "خلال 2 - 4 أيام عمل";
 };

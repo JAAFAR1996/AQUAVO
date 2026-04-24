@@ -71,7 +71,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
 
   const getDeliveryEstimate = () => {
-    if (customerInfo.governorate === "baghdad") return "خلال 24 - 48 ساعة";
+    if (customerInfo.governorate === "baghdad") return "خلال 1 - 2 يوم عمل";
     return "خلال 2 - 4 أيام عمل";
   };
 
