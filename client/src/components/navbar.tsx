@@ -57,9 +57,6 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
   const [isImmersiveMenuOpen, setIsImmersiveMenuOpen] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number; type: string } | null>(null);
-  const [couponLoading, setCouponLoading] = useState(false);
   const { toast } = useToast();
 
   const { items: cartItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
@@ -68,30 +65,7 @@ export default function Navbar() {
 
   // Notification bell is now a dedicated component with its own state management
 
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setCouponLoading(true);
-    try {
-      const res = await fetch("/api/coupons/validate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: couponCode.trim().toUpperCase(), totalAmount: totalPrice }),
-      });
-      if (!res.ok) { toast({ title: "كوبون غير صالح", variant: "destructive" }); return; }
-      const coupon = await res.json();
-      const discount = coupon.type === "percentage"
-        ? (totalPrice * parseFloat(coupon.value)) / 100
-        : parseFloat(coupon.value);
-      setCouponApplied({ code: coupon.code, discount, type: coupon.type });
-      toast({ title: `تم تطبيق الكوبون ✅`, description: `وفرت ${discount.toLocaleString("ar-IQ")} د.ع` });
-    } catch {
-      toast({ title: "خطأ في التحقق من الكوبون", variant: "destructive" });
-    } finally {
-      setCouponLoading(false);
-    }
-  };
 
-  const cartFinalTotal = couponApplied ? Math.max(0, totalPrice - couponApplied.discount) : totalPrice;
 
   // 2025 Style hooks
   const { style: navbarStyle } = useNavbarPreferences();
@@ -419,39 +393,9 @@ export default function Navbar() {
                       <Separator className="my-4" />
                       <CartSuggestions />
                       <div className="space-y-3">
-                        {/* Coupon Field */}
-                        <div className="flex gap-2">
-                          <Input
-                            placeholder="كود الخصم"
-                            value={couponCode}
-                            onChange={e => setCouponCode(e.target.value)}
-                            className="text-sm h-9"
-                            disabled={!!couponApplied}
-                            aria-label="كود الخصم"
-                          />
-                          {couponApplied ? (
-                            <Button variant="outline" size="sm" className="shrink-0 text-destructive" onClick={() => { setCouponApplied(null); setCouponCode(""); }}>
-                              إزالة
-                            </Button>
-                          ) : (
-                            <Button variant="outline" size="sm" className="shrink-0" onClick={handleApplyCoupon} disabled={couponLoading || !couponCode.trim()}>
-                              {couponLoading ? "..." : "تطبيق"}
-                            </Button>
-                          )}
-                        </div>
-                        {couponApplied && (
-                          <div className="flex justify-between text-sm text-green-600 dark:text-green-400">
-                            <span>خصم ({couponApplied.code})</span>
-                            <span>- {formatIQD(couponApplied.discount)}</span>
-                          </div>
-                        )}
                         <div className="flex justify-between items-center">
                           <span className="font-medium">المجموع:</span>
-                          <span className="text-xl font-bold text-primary">{formatIQD(cartFinalTotal)}</span>
-                        </div>
-                        <div className="flex items-center gap-4 bg-primary/5 p-3 rounded-lg border border-primary/10">
-                          <ShrimpMascot mood="excited" size="sm" animate />
-                          <p className="text-xs font-bold text-primary">خيار ممتاز! الأسماك بانتظارك 🐠</p>
+                          <span className="text-xl font-bold text-primary">{formatIQD(totalPrice)}</span>
                         </div>
                         <Button className="w-full" size="lg" onClick={() => setIsCheckoutOpen(true)}>
                           إتمام الشراء

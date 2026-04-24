@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { User, CheckCircle2 } from "lucide-react";
 import { formatIQD } from "@/lib/utils";
 import { CartItem } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
-import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -233,50 +231,21 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[480px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl flex items-center gap-2">
-            {step === 'info' ? (
-              <>
-                <User className="h-5 w-5 text-primary" />
-                <span className="text-primary">أهلاً بك في عائلة AQUAVO! 🐟</span>
-              </>
-            ) : (
-              <>
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                تأكيد انضمام منتجاتك الجديدة للعائلة
-              </>
-            )}
+          <DialogTitle className="text-lg font-semibold">
+            {step === 'info' ? 'إتمام الطلب' : 'تأكيد الطلب'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm">
             {step === 'info'
-              ? 'نحن متحمسون لتجهيز طلبك! يرجى ملء البيانات التالية لنقوم بإيصال السعادة إليك.'
-              : 'راجع تفاصيل طلبك بعناية، نحن نريد أن تكون تجربتك مثالية.'
+              ? 'أدخل بيانات التوصيل لإكمال طلبك'
+              : 'راجع تفاصيل طلبك قبل التأكيد'
             }
           </DialogDescription>
         </DialogHeader>
 
-        {/* Mascot appearing at purchase */}
-        <div className="absolute top-0 left-0 hidden md:block -translate-x-full translate-y-10 z-50">
-          <ShrimpMascot
-            mood={isFreeShipping ? "excited" : "thinking"}
-            size="md"
-            message={isFreeShipping ? "يا سلام! توصيل مجاني! 🚚🎉" : `باقي ${formatIQD(100000 - cartTotal)} للتوصيل المجاني!`}
-            className={isFreeShipping ? "scale-110" : "opacity-80"}
-          />
-        </div>
-
-        {/* Mobile Mascot */}
-        <div className="md:hidden flex justify-center mb-4">
-          <ShrimpMascot
-            mood={isFreeShipping ? "excited" : "thinking"}
-            size="sm"
-            message={isFreeShipping ? "توصيل مجاني! 🎉" : "شحن مجاني > 100 ألف"}
-          />
-        </div>
-
         {step === 'info' ? (
-          <>
+          <div className="space-y-5">
             <CustomerInfoForm
               customerInfo={customerInfo}
               setCustomerInfo={setCustomerInfo}
@@ -284,41 +253,37 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               isGuest={!user}
             />
 
-            <div className="my-4" />
+            <CouponSection
+              couponCode={couponCode}
+              setCouponCode={setCouponCode}
+              applyCoupon={applyCoupon}
+              couponError={couponError}
+              couponSuccess={couponSuccess}
+            />
 
-            <div className="space-y-4">
-              <CouponSection
-                couponCode={couponCode}
-                setCouponCode={setCouponCode}
-                applyCoupon={applyCoupon}
-                couponError={couponError}
-                couponSuccess={couponSuccess}
+            {/* Loyalty Points Section - Only for logged-in users */}
+            {user && (
+              <CheckoutLoyaltySection
+                cartTotal={cartTotal - couponDiscount}
+                onPointsChange={handleLoyaltyChange}
               />
+            )}
 
-              {/* Loyalty Points Section - Only for logged-in users */}
-              {user && (
-                <CheckoutLoyaltySection
-                  cartTotal={cartTotal - couponDiscount}
-                  onPointsChange={handleLoyaltyChange}
-                />
-              )}
+            <OrderSummary
+              cartTotal={cartTotal}
+              deliveryFee={deliveryFee}
+              discount={discount}
+              grandTotal={grandTotal}
+              isFreeShipping={isFreeShipping}
+              getDeliveryEstimate={getDeliveryEstimate}
+              loyaltyDiscount={loyaltyData.pointsDiscount}
+              cashbackEarned={loyaltyData.cashbackEarned}
+            />
 
-              <OrderSummary
-                cartTotal={cartTotal}
-                deliveryFee={deliveryFee}
-                discount={discount}
-                grandTotal={grandTotal}
-                isFreeShipping={isFreeShipping}
-                getDeliveryEstimate={getDeliveryEstimate}
-                loyaltyDiscount={loyaltyData.pointsDiscount}
-                cashbackEarned={loyaltyData.cashbackEarned}
-              />
-
-              <Button onClick={handleContinue} className="w-full" size="lg">
-                متابعة للتأكيد
-              </Button>
-            </div>
-          </>
+            <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
+              متابعة للتأكيد
+            </Button>
+          </div>
         ) : (
           <ConfirmationView
             customerInfo={customerInfo}

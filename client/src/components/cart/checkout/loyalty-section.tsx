@@ -7,10 +7,8 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Coins, Sparkles, Info, Loader2, Crown, Star } from "lucide-react";
+import { Coins, Loader2, Info } from "lucide-react";
 import { formatIQD } from "@/lib/utils";
 import { useLoyaltyBalance, previewRedeem, type RedeemPreview } from "@/hooks/use-loyalty";
 
@@ -82,21 +80,12 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
     }
 
     return (
-        <Card className="bg-gradient-to-br from-primary/5 to-cyan-500/5 border-primary/20 p-4 space-y-4">
-            <div className="flex items-center gap-2">
-                <Coins className="w-5 h-5 text-primary" />
-                <span className="font-semibold text-sm">رصيد الباقي</span>
-                <Badge variant="outline" className="text-xs gap-1">
-                    {balance.tier === "diamond" ? "💎" : balance.tier === "gold" ? "🥇" : balance.tier === "silver" ? "🥈" : "🥉"}
-                    {balance.tierInfo.name}
-                </Badge>
-            </div>
-
-            {/* Cashback Toggle */}
-            <div className="flex items-center justify-between py-2">
+        <div className="border border-border/60 rounded-lg p-4 space-y-3">
+            {/* Toggle row */}
+            <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-purple-500/10 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-purple-500" />
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Coins className="w-4 h-4 text-primary" />
                     </div>
                     <div>
                         <p className="text-sm font-medium">استخدام رصيد الباقي</p>
@@ -112,41 +101,35 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
                 />
             </div>
 
-
-
-            {/* Preview Summary */}
+            {/* Preview */}
             {isLoadingPreview ? (
                 <div className="flex items-center justify-center py-2">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                     <span className="text-xs text-muted-foreground mr-2">جاري الحساب...</span>
                 </div>
             ) : preview && useCashback ? (
-                <div className="bg-green-50 dark:bg-green-950/20 rounded-lg p-3 space-y-2 border border-green-100 dark:border-green-900">
+                <div className="space-y-1.5">
                     {preview.totalDiscount > 0 && (
                         <div className="flex justify-between text-sm">
-                            <span className="text-green-700 dark:text-green-400">خصم رصيد الباقي:</span>
-                            <span className="font-bold text-green-700 dark:text-green-400">
+                            <span className="text-green-600 dark:text-green-400">خصم رصيد الباقي</span>
+                            <span className="font-medium text-green-600 dark:text-green-400">
                                 -{formatIQD(preview.totalDiscount)}
                             </span>
                         </div>
                     )}
                     {preview.rounding.cashbackEarned > 0 && (
-                        <div className="flex justify-between text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                                <Info className="w-3 h-3" />
-                                باقي تقريب يُضاف لرصيدك:
-                            </span>
-                            <span>+{preview.rounding.cashbackEarned} نقطة</span>
-                        </div>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Info className="w-3 h-3" />
+                            باقي تقريب يُضاف لرصيدك: +{preview.rounding.cashbackEarned} نقطة
+                        </p>
                     )}
                 </div>
             ) : null}
 
             {/* توضيح */}
-            <div className="text-[11px] text-muted-foreground/70 text-center leading-relaxed">
-                <Info className="w-3 h-3 inline ml-1" />
+            <p className="text-[11px] text-muted-foreground/70 text-center">
                 رصيد الباقي = فلوسك من فرق التقريب. تگدر تستخدمه كله كخصم
-            </div>
-        </Card>
+            </p>
+        </div>
     );
 }
