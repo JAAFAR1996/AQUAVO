@@ -97,12 +97,12 @@ export function createOrderRouter(): RouterType {
             // === AQUAVO LOYALTY POINTS SYSTEM ===
             // ⚠️ نقاط الولاء لا تُصرف أبداً - فقط الباقي (cashback)
             let loyaltyResult = null;
+            let actualCashbackUsed = 0;
             if (userId) {
                 try {
                     const orderTotal = parseFloat(String(order.total)) || 0;
 
                     // ✅ التحقق من رصيد الباقي الفعلي قبل المعالجة
-                    let actualCashbackUsed = 0;
 
                     if (useCashback && cashbackToUse > 0) {
                         const balance = await loyaltyStorage.getBalance(userId);
