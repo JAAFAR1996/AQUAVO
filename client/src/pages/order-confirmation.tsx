@@ -37,6 +37,7 @@ interface OrderData {
     loyalty?: {
         pointsEarned: number;
         cashbackEarned: number;
+        cashbackUsed: number;
         roundedTotal: number;
         tier: string;
         tierUpgraded: boolean;
@@ -172,6 +173,10 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         deliveryFee: shippingCost,
         discount: discountAmount,
         roundedTotal: orderData?.loyalty?.roundedTotal,
+        cashbackUsed: orderData?.loyalty?.cashbackUsed ?? 0,
+        pointsEarned: orderData?.loyalty?.pointsEarned ?? 0,
+        cashbackEarned: orderData?.loyalty?.cashbackEarned ?? 0,
+        status: orderData?.status,
         orderNumber: orderData?.orderNumber || orderId,
         orderDate: createdAt,
     };

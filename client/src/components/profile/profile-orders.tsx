@@ -63,6 +63,10 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
             deliveryFee: Number((order as any).shippingCost) || 0,
             discount: Number((order as any).discountTotal) || 0,
             roundedTotal: loyalty?.roundedTotal,
+            cashbackUsed: loyalty?.cashbackUsed ?? 0,
+            pointsEarned: loyalty?.pointsEarned ?? 0,
+            cashbackEarned: loyalty?.cashbackEarned ?? 0,
+            status: order.status,
             orderNumber: (order as any).orderNumber || order.id.slice(0, 8),
             orderDate: new Date(order.createdAt),
         };

@@ -34,6 +34,10 @@ interface InvoiceDialogProps {
     deliveryFee?: number;
     discount?: number;
     roundedTotal?: number;
+    cashbackUsed?: number;
+    pointsEarned?: number;
+    cashbackEarned?: number;
+    status?: string;
     orderNumber: string;
     orderDate: Date;
   } | null;
@@ -47,6 +51,10 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   const grandTotal = orderData?.total ?? 0;
   const roundedTotal = orderData?.roundedTotal ?? grandTotal;
   const roundingDiff = roundedTotal > grandTotal ? roundedTotal - grandTotal : 0;
+  const cashbackUsed = orderData?.cashbackUsed ?? 0;
+  const pointsEarned = orderData?.pointsEarned ?? 0;
+  const cashbackEarned = orderData?.cashbackEarned ?? 0;
+  const orderStatus = orderData?.status ?? 'pending';
 
   const calculatedSubtotal = orderData?.subtotal ?? (orderData?.items ?? []).reduce(
     (sum, item) => sum + (item.price * item.quantity), 0
@@ -54,6 +62,9 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
   const deliveryFee = orderData?.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData?.discount ?? 0));
   const discount = orderData?.discount ?? 0;
+
+  // المبلغ اللي يدفعه نقداً = المقرّب - الباقي المستخدم
+  const actualPayAmount = (roundedTotal > grandTotal ? roundedTotal : grandTotal) - cashbackUsed;
 
   // طباعة الفاتورة فقط — صفحة واحدة نظيفة بدون خلفيات
   const handlePrint = useCallback(() => {
@@ -74,22 +85,41 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       </tr>`
     ).join('');
 
-    const actualPay = roundedTotal > grandTotal ? roundedTotal : grandTotal;
+    const fullTotal = roundedTotal > grandTotal ? roundedTotal : grandTotal;
 
     let totalsHTML = '';
-    if (calculatedSubtotal > 0 && calculatedSubtotal !== actualPay) {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>المجموع الفرعي:</span><span>${formatIQD(calculatedSubtotal)}</span></div>`;
-    }
+    // مجموع المنتجات
+    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>مجموع المنتجات:</span><span>${formatIQD(calculatedSubtotal)}</span></div>`;
+    // التوصيل
     if (deliveryFee > 0) {
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>🚚 التوصيل:</span><span>${formatIQD(deliveryFee)}</span></div>`;
-    } else if (calculatedSubtotal > 0) {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🚚 التوصيل:</span><span>مجاني</span></div>`;
+    } else {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🚚 التوصيل:</span><span>مجاني ✨</span></div>`;
     }
+    // الخصم
     if (discount > 0) {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🎁 الخصم:</span><span>-${formatIQD(discount)}</span></div>`;
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🎁 خصم الكوبون:</span><span>-${formatIQD(discount)}</span></div>`;
     }
+    // التقريب
     if (roundingDiff > 0) {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ (الباقي كاش باك):</span><span>+${formatIQD(roundingDiff)}</span></div>`;
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ:</span><span>+${formatIQD(roundingDiff)}</span></div>`;
+    }
+    // الإجمالي
+    totalsHTML += `<hr style="border:none;border-top:1px solid #e2e8f0;margin:6px 0;">`;
+    totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:600;"><span>الإجمالي:</span><span>${formatIQD(fullTotal)}</span></div>`;
+    // مدفوع من الباقي
+    if (cashbackUsed > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#ea580c;"><span>💰 مدفوع من رصيد الباقي:</span><span>-${formatIQD(cashbackUsed)}</span></div>`;
+    }
+
+    // مكافآت مكتسبة
+    let rewardsHTML = '';
+    if (pointsEarned > 0 || cashbackEarned > 0) {
+      rewardsHTML = `<div style="background:#fffbeb;padding:10px;border-radius:8px;border:1px solid #fde68a;margin-bottom:12px;">
+        <p style="font-size:12px;font-weight:600;color:#92400e;margin-bottom:4px;">🎉 مكافآتك من هذا الطلب</p>
+        ${pointsEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>⭐ نقاط ولاء:</span><span style="font-weight:bold;">+${pointsEarned} نقطة</span></div>` : ''}
+        ${cashbackEarned > 0 ? `<div style="display:flex;justify-content:space-between;font-size:12px;color:#92400e;"><span>💰 باقي مضاف:</span><span style="font-weight:bold;">+${formatIQD(cashbackEarned)}</span></div>` : ''}
+      </div>`;
     }
 
     const shortNum = orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber;
@@ -144,21 +174,23 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   </table>
 
   <!-- Totals -->
-  <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px;">
+  <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:12px;">
     ${totalsHTML}
-    <hr style="border:none;border-top:1px solid #e2e8f0;margin:8px 0;">
+    <hr style="border:none;border-top:2px solid #0ea5e9;margin:8px 0;">
     <div style="display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-size:16px;font-weight:bold;">المبلغ المطلوب دفعه:</span>
+      <span style="font-size:16px;font-weight:bold;">💵 تدفع نقداً:</span>
       <div style="text-align:left;">
-        <p style="font-size:22px;font-weight:bold;color:#0ea5e9;">${formatIQD(actualPay)}</p>
-        <p style="font-size:10px;color:#64748b;">💰 الدفع نقداً عند الاستلام</p>
+        <p style="font-size:22px;font-weight:bold;color:#0ea5e9;">${formatIQD(actualPayAmount)}</p>
+        <p style="font-size:10px;color:#64748b;">الدفع عند الاستلام</p>
       </div>
     </div>
   </div>
 
+  ${rewardsHTML}
+
   <!-- Footer -->
   <div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;">
-    <p style="font-size:12px;color:#64748b;">سيتم التواصل معك قريباً لتأكيد الطلب</p>
+    <p style="font-size:12px;color:#64748b;">للاستفسار عن طلبك تواصل معنا</p>
     <p style="font-weight:600;color:#0ea5e9;direction:ltr;">📞 +964 774 788 0673</p>
   </div>
   <p style="text-align:center;font-size:10px;color:#94a3b8;margin-top:12px;">شكراً لتسوقكم من AQUAVO — www.aquavoiq.com</p>
@@ -170,7 +202,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
       printWindow.focus();
       printWindow.print();
     }, 250);
-  }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount]);
+  }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount, cashbackUsed, pointsEarned, cashbackEarned, actualPayAmount]);
 
   // Early return AFTER all hooks
   if (!orderData) return null;
@@ -338,49 +370,96 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
               </div>
             )}
 
-            {/* Totals */}
+            {/* ── تفاصيل الدفع ── */}
             <div className="totals-box bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-5">
+              <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                💳 تفاصيل الدفع
+              </h4>
               <div className="space-y-2">
-                {calculatedSubtotal > 0 && calculatedSubtotal !== grandTotal && (
+                {/* المجموع الفرعي */}
+                <div className="total-row flex justify-between text-sm">
+                  <span className="text-muted-foreground">مجموع المنتجات:</span>
+                  <span>{formatIQD(calculatedSubtotal)}</span>
+                </div>
+
+                {/* الشحن */}
+                {deliveryFee > 0 ? (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-muted-foreground">المجموع الفرعي:</span>
-                    <span>{formatIQD(calculatedSubtotal)}</span>
-                  </div>
-                )}
-                {deliveryFee > 0 && (
-                  <div className="total-row flex justify-between text-sm">
-                    <span className="text-muted-foreground">🚚 تكلفة الشحن:</span>
+                    <span className="text-muted-foreground">🚚 التوصيل:</span>
                     <span>{formatIQD(deliveryFee)}</span>
                   </div>
-                )}
-                {deliveryFee === 0 && calculatedSubtotal > 0 && calculatedSubtotal !== grandTotal && (
+                ) : (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">🚚 الشحن:</span>
+                    <span className="text-green-600">🚚 التوصيل:</span>
                     <span className="text-green-600 font-medium">مجاني ✨</span>
                   </div>
                 )}
+
+                {/* الخصم (كوبون) */}
                 {discount > 0 && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">🎁 الخصم:</span>
+                    <span className="text-green-600">🎁 خصم الكوبون:</span>
                     <span className="text-green-600">-{formatIQD(discount)}</span>
                   </div>
                 )}
+
+                {/* التقريب */}
                 {roundingDiff > 0 && (
                   <div className="total-row flex justify-between text-xs">
-                    <span className="text-muted-foreground">تقريب المبلغ (الباقي كاش باك 🎉):</span>
+                    <span className="text-muted-foreground">تقريب المبلغ:</span>
                     <span className="text-muted-foreground">+{formatIQD(roundingDiff)}</span>
                   </div>
                 )}
+
                 <Separator />
+
+                {/* الإجمالي */}
+                <div className="total-row flex justify-between text-sm font-medium">
+                  <span>الإجمالي:</span>
+                  <span>{formatIQD(roundedTotal > grandTotal ? roundedTotal : grandTotal)}</span>
+                </div>
+
+                {/* مدفوع من الباقي */}
+                {cashbackUsed > 0 && (
+                  <div className="total-row flex justify-between text-sm">
+                    <span className="text-orange-600">💰 مدفوع من رصيد الباقي:</span>
+                    <span className="text-orange-600">-{formatIQD(cashbackUsed)}</span>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* المطلوب دفعه نقداً */}
                 <div className="total-row grand flex justify-between items-center">
-                  <span className="text-lg font-semibold">المبلغ المطلوب دفعه:</span>
+                  <span className="text-lg font-semibold">💵 تدفع نقداً:</span>
                   <div className="text-left">
-                    <p className="text-2xl font-bold text-primary">{formatIQD(roundedTotal > grandTotal ? roundedTotal : grandTotal)}</p>
-                    <p className="payment-method text-xs text-muted-foreground">💰 الدفع نقداً عند الاستلام</p>
+                    <p className="text-2xl font-bold text-primary">{formatIQD(actualPayAmount)}</p>
+                    <p className="payment-method text-xs text-muted-foreground">الدفع عند الاستلام</p>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* ── المكافآت المكتسبة ── */}
+            {(pointsEarned > 0 || cashbackEarned > 0) && (
+              <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 space-y-2">
+                <h4 className="text-sm font-semibold flex items-center gap-2 text-amber-800 dark:text-amber-300">
+                  🎉 مكافآتك من هذا الطلب
+                </h4>
+                {pointsEarned > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-700 dark:text-amber-400">⭐ نقاط ولاء مكتسبة:</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-300">+{pointsEarned} نقطة</span>
+                  </div>
+                )}
+                {cashbackEarned > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-amber-700 dark:text-amber-400">💰 باقي مضاف لرصيدك:</span>
+                    <span className="font-bold text-amber-700 dark:text-amber-300">+{formatIQD(cashbackEarned)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Notes */}
             {orderData.customerInfo.notes && (
@@ -390,9 +469,14 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
               </div>
             )}
 
-            {/* Contact */}
+            {/* Footer — dynamic based on status */}
             <div className="footer-contact bg-primary/5 rounded-xl p-4 text-center space-y-2">
-              <p className="text-sm text-muted-foreground">سيتم التواصل معك قريباً لتأكيد الطلب</p>
+              <p className="text-sm text-muted-foreground">
+                {orderStatus === 'delivered' ? 'شكراً لك! تم توصيل طلبك بنجاح 🎉' :
+                 orderStatus === 'shipped' ? 'طلبك بالطريق إليك! 🚚' :
+                 orderStatus === 'cancelled' ? 'تم إلغاء هذا الطلب' :
+                 'للاستفسار عن طلبك تواصل معنا'}
+              </p>
               <div className="flex items-center justify-center gap-2 text-primary">
                 <Phone className="h-4 w-4" />
                 <span className="font-semibold" dir="ltr">+964 774 788 0673</span>

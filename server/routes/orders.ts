@@ -165,6 +165,7 @@ export function createOrderRouter(): RouterType {
                 response.loyalty = {
                     pointsEarned: loyaltyResult.purchasePoints,
                     cashbackEarned: loyaltyResult.roundingPoints,
+                    cashbackUsed: loyaltyResult.cashbackUsed ?? 0,
                     roundedTotal: loyaltyResult.roundedTotal,
                     tier: loyaltyResult.newTier,
                     tierUpgraded: loyaltyResult.tierChanged,
