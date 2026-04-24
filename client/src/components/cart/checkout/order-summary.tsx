@@ -11,9 +11,10 @@ interface OrderSummaryProps {
     getDeliveryEstimate: () => string;
     loyaltyDiscount?: number;
     cashbackEarned?: number;
+    isLoggedIn?: boolean;
 }
 
-export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned }: OrderSummaryProps) {
+export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned, isLoggedIn = false }: OrderSummaryProps) {
     // حساب التقريب للعرض
     const rawTotal = Math.max(0, grandTotal);
     const roundedTotal = Math.ceil(rawTotal / 250) * 250;
@@ -82,15 +83,22 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                 <span className="text-xl font-bold text-primary">{formatIQD(displayTotal)}</span>
             </div>
 
-            {/* باقي التقريب */}
-            {roundingDiff > 0 && (
+            {/* باقي التقريب — للمسجلين فقط */}
+            {isLoggedIn && roundingDiff > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
                     فرق التقريب ({formatIQD(roundingDiff)}) يُحفظ كرصيد بحسابك
                 </p>
             )}
 
-            {/* نقاط مكتسبة */}
-            {cashbackEarned && cashbackEarned > 0 && (
+            {/* رسالة تشجيعية لغير المسجلين */}
+            {!isLoggedIn && roundingDiff > 0 && (
+                <p className="text-xs text-primary/80 text-center">
+                    💡 سجّل بالموقع ويرجعلك {formatIQD(roundingDiff)} كرصيد باقي!
+                </p>
+            )}
+
+            {/* نقاط مكتسبة — للمسجلين فقط */}
+            {isLoggedIn && cashbackEarned && cashbackEarned > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
                     ✨ ستحصل على +{cashbackEarned} نقطة باقي تقريب
                 </p>

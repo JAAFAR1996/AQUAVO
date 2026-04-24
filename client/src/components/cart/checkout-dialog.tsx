@@ -276,6 +276,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               getDeliveryEstimate={getDeliveryEstimate}
               loyaltyDiscount={loyaltyData.pointsDiscount}
               cashbackEarned={loyaltyData.cashbackEarned}
+              isLoggedIn={!!user}
             />
 
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
