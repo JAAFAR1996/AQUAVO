@@ -2,12 +2,19 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Fish, Phone, MapPin, Calendar, FileText, Printer, Share2, CheckCircle2, Download } from "lucide-react";
-import { formatIQD, generateOrderNumber, formatDate, formatShortDate } from "@/lib/utils";
-import { useRef } from "react";
+import { Phone, MapPin, Calendar, FileText, Printer, Share2, CheckCircle2 } from "lucide-react";
+import { formatIQD, formatDate, formatShortDate } from "@/lib/utils";
+import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
-import { CartItem } from "@/contexts/cart-context";
+// Local item type — simpler than CartItem, works for order history too
+interface InvoiceItem {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  image?: string;
+}
 
 interface CustomerInfo {
   name: string;
@@ -21,8 +28,11 @@ interface InvoiceDialogProps {
   onOpenChange: (open: boolean) => void;
   orderData: {
     customerInfo: CustomerInfo;
-    items: CartItem[];
+    items: InvoiceItem[];
     total: number;
+    subtotal?: number;
+    deliveryFee?: number;
+    discount?: number;
     orderNumber: string;
     orderDate: Date;
   } | null;
@@ -34,12 +44,186 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
   if (!orderData) return null;
 
-  const deliveryFee = 5000;
-  const grandTotal = orderData.total + deliveryFee;
+  // total من الـ API يشمل التوصيل والخصم — لا نعيد حسابه
+  const grandTotal = orderData.total;
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // إذا مو متوفر subtotal، نحسبه من items
+  const calculatedSubtotal = orderData.subtotal ?? orderData.items.reduce(
+    (sum, item) => sum + (item.price * item.quantity), 0
+  );
+
+  // التوصيل: إذا متوفر من البيانات استخدمه، وإلا احسبه
+  const deliveryFee = orderData.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData.discount ?? 0));
+
+  const discount = orderData.discount ?? 0;
+
+  // طباعة الفاتورة فقط (بدون باقي الصفحة)
+  const handlePrint = useCallback(() => {
+    if (!invoiceRef.current) return;
+
+    const printWindow = window.open('', '_blank', 'width=600,height=800');
+    if (!printWindow) {
+      toast({ title: "تعذر فتح نافذة الطباعة", variant: "destructive" });
+      return;
+    }
+
+    const invoiceHTML = invoiceRef.current.innerHTML;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="UTF-8">
+        <title>فاتورة AQUAVO - ${orderData.orderNumber}</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            color: #1a1a1a;
+            background: white;
+            padding: 20px;
+            font-size: 14px;
+          }
+          .invoice-header {
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+          }
+          .invoice-header h1 { font-size: 24px; font-weight: bold; }
+          .invoice-header .subtitle { font-size: 12px; opacity: 0.8; }
+          .invoice-number-box {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-align: left;
+          }
+          .invoice-number-box .label { font-size: 10px; opacity: 0.8; }
+          .invoice-number-box .number { font-weight: bold; font-family: monospace; }
+          .success-bar {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 16px;
+          }
+          .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+          .info-box {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+          }
+          .info-box h3 {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: 600;
+          }
+          .info-box p { font-size: 13px; margin: 4px 0; }
+          .status-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+          }
+          thead { background: #f1f5f9; }
+          th {
+            padding: 10px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            text-align: right;
+          }
+          th:last-child { text-align: left; }
+          td {
+            padding: 10px 12px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+          }
+          td:last-child { text-align: left; font-weight: 500; }
+          .totals-box {
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+          }
+          .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+            color: #64748b;
+          }
+          .total-row.grand {
+            font-size: 18px;
+            font-weight: bold;
+            color: #0ea5e9;
+            padding-top: 8px;
+          }
+          .total-row.grand span:first-child { color: #1a1a1a; }
+          .payment-method {
+            font-size: 11px;
+            color: #64748b;
+            text-align: left;
+          }
+          .footer-contact {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 16px;
+          }
+          .footer-contact p { font-size: 12px; color: #64748b; }
+          .footer-contact .phone { font-weight: 600; color: #0ea5e9; direction: ltr; }
+          .brand-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+          }
+          .no-print { display: none !important; }
+          @media print {
+            body { padding: 0; }
+            .invoice-header { border-radius: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>${invoiceHTML}</body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }, 300);
+  }, [orderData, toast]);
 
   const handleShare = async () => {
     const shareText = `فاتورة AQUAVO
@@ -73,7 +257,9 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
     }
   };
 
-
+  const shortOrderNumber = orderData.orderNumber.length > 20
+    ? orderData.orderNumber.slice(0, 8).toUpperCase()
+    : orderData.orderNumber;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,8 +268,9 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
           <DialogTitle>فاتورة الطلب</DialogTitle>
           <DialogDescription id="invoice-description">تفاصيل الفاتورة والطلب</DialogDescription>
         </VisuallyHidden>
-        <div ref={invoiceRef} className="print:m-0">
-          <div className="bg-gradient-to-br from-primary via-primary to-blue-600 text-primary-foreground p-6 rounded-t-lg print:rounded-none">
+        <div ref={invoiceRef}>
+          {/* Header */}
+          <div className="invoice-header bg-gradient-to-br from-primary via-primary to-blue-600 text-primary-foreground p-6 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
@@ -91,119 +278,155 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold">AQUAVO</h1>
-                  <p className="text-sm opacity-80">تكنولوجيا الحياة المائية</p>
+                  <p className="text-sm opacity-80">حلول أحواض ومستلزمات الأحواض المائية</p>
                 </div>
               </div>
               <div className="text-left">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
-                  <p className="text-xs opacity-80">رقم الفاتورة</p>
-                  <p className="font-mono font-bold text-lg">{orderData.orderNumber}</p>
+                <div className="invoice-number-box bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <p className="text-xs opacity-80">رقم الطلب</p>
+                  <p className="font-mono font-bold text-sm">{shortOrderNumber}</p>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-center gap-2 text-green-600 bg-green-50 dark:bg-green-950/30 rounded-lg py-3">
+          <div className="p-6 space-y-5">
+            {/* Success */}
+            <div className="success-bar flex items-center justify-center gap-2 text-green-600 bg-green-50 dark:bg-green-950/30 rounded-lg py-3">
               <CheckCircle2 className="h-5 w-5" />
               <span className="font-semibold">تم استلام طلبك بنجاح!</span>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
-                <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  معلومات الطلب
-                </h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span>{formatDate(orderData.orderDate)}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-muted/30 rounded-xl p-4 space-y-3">
+            {/* Customer & Order Info */}
+            <div className="info-grid grid sm:grid-cols-2 gap-4">
+              <div className="info-box bg-muted/30 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
                   معلومات العميل
                 </h3>
-                <div className="space-y-2 text-sm">
-                  <p className="font-medium">{orderData.customerInfo.name}</p>
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="h-4 w-4" />
-                    <span dir="ltr">{orderData.customerInfo.phone}</span>
+                <div className="space-y-1.5 text-sm">
+                  {orderData.customerInfo.name && (
+                    <p className="font-medium">{orderData.customerInfo.name}</p>
+                  )}
+                  {orderData.customerInfo.phone && (
+                    <div className="flex items-center gap-2 text-muted-foreground">
+                      <Phone className="h-3.5 w-3.5" />
+                      <span dir="ltr">{orderData.customerInfo.phone}</span>
+                    </div>
+                  )}
+                  {orderData.customerInfo.address && (
+                    <div className="flex items-start gap-2 text-muted-foreground">
+                      <MapPin className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
+                      <span>{orderData.customerInfo.address}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="info-box bg-muted/30 rounded-xl p-4 space-y-2">
+                <h3 className="font-semibold text-sm text-muted-foreground flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  تفاصيل الطلب
+                </h3>
+                <div className="space-y-1.5 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span>{formatDate(orderData.orderDate)}</span>
                   </div>
-                  <div className="flex items-start gap-2 text-muted-foreground">
-                    <MapPin className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                    <span>{orderData.customerInfo.address}</span>
+                  <div>
+                    <span className="status-badge inline-block bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 rounded-full px-3 py-0.5 text-xs font-medium">
+                      قيد الانتظار
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div>
-              <h3 className="font-semibold mb-3 flex items-center gap-2">
-                <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm">
-                  {orderData.items.length} منتجات
-                </span>
-              </h3>
-              <div className="border rounded-xl overflow-hidden">
-                <table role="table" className="w-full">
-                  <caption className="sr-only">قائمة منتجات الفاتورة</caption>
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th scope="col" className="text-right py-3 px-4 text-sm font-semibold">المنتج</th>
-                      <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">الكمية</th>
-                      <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">السعر</th>
-                      <th scope="col" className="text-left py-3 px-4 text-sm font-semibold">المجموع</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {orderData.items.map((item, index) => (
-                      <tr key={item.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-10 h-10 rounded-lg object-cover"
-                            />
-                            <span className="text-sm font-medium line-clamp-2">{item.name}</span>
-                          </div>
-                        </td>
-                        <td className="text-center py-3 px-2">
-                          <span className="bg-muted rounded-full px-2 py-1 text-sm">{item.quantity}</span>
-                        </td>
-                        <td className="text-center py-3 px-2 text-sm">{formatIQD(item.price)}</td>
-                        <td className="text-left py-3 px-4 font-medium text-sm">{formatIQD(item.price * item.quantity)}</td>
+            {/* Products Table */}
+            {orderData.items.length > 0 && (
+              <div>
+                <h3 className="font-semibold mb-3 flex items-center gap-2">
+                  <span className="bg-primary/10 text-primary rounded-full px-3 py-1 text-sm">
+                    {orderData.items.length} منتجات
+                  </span>
+                </h3>
+                <div className="border rounded-xl overflow-hidden">
+                  <table role="table" className="w-full">
+                    <caption className="sr-only">قائمة منتجات الفاتورة</caption>
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th scope="col" className="text-right py-3 px-4 text-sm font-semibold">المنتج</th>
+                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">الكمية</th>
+                        <th scope="col" className="text-center py-3 px-2 text-sm font-semibold">السعر</th>
+                        <th scope="col" className="text-left py-3 px-4 text-sm font-semibold">المجموع</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y">
+                      {orderData.items.map((item, index) => (
+                        <tr key={item.id} className={index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-3">
+                              {item.image && (
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="w-10 h-10 rounded-lg object-cover"
+                                />
+                              )}
+                              <span className="text-sm font-medium line-clamp-2">{item.name}</span>
+                            </div>
+                          </td>
+                          <td className="text-center py-3 px-2">
+                            <span className="bg-muted rounded-full px-2 py-1 text-sm">{item.quantity}</span>
+                          </td>
+                          <td className="text-center py-3 px-2 text-sm">{formatIQD(item.price)}</td>
+                          <td className="text-left py-3 px-4 font-medium text-sm">{formatIQD(item.price * item.quantity)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
-            <div className="bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-5">
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">المجموع الفرعي:</span>
-                  <span>{formatIQD(orderData.total)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">رسوم التوصيل:</span>
-                  <span>{formatIQD(deliveryFee)}</span>
-                </div>
+            {/* Totals */}
+            <div className="totals-box bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl p-5">
+              <div className="space-y-2">
+                {calculatedSubtotal > 0 && calculatedSubtotal !== grandTotal && (
+                  <div className="total-row flex justify-between text-sm">
+                    <span className="text-muted-foreground">المجموع الفرعي:</span>
+                    <span>{formatIQD(calculatedSubtotal)}</span>
+                  </div>
+                )}
+                {deliveryFee > 0 && (
+                  <div className="total-row flex justify-between text-sm">
+                    <span className="text-muted-foreground">تكلفة الشحن:</span>
+                    <span>{formatIQD(deliveryFee)}</span>
+                  </div>
+                )}
+                {deliveryFee === 0 && calculatedSubtotal > 0 && calculatedSubtotal !== grandTotal && (
+                  <div className="total-row flex justify-between text-sm">
+                    <span className="text-green-600">الشحن:</span>
+                    <span className="text-green-600 font-medium">مجاني</span>
+                  </div>
+                )}
+                {discount > 0 && (
+                  <div className="total-row flex justify-between text-sm">
+                    <span className="text-green-600">الخصم:</span>
+                    <span className="text-green-600">-{formatIQD(discount)}</span>
+                  </div>
+                )}
                 <Separator />
-                <div className="flex justify-between items-center">
-                  <span className="text-lg font-semibold">المجموع الكلي:</span>
+                <div className="total-row grand flex justify-between items-center">
+                  <span className="text-lg font-semibold">المبلغ الإجمالي:</span>
                   <div className="text-left">
                     <p className="text-2xl font-bold text-primary">{formatIQD(grandTotal)}</p>
-                    <p className="text-xs text-muted-foreground">الدفع عند الاستلام</p>
+                    <p className="payment-method text-xs text-muted-foreground">الدفع عند الاستلام</p>
                   </div>
                 </div>
               </div>
             </div>
 
+            {/* Notes */}
             {orderData.customerInfo.notes && (
               <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
                 <p className="text-sm font-medium text-amber-800 dark:text-amber-200">ملاحظات الطلب:</p>
@@ -211,15 +434,17 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
               </div>
             )}
 
-            <div className="bg-primary/5 rounded-xl p-4 text-center space-y-2">
+            {/* Contact */}
+            <div className="footer-contact bg-primary/5 rounded-xl p-4 text-center space-y-2">
               <p className="text-sm text-muted-foreground">سيتم التواصل معك قريباً لتأكيد الطلب</p>
               <div className="flex items-center justify-center gap-2 text-primary">
                 <Phone className="h-4 w-4" />
-                <span className="font-semibold" dir="ltr">+964 770 123 4567</span>
+                <span className="font-semibold" dir="ltr">+964 774 788 0673</span>
               </div>
             </div>
 
-            <div className="flex gap-3 print:hidden">
+            {/* Action Buttons - hidden in print */}
+            <div className="flex gap-3 no-print print:hidden">
               <Button variant="outline" onClick={handlePrint} className="flex-1">
                 <Printer className="h-4 w-4 ml-2" />
                 طباعة
@@ -234,9 +459,10 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
               </Button>
             </div>
 
-            <div className="text-center text-xs text-muted-foreground pt-4 border-t">
+            {/* Brand Footer */}
+            <div className="brand-footer text-center text-xs text-muted-foreground pt-4 border-t">
               <p>شكراً لتسوقكم من AQUAVO</p>
-              <p className="mt-1">www.aquavo.iq</p>
+              <p className="mt-1">www.aquavoiq.com</p>
             </div>
           </div>
         </div>

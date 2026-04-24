@@ -5,35 +5,33 @@ import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Package, Truck, Home, ArrowRight, Copy, Check, Printer, Star, Crown, Gift } from "lucide-react";
+import { CheckCircle2, Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
+import { formatIQD, formatDate } from "@/lib/utils";
 
-// Proper interface for order data - replacing 'any' type
+// Proper interface for order data
 interface OrderItem {
-    id: string;
     productId: string;
     quantity: number;
-    price: number;
-}
-
-interface ShippingAddress {
-    address: string;
-    city?: string;
-    phone?: string;
+    priceAtPurchase?: string;
 }
 
 interface OrderData {
     id: string;
+    orderNumber?: string;
     total: number;
     status?: string;
-    orderNumber?: string;
     items?: OrderItem[];
-    shippingAddress?: ShippingAddress;
+    shippingAddress?: string;
+    customerName?: string;
+    customerPhone?: string;
+    shippingCost?: string;
+    discountTotal?: string;
     createdAt?: string;
     loyalty?: {
         pointsEarned: number;
@@ -46,7 +44,6 @@ interface OrderData {
 
 const getDeliveryEstimate = (address: string) => {
     if (!address) return "خلال 2-4 أيام عمل";
-    // Assuming "Baghdad - ..." or "بغداد - ..." format or just checking for the word
     if (address.includes("بغداد") || address.toLowerCase().includes("baghdad")) {
         return "خلال 1 - 2 يوم عمل";
     }
@@ -114,13 +111,11 @@ export default function OrderConfirmation() {
         );
     }
 
-    // If order not found or error (optional: handle better)
     if (!orderData && !isLoading) {
-        // For demo/fallback purposes if API fails or we just have an ID
         return (
             <ConfirmationContent
                 orderId={orderId || "unknown"}
-                total={0} // Fallback
+                orderData={null}
             />
         );
     }
@@ -128,39 +123,47 @@ export default function OrderConfirmation() {
     return (
         <ConfirmationContent
             orderId={orderId || "unknown"}
-            orderNumber={orderData?.orderNumber}
-            total={orderData?.total ?? 0}
-            itemsCount={orderData?.items?.length ?? 0}
-            address={orderData?.shippingAddress?.address ?? ""}
-            loyalty={orderData?.loyalty}
+            orderData={orderData || null}
         />
     );
 }
 
-function ConfirmationContent({ orderId, orderNumber, total, itemsCount, address, loyalty }: { orderId: string, orderNumber?: string, total: number, itemsCount?: number, address?: string, loyalty?: OrderData['loyalty'] }) {
+function ConfirmationContent({ orderId, orderData }: { orderId: string; orderData: OrderData | null }) {
     const [copied, setCopied] = useState(false);
     const [invoiceOpen, setInvoiceOpen] = useState(false);
 
-    const displayNumber = orderNumber || orderId.slice(0, 8).toUpperCase();
+    const displayNumber = orderData?.orderNumber || orderId.slice(0, 8).toUpperCase();
+    const customerName = orderData?.customerName || "";
+    const customerPhone = orderData?.customerPhone || "";
+    const address = orderData?.shippingAddress || "";
+    const total = orderData?.total ?? 0;
+    const items = orderData?.items || [];
+    const loyalty = orderData?.loyalty;
+    const createdAt = orderData?.createdAt ? new Date(orderData.createdAt) : new Date();
 
     const copyOrderNumber = () => {
-        navigator.clipboard.writeText(orderNumber || orderId);
+        navigator.clipboard.writeText(orderData?.orderNumber || orderId);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Prepare invoice data
+    // Prepare invoice data from real order data
     const invoiceData = {
         customerInfo: {
-            name: "عميل AQUAVO",
-            phone: "",
-            address: address || "",
+            name: customerName,
+            phone: customerPhone,
+            address: address,
             notes: ""
         },
-        items: [],
+        items: items.map(item => ({
+            id: item.productId,
+            name: item.productId,
+            quantity: item.quantity,
+            price: item.priceAtPurchase ? Number(item.priceAtPurchase) : 0,
+        })),
         total: total,
-        orderNumber: orderId,
-        orderDate: new Date()
+        orderNumber: orderData?.orderNumber || orderId,
+        orderDate: createdAt,
     };
 
     return (
@@ -180,57 +183,102 @@ function ConfirmationContent({ orderId, orderNumber, total, itemsCount, address,
                     className="w-full max-w-lg"
                 >
                     <Card className="border-t-4 border-t-green-500 shadow-xl overflow-hidden">
-                        <CardHeader className="text-center bg-green-50/50 pb-8 pt-10">
+                        <CardHeader className="text-center bg-green-50/50 dark:bg-green-950/20 pb-6 pt-8">
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
-                                className="mx-auto w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-4"
+                                className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mb-3"
                             >
-                                <CheckCircle2 className="w-12 h-12 text-green-600" />
+                                <CheckCircle2 className="w-10 h-10 text-green-600" />
                             </motion.div>
-                            <CardTitle className="text-2xl font-bold text-green-800">شكراً لطلبك!</CardTitle>
-                            <CardDescription className="text-lg text-green-700 font-medium mt-2">
+                            <CardTitle className="text-2xl font-bold text-green-800 dark:text-green-300">شكراً لطلبك!</CardTitle>
+                            <CardDescription className="text-base text-green-700 dark:text-green-400 font-medium mt-1">
                                 تم استلام طلبك بنجاح
                             </CardDescription>
                         </CardHeader>
 
-                        <CardContent className="space-y-6 p-6">
-                            <div className="bg-slate-50 rounded-lg p-4 text-center border border-slate-100">
-                                <p className="text-sm text-slate-500 mb-1">رقم الطلب</p>
+                        <CardContent className="space-y-5 p-6">
+                            {/* رقم الطلب */}
+                            <div className="bg-muted/40 rounded-lg p-4 text-center border border-border/50">
+                                <p className="text-xs text-muted-foreground mb-1">رقم الطلب</p>
                                 <div className="flex items-center justify-center gap-2" dir="ltr">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-slate-400 hover:text-slate-600"
+                                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
                                         onClick={copyOrderNumber}
                                     >
-                                        {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                                        {copied ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                                     </Button>
-                                    <span className="font-mono font-bold text-lg text-slate-800 tracking-wider">#{displayNumber}</span>
+                                    <span className="font-mono font-bold text-lg tracking-wider">#{displayNumber}</span>
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                                    <div className="bg-blue-100 p-2 rounded-full">
-                                        <Package className="w-5 h-5 text-blue-600" />
+                            {/* معلومات التوصيل */}
+                            <div className="border border-border/50 rounded-lg p-4 space-y-3">
+                                {customerName && (
+                                    <div className="flex items-center gap-3 text-sm">
+                                        <div className="bg-primary/10 p-1.5 rounded-full">
+                                            <Package className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-muted-foreground">المستلم: </span>
+                                            <span className="font-medium">{customerName}</span>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 text-right">
-                                        <h4 className="font-semibold text-slate-900">حالة الطلب</h4>
-                                        <p className="text-sm text-slate-500">جاري المعالجة</p>
+                                )}
+                                {customerPhone && (
+                                    <div className="flex items-center gap-3 text-sm">
+                                        <div className="bg-primary/10 p-1.5 rounded-full">
+                                            <Phone className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-muted-foreground">الهاتف: </span>
+                                            <span className="font-medium" dir="ltr">{customerPhone}</span>
+                                        </div>
                                     </div>
+                                )}
+                                {address && (
+                                    <div className="flex items-center gap-3 text-sm">
+                                        <div className="bg-primary/10 p-1.5 rounded-full">
+                                            <MapPin className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-muted-foreground">العنوان: </span>
+                                            <span className="font-medium">{address}</span>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <Separator />
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <Truck className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-muted-foreground">التوصيل المتوقع</span>
+                                    </div>
+                                    <span className="font-medium">{getDeliveryEstimate(address)}</span>
                                 </div>
 
-                                <div className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                                    <div className="bg-purple-100 p-2 rounded-full">
-                                        <Truck className="w-5 h-5 text-purple-600" />
+                                <div className="flex items-center justify-between text-sm">
+                                    <div className="flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-muted-foreground">تاريخ الطلب</span>
                                     </div>
-                                    <div className="flex-1 text-right">
-                                        <h4 className="font-semibold text-slate-900">التوصيل المتوقع</h4>
-                                        <p className="text-sm text-slate-500">{getDeliveryEstimate(address || "")}</p>
-                                    </div>
+                                    <span className="font-medium">{formatDate(createdAt)}</span>
                                 </div>
+
+                                {total > 0 && (
+                                    <>
+                                        <Separator />
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-semibold">المبلغ الكلي</span>
+                                            <span className="text-lg font-bold text-primary">{formatIQD(total)}</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground text-center">💰 الدفع نقداً عند الاستلام</p>
+                                    </>
+                                )}
                             </div>
 
                             {/* Loyalty Points Earned */}
@@ -239,24 +287,24 @@ function ConfirmationContent({ orderId, orderNumber, total, itemsCount, address,
                                     initial={{ opacity: 0, scale: 0.9 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: 0.5 }}
-                                    className="bg-gradient-to-br from-primary/10 via-cyan-500/10 to-teal-500/10 rounded-xl p-4 border border-primary/20"
+                                    className="border border-primary/20 rounded-lg p-4"
                                 >
                                     <div className="flex items-center gap-2 mb-3">
-                                        <Gift className="w-5 h-5 text-primary" />
-                                        <span className="font-bold text-primary">مكافآت الولاء</span>
+                                        <Gift className="w-4 h-4 text-primary" />
+                                        <span className="font-semibold text-sm text-primary">مكافآت هذا الطلب</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         {loyalty.pointsEarned > 0 && (
-                                            <div className="bg-white/50 dark:bg-white/5 rounded-lg p-3 text-center">
-                                                <Star className="w-5 h-5 text-yellow-500 mx-auto mb-1" />
-                                                <p className="text-xl font-bold text-primary">+{loyalty.pointsEarned}</p>
+                                            <div className="bg-muted/40 rounded-lg p-3 text-center">
+                                                <Star className="w-4 h-4 text-yellow-500 mx-auto mb-1" />
+                                                <p className="text-lg font-bold text-primary">+{loyalty.pointsEarned}</p>
                                                 <p className="text-xs text-muted-foreground">نقطة ولاء</p>
                                             </div>
                                         )}
                                         {loyalty.cashbackEarned > 0 && (
-                                            <div className="bg-white/50 dark:bg-white/5 rounded-lg p-3 text-center">
-                                                <Crown className="w-5 h-5 text-purple-500 mx-auto mb-1" />
-                                                <p className="text-xl font-bold text-purple-600">+{loyalty.cashbackEarned}</p>
+                                            <div className="bg-muted/40 rounded-lg p-3 text-center">
+                                                <Crown className="w-4 h-4 text-purple-500 mx-auto mb-1" />
+                                                <p className="text-lg font-bold text-purple-600">+{loyalty.cashbackEarned}</p>
                                                 <p className="text-xs text-muted-foreground">نقطة باقي</p>
                                             </div>
                                         )}
@@ -271,31 +319,30 @@ function ConfirmationContent({ orderId, orderNumber, total, itemsCount, address,
                                 </motion.div>
                             )}
 
-                            <Separator />
-
-                            <div className="space-y-3 pt-2">
+                            {/* الأزرار */}
+                            <div className="space-y-2.5 pt-1">
                                 <Link href="/order-tracking">
-                                    <Button className="w-full h-12 text-lg" variant="default">
-                                        <Truck className="w-5 h-5 ml-2" />
+                                    <Button className="w-full h-11" variant="default">
+                                        <Truck className="w-4 h-4 ml-2" />
                                         تتبع طلبك
                                     </Button>
                                 </Link>
 
+                                <Button
+                                    className="w-full h-11"
+                                    variant="outline"
+                                    onClick={() => setInvoiceOpen(true)}
+                                >
+                                    <Printer className="w-4 h-4 ml-2" />
+                                    طباعة الفاتورة
+                                </Button>
+
                                 <Link href="/">
-                                    <Button className="w-full h-12 text-lg" variant="outline">
-                                        <Home className="w-5 h-5 ml-2" />
+                                    <Button className="w-full h-11" variant="ghost">
+                                        <Home className="w-4 h-4 ml-2" />
                                         العودة للرئيسية
                                     </Button>
                                 </Link>
-
-                                <Button
-                                    className="w-full h-12 text-lg"
-                                    variant="secondary"
-                                    onClick={() => setInvoiceOpen(true)}
-                                >
-                                    <Printer className="w-5 h-5 ml-2" />
-                                    طباعة الفاتورة
-                                </Button>
                             </div>
                         </CardContent>
                     </Card>
