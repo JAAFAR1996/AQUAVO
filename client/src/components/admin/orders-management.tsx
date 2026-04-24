@@ -326,7 +326,7 @@ export function OrdersManagement() {
       </div>
 
       {/* Triple Confirmation Dialog */}
-      <AlertDialog open={rejectStep > 0} onOpenChange={(open) => { if (!open) handleRejectCancel(); }}>
+      <AlertDialog open={rejectStep > 0}>
         <AlertDialogContent dir="rtl">
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2 text-red-600">
@@ -338,10 +338,10 @@ export function OrdersManagement() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex gap-2">
-            <AlertDialogCancel onClick={handleRejectCancel}>إلغاء</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRejectConfirm} className="bg-red-600 hover:bg-red-700">
+            <Button variant="outline" onClick={handleRejectCancel}>إلغاء</Button>
+            <Button onClick={handleRejectConfirm} className="bg-red-600 hover:bg-red-700 text-white">
               {rejectStep < 3 ? `تأكيد (${rejectStep}/3)` : "🔴 رفض نهائي!"}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
