@@ -171,6 +171,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         subtotal: subtotal,
         deliveryFee: shippingCost,
         discount: discountAmount,
+        roundedTotal: orderData?.loyalty?.roundedTotal,
         orderNumber: orderData?.orderNumber || orderId,
         orderDate: createdAt,
     };

@@ -33,6 +33,7 @@ interface InvoiceDialogProps {
     subtotal?: number;
     deliveryFee?: number;
     discount?: number;
+    roundedTotal?: number;
     orderNumber: string;
     orderDate: Date;
   } | null;
@@ -47,6 +48,11 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
   // total من الـ API يشمل التوصيل والخصم — لا نعيد حسابه
   const grandTotal = orderData.total;
 
+  // المبلغ المقرّب (اللي فعلاً يدفعه الزبون)
+  const roundedTotal = orderData.roundedTotal ?? grandTotal;
+  // الفرق بين المقرّب والأصلي (يصير كاش باك)
+  const roundingDiff = roundedTotal > grandTotal ? roundedTotal - grandTotal : 0;
+
   // إذا مو متوفر subtotal، نحسبه من items
   const calculatedSubtotal = orderData.subtotal ?? orderData.items.reduce(
     (sum, item) => sum + (item.price * item.quantity), 0
@@ -57,173 +63,119 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
   const discount = orderData.discount ?? 0;
 
-  // طباعة الفاتورة فقط (بدون باقي الصفحة)
+  // طباعة الفاتورة فقط — صفحة واحدة نظيفة بدون خلفيات
   const handlePrint = useCallback(() => {
-    if (!invoiceRef.current) return;
-
     const printWindow = window.open('', '_blank', 'width=600,height=800');
     if (!printWindow) {
       toast({ title: "تعذر فتح نافذة الطباعة", variant: "destructive" });
       return;
     }
 
-    const invoiceHTML = invoiceRef.current.innerHTML;
+    // بناء HTML الفاتورة مباشرة — بدون أي خلفيات ملونة
+    const itemsRows = orderData.items.map(item => 
+      `<tr>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${item.name}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${item.quantity}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${formatIQD(item.price)}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px;font-weight:600;">${formatIQD(item.price * item.quantity)}</td>
+      </tr>`
+    ).join('');
 
-    printWindow.document.write(`
-      <!DOCTYPE html>
-      <html lang="ar" dir="rtl">
-      <head>
-        <meta charset="UTF-8">
-        <title>فاتورة AQUAVO - ${orderData.orderNumber}</title>
-        <style>
-          * { margin: 0; padding: 0; box-sizing: border-box; }
-          body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            direction: rtl;
-            color: #1a1a1a;
-            background: white;
-            padding: 20px;
-            font-size: 14px;
-          }
-          .invoice-header {
-            background: linear-gradient(135deg, #0ea5e9, #2563eb);
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-          }
-          .invoice-header h1 { font-size: 24px; font-weight: bold; }
-          .invoice-header .subtitle { font-size: 12px; opacity: 0.8; }
-          .invoice-number-box {
-            background: rgba(255,255,255,0.2);
-            padding: 8px 16px;
-            border-radius: 8px;
-            text-align: left;
-          }
-          .invoice-number-box .label { font-size: 10px; opacity: 0.8; }
-          .invoice-number-box .number { font-weight: bold; font-family: monospace; }
-          .success-bar {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-            padding: 10px;
-            border-radius: 8px;
-            text-align: center;
-            font-weight: 600;
-            margin-bottom: 16px;
-          }
-          .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 16px;
-          }
-          .info-box {
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-          }
-          .info-box h3 {
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 8px;
-            font-weight: 600;
-          }
-          .info-box p { font-size: 13px; margin: 4px 0; }
-          .status-badge {
-            display: inline-block;
-            background: #fef3c7;
-            color: #92400e;
-            padding: 2px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 16px 0;
-          }
-          thead { background: #f1f5f9; }
-          th {
-            padding: 10px 12px;
-            font-size: 12px;
-            font-weight: 600;
-            color: #475569;
-            text-align: right;
-          }
-          th:last-child { text-align: left; }
-          td {
-            padding: 10px 12px;
-            font-size: 13px;
-            border-bottom: 1px solid #f1f5f9;
-          }
-          td:last-child { text-align: left; font-weight: 500; }
-          .totals-box {
-            background: #f8fafc;
-            padding: 16px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-          }
-          .total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 0;
-            font-size: 13px;
-            color: #64748b;
-          }
-          .total-row.grand {
-            font-size: 18px;
-            font-weight: bold;
-            color: #0ea5e9;
-            padding-top: 8px;
-          }
-          .total-row.grand span:first-child { color: #1a1a1a; }
-          .payment-method {
-            font-size: 11px;
-            color: #64748b;
-            text-align: left;
-          }
-          .footer-contact {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            padding: 12px;
-            border-radius: 8px;
-            text-align: center;
-            margin-top: 16px;
-          }
-          .footer-contact p { font-size: 12px; color: #64748b; }
-          .footer-contact .phone { font-weight: 600; color: #0ea5e9; direction: ltr; }
-          .brand-footer {
-            text-align: center;
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #e2e8f0;
-          }
-          .no-print { display: none !important; }
-          @media print {
-            body { padding: 0; }
-            .invoice-header { border-radius: 0; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-          }
-        </style>
-      </head>
-      <body>${invoiceHTML}</body>
-      </html>
-    `);
+    const actualPay = roundedTotal > grandTotal ? roundedTotal : grandTotal;
+
+    let totalsHTML = '';
+    if (calculatedSubtotal > 0 && calculatedSubtotal !== actualPay) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>المجموع الفرعي:</span><span>${formatIQD(calculatedSubtotal)}</span></div>`;
+    }
+    if (deliveryFee > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>🚚 التوصيل:</span><span>${formatIQD(deliveryFee)}</span></div>`;
+    } else if (calculatedSubtotal > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🚚 التوصيل:</span><span>مجاني</span></div>`;
+    }
+    if (discount > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🎁 الخصم:</span><span>-${formatIQD(discount)}</span></div>`;
+    }
+    if (roundingDiff > 0) {
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:12px;color:#64748b;"><span>تقريب المبلغ (الباقي كاش باك):</span><span>+${formatIQD(roundingDiff)}</span></div>`;
+    }
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>فاتورة AQUAVO - ${orderData.orderNumber}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; direction: rtl; color: #1a1a1a; background: #fff; padding: 24px; font-size: 13px; }
+    @media print { body { padding: 12px; } @page { margin: 10mm; size: A4; } }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="border:2px solid #0ea5e9;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div>
+      <h1 style="font-size:22px;font-weight:bold;color:#0ea5e9;">AQUAVO</h1>
+      <p style="font-size:11px;color:#64748b;">حلول أحواض ومستلزمات الأحواض المائية</p>
+    </div>
+    <div style="text-align:left;">
+      <p style="font-size:10px;color:#64748b;">رقم الطلب</p>
+      <p style="font-weight:bold;font-family:monospace;font-size:14px;">${orderData.orderNumber.length > 20 ? orderData.orderNumber.slice(0, 8).toUpperCase() : orderData.orderNumber}</p>
+      <p style="font-size:10px;color:#64748b;margin-top:4px;">${formatDate(orderData.orderDate)}</p>
+    </div>
+  </div>
+
+  <!-- Customer Info -->
+  <div style="display:flex;gap:12px;margin-bottom:16px;">
+    <div style="flex:1;background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;">
+      <p style="font-size:11px;color:#64748b;font-weight:600;margin-bottom:6px;">معلومات العميل</p>
+      ${orderData.customerInfo.name ? `<p style="font-weight:600;">${orderData.customerInfo.name}</p>` : ''}
+      ${orderData.customerInfo.phone ? `<p style="color:#64748b;direction:ltr;text-align:right;">📞 ${orderData.customerInfo.phone}</p>` : ''}
+      ${orderData.customerInfo.address ? `<p style="color:#64748b;">📍 ${orderData.customerInfo.address}</p>` : ''}
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  <p style="font-weight:600;margin-bottom:8px;">${orderData.items.length} منتجات</p>
+  <table style="width:100%;border-collapse:collapse;margin-bottom:16px;">
+    <thead>
+      <tr style="background:#f1f5f9;">
+        <th style="padding:8px 10px;text-align:right;font-size:12px;font-weight:600;color:#475569;">المنتج</th>
+        <th style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;color:#475569;">الكمية</th>
+        <th style="padding:8px 10px;text-align:center;font-size:12px;font-weight:600;color:#475569;">السعر</th>
+        <th style="padding:8px 10px;text-align:left;font-size:12px;font-weight:600;color:#475569;">المجموع</th>
+      </tr>
+    </thead>
+    <tbody>${itemsRows}</tbody>
+  </table>
+
+  <!-- Totals -->
+  <div style="background:#f8fafc;padding:14px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:16px;">
+    ${totalsHTML}
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:8px 0;">
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:16px;font-weight:bold;">المبلغ المطلوب دفعه:</span>
+      <div style="text-align:left;">
+        <p style="font-size:22px;font-weight:bold;color:#0ea5e9;">${formatIQD(actualPay)}</p>
+        <p style="font-size:10px;color:#64748b;">💰 الدفع نقداً عند الاستلام</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:10px;background:#f0f9ff;border-radius:8px;border:1px solid #bae6fd;">
+    <p style="font-size:12px;color:#64748b;">سيتم التواصل معك قريباً لتأكيد الطلب</p>
+    <p style="font-weight:600;color:#0ea5e9;direction:ltr;">📞 +964 774 788 0673</p>
+  </div>
+  <p style="text-align:center;font-size:10px;color:#94a3b8;margin-top:12px;">شكراً لتسوقكم من AQUAVO — www.aquavoiq.com</p>
+</body>
+</html>`);
 
     printWindow.document.close();
     setTimeout(() => {
       printWindow.focus();
       printWindow.print();
-      printWindow.close();
-    }, 300);
-  }, [orderData, toast]);
+    }, 250);
+  }, [orderData, toast, grandTotal, roundedTotal, roundingDiff, calculatedSubtotal, deliveryFee, discount]);
 
   const handleShare = async () => {
     const shareText = `فاتورة AQUAVO
@@ -399,28 +351,34 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                 )}
                 {deliveryFee > 0 && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-muted-foreground">تكلفة الشحن:</span>
+                    <span className="text-muted-foreground">🚚 تكلفة الشحن:</span>
                     <span>{formatIQD(deliveryFee)}</span>
                   </div>
                 )}
                 {deliveryFee === 0 && calculatedSubtotal > 0 && calculatedSubtotal !== grandTotal && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">الشحن:</span>
-                    <span className="text-green-600 font-medium">مجاني</span>
+                    <span className="text-green-600">🚚 الشحن:</span>
+                    <span className="text-green-600 font-medium">مجاني ✨</span>
                   </div>
                 )}
                 {discount > 0 && (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">الخصم:</span>
+                    <span className="text-green-600">🎁 الخصم:</span>
                     <span className="text-green-600">-{formatIQD(discount)}</span>
+                  </div>
+                )}
+                {roundingDiff > 0 && (
+                  <div className="total-row flex justify-between text-xs">
+                    <span className="text-muted-foreground">تقريب المبلغ (الباقي كاش باك 🎉):</span>
+                    <span className="text-muted-foreground">+{formatIQD(roundingDiff)}</span>
                   </div>
                 )}
                 <Separator />
                 <div className="total-row grand flex justify-between items-center">
-                  <span className="text-lg font-semibold">المبلغ الإجمالي:</span>
+                  <span className="text-lg font-semibold">المبلغ المطلوب دفعه:</span>
                   <div className="text-left">
-                    <p className="text-2xl font-bold text-primary">{formatIQD(grandTotal)}</p>
-                    <p className="payment-method text-xs text-muted-foreground">الدفع عند الاستلام</p>
+                    <p className="text-2xl font-bold text-primary">{formatIQD(roundedTotal > grandTotal ? roundedTotal : grandTotal)}</p>
+                    <p className="payment-method text-xs text-muted-foreground">💰 الدفع نقداً عند الاستلام</p>
                   </div>
                 </div>
               </div>

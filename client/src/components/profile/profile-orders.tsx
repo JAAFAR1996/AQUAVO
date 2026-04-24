@@ -44,6 +44,7 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
     // Prepare invoice data from order
     const getInvoiceData = (order: Order) => {
         const items = (order.items as any[]) || [];
+        const loyalty = (order as any).loyalty;
         return {
             customerInfo: {
                 name: (order as any).customerName || "",
@@ -60,6 +61,8 @@ export function ProfileOrders({ orders, isLoading }: ProfileOrdersProps) {
             })),
             total: Number(order.total) || 0,
             deliveryFee: Number((order as any).shippingCost) || 0,
+            discount: Number((order as any).discountTotal) || 0,
+            roundedTotal: loyalty?.roundedTotal,
             orderNumber: (order as any).orderNumber || order.id.slice(0, 8),
             orderDate: new Date(order.createdAt),
         };
