@@ -164,6 +164,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addItem = async (product: Product, quantity: number = 1) => {
+    // ⛔ Only YEE brand products are available for purchase — others are "coming soon"
+    const brandStr = Array.isArray(product.brand) ? product.brand[0] : product.brand;
+    if (!brandStr || brandStr.toUpperCase() !== "YEE") {
+      toast({
+        title: "قريباً! 🐠",
+        description: "هذا المنتج غير متوفر حالياً — سيتوفر قريباً إن شاء الله.",
+        variant: "destructive",
+      });
+      return;
+    }
     if (user) {
       // Server Side
       try {
@@ -236,10 +246,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addItems = async (products: Product[]) => {
+    // ⛔ Filter: only YEE brand products can be added
+    const yeeProducts = products.filter(p => {
+      const b = Array.isArray(p.brand) ? p.brand[0] : p.brand;
+      return b && b.toUpperCase() === "YEE";
+    });
+    if (yeeProducts.length === 0) {
+      toast({
+        title: "قريباً! 🐠",
+        description: "هذه المنتجات غير متوفرة حالياً.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (yeeProducts.length < products.length) {
+      toast({
+        title: "تنبيه",
+        description: `تم إضافة ${yeeProducts.length} منتج فقط — البقية قريباً.`,
+      });
+    }
     if (user) {
       // Server Side: Add all concurrently then update state
       try {
-        const promises = products.map(product =>
+        const promises = yeeProducts.map(product =>
           fetch("/api/cart", {
             method: "POST",
             headers: addCsrfHeader({ "Content-Type": "application/json" }),
@@ -279,7 +308,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       setItems(prev => {
         let newItems = [...prev];
-        products.forEach(product => {
+        yeeProducts.forEach(product => {
           const existingIndex = newItems.findIndex(i => i.id === product.id);
           if (existingIndex > -1) {
             newItems[existingIndex] = {
