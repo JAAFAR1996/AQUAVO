@@ -1,14 +1,21 @@
 // Suppress noisy url.parse() deprecation warnings from third-party modules
-const originalEmit = process.emit;
-process.emit = function (name: string, data: any, ...args: any[]) {
-  if (
-    name === 'warning' &&
-    typeof data === 'object' &&
-    data.name === 'DeprecationWarning' &&
-    data.message &&
-    data.message.includes('url.parse')
-  ) {
-    return false;
+const originalEmitWarning = process.emitWarning;
+
+process.emitWarning = function(warning: string | Error, ...args: any[]) {
+  if (typeof warning === 'string' && warning.includes('url.parse')) {
+    return;
   }
-  return originalEmit.apply(process, [name, data, ...args] as any);
-} as any;
+  if (warning instanceof Error && warning.message.includes('url.parse')) {
+    return;
+  }
+  return originalEmitWarning.apply(process, [warning, ...args] as any);
+};
+
+// Remove default listeners and filter
+process.removeAllListeners('warning');
+process.on('warning', (warning) => {
+  if (warning.name === 'DeprecationWarning' && warning.message.includes('url.parse')) {
+    return;
+  }
+  console.warn(`[${warning.name}] ${warning.message}`);
+});
