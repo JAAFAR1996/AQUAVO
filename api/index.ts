@@ -1,3 +1,4 @@
+import "../server/suppress.js";
 import express, { Request, Response, NextFunction } from "express";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import session from "express-session";

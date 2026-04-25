@@ -1,3 +1,4 @@
+import "../server/suppress.js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
