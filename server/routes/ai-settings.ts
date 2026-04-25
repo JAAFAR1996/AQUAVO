@@ -106,8 +106,8 @@ async function initializeDefaultAgents() {
   }
 }
 
-// Initialize on module load
-initializeDefaultAgents();
+// Initialize on module load is removed to prevent unexpected DB queries
+// initializeDefaultAgents();
 
 // GET /api/ai/settings - Get all agent settings
 router.get("/settings", requireAdmin as any, async (_req: Request, res: Response) => {

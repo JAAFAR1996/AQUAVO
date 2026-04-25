@@ -18,6 +18,13 @@ import { initializeScheduledJobs } from "./cron/scheduled-jobs.js";
 // Global error handlers to prevent silent crashes
 process.on('uncaughtException', (error) => {
   console.error('[FATAL] Uncaught Exception:', error);
+  
+  // Ignore Neon idle connection timeout errors which are thrown globally by the driver
+  if (error instanceof Error && error.message.includes('terminating connection due to administrator command')) {
+    console.warn('[WARN] Ignoring Neon WebSocket connection termination');
+    return;
+  }
+
   // Give time for logs to flush
   setTimeout(() => process.exit(1), 1000);
 });

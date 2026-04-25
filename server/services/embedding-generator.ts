@@ -114,7 +114,7 @@ export class EmbeddingGenerator {
 
       // توليد embedding باستخدام Gemini
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "text-embedding-004" });
+        const model = client.getGenerativeModel({ model: "embedding-001" });
         return await model.embedContent(productText);
       });
       const embedding = result.embedding.values;
@@ -137,7 +137,7 @@ export class EmbeddingGenerator {
           .update(schema.productEmbeddings)
           .set({
             embedding: JSON.stringify(embedding),
-            model: 'text-embedding-004',
+            model: 'embedding-001',
             updatedAt: new Date(),
           })
           .where(eq(schema.productEmbeddings.productId, productId));
@@ -148,7 +148,7 @@ export class EmbeddingGenerator {
           .values({
             productId,
             embedding: JSON.stringify(embedding),
-            model: 'text-embedding-004',
+            model: 'embedding-001',
             createdAt: new Date(),
           });
       }
@@ -217,7 +217,7 @@ export class EmbeddingGenerator {
 
       // توليد embedding للاستعلام
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "text-embedding-004" });
+        const model = client.getGenerativeModel({ model: "embedding-001" });
         return await model.embedContent(query);
       });
       const embedding = result.embedding.values;
