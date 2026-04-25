@@ -155,6 +155,9 @@ export class OrderStorage {
 
             // 4. Calculate Final Total
             const finalTotal = Math.max(0, subtotal + deliveryFee - discount);
+            const IRAQI_DENOMINATION = 250;
+            const roundedTotal = Math.ceil(finalTotal / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
+            const roundingCashback = roundedTotal - finalTotal;
 
             // 5. Generate Order Number (sequential from database)
             const orderNumber = await this.generateOrderNumber(tx);
@@ -165,6 +168,8 @@ export class OrderStorage {
                 userId: userId ? userId : undefined,
                 items: orderItemsData, // Enriched: productId + productName + quantity + priceAtPurchase
                 total: finalTotal.toString(),
+                roundedTotal: roundedTotal.toString(),
+                roundingCashback: roundingCashback,
                 shippingCost: deliveryFee.toString(),
                 discountTotal: discount.toString(),
                 couponId: couponId,

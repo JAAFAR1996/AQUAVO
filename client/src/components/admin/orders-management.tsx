@@ -83,6 +83,14 @@ const ORDER_STATUSES = {
   cancelled: { label: "ملغي", color: "bg-gray-500 hover:bg-gray-600" },
 };
 
+const getDisplayTotal = (order: Order) => {
+  if (order.roundedTotal !== undefined && order.roundedTotal !== null) {
+    return Number(order.roundedTotal);
+  }
+  const rawTotal = Number(order.totalAmount ?? order.total ?? 0);
+  return Math.ceil(rawTotal / 250) * 250;
+};
+
 export function OrdersManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -265,7 +273,7 @@ export function OrdersManagement() {
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {Number(order.roundedTotal ?? order.totalAmount ?? order.total ?? 0).toLocaleString()} د.ع
+                      {getDisplayTotal(order).toLocaleString()} د.ع
                     </TableCell>
                     <TableCell>
                       <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
@@ -456,13 +464,13 @@ export function OrdersManagement() {
                 )}
 
                 {/* التقريب */}
-                {Number(selectedOrder.roundedTotal ?? 0) > 0 && Number(selectedOrder.roundedTotal) !== Number(selectedOrder.total) && (
+                {getDisplayTotal(selectedOrder) !== Number(selectedOrder.total) && (
                   <div className="flex justify-between text-sm text-orange-600">
                     <span>🔄 التقريب لأقرب 250:</span>
                     <span className="font-semibold">
-                      {Number(selectedOrder.roundedTotal ?? 0).toLocaleString()} د.ع
-                      {Number(selectedOrder.roundingCashback ?? 0) > 0 && (
-                        <span className="text-xs mr-1">(+{selectedOrder.roundingCashback} باقي)</span>
+                      {getDisplayTotal(selectedOrder).toLocaleString()} د.ع
+                      {getDisplayTotal(selectedOrder) > Number(selectedOrder.total) && (
+                        <span className="text-xs mr-1">(+{getDisplayTotal(selectedOrder) - Number(selectedOrder.total)} باقي)</span>
                       )}
                     </span>
                   </div>
@@ -473,7 +481,7 @@ export function OrdersManagement() {
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-lg">💵 المبلغ المدفوع نقداً:</span>
                     <span className="text-2xl font-bold text-primary">
-                      {Number(selectedOrder.roundedTotal ?? selectedOrder.total ?? 0).toLocaleString()} د.ع
+                      {getDisplayTotal(selectedOrder).toLocaleString()} د.ع
                     </span>
                   </div>
                 </div>
