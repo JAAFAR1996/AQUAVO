@@ -112,10 +112,24 @@ export class EmbeddingGenerator {
       const product = productResult[0];
       const productText = this.createProductText(product);
 
-      // توليد embedding باستخدام Gemini
+      // توليد embedding باستخدام Gemini مع دعم لعدة نماذج تجنباً لأخطاء 404
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "text-embedding-004" });
-        return await model.embedContent(productText);
+        const modelsToTry = ["text-embedding-004", "embedding-001", "gemini-embedding-exp", "text-embedding-005"];
+        let lastError = null;
+        for (const modelName of modelsToTry) {
+          try {
+            const model = client.getGenerativeModel({ model: modelName });
+            return await model.embedContent(productText);
+          } catch (err: any) {
+            if (err.message && (err.message.includes("404") || err.message.includes("not found"))) {
+              console.warn(`[Embeddings] Model ${modelName} not available, trying next...`);
+              lastError = err;
+              continue;
+            }
+            throw err;
+          }
+        }
+        throw lastError || new Error("All embedding models failed or were not found.");
       });
       const embedding = result.embedding.values;
 
@@ -217,8 +231,22 @@ export class EmbeddingGenerator {
 
       // توليد embedding للاستعلام
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "text-embedding-004" });
-        return await model.embedContent(query);
+        const modelsToTry = ["text-embedding-004", "embedding-001", "gemini-embedding-exp", "text-embedding-005"];
+        let lastError = null;
+        for (const modelName of modelsToTry) {
+          try {
+            const model = client.getGenerativeModel({ model: modelName });
+            return await model.embedContent(query);
+          } catch (err: any) {
+            if (err.message && (err.message.includes("404") || err.message.includes("not found"))) {
+              console.warn(`[Embeddings] Model ${modelName} not available for query, trying next...`);
+              lastError = err;
+              continue;
+            }
+            throw err;
+          }
+        }
+        throw lastError || new Error("All embedding models failed or were not found.");
       });
       const embedding = result.embedding.values;
 
