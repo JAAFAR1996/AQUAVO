@@ -321,9 +321,9 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
         const totalOrders = allOrdersData[0]?.count || 0;
         const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
 
-        // Estimate cart abandonment (industry average is ~70%, we'll estimate based on completion rate)
-        const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) : 0.3;
-        const abandonmentRate = Math.round((1 - completionRate) * 100);
+        // Calculate cart abandonment from real completion rate only
+        const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) : 0;
+        const abandonmentRate = totalOrders > 0 ? Math.round((1 - completionRate) * 100) : 0;
 
         // 3. Geographic Distribution
         const cityCount = new Map<string, number>();
@@ -412,15 +412,8 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
                 return { category, trend, percentage, reason };
             });
 
-        // Fallback if no data
-        if (forecasts.length === 0) {
-            forecasts.push({
-                category: "طعام",
-                trend: "stable",
-                percentage: 5,
-                reason: "طلب ثابت - لا توجد بيانات كافية"
-            });
-        }
+        // No fallback - only show real data
+        // forecasts array stays empty if no order data exists
 
         // Response
         res.json({
