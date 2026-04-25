@@ -265,7 +265,7 @@ export function OrdersManagement() {
                       </div>
                     </TableCell>
                     <TableCell className="font-semibold">
-                      {Number(order.total ?? order.totalAmount ?? 0).toLocaleString()} د.ع
+                      {Number(order.roundedTotal ?? order.totalAmount ?? order.total ?? 0).toLocaleString()} د.ع
                     </TableCell>
                     <TableCell>
                       <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
