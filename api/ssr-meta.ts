@@ -377,7 +377,7 @@ async function getProductMeta(slug: string): Promise<PageMeta | null> {
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT id, name, description, price, brand, category, image, slug, specifications FROM products WHERE slug = $1 LIMIT 1`,
+      `SELECT id, name, description, price, brand, category, images, thumbnail, slug, specifications FROM products WHERE slug = $1 LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
@@ -395,7 +395,7 @@ async function getProductMeta(slug: string): Promise<PageMeta | null> {
         "@type": "Product",
         name: p.name,
         description: desc,
-        image: p.image || DEFAULT_IMAGE,
+        image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : DEFAULT_IMAGE),
         brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
         offers: {
           "@type": "Offer",
