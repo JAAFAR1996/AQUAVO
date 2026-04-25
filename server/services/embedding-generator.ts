@@ -1,7 +1,7 @@
 import { geminiClient } from "./gemini-client.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 
 /**
  * مولد Embeddings - تحويل المنتجات إلى متجهات للبحث الدلالي
@@ -114,7 +114,7 @@ export class EmbeddingGenerator {
 
       // توليد embedding باستخدام Gemini
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "embedding-001" });
+        const model = client.getGenerativeModel({ model: "text-embedding-004" });
         return await model.embedContent(productText);
       });
       const embedding = result.embedding.values;
@@ -137,7 +137,7 @@ export class EmbeddingGenerator {
           .update(schema.productEmbeddings)
           .set({
             embedding: JSON.stringify(embedding),
-            model: 'embedding-001',
+            model: 'text-embedding-004',
             updatedAt: new Date(),
           })
           .where(eq(schema.productEmbeddings.productId, productId));
@@ -148,7 +148,7 @@ export class EmbeddingGenerator {
           .values({
             productId,
             embedding: JSON.stringify(embedding),
-            model: 'embedding-001',
+            model: 'text-embedding-004',
             createdAt: new Date(),
           });
       }
@@ -217,7 +217,7 @@ export class EmbeddingGenerator {
 
       // توليد embedding للاستعلام
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const model = client.getGenerativeModel({ model: "embedding-001" });
+        const model = client.getGenerativeModel({ model: "text-embedding-004" });
         return await model.embedContent(query);
       });
       const embedding = result.embedding.values;
@@ -274,12 +274,23 @@ export class EmbeddingGenerator {
       const targetEmbedding = await this.db
         .select()
         .from(schema.productEmbeddings)
-        .where(eq(schema.productEmbeddings.productId, productId))
+        .where(
+          and(
+            eq(schema.productEmbeddings.productId, productId),
+            eq(schema.productEmbeddings.model, 'text-embedding-004')
+          )
+        )
         .limit(1);
 
       if (targetEmbedding.length === 0) {
         console.log(`[Embeddings] ⚠️ No embedding found for ${productId}, generating...`);
-        await this.generateProductEmbedding(productId);
+        const generated = await this.generateProductEmbedding(productId);
+        
+        if (!generated) {
+           console.log(`[Embeddings] ⚠️ Failed to generate embedding for ${productId}, returning empty results to prevent infinite loop.`);
+           return [];
+        }
+        
         return this.findSimilarByEmbedding(productId, limit);
       }
 
@@ -289,7 +300,12 @@ export class EmbeddingGenerator {
       const allEmbeddings = await this.db
         .select()
         .from(schema.productEmbeddings)
-        .where(schema.productEmbeddings.productId.ne(productId));
+        .where(
+          and(
+            schema.productEmbeddings.productId.ne(productId),
+            eq(schema.productEmbeddings.model, 'text-embedding-004')
+          )
+        );
 
       // حساب التشابه
       const similarities: { productId: string; similarity: number }[] = [];
@@ -334,7 +350,8 @@ export class EmbeddingGenerator {
       // جلب جميع embeddings المنتجات
       const allEmbeddings = await this.db
         .select()
-        .from(schema.productEmbeddings);
+        .from(schema.productEmbeddings)
+        .where(eq(schema.productEmbeddings.model, 'text-embedding-004'));
 
       if (allEmbeddings.length === 0) {
         console.log('[Embeddings] ⚠️ No product embeddings found. Run generateAllEmbeddings() first.');
@@ -376,7 +393,8 @@ export class EmbeddingGenerator {
   }> {
     try {
       const totalProducts = await this.db.select().from(schema.products);
-      const withEmbeddings = await this.db.select().from(schema.productEmbeddings);
+      const withEmbeddings = await this.db.select().from(schema.productEmbeddings)
+        .where(eq(schema.productEmbeddings.model, 'text-embedding-004'));
 
       const coverage = totalProducts.length > 0
         ? (withEmbeddings.length / totalProducts.length) * 100
@@ -409,7 +427,8 @@ export class EmbeddingGenerator {
 
       // جلب المنتجات بدون embeddings
       const allProducts = await this.db.select().from(schema.products);
-      const existingEmbeddings = await this.db.select().from(schema.productEmbeddings);
+      const existingEmbeddings = await this.db.select().from(schema.productEmbeddings)
+        .where(eq(schema.productEmbeddings.model, 'text-embedding-004'));
 
       const existingIds = new Set(existingEmbeddings.map(e => e.productId));
       const missingProducts = allProducts.filter(p => !existingIds.has(p.id));
