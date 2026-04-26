@@ -322,7 +322,8 @@ export class EmbeddingGenerator {
         return this.findSimilarByEmbedding(productId, limit);
       }
 
-      const targetVec = JSON.parse(targetEmbedding[0].embedding as string);
+      const rawEmb = targetEmbedding[0].embedding;
+      const targetVec = typeof rawEmb === 'string' ? JSON.parse(rawEmb) : rawEmb;
 
       // جلب جميع embeddings الأخرى
       const allEmbeddings = await this.db
@@ -339,7 +340,8 @@ export class EmbeddingGenerator {
       const similarities: { productId: string; similarity: number }[] = [];
 
       for (const embedding of allEmbeddings) {
-        const vec = JSON.parse(embedding.embedding as string);
+        const rawVec = embedding.embedding;
+        const vec = typeof rawVec === 'string' ? JSON.parse(rawVec) : rawVec;
         const similarity = this.cosineSimilarity(targetVec, vec);
         similarities.push({
           productId: embedding.productId,
@@ -390,7 +392,8 @@ export class EmbeddingGenerator {
       const results: { productId: string; similarity: number }[] = [];
 
       for (const embedding of allEmbeddings) {
-        const productVec = JSON.parse(embedding.embedding as string);
+        const rawPVec = embedding.embedding;
+        const productVec = typeof rawPVec === 'string' ? JSON.parse(rawPVec) : rawPVec;
         const similarity = this.cosineSimilarity(queryEmbedding, productVec);
         results.push({
           productId: embedding.productId,

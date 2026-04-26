@@ -18,7 +18,25 @@ if (!databaseUrl) {
   // Configures Neon to use the 'ws' package for WebSockets, needed in Node.js environments
   neonConfig.webSocketConstructor = ws;
 
-  const pool = new Pool({ connectionString: databaseUrl });
+  const pool = new Pool({
+    connectionString: databaseUrl,
+    connectionTimeoutMillis: 10000,  // 10s connection timeout
+    idleTimeoutMillis: 30000,        // 30s idle timeout (well under Neon's 5min auto-suspend)
+    max: 5,                          // Limit pool size for serverless
+  });
+
+  // CRITICAL: Handle Pool-level errors to prevent process crash.
+  // When Neon auto-suspends and terminates idle connections, the Pool emits
+  // an 'error' event. Without this handler, Node.js treats it as an
+  // uncaught exception and crashes with exit code 129 (SIGHUP).
+  pool.on('error', (err) => {
+    if (err.message?.includes('terminating connection due to administrator command')) {
+      console.warn('[DB] Neon terminated idle connection — pool will reconnect automatically');
+      return;
+    }
+    console.error('[DB] Unexpected pool error:', err.message);
+  });
+
   db = drizzle(pool, { schema });
 
   // Keep Neon serverless DB warm — Neon idles after ~5 min inactivity causing
