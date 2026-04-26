@@ -18,6 +18,7 @@ import {
   Music2,
   MapPin
 } from 'lucide-react';
+import { trackBioLinkClick } from '@/lib/analytics';
 
 // ═══════════════════════════════════════════════
 // CONFIGURATION
@@ -221,9 +222,14 @@ function LinkCard({
 }) {
   const isExternal = link.external || link.url.startsWith('http');
 
+  const handleClick = () => {
+    trackBioLinkClick(link.id);
+  };
+
   return (
     <motion.a
       href={link.url}
+      onClick={handleClick}
       target={isExternal ? '_blank' : '_self'}
       rel={isExternal ? 'noopener noreferrer' : undefined}
       initial={{ opacity: 0, y: 20 }}

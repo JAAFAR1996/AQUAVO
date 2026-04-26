@@ -233,3 +233,7 @@ export function trackFishFinderUsed() {
 export function trackFishDoctorUsed() {
   trackEvent('fish_doctor_used', 'Features', 'Fish Health Diagnosis');
 }
+
+export function trackBioLinkClick(linkId: string) {
+  trackEvent('bio_link_click', 'Links Page', linkId);
+}
