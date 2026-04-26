@@ -1,7 +1,7 @@
 import { geminiClient } from "./gemini-client.js";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, ne, and } from "drizzle-orm";
 
 /**
  * مولد Embeddings - تحويل المنتجات إلى متجهات للبحث الدلالي
@@ -331,7 +331,7 @@ export class EmbeddingGenerator {
         .from(schema.productEmbeddings)
         .where(
           and(
-            schema.productEmbeddings.productId.ne(productId),
+            ne(schema.productEmbeddings.productId, productId),
             eq(schema.productEmbeddings.model, 'text-embedding-004')
           )
         );
