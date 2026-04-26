@@ -15,11 +15,21 @@ import { aiMonitor } from "./ai-monitor.js";
 
 export class CustomerProfiler {
     private db = getDb();
+    private schemaError = false; // Circuit breaker: stop querying if tables/columns are missing
+
+    /**
+     * Check if error is a schema/table mismatch (missing column or relation)
+     */
+    private isSchemaError(error: any): boolean {
+        const msg = String(error?.message || error || '');
+        return msg.includes('does not exist') || msg.includes('undefined_column') || msg.includes('42703') || msg.includes('42P01');
+    }
 
     /**
      * تحليل سلوك عميل وتحديث ملفه
      */
     async analyzeAndUpdateProfile(userId: string): Promise<void> {
+        if (this.schemaError) return;
         try {
             const db = this.db;
             if (!db) return;
@@ -35,7 +45,12 @@ export class CustomerProfiler {
 
             console.log(`✓ Updated profile for user: ${userId}`);
         } catch (error) {
-            console.error("Profile analysis error:", error);
+            if (this.isSchemaError(error)) {
+                this.schemaError = true;
+                console.warn('[CustomerProfiler] ⚠️ Schema mismatch detected. Disabling profiler until DB migration is run.');
+            } else {
+                console.error("Profile analysis error:", error);
+            }
         }
     }
 
@@ -44,7 +59,7 @@ export class CustomerProfiler {
      */
     private async collectBehaviorData(userId: string) {
         const db = this.db;
-        if (!db) return null;
+        if (!db || this.schemaError) return null;
 
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -326,17 +341,27 @@ export class CustomerProfiler {
      * تحديث تفاعل العميل بعد كل حدث
      */
     async trackInteraction(userId: string, type: string, data?: any) {
+        if (this.schemaError) return;
         const db = this.db;
         if (!db) return;
 
-        // تحديث آخر تفاعل
-        await db
-            .update(schema.customerProfiles)
-            .set({
-                lastInteractionAt: new Date(),
-                updatedAt: new Date(),
-            })
-            .where(eq(schema.customerProfiles.userId, userId));
+        try {
+            // تحديث آخر تفاعل
+            await db
+                .update(schema.customerProfiles)
+                .set({
+                    lastInteractionAt: new Date(),
+                    updatedAt: new Date(),
+                })
+                .where(eq(schema.customerProfiles.userId, userId));
+        } catch (error) {
+            if (this.isSchemaError(error)) {
+                this.schemaError = true;
+                console.warn('[CustomerProfiler] ⚠️ Schema mismatch in trackInteraction. Disabled until DB migration.');
+            } else {
+                console.error('[CustomerProfiler] Error tracking interaction:', error);
+            }
+        }
     }
 }
 

@@ -8,12 +8,22 @@ import { eq, desc, and, gte, sql } from "drizzle-orm";
  */
 export class PricingEngine {
   private db = getDb();
+  private schemaError = false; // Circuit breaker: stop querying if tables/columns are missing
 
   /**
    * حساب مرونة الطلب (Demand Elasticity)
    * ΔQ/Q ÷ ΔP/P
    */
+  /**
+   * Check if error is a schema/table mismatch (missing column or relation)
+   */
+  private isSchemaError(error: any): boolean {
+    const msg = String(error?.message || error || '');
+    return msg.includes('does not exist') || msg.includes('undefined_column') || msg.includes('42703') || msg.includes('42P01');
+  }
+
   async calculateDemandElasticity(productId: string): Promise<number | null> {
+    if (this.schemaError) return null;
     try {
       console.log(`[Pricing] 📊 Calculating demand elasticity for: ${productId}`);
 
@@ -62,7 +72,12 @@ export class PricingEngine {
       console.log(`[Pricing] 📈 Elasticity: ${elasticity.toFixed(2)}`);
       return elasticity;
     } catch (error) {
-      console.error('[Pricing] Error calculating elasticity:', error);
+      if (this.isSchemaError(error)) {
+        this.schemaError = true;
+        console.warn('[Pricing] ⚠️ Schema mismatch detected (price_history table). Disabling advanced pricing until DB migration is run.');
+      } else {
+        console.error('[Pricing] Error calculating elasticity:', error);
+      }
       return null;
     }
   }
@@ -123,6 +138,21 @@ export class PricingEngine {
       salesChange: string;
     };
   } | null> {
+    // Circuit breaker: if schema is broken, fallback to stock-based suggestions
+    if (this.schemaError) {
+      try {
+        const product = await this.db
+          .select({ id: schema.products.id, name: schema.products.name, stock: schema.products.stock, price: schema.products.price, category: schema.products.category })
+          .from(schema.products)
+          .where(eq(schema.products.id, productId))
+          .limit(1);
+        if (product.length === 0) return null;
+        return this.suggestBasedOnStock(product[0]);
+      } catch {
+        return null;
+      }
+    }
+
     try {
       console.log(`[Pricing] 💰 Calculating optimal price for: ${productId}`);
 
@@ -248,7 +278,21 @@ export class PricingEngine {
         }
       };
     } catch (error) {
-      console.error('[Pricing] Error calculating optimal price:', error);
+      if (this.isSchemaError(error)) {
+        this.schemaError = true;
+        console.warn('[Pricing] ⚠️ Schema mismatch detected. Falling back to stock-based pricing. Run `drizzle-kit push` to fix.');
+        // Try fallback for this product
+        try {
+          const product = await this.db
+            .select({ id: schema.products.id, name: schema.products.name, stock: schema.products.stock, price: schema.products.price, category: schema.products.category })
+            .from(schema.products)
+            .where(eq(schema.products.id, productId))
+            .limit(1);
+          if (product.length > 0) return this.suggestBasedOnStock(product[0]);
+        } catch { /* fallback also failed */ }
+      } else {
+        console.error('[Pricing] Error calculating optimal price:', error);
+      }
       return null;
     }
   }
@@ -392,7 +436,12 @@ export class PricingEngine {
         volatility: Math.round(volatility * 1000) / 1000
       };
     } catch (error) {
-      console.error('[Pricing] Error analyzing trend:', error);
+      if (this.isSchemaError(error)) {
+        this.schemaError = true;
+        console.warn('[Pricing] ⚠️ Schema mismatch in trend analysis. Disabled until DB migration.');
+      } else {
+        console.error('[Pricing] Error analyzing trend:', error);
+      }
       return null;
     }
   }
@@ -402,6 +451,10 @@ export class PricingEngine {
    * Update price history (periodic call)
    */
   async updatePriceHistory(): Promise<number> {
+    if (this.schemaError) {
+      console.warn('[Pricing] ⚠️ Skipping price history update - schema mismatch. Run `drizzle-kit push`.');
+      return 0;
+    }
     try {
       console.log('[Pricing] 🔄 Updating price history...');
 
@@ -471,7 +524,12 @@ export class PricingEngine {
       console.log(`[Pricing] ✅ Updated price history for ${updated} products`);
       return updated;
     } catch (error) {
-      console.error('[Pricing] Error updating price history:', error);
+      if (this.isSchemaError(error)) {
+        this.schemaError = true;
+        console.warn('[Pricing] ⚠️ Schema mismatch in updatePriceHistory. Disabled until DB migration.');
+      } else {
+        console.error('[Pricing] Error updating price history:', error);
+      }
       return 0;
     }
   }
