@@ -650,7 +650,19 @@ export default function AdminDashboard() {
   // Calculate statistics
   const totalProducts = products.length;
   const lowStockProducts = products.filter((p) => p.stock <= p.lowStockThreshold).length;
-  const totalValue = products.reduce((sum, p) => sum + Number(p.price) * p.stock, 0);
+  
+  // Calculate inventory value ONLY for available/purchasable products
+  // (YEE/GENERAL brand with price > 0)
+  const totalValue = products.reduce((sum, p) => {
+    const isPurchasableBrand = ["YEE", "GENERAL"].includes(p.brand?.toUpperCase() || "");
+    const hasPrice = isPurchasableBrand && Number(p.price || 0) > 0;
+    
+    // Only calculate value if it has a price and stock
+    if (hasPrice && p.stock > 0) {
+      return sum + Number(p.price) * p.stock;
+    }
+    return sum;
+  }, 0);
 
   return (
     <div className="container mx-auto py-8 px-4" dir="rtl">
