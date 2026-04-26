@@ -1,6 +1,6 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { eq, desc, and, gte, sql, inArray, notInArray } from "drizzle-orm";
+import { eq, desc, and, gte, sql, inArray, notInArray, isNotNull, ne } from "drizzle-orm";
 
 /**
  * متجه المستخدم - تمثيل تفاعلات المستخدم مع المنتجات
@@ -42,7 +42,7 @@ export class RecommendationEngine {
         .where(
           and(
             gte(schema.productInteractions.createdAt, since),
-            schema.productInteractions.userId.isNotNull()
+            isNotNull(schema.productInteractions.userId)
           )
         );
 
@@ -279,7 +279,7 @@ export class RecommendationEngine {
         .where(
           and(
             eq(schema.products.category, targetProduct.category),
-            schema.products.id.ne(productId), // استبعاد المنتج نفسه
+            ne(schema.products.id, productId), // استبعاد المنتج نفسه
             gte(sql`CAST(${schema.products.price} AS DECIMAL)`, minPrice),
             sql`CAST(${schema.products.price} AS DECIMAL) <= ${maxPrice}`
           )
@@ -341,7 +341,7 @@ export class RecommendationEngine {
         .where(
           and(
             eq(schema.productInteractions.interactionType, 'purchase'),
-            schema.productInteractions.productId.ne(productId),
+            ne(schema.productInteractions.productId, productId),
             // نحتاج للتحقق من orderId في metadata
           )
         )
