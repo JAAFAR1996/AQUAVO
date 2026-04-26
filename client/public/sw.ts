@@ -200,6 +200,7 @@ self.addEventListener('push', (event: PushEvent) => {
         vibrate: [100, 50, 100],
         data: {
             url: data.url || '/',
+            id: data.id,
         },
         actions: data.actions || [],
         dir: 'rtl',
@@ -218,7 +219,17 @@ self.addEventListener('push', (event: PushEvent) => {
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
     event.notification.close();
 
-    const url = event.notification.data?.url || '/';
+    const data = event.notification.data || {};
+    const url = data.url || '/';
+    const notificationId = data.id; // Passed from backend push payload
+
+    // Call API to track the click in the background
+    if (notificationId) {
+        event.waitUntil(
+            fetch(`/api/notifications/track-click/${notificationId}`, { method: 'POST' })
+                .catch(err => console.error('Failed to track click:', err))
+        );
+    }
 
     event.waitUntil(
         (self as any).clients.matchAll({ type: 'window' }).then((clients: any[]) => {

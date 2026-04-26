@@ -362,6 +362,27 @@ router.post("/mark-all-read", requireAuth, async (req: Request, res: Response, n
 
 // ==================== Admin: Notification Log ====================
 
+// Track when a notification is clicked
+router.post("/track-click/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        const notificationId = req.params.id;
+        if (!db || !notificationId) { res.json({ success: true }); return; }
+
+        const { notificationLog } = await import("../../shared/schema.js");
+        const { eq, isNull, and } = await import("drizzle-orm");
+
+        await db
+            .update(notificationLog)
+            .set({ clickedAt: new Date(), readAt: new Date() })
+            .where(and(eq(notificationLog.id, notificationId), isNull(notificationLog.clickedAt)));
+
+        res.json({ success: true });
+    } catch (error) {
+        next(error);
+    }
+});
+
 // Get all notification logs (admin only)
 router.get("/admin-log", requireAdmin, async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {

@@ -138,12 +138,24 @@ export class SmartNotifications {
             continue;
           }
 
-          // Send via push
-          const pushSent = await this.sendPushToUser(candidate.userId, candidate.payload);
-          if (pushSent) results.pushSent++;
+          // Log the notification first so we get an ID
+          const logId = await this.logNotification(candidate.userId, candidate.payload, "push");
+          
+          if (!logId) continue;
 
-          // Log the notification
-          await this.logNotification(candidate.userId, candidate.payload, pushSent ? "push" : "skipped");
+          // Send via push with the log ID
+          const pushSent = await this.sendPushToUser(candidate.userId, candidate.payload, logId);
+          if (pushSent) {
+            results.pushSent++;
+          } else {
+            // Update log to failed if not sent
+            const db = getDb();
+            if (db) {
+                await db.update(notificationLog)
+                    .set({ failedAt: new Date(), failReason: "Push sending failed or no subscription" })
+                    .where(eq(notificationLog.id, logId));
+            }
+          }
 
           results.totalProcessed++;
           results.byType[candidate.payload.type] = (results.byType[candidate.payload.type] || 0) + 1;
@@ -745,7 +757,7 @@ export class SmartNotifications {
   /**
    * Send push notification to a specific user
    */
-  private async sendPushToUser(userId: string, payload: NotificationPayload): Promise<boolean> {
+  private async sendPushToUser(userId: string, payload: NotificationPayload, logId: string): Promise<boolean> {
     if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) return false;
 
     try {
@@ -763,6 +775,7 @@ export class SmartNotifications {
       if (subscriptions.length === 0) return false;
 
       const pushPayload = JSON.stringify({
+        id: logId,
         title: payload.title,
         body: payload.body,
         url: payload.url,
@@ -846,12 +859,12 @@ export class SmartNotifications {
   /**
    * Log a sent notification
    */
-  private async logNotification(userId: string, payload: NotificationPayload, channel: string): Promise<void> {
+  private async logNotification(userId: string, payload: NotificationPayload, channel: string): Promise<string | null> {
     try {
       const db = getDb();
-      if (!db) return;
+      if (!db) return null;
 
-      await db.insert(notificationLog).values({
+      const result = await db.insert(notificationLog).values({
         userId,
         type: payload.type,
         channel,
@@ -860,9 +873,12 @@ export class SmartNotifications {
         url: payload.url,
         metadata: payload.metadata as any,
         sentAt: new Date(),
-      });
+      }).returning({ id: notificationLog.id });
+      
+      return result[0]?.id || null;
     } catch (error) {
       console.error("[AI-Notifications] Log error:", error);
+      return null;
     }
   }
 
