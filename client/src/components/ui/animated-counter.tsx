@@ -58,7 +58,10 @@ export function AnimatedCounter({
 
   return (
     <span className={cn("tabular-nums", className)}>
-      {count.toFixed(decimals)}
+      {count.toLocaleString(undefined, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      })}
       {suffix}
     </span>
   );
