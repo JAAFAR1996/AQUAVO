@@ -1,5 +1,5 @@
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products } from "../../shared/schema.js";
-import { eq, desc, and, sql, gte } from "drizzle-orm";
+import { eq, desc, and, sql, gte, or } from "drizzle-orm";
 import { getDb } from "../db.js";
 
 export class OrderStorage {
@@ -299,12 +299,15 @@ export class OrderStorage {
 
         const db = this.ensureDb();
 
-        const [product] = await db.select().from(products).where(eq(products.id, productId));
+        const [product] = await db.select().from(products)
+            .where(or(eq(products.id, productId), eq(products.slug, productId)));
         if (!product) throw new Error("Product not found");
         if ((product.stock || 0) < quantity) throw new Error("Insufficient stock");
 
+        const actualProductId = product.id;
+
         const [existing] = await db.select().from(cartItems)
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)));
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, actualProductId)));
 
         if (existing) {
             // Check if adding quantity exceeds stock
@@ -319,7 +322,7 @@ export class OrderStorage {
             return updated;
         } else {
             const [created] = await db.insert(cartItems)
-                .values({ userId, productId, quantity })
+                .values({ userId, productId: actualProductId, quantity })
                 .returning();
             return created;
         }
@@ -327,17 +330,25 @@ export class OrderStorage {
 
     async updateCartItem(userId: string, productId: string, quantity: number): Promise<CartItem> {
         const db = this.ensureDb();
+        const [product] = await db.select().from(products)
+            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+        if (!product) throw new Error("Product not found");
+
         const [updated] = await db.update(cartItems)
             .set({ quantity })
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)))
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, product.id)))
             .returning();
         return updated;
     }
 
     async removeFromCart(userId: string, productId: string): Promise<void> {
         const db = this.ensureDb();
+        const [product] = await db.select().from(products)
+            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+        if (!product) return;
+
         await db.delete(cartItems)
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, productId)));
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, product.id)));
     }
 
     async clearCart(userId: string): Promise<void> {
@@ -361,21 +372,29 @@ export class OrderStorage {
 
     async addFavorite(userId: string, productId: string): Promise<Favorite> {
         const db = this.ensureDb();
+        const [product] = await db.select().from(products)
+            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+        if (!product) throw new Error("Product not found");
+
         const [existing] = await db.select().from(favorites)
-            .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
+            .where(and(eq(favorites.userId, userId), eq(favorites.productId, product.id)));
 
         if (existing) return existing;
 
         const [created] = await db.insert(favorites)
-            .values({ userId, productId })
+            .values({ userId, productId: product.id })
             .returning();
         return created;
     }
 
     async removeFavorite(userId: string, productId: string): Promise<void> {
         const db = this.ensureDb();
+        const [product] = await db.select().from(products)
+            .where(or(eq(products.id, productId), eq(products.slug, productId)));
+        if (!product) return;
+
         await db.delete(favorites)
-            .where(and(eq(favorites.userId, userId), eq(favorites.productId, productId)));
+            .where(and(eq(favorites.userId, userId), eq(favorites.productId, product.id)));
     }
 
     // Gallery methods (Basic impl)

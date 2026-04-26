@@ -114,7 +114,7 @@ export class EmbeddingGenerator {
 
       // توليد embedding باستخدام Gemini مع دعم لعدة نماذج تجنباً لأخطاء 404
       const result = await geminiClient.executeWithFallback(async (client) => {
-        const modelsToTry = ["text-embedding-004", "embedding-001", "gemini-embedding-exp", "text-embedding-005"];
+        const modelsToTry = ["text-embedding-004", "embedding-001"];
         let lastError = null;
         for (const modelName of modelsToTry) {
           try {
