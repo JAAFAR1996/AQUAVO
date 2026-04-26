@@ -89,13 +89,12 @@ export function NotificationBell() {
   // Mark one as read when clicked
   const handleClickNotification = useCallback(
     async (notif: Notification) => {
-      // Mark as read
-      if (!notif.readAt) {
-        fetch("/api/notifications/mark-read", {
+      // Mark as clicked (and read)
+      if (!notif.readAt || !notif.metadata?.clicked) {
+        fetch(`/api/notifications/track-click/${notif.id}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
-          body: JSON.stringify({ ids: [notif.id] }),
         }).then(() => queryClient.invalidateQueries({ queryKey: ["my-notifications"] }));
       }
       // Navigate if has URL
