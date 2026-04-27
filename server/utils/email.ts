@@ -1,61 +1,24 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 // Email configuration
-// For production, set these environment variables:
-// - SMTP_HOST: SMTP server host (e.g., smtp.gmail.com, smtp.mail.yahoo.com)
-// - SMTP_PORT: SMTP port (usually 587 for TLS or 465 for SSL)
-// - SMTP_USER: Your email address
-// - SMTP_PASS: Your email password or app-specific password
-// - SMTP_FROM: Sender email address
+// For production, set this environment variable:
+// - RESEND_API_KEY: Your Resend API key (starts with re_)
+// - SMTP_FROM: Sender email address (must be a verified domain in Resend)
 
-interface EmailConfig {
-  host: string;
-  port: number;
-  secure: boolean;
-  user: string;
-  pass: string;
-  from: string;
-}
-
-function getEmailConfig(): EmailConfig | null {
-  const host = process.env.SMTP_HOST;
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
-
-  if (!host || !user || !pass) {
-    console.warn("[Email] SMTP not configured. Set SMTP_HOST, SMTP_USER, SMTP_PASS environment variables.");
+function getResendClient(): Resend | null {
+  const apiKey = process.env.RESEND_API_KEY;
+  
+  if (!apiKey) {
+    console.warn("[Email] Resend API key not found. Set RESEND_API_KEY environment variable.");
     return null;
   }
 
-  return {
-    host,
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
-    user,
-    pass,
-    from: process.env.SMTP_FROM || user,
-  };
+  return new Resend(apiKey);
 }
 
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter | null {
-  if (transporter) return transporter;
-
-  const config = getEmailConfig();
-  if (!config) return null;
-
-  transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.secure,
-    auth: {
-      user: config.user,
-      pass: config.pass,
-    },
-  });
-
-  return transporter;
+function getFromEmail(): string {
+  // Use the verified domain email, or fallback to the Resend testing email
+  return process.env.SMTP_FROM || "AQUAVO <onboarding@resend.dev>";
 }
 
 export interface EmailOptions {
@@ -109,24 +72,29 @@ async function logEmailToDatabase(data: EmailLogData): Promise<void> {
 // ... (imports and config)
 
 export async function sendEmail(options: EmailOptions): Promise<boolean> {
-  const transport = getTransporter();
-  const config = getEmailConfig();
+  const resend = getResendClient();
+  const fromEmail = getFromEmail();
 
-  if (!transport || !config) {
-    console.log("[Email] Skipping email send - SMTP not configured");
+  if (!resend) {
+    console.log("[Email] Skipping email send - Resend API key not configured");
     console.log("[Email] Would have sent to:", options.to);
     console.log("[Email] Subject:", options.subject);
     return false;
   }
 
   try {
-    await transport.sendMail({
-      from: `"AQUAVO" <${config.from}>`,
+    const { error } = await resend.emails.send({
+      from: fromEmail,
       to: options.to,
       subject: options.subject,
-      text: options.text,
-      html: options.html,
+      text: options.text || "",
+      html: options.html || "",
     });
+
+    if (error) {
+      console.error("[Email] Resend API error:", error);
+      return false;
+    }
 
     console.log(`[Email] Successfully sent to: ${options.to}`);
     return true;
@@ -679,17 +647,11 @@ ${resetUrl}
   return success;
 }
 
-// Verify SMTP connection
+// Verify Resend connection
 export async function verifyEmailConnection(): Promise<boolean> {
-  const transport = getTransporter();
-  if (!transport) return false;
+  const resend = getResendClient();
+  if (!resend) return false;
 
-  try {
-    await transport.verify();
-    console.log("[Email] SMTP connection verified successfully");
-    return true;
-  } catch (error) {
-    console.error("[Email] SMTP verification failed:", error);
-    return false;
-  }
+  console.log("[Email] Resend API key loaded successfully");
+  return true;
 }
