@@ -419,11 +419,10 @@ router.post("/run-smart-reminders", requireAdmin as any, async (_req: Request, r
 // GET /api/ai/email-status - Check if email system is configured and working
 router.get("/email-status", requireAdmin as any, async (_req: Request, res: Response) => {
   try {
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.SMTP_FROM;
 
-    const configured = !!(smtpHost && smtpUser && smtpPass);
+    const configured = !!resendApiKey;
     let connected = false;
 
     if (configured) {
@@ -435,10 +434,9 @@ router.get("/email-status", requireAdmin as any, async (_req: Request, res: Resp
       data: {
         configured,
         connected,
-        host: smtpHost || "غير محدد",
-        user: smtpUser ? smtpUser.replace(/(.{3}).*(@.*)/, "$1***$2") : "غير محدد",
-        port: process.env.SMTP_PORT || "587",
-        secure: process.env.SMTP_SECURE === "true",
+        provider: "Resend",
+        from: fromEmail || "onboarding@resend.dev",
+        apiKeySet: !!resendApiKey,
       },
     });
   } catch (error) {
