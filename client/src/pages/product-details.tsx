@@ -77,24 +77,26 @@ export default function ProductDetails() {
     }
   }, [hasEmbeddedVariants, product?.variants]);
 
+  // Current display values (from selected variant or product)
+  const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
+
   // TikTok Pixel: ViewContent event
   useEffect(() => {
-    if (product) {
+    if (product && displayPrice > 0) {
       ttqViewContent({
         id: product.id,
         name: product.name,
         category: product.category,
-        price: Number(product.price),
+        price: Number(displayPrice),
         brand: product.brand,
         description: product.description,
       });
     }
-  }, [product?.id]);
+  }, [product?.id, displayPrice]);
 
-  // Current display values (from selected variant or product)
-  const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
+  const isOutOfStock = product?.stock === 0 || (hasEmbeddedVariants && selectedVariant?.stock === 0);
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
 
   // إظهار السعر فقط لمنتجات YEE و General إذا كان المنتج يمتلك سعر أكبر من صفر
@@ -120,13 +122,16 @@ export default function ProductDetails() {
 
       addItem(productToAdd, quantity);
       // TikTok Pixel: AddToCart event
-      ttqAddToCart({
-        id: productToAdd.id,
-        name: productToAdd.name,
-        price: Number(productToAdd.price),
-        quantity,
-        category: product.category,
-      });
+      const trackPrice = Number(productToAdd.price) > 0 ? Number(productToAdd.price) : Number(displayPrice);
+      if (trackPrice > 0) {
+        ttqAddToCart({
+          id: productToAdd.id,
+          name: productToAdd.name,
+          price: trackPrice,
+          quantity,
+          category: product.category,
+        });
+      }
       setIsAddedToCart(true);
       toast({
         title: "يا سلام! 🦐",
