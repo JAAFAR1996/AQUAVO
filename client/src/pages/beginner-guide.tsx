@@ -263,7 +263,7 @@ function Scene({
 }: {
   s: typeof SCENES[number]; idx: number;
   onEnter: (i: number) => void;
-  warpBlur: ReturnType<typeof useMotionValue>;
+  warpBlur: import("framer-motion").MotionValue<number>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { margin: "-35% 0px -35% 0px" });
@@ -308,9 +308,8 @@ function Scene({
           style={{ boxShadow: `0 32px 80px rgba(0,0,0,0.65), 0 0 60px rgba(${s.rgb},0.08)` }}
         >
           {/* Vignette */}
-          <motion.div style={{ opacity: vignette }}
+          <motion.div style={{ opacity: vignette, background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%)" }}
             className="absolute inset-0 z-10 pointer-events-none"
-            style2={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%)" }}
           />
           {/* ⑪ Water fill */}
           <motion.div style={{ clipPath }} className="absolute inset-0 z-20 pointer-events-none">
@@ -483,7 +482,14 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                   drag
                   dragConstraints={{ top:-440, left:-110, right:110, bottom:10 }}
                   dragElastic={0.62}
-                  style={{ scale:bScale, rotate:bRotate, touchAction:"none" }}
+                  style={{ 
+                    scale:bScale, rotate:bRotate, touchAction:"none",
+                    background:`linear-gradient(135deg, rgba(${s.rgb},0.5), rgba(${s.rgb},0.18), rgba(0,0,0,0.3))`,
+                    backdropFilter:"blur(20px) saturate(200%)",
+                    WebkitBackdropFilter:"blur(20px) saturate(200%)",
+                    border:`2px solid rgba(${s.rgb},0.65)`,
+                    boxShadow:`0 0 ${near?70:50}px rgba(${s.rgb},${near?0.95:0.55}), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2)`,
+                  }}
                   whileDrag={{ rotate:-15 }}
                   animate={fail ? { x:[-9,9,-9,9,0] } : {}}
                   onDrag={(_: any, info: any) => {
@@ -496,13 +502,6 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                     else { setFail(true); vib([30, 55]); setTimeout(() => setFail(false), 700); }
                   }}
                   className="w-28 h-28 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing rounded-[28px] select-none"
-                  style2={{
-                    background:`linear-gradient(135deg, rgba(${s.rgb},0.5), rgba(${s.rgb},0.18), rgba(0,0,0,0.3))`,
-                    backdropFilter:"blur(20px) saturate(200%)",
-                    WebkitBackdropFilter:"blur(20px) saturate(200%)",
-                    border:`2px solid rgba(${s.rgb},0.65)`,
-                    boxShadow:`0 0 ${near?70:50}px rgba(${s.rgb},${near?0.95:0.55}), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2)`,
-                  }}
                 >
                   <motion.span className="text-5xl"
                     animate={{ y:[0,-4,0] }} transition={{ duration:1.9, repeat:Infinity, ease:"easeInOut" }}
