@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useLocation } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
+import { ttqIdentify, ttqCompleteRegistration } from "@/lib/tiktok-pixel";
 
 interface User {
   id: string;
@@ -100,6 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("✅ Login successful:", userData);
       }
       setUser(userData);
+      // TikTok Pixel: Identify user on login
+      ttqIdentify({
+        email: email,
+        externalId: userData.id,
+      });
     } catch (error: unknown) {
       console.error("❌ Login error:", error);
       throw error;
@@ -142,6 +148,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Automatically login after register (server handles session)
       const userData = await response.json();
       setUser(userData);
+      // TikTok Pixel: Identify + CompleteRegistration
+      ttqIdentify({
+        email: email,
+        phone: phone,
+        externalId: userData.id,
+      });
+      ttqCompleteRegistration();
     } catch (error: unknown) {
       console.error("❌ Register error:", error);
       throw error;

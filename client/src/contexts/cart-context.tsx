@@ -4,6 +4,7 @@ import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { syncStorage } from "@/lib/secure-storage";
+import { ttqAddToCart } from "@/lib/tiktok-pixel";
 
 export interface CartItem {
   id: string;

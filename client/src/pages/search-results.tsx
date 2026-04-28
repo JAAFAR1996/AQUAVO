@@ -23,6 +23,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types";
 import type { FishSpecies } from "@/data/freshwater-fish";
+import { ttqSearch } from "@/lib/tiktok-pixel";
 
 type FilterType = "all" | "products" | "fish" | "pages";
 type SortType = "relevance" | "price-asc" | "price-desc" | "rating";
@@ -115,6 +116,16 @@ export default function SearchResults() {
     setSearchQuery(q);
     setCurrentPage(1);
   }, [location]);
+
+  // TikTok Pixel: Search event
+  useEffect(() => {
+    if (searchQuery.trim() && products.length > 0) {
+      ttqSearch(searchQuery, products.slice(0, 5).map(p => ({
+        id: p.id,
+        name: p.name,
+      })));
+    }
+  }, [searchQuery, products.length]);
 
   // Combined Search Logic
   const allResults = useMemo(() => {

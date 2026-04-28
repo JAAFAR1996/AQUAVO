@@ -6,6 +6,7 @@ import { CartItem } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
+import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
@@ -62,6 +63,21 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     }
   }, [open, user]);
 
+  // TikTok Pixel: InitiateCheckout when dialog opens
+  useEffect(() => {
+    if (open && cartItems.length > 0) {
+      ttqInitiateCheckout(
+        cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        cartTotal
+      );
+    }
+  }, [open]);
+
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [couponCode, setCouponCode] = useState("");
@@ -108,6 +124,16 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
   const handleContinue = () => {
     if (validateInfo()) {
+      // TikTok Pixel: AddPaymentInfo when user proceeds to confirm
+      ttqAddPaymentInfo(
+        cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        cartTotal
+      );
       setStep('confirm');
     }
   };
@@ -155,6 +181,17 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         orderId: orderData.id,
         orderNumber: orderData.id
       });
+
+      // TikTok Pixel: PlaceAnOrder on successful order
+      ttqPlaceAnOrder(
+        cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })),
+        cartTotal
+      );
 
       setStep('info');
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });

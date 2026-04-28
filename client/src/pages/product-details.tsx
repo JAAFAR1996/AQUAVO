@@ -32,6 +32,7 @@ import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, ProductSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
+import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
 
 export default function ProductDetails() {
   const params = useParams();
@@ -76,6 +77,20 @@ export default function ProductDetails() {
     }
   }, [hasEmbeddedVariants, product?.variants]);
 
+  // TikTok Pixel: ViewContent event
+  useEffect(() => {
+    if (product) {
+      ttqViewContent({
+        id: product.id,
+        name: product.name,
+        category: product.category,
+        price: Number(product.price),
+        brand: product.brand,
+        description: product.description,
+      });
+    }
+  }, [product?.id]);
+
   // Current display values (from selected variant or product)
   const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
@@ -104,6 +119,14 @@ export default function ProductDetails() {
         : product;
 
       addItem(productToAdd, quantity);
+      // TikTok Pixel: AddToCart event
+      ttqAddToCart({
+        id: productToAdd.id,
+        name: productToAdd.name,
+        price: Number(productToAdd.price),
+        quantity,
+        category: product.category,
+      });
       setIsAddedToCart(true);
       toast({
         title: "يا سلام! 🦐",

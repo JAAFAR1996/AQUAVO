@@ -3,6 +3,7 @@ import { Product } from "@/types";
 import { useAuth } from "./auth-context";
 import { addCsrfHeader } from "@/lib/csrf";
 import { syncStorage } from "@/lib/secure-storage";
+import { ttqAddToWishlist } from "@/lib/tiktok-pixel";
 
 export interface WishlistItem {
   id: string;
@@ -126,6 +127,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             category: product.category,
           };
           setItems([...items, newItem]);
+          // TikTok Pixel: AddToWishlist event
+          ttqAddToWishlist({
+            id: product.id,
+            name: product.name,
+            price: Number(product.price),
+            category: product.category,
+          });
         }
       } catch (err) {
         console.error("Failed to add to server wishlist", err);
@@ -143,6 +151,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         category: product.category,
       };
       saveWishlist([...items, newItem]);
+      // TikTok Pixel: AddToWishlist event
+      ttqAddToWishlist({
+        id: product.id,
+        name: product.name,
+        price: Number(product.price),
+        category: product.category,
+      });
     }
   };
 

@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { formatIQD, formatDate } from "@/lib/utils";
+import { ttqPurchase } from "@/lib/tiktok-pixel";
 
 // Proper interface for order data
 interface OrderItem {
@@ -84,12 +85,29 @@ export default function OrderConfirmation() {
         frame();
     }, []);
 
+    // TikTok Pixel: Purchase event once order data is loaded
     const { data: order, isLoading } = useQuery({
         queryKey: [`/api/orders/${orderId}`],
         enabled: !!orderId,
     });
 
     const orderData = order as OrderData | undefined;
+
+    // Fire TikTok Purchase event when order loads successfully
+    useEffect(() => {
+        if (orderData && orderData.items && orderData.items.length > 0) {
+            ttqPurchase({
+                orderId: orderData.orderNumber || orderData.id,
+                items: orderData.items.map(item => ({
+                    id: item.productId,
+                    name: item.productName || item.productId,
+                    price: Number(item.priceAtPurchase || 0),
+                    quantity: item.quantity,
+                })),
+                totalValue: orderData.total,
+            });
+        }
+    }, [orderData?.id]);
 
     if (isLoading) {
         return (
