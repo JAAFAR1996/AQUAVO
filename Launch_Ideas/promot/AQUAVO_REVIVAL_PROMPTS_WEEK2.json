@@ -1,0 +1,361 @@
+{
+  "meta": {
+    "project": "AQUAVO Revival — Social Media Prompts",
+    "week": 2,
+    "theme": "البيئة البايولوجية",
+    "psychology": ["Status-Quo Bias", "Unity Principle", "Curiosity Gap", "Commitment"],
+    "visual_dna": {
+      "background": "Pure black or deep ocean (#0A0A14)",
+      "accent_colors": ["Bioluminescent green (#00FF88)", "Deep teal (#008080)", "Warm amber (#FF8C00)"],
+      "lighting": "Dramatic rim lighting, bioluminescent accents, chiaroscuro",
+      "mood": "Scientific precision, biological depth, living systems",
+      "camera_default": "Shot on Hasselblad X2D, 85mm lens, f/2.0",
+      "exclusions": "No text, no typography, no labels, no logos, no watermarks, no icons, no Arabic characters, no English characters, no blurry edges, no cartoon, no illustration, no oversaturated colors"
+    },
+    "text_overlay_note": "All text added in CapCut/Canva AFTER generation. AI cannot render Arabic."
+  },
+
+  "prompts": [
+
+    {
+      "id": "W2-MON-ST1",
+      "day": "الإثنين",
+      "type": "story_teaser",
+      "platform": "instagram_story",
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "تشويق للفلترة",
+      "psychology": "Status-Quo Bias — تحدي المألوف يثير الفضول",
+      "prompt": "A single thin white cotton pad floating alone in vast darkness, looking inadequate and small. Dramatic overhead spotlight illuminating only the cotton, everything else is pitch black void. The cotton appears fragile and insufficient against the enormous dark space. Shot on Canon R5, 85mm lens, f/1.8, shallow depth of field. Moody, documentary style. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "بعدك تستخدم قطنة وحدة بالفلتر",
+        "line2": "وتسميها فلترة؟",
+        "sticker": "سلايدر: من 1 لـ 10 شگد تثق بفلترتك",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Vast darkness with single spotlight on inadequate cotton"
+    },
+
+    {
+      "id": "W2-TUE-ST1",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 1,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Filtration system — Hook",
+      "psychology": "Curiosity Gap — المي الصافي ممكن يكون مسموم",
+      "prompt": "A glass of crystal clear water viewed from above, perfectly transparent and clean-looking. But beneath the surface, subtle ghostly green fluorescent particles drift invisibly, only revealed by UV-style side lighting that cuts through the darkness. The contrast between visual clarity and hidden danger. Shot on Sony A7R V, macro lens, extreme close-up. Dark background. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الفلترة الميكانيكية لحالها ما تكفي",
+        "line2": "المي صافي بالعين بس مليان سموم",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Clear water revealing hidden green toxins under UV"
+    },
+
+    {
+      "id": "W2-TUE-ST3",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "6D cotton + 3D material + Nano rings + Culture bricks",
+      "psychology": "Authority Bias — نظام أربع طبقات = خبرة",
+      "prompt": "Four distinct layers of filter media stacked vertically in an exploded view diagram style, floating in dark void with space between each layer. Top layer: blue fibrous cotton pad with fine mesh visible. Second: porous 3D spherical filter material. Third: small ceramic nano rings with visible microscopic pores. Bottom: dense culture bricks with honeycomb internal structure. Each layer has its own subtle colored accent light — blue, teal, green, amber from top to bottom. Shot on Hasselblad X2D, 50mm lens, f/4.0. Hyper-realistic 3D CGI render. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "النظام الصحيح — أربع طبقات",
+        "line2": "6D + 3D + نانو + طوب ثقافة",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with four color-coded layers: blue > teal > green > amber"
+    },
+
+    {
+      "id": "W2-WED-C1",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — تأسيس الفلترة البيولوجية",
+      "psychology": "Curiosity Gap — دليل من الصفر = قيمة عالية قابلة للحفظ",
+      "prompt": "A dramatic dark laboratory setup rendered in 3D CGI. Five aquarium biological filtration products arranged on dark stepped platforms ascending from left to right like a staircase, each on its own level. Numbered warm spotlights illuminate each product from above (1-2-3 progression). Scientific precision atmosphere. Shot on Hasselblad X2D, 35mm lens, f/4.0. Hyper-realistic 3D render, 8K resolution. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "دليل تأسيس الفلترة البيولوجية",
+        "line2": "من الصفر للحوض الكامل — 3 خطوات",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark laboratory with ascending warm spotlights"
+    },
+
+    {
+      "id": "W2-WED-C2",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "16-in-1 filter material 2.5kg",
+      "psychology": "Framing Effect — 16 في 1 = قيمة استثنائية",
+      "prompt": "A large premium bag of mixed filter material on dark surface, with sixteen different types of filter media particles floating upward from the open top in an elegant fountain arrangement. Each type has a slightly different shape, texture and size — spheres, cylinders, rings, cubes, irregular shapes. Dramatic rim lighting defines each particle. Shot on Canon R5, 50mm lens, f/2.8. Commercial product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الخطوة 1 — مادة فلترة 16 في 1",
+        "line2": "عبوة 2.5 كيلو تكفي لتأسيس كامل",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with diverse floating particles lit by rim light"
+    },
+
+    {
+      "id": "W2-WED-C3",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Six-in-one filter material 500g",
+      "psychology": "Framing Effect — بديل أصغر = مرونة",
+      "prompt": "A compact 500g container of mixed filter material on dark polished stone. Six distinct filter media types arranged in a neat semicircle in front of the container, each type clearly different in shape and texture. Soft diffused lighting from above. Smaller, more intimate composition compared to the 16-in-1. Shot on Sony A7R V, 85mm lens, f/2.0. Clean product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "البديل — مادة 6 في 1",
+        "line2": "500 غرام للأحواض الأصغر",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with clean subtle top light"
+    },
+
+    {
+      "id": "W2-WED-C4",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Nitrifying Bacteria 50 + 100 capsules",
+      "psychology": "Authority Bias — بكتيريا نافعة + بروبيوتيك = علم",
+      "prompt": "Two capsule containers of different sizes (50 and 100 count) floating in darkness. Around them, a network of glowing bioluminescent bacteria colonies spread outward in fractal branching patterns, like a living neural network of green-teal light. The bacteria visualized as tiny glowing points connected by fine luminous threads. Shot on Hasselblad X2D, 85mm lens, f/1.8. CGI-quality visualization. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الخطوة 2 — بكتيريا نافعة",
+        "line2": "50 أو 100 كبسولة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with bioluminescent green-teal bacterial networks"
+    },
+
+    {
+      "id": "W2-WED-C5",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Bacteria colonizing filter media — Explainer",
+      "psychology": "Commitment — الفهم يبني الالتزام",
+      "prompt": "Extreme macro cross-section view of porous ceramic filter media with glowing bioluminescent bacteria colonies established inside the microscopic pores. The bacteria form organized communities visible as tiny green-teal glowing clusters within the honeycomb-like internal structure. Dark background. Scientific visualization style, hyper-detailed. Shot on Canon R5, macro lens. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "البكتيريا تستوطن مواد الفلترة",
+        "line2": "وتحلل الأمونيا بيولوجياً",
+        "position": "bottom_third"
+      },
+      "color_mood": "Macro dark with green bacterial colonies in pores"
+    },
+
+    {
+      "id": "W2-WED-C6",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Algaecide 500ml",
+      "psychology": "Present Bias — حماية فورية من الطحالب",
+      "prompt": "A sleek algaecide bottle floating in darkness. Around it, strands of green algae are visibly dissolving and disintegrating, turning from vibrant green to transparent and disappearing. The bottle casts a clean blue-white protective aura. Dramatic side lighting. Shot on Sony A7R V, 85mm lens, f/2.0. Premium product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الخطوة 3 — مبيد الطحالب",
+        "line2": "حماية فترة التأسيس",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with dissolving green algae and blue-white aura"
+    },
+
+    {
+      "id": "W2-WED-C7",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "System summary — All 5 products",
+      "psychology": "Peak-End Rule — ملخص مرئي يترك انطباع النظام الكامل",
+      "prompt": "An elegant 3D isometric layout showing all five biological filtration products connected by subtle glowing lines forming a numbered sequence (1-2-3). Products arranged on dark stepped platforms: filter material bags at step 1, bacteria capsules at step 2, algaecide bottle at step 3. Warm connected lines suggest a complete system workflow. Shot on Hasselblad X2D, 35mm lens, f/4.0. 3D CGI render. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "النظام الكامل بثلاث خطوات",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark isometric with warm connecting flow lines"
+    },
+
+    {
+      "id": "W2-WED-C8",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 8,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — دليل التأسيس",
+      "psychology": "Commitment — احفظ = التزام + إشارة خوارزمية",
+      "prompt": "Minimalist dark premium background with very subtle gradient from pure black edges to dark charcoal center. A faint silhouette of filter media layers barely visible as watermark shadow in background. Vast clean negative space for text overlay. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل لمن تأسس حوضك الجديد",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Pure dark minimalism"
+    },
+
+    {
+      "id": "W2-FRI-ST1",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 1,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Water grass mud — soil types",
+      "psychology": "Framing Effect — ناعم مقابل خشن = قرار مبني على المعرفة",
+      "prompt": "Professional vertical split-screen diptych. Left side: fine dark aquarium soil granules in extreme macro, with delicate thin white plant rootlets growing through them, soft warm lighting. Right side: coarse dark aquarium soil granules in extreme macro with visible air pockets between them and thick strong roots penetrating, slightly cooler lighting. Both on dark backgrounds. Shot on Canon R5, macro lens. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "ناعم 1.5K | خشن 3K",
+        "line2": "كل نوع نبات يحتاج حجم مختلف",
+        "sticker": "تصويت: ناعم / خشن",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Split: warm fine soil vs cool coarse soil macro"
+    },
+
+    {
+      "id": "W2-SAT-C1",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — نظام الأوكسجين",
+      "psychology": "Curiosity Gap — تنفس مثالي = حاجة أساسية",
+      "prompt": "Five aquarium oxygenation products arranged in a connected flow on dark surface: a compact pump at the start, connected by transparent tubing to a spherical bubble diffuser, with an air cushion piece alongside, and a surface skimmer at the end. Each product has its own subtle blue spotlight from above. Clean connected system look. Shot on Hasselblad X2D, 35mm lens, f/4.0. Premium commercial photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "نظام الأوكسجين الكامل",
+        "line2": "5 قطع لتنفس مثالي",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark with blue individual spotlights on system flow"
+    },
+
+    {
+      "id": "W2-SAT-C2",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Xiaobai oxygen pump 3W",
+      "psychology": "Contrast Effect — هدوء تام = ميزة فريدة",
+      "prompt": "A sleek compact white oxygen pump resting on dark polished obsidian surface. The pump has a minimal modern design with smooth rounded edges suggesting silence and elegance. Soft diffused lighting from above creating gentle shadows. A subtle visual representation of silent operation — smooth, undisturbed air around the device. Shot on Hasselblad X2D, 85mm lens, f/2.0. Premium minimalist product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "مضخة Xiaobai 3W",
+        "line2": "هدوء تام — ما تسمعها وأنت نايم",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with clean soft top light, serene atmosphere"
+    },
+
+    {
+      "id": "W2-SAT-C3",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "YEE 50mm Bubble Diffuser",
+      "psychology": "Peak-End Rule — فقاعات دقيقة = مشهد مرضي بصرياً",
+      "prompt": "A 50mm spherical mineral bubble diffuser stone emitting hundreds of perfectly uniform micro-bubbles upward in a mesmerizing column. The bubbles are tiny, precise, and evenly distributed, rising through dark water-like void. Each bubble catches dramatic rim lighting creating tiny points of light. Shot on Canon R5, macro lens, f/2.8. ASMR-quality, meditative atmosphere. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "ناشر كروي 50 ملم",
+        "line2": "فقاعات دقيقة تذوب بالمي",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with hundreds of tiny illuminated micro-bubbles"
+    },
+
+    {
+      "id": "W2-SAT-C4",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Air hose 1.5m + Airbag 1.7m",
+      "psychology": "Commitment — قطع الربط تكمل النظام",
+      "prompt": "A reinforced transparent air hose and an inflatable air cushion piece laid out elegantly on dark surface in parallel curves. The hose has visible reinforced walls showing durability. Both pieces catch dramatic side lighting that reveals their structure and build quality. Shot on Sony A7R V, 50mm lens, f/4.0. Clean editorial product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "خرطوم 1.5م + وسادة 1.7م",
+        "line2": "توصيل متين ومرن",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with side light revealing structure"
+    },
+
+    {
+      "id": "W2-SAT-C5",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "3W oil film processor",
+      "psychology": "Contrast Effect — سطح ملوث مقابل نظيف",
+      "prompt": "Professional vertical split-screen diptych. Left side: a water surface covered in an iridescent oily film with rainbow reflections, looking dirty and unhealthy, dim cold lighting. Right side: the same water surface perfectly clean and clear, crystal-clear reflections, bright confident blue-white lighting. A sleek surface skimmer device visible at the dividing line between the two sides. Shot on Canon R5, 50mm lens, f/4.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "معالج السطح 3W",
+        "line2": "يسحب الطبقة الزيتية بثواني",
+        "position": "center"
+      },
+      "color_mood": "Split: oily iridescent dirty vs crystal clean"
+    },
+
+    {
+      "id": "W2-SAT-C6",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "System flow diagram",
+      "psychology": "Unity Principle — النظام المتصل = انتماء للمحترفين",
+      "prompt": "3D flow diagram on dark background showing all oxygenation components connected in sequence: pump on far left, transparent hose connecting to a spherical bubble diffuser at center-bottom of a dark aquarium void, and a surface skimmer floating at top-right. Subtle glowing flow lines trace the air path from pump through hose to diffuser and separate path to skimmer. Shot on Hasselblad X2D, 35mm lens, f/4.0. 3D CGI render. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "النظام الكامل متصل",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark with glowing blue flow path lines"
+    },
+
+    {
+      "id": "W2-SAT-C7",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — نظام الأوكسجين",
+      "psychology": "Commitment — احفظ لمن تبني",
+      "prompt": "Minimalist dark premium background with subtle gradient. A faint silhouette of rising micro-bubbles barely visible as watermark shadow in background. Vast clean negative space for text overlay. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالمنشور لمن تبني نظام الأوكسجين",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Pure dark minimalism with faint bubble silhouettes"
+    }
+  ]
+}

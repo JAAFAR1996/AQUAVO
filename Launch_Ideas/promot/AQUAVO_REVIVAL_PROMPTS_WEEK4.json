@@ -1,0 +1,344 @@
+{
+  "meta": {
+    "project": "AQUAVO Revival — Social Media Prompts",
+    "week": 4,
+    "theme": "المعدات والأحواض والتكاثر",
+    "psychology": ["Contrast Effect", "Scarcity", "Peak-End Rule", "Unity Principle"],
+    "visual_dna": {
+      "background": "Pure black or architectural dark (#080810)",
+      "accent_colors": ["Crystal blue-white (#E0F0FF)", "Warm amber (#FF8C00)", "Cool steel (#8899AA)", "Emerald (#00CC66)"],
+      "lighting": "Architectural rim lighting, glass reflections, premium studio",
+      "mood": "Architectural precision, transparent elegance, premium showcase",
+      "camera_default": "Shot on Hasselblad X2D, 85mm lens, f/2.0",
+      "exclusions": "No text, no typography, no labels, no logos, no watermarks, no icons, no Arabic characters, no English characters, no blurry edges, no cartoon, no illustration, no oversaturated colors"
+    }
+  },
+
+  "prompts": [
+
+    {
+      "id": "W4-MON-ST1",
+      "day": "الإثنين",
+      "type": "story_teaser",
+      "platform": "instagram_story",
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "تشويق للأحواض",
+      "psychology": "Curiosity Gap — كل مساحة عدها حوضها",
+      "prompt": "Seven glass aquarium silhouettes of dramatically different sizes arranged in ascending order from small to large, fading from left to right into darkness. Only their edges are visible through subtle cool blue-white rim lighting. The smallest is a tiny cube, the largest is an imposing rectangular tank. Pure black background. Shot on Canon R5, 35mm lens, f/4.0. Architectural photography style. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "7 أحجام — كل مساحة عدها حوضها",
+        "sticker": "سؤال مفتوح: شنو حجم حوضك الحالي؟",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with cool blue-white glass edge silhouettes"
+    },
+
+    {
+      "id": "W4-TUE-ST2",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "External electronic thermometer",
+      "psychology": "Contrast Effect — خارجي مقابل تقليدي = نظافة",
+      "prompt": "Professional vertical split-screen diptych. Left side: an old-style glass thermometer suction-cupped inside an aquarium, looking cluttered and outdated with dim cold lighting. Right side: a sleek modern digital thermometer display mounted cleanly on the outside of glass, showing precise digital readout, with warm confident blue-white LED glow, clean and minimal. Shot on Sony A7R V, 50mm lens, f/4.0. Photorealistic. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "المحرار الإلكتروني الخارجي",
+        "line2": "قراءة دقيقة من برة — بدون فوضى",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Split: cluttered cold vs clean blue-white digital"
+    },
+
+    {
+      "id": "W4-TUE-ST3",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Yee LED 3.5W adjustable",
+      "psychology": "Peak-End Rule — ثلاثة ألوان = تجربة مرئية مرضية",
+      "prompt": "A sleek minimal LED light fixture casting three distinct color beams downward into dark void: pure white beam on left, deep blue beam in center, warm amber beam on right. The three beams create elegant colored light pools on a dark surface below. The fixture itself is slim and modern, barely visible at top of frame. Shot on Hasselblad X2D, 35mm lens, f/2.8. Cinematic atmospheric photography. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "إضاءة Yee 3.5W — ثلاثة ألوان",
+        "line2": "أبيض + أزرق + دافئ",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with three distinct color beams: white/blue/amber"
+    },
+
+    {
+      "id": "W4-TUE-ST4",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 4,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Magnetic cleaning brush",
+      "psychology": "Present Bias — نظافة بثواني = حل فوري مُرضي",
+      "prompt": "A large magnetic aquarium cleaning brush shown as two halves separated by a glass pane. Inner half inside dark water-like void, outer half in the viewer's space. Strong magnetic attraction visualized as subtle energy field lines between the two halves through the glass. The outer half has an ergonomic grip design. Dramatic side lighting. Shot on Canon R5, 85mm lens, f/2.0. Premium product photography. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "فرشاة مغناطيسية — نظافة من برة",
+        "sticker": "تصويت: أي أداة تحتاجها أكثر؟ محرار / إضاءة / فرشاة",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with magnetic energy field visualization"
+    },
+
+    {
+      "id": "W4-WED-C1",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — 7 أحواض",
+      "psychology": "Curiosity Gap — 7 أحجام = دليل شامل قابل للحفظ",
+      "prompt": "Seven rimless glass aquariums of dramatically different sizes and proportions arranged in an elegant exhibition-style display on dark tiered platforms. Each tank catches subtle cool blue-white rim lighting along its glass edges. The progression from tiny desk cube to large statement tank is striking. Dark gallery-like atmosphere. Shot on Hasselblad X2D, 24mm lens, f/4.0. Architectural exhibition photography, 8K resolution. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "دليل اختيار الحوض المثالي",
+        "line2": "7 أحجام — كل مساحة عدها حوضها",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark gallery with blue-white rim-lit glass edges"
+    },
+
+    {
+      "id": "W4-WED-C2",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Rectangular tanks 5mm — 3 sizes",
+      "psychology": "Framing Effect — ثلاث أحجام = خيارات واضحة",
+      "prompt": "Three rectangular rimless glass aquariums of increasing size arranged in perspective on dark reflective surface, each tank behind and larger than the one in front. Glass edges perfectly polished with 5mm thickness visible. Subtle warm amber spotlight on each tank from above. The three tanks create a beautiful vanishing perspective line. Shot on Canon R5, 35mm lens, f/4.0. Architectural product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الأحواض المستطيلة — 5 ملم",
+        "line2": "40x23x25 / 50x27x30 / 60x30x35",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with warm spotlights on ascending glass tanks"
+    },
+
+    {
+      "id": "W4-WED-C3",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Cube tanks 6mm — 35cm + 40cm",
+      "psychology": "Authority Bias — مكعب = تناظر مثالي = كمالية",
+      "prompt": "Two perfect glass cubes of different sizes on dark polished obsidian surface, shot from a dramatic low angle looking upward. The cubes have pristine 6mm thick walls with perfectly polished edges catching cool blue-white rim lighting. Reflections on the dark surface create symmetry. The smaller cube in front, larger behind. Shot on Hasselblad X2D, 35mm lens, f/2.8. Architectural premium photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "مكعبات 6 ملم",
+        "line2": "35 سم + 40 سم — منظر من كل جهة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark low-angle with blue-white glass edges and reflections"
+    },
+
+    {
+      "id": "W4-WED-C4",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "604040cm 8mm tank",
+      "psychology": "Scarcity — للمشاريع الجدية = حصري لقلة",
+      "prompt": "A large imposing rimless glass aquarium (60x40x40cm) with thick 8mm walls, shot from a heroic low angle against pure black background. The thick glass edges are prominent and catch dramatic warm amber rim lighting, emphasizing solidity and premium build quality. The tank has gravitas and presence like a piece of architectural furniture. Shot on Sony A7R V, 35mm lens, f/4.0. Premium architectural photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "60x40x40 سم — 8 ملم",
+        "line2": "للمشاريع الجدية",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark heroic angle with thick amber-lit glass edges"
+    },
+
+    {
+      "id": "W4-WED-C5",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Side stream tank 60x15x15cm 6mm",
+      "psychology": "Scarcity — تصميم فريد = مختلف عن كل شي بالسوق",
+      "prompt": "A long narrow side-stream aquarium tank (60cm long, only 15cm wide and 15cm tall) shown from a dramatic three-quarter angle on dark surface. The tank has an elegant elongated proportions unlike any traditional aquarium. Subtle cool blue-white internal glow highlighting its unique narrow design. The slim profile creates an architectural statement piece. Shot on Hasselblad X2D, 50mm lens, f/2.8. Architectural design photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "تيار جانبي — 60x15x15 سم",
+        "line2": "فخامة بعرض 15 سم فقط",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with cool glow highlighting unique narrow proportions"
+    },
+
+    {
+      "id": "W4-WED-C6",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "All 7 tanks comparison",
+      "psychology": "Peak-End Rule — ملخص مرئي شامل للقرار",
+      "prompt": "3D isometric top-down view showing all seven glass aquarium tanks arranged by size in a museum-style grid layout on dark surface. Each tank is a different size and proportion — three rectangles, two cubes, one large format, one narrow stream. Subtle individual spotlights from above illuminate each tank. Clean organized exhibition feel. Shot on Hasselblad X2D, 24mm lens, f/5.6. 3D CGI render, 8K. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "اختار حسب مساحتك",
+        "line2": "7 أحجام متوفرة",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark exhibition grid with individual spotlights"
+    },
+
+    {
+      "id": "W4-WED-C7",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — دليل الأحواض",
+      "psychology": "Social Proof — ووديه = توصية اجتماعية",
+      "prompt": "Minimalist dark premium background with subtle cool blue gradient. Faint silhouettes of various tank shapes barely visible as watermark shadows. Vast clean negative space for text overlay. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل ووديه لأي شخص يدور حوض",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Pure dark minimalism with cool blue undertone"
+    },
+
+    {
+      "id": "W4-FRI-ST1",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 1,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Breeding/isolation — Hook",
+      "psychology": "Loss Aversion — خسارة الصغار = ألم حقيقي",
+      "prompt": "A dramatic dark visualization of a large predatory fish silhouette looming in darkness behind a cluster of tiny vulnerable fish fry. The size disparity is threatening and uncomfortable. The large fish is slightly out of focus in the background, the tiny fry are in sharp focus in the foreground, looking fragile. Dramatic rim lighting defines both. Shot on Canon R5, 85mm lens, f/1.8. Dark, tense, cinematic. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "التكاثر بدون عزل = خسارة الصغار",
+        "line2": "الأسماك الكبيرة تاكل اليرقات بثواني",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark threatening with size disparity tension"
+    },
+
+    {
+      "id": "W4-FRI-ST2",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Suspended isolation box + Pneumatic incubator + Acrylic incubator",
+      "psychology": "Authority Bias — ثلاث حلول لثلاث حالات = خبرة تخصصية",
+      "prompt": "Three breeding and isolation products arranged vertically in dark void: top — a transparent suspended isolation box with visible water flow slots hanging elegantly. Middle — a dual-chamber pneumatic incubator with visible partition dividing two spaces. Bottom — a small clear acrylic box (cube-like) with perfect transparency. Each product has its own subtle colored rim light — cool blue, warm amber, clear white. Shot on Hasselblad X2D, 50mm lens, f/4.0. Clinical precision photography. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "صندوق عزل + حاضنة مزدوجة + أكريليك",
+        "line2": "حماية كاملة للصغار",
+        "sticker": "رابط الموقع",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with three color-coded breeding products"
+    },
+
+    {
+      "id": "W4-SAT-C1",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "FINAL Carousel Hook — كل شي بمكان واحد",
+      "psychology": "Unity Principle + Peak-End Rule — الختام يحدد الانطباع",
+      "prompt": "A stunning dark premium composition showing representative products from all seven categories arranged in an elegant circular mandala-like pattern on dark reflective surface: a heater rod, filter media, food pellets, medicine bottle, test strip, LED light, and a small glass aquarium — all orbiting a central AQUAVO-brand-colored warm glow point. Each product subtly lit by its own accent color. Shot on Hasselblad X2D, 35mm lens, f/4.0. Hyper-realistic 3D CGI render, 8K resolution. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "كل شي تحتاجه لحوضك بمكان واحد",
+        "line2": "64 منتج — 7 فئات — AQUAVO",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark mandala with seven category accent colors"
+    },
+
+    {
+      "id": "W4-SAT-C2",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "7 Category icons",
+      "psychology": "Commitment — النظام الشامل = لا تحتاج مكان ثاني",
+      "prompt": "Seven elegant 3D geometric icons arranged in a clean grid on dark surface, each representing an aquarium product category: a temperature flame for heaters, a layered filter stack, a food pellet cluster, a medical cross for medicine, a test tube, a light beam, and a glass cube for tanks. Each icon has its own subtle glow color — amber, teal, gold, blue, red, white, crystal. Minimal, sophisticated iconography. Shot on Hasselblad X2D, 50mm lens, f/4.0. 3D CGI render. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "7 فئات احترافية",
+        "line2": "سخانات / فلاتر / أعلاف / أدوية / فحوصات / أدوات / أحواض",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark grid with seven distinct glow colors"
+    },
+
+    {
+      "id": "W4-SAT-C3",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Brand statement — أول متجر عراقي",
+      "psychology": "Unity Principle — الانتماء القبلي = أول عراقي",
+      "prompt": "A dramatic dark premium void with a single warm amber spotlight illuminating a pristine rimless glass aquarium at center, positioned as a hero product. The aquarium is empty but perfectly clean, suggesting potential and beginnings. Subtle warm fog or mist at the base adds atmosphere. The lighting suggests a gallery unveiling or product launch moment. Shot on Hasselblad X2D, 50mm lens, f/2.0. Cinematic product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "أول متجر أحواض عراقي متخصص",
+        "line2": "توصيل لكل العراق",
+        "position": "center"
+      },
+      "color_mood": "Dark gallery unveiling with warm amber hero spotlight"
+    },
+
+    {
+      "id": "W4-SAT-C4",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Why AQUAVO — 3 reasons",
+      "psychology": "Social Proof + Authority — أسباب واضحة للثقة",
+      "prompt": "Three separate warm amber light beams cutting through darkness from above, each illuminating a different representative product on dark surface — a heater rod under the first beam, a food container under the second, a glass aquarium under the third. The three beams create a powerful triptych of authority. Dark smoke or mist between the beams adds cinematic atmosphere. Shot on Canon R5, 35mm lens, f/4.0. Cinematic commercial photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "ليش AQUAVO؟",
+        "line2": "منتجات مفحوصة / أسعار منافسة / توصيل سريع",
+        "position": "center"
+      },
+      "color_mood": "Dark cinematic with three amber authority beams"
+    },
+
+    {
+      "id": "W4-SAT-C5",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "FINAL CTA — مرجع دائم",
+      "psychology": "Peak-End Rule — آخر صورة تحدد الانطباع النهائي",
+      "prompt": "Minimalist dark premium background with a rich warm amber-to-black gradient. A very subtle warm glow point at center suggesting the AQUAVO brand warmth. Vast clean negative space designed specifically for text overlay. The warmest, most inviting CTA slide of the entire month. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالمنشور كمرجع دائم",
+        "line2": "ووديه لكل صاحب حوض تعرفه",
+        "line3": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Warm amber glow in darkness — inviting, memorable"
+    }
+  ]
+}

@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>AQUAVO Box Stickers - Print Ready</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: A4; margin: 8mm; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'IBM Plex Sans Arabic', sans-serif; background: #f0f0f0; padding: 20px; }
+.print-page {
+  width: 210mm; min-height: 297mm; background: white;
+  margin: 0 auto 20px; padding: 12mm;
+  display: flex; flex-wrap: wrap; gap: 6mm;
+  align-content: flex-start; justify-content: center;
+}
+h1.page-title {
+  width: 100%; text-align: center; font-size: 10px;
+  color: #999; margin-bottom: 4mm; border-bottom: 1px dashed #ddd; padding-bottom: 2mm;
+}
+
+/* ===== S1: FRAGILE/PRECIOUS ===== */
+.s-precious {
+  width: 82mm; height: 52mm; border: 2px solid #0A1F3B;
+  border-radius: 8px; padding: 4mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0A1F3B 0%, #132d54 100%);
+  color: #F5F7FA; position: relative; overflow: hidden;
+}
+.s-precious::before {
+  content: ''; position: absolute; inset: 3mm;
+  border: 1.5px solid #C9A84C; border-radius: 5px;
+}
+.s-precious .icon { font-size: 24px; color: #C9A84C; margin-bottom: 2mm; }
+.s-precious .t1 { font-size: 14px; font-weight: 700; color: #C9A84C; }
+.s-precious .t2 { font-size: 10px; color: #F5F7FA; margin-top: 1.5mm; opacity: 0.9; }
+.s-precious .t3 { font-family: 'Inter'; font-size: 8px; color: #C9A84C; margin-top: 1mm; direction: ltr; }
+.s-precious .brand { font-family: 'Inter'; font-size: 7px; color: #C9A84C; position: absolute; bottom: 3.5mm; opacity: 0.6; }
+
+/* ===== S2: THIS SIDE UP ===== */
+.s-up {
+  width: 50mm; height: 70mm; border: 2px solid #0D7377;
+  border-radius: 8px; padding: 4mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: white; color: #0D7377;
+}
+.s-up .arrow { font-size: 44px; line-height: 1; }
+.s-up .t1 { font-size: 11px; font-weight: 700; margin-top: 2mm; text-align: center; }
+.s-up .t2 { font-family: 'Inter'; font-size: 9px; font-weight: 600; margin-top: 2mm; direction: ltr; }
+.s-up .t3 { font-size: 7px; margin-top: 2mm; opacity: 0.6; }
+.s-up .brand { font-family: 'Inter'; font-size: 6px; margin-top: 2mm; opacity: 0.4; }
+
+/* ===== S3: QUALITY SEAL ===== */
+.s-quality {
+  width: 55mm; height: 55mm; border: 2.5px solid #C9A84C;
+  border-radius: 50%; padding: 4mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #0A1F3B; color: #C9A84C; position: relative;
+}
+.s-quality::before {
+  content: ''; position: absolute; width: 49mm; height: 49mm;
+  border: 1px solid #C9A84C; border-radius: 50%; opacity: 0.4;
+}
+.s-quality .check { font-size: 20px; }
+.s-quality .t1 { font-size: 9px; font-weight: 700; margin-top: 2mm; text-align: center; }
+.s-quality .line { width: 18mm; height: 0.5px; background: #C9A84C; margin: 1.5mm 0; opacity: 0.4; }
+.s-quality .t2 { font-size: 7px; color: #F5F7FA; opacity: 0.7; }
+.s-quality .name-line { width: 22mm; border-bottom: 1px dotted #C9A84C; height: 10px; margin-top: 1mm; }
+.s-quality .brand { font-family: 'Inter'; font-size: 6px; margin-top: 1.5mm; opacity: 0.5; }
+
+/* ===== S4: PACKED WITH CARE ===== */
+.s-packed {
+  width: 72mm; height: 32mm; border: 1.5px solid #0D7377;
+  border-radius: 18px; padding: 3mm 5mm; display: flex;
+  align-items: center; justify-content: center; gap: 3mm;
+  background: white; color: #0D7377;
+}
+.s-packed .icon { font-size: 18px; }
+.s-packed .t1 { font-size: 10px; font-weight: 700; }
+.s-packed .t2 { font-family: 'Inter'; font-size: 7px; color: #999; margin-top: 1mm; direction: ltr; }
+
+/* ===== S5: DO NOT STACK ===== */
+.s-nostack {
+  width: 50mm; height: 50mm; border: 2px solid #c0392b;
+  border-radius: 6px; padding: 3mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: white; color: #c0392b;
+}
+.s-nostack .icon { font-size: 32px; }
+.s-nostack .t1 { font-size: 9px; font-weight: 700; margin-top: 2mm; text-align: center; }
+.s-nostack .t2 { font-family: 'Inter'; font-size: 7px; color: #888; margin-top: 1mm; direction: ltr; }
+
+/* ===== S6: BRAND SEAL ===== */
+.s-seal {
+  width: 82mm; height: 22mm; border: 2px solid #0A1F3B;
+  border-radius: 4px; display: flex;
+  align-items: center; justify-content: center;
+  background: #0A1F3B; color: #C9A84C;
+  font-family: 'Inter'; font-size: 10px; font-weight: 700;
+  letter-spacing: 3px; gap: 3mm;
+}
+.s-seal .dot { width: 4px; height: 4px; background: #C9A84C; border-radius: 50%; }
+
+/* ===== S7: SECURITY ===== */
+.s-security {
+  width: 82mm; height: 16mm; border: 1.5px solid #0A1F3B;
+  border-radius: 3px; display: flex;
+  align-items: center; justify-content: space-between;
+  background: #0A1F3B; color: #F5F7FA; padding: 0 4mm;
+  font-size: 7px;
+}
+.s-security .rt { font-family: 'Inter'; font-size: 6px; color: #C9A84C; direction: ltr; }
+
+/* ===== S8: FIRST STORE ===== */
+.s-first {
+  width: 68mm; height: 28mm; border: 2px solid #C9A84C;
+  border-radius: 6px; padding: 2mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #0A1F3B; color: #C9A84C;
+}
+.s-first .t1 { font-size: 8px; font-weight: 700; text-align: center; }
+.s-first .t2 { font-family: 'Inter'; font-size: 7px; color: #F5F7FA; margin-top: 1mm; opacity: 0.7; direction: ltr; }
+
+/* ===== S9: SHARE UNBOXING ===== */
+.s-share {
+  width: 62mm; height: 62mm; border: 2px solid #0D7377;
+  border-radius: 8px; padding: 4mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: white; color: #0D7377;
+}
+.s-share .icon { font-size: 28px; margin-bottom: 2mm; }
+.s-share .t1 { font-size: 11px; font-weight: 700; text-align: center; }
+.s-share .t2 { font-family: 'Inter'; font-size: 12px; font-weight: 700; margin-top: 2mm; direction: ltr; color: #0D7377; }
+.s-share .t3 { font-family: 'Inter'; font-size: 10px; margin-top: 1mm; direction: ltr; color: #0D7377; opacity: 0.8; }
+.s-share .t4 { font-size: 7px; margin-top: 2mm; opacity: 0.6; text-align: center; }
+
+/* ===== S10: DISCOUNT COUPON ===== */
+.s-coupon {
+  width: 78mm; height: 42mm; border: 2px dashed #C9A84C;
+  border-radius: 6px; padding: 4mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #0A1F3B; color: #C9A84C;
+}
+.s-coupon .pct { font-family: 'Inter'; font-size: 28px; font-weight: 700; line-height: 1; }
+.s-coupon .t1 { font-size: 10px; font-weight: 700; margin-top: 1mm; }
+.s-coupon .code-area {
+  margin-top: 2mm; display: flex; align-items: center; gap: 2mm;
+  font-size: 8px; color: #F5F7FA;
+}
+.s-coupon .code-line { width: 30mm; border-bottom: 1px dotted #C9A84C; height: 12px; }
+.s-coupon .t2 { font-family: 'Inter'; font-size: 7px; color: #F5F7FA; margin-top: 2mm; opacity: 0.6; direction: ltr; }
+
+/* ===== S11: THANK YOU ===== */
+.s-thanks {
+  width: 72mm; height: 38mm; border: 2px solid #0A1F3B;
+  border-radius: 6px; padding: 3mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: #0A1F3B; color: #F5F7FA;
+}
+.s-thanks .t1 { font-size: 12px; font-weight: 700; color: #C9A84C; }
+.s-thanks .t2 { font-size: 8px; margin-top: 2mm; opacity: 0.8; text-align: center; }
+.s-thanks .brand { font-family: 'Inter'; font-size: 7px; color: #C9A84C; margin-top: 2mm; opacity: 0.5; }
+
+/* ===== S12: WARRANTY ===== */
+.s-warranty {
+  width: 68mm; height: 28mm; border: 2px solid #0A1F3B;
+  border-radius: 6px; padding: 2mm 4mm; display: flex;
+  align-items: center; gap: 3mm; background: white; color: #0A1F3B;
+}
+.s-warranty .shield {
+  width: 22mm; height: 24mm; background: #0A1F3B; color: #C9A84C;
+  border-radius: 4px 4px 50% 50%; display: flex; align-items: center;
+  justify-content: center; font-family: 'Inter'; font-size: 16px; font-weight: 700;
+  flex-shrink: 0;
+}
+.s-warranty .text-side .t1 { font-size: 9px; font-weight: 700; }
+.s-warranty .text-side .t2 { font-size: 7px; color: #666; margin-top: 1mm; }
+
+/* ===== S13: WHATSAPP SUPPORT ===== */
+.s-whatsapp {
+  width: 50mm; height: 50mm; border: 2px solid #25D366;
+  border-radius: 8px; padding: 3mm; display: flex;
+  flex-direction: column; align-items: center; justify-content: center;
+  background: white; color: #0A1F3B;
+}
+.s-whatsapp .icon { font-size: 24px; color: #25D366; }
+.s-whatsapp .t1 { font-size: 8px; font-weight: 700; margin-top: 2mm; text-align: center; }
+.s-whatsapp .qr-box {
+  width: 20mm; height: 20mm; border: 1px solid #ddd;
+  margin-top: 2mm; display: flex; align-items: center;
+  justify-content: center; font-size: 6px; color: #999;
+}
+.s-whatsapp .t2 { font-size: 6px; color: #666; margin-top: 1mm; }
+
+@media print {
+  body { background: white; padding: 0; }
+  .print-page { box-shadow: none; }
+  .no-print { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="no-print" style="text-align:center;margin-bottom:20px;font-family:Inter,sans-serif;">
+  <h2 style="color:#0A1F3B;">AQUAVO Box Stickers - A4 Print Ready</h2>
+  <p style="color:#666;">اطبع على ورق ملصقات A4 ثم قص على الحدود</p>
+  <button onclick="window.print()" style="padding:10px 30px;background:#0D7377;color:white;border:none;border-radius:6px;font-size:16px;cursor:pointer;margin-top:10px;">طباعة الصفحة 1</button>
+</div>
+
+<!-- ===== PAGE 1 ===== -->
+<div class="print-page">
+  <h1 class="page-title">AQUAVO Stickers - Sheet 1 (External Box Stickers)</h1>
+
+  <!-- PRECIOUS x2 -->
+  <div class="s-precious">
+    <div class="icon">&#9830;</div>
+    <div class="t1">محتويات ثمينة</div>
+    <div class="t2">يُرجى التعامل بلطف</div>
+    <div class="t3">PRECIOUS CONTENTS — HANDLE WITH CARE</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+  <div class="s-precious">
+    <div class="icon">&#9830;</div>
+    <div class="t1">محتويات ثمينة</div>
+    <div class="t2">يُرجى التعامل بلطف</div>
+    <div class="t3">PRECIOUS CONTENTS — HANDLE WITH CARE</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+
+  <!-- THIS SIDE UP x2 -->
+  <div class="s-up">
+    <div class="arrow">&#9650;</div>
+    <div class="t1">هذا الجانب للأعلى</div>
+    <div class="t2">THIS SIDE UP</div>
+    <div class="t3">أسماكك تشكرك</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+  <div class="s-up">
+    <div class="arrow">&#9650;</div>
+    <div class="t1">هذا الجانب للأعلى</div>
+    <div class="t2">THIS SIDE UP</div>
+    <div class="t3">أسماكك تشكرك</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+
+  <!-- QUALITY SEAL x2 -->
+  <div class="s-quality">
+    <div class="check">&#10003;</div>
+    <div class="t1">تم الفحص يدوياً</div>
+    <div class="line"></div>
+    <div class="t2">فُحص بواسطة:</div>
+    <div class="name-line"></div>
+    <div class="brand">AQUAVO QUALITY</div>
+  </div>
+  <div class="s-quality">
+    <div class="check">&#10003;</div>
+    <div class="t1">تم الفحص يدوياً</div>
+    <div class="line"></div>
+    <div class="t2">فُحص بواسطة:</div>
+    <div class="name-line"></div>
+    <div class="brand">AQUAVO QUALITY</div>
+  </div>
+
+  <!-- PACKED WITH CARE x2 -->
+  <div class="s-packed">
+    <div class="icon">&#9829;</div>
+    <div>
+      <div class="t1">حُزم بعناية في بغداد</div>
+      <div class="t2">Carefully Packed in Baghdad</div>
+    </div>
+  </div>
+  <div class="s-packed">
+    <div class="icon">&#9829;</div>
+    <div>
+      <div class="t1">حُزم بعناية في بغداد</div>
+      <div class="t2">Carefully Packed in Baghdad</div>
+    </div>
+  </div>
+
+  <!-- DO NOT STACK x2 -->
+  <div class="s-nostack">
+    <div class="icon">&#9888;</div>
+    <div class="t1">لا تضع فوقه شيئاً</div>
+    <div class="t2">DO NOT STACK</div>
+  </div>
+  <div class="s-nostack">
+    <div class="icon">&#9888;</div>
+    <div class="t1">لا تضع فوقه شيئاً</div>
+    <div class="t2">DO NOT STACK</div>
+  </div>
+
+  <!-- BRAND SEAL x2 -->
+  <div class="s-seal">
+    <span class="dot"></span><span>A Q U A V O</span><span class="dot"></span>
+  </div>
+  <div class="s-seal">
+    <span class="dot"></span><span>A Q U A V O</span><span class="dot"></span>
+  </div>
+
+  <!-- SECURITY x2 -->
+  <div class="s-security">
+    <span>ختم أمان — إذا كان مفتوحاً لا تستلم</span>
+    <span class="rt">AQUAVO SECURITY SEAL</span>
+  </div>
+  <div class="s-security">
+    <span>ختم أمان — إذا كان مفتوحاً لا تستلم</span>
+    <span class="rt">AQUAVO SECURITY SEAL</span>
+  </div>
+
+  <!-- FIRST STORE x2 -->
+  <div class="s-first">
+    <div class="t1">أول متجر عراقي متخصص بمستلزمات أحواض الزينة</div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+  <div class="s-first">
+    <div class="t1">أول متجر عراقي متخصص بمستلزمات أحواض الزينة</div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+</div>
+
+<!-- ===== PAGE 2 ===== -->
+<div class="print-page">
+  <h1 class="page-title">AQUAVO Stickers - Sheet 2 (Engagement & Value Stickers)</h1>
+
+  <!-- SHARE UNBOXING x2 -->
+  <div class="s-share">
+    <div class="icon">&#128247;</div>
+    <div class="t1">صوّر تجربتك وشاركنا</div>
+    <div class="t2">@aquavo.iq</div>
+    <div class="t3">#AQUAVO</div>
+    <div class="t4">أحلى فيديو ينربح هدية</div>
+  </div>
+  <div class="s-share">
+    <div class="icon">&#128247;</div>
+    <div class="t1">صوّر تجربتك وشاركنا</div>
+    <div class="t2">@aquavo.iq</div>
+    <div class="t3">#AQUAVO</div>
+    <div class="t4">أحلى فيديو ينربح هدية</div>
+  </div>
+
+  <!-- DISCOUNT COUPON x2 -->
+  <div class="s-coupon">
+    <div class="pct">10%</div>
+    <div class="t1">خصم على طلبك القادم</div>
+    <div class="code-area">
+      <span>الكود:</span>
+      <div class="code-line"></div>
+    </div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+  <div class="s-coupon">
+    <div class="pct">10%</div>
+    <div class="t1">خصم على طلبك القادم</div>
+    <div class="code-area">
+      <span>الكود:</span>
+      <div class="code-line"></div>
+    </div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+
+  <!-- THANK YOU x2 -->
+  <div class="s-thanks">
+    <div class="t1">شكراً لثقتك بـ AQUAVO</div>
+    <div class="t2">رأيك يهمنا — راسلنا على الواتساب</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+  <div class="s-thanks">
+    <div class="t1">شكراً لثقتك بـ AQUAVO</div>
+    <div class="t2">رأيك يهمنا — راسلنا على الواتساب</div>
+    <div class="brand">AQUAVO</div>
+  </div>
+
+  <!-- WARRANTY x2 -->
+  <div class="s-warranty">
+    <div class="shield">6</div>
+    <div class="text-side">
+      <div class="t1">ضمان ستة أشهر — حماية كاملة</div>
+      <div class="t2">فعّل الضمان: aquavoiq.com/warranty</div>
+    </div>
+  </div>
+  <div class="s-warranty">
+    <div class="shield">6</div>
+    <div class="text-side">
+      <div class="t1">ضمان ستة أشهر — حماية كاملة</div>
+      <div class="t2">فعّل الضمان: aquavoiq.com/warranty</div>
+    </div>
+  </div>
+
+  <!-- WHATSAPP x2 -->
+  <div class="s-whatsapp">
+    <div class="icon">&#9742;</div>
+    <div class="t1">امسح للتواصل المباشر</div>
+    <div class="qr-box">ضع QR هنا</div>
+    <div class="t2">دعم فني على مدار الساعة</div>
+  </div>
+  <div class="s-whatsapp">
+    <div class="icon">&#9742;</div>
+    <div class="t1">امسح للتواصل المباشر</div>
+    <div class="qr-box">ضع QR هنا</div>
+    <div class="t2">دعم فني على مدار الساعة</div>
+  </div>
+
+  <!-- EXTRA BRAND SEALS x2 -->
+  <div class="s-seal">
+    <span class="dot"></span><span>A Q U A V O</span><span class="dot"></span>
+  </div>
+  <div class="s-seal">
+    <span class="dot"></span><span>A Q U A V O</span><span class="dot"></span>
+  </div>
+
+  <!-- EXTRA FIRST STORE x2 -->
+  <div class="s-first">
+    <div class="t1">أول متجر عراقي متخصص بمستلزمات أحواض الزينة</div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+  <div class="s-first">
+    <div class="t1">أول متجر عراقي متخصص بمستلزمات أحواض الزينة</div>
+    <div class="t2">aquavoiq.com</div>
+  </div>
+</div>
+
+</body>
+</html>

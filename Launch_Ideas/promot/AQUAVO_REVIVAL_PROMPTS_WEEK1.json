@@ -1,0 +1,208 @@
+{
+  "meta": {
+    "week": 1,
+    "theme": "التأسيس والحماية — 16 منتج",
+    "version": "v6 — REFERENCE IMAGE METHOD",
+    "how_to_use": {
+      "step1": "حمّل صورة المنتج الحقيقية كـ Reference Image بـ Google Flow",
+      "step2": "انسخ البرومبت والصقه",
+      "step3": "حط Reference Weight على HIGH للحفاظ على شكل المنتج",
+      "step4": "أضف النص العربي بـ CapCut/Canva بعد التوليد"
+    },
+    "prompt_structure": "البرومبت يصف فقط: المشهد + الإضاءة + التكوين + المزاج — ولا يصف شكل المنتج لأن الصورة المرجعية تتكفل بذلك",
+    "posting_times": {"stories": "12-2 م", "reels": "7 م", "feed": "7:30 م"}
+  },
+
+  "schedule": [
+
+    {
+      "day": "الإثنين",
+      "products": ["Steel heater 50W", "Steel heater 100W", "Steel heater 200W"],
+
+      "reel": {"time": "7 م", "topic": "3 أحجام سخانات ستيل — مقارنة حجم مباشرة بالكف والساعد", "note": "بدون برومبت"},
+
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "ثلاث قوات سخانات ستيل — كل حوض يحتاج القوة اللي تناسبه. 50 واط للأحواض لغاية 30 لتر. 100 واط للمتوسطة لغاية 80 لتر. 200 واط للكبيرة فوق 100 لتر. ستيل مقاوم للصدأ والكسر. اختار حسب حجمك — aquavoiq.com",
+        "slides": [
+          {
+            "slide": 1,
+            "ref_image": "حمّل صور الثلاث سخانات مجموعة بصورة وحدة",
+            "psychology": "Contrast Anchor — ثلاث أحجام متدرجة + Leading Lines من الظلال",
+            "prompt": "Professional product photography of these three aquarium heaters [1] arranged smallest to tallest left to right on a dark walnut wood shelf. Single warm pendant light from above creating long diagonal shadows as leading lines. Visible wood grain texture. Product fills 75% of frame. Rule of thirds composition. Arabic text at top: ثلاث قوات حسب حجم حوضك. 85mm lens, f/4.0, shallow depth of field, film grain. Portrait 4:5. No extra products, no cartoon, no illustration."
+          },
+          {
+            "slide": 2,
+            "ref_image": "حمّل صورة سخان 50W لحاله",
+            "psychology": "Scale Anchoring — ولاعة BIC بجانب المنتج تبين الحجم الحقيقي",
+            "prompt": "This compact aquarium heater [1] placed diagonally on dark slate surface next to a standard BIC lighter for scale comparison. The heater is slightly longer than the lighter. Warm amber side light from left creating shadow. Visible slate texture with natural scratches. Product on right-third intersection. Arabic text at bottom: 50W — للأحواض لغاية 30 لتر. 100mm macro, f/2.8, film grain. Portrait 4:5. No extra products, no cartoon."
+          },
+          {
+            "slide": 3,
+            "ref_image": "بدون — خلفية فقط",
+            "prompt": "Dark brushed concrete wall straight-on with visible pores and one diagonal crack as natural leading line. Warm amber center glow. Corner vignette. Film grain. Arabic text centered: احفظ هالمنشور واطلب حسب حجم حوضك — aquavoiq.com. Portrait 4:5."
+          }
+        ]
+      },
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "ref_image": "بدون — مشهد عام",
+          "psychology": "Pattern Interruption — رقم أحمر 34°C يوقف السكرول",
+          "prompt": "A digital aquarium thermometer LCD display showing alarming red 34.2°C digits mounted on foggy aquarium glass. Dark room, only red LCD glow illuminates the scene. Condensation droplets on glass. Thermometer on upper-right third. Arabic text at center-left: حوضك شگد درجة حرارته هسة؟ Canon R5, 85mm macro, f/2.8, film grain. Vertical 9:16. 250px dark space top and bottom. No cartoon.",
+          "sticker": "سؤال: شگد درجة حرارة حوضك؟"
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "ref_image": "حمّل صورة سخان ستيل 100W — ماكرو على الجزء العلوي فقط",
+          "psychology": "Curiosity Gap — إظهار جزء من المنتج فقط يثير الفضول",
+          "prompt": "Extreme close-up of just the top cap section of this steel aquarium heater [1], showing only the dial and 5cm of body. The rest fades into darkness below. Dramatic warm amber rim light from left edge only, creating mysterious partial reveal. Positioned on left-third line. Arabic text at bottom-right: باچر بنوريك ليش الستيل أفضل من القزاز. Hasselblad X2D, 85mm, f/2.0, film grain. Vertical 9:16. 250px dark space top and bottom.",
+          "sticker": "سلايدر: شگد تثق بسخانك الحالي"
+        }
+      ]
+    },
+
+    {
+      "day": "الثلاثاء",
+      "products": ["YEE Black Warrior 100W", "Yee Quartz 100W", "30W low-level heater"],
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "ref_image": "حمّل صورتين: سخان قزاز قديم + سخان ستيل جديد",
+          "psychology": "Contrast Effect — قديم/بارد على اليسار ضد جديد/دافئ على اليمين",
+          "prompt": "Side-by-side comparison on dark slate: this old glass heater [1] on the left under cold flat fluorescent light looking fragile, next to this new steel heater [2] on the right under warm amber light looking strong. 3cm gap between them. Cold color temperature on left, warm on right. The lighting contrast is the scroll stopper. Arabic text at top: شنو تفضل لحوضك؟ Canon R5, 50mm, f/4.0, film grain. Vertical 9:16. 250px dark space top and bottom.",
+          "sticker": "تصويت: ستيل مدرع / قزاز تقليدي"
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "ref_image": "حمّل صورة الساموراي الأسود",
+          "psychology": "Scarcity — أسود على أسود = حصرية وغموض فاخر",
+          "prompt": "This matte black aquarium heater [1] standing vertically on matte black surface against dark charcoal wall. Almost invisible in the darkness — only a razor-thin warm amber rim highlight along right edge reveals its silhouette. The near-invisibility IS the point. Product on right-third line. Arabic text at center-left: الساموراي الأسود — يختفي بالديكور. Hasselblad X2D, 85mm, f/2.0, vignette. Vertical 9:16. 250px dark space top and bottom."
+        },
+        {
+          "story": 3,
+          "time": "1 م",
+          "ref_image": "حمّل صورة سخان 30W الصغير",
+          "psychology": "Scale Anchoring — قلم خشبي يبين صغر الحجم",
+          "prompt": "This compact small heater [1] lying on dark slate next to a standard wooden pencil for size comparison. The heater is shorter than the pencil, emphasizing compact design. Water droplets on slate. Warm overhead light. Arabic text at bottom: سخان 30W — للأحواض الصغيرة والمنخفضة. Sony A7R V, 85mm, f/3.5, film grain. Vertical 9:16. 250px dark space top and bottom.",
+          "sticker": "رابط الموقع"
+        }
+      ],
+
+      "post": {
+        "time": "7:30 م",
+        "ref_image": "حمّل صورة الساموراي الأسود — الصورة الأفضل جودة",
+        "psychology": "Hero Shot 75% — المنتج يملي الفريم مثل إعلانات Apple",
+        "caption": "سخان الساموراي الأسود 100 واط. ستيل مقاوم للصدأ. تصميم أسود بالكامل يندمج بخلفية حوضك. ثيرموستات دقيق. الفخامة بالتفاصيل — aquavoiq.com",
+        "prompt": "Hero product shot of this black aquarium heater [1] standing at slight 15-degree angle on polished obsidian-black marble. Product fills 75% of frame, positioned on left-third line. Single warm amber side light from right at 45 degrees sculpting the matte surface. Dark marble reflection beneath creating depth. Rest of scene near-black. Arabic text at bottom-right: الساموراي الأسود 100W. Hasselblad X2D, 85mm, f/2.0, ISO 100, film grain, vignette. Portrait 4:5."
+      }
+    },
+
+    {
+      "day": "الأربعاء",
+      "products": ["Chlorine removal", "Anti-stress 500ml", "Anti-stress 1000ml"],
+
+      "reel": {"time": "7 م", "topic": "المي الجديد فيها سم ما تشوفه — مزيل الكلور + مزيل الإجهاد", "note": "بدون برومبت"},
+
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "كل ما تغير مي حوضك تعرض أسماكك للكلور. مزيل الكلور ينقي فوراً. مزيل الإجهاد يحمي الغشاء المخاطي. حجمين 500 و1000 مل — aquavoiq.com",
+        "slides": [
+          {
+            "slide": 1,
+            "ref_image": "حمّل صورة القنينتين مع بعض (مزيل كلور + مزيل إجهاد)",
+            "psychology": "Loss Aversion — قطرة سامة بمي صافي تخلق خوف فوري",
+            "prompt": "These two treatment bottles [1] standing on dark slate surface. A clear glass beaker of water next to them with a single bright yellow-green toxic drop falling in, creating visible plume. The bottles positioned as the solution to the danger. Warm key light from upper-left. Arabic text at top: المي الصافي ممكن يكون مسموم — الحل بجانبه. Hasselblad X2D, 50mm, f/2.8, film grain. Portrait 4:5. No cartoon."
+          },
+          {
+            "slide": 2,
+            "ref_image": "حمّل صورة مزيل الكلور لحاله",
+            "psychology": "Authority — إضاءة سريرية + بركة مي = ثقة طبية",
+            "prompt": "This chlorine removal bottle [1] standing on dark matte surface. A small puddle of clear liquid in front catching overhead softbox light. Cool clinical blue-white lighting. Product on left-third line, puddle as leading element. Arabic text at bottom: مزيل الكلور — تنقية فورية للمي الجديد. Canon R5, 85mm macro, f/2.8, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 3,
+            "ref_image": "حمّل صورة مزيل الإجهاد — الحجمين مع بعض",
+            "psychology": "Anchoring — الكبير بجانب الصغير يبين قيمة أفضل",
+            "prompt": "These two anti-stress bottles [1] on dark brushed concrete. Small bottle in front-right, large bottle behind-left looking substantially bigger. Warm key light from left creating highlights on curved surfaces. The size difference is the focal point. Arabic text at bottom: مزيل الإجهاد — حجمين — حماية الغشاء المخاطي. Hasselblad X2D, 50mm, f/3.5, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 4,
+            "ref_image": "بدون",
+            "prompt": "Dark concrete wall. Warm center glow. Film grain. Arabic text: احفظ هالمنشور لمن تغير مي حوضك — aquavoiq.com. Portrait 4:5."
+          }
+        ]
+      },
+
+      "stories": [{"story": 1, "time": "12 م", "ref_image": "بدون", "psychology": "Curiosity Gap", "prompt": "Close-up of a tap running clear water into dark container. Tiny bubbles visible. Moody atmosphere. Arabic text: تعرف شنو موجود بالمي اللي تحطها بحوضك؟ الجواب بالكاروسيل الجديد. Canon R5, 50mm, f/2.8. Vertical 9:16. 250px dark space top and bottom.", "sticker": "كويز: تستخدم مزيل كلور؟"}]
+    },
+
+    {
+      "day": "الخميس",
+      "products": ["White spot cleaner 300ml", "Bactericidal powder", "Methylene blue 600ml"],
+
+      "reel": {"time": "7 م", "topic": "النقط البيضة — القاتل الصامت. شنو يسوي وشلون تعالجه بثلاث منتجات", "note": "بدون برومبت"},
+
+      "post": {
+        "time": "7:30 م",
+        "ref_image": "حمّل صور الثلاث منتجات مجموعة",
+        "psychology": "Authority Bias — ترتيب صيدلية + إضاءة سريرية = ثقة طبية",
+        "caption": "صيدلية الطوارئ لحوضك. منظف النقط البيضة. مسحوق مضاد بكتيريا. محلول الميثيلين الأزرق. ثلاث خطوط دفاع — aquavoiq.com",
+        "prompt": "These three aquarium medicine products [1] arranged on dark slate shelf with pharmacy-precise 3cm spacing. Cool blue-white clinical overhead lighting. Each product casts a short precise shadow. Products along middle-third horizontal line. The deep blue methylene liquid is the contrast anchor drawing the eye. Arabic text at top: صيدلية الطوارئ — ثلاث خطوط دفاع. Sony A7R V, 35mm, f/4.0, film grain. Portrait 4:5."
+      },
+
+      "stories": [
+        {"story": 1, "time": "12 م", "ref_image": "بدون — ماكرو مرض", "psychology": "Loss Aversion — صورة مرضية مقرفة توقف السكرول بالخوف", "prompt": "Extreme macro of tiny raised white crystalline bumps on a dark wet surface with organic scale-like texture resembling Ich white spot disease. Each bump 1mm, raised, irregular. Harsh side light from left reveals 3D texture. Water film. Arabic text at center: النقط البيضة تنتشر بسرعة وتقتل بسكوت. Canon R5, macro, f/4.0, film grain. Vertical 9:16. 250px dark space top and bottom."},
+        {"story": 2, "time": "12:30 م", "ref_image": "حمّل صورة قناني الميثيلين الأزرق", "psychology": "Authority — أزرق عميق = ثقة طبية عالية", "prompt": "These methylene blue bottles [1] on polished black marble. A tiny blue liquid drop on marble catching light like a jewel. Warm side light from left creating golden arcs on glass. Natural marble reflection. Arabic text at bottom: الميثيلين الأزرق — حجمين متوفرين. Hasselblad X2D, 85mm, f/2.0, film grain. Vertical 9:16. 250px dark space top and bottom.", "sticker": "رابط الموقع"}
+      ]
+    },
+
+    {
+      "day": "الجمعة",
+      "products": ["Yee Blue Classic", "Cleansing Ammonia 760G", "Cleansing Ammonia 400G"],
+
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "الأمونيا القاتل الصامت ما تشوفه بالعين. تتراكم من الفضلات وتسمم ببطء. منظف الأمونيا يعادلها فوراً. حجمين 400 و760 غرام — aquavoiq.com",
+        "slides": [
+          {"slide": 1, "ref_image": "حمّل صورة جرتين الأمونيا مع بعض", "psychology": "Loss Aversion — كلمة قاتل + منتج كحل", "prompt": "These two ammonia cleanser jars [1] on dark matte surface. Smaller jar with lid removed showing granular powder inside. A few granules spilled creating texture on dark surface. Warm 45-degree key light from upper-left. Dramatic shadow from large jar as leading line. Arabic text at top: منظف الأمونيا — القاتل الصامت يحتاج حل فوري. Canon R5, 50mm, f/3.5, film grain. Portrait 4:5."},
+          {"slide": 2, "ref_image": "بدون — ماكرو حبيبات", "psychology": "Authority — ماكرو يبين الجودة", "prompt": "Extreme close-up macro of grey-white ammonia cleansing granules on dark slate. Individual granule shapes visible, 2-3mm each, porous and irregular. Metal measuring scoop half-buried. Warm overhead light reveals crystal facets. Arabic text at bottom: 400g للصغير — 760g للكبير. Hasselblad X2D, 85mm macro, f/2.8, film grain. Portrait 4:5."},
+          {"slide": 3, "ref_image": "بدون", "prompt": "Dark concrete wall. Warm glow. Arabic text: احفظ ووديه لأي صاحب حوض — aquavoiq.com. Portrait 4:5."}
+        ]
+      },
+
+      "stories": [{"story": 1, "time": "7 م", "ref_image": "حمّل صورة Yee Blue Classic", "psychology": "Authority — زجاج أزرق + رخام = فخامة", "prompt": "This blue solution bottle [1] on polished black marble. Warm side light from left creating golden highlight arc on glass. Tiny blue drop on marble. Product on right-third line. Arabic text at bottom-left: محلول أزرق كلاسيكي — مطهر ومضاد فطريات. Hasselblad X2D, 85mm, f/2.0, film grain. Vertical 9:16. 250px dark space top and bottom.", "sticker": "رابط الموقع"}]
+    },
+
+    {
+      "day": "السبت",
+      "products": ["Multivitamin salt 500g", "Salt Box YAN-915", "Descaling agent 200ml"],
+
+      "reel": {"time": "7 م", "topic": "الصيانة الدورية — تنظيف زجاج + تعويض معادن. عرض عملي", "note": "بدون برومبت"},
+
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "الصيانة مو ترف هي ضرورة. ملح الفيتامينات يقوي المناعة. مزيل التكلسات يرجع الزجاج يلمع. متوفرة — aquavoiq.com",
+        "slides": [
+          {"slide": 1, "ref_image": "حمّل صورة كيس الملح + العلبة", "psychology": "Peak-End — بلورات بيضة على أسود = تباين صادم", "prompt": "This mineral salt bag and box [1] on dark slate. A generous pile of coarse white salt crystals spilled in front, facets catching warm light creating sparkle points against dark background. White-on-black contrast is the scroll stopper. Arabic text at top: ملح الفيتامينات — تعويض المعادن وتقوية المناعة. Hasselblad X2D, 85mm, f/2.8, film grain. Portrait 4:5."},
+          {"slide": 2, "ref_image": "حمّل صورة مزيل التكلس", "psychology": "Contrast Effect — نص متكلس ونص نظيف بصورة وحدة", "prompt": "This descaling spray bottle [1] on dark surface next to a piece of aquarium glass. Left half of glass covered in white calcium deposits (cloudy, opaque). Right half crystal clear where product was applied. The before/after on one glass piece is the hero element. Warm overhead light. Arabic text at bottom: مزيل التكلسات — زجاج يلمع من جديد. Canon R5, 50mm, f/4.0, film grain. Portrait 4:5."},
+          {"slide": 3, "ref_image": "بدون", "prompt": "Dark concrete wall. Warm glow. Arabic text: احفظ هالدليل لجدول الصيانة — aquavoiq.com. Portrait 4:5."}
+        ]
+      },
+
+      "stories": [{"story": 1, "time": "12 م", "ref_image": "بدون — مشهد مشكلة", "psychology": "Curiosity Gap", "prompt": "Close-up of thick white calcium deposits on aquarium glass, cloudy and opaque. Water drip trails. Cold flat light. Arabic text: زجاج حوضك مضبب؟ الحل بكاروسيل اليوم. Canon R5, 50mm, f/5.6. Vertical 9:16. 250px dark space top and bottom.", "sticker": "سلايدر: شگد نظيف زجاج حوضك"}]
+    },
+
+    {
+      "day": "الأحد",
+      "type": "يوم مجتمع — بدون نشر",
+      "tasks": ["رد على كل تعليق ورسالة", "تفاعل مع 15 حساب بالنيتش (5 صغار + 3 متوسطين + 1 كبير)", "ستوري سؤال: شنو أكثر منتج عجبك هالأسبوع؟"]
+    }
+  ]
+}

@@ -1,598 +1,770 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, AnimatePresence, useScroll, useTransform, useInView, useSpring } from "framer-motion";
-import { ShoppingBag, PhoneCall, CheckCircle2, Sparkles, ChevronDown } from "lucide-react";
+/**
+ * AQUAVO Beginner Guide — Ultra-Premium 2026 Edition
+ * ════════════════════════════════════════════════════
+ * تقنيات مُطبَّقة:
+ * ① Ambient Color Shift         — خلفية تتغير حسب المقطع النشط
+ * ② CSS Float Particles         — فقاعات CSS خالصة
+ * ③ Liquid Glass 3.0            — Apple iOS26 style
+ * ④ Scroll Velocity Warp        — blur ديناميكي عند التمرير السريع
+ * ⑤ Per-Section Parallax        — useScroll + useTransform
+ * ⑥ Magnetic Spring Bottle      — فيزياء جاذبية على العلبة
+ * ⑦ SVG Wave Dividers           — فواصل موجية
+ * ⑧ Ambient Audio Zones         — نبرة مختلفة لكل مقطع
+ * ⑨ Gyroscope Parallax          — جيروسكوب موبايل
+ * ⑩ Noise Grain Overlay         — texture فلمي
+ * ⑪ Progressive Clip-Path       — ملء مائي مع التمرير
+ * ⑫ Stagger Variants            — ظهور متتالي
+ * ⑬ Section IntersectionObserver— تتبع المقطع النشط
+ * ⑭ CSS-Native Scroll Progress  — animation-timeline: scroll()
+ */
+
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  useMotionValue,
+  useVelocity,
+  useMotionValueEvent,
+} from "framer-motion";
+import {
+  ShoppingBag,
+  PhoneCall,
+  CheckCircle2,
+  Sparkles,
+  ChevronDown,
+  Droplets,
+  Lock,
+} from "lucide-react";
 import { Link } from "wouter";
 import confetti from "canvas-confetti";
 
-// ─────────────────────────────────────────────────────────────
-// 1. Audio Engine (Web Audio API — توليد صوت بدون ملفات خارجية)
-// ─────────────────────────────────────────────────────────────
-const playBubbleSound = () => {
+// ─────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────
+const SCENES = [
+  { id: 0, image: "/guide-images/1-1-1-1-1.png", label: "إعداد الحوض",    step: "01", rgb: "10,100,120",  freq: 180 },
+  { id: 1, image: "/guide-images/2-2-2-2-2.png", label: "التجهيز المائي", step: "02", rgb: "8,70,145",    freq: 220 },
+  { id: 2, image: "/guide-images/3-3-3-3-3.png", label: "الديكور والأساس",step: "03", rgb: "20,90,40",    freq: 260 },
+  { id: 3, image: "/guide-images/4-4-4-4-4.png", label: "إكسير البكتيريا",step: "04", rgb: "0,140,190",   freq: 140 },
+  { id: 4, image: "/guide-images/5-5-5-5-5.png", label: "الحوض يحيا! 🌊", step: "05", rgb: "90,200,20",   freq: 440 },
+] as const;
+
+// ─────────────────────────────────────────────────
+// AUDIO ENGINE
+// ─────────────────────────────────────────────────
+const mkCtx = () => {
   try {
-    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(300, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.05, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.1);
-  } catch (e) {}
+    const C = window.AudioContext || (window as any).webkitAudioContext;
+    return C ? new C() : null;
+  } catch { return null; }
 };
+
+const tone = (freq: number, vol = 0.06, dur = 0.15) => {
+  const ctx = mkCtx(); if (!ctx) return;
+  const o = ctx.createOscillator(), g = ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.type = "sine";
+  o.frequency.setValueAtTime(freq, ctx.currentTime);
+  o.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + dur * 0.7);
+  g.gain.setValueAtTime(vol, ctx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+  o.start(); o.stop(ctx.currentTime + dur);
+};
+
+const playBubble = () => tone(320, 0.05, 0.12);
 
 const playMagicSplash = () => {
-  try {
-    const Ctx = window.AudioContext || (window as any).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = new Ctx();
-
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(880, ctx.currentTime);
-    osc1.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.6);
-    gain1.gain.setValueAtTime(0.2, ctx.currentTime);
-    gain1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.start();
-    osc1.stop(ctx.currentTime + 1.5);
-
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(150, ctx.currentTime);
-    osc2.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 1.0);
-    gain2.gain.setValueAtTime(0.8, ctx.currentTime);
-    gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start();
-    osc2.stop(ctx.currentTime + 1.0);
-  } catch (e) {}
+  const ctx = mkCtx(); if (!ctx) return;
+  [880, 1100, 1320, 1760].forEach((f, i) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = "sine";
+    const t = ctx.currentTime + i * 0.08;
+    o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.15, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+    o.start(t); o.stop(t + 0.8);
+  });
+  const o2 = ctx.createOscillator(), g2 = ctx.createGain();
+  o2.connect(g2); g2.connect(ctx.destination);
+  o2.type = "sine";
+  o2.frequency.setValueAtTime(120, ctx.currentTime);
+  o2.frequency.exponentialRampToValueAtTime(35, ctx.currentTime + 1.2);
+  g2.gain.setValueAtTime(0.7, ctx.currentTime);
+  g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+  o2.start(); o2.stop(ctx.currentTime + 1.2);
 };
 
-// ─────────────────────────────────────────────────────────────
-// 2. Haptics
-// ─────────────────────────────────────────────────────────────
-const vibrate = (pattern: number | number[]) => {
+const vib = (p: number | number[]) => {
   if (typeof navigator !== "undefined" && navigator.vibrate) {
-    try { navigator.vibrate(pattern); } catch (e) {}
+    try { navigator.vibrate(p); } catch {}
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// 3. Data
-// ─────────────────────────────────────────────────────────────
-const SCENES = [
-  { id: 0, image: "/guide-images/1-1-1-1-1.png", label: "إعداد الحوض" },
-  { id: 1, image: "/guide-images/2-2-2-2-2.png", label: "التجهيز المائي" },
-  { id: 2, image: "/guide-images/3-3-3-3-3.png", label: "الديكور والتأسيس" },
-  { id: 3, image: "/guide-images/4-4-4-4-4.png", label: "إكسير البكتيريا" },
-  { id: 4, image: "/guide-images/5-5-5-5-5.png", label: "الحوض يحيا!" },
-];
-
-// ─────────────────────────────────────────────────────────────
-// 4. ScrollReveal Wrapper — يُطلق الأنيميشن عند دخول العنصر
-// ─────────────────────────────────────────────────────────────
-function ScrollReveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-80px 0px" });
-
+// ─────────────────────────────────────────────────
+// ① AMBIENT BACKGROUND
+// ─────────────────────────────────────────────────
+function AmbientBg({ idx }: { idx: number }) {
+  const rgb = SCENES[idx]?.rgb ?? "10,77,92";
   return (
     <motion.div
-      ref={ref}
-      initial={{ opacity: 0, y: 50, filter: "blur(8px)" }}
-      animate={isInView ? { opacity: 1, y: 0, filter: "blur(0px)" } : {}}
-      transition={{ duration: 0.9, delay, ease: [0.16, 1, 0.3, 1] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
+      className="fixed inset-0 pointer-events-none z-0"
+      animate={{ background: `radial-gradient(ellipse 80% 55% at 50% 30%, rgba(${rgb},0.17) 0%, transparent 72%)` }}
+      transition={{ duration: 1.8, ease: [0.4, 0, 0.2, 1] }}
+    />
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 5. ParallaxScene — كل خطوة تنزل بزخم بصري مختلف
-// ─────────────────────────────────────────────────────────────
-function ParallaxScene({ scene, index }: { scene: typeof SCENES[0]; index: number }) {
+// ─────────────────────────────────────────────────
+// ② FLOATING BUBBLES — pure CSS
+// ─────────────────────────────────────────────────
+const BUBBLES = [
+  { l:7,  s:5,  dur:9,  del:0   }, { l:19, s:8,  dur:14, del:2   },
+  { l:33, s:4,  dur:11, del:5   }, { l:44, s:9,  dur:8,  del:1   },
+  { l:56, s:6,  dur:16, del:7   }, { l:68, s:3,  dur:10, del:3   },
+  { l:76, s:7,  dur:13, del:9   }, { l:89, s:5,  dur:12, del:4   },
+  { l:23, s:10, dur:15, del:6   }, { l:61, s:4,  dur:9,  del:8   },
+  { l:41, s:6,  dur:18, del:2.5 }, { l:93, s:8,  dur:11, del:1.5 },
+];
+
+function FloatingBubbles() {
+  return (
+    <>
+      <style>{`
+        @keyframes aqFloatUp {
+          0%   { transform: translateY(110vh) scale(0.8); opacity: 0; }
+          8%   { opacity: 0.55; }
+          92%  { opacity: 0.25; }
+          100% { transform: translateY(-8vh) scale(1.12); opacity: 0; }
+        }
+        @keyframes aqWobble {
+          0%,100% { margin-left: 0; }
+          33%     { margin-left: 9px; }
+          66%     { margin-left: -9px; }
+        }
+      `}</style>
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        {BUBBLES.map((b, i) => (
+          <div key={i} style={{
+            position:"absolute", left:`${b.l}%`, bottom:"-8%",
+            width:b.s, height:b.s, borderRadius:"50%",
+            background:"radial-gradient(circle at 35% 35%, rgba(0,220,255,0.5), rgba(0,180,220,0.08))",
+            border:"1px solid rgba(0,220,255,0.22)",
+            boxShadow:"0 0 6px rgba(0,200,255,0.18)",
+            animation:`aqFloatUp ${b.dur}s ${b.del}s infinite linear, aqWobble ${b.dur*0.6}s ${b.del}s infinite ease-in-out`,
+          }} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────
+// ⑩ NOISE GRAIN OVERLAY
+// ─────────────────────────────────────────────────
+function NoiseGrain() {
+  return (
+    <div className="fixed inset-0 pointer-events-none z-[60] mix-blend-overlay" style={{
+      opacity: 0.032,
+      backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+      backgroundRepeat: "repeat", backgroundSize: "180px 180px",
+    }} />
+  );
+}
+
+// ─────────────────────────────────────────────────
+// ⑭ SCROLL PROGRESS BAR (native CSS)
+// ─────────────────────────────────────────────────
+function ScrollBar() {
+  return (
+    <>
+      <style>{`
+        @supports (animation-timeline: scroll()) {
+          .aq-bar { transform-origin:left; animation:aqBar linear; animation-timeline:scroll(root); }
+          @keyframes aqBar { from{transform:scaleX(0)} to{transform:scaleX(1)} }
+        }
+      `}</style>
+      <div className="fixed top-0 left-0 right-0 h-[3px] bg-white/5 z-50">
+        <div className="aq-bar h-full w-full" style={{
+          background:"linear-gradient(90deg,#22d3ee,#7FFF00,#22d3ee)",
+          boxShadow:"0 0 10px rgba(34,211,238,0.8)",
+        }} />
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────
+// ⑦ SVG WAVE DIVIDER
+// ─────────────────────────────────────────────────
+function Wave({ flip = false, color = "rgba(0,220,255,0.08)" }) {
+  return (
+    <div className="w-full overflow-hidden pointer-events-none" style={{ transform: flip ? "scaleY(-1)" : undefined, height: 56 }}>
+      <svg viewBox="0 0 1200 56" preserveAspectRatio="none" className="w-full h-full">
+        <path d="M0,28 C200,56 400,0 600,28 C800,56 1000,0 1200,28 L1200,56 L0,56 Z" fill={color} />
+        <path d="M0,38 C300,8 600,56 900,28 C1050,14 1150,34 1200,38 L1200,56 L0,56 Z" fill={color} fillOpacity="0.5" />
+      </svg>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────
+// ③ LIQUID GLASS CARD — Apple iOS26
+// ─────────────────────────────────────────────────
+function Glass({ children, className = "", glow = "rgba(0,220,255,0.14)" }: {
+  children: React.ReactNode; className?: string; glow?: string;
+}) {
+  return (
+    <div className={`relative rounded-3xl overflow-hidden ${className}`} style={{
+      background: "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.10) 100%)",
+      backdropFilter: "blur(24px) saturate(180%) brightness(1.08)",
+      WebkitBackdropFilter: "blur(24px) saturate(180%) brightness(1.08)",
+      border: "1px solid rgba(255,255,255,0.18)",
+      boxShadow: `inset 0 1.5px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.15), 0 24px 64px rgba(0,0,0,0.45), 0 0 40px ${glow}`,
+    }}>
+      <div className="absolute top-0 left-0 right-0 h-px pointer-events-none" style={{
+        background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5) 40%, rgba(255,255,255,0.5) 60%, transparent)",
+      }} />
+      {children}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────
+// ④ SCROLL VELOCITY WARP
+// ─────────────────────────────────────────────────
+function useScrollWarp() {
+  const { scrollY } = useScroll();
+  const vel = useVelocity(scrollY);
+  const blur = useMotionValue(0);
+  const scale = useMotionValue(1);
+  useMotionValueEvent(vel, "change", (v) => {
+    const a = Math.abs(v);
+    blur.set(Math.min(a / 650, 2.8));
+    scale.set(1 + Math.min(a / 14000, 0.014));
+  });
+  return { blur, scale };
+}
+
+// ─────────────────────────────────────────────────
+// ⑤ PARALLAX SCENE — each image
+// ─────────────────────────────────────────────────
+function Scene({
+  s, idx, onEnter, warpBlur,
+}: {
+  s: typeof SCENES[number]; idx: number;
+  onEnter: (i: number) => void;
+  warpBlur: ReturnType<typeof useMotionValue>;
+}) {
   const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, { margin: "-35% 0px -35% 0px" });
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], ["4%", "-4%"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0, 1, 1, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.2, 0.8, 1], [0.96, 1, 1, 0.96]);
+
+  const imgY     = useTransform(scrollYProgress, [0, 1], ["7%", "-7%"]);
+  const imgScale = useTransform(scrollYProgress, [0, 0.4, 0.6, 1], [0.96, 1.02, 1.02, 0.96]);
+  const vignette = useTransform(scrollYProgress, [0, 0.25, 0.75, 1], [0.55, 0, 0, 0.55]);
+  // ⑪ water fill clip-path rising with scroll
+  const clip = useTransform(scrollYProgress, [0.1, 0.65], [100, 0]);
+  const clipPath = useTransform(clip, (v) => `inset(${v}% 0% 0% 0% round 0px)`);
+  const blurFilter = useTransform(warpBlur, (b) => `blur(${b}px)`);
+
+  useEffect(() => {
+    if (isInView) { onEnter(idx); tone(s.freq, 0.03, 0.28); }
+  }, [isInView, idx, onEnter, s.freq]);
 
   return (
-    <section
-      ref={ref}
-      className="relative w-full flex flex-col items-center justify-center overflow-hidden"
-    >
-      {/* Step badge */}
-      <ScrollReveal delay={0.1} className="w-full max-w-md mx-auto px-6 pt-12 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-xs font-black backdrop-blur-sm">
-            {index + 1}
-          </div>
-          <span className="text-cyan-300/70 text-sm font-medium tracking-widest uppercase">
-            {scene.label}
-          </span>
-          <div className="flex-1 h-px bg-gradient-to-l from-transparent to-cyan-400/20" />
-        </div>
-      </ScrollReveal>
-
-      {/* Image with parallax */}
+    <section ref={ref} className="relative w-full flex flex-col items-center">
+      {/* Badge */}
       <motion.div
-        style={{ y, opacity, scale }}
-        className="w-full max-w-md mx-auto px-4 pb-8"
+        initial={{ opacity: 0, x: 16 }} whileInView={{ opacity: 1, x: 0 }}
+        viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6, delay: 0.1 }}
+        className="w-full max-w-md mx-auto px-6 pt-14 pb-5 flex items-center gap-3"
       >
-        <div className="relative rounded-3xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/5">
-          {/* Ambient glow layer */}
-          <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-cyan-900/10 pointer-events-none z-10" />
-          <img
-            src={scene.image}
-            alt={scene.label}
-            className="w-full h-auto block"
-            loading="lazy"
-            decoding="async"
-          />
-        </div>
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0" style={{
+          background: `rgba(${s.rgb},0.25)`, border: `1px solid rgba(${s.rgb},0.5)`,
+          color: `rgb(${s.rgb})`, boxShadow: `0 0 20px rgba(${s.rgb},0.28)`,
+        }}>{s.step}</div>
+        <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+        <div className="flex-1 h-px" style={{ background: `linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
       </motion.div>
 
-      {/* Scroll hint arrow (only middle scenes) */}
-      {index < 2 && (
-        <ScrollReveal delay={0.4}>
-          <motion.div
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-            className="pb-10 text-white/20 flex flex-col items-center gap-1"
-          >
-            <ChevronDown size={20} />
-            <ChevronDown size={20} className="-mt-3 opacity-50" />
+      {/* Image */}
+      <motion.div style={{ y: imgY, scale: imgScale, filter: blurFilter }} className="w-full max-w-md mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 50, filter: "blur(12px)" }}
+          whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+          className="relative overflow-hidden rounded-3xl"
+          style={{ boxShadow: `0 32px 80px rgba(0,0,0,0.65), 0 0 60px rgba(${s.rgb},0.08)` }}
+        >
+          {/* Vignette */}
+          <motion.div style={{ opacity: vignette }}
+            className="absolute inset-0 z-10 pointer-events-none"
+            style2={{ background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.75) 100%)" }}
+          />
+          {/* ⑪ Water fill */}
+          <motion.div style={{ clipPath }} className="absolute inset-0 z-20 pointer-events-none">
+            <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(${s.rgb},0.1), transparent)` }} />
           </motion.div>
-        </ScrollReveal>
+          {/* Top glow */}
+          <div className="absolute top-0 left-0 right-0 h-24 pointer-events-none z-10"
+            style={{ background: `linear-gradient(to bottom, rgba(${s.rgb},0.07), transparent)` }}
+          />
+          <img src={s.image} alt={s.label} className="w-full h-auto block" loading="lazy" decoding="async" />
+        </motion.div>
+      </motion.div>
+
+      {/* Scroll cue */}
+      {idx < 2 && (
+        <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+          transition={{ delay: 0.9 }} className="flex flex-col items-center gap-0.5 mt-8 mb-2 text-white/15">
+          {[0,1].map(i => (
+            <motion.div key={i} animate={{ y:[0,5,0], opacity:[0.35,0.9,0.35] }}
+              transition={{ duration:1.6, repeat:Infinity, delay:i*0.22, ease:"easeInOut" }}>
+              <ChevronDown size={17} />
+            </motion.div>
+          ))}
+        </motion.div>
       )}
     </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 6. BacteriaStickyZone — قلب التجربة التفاعلية
-// ─────────────────────────────────────────────────────────────
-function BacteriaStickyZone({
-  onComplete,
-}: {
-  onComplete: () => void;
-}) {
-  const [bacteriaAdded, setBacteriaAdded] = useState(false);
-  const [dragFailed, setDragFailed] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+// ─────────────────────────────────────────────────
+// ⑥ BACTERIA STICKY ZONE — magnetic + lock
+// ─────────────────────────────────────────────────
+function BacteriaZone({ onComplete }: { onComplete: () => void }) {
+  const [done, setDone]       = useState(false);
+  const [near, setNear]       = useState(false);
+  const [fail, setFail]       = useState(false);
   const stickyRef = useRef<HTMLDivElement>(null);
+  const isInView = useInView(stickyRef, { margin: "-18% 0px -18% 0px" });
 
-  // Scroll lock: body يتجمد لما يوصل لهذه المنطقة قبل الحل
+  // ⑥ Magnetic spring
+  const bScale  = useSpring(1,  { stiffness: 320, damping: 26 });
+  const bRotate = useSpring(0,  { stiffness: 220, damping: 22 });
+
+  // Scroll lock
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !bacteriaAdded) {
-          document.body.style.overflow = "hidden";
-          document.documentElement.style.overflow = "hidden";
-        }
-      },
-      { threshold: 0.6 }
-    );
-    if (stickyRef.current) observer.observe(stickyRef.current);
-    return () => {
-      observer.disconnect();
-    };
-  }, [bacteriaAdded]);
+    if (isInView && !done) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; document.documentElement.style.overflow = ""; };
+  }, [isInView, done]);
 
-  const unlock = useCallback(() => {
+  // ⑨ Gyroscope
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  useEffect(() => {
+    const h = (e: DeviceOrientationEvent) => setTilt({
+      x: Math.max(-8, Math.min(8, (e.gamma ?? 0) / 4)),
+      y: Math.max(-8, Math.min(8, ((e.beta ?? 45) - 45) / 4)),
+    });
+    window.addEventListener("deviceorientation", h);
+    return () => window.removeEventListener("deviceorientation", h);
+  }, []);
+
+  const drop = useCallback(() => {
+    if (done) return;
+    setDone(true);
     document.body.style.overflow = "";
     document.documentElement.style.overflow = "";
-  }, []);
-
-  const handleDropBacteria = useCallback(() => {
-    if (bacteriaAdded) return;
-    setBacteriaAdded(true);
-    unlock();
-
     playMagicSplash();
-    vibrate([50, 100, 150, 100, 200]);
-
+    vib([40, 80, 160, 80, 240]);
     confetti({
-      particleCount: 300,
-      spread: 130,
-      startVelocity: 45,
-      origin: { y: 0.5 },
-      colors: ["#00ffea", "#00ff88", "#ffffff", "#0ea5e9", "#7FFF00"],
-      shapes: ["circle"],
-      scalar: 1.4,
-      ticks: 350,
-      gravity: 0.75,
+      particleCount: 320, spread: 140, startVelocity: 48,
+      origin: { y: 0.44 },
+      colors: ["#00ffea","#00ff88","#ffffff","#7FFF00","#0ea5e9"],
+      shapes: ["circle"], scalar: 1.5, ticks: 380, gravity: 0.72,
     });
+    setTimeout(onComplete, 2800);
+  }, [done, onComplete]);
 
-    setTimeout(onComplete, 2600);
-  }, [bacteriaAdded, unlock, onComplete]);
-
-  const handleDragFail = useCallback(() => {
-    setDragFailed(true);
-    vibrate([40, 60]);
-    setTimeout(() => setDragFailed(false), 600);
-  }, []);
+  const s = SCENES[3];
 
   return (
-    <div ref={containerRef} className="relative w-full">
-      {/* Sticky wrapper */}
-      <div
-        ref={stickyRef}
-        className="sticky top-0 min-h-screen w-full flex flex-col items-center justify-center overflow-hidden"
-      >
-        {/* Background pulse when locked */}
+    <section className="relative w-full">
+      <div ref={stickyRef} className="sticky top-0 min-h-screen w-full flex flex-col items-center justify-start overflow-hidden">
+
+        {/* Ambient pulse */}
         <AnimatePresence>
-          {!bacteriaAdded && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 pointer-events-none"
-            >
-              <motion.div
-                animate={{ scale: [1, 1.05, 1], opacity: [0.03, 0.08, 0.03] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="absolute inset-0 bg-cyan-400 rounded-full blur-3xl"
+          {!done && (
+            <motion.div key="p" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+              className="absolute inset-0 pointer-events-none">
+              <motion.div animate={{ scale:[1,1.1,1], opacity:[0.05,0.14,0.05] }}
+                transition={{ duration:3.5, repeat:Infinity }}
+                className="absolute inset-0 rounded-full blur-[130px]"
+                style={{ background:`rgb(${s.rgb})` }}
               />
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Step label */}
-        <div className="w-full max-w-md mx-auto px-6 pt-8 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 text-xs font-black backdrop-blur-sm">
-              4
-            </div>
-            <span className="text-cyan-300/70 text-sm font-medium tracking-widest uppercase">
-              {SCENES[3].label}
-            </span>
-            <div className="flex-1 h-px bg-gradient-to-l from-transparent to-cyan-400/20" />
+        {/* Step badge */}
+        <div className="w-full max-w-md mx-auto px-6 pt-14 pb-5 flex items-center gap-3 z-10">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0"
+            style={{ background:`rgba(${s.rgb},0.25)`, border:`1px solid rgba(${s.rgb},0.5)`, color:`rgb(${s.rgb})`, boxShadow:`0 0 20px rgba(${s.rgb},0.28)` }}>
+            04
           </div>
+          <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+          <div className="flex-1 h-px" style={{ background:`linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
         </div>
 
-        {/* Bacteria image */}
-        <div className="w-full max-w-md mx-auto px-4">
-          <div className="relative rounded-3xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.6)] border border-white/5">
-            <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 via-transparent to-cyan-900/10 pointer-events-none z-10" />
-            <img
-              src={SCENES[3].image}
-              alt="إكسير البكتيريا"
-              className="w-full h-auto block"
-            />
-          </div>
+        {/* Image with gyro parallax + drop target */}
+        <div className="w-full max-w-md mx-auto px-4 z-10">
+          <motion.div animate={{ x:tilt.x, y:tilt.y }} transition={{ type:"spring", stiffness:50, damping:20 }}
+            className="relative rounded-3xl overflow-hidden"
+            style={{ boxShadow:`0 32px 80px rgba(0,0,0,0.65), 0 0 60px rgba(${s.rgb},0.12)` }}>
+
+            {/* Drop target ring */}
+            <AnimatePresence>
+              {!done && (
+                <motion.div key="target" initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0, scale:2 }}
+                  className="absolute inset-x-0 top-[18%] flex justify-center z-20 pointer-events-none">
+                  <motion.div
+                    animate={{ scale:near?[1,1.35,1]:[1,1.1,1], opacity:near?[0.9,1,0.9]:[0.4,0.65,0.4] }}
+                    transition={{ duration:near?0.45:2, repeat:Infinity }}
+                    className="w-20 h-20 rounded-full border-2 flex items-center justify-center"
+                    style={{
+                      borderColor:`rgba(${s.rgb},${near?1:0.5})`,
+                      background:`rgba(${s.rgb},${near?0.22:0.06})`,
+                      boxShadow:`0 0 ${near?50:22}px rgba(${s.rgb},${near?0.7:0.25})`,
+                    }}>
+                    <Droplets size={22} style={{ color:`rgb(${s.rgb})`, opacity:near?1:0.6 }} />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <img src={s.image} alt={s.label} className="w-full h-auto block" />
+          </motion.div>
         </div>
 
-        {/* Interaction Zone */}
-        <div className="w-full max-w-md mx-auto px-4 mt-6 pb-8 flex flex-col items-center">
+        {/* Interaction */}
+        <div className="w-full max-w-md mx-auto px-4 mt-6 pb-8 flex flex-col items-center z-10">
           <AnimatePresence mode="wait">
-            {!bacteriaAdded ? (
-              <motion.div
-                key="drag-zone"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col items-center gap-4 w-full"
-              >
-                {/* Lock indicator */}
-                <motion.div
-                  animate={{ opacity: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="flex items-center gap-2 text-amber-400/80 text-xs font-bold tracking-wider uppercase bg-amber-400/10 border border-amber-400/20 rounded-full px-4 py-2 backdrop-blur-md"
-                >
-                  <span>🔒</span>
-                  <span>التمرير محجوب — أكمل التفاعل للمتابعة</span>
+            {!done ? (
+              <motion.div key="drag" initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, scale:0.85 }}
+                className="flex flex-col items-center gap-4 w-full">
+
+                {/* Lock badge */}
+                <motion.div animate={{ opacity:[0.5,1,0.5] }} transition={{ duration:2.5, repeat:Infinity }}
+                  className="flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold tracking-widest uppercase"
+                  style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.3)", color:"rgb(251,191,36)" }}>
+                  <Lock size={11} />
+                  <span>التمرير محجوب — أكمل التفاعل</span>
                 </motion.div>
 
-                {/* Instruction */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex items-center gap-2 text-cyan-300 font-bold bg-black/50 px-5 py-3 rounded-2xl border border-cyan-500/25 backdrop-blur-xl text-sm shadow-[0_0_30px_rgba(8,145,178,0.3)]"
-                >
-                  <Sparkles size={16} className="text-cyan-400 shrink-0" />
-                  <span>اسحب العلبة للأعلى وارميها بالماي!</span>
-                </motion.div>
+                {/* Instruction — Liquid Glass */}
+                <Glass className="px-5 py-3" glow={`rgba(${s.rgb},0.22)`}>
+                  <div className="flex items-center gap-2.5 text-cyan-200 font-bold text-sm">
+                    <motion.div animate={{ rotate:[0,18,-18,0] }} transition={{ duration:2.2, repeat:Infinity, delay:0.4 }}>
+                      <Sparkles size={15} className="text-cyan-400" />
+                    </motion.div>
+                    <span>اسحب العلبة للأعلى وارميها بالماي!</span>
+                  </div>
+                </Glass>
 
-                {/* Draggable bacteria bottle */}
+                {/* ⑥ Magnetic Bottle */}
                 <motion.div
                   drag
-                  dragConstraints={{ top: -420, left: -80, right: 80, bottom: 0 }}
-                  dragElastic={0.7}
-                  whileDrag={{ scale: 1.15, rotate: -12 }}
-                  animate={dragFailed ? { x: [-6, 6, -6, 6, 0], rotate: [0, -3, 3, -3, 0] } : {}}
-                  onDragEnd={(_, info) => {
-                    if (info.offset.y < -90) {
-                      handleDropBacteria();
-                    } else {
-                      handleDragFail();
-                    }
+                  dragConstraints={{ top:-440, left:-110, right:110, bottom:10 }}
+                  dragElastic={0.62}
+                  style={{ scale:bScale, rotate:bRotate, touchAction:"none" }}
+                  whileDrag={{ rotate:-15 }}
+                  animate={fail ? { x:[-9,9,-9,9,0] } : {}}
+                  onDrag={(_: any, info: any) => {
+                    const isNear = info.offset.y < -65 && Math.abs(info.offset.x) < 85;
+                    setNear(isNear);
+                    bScale.set(isNear ? 1.2 : 1);
                   }}
-                  className="w-28 h-28 bg-gradient-to-br from-cyan-900/70 to-blue-900/70 backdrop-blur-2xl rounded-[28px] flex flex-col items-center justify-center cursor-grab active:cursor-grabbing border-2 border-cyan-300/50 shadow-[0_0_60px_rgba(8,145,178,0.7),inset_0_0_20px_rgba(255,255,255,0.12)] select-none"
-                  style={{ touchAction: "none" }}
+                  onDragEnd={(_: any, info: any) => {
+                    if (info.offset.y < -95 || near) { drop(); }
+                    else { setFail(true); vib([30, 55]); setTimeout(() => setFail(false), 700); }
+                  }}
+                  className="w-28 h-28 flex flex-col items-center justify-center cursor-grab active:cursor-grabbing rounded-[28px] select-none"
+                  style2={{
+                    background:`linear-gradient(135deg, rgba(${s.rgb},0.5), rgba(${s.rgb},0.18), rgba(0,0,0,0.3))`,
+                    backdropFilter:"blur(20px) saturate(200%)",
+                    WebkitBackdropFilter:"blur(20px) saturate(200%)",
+                    border:`2px solid rgba(${s.rgb},0.65)`,
+                    boxShadow:`0 0 ${near?70:50}px rgba(${s.rgb},${near?0.95:0.55}), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.2)`,
+                  }}
                 >
-                  <span className="text-5xl drop-shadow-[0_0_12px_rgba(0,255,234,0.8)]">🧪</span>
-                  <span className="text-[10px] font-black mt-1.5 text-cyan-200 tracking-widest">بكتيريا</span>
+                  <motion.span className="text-5xl"
+                    animate={{ y:[0,-4,0] }} transition={{ duration:1.9, repeat:Infinity, ease:"easeInOut" }}
+                    style={{ filter:"drop-shadow(0 0 14px rgba(0,255,234,0.9))" }}>
+                    🧪
+                  </motion.span>
+                  <span className="text-[10px] font-black mt-1.5 tracking-[0.22em] uppercase"
+                    style={{ color:`rgb(${s.rgb})` }}>
+                    بكتيريا
+                  </span>
                 </motion.div>
 
-                {/* Drop target indicator */}
-                <motion.div
-                  animate={{ opacity: [0.3, 0.7, 0.3], scale: [0.98, 1.01, 0.98] }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                  className="w-20 h-1.5 rounded-full bg-gradient-to-r from-transparent via-cyan-400/50 to-transparent"
-                />
+                {/* Up arrows hint */}
+                <motion.div animate={{ y:[0,-5,0], opacity:[0.25,0.75,0.25] }}
+                  transition={{ duration:1.4, repeat:Infinity }}
+                  className="flex flex-col items-center gap-1 text-white/25">
+                  {[0,1].map(i => (
+                    <ChevronDown key={i} size={13} style={{ transform:"rotate(180deg)", marginTop:i?-8:0, opacity:i?0.5:1 }} />
+                  ))}
+                </motion.div>
               </motion.div>
             ) : (
-              <motion.div
-                key="success"
-                initial={{ scale: 0.5, opacity: 0, filter: "blur(16px)" }}
-                animate={{ scale: 1, opacity: 1, filter: "blur(0px)" }}
-                transition={{ duration: 0.7, type: "spring", bounce: 0.4 }}
-                className="bg-black/60 border border-green-500/40 backdrop-blur-2xl rounded-3xl px-8 py-6 flex flex-col items-center text-center shadow-[0_0_60px_rgba(34,197,94,0.25)]"
-              >
-                <motion.div
-                  animate={{ rotate: [0, 10, -10, 0], scale: [1, 1.1, 1] }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4 border border-green-400/40"
-                >
-                  <CheckCircle2 size={34} className="text-green-400" />
-                </motion.div>
-                <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-cyan-300">
-                  الماي صار حي! 🌊
-                </h3>
-                <p className="text-sm text-gray-300 mt-2 font-medium leading-relaxed">
-                  تم تفعيل النظام البيولوجي بنجاح
-                  <br />
-                  <span className="text-cyan-400/70 text-xs">يتم فتح الخطوة الأخيرة...</span>
-                </p>
+              /* SUCCESS */
+              <motion.div key="ok"
+                initial={{ scale:0.4, opacity:0, filter:"blur(20px)" }}
+                animate={{ scale:1, opacity:1, filter:"blur(0px)" }}
+                transition={{ type:"spring", stiffness:280, damping:22 }}>
+                <Glass className="px-8 py-7" glow="rgba(34,197,94,0.32)">
+                  <div className="flex flex-col items-center text-center">
+                    <motion.div animate={{ scale:[1,1.15,1], rotate:[0,8,-8,0] }}
+                      transition={{ duration:0.7, delay:0.2 }}
+                      className="w-16 h-16 rounded-full flex items-center justify-center mb-4"
+                      style={{ background:"rgba(34,197,94,0.15)", border:"1px solid rgba(34,197,94,0.4)", boxShadow:"0 0 40px rgba(34,197,94,0.3)" }}>
+                      <CheckCircle2 size={34} className="text-green-400" />
+                    </motion.div>
+                    <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-cyan-300">
+                      الماي صار حي! 🌊
+                    </h3>
+                    <p className="text-sm text-gray-300 mt-2 font-medium leading-relaxed">النظام البيولوجي يعمل الآن</p>
+                    <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
+                      className="text-xs mt-1.5 font-medium" style={{ color:`rgba(${SCENES[4].rgb},0.8)` }}>
+                      يتم فتح الخطوة الأخيرة…
+                    </motion.p>
+                  </div>
+                </Glass>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 7. FinalScene — الختام
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────
+// FINAL SCENE
+// ─────────────────────────────────────────────────
 function FinalScene() {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-60px" });
+  const ok  = useInView(ref, { once: true, margin: "-80px" });
+  const s   = SCENES[4];
+
+  const fadeUp = (i: number) => ({
+    initial: { opacity:0, y:40, filter:"blur(8px)" },
+    animate: ok ? { opacity:1, y:0, filter:"blur(0px)" } : {},
+    transition: { duration:0.75, delay: i*0.14, ease:[0.16,1,0.3,1] as any },
+  });
 
   return (
-    <motion.section
-      ref={ref}
-      initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : {}}
-      transition={{ duration: 0.6 }}
-      className="relative w-full flex flex-col items-center overflow-hidden"
-    >
-      {/* Step label */}
-      <div className="w-full max-w-md mx-auto px-6 pt-12 pb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#7FFF00]/20 border border-[#7FFF00]/40 flex items-center justify-center text-[#7FFF00] text-xs font-black">
-            5
-          </div>
-          <span className="text-[#7FFF00]/70 text-sm font-medium tracking-widest uppercase">
-            {SCENES[4].label}
-          </span>
-          <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#7FFF00]/20" />
+    <section ref={ref} className="relative w-full flex flex-col items-center">
+      {/* Badge */}
+      <motion.div {...fadeUp(0)} className="w-full max-w-md mx-auto px-6 pt-14 pb-5 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-black shrink-0"
+          style={{ background:`rgba(${s.rgb},0.25)`, border:`1px solid rgba(${s.rgb},0.5)`, color:`rgb(${s.rgb})`, boxShadow:`0 0 20px rgba(${s.rgb},0.28)` }}>
+          05
         </div>
-      </div>
+        <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+        <div className="flex-1 h-px" style={{ background:`linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
+      </motion.div>
 
-      {/* Final image */}
-      <motion.div
-        initial={{ y: 60, opacity: 0, filter: "blur(12px)" }}
-        animate={isInView ? { y: 0, opacity: 1, filter: "blur(0px)" } : {}}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md mx-auto px-4"
-      >
-        <div className="relative rounded-3xl overflow-hidden shadow-[0_30px_80px_rgba(0,0,0,0.7),0_0_60px_rgba(127,255,0,0.05)] border border-white/5">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#7FFF00]/5 via-transparent to-[#7FFF00]/10 pointer-events-none z-10" />
-          <img
-            src={SCENES[4].image}
-            alt="الحوض يحيا"
-            className="w-full h-auto block"
-          />
+      {/* Image */}
+      <motion.div {...fadeUp(1)} className="w-full max-w-md mx-auto px-4">
+        <div className="relative rounded-3xl overflow-hidden"
+          style={{ boxShadow:`0 32px 80px rgba(0,0,0,0.65), 0 0 80px rgba(${s.rgb},0.12)` }}>
+          <div className="absolute top-0 left-0 right-0 h-28 pointer-events-none z-10"
+            style={{ background:`linear-gradient(to bottom, rgba(${s.rgb},0.08), transparent)` }} />
+          <img src={s.image} alt={s.label} className="w-full h-auto block" />
         </div>
       </motion.div>
 
-      {/* CTA Buttons */}
-      <motion.div
-        initial={{ y: 40, opacity: 0 }}
-        animate={isInView ? { y: 0, opacity: 1 } : {}}
-        transition={{ duration: 0.8, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md mx-auto px-4 mt-8 pb-16 space-y-3"
-      >
-        {/* Congrats glass card */}
-        <div className="bg-white/4 backdrop-blur-2xl border border-white/8 rounded-3xl px-6 py-5 text-center mb-6">
-          <p className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-[#7FFF00] to-cyan-300">
-            مبروك! حوضك جاهز 🎉
-          </p>
-          <p className="text-sm text-gray-400 mt-1.5 font-medium">
-            حوضك الآن يعيش — تسوق الباقي من AQUAVO
-          </p>
-        </div>
+      {/* CTAs */}
+      <div className="w-full max-w-md mx-auto px-4 mt-8 pb-20 space-y-3">
+        {/* Congrats */}
+        <motion.div {...fadeUp(2)}>
+          <Glass className="px-6 py-6 text-center" glow={`rgba(${s.rgb},0.2)`}>
+            <motion.div animate={{ backgroundPosition:["0%","100%","0%"] }}
+              transition={{ duration:4, repeat:Infinity, ease:"linear" }}
+              className="text-3xl font-black text-transparent bg-clip-text mb-2"
+              style={{
+                backgroundImage:`linear-gradient(135deg, rgb(${SCENES[3].rgb}), rgb(${s.rgb}), rgb(${SCENES[3].rgb}))`,
+                backgroundSize:"200%",
+              }}>
+              مبروك! حوضك جاهز 🎉
+            </motion.div>
+            <p className="text-sm text-gray-400 font-medium">حوضك الآن يعيش — تسوق الباقي من AQUAVO</p>
+          </Glass>
+        </motion.div>
 
-        <Link href="/">
-          <button
-            onClick={() => { vibrate(20); playBubbleSound(); }}
-            className="w-full bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white font-black py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] border border-cyan-400/40 shadow-[0_0_40px_rgba(8,145,178,0.4)]"
-          >
-            <ShoppingBag size={21} />
-            <span>تسوق مستهلكات الحوض</span>
+        {/* Shop */}
+        <motion.div {...fadeUp(3)}>
+          <Link href="/">
+            <button onClick={() => { vib(20); playBubble(); }}
+              className="w-full font-black py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+              style={{
+                background:`linear-gradient(135deg, rgba(${SCENES[3].rgb},0.9), rgba(${s.rgb},0.7))`,
+                boxShadow:`0 0 50px rgba(${SCENES[3].rgb},0.35), inset 0 1px 0 rgba(255,255,255,0.2)`,
+                border:`1px solid rgba(${SCENES[3].rgb},0.5)`,
+              }}>
+              <ShoppingBag size={21} />
+              <span>تسوق مستهلكات الحوض</span>
+            </button>
+          </Link>
+        </motion.div>
+
+        {/* WhatsApp */}
+        <motion.div {...fadeUp(4)}>
+          <button onClick={() => { vib(20); playBubble(); window.open("https://wa.me/9647747880673","_blank"); }}
+            className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+            style={{
+              background:"rgba(255,255,255,0.05)", backdropFilter:"blur(20px)",
+              border:"1px solid rgba(255,255,255,0.12)",
+              boxShadow:"inset 0 1px 0 rgba(255,255,255,0.1)",
+            }}>
+            <PhoneCall size={21} className="text-green-400" />
+            <span>تواصل مع الخبراء</span>
           </button>
-        </Link>
+        </motion.div>
 
-        <button
-          onClick={() => {
-            vibrate(20);
-            playBubbleSound();
-            window.open("https://wa.me/9647747880673", "_blank");
-          }}
-          className="w-full bg-black/40 backdrop-blur-2xl border border-white/15 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] hover:bg-white/8"
-        >
-          <PhoneCall size={21} className="text-green-400" />
-          <span>تواصل مع الخبراء</span>
-        </button>
-
-        <p className="text-center text-white/20 text-xs pt-2 font-medium">
+        <motion.p {...fadeUp(5)}
+          className="text-center text-white/12 text-xs pt-3 font-medium tracking-widest uppercase">
           AQUAVO — أول تجربة حوض بالذكاء الاصطناعي في العراق
-        </p>
-      </motion.div>
-    </motion.section>
+        </motion.p>
+      </div>
+    </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 8. ScrollProgress Bar — شريط التقدم الثابت
-// ─────────────────────────────────────────────────────────────
-function ScrollProgressBar() {
-  const { scrollYProgress } = useScroll();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 40 });
-
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 h-[3px] bg-white/5">
-      <motion.div
-        style={{ scaleX, transformOrigin: "left" }}
-        className="h-full bg-gradient-to-r from-cyan-400 via-[#7FFF00] to-cyan-400 shadow-[0_0_12px_rgba(34,211,238,0.8)]"
-      />
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────
-// 9. Hero — الواجهة الافتتاحية
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────
+// HERO
+// ─────────────────────────────────────────────────
 function Hero() {
   return (
-    <section className="relative min-h-[50vh] flex flex-col items-center justify-center px-6 pt-16 pb-8 overflow-hidden">
-      {/* Ambient background */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-cyan-500/4 rounded-full blur-[100px]" />
+    <section className="relative min-h-[52vh] flex flex-col items-center justify-center px-6 pt-16 pb-6 overflow-hidden">
+      {/* SVG Water Wave — ⑦ animated */}
+      <div className="absolute bottom-0 left-0 right-0 h-16 overflow-hidden pointer-events-none opacity-20">
+        <motion.svg viewBox="0 0 1200 60" className="w-full h-full" preserveAspectRatio="none">
+          <motion.path fill="rgba(0,220,255,0.5)"
+            animate={{ d:[
+              "M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30 C1100,50 1150,20 1200,30 L1200,60 L0,60 Z",
+              "M0,40 C200,10 400,60 600,32 C800,8 1000,55 1200,24 L1200,60 L0,60 Z",
+              "M0,30 C150,60 350,0 500,30 C650,60 850,0 1000,30 C1100,50 1150,20 1200,30 L1200,60 L0,60 Z",
+            ] }}
+            transition={{ duration:5.5, repeat:Infinity, ease:"easeInOut" }}
+          />
+        </motion.svg>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-        className="text-center relative z-10"
-      >
-        <div className="inline-flex items-center gap-2 bg-cyan-400/10 border border-cyan-400/20 rounded-full px-4 py-1.5 mb-6 backdrop-blur-md">
-          <span className="text-cyan-400 text-xs font-bold tracking-widest uppercase">دليل المبتدئين</span>
-          <span className="text-cyan-400/60 text-xs">AQUAVO 2026</span>
-        </div>
+      <motion.div initial={{ opacity:0, y:32 }} animate={{ opacity:1, y:0 }}
+        transition={{ duration:1, ease:[0.16,1,0.3,1] }} className="text-center relative z-10">
 
-        <h1 className="text-3xl font-black text-white mb-3 leading-tight">
-          من الصفر{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-[#7FFF00]">
-            لحوض يعيش
+        {/* Tag */}
+        <motion.div initial={{ scale:0.8, opacity:0 }} animate={{ scale:1, opacity:1 }}
+          transition={{ duration:0.6, delay:0.2 }}
+          className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-7"
+          style={{ background:"rgba(0,220,255,0.1)", border:"1px solid rgba(0,220,255,0.25)", backdropFilter:"blur(12px)" }}>
+          <motion.span animate={{ scale:[1,1.4,1], opacity:[0.6,1,0.6] }}
+            transition={{ duration:2, repeat:Infinity }}
+            className="w-1.5 h-1.5 rounded-full bg-cyan-400"
+            style={{ boxShadow:"0 0 8px rgba(0,220,255,0.9)" }} />
+          <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">دليل المبتدئين</span>
+          <span className="text-cyan-300/35 text-xs">· AQUAVO 2026</span>
+        </motion.div>
+
+        <h1 className="text-4xl font-black text-white mb-3 leading-[1.1] tracking-tight">
+          من{" "}
+          <span className="relative inline-block">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-400">الصفر</span>
+            <motion.div className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full bg-cyan-400"
+              initial={{ scaleX:0 }} animate={{ scaleX:1 }}
+              transition={{ duration:0.8, delay:0.75 }} style={{ originX:0, boxShadow:"0 0 8px rgba(0,220,255,0.7)" }} />
           </span>
+          {" "}لحوض{" "}
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FFF00] to-cyan-300">يحيا</span>
         </h1>
-        <p className="text-gray-400 text-sm font-medium max-w-xs mx-auto leading-relaxed">
-          9 خطوات تفاعلية — نزّل للأسفل واتبع الرحلة
+
+        <p className="text-gray-400 text-sm font-medium max-w-[255px] mx-auto leading-relaxed">
+          5 خطوات تفاعلية — نزّل للأسفل واتبع الرحلة
         </p>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.8 }}
-        className="mt-10 flex flex-col items-center gap-1.5 text-white/25"
-      >
-        <motion.div
-          animate={{ y: [0, 6, 0] }}
-          transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        >
-          <ChevronDown size={22} />
+      <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.5 }}
+        className="mt-12 flex flex-col items-center gap-1.5 text-white/20 relative z-10">
+        <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل للبدء</span>
+        <motion.div animate={{ y:[0,8,0] }} transition={{ duration:1.9, repeat:Infinity, ease:"easeInOut" }}>
+          <ChevronDown size={20} />
         </motion.div>
-        <span className="text-xs font-medium tracking-widest">نزّل للبدء</span>
       </motion.div>
     </section>
   );
 }
 
-// ─────────────────────────────────────────────────────────────
-// 10. Main Component
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────
+// MAIN
+// ─────────────────────────────────────────────────
 export default function BeginnerGuide() {
+  const [activeIdx, setActiveIdx] = useState(0);
   const [bacteriaDone, setBacteriaDone] = useState(false);
+  const { blur: warpBlur, scale: warpScale } = useScrollWarp();
 
-  // Cleanup scroll lock on unmount
-  useEffect(() => {
-    return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    };
+  const onEnter = useCallback((i: number) => setActiveIdx(i), []);
+
+  useEffect(() => () => {
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
   }, []);
 
   return (
-    <div
-      className="relative bg-[#010611] text-white min-h-screen w-full"
-      dir="rtl"
-    >
-      {/* Fixed scroll progress bar */}
-      <ScrollProgressBar />
+    <div className="relative bg-[#010611] text-white min-h-screen w-full" dir="rtl">
+      {/* Layers */}
+      <AmbientBg idx={activeIdx} />
+      <FloatingBubbles />
+      <NoiseGrain />
+      <ScrollBar />
 
-      {/* Content column — centered, max-width for mobile feel on desktop */}
-      <div className="mx-auto max-w-md w-full md:border-x md:border-white/5 md:shadow-[0_0_120px_rgba(0,0,0,0.8)]">
-
-        {/* Hero intro */}
+      {/* Main column */}
+      <motion.div style={{ scale: warpScale }} className="mx-auto max-w-md w-full relative z-10 md:border-x md:border-white/5">
         <Hero />
+        <Wave color={`rgba(${SCENES[0].rgb},0.1)`} />
 
-        {/* Divider */}
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-400/15 to-transparent" />
-
-        {/* Scenes 1–3: natural vertical scroll with parallax */}
-        {SCENES.slice(0, 3).map((scene, i) => (
-          <ParallaxScene key={scene.id} scene={scene} index={i} />
+        {/* Scenes 1-3 */}
+        {SCENES.slice(0, 3).map((s, i) => (
+          <Scene key={s.id} s={s} idx={i} onEnter={onEnter} warpBlur={warpBlur} />
         ))}
 
-        {/* Separator before sticky zone */}
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-cyan-400/15 to-transparent my-4" />
+        <Wave color={`rgba(${SCENES[3].rgb},0.12)`} flip />
 
-        {/* Scene 4: Bacteria Sticky Zone */}
-        <BacteriaStickyZone onComplete={() => setBacteriaDone(true)} />
+        {/* Bacteria zone */}
+        <BacteriaZone onComplete={() => { setBacteriaDone(true); setActiveIdx(4); }} />
 
-        {/* Scene 5: Final — only appears after bacteria */}
+        {/* Final — only after bacteria */}
         <AnimatePresence>
           {bacteriaDone && (
             <motion.div
-              initial={{ opacity: 0, y: 60 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            >
-              <div className="w-full h-px bg-gradient-to-r from-transparent via-[#7FFF00]/20 to-transparent my-4" />
+              initial={{ opacity:0, y:80 }}
+              animate={{ opacity:1, y:0 }}
+              transition={{ duration:1, ease:[0.16,1,0.3,1] }}>
+              <Wave color={`rgba(${SCENES[4].rgb},0.14)`} />
               <FinalScene />
             </motion.div>
           )}
         </AnimatePresence>
-
-      </div>
+      </motion.div>
     </div>
   );
 }

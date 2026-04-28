@@ -1,0 +1,343 @@
+{
+  "meta": {
+    "project": "AQUAVO Revival — Social Media Prompts",
+    "week": 3,
+    "theme": "التغذية الاحترافية والفحوصات",
+    "psychology": ["Authority Bias", "Curiosity Gap", "Commitment", "Framing Effect"],
+    "visual_dna": {
+      "background": "Pure black or warm dark (#0A0A08)",
+      "accent_colors": ["Golden amber (#FFB800)", "Rich red (#CC3333)", "Deep blue (#003366)", "Emerald (#00CC66)"],
+      "lighting": "Warm dramatic lighting for food, clinical cool for testing",
+      "mood": "Nutritional science precision, warm authority for food, clinical for tests",
+      "camera_default": "Shot on Hasselblad X2D, 85mm lens, f/2.0",
+      "exclusions": "No text, no typography, no labels, no logos, no watermarks, no icons, no Arabic characters, no English characters, no blurry edges, no cartoon, no illustration, no oversaturated colors"
+    }
+  },
+
+  "prompts": [
+
+    {
+      "id": "W3-MON-ST1",
+      "day": "الإثنين",
+      "type": "story_teaser",
+      "platform": "instagram_story",
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "تشويق للتغذية",
+      "psychology": "Loss Aversion — العلف الغلط يقتل ببطء",
+      "prompt": "A single oversized fish food pellet falling through dark void, too large and imposing. Dramatic warm side lighting reveals its massive rough texture. The pellet looks disproportionately big, suggesting it cannot fit in a small fish mouth. Shallow depth of field with motion blur trail behind the falling pellet. Shot on Canon R5, macro lens, f/2.0. Cinematic slow-motion freeze-frame. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "تدري إنك ممكن تقتل أسماكك بالعلف الغلط؟",
+        "sticker": "سلايدر: شگد تهتم بنوعية العلف",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with warm dramatic light on oversized pellet"
+    },
+
+    {
+      "id": "W3-TUE-ST2",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "45% vs 40% protein feed",
+      "psychology": "Framing Effect — نسبة البروتين تحدد الاستخدام",
+      "prompt": "Professional vertical split-screen diptych. Left side: premium golden-glowing high-protein pellets in a cluster, with intense warm golden lighting suggesting competition-grade power and energy, radiant glow. Right side: balanced warm-toned pellets in a relaxed arrangement with softer warmer lighting suggesting daily comfort and safety. Both against pure black backgrounds. Shot on Hasselblad X2D, macro lens, f/2.8. Ultra-detailed texture. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "45% بروتين — منافسات",
+        "line2": "40% بروتين — يومي متوازن",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Split: intense gold vs warm balanced tones"
+    },
+
+    {
+      "id": "W3-TUE-ST3",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Ranchu 1.5mm + Goldfish Orchid Longevity",
+      "psychology": "Authority Bias — تخصص دقيق = خبرة حقيقية",
+      "prompt": "Two specialized fish food containers side by side on dark reflective surface. Left container: small uniform 1.5mm pellets spilling from it, each pellet precisely sized. Right container: feed with visible golden medicinal fungus particles mixed in, glowing with subtle warm bioluminescence. A faint Ranchu goldfish head silhouette barely visible in the dark background behind the left product. Shot on Canon R5, 85mm lens, f/2.0. Premium product photography. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "علف رانشو 1.5mm — نمو الرأس",
+        "line2": "أوركيد — فطريات طبية تقوي المناعة",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with warm golden medicinal glow"
+    },
+
+    {
+      "id": "W3-WED-C1",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — دليل أحجام العلف",
+      "psychology": "Curiosity Gap — كل فم يحتاج حجم = دليل قابل للحفظ",
+      "prompt": "Six different sizes of fish food pellets arranged in ascending size order from left to right on dark polished obsidian surface. Each pellet illuminated by its own precise warm spotlight from above, creating individual pools of light. The size progression is dramatic — from barely visible dust-like particles on the left to substantial pellets on the right. Shot on Hasselblad X2D, macro lens, f/4.0. Ultra-detailed texture, 8K resolution. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "دليل أحجام العلف",
+        "line2": "كل فم يحتاج حجم مختلف — 6 أحجام",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark with warm individual spotlights on ascending sizes"
+    },
+
+    {
+      "id": "W3-WED-C2",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Microparticles 0.2mm",
+      "psychology": "Authority Bias — دقة مجهرية = تخصص طبي",
+      "prompt": "Extreme macro close-up of ultra-tiny 0.2mm microparticles scattered on dark surface, so small they appear as fine powder. A tiny fish fry silhouette (barely 1cm) positioned nearby for dramatic size comparison, showing how minuscule the particles are. Each particle catches light like fine gold dust. Shot on Canon R5, macro lens with extension tube, extreme close-up. Forensic detail level. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.2 ملم — لليرقات والصغار",
+        "line2": "أدق حجم متوفر",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark macro with gold dust-like particles"
+    },
+
+    {
+      "id": "W3-WED-C3",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Imitation red worm 0.5mm",
+      "psychology": "Framing Effect — يحاكي الطبيعة = غريزي",
+      "prompt": "A cluster of red worm-shaped 0.5mm feed particles floating in dark void, mimicking natural bloodworms. The particles are thin, elongated, and deep crimson red, catching dramatic warm side lighting that makes them glow like living organisms. Arranged in a natural scattered pattern suggesting movement. Shot on Hasselblad X2D, macro lens, f/2.0. Ultra-detailed texture. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.5 ملم — دود أحمر",
+        "line2": "يحاكي الغذاء الطبيعي",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with deep crimson red worm shapes lit warmly"
+    },
+
+    {
+      "id": "W3-WED-C4",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Small Fish All-in-One 0.6mm",
+      "psychology": "Unity Principle — شامل = حل واحد لأغلب الأسماك",
+      "prompt": "Uniform 0.6mm all-in-one pellets arranged in a perfect grid pattern on dark polished surface, demonstrating consistency and quality. Each pellet is identical in size and shape, suggesting precision manufacturing. Warm overhead diffused lighting creates gentle shadows under each pellet. Shot on Sony A7R V, macro lens, f/4.0. Clean editorial product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.6 ملم — العلف الشامل",
+        "line2": "لأغلب أسماك الزينة الصغيرة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with warm uniform overhead lighting"
+    },
+
+    {
+      "id": "W3-WED-C5",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Betta food 0.8mm",
+      "psychology": "Authority Bias — حجم مصمم بالضبط لفم البيتا",
+      "prompt": "A single 0.8mm betta pellet floating in extreme macro in dark void, with a faint elegant betta fish head silhouette positioned nearby showing the pellet perfectly matching the mouth opening size. The pellet has rich deep color with visible nutritional texture. Dramatic rim lighting defines both the pellet and the fish silhouette. Shot on Hasselblad X2D, macro lens, f/1.8. Cinematic product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.8 ملم — مصمم لفم البيتا",
+        "line2": "الحجم المثالي بالضبط",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with rim-lit pellet and fish silhouette"
+    },
+
+    {
+      "id": "W3-WED-C6",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "3-in-1 Betta 15g",
+      "psychology": "Framing Effect — 3 تركيبات بعبوة = قيمة مضاعفة",
+      "prompt": "A small compact betta food container on dark surface, with three distinct streams of different-colored feed particles flowing out in three separate arcs — one golden, one red, one green — each representing a different formula. The three streams create an elegant tri-color fountain effect. Dramatic side lighting. Shot on Canon R5, 50mm lens, f/2.8. Premium commercial photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "3 في 1 للبيتا",
+        "line2": "ثلاث تركيبات بعبوة وحدة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with tri-color golden/red/green streams"
+    },
+
+    {
+      "id": "W3-WED-C7",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Cherlam slow-sinking 1.5mm",
+      "psychology": "Curiosity Gap — غرق بطيء = مفهوم جديد يجذب الانتباه",
+      "prompt": "Multiple 1.5mm slow-sinking pellets captured at different depths in a dark water column visualization. Pellets at top are just starting to sink, mid-column pellets are drifting slowly, bottom pellets approaching the substrate. Each pellet leaves a subtle trail of nutrients dissolving. Dramatic side lighting from left reveals the depth progression. Shot on Sony A7R V, 85mm lens, f/2.0. Cinematic underwater atmosphere. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "1.5 ملم شيرلام — غرق بطيء",
+        "line2": "للأسماك اللي تاكل من النص",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark depth column with sinking pellets at different levels"
+    },
+
+    {
+      "id": "W3-WED-C8",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 8,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — دليل الأحجام",
+      "psychology": "Commitment — احفظ وارجعله = مرجع دائم",
+      "prompt": "Minimalist dark premium background with subtle warm gradient. A faint ascending size progression of six pellet silhouettes barely visible as watermark shadows. Vast clean negative space for text overlay. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل وارجعله كل ما تشتري علف",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Pure dark minimalism with warm undertone"
+    },
+
+    {
+      "id": "W3-FRI-ST2",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Freeze-dried Brine Shrimp",
+      "psychology": "Framing Effect — مكمل غذائي مو ترف = إعادة تأطير",
+      "prompt": "Premium freeze-dried brine shrimp in extreme macro, showing crystalline ice-dried texture with intricate detail. The shrimp has a golden-amber translucent quality, catching warm dramatic backlighting that makes it glow like a precious gem. Individual segments and appendages visible at forensic detail level. Shot on Hasselblad X2D, macro lens with extension tube. Dark background. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "آرتيميا مجففة بالتجميد",
+        "line2": "بروتين نقي — مكافأة أسبوعية",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with golden-amber backlighting on crystalline texture"
+    },
+
+    {
+      "id": "W3-FRI-ST3",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Shelled Eggs 80g + Hermit Crab Feast 55g",
+      "psychology": "Unity Principle — كل حيوان عنده مكافأته",
+      "prompt": "Two premium containers side by side on dark surface. Left: an open container revealing tiny golden shelled eggs (artemia cysts), some spilling out like precious pearls. Right: a container of dried hermit crab feast with visible shrimp and nutrient pieces. Each has its own warm accent spotlight — golden for eggs, warm amber for crab feast. Shot on Canon R5, 50mm lens, f/2.8. Premium product photography. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "بيض مقشر 80g — لليرقات",
+        "line2": "وجبة الناسك 55g — للسلاحف",
+        "sticker": "رابط الموقع",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark with golden and warm amber dual spotlights"
+    },
+
+    {
+      "id": "W3-SAT-C1",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — فحص مي الحوض",
+      "psychology": "Loss Aversion — المحترف يفحص والمبتدئ يخمن",
+      "prompt": "A dramatic dark laboratory scene with four water testing products arranged on dark surface. Each product has a different colored accent glow — red for ammonia danger, yellow for nitrite warning, blue-green for multi-test. A dark water sample vial in the center with faintly visible green toxic glow inside. Clinical precision atmosphere. Shot on Hasselblad X2D, 35mm lens, f/4.0. Hyper-realistic 3D CGI render, 8K. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "المحترف يفحص — المبتدئ يخمن",
+        "line2": "دليل فحص مي الحوض",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark clinical with red/yellow/teal danger accents"
+    },
+
+    {
+      "id": "W3-SAT-C2",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Ammonia nitrogen tester (60 tests)",
+      "psychology": "Loss Aversion — الأمونيا الأخطر أولاً",
+      "prompt": "An ammonia test vial or kit on dark surface with a dramatic red warning glow emanating from within. The test liquid shows a dangerous high-ammonia reading through color intensity. Surrounding darkness suggests invisible danger. Sharp side lighting from left creates tension. Shot on Canon R5, 85mm lens, f/2.0. Forensic documentary style. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "فحص الأمونيا — 60 فحص",
+        "line2": "القاتل الأخطر أولاً",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with ominous red ammonia glow"
+    },
+
+    {
+      "id": "W3-SAT-C3",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Nitrite test kit (100 tests)",
+      "psychology": "Authority Bias — فحص متخصص لسم محدد",
+      "prompt": "A nitrite test kit on dark surface with a color comparison chart fanning out beside it. The test showing a warm yellow-orange result color. Multiple comparison swatches visible in a gradient from safe green to dangerous red. Clinical precision arrangement. Shot on Sony A7R V, 50mm lens, f/4.0. Editorial product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "فحص النايترايت — 100 فحص",
+        "line2": "السم الثاني الأخطر",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark clinical with yellow-orange warning tones"
+    },
+
+    {
+      "id": "W3-SAT-C4",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "9-in-1 test bucket + Refill",
+      "psychology": "Framing Effect — 9 فحوصات بمرة = كفاءة عالية",
+      "prompt": "A 9-in-1 test bucket container with test strips fanning out from inside it in an elegant arc. Each strip shows a different row of color indicators along its length — nine distinct color zones visible. The strips create a rainbow-like spectrum from blue to green to yellow to red. A refill pack positioned beside the main container. Dark background with soft overhead lighting. Shot on Hasselblad X2D, 50mm lens, f/2.8. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "عدة 9 في 1 — فحص شامل",
+        "line2": "50 شريحة + عبوة تعبئة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark with rainbow spectrum test strips"
+    },
+
+    {
+      "id": "W3-SAT-C5",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — الفحص الأسبوعي",
+      "psychology": "Commitment — افحص أسبوعياً = عادة مستمرة",
+      "prompt": "Minimalist dark premium background with subtle clinical cool gradient. A faint silhouette of a test strip barely visible as watermark shadow. Vast clean negative space for text overlay. Shot on Hasselblad X2D, 35mm lens, f/8.0. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل وافحص حوضك مرة بالأسبوع",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "Pure dark minimalism with cool clinical undertone"
+    }
+  ]
+}
