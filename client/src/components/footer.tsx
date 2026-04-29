@@ -145,7 +145,7 @@ export default function Footer() {
               شهادة أصالة YEE
               <ExternalLink className="h-3 w-3 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
-            <p className="text-[10px] text-yellow-400/70">منتجات أصلية 100% — اضغط للتحقق</p>
+            <p className="text-[10px] text-yellow-300">منتجات أصلية 100% — اضغط للتحقق</p>
             </a>
           </Link>
         </div>
@@ -213,10 +213,10 @@ export default function Footer() {
 
           {/* Our Story Section */}
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Heart className="h-4 w-4 text-red-400 animate-pulse" />
               قصتنا
-            </h4>
+            </h3>
             <div className="text-slate-400 text-sm leading-relaxed space-y-3">
               <p className="font-medium text-white text-base">
                 💔 سمكة صغيرة... غيّرت كل شي
@@ -273,10 +273,10 @@ export default function Footer() {
           </div>
 
           <div className="space-y-4">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <ChevronLeft className="h-4 w-4 text-primary" />
               الدعم والمساعدة
-            </h4>
+            </h3>
             <ul className="space-y-2.5 text-sm">
               {supportLinks.map((link) => (
                 <li key={link.label}>
@@ -291,10 +291,10 @@ export default function Footer() {
           </div>
 
           <div className="space-y-5">
-            <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <ChevronLeft className="h-4 w-4 text-primary" />
               تواصل معنا
-            </h4>
+            </h3>
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
                 <a
@@ -405,14 +405,14 @@ export default function Footer() {
               </div>
               <div className="flex flex-col sm:flex-row gap-3">
                 <Link href="/invest">
-                  <button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
+                  <div className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap cursor-pointer">
                     <span>📊</span> العرض التقديمي
-                  </button>
+                  </div>
                 </Link>
                 <a href="https://wa.me/9647747880673?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
+                  <div className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap cursor-pointer">
                     <MessageCircle className="w-4 h-4" /> تواصل معنا
-                  </button>
+                  </div>
                 </a>
               </div>
             </div>
