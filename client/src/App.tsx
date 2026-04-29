@@ -70,6 +70,7 @@ const ForgotPassword = lazy(() => import("@/pages/forgot-password"));
 const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
 const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
 const LinksPage = lazy(() => import("@/pages/links"));
+const TemperatureGuide = lazy(() => import("@/pages/temperature-guide"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -508,6 +509,17 @@ function Router() {
         )}
       </Route>
 
+      {/* Temperature Guide — Story 4 Lead Magnet (standalone, no navbar) */}
+      <Route path="/temperature-guide">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <TemperatureGuide />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       <Route>
         {() => (<Suspense fallback={<PageLoader />}><NotFound /></Suspense>)}
       </Route>
@@ -521,7 +533,7 @@ function App() {
   const [location] = useLocation();
 
   // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
-  const isStandalonePage = ['/links', '/early-access'].includes(location);
+  const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location);
 
   useEffect(() => {
     // Initialize Google Analytics
