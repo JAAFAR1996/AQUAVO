@@ -373,7 +373,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
 };
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
-async function getProductMeta(slug: string): Promise<PageMeta | null> {
+async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
   try {
@@ -386,17 +386,19 @@ async function getProductMeta(slug: string): Promise<PageMeta | null> {
     const desc = p.description
       ? p.description.substring(0, 155)
       : `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل سريع لكل المحافظات.`;
+    const primaryImage = p.images && p.images.length > 0 ? p.images[0] : (p.thumbnail || DEFAULT_IMAGE);
     return {
       title: `${p.name}${p.brand ? ` - ${p.brand}` : ""} | AQUAVO`,
       description: desc,
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
+      productImage: primaryImage,
       jsonLd: {
         "@context": "https://schema.org",
         "@type": "Product",
         name: p.name,
         description: desc,
-        image: p.thumbnail || (p.images && p.images.length > 0 ? p.images[0] : DEFAULT_IMAGE),
+        image: p.thumbnail || primaryImage,
         brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
         offers: {
           "@type": "Offer",
@@ -492,7 +494,7 @@ async function resolveMetadata(pathname: string): Promise<PageMeta & { url: stri
       return {
         ...meta,
         url: `${BASE}${cleanPath}`,
-        image: DEFAULT_IMAGE,
+        image: meta.productImage || DEFAULT_IMAGE,
         ogType: meta.ogType || "product",
       };
     }
@@ -536,14 +538,42 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     }
   }
 
-  return html
+  let result = html
     .replace(/__META_TITLE__/g, escapeHtml(meta.title))
     .replace(/__META_DESCRIPTION__/g, escapeHtml(meta.description))
     .replace(/__META_KEYWORDS__/g, escapeHtml(meta.keywords || DEFAULT_KEYWORDS))
     .replace(/__META_URL__/g, meta.url)
     .replace(/__META_IMAGE__/g, meta.image)
-    .replace(/__META_OG_TYPE__/g, meta.ogType || "website")
-    .replace(/__JSON_LD__/g, jsonLdScript);
+    .replace(/__META_OG_TYPE__/g, meta.ogType || "website");
+
+  // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
+  result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
+
+  // Performance: strip old unused preconnects from stale template
+  result = result.replace(/<link rel="dns-prefetch"[^>]*images\.unsplash[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="preconnect"[^>]*images\.unsplash[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="preconnect"[^>]*fist-live-server[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="dns-prefetch"[^>]*fist-live-server[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="preconnect"[^>]*plausible\.io[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="dns-prefetch"[^>]*plausible\.io[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="preconnect"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
+  result = result.replace(/<link rel="dns-prefetch"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
+
+  // Performance: for product pages, replace hero preload with product image preload
+  const isProductPage = meta.ogType === 'product' && meta.image && meta.image !== DEFAULT_IMAGE;
+  if (isProductPage) {
+    // Replace hero image preload with product LCP image preload
+    result = result.replace(
+      /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
+      `<link rel="preload" as="image" href="${meta.image}" fetchpriority="high">`
+    );
+  }
+
+  // Inject JSON-LD
+  result = result.replace(/__JSON_LD__/g, jsonLdScript);
+
+  return result;
 }
 
 function escapeHtml(str: string): string {

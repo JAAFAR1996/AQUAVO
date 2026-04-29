@@ -1,5 +1,5 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
-import { lazy, Suspense, useEffect, useRef, useCallback } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, useCallback } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -80,7 +80,35 @@ const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(
 const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
 const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
 
+// Deferred OnboardingTour: checks localStorage BEFORE importing heavy Joyride library.
+// Returns null immediately for returning users (zero JS cost).
+// For new users, defers import to requestIdleCallback (after paint).
+function DeferredOnboardingTour() {
+  const [shouldLoad, setShouldLoad] = useState(false);
+  const [location] = useLocation();
 
+  useEffect(() => {
+    // Quick localStorage check — if tour already seen, never import Joyride
+    const path = location;
+    const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
+    if (localStorage.getItem(seenKey)) return;
+
+    // First-time visitor: defer heavy import to idle time
+    const id = (window as any).requestIdleCallback?.(
+      () => setShouldLoad(true),
+      { timeout: 5000 }
+    );
+    const fallback = !id ? setTimeout(() => setShouldLoad(true), 5000) : undefined;
+
+    return () => {
+      if (id) (window as any).cancelIdleCallback(id);
+      if (fallback) clearTimeout(fallback);
+    };
+  }, [location]);
+
+  if (!shouldLoad) return null;
+  return <OnboardingTour />;
+}
 
 
 // Loading component for lazy-loaded pages
@@ -586,7 +614,7 @@ function App() {
                   <Router />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
-                      <OnboardingTour />
+                      <DeferredOnboardingTour />
                     </Suspense>
                   )}
                   {!isStandalonePage && (
