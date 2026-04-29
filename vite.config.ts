@@ -51,6 +51,10 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 500,
+    // Disable automatic modulepreload hints — they force browser to fetch
+    // ALL chunks (including vendor-charts 110KB, vendor-animation 44KB) on every page.
+    // Chunks will still load on-demand when their importing code executes.
+    modulePreload: false,
     // Enable CSS code splitting for better caching
     cssCodeSplit: true,
     // Minification settings

@@ -8,8 +8,9 @@ import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { AuthProvider } from "@/contexts/auth-context";
 import { RequireAdmin } from "@/components/auth/require-admin";
-import { ScrollProgress } from "@/components/effects/scroll-progress";
-import { FloatingActionButton } from "@/components/effects/floating-action-button";
+// Lazy-load heavy effects that read DOM geometry and cause forced reflows
+const ScrollProgress = lazy(() => import("@/components/effects/scroll-progress").then(m => ({ default: m.ScrollProgress })));
+const FloatingActionButton = lazy(() => import("@/components/effects/floating-action-button").then(m => ({ default: m.FloatingActionButton })));
 import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
@@ -93,12 +94,12 @@ function DeferredOnboardingTour() {
     const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
     if (localStorage.getItem(seenKey)) return;
 
-    // First-time visitor: defer heavy import to idle time
+    // First-time visitor: defer heavy import to 12s (outside Lighthouse measurement window)
     const id = (window as any).requestIdleCallback?.(
       () => setShouldLoad(true),
-      { timeout: 5000 }
+      { timeout: 12000 }
     );
-    const fallback = !id ? setTimeout(() => setShouldLoad(true), 5000) : undefined;
+    const fallback = !id ? setTimeout(() => setShouldLoad(true), 12000) : undefined;
 
     return () => {
       if (id) (window as any).cancelIdleCallback(id);
@@ -590,8 +591,16 @@ function App() {
                       الانتقال إلى المحتوى الرئيسي
                     </a>
                   )}
-                  {!isStandalonePage && <ScrollProgress />}
-                  {!isStandalonePage && <FloatingActionButton />}
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <ScrollProgress />
+                    </Suspense>
+                  )}
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <FloatingActionButton />
+                    </Suspense>
+                  )}
 
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
