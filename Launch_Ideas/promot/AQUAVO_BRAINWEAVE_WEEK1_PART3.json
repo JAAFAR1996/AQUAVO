@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "week": 1,
+    "part": "3/3",
+    "days": "الجمعة (تهيئة) + السبت (حصاد) + الأحد (مجتمع)",
+    "version": "v7 — BRAIN WEAVING METHOD",
+    "brand_identity": {
+      "primary_cyan": "#199bb8",
+      "dark_cyan": "#0d7a94",
+      "accent": "#ff7b5a",
+      "background": "#0a1628",
+      "danger": "#e63946",
+      "fonts": "Changa Bold (عناوين) + Cairo (نص)",
+      "text_rules": "عنوان=#199bb8 أو أبيض | تحذير=#ff7b5a | CTA=#ff7b5a | إغلاق=خلفية #0a1628+لوقو أبيض"
+    }
+  },
+
+  "schedule": [
+
+    {
+      "day": "الجمعة",
+      "type": "🧠 يوم تهيئة (PRIME DAY)",
+      "theme": "النقط البيضة والأمراض — القاتل الصامت",
+      "target_products": "لا منتج — تهيئة لصيدلية الطوارئ (السبت)",
+      "tribal_enemy": "الأمراض اللي تنتشر بسكوت",
+      "rule": "ممنوع ذكر أي منتج. فقط تثقيف عن الأمراض.",
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "زرع الشك بصورة صادمة",
+          "psychology": "Loss Aversion — صورة مرضية توقف السكرول بالخوف",
+          "prompt": "Extreme macro of tiny raised white crystalline bumps on a dark wet surface with organic scale-like texture resembling Ich white spot disease. Each bump 1mm, raised, irregular. Harsh side light from left reveals 3D texture. Water film. Canon R5, macro, f/4.0, film grain. Vertical 9:16.",
+          "text_overlay": "النقط البيضة تنتشر بسرعة وتقتل بسكوت. شفتها على أسماكك قبل؟",
+          "sticker": "تصويت: نعم شفتها / لا أول مرة أعرف"
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "تعميق بالعلم",
+          "psychology": "Authority — حقائق طبية عن دورة حياة الطفيلي",
+          "prompt": "Dark moody visualization of a fish silhouette with tiny glowing white dots scattered across its body, suggesting Ich parasite infestation. The dots glow faintly like hostile organisms. Dark water atmosphere. Canon R5, 85mm, f/2.0. Vertical 9:16.",
+          "text_overlay": "النقطة البيضة الوحدة تتكاثر إلى 1000 طفيلي خلال 3 أيام. بدون علاج = موت كل الحوض.",
+          "sticker": "سلايدر: شگد مستعد لطوارئ حوضك؟"
+        }
+      ],
+
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز تعليمي بحت — بدون منتج",
+        "topic": "3 أمراض تقتل أسماكك بسكوت — وأغلب المبتدئين ما يعرفونها",
+        "script_hook": "وقّف! أسماكك ممكن تكون مريضة هسة وأنت ما تدري...",
+        "script_body": "المرض 1: النقط البيضة (Ich) — تنتشر بسرعة وتقتل خلال أيام. المرض 2: الالتهاب البكتيري — الزعانف تتآكل. المرض 3: الفطريات — طبقة بيضة قطنية على الجسم.",
+        "script_end": "عندك صيدلية طوارئ لحوضك؟ باچر بنوريك الصيدلية الكاملة. تابعنا.",
+        "caption": "3 أمراض تقتل أسماك الزينة بسكوت — وأغلب المبتدئين ما يعرفونها.\n\nالمرض الأول — النقط البيضة (Ich).\nنقطة وحدة تتكاثر إلى 1000 طفيلي خلال 3 أيام.\n\nالمرض الثاني — الالتهاب البكتيري.\nالزعانف تبدي تتآكل وتختفي.\n\nالمرض الثالث — الفطريات.\nطبقة بيضة قطنية على جسم السمكة.\n\nعندك صيدلية طوارئ لحوضك؟\nباچر بنوريك الصيدلية الكاملة.\n\nاحفظ هالريلز — يمكن تحتاجه بأي لحظة.\n\n#أمراض_الأسماك #النقط_البيضة #fishtok #aquarium #fishkeeping #أسماك_الزينة #حوض_سمك #العراق #بغداد #AQUAVO",
+        "alt_text": "ريل تعليمي عن 3 أمراض شائعة تصيب أسماك الزينة: مرض النقط البيضة (Ich)، الالتهاب البكتيري، والفطريات. يشرح أعراض كل مرض وخطورته على الحوض.",
+        "seo_keywords": {
+          "primary_ar": "أمراض أسماك الزينة",
+          "primary_en": "fish disease Ich white spot",
+          "secondary": ["النقط البيضة", "التهاب بكتيري", "فطريات", "صيدلية طوارئ"],
+          "cross_layer": "Specific stat 1000 طفيلي خلال 3 أيام drives saves"
+        }
+      },
+
+      "story_night": {
+        "story": 3,
+        "time": "9 م",
+        "prompt": "A dark room at night with a water-filled aquarium glowing with eerie blue-green minimal light. Inside the aquarium: a single small tropical fish swimming alone among plants, looking isolated and vulnerable. Water ripples visible. Everything outside the tank is pitch dark. Canon R5, 50mm, f/1.8. Vertical 9:16. No text.",
+        "text_overlay": "لو أسماكك مرضت الليلة... عندك العلاج الجاهز؟ باچر نوريك."
+      }
+    },
+
+    {
+      "day": "السبت",
+      "type": "🎯 يوم حصاد (HARVEST DAY)",
+      "theme": "صيدلية الطوارئ + الصيانة الدورية",
+      "target_products": ["White spot cleaner 300ml", "Bactericidal powder", "Methylene blue 600ml", "Multivitamin salt 500g", "Descaling agent 200ml"],
+      "tribal_savior": "صيدلية الطوارئ الكاملة",
+      "tribal_identity": "المحترف عنده الصيدلية جاهزة قبل ما يحتاجها",
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "تشويق — ربط بأمس",
+          "ref_image": "حمّل صور الثلاث منتجات أدوية",
+          "prompt": "Three aquarium medicine products [1] partially visible, emerging from darkness. Only their silhouettes and partial labels visible. Dramatic rim lighting. Hasselblad X2D, 50mm, f/2.8. Vertical 9:16.",
+          "text_overlay": "أمس حچينالك عن 3 أمراض قاتلة... اليوم 3 خطوط دفاع."
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "عرض المنتج مع الدليل",
+          "ref_image": "حمّل صورة قناني الميثيلين الأزرق",
+          "prompt": "These methylene blue bottles [1] on polished black marble. A tiny blue liquid drop on marble catching light like a jewel. Warm side light from left. Hasselblad X2D, 85mm, f/2.0, film grain. Vertical 9:16.",
+          "text_overlay": "الميثيلين الأزرق — مضاد فطريات وطفيليات. خط الدفاع الثالث.",
+          "sticker": "رابط الموقع"
+        }
+      ],
+
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز المُنقذ",
+        "topic": "صيدلية الطوارئ — 3 خطوط دفاع لحوضك",
+        "script_hook": "أمس وريناك 3 أمراض قاتلة. اليوم الصيدلية الكاملة.",
+        "script_body": "خط 1: منظف النقط البيضة — يقتل الطفيلي. خط 2: مسحوق مضاد بكتيريا — يوقف الالتهاب. خط 3: الميثيلين الأزرق — يقضي على الفطريات. + ملح الفيتامينات لتقوية المناعة.",
+        "script_end": "الكل متوفر هسة. الرابط بالبايو.",
+        "caption": "أمس وريناك 3 أمراض تقتل أسماكك بسكوت.\nاليوم صيدلية الطوارئ الكاملة.\n\nخط الدفاع الأول — منظف النقط البيضة.\nيقتل الطفيلي ويوقف الانتشار.\n\nخط الدفاع الثاني — مسحوق مضاد بكتيريا.\nيوقف الالتهاب ويحمي الزعانف.\n\nخط الدفاع الثالث — الميثيلين الأزرق.\nيقضي على الفطريات.\n\n+ ملح الفيتامينات لتقوية المناعة.\n\nالمحترف عنده الصيدلية جاهزة قبل ما يحتاجها.\nالكل متوفر هسة — aquavoiq.com\n\n#صيدلية_الحوض #علاج_أسماك #أسماك_الزينة #حوض_سمك #fishtok #aquarium #fishkeeping #العراق #AQUAVO #fishhealth",
+        "alt_text": "ريل يعرض صيدلية طوارئ كاملة لحوض السمك من AQUAVO: منظف النقط البيضة، مسحوق مضاد بكتيريا، محلول الميثيلين الأزرق، وملح فيتامينات. 4 خطوط دفاع ضد أمراض أسماك الزينة.",
+        "seo_keywords": {
+          "primary_ar": "علاج أسماك الزينة",
+          "primary_en": "fish health medicine",
+          "secondary": ["صيدلية الحوض", "ميثيلين أزرق", "مضاد بكتيريا"],
+          "cross_layer": "Tribal identity المحترف عنده الصيدلية جاهزة drives belonging"
+        }
+      },
+
+      "post": {
+        "time": "7:30 م",
+        "ref_image": "حمّل صور الثلاث منتجات أدوية مجموعة",
+        "psychology": "Authority Bias — ترتيب صيدلية + إضاءة سريرية",
+        "caption": "صيدلية الطوارئ الكاملة لحوضك.\n\nمنظف النقط البيضة — يقتل الطفيلي.\nمسحوق مضاد بكتيريا — يوقف الالتهاب.\nمحلول الميثيلين الأزرق — يقضي على الفطريات.\n+ ملح فيتامينات لتقوية المناعة.\n\n4 خطوط دفاع — aquavoiq.com\n\n#صيدلية_الحوض #علاج_أسماك #أسماك_الزينة #حوض_سمك #fishtok #aquarium #العراق #AQUAVO",
+        "prompt": "These aquarium medicine products [1] arranged on dark slate shelf with pharmacy-precise spacing. Cool blue-white clinical overhead lighting. Products along middle-third horizontal line. Sony A7R V, 35mm, f/4.0, film grain. Portrait 4:5."
+      }
+    },
+
+    {
+      "day": "الأحد",
+      "type": "🤝 يوم المجتمع — بناء القبيلة",
+      "tasks": [
+        "رد على كل تعليق ورسالة من الأسبوع",
+        "تفاعل مع 15 حساب بالنيتش (5 صغار + 3 متوسطين + 1 كبير)",
+        "ستوري سؤال: شنو أكثر منتج احتجته هالأسبوع؟",
+        "ستوري تصويت: أي يوم كان أقوى — يوم السخانات أو يوم الأدوية؟",
+        "مراجعة إحصائيات الأسبوع — أي ريلز تهيئة حقق أعلى مشاهدات؟"
+      ],
+      "note": "يوم الأحد هو يوم جمع البيانات. راقب أي ريلز تعليمي حقق أعلى مشاهدات/حفظ/مشاركة. هذا يحدد ترتيب أولويات الأسبوع القادم."
+    }
+  ]
+}

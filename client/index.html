@@ -43,6 +43,7 @@
   <meta name="apple-mobile-web-app-title" content="AQUAVO" />
 
   <!-- Performance: DNS prefetch and preconnect -->
+  <link rel="preload" as="image" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" fetchpriority="high">
   <link rel="dns-prefetch" href="https://images.unsplash.com">
   <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
   <!-- API Server preconnect for faster data fetching -->
@@ -61,7 +62,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <!-- Critical: Cairo only (body text) - loaded immediately -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic" media="print" onload="this.media='all'">
   <!-- Non-critical: Changa + Tajawal - deferred -->
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap&subset=arabic" onload="this.rel='stylesheet'">
   <noscript>
@@ -106,19 +107,26 @@
     }
   </style>
 
-  <!-- Metricool Tracking -->
-  <script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"1419e6135f967974d7d1a9ea8918c473"})});</script>
-
-  <!-- TikTok Pixel Code Start -->
+  <!-- Metricool Tracking (Deferred) -->
   <script>
-  !function (w, d, t) {
-    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+    setTimeout(function() {
+      function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}
+      loadScript(function(){beTracker.t({hash:"1419e6135f967974d7d1a9ea8918c473"})});
+    }, 3500);
+  </script>
 
-    ttq.load('D7OD1FBC77U8CJLLA610');
-    ttq.page();
-  }(window, document, 'ttq');
+  <!-- TikTok Pixel Code Start (Deferred) -->
+  <script>
+    setTimeout(function() {
+      !function (w, d, t) {
+        w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
+        var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
+        ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
+
+        ttq.load('D7OD1FBC77U8CJLLA610');
+        ttq.page();
+      }(window, document, 'ttq');
+    }, 3500);
   </script>
   <!-- TikTok Pixel Code End -->
 </head>

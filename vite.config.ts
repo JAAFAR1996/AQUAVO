@@ -56,7 +56,7 @@ export default defineConfig({
     // Minification settings
     minify: 'esbuild',
     // Target modern browsers for smaller bundles
-    target: 'es2020',
+    target: 'esnext',
     rollupOptions: {
       output: {
         manualChunks: {

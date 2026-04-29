@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "week": 1,
+    "part": "2/3",
+    "days": "الأربعاء (تهيئة) + الخميس (حصاد)",
+    "version": "v7 — BRAIN WEAVING METHOD",
+    "brand_identity": {
+      "primary_cyan": "#199bb8",
+      "dark_cyan": "#0d7a94",
+      "accent": "#ff7b5a",
+      "background": "#0a1628",
+      "danger": "#e63946",
+      "fonts": "Changa Bold (عناوين) + Cairo (نص)",
+      "text_rules": "عنوان=#199bb8 أو أبيض | تحذير=#ff7b5a | CTA=#ff7b5a | إغلاق=خلفية #0a1628+لوقو أبيض"
+    }
+  },
+
+  "schedule": [
+
+    {
+      "day": "الأربعاء",
+      "type": "🧠 يوم تهيئة (PRIME DAY)",
+      "theme": "المي الجديد فيه سم ما تشوفه",
+      "target_products": "لا منتج — تهيئة فقط لمزيل الكلور (يوم الخميس)",
+      "tribal_enemy": "المي البلدي الملوث بالكلور",
+      "rule": "ممنوع ذكر أي منتج. فقط تعليم عن خطر الكلور.",
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "زرع الشك",
+          "psychology": "Curiosity Gap — المي الصافي ممكن يكون مسموم",
+          "prompt": "Close-up of a tap running clear water into dark container. Tiny bubbles visible. Moody dark atmosphere. Canon R5, 50mm, f/2.8. Vertical 9:16. No text, no cartoon.",
+          "text_overlay": "تعرف شنو موجود بالمي اللي تحطها بحوضك؟",
+          "sticker": "كويز: تستخدم مزيل كلور؟ نعم / لا / شنو هذا؟"
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "تعميق الخوف بالعلم",
+          "psychology": "Authority Bias — حقائق علمية تزيد المصداقية",
+          "prompt": "Extreme macro of water bubbles trapped on glass surface with greenish toxic tint. Harsh clinical lighting from side. Unsettling, laboratory feel. Canon R5, macro, f/2.8. Vertical 9:16. No text.",
+          "text_overlay": "الكلور بالمي يحرق خياشيم السمك ويدمر البكتيريا النافعة بالفلتر. كل تغيير مي بدون معالجة = تسميم بطيء.",
+          "sticker": "سلايدر: شگد مرة تغير مي حوضك بالشهر؟"
+        }
+      ],
+
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز تعليمي بحت — بدون أي منتج",
+        "topic": "فتحت ماي بغداد تحت المجهر — شنو لگيت؟",
+        "psychology": "Curiosity Gap + Authority — نفس صيغة الريلزات الأقوى أداءً",
+        "script_hook": "شفت شنو موجود بماي بغداد اللي تحطه بحوضك؟",
+        "script_body": "كلور. كلورامين. معادن ثقيلة. بكتيريا. كل هاي تدخل حوضك كل ما تغير المي. الكلور يحرق خياشيم السمك. المعادن تتراكم وتسمم ببطء. والبكتيريا النافعة بالفلتر تموت.",
+        "script_end": "باچر بنوريك شلون تنقي المي بخطوة وحدة. تابعنا.",
+        "caption": "ماي بغداد فيها كلور وكلورامين ومعادن ثقيلة.\nكل ما تغير مي حوضك، تدخّل هالسموم لأسماكك.\n\nالكلور يحرق خياشيم السمك.\nالمعادن الثقيلة تتراكم وتسمم ببطء.\nالبكتيريا النافعة بالفلتر تموت.\n\nوأنت تفتكر إنك دتساعد أسماكك بتغيير المي.\n\nالحل موجود. باچر بنوريك.\nاحفظ هالريلز — هالمعلومة تنقذ حوضك.\n\n#كلور_الماء #تغيير_ماء_الحوض #أسماك_الزينة #حوض_سمك #fishtok #aquarium #fishkeeping #العراق #بغداد #AQUAVO",
+        "alt_text": "ريل تعليمي عن خطر الكلور والمعادن الثقيلة في ماء الحنفية على أسماك الزينة. يشرح كيف تغيير الماء بدون معالجة يضر الأسماك والبكتيريا النافعة بالفلتر.",
+        "seo_keywords": {
+          "primary_ar": "كلور الماء حوض سمك",
+          "primary_en": "chlorine tap water aquarium",
+          "secondary": ["ماي بغداد", "معادن ثقيلة", "تغيير المي", "خياشيم"],
+          "cross_layer": "Geographic keyword ماي بغداد for hyper-local targeting"
+        }
+      },
+
+      "story_night": {
+        "story": 3,
+        "time": "9 م",
+        "type": "تثبيت قبل النوم",
+        "prompt": "A glass of clear water sitting on dark surface next to a small water-filled aquarium with tropical fish and green plants visible inside in background. The water in the glass looks clean but the lighting gives it a slightly suspicious yellowish tinge. Canon R5, 35mm, f/2.0. Vertical 9:16. No text.",
+        "text_overlay": "كل ما تغير مي حوضك... تحط سم وأنت ما تدري. الحل باچر."
+      }
+    },
+
+    {
+      "day": "الخميس",
+      "type": "🎯 يوم حصاد (HARVEST DAY)",
+      "theme": "مزيل الكلور + مزيل الإجهاد = الدرع الكيميائي",
+      "target_products": ["Chlorine removal", "Anti-stress 500ml", "Anti-stress 1000ml"],
+      "tribal_savior": "معالجة المي الاحترافية",
+      "tribal_identity": "المحترف يعالج — المبتدئ يخمن",
+
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "تشويق — ربط بأمس",
+          "psychology": "Consistency Bias — ربط بمشكلة أمس يجبر الدماغ يكمل",
+          "ref_image": "حمّل صورة قنينة مزيل الكلور — ماكرو على الغطاء فقط",
+          "prompt": "Extreme close-up of a bottle cap and top 3cm of a water treatment bottle [1], rest fading to darkness. Warm amber rim light. Hasselblad X2D, 85mm, f/2.0. Vertical 9:16.",
+          "text_overlay": "أمس وريناك السم... اليوم نوريك الترياق."
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "مقارنة — قبل/بعد",
+          "psychology": "Contrast Effect — مي ملوث مقابل مي نظيف",
+          "prompt": "Split screen: left side shows murky yellowish water in a glass beaker with cold lighting, right side shows crystal clear water with warm confident lighting. A single drop of treatment solution visible mid-fall between the two. Canon R5, 50mm, f/4.0. Vertical 9:16.",
+          "text_overlay": "قطرة وحدة تفرق بين الموت والحياة",
+          "sticker": "تصويت: تعالج المي قبل ما تحطه؟ دائماً / أحياناً / أبداً"
+        }
+      ],
+
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز المُنقذ",
+        "topic": "الحل الوحيد لمشكلة أمس — مزيل الكلور + مزيل الإجهاد",
+        "script_hook": "أمس وريناك السم الموجود بماي بغداد. اليوم الترياق.",
+        "script_body": "مزيل الكلور ينقي المي فوراً من الكلور والمعادن. مزيل الإجهاد يحمي الغشاء المخاطي للأسماك. قطرات بسيطة كل تغيير مي.",
+        "script_end": "متوفرين هسة. الرابط بالبايو. توصيل لكل العراق.",
+        "caption": "أمس وريناك السم الموجود بماي بغداد.\nاليوم الترياق.\n\nمزيل الكلور — ينقي المي فوراً من الكلور والكلورامين والمعادن الثقيلة.\nقطرات بسيطة كل تغيير مي.\n\nمزيل الإجهاد — يحمي الغشاء المخاطي للأسماك ويقلل التوتر.\n\nمنتجين يشتغلون سوية.\nحوضك يصير آمن بدقيقة.\n\nمتوفرين هسة — توصيل لكل العراق.\nالرابط بالبايو.\n\n#مزيل_كلور #معالجة_ماء_الحوض #أسماك_الزينة #حوض_سمك #fishtok #aquarium #fishkeeping #العراق #AQUAVO #watertreatment",
+        "alt_text": "ريل يعرض منتجين لمعالجة ماء حوض السمك: مزيل كلور ومزيل إجهاد من AQUAVO. يشرح كيف ينقون ماء الحنفية ويحمون الأسماك. متوفرين بتوصيل لكل العراق.",
+        "seo_keywords": {
+          "primary_ar": "مزيل كلور حوض سمك",
+          "primary_en": "water treatment aquarium",
+          "secondary": ["معالجة ماء الحوض", "مزيل إجهاد", "غشاء مخاطي"],
+          "cross_layer": "Callback أمس وريناك links to Wednesday Prime reel"
+        }
+      },
+
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "كل ما تغير مي حوضك تعرض أسماكك للكلور. مزيل الكلور ينقي فوراً. مزيل الإجهاد يحمي الغشاء المخاطي. حجمين 500 و1000 مل — aquavoiq.com",
+        "slides": [
+          {
+            "slide": 1,
+            "fibonacci_role": "الخطاف (1)",
+            "ref_image": "حمّل صورة القنينتين مع بعض",
+            "psychology": "Loss Aversion — قطرة سامة بمي صافي",
+            "prompt": "These two treatment bottles [1] standing on dark slate surface. A clear glass beaker of water next to them with a single bright yellow-green toxic drop falling in. Warm key light from upper-left. Hasselblad X2D, 50mm, f/2.8, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 2,
+            "fibonacci_role": "شرح المشكلة (2)",
+            "ref_image": "حمّل صورة مزيل الكلور لحاله",
+            "psychology": "Authority — إضاءة سريرية = ثقة طبية",
+            "prompt": "This chlorine removal bottle [1] standing on dark matte surface. A small puddle of clear liquid in front. Cool clinical blue-white lighting. Product on left-third line. Canon R5, 85mm macro, f/2.8, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 3,
+            "fibonacci_role": "تقديم الحل (3)",
+            "ref_image": "حمّل صورة مزيل الإجهاد — الحجمين",
+            "psychology": "Anchoring — الكبير بجانب الصغير = قيمة",
+            "prompt": "These two anti-stress bottles [1] on dark brushed concrete. Small bottle front-right, large bottle behind-left. Warm key light from left. Hasselblad X2D, 50mm, f/3.5, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 4,
+            "fibonacci_role": "CTA (5)",
+            "prompt": "Dark concrete wall. Warm center glow. Film grain. Portrait 4:5.",
+            "text_overlay": "احفظ هالمنشور لمن تغير مي حوضك — aquavoiq.com"
+          }
+        ]
+      }
+    }
+  ]
+}

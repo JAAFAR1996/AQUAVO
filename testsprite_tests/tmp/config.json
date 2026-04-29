@@ -2,7 +2,7 @@
   "status": "commited",
   "type": "backend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:5000",
+  "localEndpoint": "http://localhost:5173",
   "backendAuthType": "API key",
   "backendApiKey": "sk-user-nynUadqGUSIFwtdda5rkaF8lfldmB9ah9kZvoIeHfuh-_ILOV7udHIBR1lVZHOqc2b0xrqJrhENlGdNexOLU020Tx7GQdBC8vZyZdZbcAM3cFeIZ7_Nkvt-3a2d_gvfmL1M"
 }

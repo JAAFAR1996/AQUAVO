@@ -1,0 +1,304 @@
+{
+  "meta": {
+    "week": 1,
+    "version": "v7 — BRAIN WEAVING METHOD",
+    "strategy": "غزل الدماغ — يوم تهيئة (PRIME) ثم يوم حصاد (HARVEST)",
+    "principle": "لا تبيع أبداً بيوم التهيئة. ازرع المشكلة فقط. المتلقي ينام يفكر بالمشكلة. باليوم التالي قدم المنتج كمُنقذ.",
+    "fibonacci_rhythm": "3 لمسات بيوم التهيئة، 5 لمسات بيوم الحصاد",
+    "data_proof": "ريلز أخطاء البيتا (تعليمي بحت) حقق 41,350 مشاهدة و3.84% تفاعل. المحتوى المنتجي المباشر حقق 0.44%-0.61% فقط.",
+    "posting_times": {
+      "stories": "12-2 م",
+      "reels": "7 م",
+      "feed": "7:30 م"
+    },
+    "brand_identity": {
+      "_note": "اللون الرسمي من Brand README + manifest.json",
+      "primary_cyan": "#199bb8",
+      "dark_cyan": "#0d7a94",
+      "accent_warm_coral": "#ff7b5a",
+      "background_deep_ocean": "#0a1628",
+      "destructive_red": "#e63946",
+      "white": "#ffffff",
+      "heading_font": "Changa Bold 800",
+      "body_font": "Cairo",
+      "usage_rules": {
+        "video_scenes": "ألوان طبيعية/سينمائية — لا تفرض ألوان البراند على المشاهد",
+        "text_overlay_title": "أبيض #fff أو Primary Cyan #199bb8 بخط Changa Bold",
+        "text_overlay_warning": "Coral #ff7b5a للأرقام المخيفة أو Red #e63946 للتحذير",
+        "text_overlay_cta": "Coral #ff7b5a لأزرار الـ CTA (اطلب هسه / الرابط بالبايو)",
+        "closing_screen": "خلفية Deep Ocean #0a1628 + لوقو AQUAVO أبيض + CTA بلون #199bb8",
+        "carousel_cta_slide": "خلفية #0a1628 + نص أبيض أو #199bb8 + حدود #199bb8 بشفافية 30%",
+        "do_not": "لا تحط فلتر على كل صورة. لا تغير لون الماء. الهوية بالنص والإطار فقط."
+      }
+    }
+  },
+  "schedule": [
+    {
+      "day": "الإثنين",
+      "type": "🧠 يوم تهيئة (PRIME DAY)",
+      "theme": "درجة الحرارة — القاتل الصامت",
+      "target_products": "لا منتج — تهيئة فقط للسخانات (يوم الثلاثاء)",
+      "tribal_enemy": "الجهل بخطر تذبذب الحرارة",
+      "rule": "ممنوع ذكر أي منتج أو علامة تجارية. فقط تعليم وتخويف.",
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "زرع الشك",
+          "psychology": "Pattern Interruption — رقم أحمر 34°C يوقف السكرول",
+          "prompt": "A digital aquarium thermometer LCD display showing alarming red 34.2°C digits mounted inside a water-filled aquarium with visible tropical fish swimming behind the thermometer in murky warm-tinted water. Condensation droplets on outer glass. Dark room, only red LCD glow and faint aquarium light illuminate the scene. Thermometer on upper-right third. Canon R5, 85mm macro, f/2.8, film grain. Vertical 9:16. No text, no cartoon.",
+          "text_overlay": "حوضك شگد درجة حرارته هسة؟",
+          "text_color": "#ffffff",
+          "sticker": "سؤال: شگد درجة حرارة حوضك؟",
+          "sticker_2": "تصويت: هل تعتبر نفسك محترف بالأحواض؟ (نعم/لا)",
+          "sticker_2_psychology": "Commitment & Consistency — اللي يصوت نعم لازم يشتري الستيل (المحترفين ما يستخدمون قزاز)",
+          "note": "لا تذكر أي منتج. فقط زرع الشك."
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "تعميق الخوف",
+          "psychology": "Loss Aversion — سمكة مجهدة من الحرارة العالية",
+          "prompt": "Close-up through aquarium glass of a tropical fish floating near the water surface in a fully water-filled aquarium, appearing stressed and lethargic. The water has a warm reddish tint suggesting dangerously high temperature. Visible bubbles and slight cloudiness in the water. Green aquatic plants slightly wilted in background. Condensation on outer glass. Dark moody room lighting. Canon R5, 50mm, f/2.8. Vertical 9:16. No text, no cartoon.",
+          "text_overlay": "كل درجة فوق 28 تقرب أسماكك للموت",
+          "text_color": "#ff7b5a",
+          "sticker": "سلايدر: شگد تهتم بدرجة حرارة حوضك؟",
+          "note": "لا تذكر أي منتج. فقط الخوف."
+        },
+        {
+          "story": 3,
+          "time": "1:30 م",
+          "type": "إحصائية صادمة — تعميق الـ Agitate",
+          "psychology": "Availability Heuristic — رقم مخيف يجعل المشكلة حقيقية",
+          "prompt": "Dark moody infographic-style image showing a large bold red number 87% floating in center against a deep dark background. Below it in smaller text area. Aquarium glass edge visible on the right side with dim warm water glow. Forensic documentary mood. Minimal clean design. Canon R5, 50mm. Vertical 9:16. No cartoon.",
+          "text_overlay": "87% من أحواض العراق ما عندها ثيرموميتر",
+          "text_color": "#e63946",
+          "sticker": "تصويت: أنت من الـ 87%؟ (نعم/لا)",
+          "note": "PAS Agitate يحتاج مساحة — هذي الستوري تعمّق الألم بإحصائية قبل الريلز."
+        }
+      ],
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز تعليمي بحت — بدون أي منتج",
+        "topic": "ليش أسماكك تموت بالصيف؟ 3 أسباب ما يعرفها 90% من المبتدئين",
+        "psychology": "Curiosity Gap + Loss Aversion — نفس صيغة ريلز البيتا الناجح (41K مشاهدة)",
+        "duration": "8 ثواني لكل كليب Veo — يتم القص والتجميع بـ CapCut",
+        "veo_clip_duration": "8s بالضبط — لا أقل ولا أكثر",
+        "script": {
+          "hook_0_2s": "وقّف! أسماكك بخطر وأنت ما تدري...",
+          "setup_2_4s": "الصيف جاي... وحوضك مو جاهز.",
+          "reason1_4_8s": "السبب الأول: تذبذب الحرارة بالليل. الفرق 3 درجات بس... يكفي يقتل.",
+          "reason2_8_13s": "السبب الثاني: الحرارة العالية تسحب الأوكسجين من المي. أسماكك تختنق وأنت نايم.",
+          "reason3_13_21s": "السبب الثالث: السخان القزاز... ممكن يطق. ويكهرب الحوض كله. وأنت ما تدري إلا لمن تصحى الصبح.",
+          "close_21_25s": "باچر بنوريك الحل الوحيد. تابعنا."
+        },
+        "image_prompts": {
+          "cover_thumbnail": "A dramatic close-up through aquarium glass of a tropical betta fish floating motionless near the water surface in a fully water-filled planted aquarium. The water has an alarming warm reddish-orange tint suggesting dangerously high temperature. A digital thermometer mounted on the inside glass shows glowing red digits reading 34C. Tiny bubbles rising slowly. Green aquatic plants slightly wilted from heat. Condensation droplets on outer glass surface. Dark moody room behind. Shot on Canon R5, 85mm macro, f/2.0, shallow depth of field. Professional documentary photography. Vertical 9:16. Lower third is dark negative space for text overlay. No text, no typography, no labels, no watermarks, no cartoon, no illustration.",
+          "scene1_temperature": "Split-screen comparison inside a water-filled planted aquarium at two different times. Left half shows nighttime scene: dark blue-toned water, thermometer reading 23C in blue digits, fish swimming normally among green plants. Right half shows daytime scene: warm orange-toned water, same thermometer now reading 31C in red digits, same fish appearing stressed near surface gasping. Clear glass partition divides the frame. Shot on Hasselblad X2D, 50mm, f/4.0. Documentary style, photorealistic. Vertical 9:16. No text, no typography, no labels, no cartoon.",
+          "scene2_oxygen": "Underwater view inside a fully water-filled heated aquarium. Three tropical fish gathered near the water surface, mouths open gasping for air. The water is slightly cloudy and warm-tinted. Very few bubbles visible suggesting low oxygen. Green aquatic plants in midground looking limp. A single small air bubble rising slowly from the substrate. Dark gravel bottom. Dramatic warm overhead lighting creating visible heat shimmer effect in water. Shot on Canon R5, 35mm, f/2.8. Cinematic underwater photography. Vertical 9:16. No text, no cartoon, no illustration.",
+          "scene3_broken_heater": "A cracked glass aquarium heater partially submerged inside a water-filled aquarium. The glass tube has a visible crack with tiny bubbles escaping from the fracture point. Electrical wire exposed through the crack. Water around the crack has a slight distortion suggesting electrical current. Fish in background swimming away from the heater in apparent distress. Dark moody lighting with harsh white flash-like light emanating from the crack area. Shot on Canon R5, macro lens, f/2.8. Forensic documentary style. Vertical 9:16. No text, no typography, no cartoon, no watermarks."
+        },
+        "veo_video_prompts": {
+          "_workflow": "Image-to-Video: كل فيديو يستخدم صورتين (First Frame → Last Frame) و Veo يولّد 8 ثواني انتقال بينهم",
+          "_total": "4 صور = 3 فيديوهات × 8 ثواني = 24 ثانية خام",
+          "video1_thermometer_to_temperature": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "cover_thumbnail (صورة الثيرموميتر 34°C مع السمكة)",
+            "last_frame": "scene1_temperature (مقارنة ليل/نهار 23°C vs 31°C)",
+            "prompt": "Cinematic transition inside a water-filled planted aquarium. Camera slowly pulls back from a close-up of a glowing red thermometer reading 34C to reveal a wider view showing the dramatic temperature difference between night and day. The water color gradually shifts from warm reddish to a split cool-blue and warm-orange tone. Fish visible swimming become increasingly stressed. Suspenseful documentary atmosphere. Film grain.",
+            "negative_prompt": "Empty aquarium, no water, cartoon, bright cheerful, text on screen.",
+            "audio": "Deep tension drone. Ticking clock sound. Muffled underwater ambience."
+          },
+          "video2_temperature_to_oxygen": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "scene1_temperature (مقارنة درجات الحرارة)",
+            "last_frame": "scene2_oxygen (أسماك تلهث على السطح)",
+            "prompt": "Underwater cinematic transition inside a heated aquarium. Camera slowly descends from water surface level downward then tilts back up. The water gradually becomes hazier and warmer-tinted. Bubbles become fewer and fewer. Fish that were swimming normally begin rising toward the surface gasping with open mouths. Green plants slowly droop and wilt. The atmosphere shifts from tense to suffocating. Dramatic warm overhead lighting intensifies.",
+            "negative_prompt": "Active bubbles, healthy swimming fish, clear cool water, bright lighting, cartoon, text, empty tank.",
+            "audio": "Heartbeat slowing down. Bubbling fading to silence. Low frequency suffocating drone."
+          },
+          "video3_oxygen_to_danger": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "scene2_oxygen (أسماك تلهث — نقص أوكسجين)",
+            "last_frame": "scene3_broken_heater (سخان قزاز متشقق — كهرباء)",
+            "prompt": "Dramatic underwater shot inside a water-filled aquarium. Camera slowly pans from stressed fish gasping at the surface downward toward a glass heater tube. As the camera reaches the heater a crack suddenly appears with a brief bright white flash. Tiny bubbles violently escape from the fracture. Fish dart away in panic. Water shimmers with electrical distortion. The scene momentarily goes dark then returns with eerie red emergency lighting. Alarming forensic documentary atmosphere.",
+            "negative_prompt": "Calm scene, intact equipment, happy fish, bright cheerful mood, cartoon, text, empty aquarium without water.",
+            "audio": "Eerie silence building. Sudden glass crack. Electrical buzz. Fish splashing. Then dead silence."
+          }
+        },
+        "caption": "أسماكك ممكن تموت بالصيف وأنت ما تدري ليش.\n\n3 أسباب خطيرة ما يعرفها 90% من المبتدئين:\n\nالسبب الأول — تذبذب حرارة الحوض بالليل.\nالفرق 3 درجات بس يكفي يقتل أسماكك.\n\nالسبب الثاني — الحرارة العالية تسحب الأوكسجين من المي.\nأسماكك تختنك وأنت نايم.\n\nالسبب الثالث — السخان القزاز ممكن يطق ويكهرب الحوض كله.\n\nالحل؟ باچر.\nاحفظ هالريلز وأرسله لأي صاحب حوض قبل ما يفوت الوقت.\n\n#أسماك_الزينة #حوض_سمك #fishtok #aquarium #fishkeeping #العراق #بغداد #tropicalfish #aquariumhobby #AQUAVO",
+        "alt_text": "ريل تعليمي يشرح 3 أسباب تقتل أسماك الزينة بالصيف: تذبذب حرارة الحوض، نقص الأوكسجين بسبب الحرارة العالية، وخطر انفجار السخان القزاز. محتوى تثقيفي لهواة أحواض السمك في العراق.",
+        "seo_keywords": {
+          "primary_ar": "أسماك تموت بالصيف",
+          "primary_en": "fish dying summer aquarium",
+          "secondary": ["حرارة الحوض", "أوكسجين", "سخان القزاز", "حوض سمك"],
+          "cross_layer": "Primary keyword spoken in hook + on-screen text + caption"
+        },
+        "production_notes": "المونتاج بـ CapCut. خط عربي بولد أبيض مع ظل أسود. موسيقى تنشن/سسبنس. المشاهد 1-3 بطيئة (بناء توتر). المشهد 4 سريع (صدمة). كل سبب يظهر كنص كبير (رقم + عنوان فقط).",
+        "rule": "هذا الريلز لا يذكر أي منتج. ينتهي بوعد (باچر بنوريك الحل). المتلقي ينام يفكر بالمشكلة."
+      },
+      "story_night": {
+        "story": 3,
+        "time": "9 م",
+        "type": "تثبيت الخوف قبل النوم",
+        "prompt": "A dark bedroom at night with a small water-filled aquarium glowing softly in the corner. Inside the aquarium: tropical fish, green plants, and bubbles visible through the glass. The aquarium light has a slightly reddish warm tint suggesting overheating. The fish appear restless near the surface. Everything else in the bedroom is dark. Eerie, unsettling mood. Canon R5, 35mm, f/2.0. Vertical 9:16. No text.",
+        "text_overlay": "هسة وأنت نايم... شنو يصير بحوضك؟ الجواب باچر.",
+        "text_color": "#ffffff",
+        "note": "آخر لمسة قبل النوم. المتلقي ينام والمشكلة مزروعة بدماغه."
+      }
+    },
+    {
+      "day": "الثلاثاء",
+      "type": "🎯 يوم حصاد (HARVEST DAY)",
+      "theme": "السخان الستيل = الدرع الوحيد",
+      "target_products": [
+        "Steel heater 50W",
+        "Steel heater 100W",
+        "Steel heater 200W",
+        "YEE Black Warrior 100W"
+      ],
+      "tribal_savior": "الستيل المدرّع — مستحيل ينكسر",
+      "tribal_identity": "الفرق بين المبتدئ والمحترف",
+      "stories": [
+        {
+          "story": 1,
+          "time": "12 م",
+          "type": "تشويق — كشف جزئي",
+          "psychology": "Curiosity Gap — إظهار جزء من المنتج فقط",
+          "ref_image": "حمّل صورة سخان ستيل 100W — ماكرو على الجزء العلوي فقط",
+          "prompt": "Extreme close-up of just the top cap section of this steel aquarium heater [1], showing only the dial and 5cm of body. The rest fades into darkness below. Dramatic warm amber rim light from left edge only. Positioned on left-third line. Hasselblad X2D, 85mm, f/2.0, film grain. Vertical 9:16.",
+          "text_overlay": "هذا الحل اللي وعدناك بيه أمس...",
+          "sticker": "سلايدر: شگد تثق بسخانك الحالي"
+        },
+        {
+          "story": 2,
+          "time": "12:30 م",
+          "type": "مقارنة — قبل/بعد",
+          "psychology": "Contrast Effect — قزاز مكسور مقابل ستيل صامد",
+          "ref_image": "حمّل صورتين: سخان قزاز قديم + سخان ستيل جديد",
+          "prompt": "Side-by-side comparison on dark slate: this old glass heater [1] on the left under cold flat fluorescent light looking fragile, next to this new steel heater [2] on the right under warm amber light looking strong. 3cm gap. Cold color on left, warm on right. Canon R5, 50mm, f/4.0, film grain. Vertical 9:16.",
+          "text_overlay": "شنو تفضل لحوضك؟",
+          "sticker": "تصويت: ستيل مدرع / قزاز تقليدي"
+        },
+        {
+          "story": 3,
+          "time": "1 م",
+          "type": "Social Proof — دليل اجتماعي",
+          "psychology": "Bandwagon Effect — الناس يتبعون الأغلبية",
+          "prompt": "A collage-style dark background with 4-5 small aquarium photos arranged in a grid pattern. Each photo shows a different planted aquarium with a steel heater visible inside. Warm amber tones. Professional documentary collage. Each aquarium looks healthy with colorful fish. Dark borders between photos. Canon R5, 35mm. Vertical 9:16. No text, no cartoon.",
+          "text_overlay": "أكثر من 200+ حوض بالعراق انتقلوا للستيل",
+          "text_color": "#199bb8",
+          "note": "Bandwagon Effect — المتلقي يشوف إن غيره سواها = يتشجع يسويها."
+        },
+        {
+          "story": 4,
+          "time": "1:30 م",
+          "type": "Reciprocity — هدية مجانية",
+          "psychology": "Cialdini Reciprocity — أعطِ شي مجاني قبل ما تطلب",
+          "prompt": "A sleek dark phone screen mockup showing a beautiful minimal PDF document with temperature chart and colorful fish icons. The phone floats on a dark slate background with warm amber rim light. Premium digital product preview. Clean modern design. Hasselblad X2D, 85mm, f/2.8. Vertical 9:16. No text, no cartoon.",
+          "text_overlay": "حمّل جدول درجات الحرارة المثالية لكل نوع سمك — مجاناً",
+          "text_color": "#ffffff",
+          "sticker": "رابط: اضغط هنا للتحميل",
+          "note": "Reciprocity — المتلقي يشعر بالامتنان = يشتري أسهل. الرابط يودي لصفحة الموقع."
+        }
+      ],
+      "reel": {
+        "time": "7 م",
+        "type": "ريلز المُنقذ (HARVEST) — عرض المنتج كحل",
+        "topic": "الحل الوحيد للقاتل الصامت — السخان الستيل المقاوم للكسر",
+        "psychology": "Pre-suasion Payoff + Consistency Bias — الدماغ جاهز من أمس",
+        "veo_clip_duration": "8s بالضبط — لا أقل ولا أكثر",
+        "script": {
+          "hook_0_8s": "أمس حچينالك عن القاتل الصامت... اليوم نوريك الدرع.",
+          "body_8_16s": "سخان ستيل مقاوم للكسر والصدأ. ثيرموستات دقيق يحافظ على حرارة ثابتة. أمان تام لأسماكك.",
+          "cta_16_24s": "متوفر بـ 3 أحجام. الرابط بالبايو. توصيل لكل العراق."
+        },
+        "image_prompts": {
+          "frame1_broken_glass": "Broken glass aquarium heater shards scattered on dark slate surface with water puddle and small sparks. Dangerous alarming scene. Cold harsh blue-white lighting from above. The broken glass looks sharp and threatening. Dark background. Shot on Canon R5, 50mm, f/4.0, forensic documentary style. Vertical 9:16. No text, no cartoon.",
+          "frame2_steel_reveal": "A brand new sleek stainless steel aquarium heater standing vertically on dark slate surface. Warm amber rim lighting from the left highlighting the brushed metallic texture and precise thermostat dial at the top. Premium product photography. Strong safe powerful appearance. Shot on Hasselblad X2D, 85mm, f/2.8. Vertical 9:16. No text, no cartoon.",
+          "frame3_in_aquarium": "The stainless steel aquarium heater fully submerged inside a pristine water-filled planted aquarium. Vibrant tropical fish swimming safely around it including angelfish and neon tetras. Crystal clear water with green healthy plants. Warm dramatic lighting from above. Safe serene peaceful atmosphere. Shot on Canon R5, 35mm, f/4.0. Vertical 9:16. No text, no cartoon.",
+          "frame4_brand_hero": "The stainless steel aquarium heater centered on a deep ocean blue background (#0a1628). Dramatic single warm spotlight from upper left creating a golden highlight on the metallic surface. Clean premium e-commerce product hero shot. Negative space at bottom for brand overlay. Shot on Hasselblad X2D, 85mm, f/2.0. Vertical 9:16. No text, no cartoon."
+        },
+        "veo_video_prompts": {
+          "_workflow": "Image-to-Video: 4 صور = 3 فيديوهات × 8 ثواني",
+          "video1_destruction_to_savior": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "frame1_broken_glass (قزاز مكسور — خطر)",
+            "last_frame": "frame2_steel_reveal (ستيل جديد — الدرع)",
+            "prompt": "Cinematic transition: Broken glass heater shards are swept away into darkness as a solid stainless steel aquarium heater rises into frame from below with a powerful upward motion. Lighting dramatically shifts from cold harsh blue to warm amber gold. The steel surface catches light beautifully revealing its brushed texture. Empowering heroic atmosphere. Documentary product reveal style.",
+            "negative_prompt": "Cartoon, bright cheerful, text, empty scene, plastic heater.",
+            "audio": "Glass scraping sound fading. Deep powerful bass hit. Warm ambient tone rising.",
+            "text_overlay": "خايف من هذا المنظر؟",
+            "text_color": "#ffffff"
+          },
+          "video2_reveal_to_action": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "frame2_steel_reveal (السخان الستيل)",
+            "last_frame": "frame3_in_aquarium (السخان داخل الحوض)",
+            "prompt": "Smooth push-in camera move: The steel aquarium heater plunges underwater into a beautiful planted aquarium in slow motion. Bubbles rise momentarily around it. Tropical fish immediately swim around the heater looking comfortable and safe. The thermostat dial glows subtly underwater. Plants sway gently in the current. Peaceful secure atmosphere. The water is crystal clear and warm-lit from above.",
+            "negative_prompt": "Empty tank, no water, broken heater, cartoon, text, cloudy water.",
+            "audio": "Satisfying water splash. Gentle underwater ambience. Calm peaceful tone.",
+            "text_overlay": "هذا الدرع اللي يحمي أسماكك.",
+            "text_color": "#199bb8"
+          },
+          "video3_action_to_brand": {
+            "settings": "8s | 9:16 | 1080p",
+            "first_frame": "frame3_in_aquarium (السخان يعمل بالحوض)",
+            "last_frame": "frame4_brand_hero (صورة المنتج على خلفية البراند)",
+            "prompt": "Slow cinematic pull-back: The aquarium environment gradually fades into a sleek dark studio background deep ocean blue. The steel heater rotates slowly 15 degrees catching warm spotlight perfectly on its metallic surface. The background transitions to a clean premium dark blue. Supreme product authority and brand prestige. E-commerce hero shot atmosphere.",
+            "negative_prompt": "Bright background, cartoon, text, cheap looking, plastic.",
+            "audio": "Premium brand whoosh. Elegant subtle chime. Confident silence.",
+            "text_overlay": "اطلب حجمك هسه — الرابط بالبايو",
+            "text_color": "#ff7b5a"
+          }
+        },
+        "caption": "أمس وريناك 3 أسباب تقتل أسماكك بالصيف.\nاليوم الحل.\n\nسخان ستيل مقاوم للصدأ — مو قزاز.\nما يطق. ما يكهرب. ما يتأثر بالتآكل.\n\nثيرموستات دقيق يثبت الحرارة على الدرجة اللي تريدها.\nيشتغل تلقائي ويطفي تلقائي.\n\nأسماكك تنام مرتاحة. وأنت تنام مرتاح.\n\n3 أحجام:\n50W — أحواض لغاية 30 لتر\n100W — أحواض لغاية 80 لتر\n200W — أحواض فوق 100 لتر\n\nمتوفر هسة — الرابط بالبايو.\n\n#سخان_حوض #aquarium_heater #أسماك_الزينة #حوض_سمك #fishtok #aquarium #fishkeeping #العراق #بغداد #AQUAVO",
+        "alt_text": "ريل يعرض سخان حوض سمك ستيل مقاوم للصدأ مع ثيرموستات تلقائي بثلاث أحجام. بديل آمن للسخان القزاز. منتج AQUAVO لهواة أحواض السمك في العراق.",
+        "seo_keywords": {
+          "primary_ar": "سخان حوض ستيل",
+          "primary_en": "aquarium heater steel",
+          "secondary": ["سخان ستيل مقاوم", "ثيرموستات", "حوض سمك"],
+          "cross_layer": "Callback to Monday reel increases series retention"
+        },
+        "production_notes": "المونتاج بـ CapCut. النصوص بخط Changa Bold. الفيديو 1: نص أبيض على مشهد مظلم. الفيديو 2: نص بلون البراند #199bb8. الفيديو 3: CTA بلون الكورال #ff7b5a. موسيقى: تحول من تنشن لهيبة/ثقة. شاشة إغلاق: خلفية #0a1628 + لوقو أبيض.",
+        "rule": "هذا الريلز يبدأ بالإشارة لريلز أمس (Consistency Bias). الانتقال من خوف → أمان → ثقة → شراء."
+      },
+      "carousel": {
+        "time": "7:30 م",
+        "caption": "ثلاث قوات سخانات ستيل — كل حوض يحتاج القوة اللي تناسبه. 50 واط للأحواض لغاية 30 لتر. 100 واط للمتوسطة لغاية 80 لتر. 200 واط للكبيرة فوق 100 لتر. ستيل مقاوم للصدأ والكسر. اختار حسب حجمك — aquavoiq.com",
+        "slides": [
+          {
+            "slide": 1,
+            "fibonacci_role": "الخطاف (1)",
+            "ref_image": "حمّل صور الثلاث سخانات مجموعة",
+            "psychology": "Contrast Anchor — ثلاث أحجام متدرجة",
+            "prompt": "Professional product photography of these three aquarium heaters [1] arranged smallest to tallest left to right on a dark walnut wood shelf. Single warm pendant light from above creating long diagonal shadows. Product fills 75% of frame. Rule of thirds. 85mm lens, f/4.0, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 2,
+            "fibonacci_role": "عرض المشكلة (2)",
+            "ref_image": "بدون — مشهد سخان قزاز مكسور",
+            "psychology": "Loss Aversion — سخان قزاز مكسور = كارثة",
+            "prompt": "Broken glass aquarium heater shards scattered on dark slate surface with water puddle. Dangerous, alarming scene. Cold harsh lighting. The broken glass looks sharp and threatening. Canon R5, 50mm, f/4.0, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 3,
+            "fibonacci_role": "تقديم الحل (3)",
+            "ref_image": "حمّل صورة سخان 50W لحاله",
+            "psychology": "Scale Anchoring — ولاعة BIC بجانب المنتج",
+            "prompt": "This compact aquarium heater [1] placed diagonally on dark slate surface next to a standard BIC lighter for scale. Warm amber side light from left. Product on right-third intersection. 100mm macro, f/2.8, film grain. Portrait 4:5."
+          },
+          {
+            "slide": 4,
+            "fibonacci_role": "الدعوة لاتخاذ إجراء (5)",
+            "ref_image": "بدون — خلفية فقط",
+            "prompt": "Dark brushed concrete wall with visible pores and one diagonal crack. Warm amber center glow. Corner vignette. Film grain. Portrait 4:5.",
+            "text_overlay": "احفظ هالمنشور واطلب حسب حجم حوضك — aquavoiq.com",
+            "text_color": "#ff7b5a",
+            "background_overlay": "#0a1628 بشفافية 80%"
+          }
+        ]
+      }
+    }
+  ]
+}
