@@ -8,7 +8,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
-import { Thermometer, Download, ChevronDown, Fish, Shield, ArrowLeft } from "lucide-react";
+import { Thermometer, Download, ChevronDown, Shield, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
 
 // ─────────────────────────────────────────────────
@@ -22,21 +22,22 @@ interface FishTemp {
   ideal: number;
   difficulty: "سهل" | "متوسط" | "متقدم";
   color: string;
+  image: string;
 }
 
 const FISH_DATA: FishTemp[] = [
-  { name: "نيون تترا", nameEn: "Neon Tetra", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#00d4ff" },
-  { name: "جوبي", nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#ff7b5a" },
-  { name: "بيتا", nameEn: "Betta", min: 24, max: 30, ideal: 27, difficulty: "سهل", color: "#e63946" },
-  { name: "أنجل فيش", nameEn: "Angelfish", min: 24, max: 30, ideal: 26, difficulty: "متوسط", color: "#ffd700" },
-  { name: "مولي", nameEn: "Molly", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#7FFF00" },
-  { name: "بلاتي", nameEn: "Platy", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#ff9a56" },
-  { name: "سيكلد أفريقي", nameEn: "African Cichlid", min: 24, max: 28, ideal: 26, difficulty: "متقدم", color: "#9b59b6" },
-  { name: "أوسكار", nameEn: "Oscar", min: 23, max: 28, ideal: 25, difficulty: "متقدم", color: "#e67e22" },
-  { name: "كوري كات", nameEn: "Corydoras", min: 22, max: 26, ideal: 24, difficulty: "سهل", color: "#1abc9c" },
-  { name: "ديسكس", nameEn: "Discus", min: 28, max: 32, ideal: 30, difficulty: "متقدم", color: "#3498db" },
-  { name: "تترا كاردينال", nameEn: "Cardinal Tetra", min: 23, max: 27, ideal: 25, difficulty: "متوسط", color: "#e74c3c" },
-  { name: "سوردتيل", nameEn: "Swordtail", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#2ecc71" },
+  { name: "نيون تترا", nameEn: "Neon Tetra", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#00d4ff", image: "/fish/neon-tetra.webp" },
+  { name: "جوبي", nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#ff7b5a", image: "/fish/guppy.webp" },
+  { name: "بيتا", nameEn: "Betta", min: 24, max: 30, ideal: 27, difficulty: "سهل", color: "#e63946", image: "/fish/betta-splendens.webp" },
+  { name: "أنجل فيش", nameEn: "Angelfish", min: 24, max: 30, ideal: 26, difficulty: "متوسط", color: "#ffd700", image: "/fish/angelfish.webp" },
+  { name: "مولي", nameEn: "Molly", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#7FFF00", image: "/fish/molly.webp" },
+  { name: "بلاتي", nameEn: "Platy", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#ff9a56", image: "/fish/platy.webp" },
+  { name: "كوري كات", nameEn: "Corydoras", min: 22, max: 26, ideal: 24, difficulty: "سهل", color: "#1abc9c", image: "/fish/corydoras-paleatus.webp" },
+  { name: "ديسكس", nameEn: "Discus", min: 28, max: 32, ideal: 30, difficulty: "متقدم", color: "#3498db", image: "/fish/discus.webp" },
+  { name: "تترا كاردينال", nameEn: "Cardinal Tetra", min: 23, max: 27, ideal: 25, difficulty: "متوسط", color: "#e74c3c", image: "/fish/cardinal-tetra.webp" },
+  { name: "سوردتيل", nameEn: "Swordtail", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#2ecc71", image: "/fish/swordtail.webp" },
+  { name: "تايجر بارب", nameEn: "Tiger Barb", min: 22, max: 28, ideal: 25, difficulty: "متوسط", color: "#f39c12", image: "/fish/tiger-barb.webp" },
+  { name: "جولد فيش", nameEn: "Goldfish", min: 18, max: 24, ideal: 21, difficulty: "سهل", color: "#ffa500", image: "/fish/goldfish.webp" },
 ];
 
 // ─────────────────────────────────────────────────
@@ -77,79 +78,100 @@ function FloatingBubbles() {
 // ─────────────────────────────────────────────────
 // Temperature Bar Component
 // ─────────────────────────────────────────────────
-function TempBar({ fish, index }: { fish: FishTemp; index: number }) {
+function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-40px" });
-
-  // Map temperature to position (18°C = 0%, 34°C = 100%)
-  const tempToPercent = (t: number) => ((t - 18) / 16) * 100;
-  const left = tempToPercent(fish.min);
-  const width = tempToPercent(fish.max) - left;
-  const idealPos = tempToPercent(fish.ideal);
+  const isInView = useInView(ref, { once: true, margin: "-30px" });
 
   const diffColor = fish.difficulty === "سهل" ? "#22c55e" : fish.difficulty === "متوسط" ? "#eab308" : "#ef4444";
 
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, x: 30 }}
-      animate={isInView ? { opacity: 1, x: 0 } : {}}
+      initial={{ opacity: 0, y: 20 }}
+      animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
-      className="group"
+      className="rounded-2xl overflow-hidden"
+      style={{
+        background: `linear-gradient(135deg, ${fish.color}08, rgba(255,255,255,0.03))`,
+        border: `1px solid ${fish.color}20`,
+      }}
     >
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="flex items-center gap-2">
-          <Fish size={14} style={{ color: fish.color }} />
-          <span className="text-white/90 text-sm font-bold">{fish.name}</span>
-          <span className="text-white/30 text-xs">{fish.nameEn}</span>
+      <div className="flex items-stretch">
+        {/* Fish Image */}
+        <div className="w-20 h-20 md:w-24 md:h-24 flex-shrink-0 relative overflow-hidden flex items-center justify-center p-2"
+          style={{ background: `linear-gradient(135deg, ${fish.color}15, ${fish.color}05)` }}>
+          <img
+            src={fish.image}
+            alt={fish.name}
+            className="w-full h-full object-contain drop-shadow-lg"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
-        <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{
-          background: `${diffColor}15`, color: diffColor, border: `1px solid ${diffColor}30`,
-        }}>
-          {fish.difficulty}
-        </span>
-      </div>
 
-      {/* Temperature range bar */}
-      <div className="relative h-7 bg-white/5 rounded-lg overflow-hidden border border-white/8">
-        {/* Scale markers */}
-        {[20, 22, 24, 26, 28, 30, 32].map(t => (
-          <div key={t} className="absolute top-0 bottom-0 w-px bg-white/8" style={{ left: `${tempToPercent(t)}%` }}>
-            <span className="absolute -bottom-4 -translate-x-1/2 text-[8px] text-white/20">{t}°</span>
+        {/* Info */}
+        <div className="flex-1 p-3 flex flex-col justify-center min-w-0">
+          {/* Name row */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-white/90 text-sm font-bold truncate">{fish.name}</span>
+              <span className="text-white/25 text-[10px] hidden sm:inline">{fish.nameEn}</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{
+              background: `${diffColor}15`, color: diffColor, border: `1px solid ${diffColor}30`,
+            }}>
+              {fish.difficulty}
+            </span>
           </div>
-        ))}
 
-        {/* Range bar */}
-        <motion.div
-          initial={{ scaleX: 0 }}
-          animate={isInView ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.7, delay: index * 0.06 + 0.2 }}
-          className="absolute top-1 bottom-1 rounded-md"
-          style={{
-            left: `${left}%`, width: `${width}%`,
-            background: `linear-gradient(90deg, ${fish.color}40, ${fish.color}70, ${fish.color}40)`,
-            border: `1px solid ${fish.color}50`,
-            transformOrigin: "left",
-            boxShadow: `0 0 12px ${fish.color}30`,
-          }}
-        />
+          {/* Temperature numbers */}
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-blue-400/60">أدنى</span>
+              <span className="text-xs font-black text-blue-400">{fish.min}°</span>
+            </div>
+            <div className="flex items-center gap-1 px-2 py-0.5 rounded-md" style={{ background: `${fish.color}20` }}>
+              <Thermometer size={10} style={{ color: fish.color }} />
+              <span className="text-[10px] font-medium" style={{ color: `${fish.color}99` }}>مثالي</span>
+              <span className="text-sm font-black" style={{ color: fish.color }}>{fish.ideal}°C</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] text-red-400/60">أقصى</span>
+              <span className="text-xs font-black text-red-400">{fish.max}°</span>
+            </div>
+          </div>
 
-        {/* Ideal marker */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={isInView ? { scale: 1 } : {}}
-          transition={{ delay: index * 0.06 + 0.5, type: "spring" }}
-          className="absolute top-0.5 bottom-0.5 w-0.5 rounded-full z-10"
-          style={{
-            left: `${idealPos}%`,
-            background: fish.color,
-            boxShadow: `0 0 8px ${fish.color}`,
-          }}
-        >
-          <span className="absolute -top-5 -translate-x-1/2 text-[9px] font-black whitespace-nowrap" style={{ color: fish.color }}>
-            {fish.ideal}°C
-          </span>
-        </motion.div>
+          {/* Visual bar */}
+          <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
+            <motion.div
+              initial={{ scaleX: 0 }}
+              animate={isInView ? { scaleX: 1 } : {}}
+              transition={{ duration: 0.7, delay: index * 0.06 + 0.2 }}
+              className="absolute top-0 bottom-0 rounded-full"
+              style={{
+                left: `${((fish.min - 16) / 20) * 100}%`,
+                width: `${((fish.max - fish.min) / 20) * 100}%`,
+                background: `linear-gradient(90deg, ${fish.color}50, ${fish.color}90, ${fish.color}50)`,
+                transformOrigin: "left",
+                boxShadow: `0 0 8px ${fish.color}40`,
+              }}
+            />
+            {/* Ideal dot */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={isInView ? { scale: 1 } : {}}
+              transition={{ delay: index * 0.06 + 0.5, type: "spring" }}
+              className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full z-10 border-2"
+              style={{
+                left: `${((fish.ideal - 16) / 20) * 100}%`,
+                background: fish.color,
+                borderColor: "#010611",
+                boxShadow: `0 0 6px ${fish.color}`,
+                marginLeft: "-5px",
+              }}
+            />
+          </div>
+        </div>
       </div>
     </motion.div>
   );
@@ -313,10 +335,10 @@ export default function TemperatureGuide() {
               ))}
             </div>
 
-            {/* Fish rows */}
-            <div className="space-y-5">
+            {/* Fish cards */}
+            <div className="space-y-3">
               {FISH_DATA.map((fish, i) => (
-                <TempBar key={fish.nameEn} fish={fish} index={i} />
+                <FishCard key={fish.nameEn} fish={fish} index={i} />
               ))}
             </div>
 
