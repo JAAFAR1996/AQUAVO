@@ -428,6 +428,7 @@ export default function ProductDetails() {
                           className="h-10 w-10 rounded-r-lg rounded-l-none"
                           onClick={() => handleQuantityChange(-1)}
                           disabled={quantity <= 1}
+                          aria-label="تقليل الكمية"
                         >
                           -
                         </Button>
@@ -438,6 +439,7 @@ export default function ProductDetails() {
                           className="h-10 w-10 rounded-l-lg rounded-r-none"
                           onClick={() => handleQuantityChange(1)}
                           disabled={quantity >= displayStock}
+                          aria-label="زيادة الكمية"
                         >
                           +
                         </Button>
@@ -573,7 +575,7 @@ export default function ProductDetails() {
                             <ShieldCheck className="w-5 h-5 text-green-600" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-sm">جودة مضمونة</h4>
+                            <h3 className="font-bold text-sm">جودة مضمونة</h3>
                             <p className="text-sm text-muted-foreground">منتج أصلي 100% من علامة {product.brand} العالمية</p>
                           </div>
                         </div>
@@ -584,7 +586,7 @@ export default function ProductDetails() {
                               <Star className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
-                              <h4 className="font-bold text-sm">تقييم عالي</h4>
+                              <h3 className="font-bold text-sm">تقييم عالي</h3>
                               <p className="text-sm text-muted-foreground">حصل على {product.rating} من 5 نجوم من {product.reviewCount} عميل</p>
                             </div>
                           </div>
@@ -594,7 +596,7 @@ export default function ProductDetails() {
                             <Truck className="w-5 h-5 text-amber-600" />
                           </div>
                           <div>
-                            <h4 className="font-bold text-sm">شحن سريع</h4>
+                            <h3 className="font-bold text-sm">شحن سريع</h3>
                             <p className="text-sm text-muted-foreground">يصلك خلال 2-3 أيام عمل مع تغليف آمن</p>
                           </div>
                         </div>
@@ -603,7 +605,7 @@ export default function ProductDetails() {
                       {/* Only show benefits if they exist in database */}
                       {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
                         <div className="space-y-4">
-                          <h4 className="font-bold text-right">الفوائد الرئيسية:</h4>
+                          <h3 className="font-bold text-right">الفوائد الرئيسية:</h3>
                           <ul className="space-y-2 text-sm text-muted-foreground" dir="rtl">
                             {product.specifications.benefits.map((benefit: string, index: number) => (
                               <li key={index} className="flex items-start gap-2 text-right">
@@ -630,7 +632,7 @@ export default function ProductDetails() {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div>
-                        <h4 className="font-semibold mb-2">معلومات المنتج</h4>
+                        <h3 className="font-semibold mb-2">معلومات المنتج</h3>
                         <dl className="space-y-2">
                           <div className="flex justify-between">
                             <dt className="text-muted-foreground">العلامة التجارية:</dt>
@@ -704,7 +706,7 @@ export default function ProductDetails() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <h4 className="font-semibold mb-2">سياسة الشحن</h4>
+                      <h3 className="font-semibold mb-2">سياسة الشحن</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         <li>توصيل مجاني للطلبات فوق 100,000 دينار عراقي</li>
                         <li>التوصيل خلال 2-3 أيام عمل داخل بغداد</li>
@@ -713,7 +715,7 @@ export default function ProductDetails() {
                       </ul>
                     </div>
                     <div>
-                      <h4 className="font-semibold mb-2">سياسة الإرجاع</h4>
+                      <h3 className="font-semibold mb-2">سياسة الإرجاع</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
                         <li>يمكن إرجاع المنتج خلال 7 أيام من تاريخ الاستلام</li>
                         <li>يجب أن يكون المنتج في حالته الأصلية مع العبوة</li>
@@ -735,7 +737,7 @@ export default function ProductDetails() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div dir="rtl">
-                      <h4 className="font-semibold mb-2 text-right">طريقة الاستخدام</h4>
+                      <h3 className="font-semibold mb-2 text-right">طريقة الاستخدام</h3>
                       {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
                         <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
                           {product.specifications.usageInstructions.map((step: string, idx: number) => (
@@ -756,7 +758,7 @@ export default function ProductDetails() {
                       )}
                     </div>
                     <div dir="rtl">
-                      <h4 className="font-semibold mb-2 text-right">تحذيرات الأمان</h4>
+                      <h3 className="font-semibold mb-2 text-right">تحذيرات الأمان</h3>
                       {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
                         <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
                           {product.specifications.safetyWarnings.map((warning: string, idx: number) => (

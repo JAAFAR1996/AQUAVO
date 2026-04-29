@@ -42,18 +42,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="AQUAVO" />
 
-  <!-- Performance: DNS prefetch and preconnect -->
-  <link rel="dns-prefetch" href="https://images.unsplash.com">
-  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
-  <!-- API Server preconnect for faster data fetching -->
-  <link rel="preconnect" href="https://fist-live-server.vercel.app" crossorigin>
-  <link rel="dns-prefetch" href="https://fist-live-server.vercel.app">
-  <!-- Analytics preconnect -->
-  <link rel="preconnect" href="https://plausible.io" crossorigin>
-  <link rel="dns-prefetch" href="https://plausible.io">
-  <!-- TikTok Pixel preconnect -->
-  <link rel="preconnect" href="https://analytics.tiktok.com" crossorigin>
-  <link rel="dns-prefetch" href="https://analytics.tiktok.com">
+  <!-- Performance: only preconnect to origins needed for initial render -->
+  <!-- Removed: unsplash (unused), fist-live-server (same-origin), plausible/tiktok (deferred 3.5s) -->
   <meta name="robots" content="index, follow, max-image-preview:large">
 
   <!-- Fonts - Optimized: critical only, non-blocking -->
