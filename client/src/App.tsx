@@ -536,8 +536,12 @@ function App() {
   const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location);
 
   useEffect(() => {
-    // Initialize Google Analytics
-    initGA();
+    // Defer GA init to after first idle to reduce TBT
+    if ('requestIdleCallback' in window) {
+      requestIdleCallback(() => initGA(), { timeout: 4000 });
+    } else {
+      setTimeout(() => initGA(), 3000);
+    }
   }, []);
 
   return (

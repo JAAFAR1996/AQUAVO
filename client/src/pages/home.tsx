@@ -1,18 +1,12 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, lazy, Suspense } from "react";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, Truck, ShieldCheck, Phone, Leaf, Droplets, Thermometer, Package, Trophy, Crown, Camera, ShoppingCart, Sparkles } from "lucide-react";
+import { ArrowRight, Trophy, Crown, ShoppingCart, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
-import { ProductOfTheWeek } from "@/components/home/product-of-the-week";
-import { AquascapeStyles } from "@/components/home/aquascape-styles";
-
-import { ProductCard } from "@/components/products/product-card";
-
-import { Testimonials } from "@/components/home/testimonials";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, fetchTopSellingProducts } from "@/lib/api";
+import { fetchTopSellingProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
 
@@ -24,11 +18,53 @@ import { QuickViewModal } from "@/components/products/quick-view-modal";
 import { Product } from "@/types";
 import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 
+// Lazy-load below-fold heavy components (reduces initial bundle by ~50KB)
+const Testimonials = lazy(() => import("@/components/home/testimonials").then(m => ({ default: m.Testimonials })));
+const AquascapeStyles = lazy(() => import("@/components/home/aquascape-styles").then(m => ({ default: m.AquascapeStyles })));
+const ProductCard = lazy(() => import("@/components/products/product-card").then(m => ({ default: m.ProductCard })));
+
 
 // Hero images for rotation on page refresh
 const HERO_IMAGES = [
   "/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp", // Iwagumi Style
 ];
+
+// Lazy hero video: shows poster immediately, loads video after delay
+function LazyHeroVideo({ poster }: { poster: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    // Wait 2s after mount so LCP image paints first
+    const t = setTimeout(() => setShouldLoad(true), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    if (shouldLoad && videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(() => {});
+    }
+  }, [shouldLoad]);
+
+  if (!shouldLoad) return null;
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="none"
+      className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105 z-[1]"
+      style={{ objectFit: 'cover', objectPosition: 'center' }}
+      poster={poster}
+    >
+      <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.mp4" type="video/mp4" />
+    </video>
+  );
+}
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -72,24 +108,16 @@ export default function Home() {
           {/* 1. Hero & Video Section (Wide Box: 8 cols, 2 rows) */}
           <div className="lg:col-span-8 lg:row-span-2 rounded-2xl overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-black min-h-[400px] md:min-h-[500px]">
             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500 z-10" />
-            {/* Video Background */}
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              preload="none"
-              className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105"
-              style={{ objectFit: 'cover', objectPosition: 'center' }}
-              poster={heroImage}
-            >
-              <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.mp4" type="video/mp4" />
-              {/* Fallback to image if video doesn't load */}
-              <div
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url("${heroImage}")` }}
-              />
-            </video>
+            {/* Hero poster as LCP element with fetchpriority */}
+            <img
+              src={heroImage}
+              alt="حوض أسماك بتصميم إيواغومي احترافي"
+              className="absolute inset-0 w-full h-full object-cover"
+              fetchPriority="high"
+              decoding="sync"
+            />
+            {/* Video loads lazily after poster is visible */}
+            <LazyHeroVideo poster={heroImage} />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-60"></div>
 
             {/* Overlay Content */}
@@ -244,11 +272,15 @@ export default function Home() {
           For now, I'll keep the Masonry Gallery and Testimonials but maybe hide the old 'Features' and regular 'Best Sellers' since we have them in Bento.
       */}
 
-      {/* Customer Testimonials */}
-      <Testimonials />
+      {/* Customer Testimonials - lazy loaded */}
+      <Suspense fallback={<div className="py-20" />}>
+        <Testimonials />
+      </Suspense>
 
-      {/* Existing Sections Refined */}
-      <AquascapeStyles />
+      {/* Existing Sections Refined - lazy loaded */}
+      <Suspense fallback={<div className="py-20" />}>
+        <AquascapeStyles />
+      </Suspense>
 
 
       <BackToTop />

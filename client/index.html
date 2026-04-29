@@ -56,17 +56,19 @@
   <link rel="dns-prefetch" href="https://analytics.tiktok.com">
   <meta name="robots" content="index, follow, max-image-preview:large">
 
-  <!-- Fonts - Optimized: critical fonts only, non-blocking -->
+  <!-- Fonts - Optimized: critical only, non-blocking -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <!-- Critical: Cairo only (body text) - loaded immediately -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic">
-  <!-- Non-critical: Changa + Tajawal - deferred -->
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap&subset=arabic" onload="this.rel='stylesheet'">
+  <!-- Critical: Cairo (body text) - single stylesheet, no redundant preload -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap&subset=arabic" media="print" onload="this.media='all'">
+  <!-- Non-critical: Changa + Tajawal - deferred via media trick -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap&subset=arabic" media="print" onload="this.media='all'">
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@700;900&family=Tajawal:wght@400;500&display=swap" rel="stylesheet">
   </noscript>
+
+  <!-- Preload LCP image (hero poster) for fastest paint -->
+  <link rel="preload" as="image" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" fetchpriority="high">
 
   <!-- Critical CSS for Above-the-Fold Content -->
   <style>
@@ -106,21 +108,19 @@
     }
   </style>
 
-  <!-- Metricool Tracking -->
-  <script>function loadScript(a){var b=document.getElementsByTagName("head")[0],c=document.createElement("script");c.type="text/javascript",c.src="https://tracker.metricool.com/resources/be.js",c.onreadystatechange=a,c.onload=a,b.appendChild(c)}loadScript(function(){beTracker.t({hash:"1419e6135f967974d7d1a9ea8918c473"})});</script>
-
-  <!-- TikTok Pixel Code Start -->
+  <!-- 3rd-party analytics deferred until after first paint (performance) -->
   <script>
-  !function (w, d, t) {
-    w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=["page","track","identify","instances","debug","on","off","once","ready","alias","group","enableCookie","disableCookie","holdConsent","revokeConsent","grantConsent"],ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(
-    var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e},ttq.load=function(e,n){var r="https://analytics.tiktok.com/i18n/pixel/events.js",o=n&&n.partner;ttq._i=ttq._i||{},ttq._i[e]=[],ttq._i[e]._u=r,ttq._t=ttq._t||{},ttq._t[e]=+new Date,ttq._o=ttq._o||{},ttq._o[e]=n||{};n=document.createElement("script")
-    ;n.type="text/javascript",n.async=!0,n.src=r+"?sdkid="+e+"&lib="+t;e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(n,e)};
-
-    ttq.load('D7OD1FBC77U8CJLLA610');
-    ttq.page();
-  }(window, document, 'ttq');
+  // Defer ALL 3rd-party scripts until after main thread is idle
+  function aqDefer(fn){if('requestIdleCallback' in window){requestIdleCallback(fn,{timeout:3500})}else{setTimeout(fn,3500)}}
+  aqDefer(function(){
+    // Metricool
+    var s=document.createElement('script');s.src='https://tracker.metricool.com/resources/be.js';
+    s.onload=function(){if(typeof beTracker!=='undefined')beTracker.t({hash:'1419e6135f967974d7d1a9ea8918c473'})};
+    document.head.appendChild(s);
+    // TikTok Pixel
+    !function(w,d,t){w.TiktokAnalyticsObject=t;var ttq=w[t]=w[t]||[];ttq.methods=['page','track','identify','instances','debug','on','off','once','ready','alias','group','enableCookie','disableCookie','holdConsent','revokeConsent','grantConsent'];ttq.setAndDefer=function(t,e){t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}};for(var i=0;i<ttq.methods.length;i++)ttq.setAndDefer(ttq,ttq.methods[i]);ttq.instance=function(t){for(var e=ttq._i[t]||[],n=0;n<ttq.methods.length;n++)ttq.setAndDefer(e,ttq.methods[n]);return e};ttq.load=function(e,n){var r='https://analytics.tiktok.com/i18n/pixel/events.js';ttq._i=ttq._i||{};ttq._i[e]=[];ttq._i[e]._u=r;ttq._t=ttq._t||{};ttq._t[e]=+new Date;ttq._o=ttq._o||{};ttq._o[e]=n||{};var o=document.createElement('script');o.type='text/javascript';o.async=!0;o.src=r+'?sdkid='+e+'&lib='+t;var a=document.getElementsByTagName('script')[0];a.parentNode.insertBefore(o,a)};ttq.load('D7OD1FBC77U8CJLLA610');ttq.page()}(window,document,'ttq');
+  });
   </script>
-  <!-- TikTok Pixel Code End -->
 </head>
 
 <body>
