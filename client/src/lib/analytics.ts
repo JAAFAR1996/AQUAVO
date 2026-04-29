@@ -26,26 +26,23 @@ const GA_ID = import.meta.env.VITE_GA_ID;
 export function initGA() {
   if (!GA_ID || typeof window === 'undefined') return;
 
-  // Defer execution by 3.5 seconds to prevent main thread blocking (Lighthouse optimization)
-  setTimeout(() => {
-    // Load gtag script
-    const script = document.createElement('script');
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
-    script.async = true;
-    document.head.appendChild(script);
+  // Load gtag script
+  const script = document.createElement('script');
+  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_ID}`;
+  script.async = true;
+  document.head.appendChild(script);
 
-    // Initialize dataLayer
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function gtag() {
-      window.dataLayer?.push(arguments);
-    };
+  // Initialize dataLayer
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = function gtag() {
+    window.dataLayer?.push(arguments);
+  };
 
-    window.gtag('js', new Date());
-    window.gtag('config', GA_ID, {
-      page_path: window.location.pathname,
-      send_page_view: false, // We'll send manually
-    });
-  }, 3500);
+  window.gtag('js', new Date());
+  window.gtag('config', GA_ID, {
+    page_path: window.location.pathname,
+    send_page_view: false, // We'll send manually
+  });
 }
 
 // Track page views

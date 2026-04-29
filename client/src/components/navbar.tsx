@@ -173,7 +173,7 @@ export default function Navbar() {
             <div className="nav-logo hidden xs:flex items-center gap-2 sm:gap-3 cursor-pointer group">
               <img
                 src="/logo_aquavo_icon.png"
-                alt="AQUAVO"
+                alt="AQUAVO Logo"
                 className="h-12 w-12 sm:h-14 sm:w-14 object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-lg"
               />
               <div className="flex flex-col">
