@@ -76,8 +76,6 @@ export default defineConfig({
           'vendor-icons': ['lucide-react'],
           // Heavy animation library - separate chunk for lazy loading
           'vendor-animation': ['framer-motion'],
-          // Data/Charts chunk
-          'vendor-charts': ['recharts'],
           // Utilities chunk
           'vendor-utils': ['date-fns', 'zod', 'wouter', '@tanstack/react-query'],
         },

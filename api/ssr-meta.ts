@@ -543,6 +543,9 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     .replace(/__META_URL__/g, meta.url)
     .replace(/__META_IMAGE__/g, meta.image)
     .replace(/__META_OG_TYPE__/g, meta.ogType || "website")
+    .replace(/__PRELOAD_IMAGE__/g, meta.url === BASE || meta.url === `${BASE}/` 
+        ? `<link rel="preload" as="image" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" fetchpriority="high">`
+        : (meta.image && meta.image !== DEFAULT_IMAGE ? `<link rel="preload" as="image" href="${meta.image}" fetchpriority="high">` : ""))
     .replace(/__JSON_LD__/g, jsonLdScript);
 }
 
