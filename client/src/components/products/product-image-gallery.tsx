@@ -118,6 +118,7 @@ export function ProductImageGallery({
                                     e.stopPropagation();
                                     handlePrevious();
                                 }}
+                                aria-label="الصورة السابقة"
                             >
                                 <ChevronLeft className="w-5 h-5" />
                             </Button>
@@ -129,6 +130,7 @@ export function ProductImageGallery({
                                     e.stopPropagation();
                                     handleNext();
                                 }}
+                                aria-label="الصورة التالية"
                             >
                                 <ChevronRight className="w-5 h-5" />
                             </Button>
@@ -214,6 +216,7 @@ export function ProductImageGallery({
                                     size="icon"
                                     className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
                                     onClick={handlePrevious}
+                                    aria-label="الصورة السابقة"
                                 >
                                     <ChevronLeft className="w-8 h-8" />
                                 </Button>
@@ -222,6 +225,7 @@ export function ProductImageGallery({
                                     size="icon"
                                     className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
                                     onClick={handleNext}
+                                    aria-label="الصورة التالية"
                                 >
                                     <ChevronRight className="w-8 h-8" />
                                 </Button>

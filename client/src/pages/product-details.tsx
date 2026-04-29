@@ -472,7 +472,7 @@ export default function ProductDetails() {
                         size="lg"
                         className="gap-2"
                       />
-                      <Button size="lg" variant="outline" onClick={handleShare}>
+                      <Button size="lg" variant="outline" onClick={handleShare} aria-label="مشاركة المنتج">
                         <Share2 className="w-5 h-5" />
                       </Button>
                     </div>
