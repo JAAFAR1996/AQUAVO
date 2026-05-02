@@ -1,0 +1,40 @@
+# AQUAVO Project Rules — Auto-loaded by Cursor/AI Assistants
+# See CLAUDE.md for full context. This is the quick-reference version.
+
+## CRITICAL RULES (NEVER VIOLATE)
+- Database: NEON PostgreSQL ONLY (process.env.DATABASE_URL)
+- Storage: Cloudflare R2 ONLY (never local files)
+- ORM: Drizzle ONLY (never raw SQL)
+- Validation: Zod on ALL inputs
+- TypeScript: strict mode, NO `any` type
+- Arabic text: Baghdad dialect, ZERO emoji
+- Content Engine: use recommended_model from generation_settings
+
+## STACK
+- Frontend: React + Vite (client/)
+- Backend: Express + Drizzle (server/)
+- DB: NEON PostgreSQL
+- Storage: Cloudflare R2
+- Deploy: Vercel
+
+## KEY PATHS
+- Schema: server/db/schema.ts
+- Products images: client/public/images/products/{brand}/{slug}/
+- Improved prompts: Launch_Ideas/promot/IMPROVED/
+- Content bot: ../basarai/backend/telegram_content_bot.py
+- Memory: .agents/memory/
+
+## BRAND VOICE
+- Language: لهجة بغدادية خالصة
+- Emoji: ZERO — ممنوع
+- Tone: خبير واثق (not salesy)
+- CTA: "متوفر الآن — aquavoiq.com"
+
+## COLORS
+- Background: #0a1628 (Deep Ocean) / #010611 (Abyss)
+- Primary: #199bb8 (AQUAVO Cyan)
+- Accent: #ff7b5a (Coral)
+- Gold: #ffd700
+
+## READ FULL MEMORY
+For complete context: CLAUDE.md + .agents/memory/*.md

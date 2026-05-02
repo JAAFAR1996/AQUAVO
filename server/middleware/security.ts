@@ -50,11 +50,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://connect.facebook.net; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com; " +
+      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
@@ -65,11 +65,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com; " +
+      "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://connect.facebook.net; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com; " +
+      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +

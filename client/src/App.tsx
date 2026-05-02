@@ -15,6 +15,7 @@ import { Analytics } from '@vercel/analytics/react';
 import { SpeedInsights } from '@vercel/speed-insights/react';
 
 import { initGA, trackPageView } from "@/lib/analytics";
+import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
 import "@/lib/sentry"; // Auto-initializes on import
 
@@ -560,6 +561,10 @@ function App() {
   // Initialize device detection (adds body classes automatically)
   useDeviceDetection();
   const [location] = useLocation();
+
+  // Initialize Meta Pixel (deferred to idle callback for performance)
+  useMetaPixelInit();
+  useMetaPageView();
 
   // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
   const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location);

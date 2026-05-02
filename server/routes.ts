@@ -34,6 +34,7 @@ import fishPatientsRouter from "./routes/fish-patients.js";
 import aiBoardRouter from "./routes/ai-board.js";
 import simulationRouter from "./routes/simulation.js";
 import miroFishRouter from "./routes/mirofish.js";
+import capiRouter from "./routes/capi.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -119,6 +120,9 @@ export async function registerRoutes(
 
   // MiroFish Deep Simulation (full OASIS multi-agent pipeline)
   app.use("/api/mirofish", miroFishRouter);
+
+  // Meta Conversions API (server-side event forwarding to Facebook)
+  app.use("/api/capi", capiRouter);
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

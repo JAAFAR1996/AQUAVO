@@ -43,7 +43,7 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
-  --font-sans: "Tajawal", "Cairo", sans-serif;
+  --font-sans: "Cairo", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Animations */
@@ -193,8 +193,8 @@
   --muted: 210 25% 25%;
   --muted-foreground: 210 15% 65%;
 
-  /* Warm Coral - 2025 Nature Accent (#ff7b5a) */
-  --accent: 15 100% 68%;
+  /* Amber Gold Accent — 2026 Quiet Luxury (#ffd700) */
+  --accent: 51 100% 50%;
   --accent-foreground: 210 60% 8%;
 
   --destructive: 0 84% 60%;
@@ -244,8 +244,8 @@
   --muted: 210 12% 95%;
   --muted-foreground: 200 10% 45%;
 
-  /* Warm Coral Accent - Energetic Pop */
-  --accent: 15 85% 58%;
+  /* Amber Gold Accent — 2026 Quiet Luxury */
+  --accent: 51 85% 50%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;

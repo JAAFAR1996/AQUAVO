@@ -4,6 +4,7 @@ import { useAuth } from "./auth-context";
 import { addCsrfHeader } from "@/lib/csrf";
 import { syncStorage } from "@/lib/secure-storage";
 import { ttqAddToWishlist } from "@/lib/tiktok-pixel";
+import { metaTrackAddToWishlist } from "@/lib/meta-pixel";
 
 export interface WishlistItem {
   id: string;
@@ -134,6 +135,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
             price: Number(product.price),
             category: product.category,
           });
+          // Meta Pixel: AddToWishlist event
+          metaTrackAddToWishlist({
+            productId: product.id,
+            productName: product.name,
+            priceIQD: Number(product.price),
+            category: product.category,
+          });
         }
       } catch (err) {
         console.error("Failed to add to server wishlist", err);
@@ -156,6 +164,13 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
         id: product.id,
         name: product.name,
         price: Number(product.price),
+        category: product.category,
+      });
+      // Meta Pixel: AddToWishlist event
+      metaTrackAddToWishlist({
+        productId: product.id,
+        productName: product.name,
+        priceIQD: Number(product.price),
         category: product.category,
       });
     }

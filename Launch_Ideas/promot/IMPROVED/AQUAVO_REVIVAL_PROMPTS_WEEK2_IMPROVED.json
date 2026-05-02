@@ -1,0 +1,1057 @@
+{
+  "meta": {
+    "project": "AQUAVO Revival — Social Media Prompts",
+    "week": 2,
+    "theme": "البيئة البايولوجية",
+    "psychology": [
+      "Status-Quo Bias",
+      "Unity Principle",
+      "Curiosity Gap",
+      "Commitment"
+    ],
+    "visual_dna": {
+      "background": "Pure black or deep ocean (#0A0A14)",
+      "accent_colors": [
+        "Bioluminescent green (#00FF88)",
+        "Deep teal (#008080)",
+        "Warm amber (#FF8C00)"
+      ],
+      "lighting": "Dramatic rim lighting, bioluminescent accents, chiaroscuro",
+      "mood": "Scientific precision, biological depth, living systems",
+      "camera_default": "Shot on Hasselblad X2D, 85mm lens, f/2.0",
+      "exclusions": "No text, no typography, no labels, no logos, no watermarks, no icons, no Arabic characters, no English characters, no blurry edges, no cartoon, no illustration, no oversaturated colors"
+    },
+    "text_overlay_note": "All text added in CapCut/Canva AFTER generation. AI cannot render Arabic.",
+    "improved_at": "2026-05-01T02:18:17.016575",
+    "improved_by": "Claude Opus 4 + AQUAVO Brand Engine",
+    "version": " — IMPROVED v7"
+  },
+  "prompts": [
+    {
+      "id": "W2-MON-ST1",
+      "day": "الإثنين",
+      "type": "story_teaser",
+      "platform": "instagram_story",
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "تشويق للفلترة البايولوجية المتقدمة",
+      "psychology": "Status-Quo Bias + Loss Aversion — تحدي المألوف وإظهار مخاطر الاعتماد على الطرق القديمة",
+      "prompt": "A single worn thin white cotton pad floating alone in vast #0a1628 deep ocean darkness, looking pathetically inadequate and vulnerable. Dramatic warm amber side lighting from left illuminating only the frayed cotton, casting harsh shadows into the pitch black void. The cotton appears fragile, dirty, and completely insufficient against the enormous dark abyss. 5% film grain texture. Shot on Canon R5, 85mm lens, f/1.8, shallow depth of field creating bokeh in darkness. Moody documentary cinematography style. Vertical 9:16 format. Clean dark negative space top 20% and bottom 15% for text placement. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "بعدك تعتمد على قطنة وحدة بالفلتر",
+        "line2": "وتسميها فلترة متكاملة؟",
+        "sticker": "سلايدر: من 1 لـ 10 شگد تثق بفلترتك الحالية",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Deep ocean darkness #0a1628 with warm amber spotlight revealing inadequate solution",
+      "seo_caption": "الاعتماد على طرق الفلترة القديمة يعرض حوضك للخطر. نظام الفلترة البايولوجية المتقدم من AQUAVO يوفر حماية شاملة لحوضك المائي. اكتشف الفرق الحقيقي.",
+      "seo_hashtags": [
+        "#فلترة_متقدمة",
+        "#احواض_مائية_العراق",
+        "#aquavo_iraq",
+        "#biological_filtration"
+      ],
+      "seo_alt_text": "قطنة فلتر وحيدة في ظلام عميق تظهر عدم كفاية طرق الفلترة التقليدية مقارنة بأنظمة الفلترة البايولوجية المتقدمة",
+      "music_recommendation": "Atmospheric dark ambient with subtle tension build - similar to Hans Zimmer's 'Cornfield Chase' but more minimal and mysterious",
+      "improvement_notes": "Enhanced psychology by adding Loss Aversion to Status-Quo Bias. Corrected text overlay from 'تستخدم' to 'تعتمد على' for stronger Baghdad dialect authenticity. Added specific AQUAVO brand colors (#0a1628) to prompt. Improved lighting description to warm amber side lighting (brand standard). Added film grain percentage (5%). Increased top negative space to 20% for better text readability. Enhanced product description to be more specific about biological filtration advanced systems.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W2-TUE-ST1",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 1,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Filtration system — Hook",
+      "psychology": "Curiosity Gap + Loss Aversion — المي الصافي ممكن يكون مسموم",
+      "prompt": "A crystal clear glass of water viewed from above on dark walnut surface #0f2035, perfectly transparent and pristine-looking. Hidden beneath the surface, microscopic green fluorescent particles drift like toxic ghosts, only revealed by warm amber UV side light cutting dramatically through the darkness. The terrifying contrast between visual clarity and invisible contamination. Shot on Canon R5, 100mm macro lens f/2.8, extreme close-up detail. Dark Ocean background #0a1628. Film grain 6%. Warm amber side lighting creates depth and reveals hidden danger. Vertical 9:16 composition with clean dark space top 20% bottom 15% for text overlay. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الفلترة الميكانيكية لحالها ما تكفي",
+        "line2": "المي صافية بالعين بس مليانة سموم",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Clear water revealing hidden green toxins under warm amber UV light",
+      "seo_caption": "شلون تعرف اذا المي حقتك نظيفة فعلا؟ الفلترة الميكانيكية لحالها ما تكفي ضد السموم المجهرية. AQUAVO تحميك من اللي ما تشوفه",
+      "seo_hashtags": [
+        "#aquarium_filtration",
+        "#water_safety_iraq",
+        "#aquavo_systems",
+        "#baghdad_aquarium",
+        "#clean_water"
+      ],
+      "seo_alt_text": "Glass of clear water on dark surface with hidden green fluorescent particles visible under UV lighting, demonstrating invisible water contamination",
+      "music_recommendation": "Dark ambient drone with subtle tension build - similar to Hans Zimmer's 'Arrival' theme, 15-20 seconds fade in",
+      "improvement_notes": "Enhanced psychology label to include Loss Aversion (fear of contamination). Fixed grammar: 'مليان' to 'مليانة' for correct feminine agreement with 'المي'. Added specific AQUAVO color codes #0f2035 and #0a1628. Specified Canon R5 instead of Sony for brand consistency. Enhanced lighting description with 'warm amber' to match brand aesthetic. Added film grain percentage (6%). Improved text spacing percentages for better mobile readability.",
+      "psychology_score": 9,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W2-TUE-ST3",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "6D cotton + 3D material + Nano rings + Culture bricks",
+      "psychology": "Authority Bias + Contrast Effect — أربع طبقات محترفة vs فلتر واحد عادي",
+      "prompt": "Four distinct layers of premium aquarium filter media floating in vertical exploded view against deep ocean background (#0a1628). Top layer: pristine white 6D cotton pad with ultra-fine fiber texture visible under warm amber side lighting. Second: translucent blue 3D spherical bio-media with complex internal structure, subtle teal accent light. Third: precisely engineered ceramic nano rings with microscopic honeycomb pores, soft green accent light. Bottom: dense volcanic culture bricks with rich brown texture and visible bacterial colonies, warm amber gold accent light (#ffd700). Each layer separated by 20cm dark space. Shot on Canon R5, 85mm lens, f/2.8, warm amber key light from left, film grain 6%, hyper-realistic product photography. Vertical 9:16 composition with 20% safe zone top and bottom. Dark walnut textured background blur. No text, no typography, no labels, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "النظام الصحيح — أربع طبقات",
+        "line2": "6D + 3D + نانو + طوب بكتيريا",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Deep ocean background with four premium accent lights: amber > teal > green > amber gold",
+      "seo_caption": "نظام الفلترة المتقدم من AQUAVO — أربع طبقات تضمن مياه نقية وبيئة صحية لأسماكك. تقنية 6D مع مواد النانو والطوب البكتيري المتخصص.",
+      "seo_hashtags": [
+        "#aquarium_iraq",
+        "#فلاتر_احواض",
+        "#aquavo_filters",
+        "#بيولوجيا_احواض",
+        "#اسماك_عراق"
+      ],
+      "seo_alt_text": "Four layers of AQUAVO aquarium filter media in exploded view - 6D cotton, 3D bio media, nano ceramic rings, and culture bricks against dark premium background",
+      "music_recommendation": "Deep ambient electronic with subtle water drop sounds, 85-95 BPM, minor key progression to emphasize premium technical feel",
+      "improvement_notes": "Enhanced psychology to include Contrast Effect showing superiority over single-layer filters. Improved color accuracy to match AQUAVO brand palette. Changed 'طوب ثقافة' to 'طوب بكتيريا' for better Baghdad dialect authenticity. Added specific camera/lighting details and film grain percentage. Increased safe zone to 20% for better mobile readability. Enhanced background texture for premium feel.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W2-WED-C1",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — تأسيس الفلترة البيولوجية",
+      "psychology": "Curiosity Gap + Authority Bias — دليل خطوة بخطوة يظهر الخبرة التقنية",
+      "prompt": "Professional aquarium laboratory setup with five biological filtration products arranged on matte black stepped platforms ascending left to right in perfect staircase formation. Each product illuminated by focused warm amber spotlight (3200K) from 45-degree angle creating dramatic shadows on deep ocean blue background (#0a1628). Scientific precision atmosphere with subtle film grain (6%). Products: bio-media ceramic rings, bacterial starter culture, bio-filter pads, beneficial bacteria supplement, bio-wheel filter component. Shot on Hasselblad X2D, 85mm lens, f/2.8. Hyper-realistic product photography style, not CGI. 8K resolution, portrait 4:5. No text, no typography, no labels, no logos, no watermarks, no icons, no people.",
+      "text_overlay": {
+        "line1": "دليل تأسيس الفلترة البايولوجية",
+        "line2": "من الصفر للحوض الكامل — 3 خطوات بس",
+        "position": "top_quarter"
+      },
+      "color_mood": "Deep ocean background with ascending warm amber spotlights",
+      "seo_caption": "تعلم تأسيس الفلترة البايولوجية بالطريقة الصحيحة. دليل علمي مبسط من خبراء AQUAVO للحصول على حوض صحي ومستقر. اكتشف الخطوات الثلاث الأساسية لتكوين البكتيريا المفيدة وضمان جودة المياه المثالية.",
+      "seo_hashtags": [
+        "#الفلترة_البايولوجية",
+        "#تأسيس_الحوض",
+        "#اكواريوم_العراق",
+        "#AQUAVO",
+        "#بكتيريا_مفيدة"
+      ],
+      "seo_alt_text": "خمس منتجات للفلترة البيولوجية مرتبة على منصات متدرجة مع إضاءة كشاف دافئة على خلفية مختبر مظلمة - دليل تأسيس الفلترة البيولوجية من الصفر",
+      "music_recommendation": "Deep electronic ambient - Brian Eno style or cinematic lab atmosphere sound (60-80 BPM)",
+      "improvement_notes": "Changed from 3D CGI to realistic product photography for credibility. Enhanced psychology label to include Authority Bias. Specified exact AQUAVO colors. Corrected 'البيولوجية' spelling. Added 'بس' for authentic Baghdad dialect. Specified actual filtration products instead of generic items. Improved lighting angle for dramatic effect.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C2",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "16-in-1 filter material 2.5kg",
+      "psychology": "Framing Effect — 16 في 1 = قيمة استثنائية + Visual Abundance Bias",
+      "prompt": "Premium 2.5kg filter media bag in matte black packaging on dark walnut surface (#0a1628 background). Sixteen distinct bio-filter media types cascading upward in elegant spiral formation — ceramic rings, bio-balls, volcanic rock spheres, activated carbon cubes, zeolite crystals, pumice stones, lava rock chunks, glass bio-media rings, plastic bio-wheels, sponge cubes, filter wool strands, ceramic noodles, bio-ceramic spheres, matrix media, coral chips, mineral stones. Each particle catches warm amber side lighting (3200K temperature) creating rim highlights and depth. Shot on Canon R5, 85mm lens, f/3.2, film grain 6%. Commercial product photography with luxurious depth of field. Portrait 4:5 aspect ratio. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "الخطوة الأولى — مواد فلترة 16 بواحد",
+        "line2": "عبوة 2.5 كيلو تكفي للتأسيس الكامل",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean background with amber-lit cascading filter media creating luxury abundance visual",
+      "seo_caption": "مواد الفلترة البايولوجية الشاملة من AQUAVO — 16 نوع بعبوة واحدة لتأسيس مثالي لحوض السمك. تركيبة متقدمة تضمن بيئة مائية صحية ومتوازنة.",
+      "seo_hashtags": [
+        "#مواد_فلترة",
+        "#أحواض_سمك_العراق",
+        "#AQUAVO_Iraq",
+        "#فلترة_بايولوجية",
+        "#تأسيس_الحوض"
+      ],
+      "seo_alt_text": "عبوة مواد فلترة AQUAVO 16 في 1 بوزن 2.5 كيلو مع عرض أنواع المواد المختلفة في تشكيل انسيابي على خلفية داكنة فاخرة",
+      "music_recommendation": "Deep ambient electronic with water droplet sounds — similar to 'Weightless' by Marconi Union or soft aquarium ambience",
+      "improvement_notes": "Enhanced psychology label to include Visual Abundance Bias. Fixed Baghdad dialect (الأولى instead of 1, بواحد instead of في 1). Specified exact filter media types for more realistic AI generation. Added precise color temperature (3200K) and film grain percentage. Changed lens from 50mm to 85mm for better product isolation. Upgraded background to specific AQUAVO color hex.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C3",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Six-in-one filter material 500g",
+      "psychology": "Framing Effect + Anchoring Bias — positioning smaller size as smart choice after viewing premium 16-in-1",
+      "prompt": "Professional product photography: 500g container of premium six-in-one filter material positioned on dark walnut wood surface with Deep Ocean #0a1628 gradient background. Six distinct filter media types arranged in precise semicircle formation in front of container - ceramic rings, bio balls, activated carbon pellets, zeolite stones, filter foam cubes, and glass media - each clearly differentiated by texture and size. Warm amber side lighting from 45-degree angle creates subtle shadows and depth. Shot on Canon R5 with 85mm f/2.8 lens, intimate composition with product filling 75% of frame. Fine film grain 6%. Dark premium aesthetic with rich contrast. Portrait 4:5 format. No text overlays, no typography, no branding elements, no watermarks.",
+      "text_overlay": {
+        "line1": "البديل الذكي — مادة 6 في 1",
+        "line2": "500 غرام للأحواض المتوسطة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep Ocean background with warm amber accent lighting",
+      "seo_caption": "مادة فلترة 6 في 1 للأحواض المتوسطة - الخيار الذكي لمن يبحث عن جودة عالية بحجم مناسب. كل نوع مادة فلترة له وظيفة محددة لضمان مياه صافية وصحية لأسماكك.",
+      "seo_hashtags": [
+        "#أكوافو_العراق",
+        "#فلاتر_أحواض",
+        "#مواد_فلترة",
+        "#أحواض_السمك",
+        "#العناية_بالأسماك"
+      ],
+      "seo_alt_text": "500g container of six-in-one aquarium filter material with six different filter media types arranged in semicircle on dark wooden surface",
+      "music_recommendation": "Subtle ambient electronic with soft percussion - 'Deep Focus' style instrumental track at 85 BPM",
+      "improvement_notes": "Enhanced psychology label to include Anchoring Bias (following expensive 16-in-1 product makes 500g seem reasonable). Improved Arabic dialect: changed 'الأصغر' to 'المتوسطة' (more accurate positioning). Added specific AQUAVO color codes. Enhanced lighting description with precise angle. Added detailed filter media types for authenticity. Specified Canon R5 per brand guidelines.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C4",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Nitrifying Bacteria 50 + 100 capsules",
+      "psychology": "Authority Bias + Scientific Credibility — bacterial visualization demonstrates expertise",
+      "prompt": "Two premium capsule bottles (50 and 100 count) positioned on dark walnut wood surface against deep ocean blue #0a1628 background. Warm amber side lighting from left creates golden reflections on capsule surfaces. Around the bottles, CGI-enhanced visualization of glowing beneficial bacteria colonies rendered as interconnected bioluminescent networks — emerald and AQUAVO cyan #199bb8 particles connected by fine luminous threads forming organic neural patterns. Microscopic bacterial clusters fade into darkness at edges. Shot on Canon R5, 85mm lens, f/2.8, shallow depth of field keeps bottles sharp while bacterial network softly glows in background. Film grain 6%. Cinematic product photography. Portrait 4:5. No text, no typography, no labels, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "الخطوة الثانية — بكتيريا مفيدة",
+        "line2": "50 أو 100 كبسولة متوفرة",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean background with warm amber lighting and bioluminescent AQUAVO cyan bacterial networks",
+      "seo_caption": "الخطوة الثانية لحوض مائي صحي — بكتيريا مفيدة تحول الأمونيا السامة إلى نترات آمنة. متوفر بحجم 50 أو 100 كبسولة حسب احتياجك. علم متقدم لحماية أسماكك",
+      "seo_hashtags": [
+        "#أكوافو",
+        "#بكتيريا_مفيدة",
+        "#حوض_مائي_صحي",
+        "#العراق_أكواريوم"
+      ],
+      "seo_alt_text": "عبوتان من كبسولات البكتيريا المفيدة أكوافو 50 و100 قطعة مع تصور علمي لشبكة البكتيريا المضيئة",
+      "music_recommendation": "Deep ambient with subtle organic textures — think Ólafur Arnalds 'Near Light' style, emphasizing scientific wonder",
+      "improvement_notes": "Fixed lighting to warm amber (was missing), added specific AQUAVO color codes, corrected dialect (مفيدة instead of نافعة, added متوفرة for flow), enhanced bacterial visualization with brand colors, specified camera settings properly, added walnut wood surface for premium feel",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C5",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Bacteria colonizing filter media — Explainer",
+      "psychology": "Commitment — الفهم يبني الالتزام",
+      "prompt": "Ultra-macro cross-section cutaway of dark grey ceramic filter media revealing internal honeycomb pore structure. Established bacterial colonies glow as organic teal-cyan bioluminescent clusters deep within the microscopic chambers. Each colony forms intricate branching patterns like underwater coral formations. Background: deep ocean slate #0f2035. Warm amber rim lighting from 45-degree angle creates depth and texture on ceramic surfaces. Fine film grain 6%. Shot on Canon R5 with 100mm macro lens, f/4.0. Scientific visualization meets premium product photography. Portrait 4:5 format. Hyper-detailed bacterial microstructures. No text overlays, no typography, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "البكتيريا النافعة تسكن مواد الفلترة",
+        "line2": "وتحلل السموم بطريقة طبيعية",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean slate with glowing teal bacterial colonies",
+      "seo_caption": "البكتيريا النافعة هي قلب أي حوض سمك صحي. هاي المستعمرات المجهرية تسكن مواد الفلترة وتحول الأمونيا السامة لمواد آمنة. بدونها، الحوض يصير بيئة سامة للأسماك. AQUAVO تفهم علوم البايولوجيا وتقدم فلاتر متطورة تدعم نمو هاي البكتيريا الحيوية. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#احواض_السمك",
+        "#فلترة_بايولوجية",
+        "#البكتيريا_النافعة",
+        "#AQUAVO",
+        "#احواض_العراق"
+      ],
+      "seo_alt_text": "Macro cross-section view of ceramic filter media showing bioluminescent bacterial colonies growing within microscopic pores, scientific aquarium filtration visualization",
+      "music_recommendation": "Ambient electronic with subtle water droplet sounds — tracks like 'Deep Ocean' by Max Richter or 'Aqueous' by Kiasmos",
+      "improvement_notes": "Enhanced visual depth with specific color codes (#0f2035), added warm amber rim lighting for premium aesthetic, improved Arabic text to be more precise (النافعة for beneficial bacteria, طبيعية instead of بيولوجياً for better dialect flow), specified camera settings for realism, added organic coral-like formations to make bacteria more visually interesting",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C6",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Algaecide 500ml",
+      "psychology": "Present Bias + Loss Aversion — حماية فورية من خسارة الحوض",
+      "prompt": "Professional algaecide bottle (AQUAVO Cyan #199bb8 label) floating in Deep Ocean #0a1628 darkness, 75% frame composition. Surrounding the bottle, thick green algae strands dissolve and disintegrate in real-time, transforming from vibrant toxic green to transparent wisps before vanishing completely. The bottle emits a protective cyan-blue aura (#199bb8 glow). Warm amber side lighting creates dramatic shadows on walnut-toned background. Film grain 6%. Shot on Canon R5, 85mm lens, f/2.8. Premium product photography aesthetic. Portrait 4:5 ratio. No text overlays, no typography, no watermarks, no icons. Maintain carousel visual consistency: same lighting angle, same background tone, same product positioning as previous slides.",
+      "text_overlay": {
+        "line1": "الخطوة 3 — مبيد الطحالب",
+        "line2": "حماية فترة التأسيس",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep Ocean background with dissolving toxic green algae and AQUAVO cyan protective aura",
+      "seo_caption": "الخطوة الثالثة في تأسيس الحوض — مبيد الطحالب المتخصص يحمي استثمارك من اليوم الأول. مو بس ينظف، يمنع رجوع المشكلة. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#أكواريوم_العراق",
+        "#مبيد_طحالب",
+        "#حوض_سمك_بغداد",
+        "#اكوافو"
+      ],
+      "seo_alt_text": "زجاجة مبيد طحالب اكوافو 500 مل تطفو في خلفية مظلمة مع طحالب خضراء تذوب حولها وهالة زرقاء واقية",
+      "music_recommendation": "Deep electronic ambient with subtle water bubbling sounds - 80-90 BPM, minor key progression",
+      "improvement_notes": "Enhanced psychology from Present Bias only to Present Bias + Loss Aversion (protecting investment). Added specific AQUAVO brand colors (#199bb8, #0a1628). Changed Sony to Canon R5 for brand consistency. Added carousel consistency instructions. Specified 75% frame composition rule. Added film grain percentage (6%). Enhanced background description to Deep Ocean brand color.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C7",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "System summary — All 5 products",
+      "psychology": "Peak-End Rule — Visual summary creating lasting impression of complete integrated system mastery",
+      "prompt": "Premium 3D isometric product display on stepped dark walnut platforms against Deep Ocean #0a1628 background. Five AQUAVO biological filtration products arranged in ascending sequence: filter media bags (step 1), beneficial bacteria bottles (step 2), algae treatment solution (step 3), water conditioner (step 4), testing kit (step 5). Subtle AQUAVO Cyan #199bb8 glowing connection lines flow between products suggesting systematic workflow. Each product positioned at 75% frame presence with warm amber side lighting creating premium shadows. Shot with Hasselblad X2D, 85mm lens, f/3.2, film grain 6%. Dark luxury e-commerce photography style. Portrait 4:5 aspect ratio. No text overlays, no typography, no logos, no watermarks, no icons.",
+      "text_overlay": {
+        "line1": "النظام الكامل — خمس خطوات",
+        "position": "top_quarter"
+      },
+      "color_mood": "Deep Ocean background with AQUAVO Cyan connecting flow lines and warm amber product lighting",
+      "seo_caption": "النظام البايولوجي الكامل لحوض السمك — خمس خطوات لمياه صافية ونظيفة. كل منتج مصمم يشتغل مع الثاني عشان يعطيك أحسن نتيجة. AQUAVO — الخبرة الحقيقية في العراق",
+      "seo_hashtags": [
+        "#أحواض_السمك_العراق",
+        "#النظام_البايولوجي",
+        "#AQUAVO",
+        "#مياه_صافية",
+        "#أحواض_احترافية"
+      ],
+      "seo_alt_text": "Five AQUAVO biological filtration products arranged on dark stepped platforms showing complete aquarium system workflow with glowing connection lines",
+      "music_recommendation": "Ambient electronic with subtle build-up — similar to 'Weightless' by Marconi Union but with more energy for system completion feeling",
+      "improvement_notes": "Enhanced psychology label for accuracy, corrected text overlay from 3 to 5 products (matching actual system), improved prompt with all 5 AQUAVO products clearly specified, added proper brand colors with hex codes, specified 85mm lens for better product isolation, maintained isometric perspective while ensuring each product gets premium treatment",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-WED-C8",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 8,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — دليل التأسيس المتقدم",
+      "psychology": "Commitment & Unity Principle — احفظ = التزام + انضمام للنخبة",
+      "prompt": "Ultra-premium minimalist dark background with subtle gradient from Deep Ocean #0a1628 edges fading to Ocean Floor #0f2035 center. Barely visible ghosted silhouette of layered biological filter media (ceramic rings, bio-balls, sponge layers) as subtle watermark shadow in lower third. Vast clean negative space occupying 85% of frame for text overlay. Warm amber rim light (2700K) creating subtle depth on gradient edges. Shot on Hasselblad X2D, 50mm lens, f/4.0, film grain 6%. Portrait 4:5 aspect ratio. Deep shadows with controlled contrast. No text, no typography, no labels, no logos, no watermarks, no icons, no characters, no hands.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل لمن تبدي حوضك الجديد",
+        "line2": "aquavoiq.com",
+        "position": "center",
+        "font_style": "Clean sans-serif, AQUAVO Cyan #199bb8",
+        "hierarchy": "line1: 32pt bold, line2: 18pt regular"
+      },
+      "color_mood": "Deep premium minimalism with biological undertones",
+      "seo_caption": "احفظ هالدليل المتقدم لتأسيس الحوض البايولوجي الصحيح. نظام البكتيريا النافعة والفلترة الحيوية - كل شي تحتاجه لبداية ناجحة. متوفر الآن aquavoiq.com",
+      "seo_hashtags": [
+        "#أكواريوم_عراقي",
+        "#فلترة_حيوية",
+        "#تأسيس_حوض",
+        "#بكتيريا_نافعة",
+        "#دليل_الخبراء"
+      ],
+      "seo_alt_text": "خلفية داكنة متدرجة مع ظل خفيف لوسائط الفلترة البيولوجية، مساحة فارغة للنص، تصميم بريميوم لدليل تأسيس الأحواض",
+      "music_recommendation": "Ambient minimal electronic - Brian Eno style atmospheric pad, 80-90 BPM, deep bass undertones",
+      "improvement_notes": "1. Fixed Baghdad dialect: 'تبدي' instead of 'تأسس' (more natural Iraqi). 2. Enhanced psychology to include Unity Principle - joining the expert elite. 3. Added specific AQUAVO brand colors with hex codes. 4. Improved camera specs for premium aesthetic (50mm f/4.0 vs 35mm f/8.0 for better depth). 5. Added biological filter media silhouette to reinforce theme. 6. Increased negative space to 85% for better text readability. 7. Enhanced product description to 'متقدم' for premium positioning. 8. Added font styling specifications for consistency.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-FRI-ST1",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 1,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Water grass mud — soil types",
+      "psychology": "Framing Effect — ناعم مقابل خشن = قرار مبني على المعرفة",
+      "prompt": "Professional vertical split-screen diptych composition on AQUAVO Deep Ocean #0a1628 background. Left side: ultra-fine dark aquarium soil granules (1-2mm) captured in extreme macro detail, delicate white plant rootlets threading through particles, warm amber side lighting creating golden rim light on soil edges, Canon R5 with 100mm macro lens f/4.0, film grain 6%. Right side: coarse dark aquarium soil granules (3-5mm) with visible air pockets and texture variations, thick robust white roots penetrating deep between particles, slightly cooler amber lighting with more defined shadows, matching camera setup. Both sides maintain consistent dark slate background depth. Vertical 9:16 format with 15% clean space at top and bottom for text overlay. No typography, no labels, no watermarks, no logos. Sharp focus on soil texture contrast.",
+      "text_overlay": {
+        "line1": "ناعم ١.٥ ملم | خشن ٣ ملم",
+        "line2": "كل نبات له حجم تربة مختلف",
+        "sticker": "تصويت: ناعم / خشن",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Split: warm amber-lit fine soil vs cooler amber coarse soil macro with AQUAVO Deep Ocean background",
+      "seo_caption": "اختر تربة الأكواريوم المناسبة لنباتك 🌱 التربة الناعمة للنباتات الدقيقة، والخشنة للجذور القوية. الفرق واضح عندك المعرفة الصح",
+      "seo_hashtags": [
+        "#أكواريوم_بغداد",
+        "#نباتات_مائية",
+        "#تربة_مائية",
+        "#AQUAVO",
+        "#أسماك_زينة"
+      ],
+      "seo_alt_text": "مقارنة بصرية بين حبيبات التربة المائية الناعمة والخشنة تحت الإضاءة الدافئة مع جذور النباتات البيضاء",
+      "music_recommendation": "Subtle ambient electronic with gentle percussion build - think Kiara Scuro or similar cinematic brand music",
+      "improvement_notes": "1. Enhanced color specifications with exact AQUAVO brand colors (#0a1628). 2. Corrected Arabic numerals format (١.٥ ملم instead of 1.5K). 3. Improved Baghdad dialect (له instead of يحتاج for more natural flow). 4. Added specific technical camera details (f/4.0, film grain 6%). 5. Enhanced lighting description with 'golden rim light' for premium feel. 6. Added specific soil size measurements for educational accuracy. 7. Strengthened macro photography technical specifications.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W2-SAT-C1",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — نظام الأوكسجين",
+      "psychology": "Curiosity Gap + Authority Bias — Complete ecosystem solution presentation",
+      "prompt": "Professional oxygenation system layout on dark slate surface (#0f2035): compact air pump (left), connected via clear silicone tubing to spherical bubble diffuser (center), with ceramic air stone and surface protein skimmer completing the flow. Each component illuminated by warm amber side lighting (3200K), creating subtle shadows and depth. Film grain 6%. Shot on Canon R5, 85mm macro lens, f/3.5, shallow DOF on connection points. Dark premium aesthetic with AQUAVO cyan (#199bb8) accent reflections on metallic surfaces. System occupies 80% of vertical frame. Portrait 4:5 composition. No text, no typography, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "نظام الأوكسجين الكامل",
+        "line2": "5 قطع — تنفس مثالي للسمك",
+        "position": "top_quarter"
+      },
+      "color_mood": "Deep Ocean background with warm amber system lighting and cyan metallic accents",
+      "seo_caption": "نظام الأوكسجين الكامل من AQUAVO — 5 قطع أساسية لتنفس مثالي في الحوض. تكنولوجيا متقدمة تضمن صحة السمك والنباتات المائية. مصمم للأحواض الاحترافية في العراق.",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#نظام_الأوكسجين",
+        "#أحواض_السمك_العراق",
+        "#تربية_السمك_بغداد",
+        "#معدات_أحواض_متقدمة"
+      ],
+      "seo_alt_text": "Complete AQUAVO oxygenation system with 5 connected components including air pump, bubble diffuser, air stone, and protein skimmer arranged on dark premium background with warm lighting",
+      "music_recommendation": "Ambient electronic with subtle water bubbling sounds - minimal beat, 85-90 BPM, emphasizing premium tech feel",
+      "improvement_notes": "Enhanced psychology to include Authority Bias alongside Curiosity Gap. Upgraded lighting from cold blue spotlights to warm amber side lighting matching AQUAVO aesthetic. Added specific AQUAVO cyan color references. Improved camera specs to Canon R5 with macro lens for product detail. Enhanced text overlay with clearer benefit statement. Added film grain specification.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C2",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Xiaobai oxygen pump 3W",
+      "psychology": "Contrast Effect — هدوء تام = ميزة فريدة",
+      "prompt": "A sleek compact white Xiaobai oxygen pump positioned on dark walnut wood surface with deep ocean blue (#0a1628) background. The pump features minimal modern design with smooth rounded edges. Warm amber side lighting from 45-degree angle creating subtle golden highlights and gentle shadows. Film grain 6%. The device appears completely still and silent, no visible vibrations or disturbances around it. Shot on Hasselblad X2D, 85mm lens, f/2.8. Premium product photography with dark luxury aesthetic. Portrait 4:5 ratio. Product fills 75% of frame. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "مضخة Xiaobai 3W",
+        "line2": "هدوء تام — ما تسمعها وانت نايم",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean background with warm amber key lighting, serene luxury atmosphere",
+      "seo_caption": "مضخة الأكسجين الصامتة من AQUAVO — تشتغل بهدوء تام ما تخليك تحس بيها. مثالية للأحواض الحساسة وغرف النوم. قوة 3W وأداء موثوق 24/7",
+      "seo_hashtags": [
+        "#اكواريوم_العراق",
+        "#مضخة_اكسجين",
+        "#احواض_السمك",
+        "#aquavo_iraq",
+        "#صامتة_تماما"
+      ],
+      "seo_alt_text": "مضخة أكسجين Xiaobai بيضاء صغيرة الحجم على سطح خشبي داكن مع إضاءة ذهبية دافئة، تصوير احترافي يظهر التصميم الأنيق والهادئ للمنتج",
+      "music_recommendation": "Ambient minimal techno with subtle water droplet sounds, 60-80 BPM, no vocals",
+      "improvement_notes": "Fixed Arabic dialect ('وأنت' to 'وانت'), enhanced lighting description with specific amber angle, added AQUAVO brand colors (#0a1628), specified walnut wood surface for premium feel, increased film grain specificity to 6%, clarified 75% frame fill rule, maintained Contrast Effect psychology by emphasizing stillness vs typical noisy pumps",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C3",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "YEE 50mm Bubble Diffuser",
+      "psychology": "Peak-End Rule — فقاعات دقيقة = مشهد مرضي بصرياً + Flow State",
+      "prompt": "A premium 50mm mineral stone bubble diffuser positioned on dark slate background, emitting thousands of microscopic uniform bubbles in a mesmerizing vertical column. Each micro-bubble catches warm amber side lighting creating tiny golden orbs ascending through Deep Ocean #0a1628 colored water. Shot with Canon R5, 85mm macro lens, f/3.5, shallow depth of field focusing on bubble stream. Film grain 6%, dramatic chiaroscuro lighting, luxury product photography aesthetic. The diffuser stone shows natural mineral texture with AQUAVO Cyan #199bb8 subtle color temperature in reflections. Portrait 4:5 composition, product positioned lower third. No text, no typography, no labels, no watermarks.",
+      "text_overlay": {
+        "line1": "ناشر فقاعات كروي 50 ملم",
+        "line2": "فقاعات دقيقة تذوب بالماي",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep Ocean dark background with thousands of amber-lit micro-bubbles creating meditative atmosphere",
+      "carousel_consistency": "Maintain same lighting setup, dark slate surface, and amber side lighting across all slides. Product positioning should vary slightly but maintain premium aesthetic.",
+      "seo_caption": "ناشر الفقاعات الكروي من AQUAVO — فقاعات دقيقة جداً تذوب بالماي وتخلي البيئة البايولوجية مثالية لأسماكك. تقنية ألمانية متقدمة تضمن توزيع الأوكسجين بشكل مثالي. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#أكواريوم_العراق",
+        "#ناشر_فقاعات",
+        "#AQUAVO_Iraq",
+        "#أسماك_الزينة",
+        "#أكسجين_الأسماك"
+      ],
+      "seo_alt_text": "ناشر فقاعات كروي 50 ملم من AQUAVO ينتج آلاف الفقاعات الدقيقة في عمود عمودي مضيء على خلفية مظلمة",
+      "music_recommendation": "Ambient underwater sounds with subtle bubble ASMR effects, 70-80 BPM meditative tempo",
+      "improvement_notes": "Fixed Baghdad dialect (ماي not مي), added proper AQUAVO color codes, enhanced camera specs with specific focal length, added carousel consistency instructions, improved psychology label to include Flow State for meditative bubble effect, added mineral texture detail for premium positioning",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C4",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Air hose 1.5m + Airbag 1.7m",
+      "psychology": "Commitment + System Completion — قطع الربط تكمل النظام",
+      "prompt": "Premium transparent air hose (1.5m) and inflatable air cushion (1.7m) arranged in elegant parallel curves on dark walnut surface (#0f2035). The reinforced hose walls catch warm amber side light revealing internal structure and premium build quality. Both components positioned to show they complete each other as a system. Shot on Canon R5, 85mm lens, f/2.8, warm amber lighting from 45-degree angle. Dark premium aesthetic with 6% film grain. AQUAVO cyan accents (#199bb8) subtly reflecting on surfaces. Portrait 4:5 format. No text, no typography, no labels, no logos, no watermarks, no icons, no characters. Maintain carousel visual consistency with previous slides.",
+      "text_overlay": {
+        "line1": "خرطوم متر ونص + وسادة متر وسبعين",
+        "line2": "توصيل متين — النظام مكتمل",
+        "position": "bottom_third"
+      },
+      "color_mood": "AQUAVO dark premium with warm amber revealing system completion",
+      "seo_caption": "خرطوم الهواء المقوى مع الوسادة الهوائية — نظام التهوية المتكامل لأحواض السمك العراق. جودة عالية ومتانة مضمونة.",
+      "seo_hashtags": [
+        "#احواض_السمك_العراق",
+        "#تهوية_الحوض",
+        "#اكسسوارات_السمك",
+        "#اكوافو",
+        "#بغداد_احواض"
+      ],
+      "seo_alt_text": "خرطوم هواء شفاف مقوى 1.5 متر مع وسادة هوائية 1.7 متر على خلفية داكنة مع إضاءة دافئة تُظهر جودة البناء والمتانة",
+      "music_recommendation": "Deep atmospheric tech house 80-90 BPM — subtle bassline emphasizing system completion and reliability",
+      "improvement_notes": "Enhanced psychology from single 'Commitment' to 'Commitment + System Completion' for better visual narrative. Fixed text overlay to pure Baghdad dialect ('متر ونص' instead of formal '1.5م', 'النظام مكتمل' instead of generic 'مرن'). Added specific AQUAVO colors, Canon R5 camera, film grain percentage, and carousel consistency instruction. Enhanced product positioning to show systematic completion.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C5",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "3W oil film processor",
+      "psychology": "Contrast Effect — سطح ملوث مقابل نظيف",
+      "prompt": "Professional aquarium surface comparison photography on dark walnut background #0f2035. Left side: aquarium water surface covered in thick oily biofilm with rainbow iridescent sheen, particles floating, murky reflections, creating unhealthy stagnant appearance. Right side: crystal-clear aquarium surface with perfect transparency, clean reflections showing healthy underwater plants below. Sleek black 3W surface skimmer device positioned at the center dividing line, amber side lighting creating warm professional glow, minimal shadows. Shot on Canon R5, 85mm macro lens, f/3.2, film grain 6%, depth of field highlighting the dramatic difference. Portrait 4:5 composition, premium aquarium product photography style. No text overlays, no typography, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "معالج الزيوت 3W",
+        "line2": "ينظف السطح بثواني",
+        "position": "center"
+      },
+      "color_mood": "Dark premium split: oily biofilm vs crystal clarity with AQUAVO cyan accents",
+      "seo_caption": "الفرق واضح بين الماي الملوث والنظيف. معالج الزيوت 3W من AQUAVO يسحب كل الشوائب من سطح الحوض بثواني معدودة. لأن السمك يستاهل ماي نظيف دائماً.",
+      "seo_hashtags": [
+        "#أكواريوم_عراقي",
+        "#تنظيف_الماء",
+        "#AQUAVO_العراق",
+        "#معدات_السمك"
+      ],
+      "seo_alt_text": "مقارنة بصرية لسطح ماء الأكواريوم قبل وبعد استخدام معالج الزيوت 3W من AQUAVO، يظهر الفرق بين السطح الملوث والنظيف",
+      "music_recommendation": "Minimal tech ambient with water droplet sounds - 'Deep Clean' style track with subtle bass undertones",
+      "improvement_notes": "Enhanced specificity by clarifying 'aquarium surface' vs generic water, improved technical camera specs (85mm macro for better detail capture), added specific AQUAVO color coding, refined Baghdad dialect in text overlay ('معالج الزيوت' more precise than 'معالج السطح', 'ينظف' stronger action than 'يسحب'), added professional lighting details for consistency with brand aesthetic",
+      "psychology_score": 9,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C6",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "System flow diagram",
+      "psychology": "Unity Principle — النظام المتصل = انتماء للمحترفين",
+      "prompt": "Professional 3D technical diagram showing complete oxygenation system flow on deep ocean slate background #0f2035. Left side: sleek black air pump with subtle chrome details. Center: crystal-clear silicone hose (12mm diameter) connecting to precision-engineered spherical bubble diffuser positioned at bottom-center of dark aquarium void. Top-right: surface skimmer with matte black housing floating elegantly. Glowing AQUAVO cyan #199bb8 flow lines trace air path from pump through hose to diffuser, separate amber gold #ffd700 lines show water circulation to skimmer. Shot on Hasselblad X2D 100C, 50mm lens, f/2.8, warm amber side lighting creating dramatic shadows, subtle film grain 6%. 3D CGI render with photorealistic materials and textures. Portrait 4:5 ratio. Professional product visualization. No text overlays, no typography, no labels, no logos, no watermarks, no icons, no UI elements.",
+      "text_overlay": {
+        "line1": "النظام كله متصل ويه بعض",
+        "position": "top_quarter"
+      },
+      "color_mood": "Deep ocean background with glowing AQUAVO cyan flow paths and amber gold accents",
+      "seo_caption": "هاي هي الطريقة الصحيحة لربط نظام الأكسجين بالحوض. كل قطعة تشتغل ويه الثانية عشان تخلي الماي مثالي للسمچ. مو بس جهاز واحد — نظام كامل متخصص",
+      "seo_hashtags": [
+        "#نظام_أكسجين",
+        "#حوض_سمك_متقدم",
+        "#تقنية_احواض",
+        "#اكوافو_العراق",
+        "#احواض_احترافية"
+      ],
+      "seo_alt_text": "3D diagram showing connected aquarium oxygenation system with pump, hose, bubble diffuser and surface skimmer on dark background with glowing flow lines",
+      "music_recommendation": "Minimal ambient electronic with subtle water droplet sounds - similar to 'Weightless' by Marconi Union but with aquatic elements",
+      "improvement_notes": "Fixed Baghdad dialect (changed 'النظام الكامل متصل' to 'النظام كله متصل ويه بعض' - more natural Baghdad speech). Enhanced prompt with specific AQUAVO brand colors (#199bb8, #ffd700, #0f2035), added professional technical details (12mm hose diameter), specified Hasselblad X2D 100C model, added film grain percentage (6%), enhanced lighting description with warm amber side lighting, added photorealistic materials specification, strengthened exclusions to prevent AI from adding text elements.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W2-SAT-C7",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — نظام الأوكسجين المتطور",
+      "psychology": "Commitment & Peak-End Rule — احفظ لمن تبني",
+      "prompt": "Ultra-minimalist dark premium background, deep ocean gradient from AQUAVO abyss #010611 to deep ocean #0a1628. Ethereal micro-bubbles rising in perfect vertical streams, barely visible as ghostly silhouettes with 15% opacity, creating subtle depth layers. Warm amber rim lighting (2700K) kissing the edges, creating premium atmosphere. Shot on Hasselblad X2D, 50mm lens, f/4.0 for optimal sharpness. Film grain 6%. Vast negative space centered for text overlay. Portrait 4:5 composition. Premium dark aquarium aesthetic with breathable elegance. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالمنشور لمن تبني نظام الأوكسجين",
+        "line2": "aquavoiq.com",
+        "position": "center",
+        "font": "Clean sans-serif, white #ffffff",
+        "size": "32px/24px"
+      },
+      "color_mood": "Pure dark minimalism with ethereal bubble poetry",
+      "seo_caption": "نظام الأوكسجين المتطور من AQUAVO — تكنولوجيا متقدمة لحوض السمك المثالي. احفظ المنشور وتعلم كيف تبني نظام أوكسجين احترافي يضمن حياة صحية للأسماك. متوفر الآن في العراق.",
+      "seo_hashtags": [
+        "#حوض_سمك",
+        "#أوكسجين_الأسماك",
+        "#AQUAVO_العراق",
+        "#تربية_الأسماك",
+        "#نظام_أوكسجين"
+      ],
+      "seo_alt_text": "خلفية داكنة أنيقة مع فقاعات أوكسجين متصاعدة بشكل خفيف، تمثل نظام الأوكسجين المتطور من AQUAVO",
+      "music_recommendation": "Ambient minimal techno with subtle water bubble sounds, 60-80 BPM, artists like Max Richter or Nils Frahm style",
+      "improvement_notes": "Enhanced psychology from simple Commitment to dual Commitment + Peak-End Rule for stronger retention. Improved visual depth with specific opacity percentages and lighting temperature. Added precise font specifications for text overlay. Refined product description to be more compelling. Fixed camera settings for optimal sharpness (f/4.0 instead of f/8.0). Added specific AQUAVO color codes for brand consistency.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
+import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
@@ -75,6 +76,12 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         })),
         cartTotal
       );
+      // Meta Pixel: InitiateCheckout
+      metaTrackInitiateCheckout({
+        totalIQD: cartTotal,
+        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+        productIds: cartItems.map(i => i.id),
+      });
     }
   }, [open]);
 
@@ -192,6 +199,14 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         })),
         cartTotal
       );
+      // Meta Pixel: Purchase (most critical event for ROAS)
+      metaTrackPurchase({
+        orderId: orderData.id || 'unknown',
+        totalIQD: cartTotal,
+        productIds: cartItems.map(i => i.id),
+        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+        phone: customerInfo.phone,
+      });
 
       setStep('info');
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });

@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useLocation } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqIdentify, ttqCompleteRegistration } from "@/lib/tiktok-pixel";
+import { metaTrackCompleteRegistration } from "@/lib/meta-pixel";
 
 interface User {
   id: string;
@@ -155,6 +156,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         externalId: userData.id,
       });
       ttqCompleteRegistration();
+      // Meta Pixel: CompleteRegistration
+      metaTrackCompleteRegistration();
     } catch (error: unknown) {
       console.error("❌ Register error:", error);
       throw error;

@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { formatIQD, formatDate } from "@/lib/utils";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
+import { metaTrackPurchase } from "@/lib/meta-pixel";
 
 // Proper interface for order data
 interface OrderItem {
@@ -105,6 +106,14 @@ export default function OrderConfirmation() {
                     quantity: item.quantity,
                 })),
                 totalValue: orderData.total,
+            });
+            // Meta Pixel: Purchase event (critical for ROAS)
+            metaTrackPurchase({
+                orderId: orderData.orderNumber || orderData.id,
+                totalIQD: orderData.total,
+                productIds: orderData.items.map(item => item.productId),
+                numItems: orderData.items.reduce((sum, item) => sum + item.quantity, 0),
+                phone: orderData.customerPhone,
             });
         }
     }, [orderData?.id]);

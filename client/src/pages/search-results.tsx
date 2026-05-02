@@ -24,6 +24,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Product } from "@/types";
 import type { FishSpecies } from "@/data/freshwater-fish";
 import { ttqSearch } from "@/lib/tiktok-pixel";
+import { metaTrackSearch } from "@/lib/meta-pixel";
 
 type FilterType = "all" | "products" | "fish" | "pages";
 type SortType = "relevance" | "price-asc" | "price-desc" | "rating";
@@ -124,6 +125,8 @@ export default function SearchResults() {
         id: p.id,
         name: p.name,
       })));
+      // Meta Pixel: Search event
+      metaTrackSearch(searchQuery);
     }
   }, [searchQuery, products.length]);
 

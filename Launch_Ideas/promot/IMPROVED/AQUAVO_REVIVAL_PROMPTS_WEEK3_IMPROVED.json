@@ -1,0 +1,989 @@
+{
+  "meta": {
+    "project": "AQUAVO Revival — Social Media Prompts",
+    "week": 3,
+    "theme": "التغذية الاحترافية والفحوصات",
+    "psychology": [
+      "Authority Bias",
+      "Curiosity Gap",
+      "Commitment",
+      "Framing Effect"
+    ],
+    "visual_dna": {
+      "background": "Pure black or warm dark (#0A0A08)",
+      "accent_colors": [
+        "Golden amber (#FFB800)",
+        "Rich red (#CC3333)",
+        "Deep blue (#003366)",
+        "Emerald (#00CC66)"
+      ],
+      "lighting": "Warm dramatic lighting for food, clinical cool for testing",
+      "mood": "Nutritional science precision, warm authority for food, clinical for tests",
+      "camera_default": "Shot on Hasselblad X2D, 85mm lens, f/2.0",
+      "exclusions": "No text, no typography, no labels, no logos, no watermarks, no icons, no Arabic characters, no English characters, no blurry edges, no cartoon, no illustration, no oversaturated colors"
+    },
+    "improved_at": "2026-05-01T02:23:33.451226",
+    "improved_by": "Claude Opus 4 + AQUAVO Brand Engine",
+    "version": " — IMPROVED v7"
+  },
+  "prompts": [
+    {
+      "id": "W3-MON-ST1",
+      "day": "الإثنين",
+      "type": "story_teaser",
+      "platform": "instagram_story",
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "تشويق للتغذية",
+      "psychology": "Loss Aversion + Fear Appeal — العلف الغلط يقتل ببطء",
+      "prompt": "A single oversized fish food pellet falling through dark void #0a1628 background, unnaturally large and menacing. Warm amber side lighting 3200K reveals its massive rough texture and sharp edges. The pellet appears disproportionately huge, creating visual unease - clearly too large for any aquarium fish mouth. Shallow depth of field f/2.0 with subtle motion blur trail. Shot on Canon R5, 100mm macro lens. Film grain 6%. Cinematic freeze-frame moment. Vertical 9:16 composition with 15% safe zones top and bottom for text overlay. Dark premium aesthetic with warm dramatic lighting. No text, no typography, no labels, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "تدري ممكن تقتل أسماكك بالعلف الغلط؟",
+        "sticker": "سلايدر: شگد تهتم بنوعية العلف حق أسماكك؟",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "AQUAVO Deep Ocean #0a1628 background with warm amber 3200K dramatic lighting",
+      "seo_caption": "التغذية الغلطة ممكن تكون سبب موت أسماكك! شوف شگد مهم تختار العلف الصحيح لحوض السمك حقك. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#أحواض_السمك_العراق",
+        "#تغذية_الأسماك",
+        "#AQUAVO",
+        "#أحواض_بغداد",
+        "#علف_أسماك_جودة"
+      ],
+      "seo_alt_text": "حبة علف سمك كبيرة تسقط في فراغ مظلم، تظهر خطورة اختيار العلف الخاطئ للأسماك",
+      "music_recommendation": "Dark cinematic tension music, 80-100 BPM, minor key with subtle drum hits - similar to horror trailer music",
+      "improvement_notes": "Enhanced psychology label to include Fear Appeal alongside Loss Aversion. Refined text overlay to be more direct and threatening. Added specific AQUAVO color codes and lighting temperature. Improved sticker question to be more engaging and personally relevant. Enhanced prompt with technical camera specifications and AQUAVO aesthetic requirements.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W3-TUE-ST2",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "45% vs 40% protein feed",
+      "psychology": "Framing Effect — نسبة البروتين تحدد الاستخدام",
+      "prompt": "Professional vertical split-screen diptych. Left side: premium golden-glowing high-protein pellets in a cluster, with intense warm golden lighting suggesting competition-grade power and energy, radiant glow. Right side: balanced warm-toned pellets in a relaxed arrangement with softer warmer lighting suggesting daily comfort and safety. Both against pure black backgrounds. Shot on Hasselblad X2D, macro lens, f/2.8. Ultra-detailed texture. Vertical 9:16. Clean dark space top and bottom 15%. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "45% بروتين — منافسات",
+        "line2": "40% بروتين — يومي متوازن",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Split: intense gold vs warm balanced tones",
+      "improvement_notes": "Claude review failed to return valid JSON — manual review needed",
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W3-TUE-ST3",
+      "day": "الثلاثاء",
+      "type": "story_interactive",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Ranchu 1.5mm + Goldfish Orchid Longevity",
+      "psychology": "Authority Bias + Contrast Effect — التخصص الدقيق مقابل الاختيارات العامة",
+      "prompt": "Two premium fish food containers on polished dark walnut surface with subtle #0a1628 gradient background. Left: Ranchu 1.5mm pellets scattered artistically, each pellet perfectly uniform and sized, catching warm amber side light. Right: Orchid Longevity feed with visible golden-orange medicinal fungus particles, subtle bioluminescent glow from within. Faint ghostly Ranchu goldfish silhouette emerging from darkness behind left container, barely perceptible. Shot on Canon R5, 85mm f/2.8, warm amber key light from 45° left, 6% film grain, shallow depth of field. Premium aquarium product photography. Vertical 9:16 composition with 20% negative space top and bottom for text overlay safety. Deep shadows, rich contrast. No text, no typography, no watermarks, no logos, no icons.",
+      "text_overlay": {
+        "line1": "رانشو 1.5mm — تطوير الرأس بدقة",
+        "line2": "أوركيد — فطريات طبية تعزز المقاومة",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "AQUAVO Deep Ocean with medicinal amber highlights",
+      "seo_caption": "التغذية الاحترافية للرانشو تحتاج دقة بالحجم والتركيب. رانشو 1.5mm وأوركيد الطبي — كل منتج له تخصص واضح. متوفر حصرياً بـ AQUAVO العراق",
+      "seo_hashtags": [
+        "#تغذية_احترافية",
+        "#رانشو_العراق",
+        "#اكل_سمك_طبي",
+        "#AQUAVO_Iraq"
+      ],
+      "seo_alt_text": "منتجين تغذية سمك متخصصين - علف رانشو 1.5mm وأوركيد بالفطريات الطبية على خلفية داكنة فاخرة",
+      "music_recommendation": "Minimal ambient electronic with subtle water droplet sounds - 'Deep Focus' style track, 80-90 BPM",
+      "improvement_notes": "Enhanced psychology from single Authority Bias to Authority + Contrast Effect to emphasize specialization vs general products. Improved prompt with specific AQUAVO color codes, better lighting description (45° amber key light), added film grain percentage (6%), increased negative space to 20% for better text safety, and refined Arabic text to be more precise - 'تطوير الرأس بدقة' is more professional than 'نمو الرأس', and 'تعزز المقاومة' is cleaner Baghdad dialect than 'تقوي المناعة'.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W3-WED-C1",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — دليل أحجام العلف",
+      "psychology": "Curiosity Gap + Authority Bias — Visual reference guide creates expert positioning",
+      "prompt": "Six different sizes of premium fish food pellets arranged in perfect ascending order on dark walnut wood surface with #0a1628 Deep Ocean background gradient. Each pellet size dramatically different from 0.5mm micro-pellets to 8mm large pellets. Warm amber side lighting at 45-degree angle creates individual golden halos around each pellet size. Shot on Canon R5, 100mm macro lens, f/2.8, shallow depth of field with front pellets razor-sharp, back pellets softly blurred. Film grain 6%, ultra-detailed pellet texture showing protein chunks and spirulina flakes. Portrait 4:5 ratio, pellets occupy central 70% of frame. Dark premium aesthetic, no text overlays, no typography, no logos, no watermarks.",
+      "text_overlay": {
+        "line1": "دليل أحجام العلف",
+        "line2": "كل فم يحتاج حجم مختلف — ٦ أحجام",
+        "position": "top_quarter"
+      },
+      "color_mood": "Deep Ocean background #0a1628 with warm amber spotlights creating golden halos",
+      "seo_caption": "دليل شامل لأحجام العلف — كل نوع سمك يحتاج حجم مختلف. من الجولد فش للأسكار، هاي الأحجام الصحيحة لتغذية مثالية. محفوظ للمرجع دائماً.",
+      "seo_hashtags": [
+        "#علف_السمك",
+        "#تربية_السمك_العراق",
+        "#اكوافو",
+        "#تغذية_احترافية"
+      ],
+      "seo_alt_text": "Six different fish food pellet sizes arranged in ascending order on dark background, from micro pellets to large pellets, professional aquarium feeding guide",
+      "music_recommendation": "Ambient minimal electronic - low tempo (60-70 BPM), subtle water droplet sounds mixed with warm synth pads",
+      "improvement_notes": "Enhanced psychology label to include Authority Bias. Added specific AQUAVO color codes (#0a1628). Improved lighting description for more dramatic effect. Added film grain percentage and detailed texture description. Specified Canon R5 instead of Hasselblad for consistency. Added depth of field technique for visual hierarchy. Fixed Arabic numeral consistency (٦ instead of 6).",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C2",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Microparticles 0.2mm",
+      "psychology": "Authority Bias + Contrast Effect — الدقة المجهرية تظهر التخصص الطبي مع مقارنة بصرية صادمة للحجم",
+      "prompt": "Extreme macro close-up of ultra-tiny 0.2mm microparticles scattered on deep ocean slate background #0f2035, particles so minuscule they appear as premium gold dust catching warm amber side light. A single fish fry silhouette (8mm) positioned for dramatic size comparison, showing the microscopic precision. Each particle glows with amber gold #ffd700 highlights against the dark surface. Shot on Canon R5 with 100mm macro lens, extension tube for forensic detail, warm amber lighting from 45-degree angle, film grain 6%, professional product photography. Portrait 4:5 ratio. Particles fill 60% of frame with scientific precision. Deep Ocean background maintains brand consistency across carousel slides. No text, no typography, no labels, no logos, no watermarks, no icons.",
+      "text_overlay": {
+        "line1": "0.2 ملم — لليرقات والصغار",
+        "line2": "أدق حجم متوفر بالعراق",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep Ocean background with amber gold particle highlights",
+      "seo_caption": "التغذية المجهرية للأسماك الصغيرة — جسيمات 0.2 ملم للنمو المثالي. متوفر حصرياً من AQUAVO العراق",
+      "seo_hashtags": [
+        "#تغذية_الاسماك",
+        "#اكوافو_العراق",
+        "#احواض_مائية",
+        "#تربية_الاسماك",
+        "#بغداد_اكواريوم"
+      ],
+      "seo_alt_text": "صورة مجهرية لجسيمات طعام الأسماك 0.2 ملم مع مقارنة حجم سمكة صغيرة لإظهار الدقة المجهرية للمنتج",
+      "music_recommendation": "Scientific/documentary ambient track with subtle electronic elements - similar to 'Interstellar' soundtrack vibes for precision and discovery feeling",
+      "improvement_notes": "Enhanced psychology label to include Contrast Effect alongside Authority Bias. Added specific AQUAVO color codes (#0f2035, #ffd700) and lighting specifications. Improved size comparison precision (8mm vs 1cm). Added carousel consistency instructions. Enhanced caption with geographic specificity 'بالعراق' for local SEO. Specified 60% frame fill for optimal product visibility.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C3",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Imitation red worm 0.5mm",
+      "psychology": "Framing Effect — يحاكي الطبيعة = غريزي",
+      "prompt": "Extreme macro cluster of premium 0.5mm red worm-shaped feed particles suspended in dark void #0a1628 background. Each particle precisely mimics natural bloodworms - thin, elongated, deep crimson #cc0000 with subtle segmented texture. Dramatic warm amber side lighting from 45° angle creates golden rim highlights, making particles glow like living organisms. Natural scattered formation suggesting organic movement. Shot on Hasselblad X2D, 100mm macro lens, f/2.8 for sharp detail with soft background. Film grain 6%. Ultra-detailed surface texture showing micro-ridges. Portrait 4:5 composition, particles fill 70% of frame. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.5 ملم — ديدان حمراء",
+        "line2": "يحاكي الغذاء الطبيعي بالضبط",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark ocean floor #0a1628 with deep crimson red worm shapes lit warmly",
+      "seo_caption": "الغذاء المقلد للديدان الحمراء 0.5ملم من AQUAVO - يحاكي الطبيعة بدقة عالية لنمو صحي وطبيعي لأسماك الزينة. التركيبة المتطورة تحفز الغرائز الطبيعية للتغذية",
+      "seo_hashtags": [
+        "#أكوافو_العراق",
+        "#غذاء_اسماك_الزينة",
+        "#الديدان_الحمراء",
+        "#التغذية_الطبيعية",
+        "#بغداد_اكواريوم"
+      ],
+      "seo_alt_text": "مجموعة من جزيئات الغذاء الحمراء المقلدة للديدان الطبيعية 0.5ملم من AQUAVO، تظهر في إضاءة دافئة على خلفية داكنة مع تفاصيل دقيقة تحاكي الديدان الحية",
+      "music_recommendation": "Ambient underwater soundscape with subtle organic movement tones - 'Deep Ocean Currents' style, 80-90 BPM",
+      "improvement_notes": "Enhanced macro detail specifications, corrected text overlay from 'دود أحمر' to proper Baghdad dialect 'ديدان حمراء', added specific color codes for brand consistency, improved lighting angle specification, enhanced texture detail description, added precise frame composition percentage",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C4",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Small Fish All-in-One 0.6mm",
+      "psychology": "Unity Principle + Authority Bias — precision uniformity demonstrates expert manufacturing quality",
+      "prompt": "Premium 0.6mm all-in-one fish pellets arranged in precise geometric grid pattern on dark walnut surface #0f2035, each pellet perfectly identical demonstrating manufacturing precision. Warm amber side lighting from 45-degree angle creates subtle shadows revealing pellet texture and dimensional quality. Shot with Canon R5, 100mm macro lens, f/3.5, shallow depth of field with background blur. Film grain 6%. Dark premium aquarium product photography. Portrait 4:5 ratio. Professional editorial lighting setup. No text overlays, no typography, no watermarks, no logos.",
+      "text_overlay": {
+        "line1": "0.6 ملم — العلف الشامل",
+        "line2": "لكل أسماك الزينة الصغيرة",
+        "position": "bottom_third",
+        "font_color": "#199bb8",
+        "background": "semi_transparent_dark"
+      },
+      "color_mood": "AQUAVO dark premium with warm amber accent lighting against deep ocean background",
+      "seo_caption": "العلف الشامل الاحترافي من AQUAVO — 0.6 ملم مناسب لجميع أسماك الزينة الصغيرة. تركيبة متوازنة ونتائج مضمونة. متوفر الآن aquavoiq.com",
+      "seo_hashtags": [
+        "#aquavoiq",
+        "#علف_أسماك_الزينة",
+        "#أحواض_السمك_العراق",
+        "#تغذية_احترافية",
+        "#أسماك_صغيرة"
+      ],
+      "seo_alt_text": "علف أسماك AQUAVO حجم 0.6 ملم مرتب بشكل منتظم على سطح داكن، يظهر جودة التصنيع والتوحيد المثالي",
+      "music_recommendation": "Ambient minimal electronic with subtle water droplet sounds — sophisticated and clean",
+      "improvement_notes": "Enhanced psychology to include Authority Bias alongside Unity Principle. Improved image prompt with specific AQUAVO colors, proper camera specs, and premium photography techniques. Fixed text overlay from 'أغلب' to 'كل' for stronger claim. Added proper lighting specifications and film grain percentage.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C5",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Betta food 0.8mm",
+      "psychology": "Authority Bias — علم التغذية المتخصص يؤكد الحجم المثالي",
+      "prompt": "A single 0.8mm betta pellet floating in extreme macro against Deep Ocean #0a1628 background, with an elegant betta fish head silhouette positioned nearby showing the pellet perfectly sized for the mouth opening. The pellet displays rich burgundy and golden tones with visible nutritional texture and premium quality finish. Warm amber side lighting creates dramatic rim light on both pellet and fish silhouette edges. Shot on Hasselblad X2D, 100mm macro lens, f/2.8, film grain 6%. The pellet occupies 40% of frame with fish silhouette filling remaining space for scale comparison. Cinematic aquarium product photography, deep shadows, professional lighting setup. Portrait 4:5 aspect ratio. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "0.8 ملم — مصمم بالضبط لفم البيتا",
+        "line2": "الحجم الصحيح يضمن الهضم السليم",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep Ocean background with warm amber rim lighting",
+      "seo_caption": "التغذية العلمية للبيتا — حجم 0.8 ملم مصمم بالضبط لفم السمكة. كل حبة غذاء مدروسة علمياً لضمان التغذية المثلى والهضم السليم. هاي هي الطريقة الصحيحة لتغذية البيتا حقك",
+      "seo_hashtags": [
+        "#تغذية_البيتا",
+        "#AQUAVO_العراق",
+        "#اسماك_الزينة",
+        "#تغذية_احترافية",
+        "#بغداد_اكواريوم"
+      ],
+      "seo_alt_text": "حبة طعام بيتا بحجم 0.8 ملم مع ظلالية رأس سمكة بيتا تظهر التناسب المثالي للحجم، تصوير ماكرو احترافي على خلفية داكنة",
+      "music_recommendation": "Deep ambient electronic with subtle aquatic sounds, 80-90 BPM, minimal percussion",
+      "improvement_notes": "Enhanced psychology label to emphasize scientific authority rather than just size specification. Improved prompt with specific AQUAVO color codes, better technical camera details, and clearer composition instructions. Added film grain percentage and lighting setup details. Enhanced text overlay with nutritional benefit rather than repetitive sizing. Strengthened brand compliance with professional photography terminology.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C6",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 6,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "3-in-1 Betta 15g",
+      "psychology": "Framing Effect — 3 تركيبات بعبوة = قيمة مضاعفة",
+      "prompt": "Premium small betta food container centered on dark walnut surface (#0f2035), three distinct streams of feed particles cascading in elegant arcs — amber gold stream (growth), coral red stream (color enhancement), deep green stream (immunity). Each stream photographed mid-air creating sophisticated tri-fountain effect. Warm amber side lighting (45-degree angle) creating subtle shadows and depth. Shot on Canon R5, 85mm lens, f/3.2, film grain 6%. Dark background gradient from #0a1628 to #010611. Product occupies 70% of frame center. Premium aquarium commercial photography. Portrait orientation 4:5. No text, no typography, no labels, no logos, no watermarks, no icons.",
+      "text_overlay": {
+        "line1": "3 في 1 للبيتا",
+        "line2": "ثلاث تركيبات بعبوة وحدة",
+        "position": "bottom_third"
+      },
+      "color_mood": "AQUAVO deep ocean palette with tri-color streams",
+      "seo_caption": "كل شي يحتاجه البيتا بتركيبة وحدة — نمو وألوان ومناعة. هاي هي التغذية الاحترافية الحقيقية مو بس علف عادي. 3 في 1 يعني قيمة أكثر ونتائج أسرع",
+      "seo_hashtags": [
+        "#بيتا_العراق",
+        "#تغذية_احترافية",
+        "#اسماك_الزينة",
+        "#aquavo",
+        "#اكواريوم_بغداد"
+      ],
+      "seo_alt_text": "AQUAVO 3-in-1 Betta food container with three colorful nutrient streams flowing in arcs against dark premium background",
+      "music_recommendation": "Minimal ambient electronic with subtle water droplet sounds — 95-105 BPM",
+      "improvement_notes": "Enhanced prompt with AQUAVO color codes, improved lighting specifications (45-degree warm amber), specific lens choice (85mm for better product isolation), surface material specification (walnut), and clearer stream color mapping to benefits. Added consistent carousel visual framework.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C7",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 7,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Cherlam slow-sinking 1.5mm",
+      "psychology": "Curiosity Gap + Authority Bias — الغرق البطيء مفهوم متخصص يثير الفضول ويظهر الخبرة",
+      "prompt": "Multiple 1.5mm Cherlam slow-sinking pellets captured at different depths in a dark water column against deep ocean background #0a1628. Top pellets just released, floating gracefully. Mid-column pellets drifting in slow suspension. Bottom pellets settling gently on substrate. Each pellet releases subtle nutrient trails dissolving upward. Warm amber side lighting from left at 45-degree angle creates dramatic depth progression and highlights pellet texture. Shot on Canon R5, 85mm macro lens, f/2.8. Film grain 6%. Cinematic underwater atmosphere with slight particle suspension. Portrait 4:5 format. Pellets fill 75% of vertical frame space. Professional aquarium photography style. Dark premium aesthetic with rich contrast. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "شيرلام 1.5 ملم — غرق بطيء",
+        "line2": "للسمچ اللي ياكل من الوسط",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean background #0a1628 with warm amber lighting revealing pellet depth progression",
+      "seo_caption": "التغذية الاحترافية تحتاج دقة بالحجم والسرعة. شيرلام 1.5 ملم بتقنية الغرق البطيء - مصمم خصيصاً للأسماك اللي تفضل الأكل من منتصف المياه. كل حبة بتوصل العناصر الغذائية بالوقت المناسب.",
+      "seo_hashtags": [
+        "#التغذية_الاحترافية",
+        "#اكوافو_العراق",
+        "#اسماك_الزينة",
+        "#شيرلام",
+        "#الاحواض_المائية"
+      ],
+      "seo_alt_text": "حبيبات طعام شيرلام 1.5 ملم تغرق ببطء في عمود مائي مظلم، توضح مستويات مختلفة من الغرق مع إضاءة دراماتيكية",
+      "music_recommendation": "Deep ambient underwater soundscape with subtle bass tones - 'Oceanic Depths' style track, 60-80 BPM, minimal percussion",
+      "improvement_notes": "Enhanced psychology label to include Authority Bias alongside Curiosity Gap. Fixed Baghdad dialect ('السمچ' instead of 'الأسماك', 'ياكل' instead of 'تاكل'). Added specific AQUAVO color codes and lighting angles. Enhanced technical photography specifications with Canon R5 and specific lens/aperture settings. Added film grain percentage and composition guidance (75% frame fill). Clarified warm amber lighting direction and angle.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-WED-C8",
+      "day": "الأربعاء",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 8,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — دليل الأحجام",
+      "psychology": "Commitment — احفظ وارجعله = مرجع دائم",
+      "prompt": "Ultra-premium dark background transitioning from AQUAVO Deep Ocean #0a1628 to Abyss #010611. Six elegant pellet silhouettes arranged in ascending size progression, rendered as barely-visible embossed shadows in the lower third. Warm amber side lighting creates subtle depth and texture. Shot on Hasselblad X2D, 50mm lens, f/4.0. Film grain 6%. Vast negative space in upper two-thirds for text overlay. Portrait 4:5 ratio. No text, no typography, no labels, no logos, no watermarks, no icons, no characters.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل وارجعله كل ما تشتري علف",
+        "line2": "aquavoiq.com",
+        "position": "center"
+      },
+      "color_mood": "AQUAVO dark premium with warm amber undertone",
+      "seo_caption": "الدليل الشامل لأحجام العلف - احفظه واستخدمه دائماً لأسماكك. معلومات احترافية من خبراء التربية المائية في العراق. #أكوافو",
+      "seo_hashtags": [
+        "#علف_السمك",
+        "#تربية_الأسماك",
+        "#أحجام_العلف",
+        "#أكوافو",
+        "#تغذية_احترافية"
+      ],
+      "seo_alt_text": "دليل أحجام علف السمك على خلفية داكنة أنيقة مع ستة أشكال حبيبات علف مرتبة بأحجام تصاعدية",
+      "music_recommendation": "Ambient minimal electronic - Brian Eno style atmospheric pad with subtle bass undertones, 80-90 BPM",
+      "improvement_notes": "Enhanced background with specific AQUAVO brand colors (#0a1628, #010611). Changed lens from 35mm to 50mm for better product photography standard. Adjusted aperture from f/8.0 to f/4.0 for optimal depth control. Specified pellet placement in lower third for better text overlay space. Added film grain percentage (6%) for consistency. Maintained Baghdad dialect in text overlay - all words verified correct.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-FRI-ST2",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 2,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Freeze-dried Brine Shrimp",
+      "psychology": "Framing Effect + Peak-End Rule — مكمل غذائي حيوي مو ترف = إعادة تأطير التغذية الاحترافية",
+      "prompt": "Premium freeze-dried brine shrimp captured in extreme macro detail, individual specimens floating against deep ocean background #0a1628. Crystalline ice-dried texture with golden-amber translucent quality, warm side lighting at 45 degrees creating dramatic glow like precious amber gems. Every segment, appendage and internal structure visible at forensic detail level. Film grain 6%. Shot on Hasselblad X2D 100C, 120mm macro lens with 2x extension tube, f/4.0, creating shallow depth of field. Dark walnut texture surface beneath. Vertical 9:16 composition with clean negative space in top 20% and bottom 15% for text overlay. Warm amber color temperature 3200K. No text overlays, typography, labels, logos, watermarks, or graphic elements.",
+      "text_overlay": {
+        "line1": "آرتيميا مجففة بالتجميد",
+        "line2": "بروتين نقي — مكافآت الأسبوع",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Deep ocean background with warm amber backlighting creating crystalline glow",
+      "seo_caption": "التغذية الاحترافية للأسماك مالتك — آرتيميا مجففة بالتجميد، بروتين نقي 100% من AQUAVO العراق. مكافآت أسبوعية تخلي سمكتك تفرح وتنمو بصحة. متوفر الآن aquavoiq.com",
+      "seo_hashtags": [
+        "#آكوافو_العراق",
+        "#تغذية_الأسماك",
+        "#آرتيميا_مجففة",
+        "#أسماك_الزينة_بغداد"
+      ],
+      "seo_alt_text": "آرتيميا مجففة بالتجميد عالية الجودة من AQUAVO بتفاصيل ماكرو دقيقة، إضاءة ذهبية دافئة على خلفية داكنة",
+      "music_recommendation": "Ambient minimalist with subtle water droplets (Instagram music: 'Deep Focus' or 'Minimal Beats')",
+      "improvement_notes": "Enhanced psychology label to include Peak-End Rule for memorable experience. Improved Baghdad dialect in text overlay ('مكافآت الأسبوع' instead of 'مكافأة أسبوعية'). Added specific camera settings, color temperature, and film grain percentage. Specified exact background color from brand palette. Enhanced macro photography technical details for more precise AI generation.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W3-FRI-ST3",
+      "day": "الجمعة",
+      "type": "story_directional",
+      "platform": "instagram_story",
+      "slide": 3,
+      "aspect_ratio": "9:16 (1080x1920)",
+      "product": "Shelled Eggs 80g + Hermit Crab Feast 55g",
+      "psychology": "Unity Principle — كل حيوان عنده غذاءه المخصص",
+      "prompt": "Two premium glass containers side by side on dark walnut surface against deep ocean background #0a1628. Left container: partially open revealing golden artemia cysts (shelled eggs) scattered like precious amber pearls, some spilling onto surface with micro-reflections. Right container: hermit crab feast with visible dried shrimp pieces and nutrient flakes in warm coral tones. Dramatic warm amber side lighting from 45-degree angle creating soft shadows and highlighting texture details. Shot on Canon R5, 85mm lens, f/2.8, film grain 6%. Premium aquarium nutrition photography. Vertical 9:16 composition with breathing space top 20% and bottom 15% for text overlay. Dark atmospheric mood with selective illumination on products only. No text, no typography, no labels, no logos, no watermarks, no icons.",
+      "text_overlay": {
+        "line1": "بيض مقشر 80g — لليرقات الصغيرة",
+        "line2": "وجبة الناسك 55g — للسلاحف البحرية",
+        "sticker": "رابط الموقع",
+        "position": "center_safe_zone"
+      },
+      "color_mood": "Dark ocean depths with selective warm amber illumination highlighting golden and coral product tones",
+      "seo_caption": "تغذية متخصصة لكل نوع من الأحياء المائية — بيض الأرتيميا المقشر للصغار ووجبة السلاحف البحرية. جودة عالمية بأسعار محلية",
+      "seo_hashtags": [
+        "#تغذية_احترافية",
+        "#اكواريوم_بغداد",
+        "#غذاء_الاسماك",
+        "#AQUAVO"
+      ],
+      "seo_alt_text": "Two premium aquarium nutrition containers - golden shelled eggs for larvae and hermit crab feast for turtles on dark surface with warm lighting",
+      "music_recommendation": "Ambient minimal electronic with soft underwater bubbles - 'Deep Focus' style track at 70-80 BPM",
+      "improvement_notes": "Enhanced visual specificity with glass containers, walnut surface, precise lighting angles. Corrected psychology description to be more accurate to Unity Principle. Improved text overlay with more specific descriptions. Added selective illumination concept for premium feel. Increased lens to 85mm for better product isolation.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        },
+        "platform": "instagram_story"
+      }
+    },
+    {
+      "id": "W3-SAT-C1",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 1,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Carousel Hook — فحص مي الحوض",
+      "psychology": "Loss Aversion + Authority Bias — المحترف يفحص والمبتدئ يخمن",
+      "prompt": "A cinematic dark laboratory scene with four premium water testing products arranged on dark walnut surface with AQUAVO cyan #199bb8 accent lighting. Each product casts a different colored glow — amber gold #ffd700 for premium test, coral #ff7b5a for danger indicator, deep cyan #0d7a94 for multi-parameter. A dark water sample vial in center with subtle toxic green luminescence. Warm amber side lighting from left, film grain 6%, deep ocean background #0a1628. Shot on Canon R5, 85mm macro lens, f/2.8, shallow depth of field. Products fill 75% of frame. Hyper-realistic product photography, 8K resolution. Portrait 4:5 composition. Laboratory precision atmosphere with subtle steam effects. No text, no typography, no labels, no logos, no watermarks, no icons, no people.",
+      "text_overlay": {
+        "line1": "المحترف يفحص — المبتدئ يخمن",
+        "line2": "دليل فحص ماي الحوض",
+        "position": "top_quarter"
+      },
+      "color_mood": "Dark clinical with AQUAVO brand colors and amber lighting",
+      "seo_caption": "المحترف يفحص ماي الحوض كل أسبوع — المبتدئ يخمن ويخسر أسماكه. فحوصات AQUAVO تحميك من الخسائر المكلفة. دليل شامل للفحص الاحترافي — متوفر الآن aquavoiq.com",
+      "seo_hashtags": [
+        "#فحص_ماي_الحوض",
+        "#أحواض_احترافية",
+        "#AQUAVO",
+        "#أسماك_الزينة",
+        "#العراق"
+      ],
+      "seo_alt_text": "أربعة منتجات فحص ماء الحوض من AQUAVO مرتبة على سطح داكن مع إضاءة احترافية وعينة ماء في المنتصف",
+      "music_recommendation": "Dark ambient laboratory sounds with subtle electronic pulse - 80-90 BPM instrumental",
+      "improvement_notes": "1. Fixed 'مي' to 'ماي' for pure Baghdad dialect. 2. Enhanced psychology label to include Authority Bias. 3. Added specific AQUAVO brand colors to prompt. 4. Improved camera specs to Canon R5 85mm macro for better product detail. 5. Added film grain percentage and specific background color. 6. Enhanced lighting description with warm amber side lighting. 7. Added depth of field and composition details for premium look. 8. Strengthened SEO caption with loss aversion psychology.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-SAT-C2",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 2,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Ammonia nitrogen tester (60 tests)",
+      "psychology": "Loss Aversion + Fear of Loss — الأمونيا القاتل الصامت",
+      "prompt": "Professional ammonia test kit on deep ocean blue #0f2035 surface, single test vial glowing ominous deep red indicating dangerous ammonia levels. Warm amber side light from left creates dramatic shadows and tension. Dark walnut background fades to complete black. Multiple unused test vials arranged around showing the 60-test capacity. Film grain 6%. Shot on Canon R5, 85mm lens, f/2.8. Forensic medical documentary style. Product fills 75% of frame. Portrait 4:5. AQUAVO cyan #199bb8 accent on test kit label. No text overlay, no typography, no logos, no watermarks, no icons, no characters. Maintain visual consistency with other carousel slides through lighting and surface texture.",
+      "text_overlay": {
+        "line1": "فحص الأمونيا — 60 فحص",
+        "line2": "القاتل الصامت بالماي",
+        "position": "bottom_third"
+      },
+      "color_mood": "Deep ocean darkness with ominous red ammonia warning and AQUAVO cyan accents",
+      "seo_caption": "الأمونيا بالماي تقتل الأسماك بصمت. فحص واحد يخليك تعرف الحقيقة قبل فوات الأوان. عدة فحص الأمونيا من AQUAVO — 60 فحص دقيق للمحترفين اللي يعرفون قيمة أسماكهم",
+      "seo_hashtags": [
+        "#فحص_الأمونيا_العراق",
+        "#أحواض_السمك_بغداد",
+        "#AQUAVO_العراق",
+        "#أسماك_الزينة_العراق",
+        "#فحوصات_المياه_المنزلية"
+      ],
+      "seo_alt_text": "عدة فحص الأمونيا AQUAVO على خلفية داكنة مع إضاءة عنبرية دراماتيكية، أنبوب الفحص يظهر لون أحمر يشير لمستويات أمونيا خطيرة، 60 فحص متوفر",
+      "music_recommendation": "Dark ambient tension track - minor key, 80-90 BPM, with subtle heartbeat bass for psychological tension. Similar to documentary crime scene music.",
+      "improvement_notes": "Enhanced psychology from simple Loss Aversion to Loss Aversion + Fear of Loss for stronger emotional impact. Changed 'القاتل الأخطر' to 'القاتل الصامت بالماي' - more accurate to ammonia's invisible nature and uses pure Baghdad dialect 'بالماي'. Added AQUAVO brand color integration, film grain percentage, specific product capacity emphasis, carousel consistency instructions, and forensic medical style for authority positioning.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-SAT-C3",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 3,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "Nitrite test kit (100 tests)",
+      "psychology": "Authority Bias + Loss Aversion — فحص متخصص لسم محدد يهدد الأسماك",
+      "prompt": "Professional nitrite test kit on deep ocean blue surface #0f2035, color comparison chart elegantly fanned beside it showing gradient from safe green to dangerous red zones. Test vial displays warm amber-orange result indicating moderate nitrite levels. Clinical laboratory arrangement with warm amber side lighting creating subtle shadows. Shot on Canon R5, 85mm lens, f/3.2. Film grain 6%. Dark premium aesthetic with AQUAVO cyan #199bb8 accents on test kit packaging. Editorial product photography maintaining carousel visual consistency with previous slides. Portrait 4:5 ratio. No text overlays, no typography, no labels, no watermarks.",
+      "text_overlay": {
+        "line1": "فحص النايترايت — 100 فحص",
+        "line2": "السم الثاني الأخطر بالحوض",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark clinical with amber warning tones and AQUAVO cyan accents",
+      "seo_caption": "النايترايت — السم الصامت اللي يقتل أسماكك وانت مو دريان. فحص AQUAVO يكشف المشكلة قبل فوات الأوان. ديشوف لون الماي ويطلعلك النتيجة بدقيقة واحدة. مو بس فحص، هذا إنذار مبكر ينقذ استثمارك. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#نايترايت_تيست",
+        "#فحص_الماء",
+        "#أكواريوم_احترافي",
+        "#AQUAVO_العراق",
+        "#حوض_السمك"
+      ],
+      "seo_alt_text": "نايترايت تيست كيت AQUAVO على خلفية داكنة مع جدول مقارنة الألوان من الأخضر الآمن إلى الأحمر الخطر، يظهر نتيجة برتقالية في أنبوب الفحص",
+      "music_recommendation": "Dark ambient medical/laboratory sounds with subtle tension — similar to 'Blade Runner 2049 Medical Bay' atmospheric track",
+      "improvement_notes": "Enhanced psychology to include Loss Aversion (threat to fish). Fixed text overlay by adding 'بالحوض' for clarity. Improved image prompt with specific AQUAVO colors, Canon R5 camera spec, carousel consistency instruction, and proper film grain percentage. Added warm amber side lighting specification.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-SAT-C4",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 4,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "9-in-1 test bucket + Refill",
+      "psychology": "Framing Effect — 9 فحوصات بمرة = كفاءة عالية + Loss Aversion — خوف من عدم دقة القياس",
+      "prompt": "A premium 9-in-1 aquarium test kit bucket in matte black with AQUAVO cyan #199bb8 accent trim, positioned at 45-degree angle. Nine individual test strips arranged in a perfect fan formation emerging from the open container, each strip displaying distinct color graduation zones (pH blues, ammonia greens, nitrate yellows, phosphate oranges). A sealed refill pack positioned strategically beside the main bucket, both products sitting on dark walnut wood surface. Background: deep ocean #0a1628 with warm amber side lighting creating dramatic shadows and highlighting the metallic finish of the bucket. Fine film grain 7%. Shot on Canon R5, 85mm lens, f/2.8, shallow depth of field with refill pack slightly blurred. Products fill 75% of frame. No text, no typography, no labels, no logos, no watermarks, no icons, no characters. Maintain carousel visual consistency with previous slides.",
+      "text_overlay": {
+        "line1": "عدة 9 بواحدة — فحص شامل",
+        "line2": "50 شريحة + عبوة إضافية",
+        "position": "bottom_third"
+      },
+      "color_mood": "Dark premium with rainbow spectrum test indicators",
+      "seo_caption": "كل شي تحتاجه للفحص الشامل بعدة واحدة. 9 فحوصات مختلفة تخليك مطمئن على صحة السمك والنباتات. 50 شريحة فحص + عبوة إضافية تكفيك شهور طويلة. متوفر الآن — aquavoiq.com",
+      "seo_hashtags": [
+        "#فحص_المي",
+        "#حوض_سمك",
+        "#AQUAVO",
+        "#فحوصات_شاملة",
+        "#عراق_أكواريوم"
+      ],
+      "seo_alt_text": "عدة فحص الماء 9 في 1 مع شرائح الفحص الملونة وعبوة إضافية على خلفية داكنة أنيقة",
+      "music_recommendation": "Deep ambient electronic with subtle water droplet sounds - think Kiasmos or Max Richter minimal style",
+      "improvement_notes": "1. Enhanced psychology by adding Loss Aversion to amplify urgency. 2. Improved visual composition with specific angles and lighting details. 3. Added carousel consistency instruction. 4. Fixed text overlay: 'بواحدة' is more natural Baghdad dialect than 'في 1'. 5. Added specific AQUAVO brand colors and materials. 6. Enhanced camera specs for premium look. 7. Improved product positioning for better visual hierarchy.",
+      "psychology_score": 9,
+      "brand_compliance": 10,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    },
+    {
+      "id": "W3-SAT-C5",
+      "day": "السبت",
+      "type": "carousel",
+      "platform": "instagram_feed",
+      "slide": 5,
+      "aspect_ratio": "4:5 (1080x1350)",
+      "product": "CTA — الفحص الأسبوعي",
+      "psychology": "Commitment — افحص أسبوعياً = عادة مستمرة",
+      "prompt": "Dark premium aquarium testing station setup on deep walnut wood surface, background gradient from #0a1628 to #0f2035. Warm amber side light at 45° creating soft shadows. Various AQUAVO test kits arranged in organized pattern - pH strips, ammonia test kit, nitrite bottles, thermometer. Shot on Canon R5, 85mm lens, f/4.0, shallow depth of field focusing on test strips in foreground. Film grain 6%. Portrait 4:5 aspect ratio. Clean minimalist composition with 40% negative space at top for text overlay. Maintains visual consistency with previous carousel slides through lighting and color palette.",
+      "text_overlay": {
+        "line1": "احفظ هالدليل وافحص حوضك مرة بالأسبوع",
+        "line2": "aquavoiq.com",
+        "position": "top_third"
+      },
+      "color_mood": "Dark premium with warm amber highlights and AQUAVO cyan accents",
+      "seo_caption": "دليل الفحص الأسبوعي للحوض - كل شي تحتاجه لمياه صحية ونظيفة. معدات الفحص الاحترافية من AQUAVO العراق",
+      "seo_hashtags": [
+        "#أكواريوم_العراق",
+        "#فحص_المياه",
+        "#AQUAVO_Iraq",
+        "#حوض_السمك_بغداد",
+        "#معدات_أحواض"
+      ],
+      "seo_alt_text": "مجموعة معدات فحص مياه الأحواض المائية من AQUAVO مرتبة على خلفية داكنة أنيقة مع إضاءة ذهبية دافئة",
+      "music_recommendation": "Minimal ambient electronica - Brian Eno style atmospheric pads, 80-90 BPM, no percussion",
+      "improvement_notes": "Changed from generic clinical gradient to specific AQUAVO product showcase. Added proper warm amber lighting instead of cool clinical tone. Corrected camera specs to Canon R5 85mm f/4.0 for better product photography. Added film grain and visual consistency instructions for carousel flow. Repositioned text overlay to top_third for better composition with product arrangement.",
+      "psychology_score": 8,
+      "brand_compliance": 9,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Product photography requires maximum photorealism — GPT Image 2 excels"
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        },
+        "platform": "instagram_feed"
+      }
+    }
+  ]
+}

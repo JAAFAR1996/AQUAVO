@@ -33,6 +33,7 @@ import { MetaTags, ProductSchema, BreadcrumbSchema } from "@/components/seo/meta
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
 import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
+import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
 
 export default function ProductDetails() {
   const params = useParams();
@@ -91,6 +92,13 @@ export default function ProductDetails() {
         brand: product.brand,
         description: product.description,
       });
+      // Meta Pixel: ViewContent event
+      metaTrackViewContent({
+        productId: product.id,
+        productName: product.name,
+        priceIQD: Number(displayPrice),
+        category: product.category,
+      });
     }
   }, [product?.id, displayPrice]);
 
@@ -128,6 +136,14 @@ export default function ProductDetails() {
           id: productToAdd.id,
           name: productToAdd.name,
           price: trackPrice,
+          quantity,
+          category: product.category,
+        });
+        // Meta Pixel: AddToCart event
+        metaTrackAddToCart({
+          productId: productToAdd.id,
+          productName: productToAdd.name,
+          priceIQD: trackPrice,
           quantity,
           category: product.category,
         });
