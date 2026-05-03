@@ -1,15 +1,14 @@
-import { useMemo, useState, useEffect } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
-import { ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
+import { useComparison } from "@/contexts/comparison-context";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { FilterBar } from "@/components/products/filter-bar";
-import { FilterModal, FilterState } from "@/components/products/filter-modal";
+import type { FilterState } from "@/components/products/filter-modal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
@@ -18,12 +17,36 @@ import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
-import { BackToTop } from "@/components/back-to-top";
-import { QuickViewModal } from "@/components/products/quick-view-modal";
 import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
 
 type SortOption = "default" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
+
+const Footer = lazy(() => import("@/components/footer"));
+const BackToTop = lazy(() => import("@/components/back-to-top").then((mod) => ({ default: mod.BackToTop })));
+const FilterModal = lazy(() => import("@/components/products/filter-modal").then((mod) => ({ default: mod.FilterModal })));
+const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then((mod) => ({ default: mod.QuickViewModal })));
+const ComparisonDrawer = lazy(() => import("@/components/products/product-comparison").then((mod) => ({ default: mod.ComparisonDrawer })));
+
+function useIdleMounted(timeout: number) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const mount = () => setMounted(true);
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(mount, { timeout: 2000 });
+      if (!idleId) mount();
+    }, timeout);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, [timeout]);
+
+  return mounted;
+}
 
 export default function Products() {
   const [location] = useLocation();
@@ -34,7 +57,7 @@ export default function Products() {
   const initialSort = searchParams.get("sort");
 
   // Fetch dynamic attributes (categories, brands, price range)
-  const { data: attributes, isLoading: isAttributesLoading } = useQuery({
+  const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
     staleTime: 1000 * 60 * 10, // Cache for 10 minutes
@@ -59,10 +82,10 @@ export default function Products() {
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [displayCount, setDisplayCount] = useState(24);
+  const [displayCount, setDisplayCount] = useState(8);
 
   // Comparison - user-initiated
-  const { compareIds, addToCompare, removeFromCompare } = useComparison();
+  const { compareIds } = useComparison();
 
   // Update filters when URL params change
   useEffect(() => {
@@ -129,9 +152,10 @@ export default function Products() {
     else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }
     else if (sortBy === "rating-desc") { params.sortBy = "rating"; params.sortOrder = "desc"; }
     else { params.sortBy = "createdAt"; params.sortOrder = "desc"; } // default & smart (smart reorders client-side)
+    params.limit = displayCount + 1;
 
     return params;
-  }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
+  }, [filters, sortBy, initialSearch, minPrice, maxPrice, displayCount]);
 
   // Fetch products with backend filtering
   const { data, isLoading: isProductsLoading, isError } = useQuery({
@@ -181,7 +205,9 @@ export default function Products() {
     setDisplayCount(prev => prev + 24);
   };
 
-  const isLoading = isAttributesLoading || isProductsLoading;
+  const isLoading = isProductsLoading;
+  const shouldRenderFooter = useIdleMounted(9000);
+  const shouldRenderBackToTop = useIdleMounted(6000);
 
   // Calculate category counts from ALL products (not filtered)
   const categoryCounts = useMemo(() => {
@@ -323,9 +349,8 @@ export default function Products() {
                     <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
                       <ProductCard
                         product={product}
-                        priority={index < 8}
+                        priority={index < 2}
                         onQuickView={(p) => setQuickViewProduct(p)}
-                        onCompare={(p) => addToCompare(p.id)}
                       />
                     </div>
                   ))}
@@ -399,31 +424,51 @@ export default function Products() {
       </main>
 
 
-      <BackToTop />
+      {shouldRenderBackToTop && (
+        <Suspense fallback={null}>
+          <BackToTop />
+        </Suspense>
+      )}
 
       {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        isOpen={!!quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
+      {quickViewProduct && (
+        <Suspense fallback={null}>
+          <QuickViewModal
+            product={quickViewProduct}
+            isOpen={!!quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
+          />
+        </Suspense>
+      )}
 
       {/* Filter Modal - Airbnb Style */}
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        filters={filters}
-        onApplyFilters={setFilters}
-        availableBrands={availableBrands}
-        maxPrice={maxPrice}
-        minPrice={minPrice}
-        brandCounts={brandCounts}
-        resultCount={finalProducts.length}
-      />
+      {isFilterModalOpen && (
+        <Suspense fallback={null}>
+          <FilterModal
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+            filters={filters}
+            onApplyFilters={setFilters}
+            availableBrands={availableBrands}
+            maxPrice={maxPrice}
+            minPrice={minPrice}
+            brandCounts={brandCounts}
+            resultCount={finalProducts.length}
+          />
+        </Suspense>
+      )}
 
-      <ComparisonDrawer products={finalProducts} />
+      {compareIds.length > 0 && (
+        <Suspense fallback={null}>
+          <ComparisonDrawer products={finalProducts} />
+        </Suspense>
+      )}
 
-      <Footer />
+      {shouldRenderFooter && (
+        <Suspense fallback={null}>
+          <Footer />
+        </Suspense>
+      )}
     </div>
   );
 }

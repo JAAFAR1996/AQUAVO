@@ -21,7 +21,10 @@ function getTemplate(): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
+const PRODUCTS_LCP_IMAGE = "/images/products/yee/yee-c1-1082-2a/yee_c1_1082_2a_1.card.webp";
 const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
+const CRITICAL_PRODUCTS_SHELL = `<section class="critical-products-shell" aria-hidden="true"><div class="critical-products-header"><h1>&#1580;&#1605;&#1610;&#1593; &#1575;&#1604;&#1605;&#1606;&#1578;&#1580;&#1575;&#1578;</h1><p>&#1578;&#1589;&#1601;&#1581; &#1605;&#1580;&#1605;&#1608;&#1593;&#1578;&#1606;&#1575; &#1575;&#1604;&#1603;&#1575;&#1605;&#1604;&#1577;</p></div><div class="critical-products-grid"><article class="critical-product-card"><div class="critical-product-image"><img src="${PRODUCTS_LCP_IMAGE}" alt="" fetchpriority="high" decoding="sync" width="400" height="400"></div><div class="critical-product-title">&#1593;&#1604;&#1601; &#1588;&#1575;&#1605;&#1604; &#8212; &#1581;&#1576;&#1610;&#1576;&#1575;&#1578; &#1583;&#1602;&#1610;&#1602;&#1577;</div></article></div></section>`;
+const ENTRY_SCRIPT_RE = /<script type="module"([^>]*?)src="(\/entries\/[^"]+\.js)"([^>]*)><\/script>\n?/;
 const DEFAULT_TITLE = "AQUAVO - متجر اسماك زينة ومستلزمات احواض في العراق | بغداد";
 const DEFAULT_DESC = "AQUAVO أول متجر اونلاين متخصص في اسماك الزينة ومستلزمات الاحواض في العراق. فلاتر، سخانات، اسماك، نباتات مائية، أغذية وعلاجات بأفضل الأسعار مع توصيل لكل محافظات العراق. بيع اسماك زينة بغداد.";
 const DEFAULT_KEYWORDS = "اسماك زينة العراق، متجر اسماك زينة بغداد، مستلزمات احواض سمك، بيع اسماك زينة، احواض سمك للبيع، فلاتر احواض، سخانات احواض، شراء اسماك اونلاين العراق";
@@ -527,7 +530,22 @@ async function resolveMetadata(pathname: string): Promise<PageMeta & { url: stri
 }
 
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
+function deferEntryScriptForProducts(html: string) {
+  let entrySrc = "";
+  let result = html.replace(ENTRY_SCRIPT_RE, (_tag, _before, src: string) => {
+    entrySrc = src;
+    return "";
+  });
+
+  if (!entrySrc) return html;
+
+  const loader = `<script src="/defer-products-entry.js" data-entry="${entrySrc}" defer></script>`;
+  result = result.replace("</body>", `${loader}\n</body>`);
+  return result;
+}
+
 function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
+  const metaPath = meta.url.replace(BASE, "") || "/";
   let jsonLdScript = "";
   if (meta.jsonLd) {
     if (Array.isArray(meta.jsonLd)) {
@@ -569,12 +587,24 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
       /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
       `<link rel="preload" as="image" href="${meta.image}" fetchpriority="high">`
     );
+  } else if (metaPath === "/products") {
+    result = result.replace(
+      /<link rel="preload" as="image"[^>]*iwagumi[^>]*>\n?/,
+      `<link rel="preload" as="image" type="image/webp" href="${PRODUCTS_LCP_IMAGE}" fetchpriority="high">\n`
+    );
+    result = result.replace(
+      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
+      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
+    );
+    result = result.replace('<div id="root"></div>', `${CRITICAL_PRODUCTS_SHELL}<div id="root"></div>`);
+    result = deferEntryScriptForProducts(result);
+  } else if (metaPath !== "/" && metaPath !== "/ar") {
+    result = result.replace(/<link rel="preload" as="image"[^>]*iwagumi[^>]*>\n?/g, "");
   }
 
   // Inject JSON-LD
   result = result.replace(/__JSON_LD__/g, jsonLdScript);
 
-  const metaPath = meta.url.replace(BASE, "") || "/";
   if (metaPath === "/" || metaPath === "/ar") {
     result = result.replace(
       /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
