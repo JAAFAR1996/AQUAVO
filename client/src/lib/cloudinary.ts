@@ -3,7 +3,7 @@
  * Transforms Cloudinary URLs to serve optimized images (WebP/AVIF, correct size, auto quality).
  * Non-Cloudinary URLs (local paths, external) are returned unchanged.
  */
-import { preferLocalWebp } from "@/lib/image-variants";
+import { preferLocalProductCardWebp, preferLocalWebp } from "@/lib/image-variants";
 
 type Quality = "auto" | "auto:best" | "auto:good" | "auto:eco" | "auto:low";
 type Format = "auto" | "webp" | "avif";
@@ -58,7 +58,7 @@ export function optimizeCloudinaryUrl(
 
 /** Product listing card image — 400×400 WebP, auto quality */
 export function cardImage(url: string | null | undefined): string {
-  const localWebp = preferLocalWebp(url);
+  const localWebp = preferLocalProductCardWebp(url);
   if (localWebp && localWebp !== url) return localWebp;
 
   return optimizeCloudinaryUrl(url, {

@@ -28,3 +28,25 @@ export function preferLocalWebp(url: string | null | undefined): string {
   }
 }
 
+export function preferLocalProductCardWebp(url: string | null | undefined): string {
+  if (!url || typeof url !== "string") return "";
+
+  const toCardWebp = (pathname: string) => {
+    if (!pathname.startsWith("/images/products/")) return "";
+    if (!/\.(png|jpe?g)$/i.test(pathname)) return "";
+    return pathname.replace(/\.(png|jpe?g)$/i, ".card.webp");
+  };
+
+  try {
+    const parsed = new URL(url, window.location.origin);
+    const replacement = toCardWebp(parsed.pathname);
+    if (!replacement) return preferLocalWebp(url);
+    return `${replacement}${parsed.search}${parsed.hash}`;
+  } catch {
+    const [pathWithQuery, hash = ""] = url.split("#");
+    const [pathname, query = ""] = pathWithQuery.split("?");
+    const replacement = toCardWebp(pathname);
+    if (!replacement) return preferLocalWebp(url);
+    return `${replacement}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
+  }
+}
