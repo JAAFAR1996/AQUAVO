@@ -2,19 +2,16 @@ import { Link, useLocation } from "wouter";
 import { Search, ShoppingCart, Menu, Fish, Calculator, Home, Package, Trash2, Tag, BookOpen, Camera, Heart, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { FontSizeControllerCompact } from "@/components/ui/font-size-controller";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { CheckoutDialog } from "@/components/cart/checkout-dialog";
-import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { formatIQD, generateOrderNumber, cn } from "@/lib/utils";
 import { useCart, CartItem } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
-import { GlobalSearch } from "@/components/search/global-search";
 import { useAuth } from "@/contexts/auth-context";
 import {
   DropdownMenu,
@@ -34,6 +31,9 @@ import { NavbarStyleSwitcher } from "@/components/navbar/NavbarStyleSwitcher";
 import { useNavbarPreferences, type NavbarStyle } from "@/hooks/use-navbar-preferences";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
 
+const GlobalSearch = lazy(() => import("@/components/search/global-search").then(m => ({ default: m.GlobalSearch })));
+const CheckoutDialog = lazy(() => import("@/components/cart/checkout-dialog").then(m => ({ default: m.CheckoutDialog })));
+const InvoiceDialog = lazy(() => import("@/components/cart/invoice-dialog").then(m => ({ default: m.InvoiceDialog })));
 
 interface OrderData {
   customerInfo: {
@@ -410,21 +410,33 @@ export default function Navbar() {
           </div>
         </div>
 
-        <GlobalSearch open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+        {isSearchOpen && (
+          <Suspense fallback={null}>
+            <GlobalSearch open={isSearchOpen} onOpenChange={setIsSearchOpen} />
+          </Suspense>
+        )}
 
-        <CheckoutDialog
-          open={isCheckoutOpen}
-          onOpenChange={setIsCheckoutOpen}
-          cartItems={cartItems}
-          cartTotal={totalPrice}
-          onCheckoutComplete={handleCheckoutComplete}
-        />
+        {isCheckoutOpen && (
+          <Suspense fallback={null}>
+            <CheckoutDialog
+              open={isCheckoutOpen}
+              onOpenChange={setIsCheckoutOpen}
+              cartItems={cartItems}
+              cartTotal={totalPrice}
+              onCheckoutComplete={handleCheckoutComplete}
+            />
+          </Suspense>
+        )}
 
-        <InvoiceDialog
-          open={isInvoiceOpen}
-          onOpenChange={setIsInvoiceOpen}
-          orderData={orderData}
-        />
+        {isInvoiceOpen && (
+          <Suspense fallback={null}>
+            <InvoiceDialog
+              open={isInvoiceOpen}
+              onOpenChange={setIsInvoiceOpen}
+              orderData={orderData}
+            />
+          </Suspense>
+        )}
       </nav>
     </>
   );

@@ -5,6 +5,34 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 initializeClientEnvSideEffects();
 
+function enableDeferredAppStyles() {
+  document.querySelectorAll<HTMLLinkElement>("link[data-app-css]").forEach((link) => {
+    link.media = "all";
+  });
+}
+
+function enableDeferredFonts() {
+  document.querySelectorAll<HTMLLinkElement>("link[data-deferred-font]").forEach((link) => {
+    link.media = "all";
+  });
+}
+
+enableDeferredAppStyles();
+
+const deferFontTimer = window.setTimeout(() => {
+  const requestIdleCallback = (window as any).requestIdleCallback as
+    | ((callback: () => void, options?: { timeout: number }) => number)
+    | undefined;
+
+  if (requestIdleCallback) {
+    requestIdleCallback(enableDeferredFonts, { timeout: 2500 });
+  } else {
+    enableDeferredFonts();
+  }
+}, 8000);
+
+window.addEventListener("pagehide", () => window.clearTimeout(deferFontTimer), { once: true });
+
 createRoot(document.getElementById("root")!).render(<App />);
 
 // WebMCP: Register site tools for AI agents

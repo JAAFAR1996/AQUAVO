@@ -63,27 +63,60 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Core React vendor chunk
-          'vendor-react': ['react', 'react-dom'],
-          // UI framework chunk - separated framer-motion for lazy loading
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-tooltip',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-accordion',
-          ],
-          // Icons chunk - separated for better tree-shaking
-          'vendor-icons': ['lucide-react'],
-          // Heavy animation library - separate chunk for lazy loading
-          'vendor-animation': ['framer-motion'],
-          // Data/Charts chunk
-          'vendor-charts': ['recharts'],
-          // Utilities chunk
-          'vendor-utils': ['date-fns', 'zod', 'wouter', '@tanstack/react-query'],
+        manualChunks(id) {
+          if (id.includes("commonjsHelpers")) return "vendor-commonjs";
+          if (!id.includes("node_modules")) return;
+
+          const moduleId = id.replace(/\\/g, "/");
+          const includesPackage = (packageName: string) =>
+            moduleId.includes(`/node_modules/${packageName}/`) ||
+            moduleId.includes(`/node_modules/.pnpm/${packageName.replace("/", "+")}@`);
+
+          if (
+            includesPackage("react") ||
+            includesPackage("react-dom") ||
+            includesPackage("scheduler")
+          ) {
+            return "vendor-react";
+          }
+
+          if (
+            [
+              "@radix-ui/react-dialog",
+              "@radix-ui/react-dropdown-menu",
+              "@radix-ui/react-select",
+              "@radix-ui/react-tabs",
+              "@radix-ui/react-tooltip",
+              "@radix-ui/react-popover",
+              "@radix-ui/react-accordion",
+            ].some(includesPackage)
+          ) {
+            return "vendor-ui";
+          }
+
+          if (includesPackage("lucide-react")) return "vendor-icons";
+          if (includesPackage("framer-motion")) return "vendor-animation";
+
+          if (
+            includesPackage("recharts") ||
+            includesPackage("recharts-scale") ||
+            moduleId.includes("/node_modules/d3-")
+          ) {
+            return "vendor-charts";
+          }
+
+          if (
+            [
+              "@tanstack/react-query",
+              "date-fns",
+              "wouter",
+              "zod",
+              "clsx",
+              "tailwind-merge",
+            ].some(includesPackage)
+          ) {
+            return "vendor-utils";
+          }
         },
         // Asset file naming for better caching
         assetFileNames: 'assets/[name]-[hash][extname]',

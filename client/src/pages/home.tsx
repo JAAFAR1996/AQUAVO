@@ -1,27 +1,25 @@
-import { useState, useMemo, useRef, useEffect, lazy, Suspense } from "react";
+import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from "react";
 import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Crown, ShoppingCart, Sparkles } from "lucide-react";
+import { ArrowRight, Trophy, Crown, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { useQuery } from "@tanstack/react-query";
 import { fetchTopSellingProducts } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatPrice } from "@/lib/format";
+import { preferLocalWebp } from "@/lib/image-variants";
 
-import { PersonalizedSection } from "@/components/home/personalized-section";
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
-import { QuickViewModal } from "@/components/products/quick-view-modal";
-import { Product } from "@/types";
 import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 
 // Lazy-load below-fold heavy components (reduces initial bundle by ~50KB)
+const PersonalizedSection = lazy(() => import("@/components/home/personalized-section").then(m => ({ default: m.PersonalizedSection })));
 const Testimonials = lazy(() => import("@/components/home/testimonials").then(m => ({ default: m.Testimonials })));
 const AquascapeStyles = lazy(() => import("@/components/home/aquascape-styles").then(m => ({ default: m.AquascapeStyles })));
-const ProductCard = lazy(() => import("@/components/products/product-card").then(m => ({ default: m.ProductCard })));
+const Footer = lazy(() => import("@/components/footer"));
 
 
 // Hero images for rotation on page refresh
@@ -35,9 +33,23 @@ function LazyHeroVideo({ poster }: { poster: string }) {
   const [shouldLoad, setShouldLoad] = useState(false);
 
   useEffect(() => {
-    // Wait 2s after mount so LCP image paints first
-    const t = setTimeout(() => setShouldLoad(true), 2000);
-    return () => clearTimeout(t);
+    const connection = (navigator as any).connection;
+    const savesData = Boolean(connection?.saveData);
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    if (savesData || reducedMotion || coarsePointer) return;
+
+    const load = () => setShouldLoad(true);
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(load, { timeout: 2000 });
+      if (!idleId) load();
+    }, 12000);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
   }, []);
 
   useEffect(() => {
@@ -66,8 +78,66 @@ function LazyHeroVideo({ poster }: { poster: string }) {
   );
 }
 
+function DeferredRender({
+  children,
+  className,
+  minHeight = 1,
+}: {
+  children: ReactNode;
+  className?: string;
+  minHeight?: number;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    if (shouldRender) return;
+    const element = ref.current;
+    if (!element) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        setShouldRender(true);
+        observer.disconnect();
+      },
+      { rootMargin: "0px 0px 120px 0px" }
+    );
+
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [shouldRender]);
+
+  return (
+    <div ref={ref} className={className} style={!shouldRender ? { minHeight } : undefined}>
+      {shouldRender ? children : null}
+    </div>
+  );
+}
+
+function DeferredMount({ children, timeout = 12000 }: { children: ReactNode; timeout?: number }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const mount = () => setMounted(true);
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(mount, { timeout: 2000 });
+      if (!idleId) mount();
+    }, timeout);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, [timeout]);
+
+  return mounted ? <>{children}</> : null;
+}
+
 export default function Home() {
   const [, setLocation] = useLocation();
+  const [shouldFetchSales, setShouldFetchSales] = useState(false);
 
   // Random hero image selection on page load
   const heroImage = useMemo(() => {
@@ -75,18 +145,34 @@ export default function Home() {
     return HERO_IMAGES[randomIndex];
   }, []);
 
+  useEffect(() => {
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(
+        () => setShouldFetchSales(true),
+        { timeout: 2500 }
+      );
+      if (!idleId) setShouldFetchSales(true);
+    }, 7000);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, []);
+
   // Fetch Top Selling Data (Dynamic based on sales)
   const { data: salesData, isLoading: salesIsLoading } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
+    enabled: shouldFetchSales,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
   const featuredProduct = salesData?.productOfWeek;
   const bestSellers = salesData?.bestSellers ?? [];
   const hasRealSales = salesData?.hasRealSales ?? false;
-
-  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
+  const salesPending = !shouldFetchSales || salesIsLoading;
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">
@@ -115,6 +201,9 @@ export default function Home() {
               className="absolute inset-0 w-full h-full object-cover"
               fetchPriority="high"
               decoding="sync"
+              width={1200}
+              height={800}
+              sizes="(max-width: 1024px) 100vw, 66vw"
             />
             {/* Video loads lazily after poster is visible */}
             <LazyHeroVideo poster={heroImage} />
@@ -161,7 +250,7 @@ export default function Home() {
             </div>
 
             <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar -mr-2 pl-2 z-10 relative">
-              {salesIsLoading ? (
+              {salesPending ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <div key={i} className="flex gap-4 items-center">
                     <Skeleton className="w-16 h-16 rounded-xl bg-muted/20 dark:bg-white/10" />
@@ -175,7 +264,7 @@ export default function Home() {
                 <div key={product.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-border dark:hover:border-white/5" onClick={() => setLocation(`/products/${product.slug}`)}>
                   <div className="text-4xl font-black text-muted-foreground/20 dark:text-white/10 italic w-8 text-center group-hover:text-primary/50 transition-colors">#{idx + 1}</div>
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-muted/20 dark:bg-black/20">
-                    <img src={product.images[0]} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" />
+                    <img src={preferLocalWebp(product.images[0])} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" width={64} height={64} />
                   </div>
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
@@ -204,7 +293,7 @@ export default function Home() {
           {/* 3. Product of the Day (Small Box: 4 cols, 1 row) */}
           <div className="lg:col-span-4 lg:row-span-1 rounded-[2.5rem] bg-card dark:bg-[#0a0f1c] border border-border dark:border-border/50 p-6 flex relative overflow-hidden group hover:border-primary/50 transition-colors min-h-[180px]">
             <div className="absolute top-0 right-0 bg-accent text-white px-4 py-1 rounded-bl-2xl font-bold text-sm shadow-lg z-10">صفقة الأسبوع</div>
-            {salesIsLoading || !featuredProduct ? (
+            {salesPending || !featuredProduct ? (
               <div className="flex w-full gap-4">
                 <Skeleton className="w-24 h-24 rounded-2xl" />
                 <div className="flex-1 space-y-2">
@@ -215,7 +304,7 @@ export default function Home() {
             ) : (
               <div className="flex w-full items-center gap-4 relative z-10 cursor-pointer" onClick={() => setLocation(`/products/${featuredProduct.slug}`)}>
                 <div className="w-28 h-28 p-2 rounded-2xl bg-muted/20 dark:bg-white/5 border border-border dark:border-white/10 group-hover:scale-105 transition-transform duration-300">
-                  <img src={featuredProduct.images[0]} alt={featuredProduct.name} className="w-full h-full object-contain" />
+                  <img src={preferLocalWebp(featuredProduct.images[0])} alt={featuredProduct.name} className="w-full h-full object-contain" loading="lazy" decoding="async" width={112} height={112} />
                 </div>
                 <div className="flex-1 text-right space-y-2">
                   <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>
@@ -256,7 +345,11 @@ export default function Home() {
         </div>
 
         {/* AI Personalized Recommendations */}
-        <PersonalizedSection />
+        <DeferredRender className="content-visibility-auto" minHeight={320}>
+          <Suspense fallback={<div className="mt-16 min-h-80" />}>
+            <PersonalizedSection />
+          </Suspense>
+        </DeferredRender>
 
         {/* Categories Marquee / Quick Links */}
         <div className="mt-12 py-8 overflow-hidden relative">
@@ -273,25 +366,29 @@ export default function Home() {
       */}
 
       {/* Customer Testimonials - lazy loaded */}
-      <Suspense fallback={<div className="py-20" />}>
-        <Testimonials />
-      </Suspense>
+      <DeferredRender className="content-visibility-auto" minHeight={420}>
+        <Suspense fallback={<div className="py-20" />}>
+          <Testimonials />
+        </Suspense>
+      </DeferredRender>
 
       {/* Existing Sections Refined - lazy loaded */}
-      <Suspense fallback={<div className="py-20" />}>
-        <AquascapeStyles />
-      </Suspense>
+      <DeferredRender className="content-visibility-auto" minHeight={640}>
+        <Suspense fallback={<div className="py-20" />}>
+          <AquascapeStyles />
+        </Suspense>
+      </DeferredRender>
 
 
-      <BackToTop />
+      <DeferredMount>
+        <BackToTop />
+      </DeferredMount>
 
-      <QuickViewModal
-        product={quickViewProduct}
-        isOpen={!!quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
-
-      <Footer />
+      <DeferredRender className="content-visibility-auto" minHeight={720}>
+        <Suspense fallback={<div className="min-h-[720px]" />}>
+          <Footer />
+        </Suspense>
+      </DeferredRender>
     </div>
   );
 }

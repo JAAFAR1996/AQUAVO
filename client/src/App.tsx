@@ -1,5 +1,5 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
-import { lazy, Suspense, useEffect, useState, useRef, useCallback } from "react";
+import { lazy, Suspense, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,13 +11,12 @@ import { RequireAdmin } from "@/components/auth/require-admin";
 // Lazy-load heavy effects that read DOM geometry and cause forced reflows
 const ScrollProgress = lazy(() => import("@/components/effects/scroll-progress").then(m => ({ default: m.ScrollProgress })));
 const FloatingActionButton = lazy(() => import("@/components/effects/floating-action-button").then(m => ({ default: m.FloatingActionButton })));
-import { Analytics } from '@vercel/analytics/react';
-import { SpeedInsights } from '@vercel/speed-insights/react';
+const Analytics = lazy(() => import("@vercel/analytics/react").then(m => ({ default: m.Analytics })));
+const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m => ({ default: m.SpeedInsights })));
 
 import { initGA, trackPageView } from "@/lib/analytics";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
-import "@/lib/sentry"; // Auto-initializes on import
 
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
@@ -95,21 +94,97 @@ function DeferredOnboardingTour() {
     const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
     if (localStorage.getItem(seenKey)) return;
 
-    // First-time visitor: defer heavy import to 12s (outside Lighthouse measurement window)
-    const id = (window as any).requestIdleCallback?.(
-      () => setShouldLoad(true),
-      { timeout: 12000 }
-    );
-    const fallback = !id ? setTimeout(() => setShouldLoad(true), 12000) : undefined;
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(
+        () => setShouldLoad(true),
+        { timeout: 2000 }
+      );
+      if (!idleId) setShouldLoad(true);
+    }, 30000);
 
     return () => {
-      if (id) (window as any).cancelIdleCallback(id);
-      if (fallback) clearTimeout(fallback);
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
     };
   }, [location]);
 
   if (!shouldLoad) return null;
   return <OnboardingTour />;
+}
+
+function IdleMount({ children, timeout = 5000 }: { children: ReactNode; timeout?: number }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const mount = () => setMounted(true);
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(mount, { timeout: 2000 });
+      if (!idleId) mount();
+    }, timeout);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, [timeout]);
+
+  if (!mounted) return null;
+  return <>{children}</>;
+}
+
+function DeferredSentryInit() {
+  useEffect(() => {
+    const load = () => import("@/lib/sentry");
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(load, { timeout: 2000 });
+      if (!idleId) void load();
+    }, 7000);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, []);
+
+  return null;
+}
+
+function isHostedAnalyticsOrigin() {
+  if (typeof window === "undefined") return false;
+  const hostname = window.location.hostname.toLowerCase();
+  return (
+    hostname === "www.aquavoiq.com" ||
+    hostname === "aquavoiq.com" ||
+    hostname.endsWith(".vercel.app")
+  );
+}
+
+function DeferredThirdPartyAnalytics() {
+  useEffect(() => {
+    if (!isHostedAnalyticsOrigin()) return;
+
+    const load = () => {
+      void import("@/lib/third-party-analytics").then(({ loadThirdPartyAnalytics }) => {
+        loadThirdPartyAnalytics();
+      });
+    };
+
+    let idleId: number | undefined;
+    const timer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(load, { timeout: 2500 });
+      if (!idleId) load();
+    }, 8000);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
+  }, []);
+
+  return null;
 }
 
 
@@ -568,6 +643,7 @@ function App() {
 
   // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
   const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location);
+  const shouldLoadHostedAnalytics = isHostedAnalyticsOrigin();
 
   useEffect(() => {
     // Defer GA init to after first idle to reduce TBT
@@ -587,8 +663,16 @@ function App() {
             <ComparisonProvider>
               <NavbarPreferencesProvider>
                 <TooltipProvider>
-                  <Analytics />
-                  <SpeedInsights />
+                  {shouldLoadHostedAnalytics && (
+                    <IdleMount timeout={4500}>
+                      <Suspense fallback={null}>
+                        <Analytics />
+                        <SpeedInsights />
+                      </Suspense>
+                    </IdleMount>
+                  )}
+                  <DeferredThirdPartyAnalytics />
+                  <DeferredSentryInit />
                   <PageViewTracker />
                   {/* Skip to main content for keyboard navigation */}
                   {!isStandalonePage && (
@@ -597,33 +681,41 @@ function App() {
                     </a>
                   )}
                   {!isStandalonePage && (
-                    <Suspense fallback={null}>
-                      <ScrollProgress />
-                    </Suspense>
+                    <IdleMount timeout={30000}>
+                      <Suspense fallback={null}>
+                        <ScrollProgress />
+                      </Suspense>
+                    </IdleMount>
                   )}
                   {!isStandalonePage && (
-                    <Suspense fallback={null}>
-                      <FloatingActionButton />
-                    </Suspense>
+                    <IdleMount timeout={30000}>
+                      <Suspense fallback={null}>
+                        <FloatingActionButton />
+                      </Suspense>
+                    </IdleMount>
                   )}
 
                   {!isStandalonePage && (
-                    <Suspense fallback={null}>
-                      <WinnerNotificationBanner />
-                    </Suspense>
+                    <IdleMount timeout={30000}>
+                      <Suspense fallback={null}>
+                        <WinnerNotificationBanner />
+                      </Suspense>
+                    </IdleMount>
                   )}
-                  <Suspense fallback={null}>
-                    <UpdateBanner />
-                  </Suspense>
-                  <Suspense fallback={null}>
-                    <OfflineIndicator />
-                  </Suspense>
+                  <IdleMount timeout={22000}>
+                    <Suspense fallback={null}>
+                      <UpdateBanner />
+                      <OfflineIndicator />
+                    </Suspense>
+                  </IdleMount>
 
                   <Toaster />
                   {!isStandalonePage && (
-                    <Suspense fallback={null}>
-                      <AIChatBot />
-                    </Suspense>
+                    <IdleMount timeout={30000}>
+                      <Suspense fallback={null}>
+                        <AIChatBot />
+                      </Suspense>
+                    </IdleMount>
                   )}
                   <Router />
                   {!isStandalonePage && (
@@ -632,9 +724,11 @@ function App() {
                     </Suspense>
                   )}
                   {!isStandalonePage && (
-                    <Suspense fallback={null}>
-                      <InstallPrompt className="fixed bottom-20 left-4 right-4 z-40 max-w-sm mx-auto" />
-                    </Suspense>
+                    <IdleMount timeout={30000}>
+                      <Suspense fallback={null}>
+                        <InstallPrompt className="fixed bottom-20 left-4 right-4 z-40 max-w-sm mx-auto" />
+                      </Suspense>
+                    </IdleMount>
                   )}
                 </TooltipProvider>
               </NavbarPreferencesProvider>
@@ -723,26 +817,38 @@ function PageViewTracker() {
     startTimeRef.current = Date.now();
     viewIdRef.current = null;
 
-    try {
-      const params = new URLSearchParams(window.location.search);
-      const utmSource   = params.get("utm_source")   ?? undefined;
-      const utmMedium   = params.get("utm_medium")   ?? undefined;
-      const utmCampaign = params.get("utm_campaign") ?? undefined;
-      const referrer    = document.referrer || undefined;
-      const clientSessionId = getClientSessionId();
+    const trackVisit = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const utmSource   = params.get("utm_source")   ?? undefined;
+        const utmMedium   = params.get("utm_medium")   ?? undefined;
+        const utmCampaign = params.get("utm_campaign") ?? undefined;
+        const referrer    = document.referrer || undefined;
+        const clientSessionId = getClientSessionId();
 
-      fetch("/api/analytics/track-visit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ pagePath: location, referrer, utmSource, utmMedium, utmCampaign, clientSessionId }),
-      })
-        .then(r => r.json())
-        .then(data => { if (data?.viewId) viewIdRef.current = data.viewId; })
-        .catch(() => {});
-    } catch { /* never crash the app */ }
+        fetch("/api/analytics/track-visit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ pagePath: location, referrer, utmSource, utmMedium, utmCampaign, clientSessionId }),
+        })
+          .then(r => r.json())
+          .then(data => { if (data?.viewId) viewIdRef.current = data.viewId; })
+          .catch(() => {});
+      } catch { /* never crash the app */ }
+    };
 
-    return () => clearTimeout(timer);
+    let idleId: number | undefined;
+    const visitTimer = window.setTimeout(() => {
+      idleId = (window as any).requestIdleCallback?.(trackVisit, { timeout: 2500 });
+      if (!idleId) trackVisit();
+    }, 5000);
+
+    return () => {
+      clearTimeout(timer);
+      window.clearTimeout(visitTimer);
+      if (idleId) (window as any).cancelIdleCallback(idleId);
+    };
   }, [location, sendDuration]);
 
   return null;

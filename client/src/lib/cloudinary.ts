@@ -3,6 +3,7 @@
  * Transforms Cloudinary URLs to serve optimized images (WebP/AVIF, correct size, auto quality).
  * Non-Cloudinary URLs (local paths, external) are returned unchanged.
  */
+import { preferLocalWebp } from "@/lib/image-variants";
 
 type Quality = "auto" | "auto:best" | "auto:good" | "auto:eco" | "auto:low";
 type Format = "auto" | "webp" | "avif";
@@ -27,7 +28,7 @@ export function optimizeCloudinaryUrl(
   options: ImageOptions = {}
 ): string {
   if (!url || typeof url !== "string") return "";
-  if (!url.includes("res.cloudinary.com")) return url;
+  if (!url.includes("res.cloudinary.com")) return preferLocalWebp(url);
 
   // Don't double-transform already-transformed URLs
   if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
@@ -57,6 +58,9 @@ export function optimizeCloudinaryUrl(
 
 /** Product listing card image — 400×400 WebP, auto quality */
 export function cardImage(url: string | null | undefined): string {
+  const localWebp = preferLocalWebp(url);
+  if (localWebp && localWebp !== url) return localWebp;
+
   return optimizeCloudinaryUrl(url, {
     width: 400,
     height: 400,
@@ -69,6 +73,9 @@ export function cardImage(url: string | null | undefined): string {
 
 /** Gallery thumbnail image — 120×120 WebP, eco quality */
 export function thumbImage(url: string | null | undefined): string {
+  const localWebp = preferLocalWebp(url);
+  if (localWebp && localWebp !== url) return localWebp;
+
   return optimizeCloudinaryUrl(url, {
     width: 120,
     height: 120,
@@ -80,6 +87,9 @@ export function thumbImage(url: string | null | undefined): string {
 
 /** Product detail main image — 800×800 WebP, good quality */
 export function detailImage(url: string | null | undefined): string {
+  const localWebp = preferLocalWebp(url);
+  if (localWebp && localWebp !== url) return localWebp;
+
   return optimizeCloudinaryUrl(url, {
     width: 800,
     height: 800,
@@ -91,6 +101,9 @@ export function detailImage(url: string | null | undefined): string {
 
 /** Lightbox / full-screen image — original size, WebP format + auto quality only */
 export function lightboxImage(url: string | null | undefined): string {
+  const localWebp = preferLocalWebp(url);
+  if (localWebp && localWebp !== url) return localWebp;
+
   return optimizeCloudinaryUrl(url, {
     quality: "auto:best",
     format: "auto",

@@ -21,6 +21,7 @@ function getTemplate(): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
+const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
 const DEFAULT_TITLE = "AQUAVO - متجر اسماك زينة ومستلزمات احواض في العراق | بغداد";
 const DEFAULT_DESC = "AQUAVO أول متجر اونلاين متخصص في اسماك الزينة ومستلزمات الاحواض في العراق. فلاتر، سخانات، اسماك، نباتات مائية، أغذية وعلاجات بأفضل الأسعار مع توصيل لكل محافظات العراق. بيع اسماك زينة بغداد.";
 const DEFAULT_KEYWORDS = "اسماك زينة العراق، متجر اسماك زينة بغداد، مستلزمات احواض سمك، بيع اسماك زينة، احواض سمك للبيع، فلاتر احواض، سخانات احواض، شراء اسماك اونلاين العراق";
@@ -572,6 +573,15 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
 
   // Inject JSON-LD
   result = result.replace(/__JSON_LD__/g, jsonLdScript);
+
+  const metaPath = meta.url.replace(BASE, "") || "/";
+  if (metaPath === "/" || metaPath === "/ar") {
+    result = result.replace(
+      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
+      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
+    );
+    result = result.replace('<div id="root"></div>', `${CRITICAL_HOME_SHELL}<div id="root"></div>`);
+  }
 
   return result;
 }

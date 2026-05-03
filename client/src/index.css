@@ -609,6 +609,11 @@
     height: auto;
   }
 
+  .content-visibility-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 900px;
+  }
+
   /* Mobile-optimized spacing */
   .mobile-padding {
     @apply px-4 py-3 sm:px-6 sm:py-4;

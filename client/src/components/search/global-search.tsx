@@ -86,6 +86,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const { data } = useQuery<{ products: Product[] }>({
     queryKey: ["products"],
     queryFn: () => fetchProducts(),
+    enabled: open,
+    staleTime: 5 * 60 * 1000,
   });
 
   // AI semantic search - debounced, only fires when query is 3+ chars

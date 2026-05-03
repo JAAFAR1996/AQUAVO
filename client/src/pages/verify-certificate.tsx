@@ -36,7 +36,7 @@ export default function VerifyCertificate() {
       {/* Background Effects */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-yellow-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-amber-600/10 blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[url('/assets/noise.png')] opacity-[0.015] mix-blend-overlay pointer-events-none"></div>
+      <div className="absolute inset-0 bg-white opacity-[0.015] mix-blend-overlay pointer-events-none"></div>
 
       <div className="container mx-auto px-4 max-w-6xl relative z-10">
         
