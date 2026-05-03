@@ -9,7 +9,7 @@ import {
 import { SlidersHorizontal, ChevronDown, Sparkles, TrendingUp, Leaf, DollarSign } from "lucide-react";
 import { DualRangeSlider } from "@/components/ui/dual-range-slider";
 import { cn } from "@/lib/utils";
-import type { FilterState } from "./filter-modal";
+import { FilterState } from "./filter-modal";
 
 interface FilterBarProps {
     filters: FilterState;

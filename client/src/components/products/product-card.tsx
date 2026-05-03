@@ -1,25 +1,20 @@
-import { lazy, memo, Suspense, useState } from "react";
+import { useState, memo } from "react";
 import { Product } from "@/types";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
-import { ShoppingCart, Leaf, Eye } from "lucide-react";
+import { Heart, ShoppingCart, Leaf, Eye } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/cart-context";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { CompareButton } from "@/components/products/product-comparison";
 import { Link } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
-
-const LazyCompareButton = lazy(() =>
-  import("@/components/products/compare-button").then((mod) => ({ default: mod.CompareButton }))
-);
-const LazyWishlistButton = lazy(() =>
-  import("@/components/wishlist/wishlist-button").then((mod) => ({ default: mod.WishlistButton }))
-);
 
 interface ProductCardProps {
   product: Product;
@@ -32,8 +27,7 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView, priority = false }: ProductCardProps) {
   const { toast } = useToast();
   const { addItem } = useCart();
-  const [imgLoaded, setImgLoaded] = useState(priority);
-  const [quickActionsReady, setQuickActionsReady] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
 
   // A/B Testing: Button Text
   const buttonVariant = useABTest(EXPERIMENTS.ADD_TO_CART_BUTTON.name);
@@ -74,11 +68,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
   return (
     <>
       <Link href={`/products/${product.slug}`} aria-label={`عرض تفاصيل ${product.name}`}>
-        <Card
-          className="group overflow-hidden rounded-xl sm:rounded-[2rem] border border-border bg-card/50 backdrop-blur-xl hover:border-primary/50 transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_0_30px_rgba(79,209,197,0.15)] hover:-translate-y-2 h-full flex flex-col relative cursor-pointer text-right gpu-accelerate"
-          onMouseEnter={() => setQuickActionsReady(true)}
-          onFocusCapture={() => setQuickActionsReady(true)}
-        >
+        <Card className="group overflow-hidden rounded-xl sm:rounded-[2rem] border border-border bg-card/50 backdrop-blur-xl hover:border-primary/50 transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_0_30px_rgba(79,209,197,0.15)] hover:-translate-y-2 h-full flex flex-col relative cursor-pointer text-right gpu-accelerate">
           {/* Badges */}
           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1 sm:gap-2 pointer-events-none" aria-hidden="true">
             {product.isNew && <Badge className="bg-primary text-primary-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-lg">جديد</Badge>}
@@ -94,13 +84,13 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
           <div className="relative pt-[100%] overflow-hidden rounded-t-xl" data-protected="true">
             <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
               {/* Skeleton placeholder shown while image is loading */}
-              {!priority && !imgLoaded && (
+              {!imgLoaded && (
                 <div className="absolute inset-0 animate-pulse bg-muted/60" />
               )}
               <img
                 src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
                 alt={`صورة منتج ${product.name} من ${product.brand}`}
-                className={`absolute inset-0 w-full h-full object-cover select-none group-hover:scale-105 ${priority ? "opacity-100 transition-transform duration-500" : `transition-all duration-500 ${imgLoaded ? "opacity-100" : "opacity-0"}`}`}
+                className={`absolute inset-0 w-full h-full object-cover select-none transition-all duration-500 group-hover:scale-105 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
                 loading={priority ? "eager" : "lazy"}
                 fetchPriority={priority ? "high" : "auto"}
                 width={400}
@@ -140,21 +130,17 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <Eye className="w-4 h-4 ml-1" aria-hidden="true" />
                 نظرة سريعة
               </Button>
-              {quickActionsReady && (
-                <Suspense fallback={null}>
-                  <LazyCompareButton
-                    productId={product.id}
-                    variant="full"
-                    className="rounded-full shadow-md micro-bounce"
-                  />
-                  <LazyWishlistButton
-                    product={product}
-                    variant="icon"
-                    size="icon"
-                    className="shadow-md"
-                  />
-                </Suspense>
-              )}
+              <CompareButton
+                productId={product.id}
+                variant="full"
+                className="rounded-full shadow-md micro-bounce"
+              />
+              <WishlistButton
+                product={product}
+                variant="icon"
+                size="icon"
+                className="shadow-md"
+              />
             </div>
           </div>
 
