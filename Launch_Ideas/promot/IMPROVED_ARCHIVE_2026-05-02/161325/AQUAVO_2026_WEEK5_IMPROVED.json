@@ -1,0 +1,1728 @@
+{
+  "meta": {
+    "week": 5,
+    "theme": "AQUAVO Baghdad Sales + Education Week 5",
+    "generated_at": "2026-05-02T16:12:27",
+    "source": "C:\\Users\\jaafa\\Desktop\\basarai\\backend\\AQUAVO_CONTENT_CALENDAR.xlsx",
+    "prompt_count": 30,
+    "brand_rules": {
+      "brand": "AQUAVO",
+      "version": "AQUAVO Brand Identity System 2026 v1.0",
+      "market": "Baghdad / Iraq",
+      "mission": "Upgrade aquarium keeping in Iraq from random trial-and-error into professional care with trusted tools and real knowledge.",
+      "positioning": "The expert Iraqi aquarium store for hobbyists tired of weak products and wrong advice; teach first, sell the right solution second.",
+      "archetype": "The Sage + The Hero",
+      "tagline": "AQUAVO - mustaqbal ahwad al-Iraq",
+      "voice": {
+        "dialect": "Pure Baghdadi Arabic",
+        "tone": "Expert, calm, confident, premium, never desperate",
+        "emoji_rule": "Zero emoji in public captions, prompts, and on-image text",
+        "cta_rule": "Avoid hard-sell lines. Stories must not ask for comments and must not show manual sticker UI. Feed posts/carousels can use calm engagement. No visible logo, website URL, company name, QR code, watermark, brand badge, or bottom signature inside generated images."
+      },
+      "colors": {
+        "primary": {
+          "aquavo_cyan": "#199BB8",
+          "deep_cyan": "#0D7A94"
+        },
+        "secondary": {
+          "coral_accent": "#FF7B5A",
+          "amber_gold": "#FFD700",
+          "aqua_bright": "#1DD3D3"
+        },
+        "backgrounds": {
+          "abyss": "#010611",
+          "deep_ocean": "#0A1628",
+          "ocean_floor": "#0F2035",
+          "surface": "#1A3050"
+        },
+        "semantic": {
+          "success": "#22C55E",
+          "warning": "#EAB308",
+          "error": "#EF4444",
+          "info": "#3B82F6"
+        },
+        "rule": "Dark mode only, never white as primary background, never more than three active colors in one design."
+      },
+      "typography": {
+        "arabic_headline": "Changa Bold 700/800",
+        "arabic_body": "Cairo Regular 400 / SemiBold 600",
+        "english_labels": "Inter 400/500/700/900",
+        "video_text": "Changa Bold"
+      },
+      "photography": {
+        "background": "Dark slate, dark walnut, #0A1628, or real aquarium image with 70% dark overlay",
+        "lighting": "Warm amber side light from left + cool cyan rim light from right",
+        "camera": "Canon R5, 50-100mm, f/2.8-4.0",
+        "composition": "Rule of thirds; product on intersection point where possible",
+        "grade": "Moody Aquatic: deep blue/teal shadows, warm amber highlights, -10% general saturation, cyan/green boost, +15% contrast, 5-8% film grain, light vignette",
+        "forbidden": "White plastic background, direct flash, cold fluorescent lighting, random angles, oversaturated filters"
+      },
+      "social_templates": {
+        "story_reel": "1080x1920; hook white, body #199BB8, CTA #FF7B5A; no visible logo or bottom signature",
+        "instagram_post": "1080x1080 or 1080x1350",
+        "carousel": "1080x1350",
+        "facebook_ad": "1200x628",
+        "closing_screen": "#0A1628 background with simple fade only; no logo, no wordmark, no bottom signature"
+      },
+      "motion": {
+        "closing": "fade to dark background without any logo or wordmark",
+        "cards": "slide up y 20 to 0 + fade-in",
+        "buttons": "active scale 0.97",
+        "bubbles": "slow float 10-16 seconds",
+        "loading": "shimmer or skeleton, not spinner"
+      }
+    }
+  },
+  "prompts": [
+    {
+      "id": "W5-001",
+      "day": "2026-05-30 السبت",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-30",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: شنو أكثر مشكلة صارت وياك بالحوض؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "شنو أكثر مشكلة صارت وياك بالحوض",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "شنو أكثر مشكلة صارت وياك بالحوض؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-002-S1",
+      "day": "2026-05-30 السبت",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-30",
+      "time": "20:00",
+      "product_id": "C5-1062-1",
+      "product": "حوض زجاج 60x40x40cm سماكة 8mm",
+      "products": "C5-1062-1 | حوض زجاج 60x40x40cm سماكة 8mm",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج حوض زجاج 60x40x40cm سماكة 8mm. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. خطة النص الخارجي بعد التوليد: \"أول قرار بالحوض / يحدد نصف نجاح التربية\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة. الحركة للريلز/الستوري: reveal من فراغ المكان إلى الحوض المركب لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: أول قرار بالحوض\nيحدد نصف نجاح التربية\nTEXT PLACEMENT: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة\nMOTION: reveal من فراغ المكان إلى الحوض المركب\n\nCAROUSEL STRUCTURE: this is slide 1/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: أول قرار بالحوض\nيحدد نصف نجاح التربية. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE Ultra-Clear Glass Tank",
+      "psychology": "Status + Identity",
+      "seo_caption": "أول قرار بالحوض يحدد نصف نجاح التربية. الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. حوض زجاج 60x40x40cm سماكة 8mm يفيدك هنا لأن يعطي حجم ومساحة أفضل للسمك ويخلي التصميم أوضح وأسهل صيانة.\nدز مساحة المكان ونقترحلك حجم مناسب.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة",
+      "text_overlay": "أول قرار بالحوض\nيحدد نصف نجاح التربية",
+      "motion_direction": "reveal من فراغ المكان إلى الحوض المركب",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1062-1",
+      "carousel_slide": 1,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-002-S2",
+      "day": "2026-05-30 السبت",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-30",
+      "time": "20:00",
+      "product_id": "C5-1062-1",
+      "product": "حوض زجاج 60x40x40cm سماكة 8mm",
+      "products": "C5-1062-1 | حوض زجاج 60x40x40cm سماكة 8mm",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج حوض زجاج 60x40x40cm سماكة 8mm. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. خطة النص الخارجي بعد التوليد: \"أول قرار بالحوض / يحدد نصف نجاح التربية\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة. الحركة للريلز/الستوري: reveal من فراغ المكان إلى الحوض المركب لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: أول قرار بالحوض\nيحدد نصف نجاح التربية\nTEXT PLACEMENT: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة\nMOTION: reveal من فراغ المكان إلى الحوض المركب\n\nCAROUSEL STRUCTURE: this is slide 2/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: ليش تصير؟\nالسبب مو دايماً واضح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE Ultra-Clear Glass Tank",
+      "psychology": "Status + Identity",
+      "seo_caption": "أول قرار بالحوض يحدد نصف نجاح التربية. الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. حوض زجاج 60x40x40cm سماكة 8mm يفيدك هنا لأن يعطي حجم ومساحة أفضل للسمك ويخلي التصميم أوضح وأسهل صيانة.\nدز مساحة المكان ونقترحلك حجم مناسب.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة",
+      "text_overlay": "ليش تصير؟\nالسبب مو دايماً واضح",
+      "motion_direction": "reveal من فراغ المكان إلى الحوض المركب",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1062-1",
+      "carousel_slide": 2,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-002-S3",
+      "day": "2026-05-30 السبت",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-30",
+      "time": "20:00",
+      "product_id": "C5-1062-1",
+      "product": "حوض زجاج 60x40x40cm سماكة 8mm",
+      "products": "C5-1062-1 | حوض زجاج 60x40x40cm سماكة 8mm",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج حوض زجاج 60x40x40cm سماكة 8mm. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. خطة النص الخارجي بعد التوليد: \"أول قرار بالحوض / يحدد نصف نجاح التربية\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة. الحركة للريلز/الستوري: reveal من فراغ المكان إلى الحوض المركب لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: أول قرار بالحوض\nيحدد نصف نجاح التربية\nTEXT PLACEMENT: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة\nMOTION: reveal من فراغ المكان إلى الحوض المركب\n\nCAROUSEL STRUCTURE: this is slide 3/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: الحل العملي\nيبدي من التشخيص الصح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE Ultra-Clear Glass Tank",
+      "psychology": "Status + Identity",
+      "seo_caption": "أول قرار بالحوض يحدد نصف نجاح التربية. الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. حوض زجاج 60x40x40cm سماكة 8mm يفيدك هنا لأن يعطي حجم ومساحة أفضل للسمك ويخلي التصميم أوضح وأسهل صيانة.\nدز مساحة المكان ونقترحلك حجم مناسب.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة",
+      "text_overlay": "الحل العملي\nيبدي من التشخيص الصح",
+      "motion_direction": "reveal من فراغ المكان إلى الحوض المركب",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1062-1",
+      "carousel_slide": 3,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-002-S4",
+      "day": "2026-05-30 السبت",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-30",
+      "time": "20:00",
+      "product_id": "C5-1062-1",
+      "product": "حوض زجاج 60x40x40cm سماكة 8mm",
+      "products": "C5-1062-1 | حوض زجاج 60x40x40cm سماكة 8mm",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج حوض زجاج 60x40x40cm سماكة 8mm. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. خطة النص الخارجي بعد التوليد: \"أول قرار بالحوض / يحدد نصف نجاح التربية\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة. الحركة للريلز/الستوري: reveal من فراغ المكان إلى الحوض المركب لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: أول قرار بالحوض\nيحدد نصف نجاح التربية\nTEXT PLACEMENT: العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة\nMOTION: reveal من فراغ المكان إلى الحوض المركب\n\nCAROUSEL STRUCTURE: this is slide 4/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: قبل لا تشتري\nراجع هالنقاط. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE Ultra-Clear Glass Tank",
+      "psychology": "Status + Identity",
+      "seo_caption": "أول قرار بالحوض يحدد نصف نجاح التربية. الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. حوض زجاج 60x40x40cm سماكة 8mm يفيدك هنا لأن يعطي حجم ومساحة أفضل للسمك ويخلي التصميم أوضح وأسهل صيانة.\nدز مساحة المكان ونقترحلك حجم مناسب.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة",
+      "text_overlay": "قبل لا تشتري\nراجع هالنقاط",
+      "motion_direction": "reveal من فراغ المكان إلى الحوض المركب",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1062-1",
+      "carousel_slide": 4,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-003",
+      "day": "2026-05-30 السبت",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-30",
+      "time": "20:30",
+      "product_id": "07154",
+      "product": "حجر فقاعات معدني 50mm",
+      "products": "07154 | حجر فقاعات معدني 50mm",
+      "prompt": "9:16 story واقعي فاخر لمنتج حجر فقاعات معدني 50mm. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: لهاث السمك على السطح غالبا إشارة نقص أوكسجين أو ماء متعب. خطة النص الخارجي بعد التوليد: \"إذا السمك يصعد / للسطح، لا تعتبرها حركة\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: macro shot للفقاعات ثم tilt إلى سطح الماء لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: إذا السمك يصعد للسطح، لا تعتبرها حركة\nللسطح، لا تعتبرها حركة\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: macro shot للفقاعات ثم tilt إلى سطح الماء\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-ygg-135",
+      "psychology": "Authority + Loss Aversion + DM Conversion",
+      "seo_caption": "إذا السمك يصعد للسطح، لا تعتبرها حركة",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "إذا السمك يصعد للسطح، لا تعتبرها حركة",
+      "motion_direction": "macro shot للفقاعات ثم tilt إلى سطح الماء",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 07154",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-004",
+      "day": "2026-05-31 الأحد",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-31",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: الأهم يمك شكل نباتي لو صيانة أسهل\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "الأهم يمك شكل نباتي لو صيانة أسهل",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "الأهم يمك شكل نباتي لو صيانة أسهل",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-005",
+      "day": "2026-05-31 الأحد",
+      "type": "reel",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-05-31",
+      "time": "21:15",
+      "product_id": "C5-1123-2",
+      "product": "حوض جانبي 60x15x15cm مع مضخة ماء",
+      "products": "C5-1123-2 | حوض جانبي 60x15x15cm مع مضخة ماء",
+      "prompt": "9:16 vertical reel واقعي فاخر لمنتج حوض جانبي 60x15x15cm مع مضخة ماء. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. خطة النص الخارجي بعد التوليد: \"أول قرار بالحوض / يحدد نصف نجاح التربية\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: reveal من فراغ المكان إلى الحوض المركب لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: أول قرار بالحوض\nيحدد نصف نجاح التربية\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة\nMOTION: reveal من فراغ المكان إلى الحوض المركب",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-tank-601515",
+      "psychology": "Status + Identity",
+      "seo_caption": "أول قرار بالحوض يحدد نصف نجاح التربية. الحوض الصغير جدا يخلي كل خطأ يبان بسرعة على السمك. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. حوض جانبي 60x15x15cm مع مضخة ماء يفيدك هنا لأن يعطي حجم ومساحة أفضل للسمك ويخلي التصميم أوضح وأسهل صيانة.\nدز مساحة المكان ونقترحلك حجم مناسب.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "أول قرار بالحوض\nيحدد نصف نجاح التربية",
+      "motion_direction": "reveal من فراغ المكان إلى الحوض المركب",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Problem/Solution. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1123-2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-006",
+      "day": "2026-05-31 الأحد",
+      "type": "post",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-05-31",
+      "time": "12:30",
+      "product_id": "C3-1010-1",
+      "product": "فحص نيترايت 100 مرة",
+      "products": "C3-1010-1 | فحص نيترايت 100 مرة",
+      "prompt": "4:5 static image post واقعي فاخر لمنتج فحص نيترايت 100 مرة. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الأمونيا ما تنشاف بالعين ولا إلها ريحة واضحة. خطة النص الخارجي بعد التوليد: \"أخطر شيء بالحوض / غالبا ما ينشاف\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: insert shot للنتيجة ثم close-up على القرار لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد. Static image only. No video motion. Composition must work as one premium feed image for Instagram 4:5 and Facebook crop-safe 1:1.\n\nTEXT OVERLAY: أخطر شي بالحوض غالباً ما يبين\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c3-1010",
+      "psychology": "Authority + Commitment + Saveable Proof",
+      "seo_caption": "أخطر شي بالحوض غالباً ما يبين. الأمونيا ما تنشاف بالعين ولا إلها ريحة واضحة. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. فحص نيترايت 100 مرة يفيدك هنا لأن يكشف الأمونيا أو النترايت أو جودة الماء قبل ما تظهر الخسارة.\nدز كلمة فحص ونرسل جدول قراءة النتائج.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "أخطر شي بالحوض\nغالباً ما يبين",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C3-1010-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-007",
+      "day": "2026-05-31 الأحد",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-31",
+      "time": "20:30",
+      "product_id": "C5-1144-1a",
+      "product": "سيفون تغيير ماء 1.5m مقوى",
+      "products": "C5-1144-1a | سيفون تغيير ماء 1.5m مقوى",
+      "prompt": "9:16 story واقعي فاخر لمنتج سيفون تغيير ماء 1.5m مقوى. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: تغيير الماء العشوائي يسبب صدمة أكثر من فائدته. خطة النص الخارجي بعد التوليد: \"تنظيف الحوض مو / معناها تقلب حياة السمك\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: تنظيف الحوض مو معناها تقلب حياة السمك\nمعناها تقلب حياة السمك\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Reciprocity + Commitment + DM Conversion",
+      "seo_caption": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1144-1a",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-008",
+      "day": "2026-06-01 الإثنين",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-01",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: برأيك الفلتر يحتاج يشتغل 24 ساعة\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "برأيك الفلتر يحتاج يشتغل 24 ساعة",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "برأيك الفلتر يحتاج يشتغل 24 ساعة",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-009",
+      "day": "2026-06-01 الإثنين",
+      "type": "reel",
+      "platform": "TikTok + IG Reels",
+      "publish_date": "2026-06-01",
+      "time": "14:00",
+      "product_id": "C1-1113-2",
+      "product": "أكل أسماك صغيرة All-in-One 0.6mm وزن 75g",
+      "products": "C1-1113-2 | أكل أسماك صغيرة All-in-One 0.6mm وزن 75g",
+      "prompt": "9:16 vertical reel واقعي فاخر لمنتج أكل أسماك صغيرة All-in-One 0.6mm وزن 75g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1113",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل أسماك صغيرة All-in-One 0.6mm وزن 75g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Demo/Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1113-2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-010",
+      "day": "2026-06-01 الإثنين",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-01",
+      "time": "20:30",
+      "product_id": "1.8.3.2",
+      "product": "بالون تغيير ماء 1.7m متين",
+      "products": "1.8.3.2 | بالون تغيير ماء 1.7m متين",
+      "prompt": "9:16 story واقعي فاخر لمنتج بالون تغيير ماء 1.7m متين. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: تغيير الماء العشوائي يسبب صدمة أكثر من فائدته. خطة النص الخارجي بعد التوليد: \"تنظيف الحوض مو / معناها تقلب حياة السمك\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: تنظيف الحوض مو معناها تقلب حياة السمك\nمعناها تقلب حياة السمك\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE-3621",
+      "psychology": "Reciprocity + Commitment + DM Conversion",
+      "seo_caption": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 1.8.3.2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-011",
+      "day": "2026-06-02 الثلاثاء",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-02",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: كل شكد تبدل جزء من مي الحوض\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "كل شكد تبدل جزء من مي الحوض",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "كل شكد تبدل جزء من مي الحوض",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-012",
+      "day": "2026-06-02 الثلاثاء",
+      "type": "reel",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-06-02",
+      "time": "21:15",
+      "product_id": "C1-1127-1",
+      "product": "أكل قولد فش سبيرولينا 3.0mm وزن 290g",
+      "products": "C1-1127-1 | أكل قولد فش سبيرولينا 3.0mm وزن 290g",
+      "prompt": "9:16 vertical reel واقعي فاخر لمنتج أكل قولد فش سبيرولينا 3.0mm وزن 290g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "reference_image": "",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل قولد فش سبيرولينا 3.0mm وزن 290g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1127-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-013",
+      "day": "2026-06-02 الثلاثاء",
+      "type": "post",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-06-02",
+      "time": "12:30",
+      "product_id": "C2-1005-1",
+      "product": "كبسولات بكتيريا نافعة 50 كبسولة",
+      "products": "C2-1005-1 | كبسولات بكتيريا نافعة 50 كبسولة",
+      "prompt": "4:5 static image post واقعي فاخر لمنتج كبسولات بكتيريا نافعة 50 كبسولة. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الماء الصافي ممكن يكون سام إذا الفلترة الحيوية ضعيفة. خطة النص الخارجي بعد التوليد: \"صفاء الماء مو / دليل أن الحوض آمن\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: فتح الفلتر من اليسار لليمين مع callouts على الميديا لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد. Static image only. No video motion. Composition must work as one premium feed image for Instagram 4:5 and Facebook crop-safe 1:1.\n\nTEXT OVERLAY: لا تعتمد على صفاء المي وحده\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c2-1005",
+      "psychology": "Authority + Loss Aversion + Saveable Proof",
+      "seo_caption": "لا تعتمد على صفاء المي وحده. الماء الصافي ممكن يكون سام إذا الفلترة الحيوية ضعيفة. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. كبسولات بكتيريا نافعة 50 كبسولة يفيدك هنا لأن يعطي مساحة للبكتيريا النافعة ويقلل تراكم الأمونيا والنترايت.\nدز كلمة فلتر ونبني لك ترتيب الميديا داخل الفلتر.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "لا تعتمد على\nصفاء المي وحده",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C2-1005-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-014",
+      "day": "2026-06-02 الثلاثاء",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-02",
+      "time": "20:30",
+      "product_id": "C4-1117-1",
+      "product": "منظف ماء منخفض 30W",
+      "products": "C4-1117-1 | منظف ماء منخفض 30W",
+      "prompt": "9:16 story واقعي فاخر لمنتج منظف ماء منخفض 30W. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: تغيير الماء العشوائي يسبب صدمة أكثر من فائدته. خطة النص الخارجي بعد التوليد: \"تنظيف الحوض مو / معناها تقلب حياة السمك\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: تنظيف الحوض مو معناها تقلب حياة السمك\nمعناها تقلب حياة السمك\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c4-1117",
+      "psychology": "Reciprocity + Commitment + DM Conversion",
+      "seo_caption": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "تنظيف الحوض مو معناها تقلب حياة السمك",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C4-1117-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-015",
+      "day": "2026-06-03 الأربعاء",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-03",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: أي سمكة خلتك تدخل عالم الأحواض\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "أي سمكة خلتك تدخل عالم الأحواض",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "أي سمكة خلتك تدخل عالم الأحواض",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-016",
+      "day": "2026-06-03 الأربعاء",
+      "type": "post",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-06-03",
+      "time": "12:30",
+      "product_id": "C1-1073-1a",
+      "product": "أكل بيتا 0.8mm وزن 130g",
+      "products": "C1-1073-1a | أكل بيتا 0.8mm وزن 130g",
+      "prompt": "9:16 vertical reel واقعي فاخر لمنتج أكل بيتا 0.8mm وزن 130g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1073",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل بيتا 0.8mm وزن 130g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1073-1a",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-017",
+      "day": "2026-06-03 الأربعاء",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-03",
+      "time": "20:30",
+      "product_id": "C4-1008-1",
+      "product": "عازل تعليق كبير للسمك",
+      "products": "C4-1008-1 | عازل تعليق كبير للسمك",
+      "prompt": "9:16 story واقعي فاخر لمنتج عازل تعليق كبير للسمك. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الصغار تختفي مو لأن التفريخ فشل؛ غالبا لأن ماكو عزل مضبوط. خطة النص الخارجي بعد التوليد: \"التفريخ ينجح من / أول يوم عزل صحيح\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: لقطة ثابتة للصغار ثم rack focus على العازل لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: التفريخ ينجح من أول يوم عزل صحيح\nأول يوم عزل صحيح\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: لقطة ثابتة للصغار ثم rack focus على العازل\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c4-1008",
+      "psychology": "Care + Status + DM Conversion",
+      "seo_caption": "التفريخ ينجح من أول يوم عزل صحيح",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "التفريخ ينجح من أول يوم عزل صحيح",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C4-1008-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-018",
+      "day": "2026-06-04 الخميس",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-04",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: المرة الجاية نشرح بيتا لو قولد فش\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "المرة الجاية نشرح بيتا لو قولد فش",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "المرة الجاية نشرح بيتا لو قولد فش",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-019-S1",
+      "day": "2026-06-04 الخميس",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-06-04",
+      "time": "20:00",
+      "product_id": "C1-1082-5",
+      "product": "أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "products": "C1-1082-5 | أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج أكل ديدان حمراء مقلدة 0.5mm وزن 115g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين\n\nCAROUSEL STRUCTURE: this is slide 1/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1082-2a",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل ديدان حمراء مقلدة 0.5mm وزن 115g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1082-5",
+      "carousel_slide": 1,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-019-S2",
+      "day": "2026-06-04 الخميس",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-06-04",
+      "time": "20:00",
+      "product_id": "C1-1082-5",
+      "product": "أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "products": "C1-1082-5 | أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج أكل ديدان حمراء مقلدة 0.5mm وزن 115g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين\n\nCAROUSEL STRUCTURE: this is slide 2/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: ليش تصير؟\nالسبب مو دايماً واضح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1082-2a",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل ديدان حمراء مقلدة 0.5mm وزن 115g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "ليش تصير؟\nالسبب مو دايماً واضح",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1082-5",
+      "carousel_slide": 2,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-019-S3",
+      "day": "2026-06-04 الخميس",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-06-04",
+      "time": "20:00",
+      "product_id": "C1-1082-5",
+      "product": "أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "products": "C1-1082-5 | أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج أكل ديدان حمراء مقلدة 0.5mm وزن 115g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين\n\nCAROUSEL STRUCTURE: this is slide 3/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: الحل العملي\nيبدي من التشخيص الصح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1082-2a",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل ديدان حمراء مقلدة 0.5mm وزن 115g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "الحل العملي\nيبدي من التشخيص الصح",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1082-5",
+      "carousel_slide": 3,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-019-S4",
+      "day": "2026-06-04 الخميس",
+      "type": "carousel_slide",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-06-04",
+      "time": "20:00",
+      "product_id": "C1-1082-5",
+      "product": "أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "products": "C1-1082-5 | أكل ديدان حمراء مقلدة 0.5mm وزن 115g",
+      "prompt": "4:5 carousel واقعي فاخر لمنتج أكل ديدان حمراء مقلدة 0.5mm وزن 115g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين\n\nCAROUSEL STRUCTURE: this is slide 4/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: قبل لا تشتري\nراجع هالنقاط. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1082-2a",
+      "psychology": "Care + Tribe",
+      "seo_caption": "القاعدة مو أكثر أكل؛ القاعدة أكل مناسب. أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. أكل ديدان حمراء مقلدة 0.5mm وزن 115g يفيدك هنا لأن يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "قبل لا تشتري\nراجع هالنقاط",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1082-5",
+      "carousel_slide": 4,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-020",
+      "day": "2026-06-04 الخميس",
+      "type": "post",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-06-04",
+      "time": "12:30",
+      "product_id": "19429",
+      "product": "مزيل طحالب 500ml",
+      "products": "19429 | مزيل طحالب 500ml",
+      "prompt": "4:5 static image post واقعي فاخر لمنتج مزيل طحالب 500ml. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: العلاج الخطأ يجهد السمك أكثر من المرض نفسه. خطة النص الخارجي بعد التوليد: \"قبل لا تعالج / السمكة، افهم الماء\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%. الحركة للريلز/الستوري: لقطة فحص/ملاحظة ثم استخدام المنتج بهدوء بدون تهويل لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد. Static image only. No video motion. Composition must work as one premium feed image for Instagram 4:5 and Facebook crop-safe 1:1.\n\nTEXT OVERLAY: قبل لا تعالج\nالسمكة، افهم الماء\nTEXT PLACEMENT: العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%\nMOTION: صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة\nVARIATION NOTE: Use this Iraqi visible idea instead of the repeated line: العلاج العشوائي ممكن يزيد المشكلة",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-yyh-189",
+      "psychology": "Authority + Loss Aversion + Saveable Proof",
+      "seo_caption": "قبل لا تعالج السمكة، افهم الماء. العلاج الخطأ يجهد السمك أكثر من المرض نفسه. الحل يبدأ بفهم السبب، وبعدها تختار الأداة الصح. مزيل طحالب 500ml يفيدك هنا لأن يعالج أو يثبت الماء حسب المشكلة بدل استخدام أدوية عشوائية.\nدز أعراض السمكة وصورة الحوض قبل استخدام أي علاج.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد\nVARIATION NOTE: Use this Iraqi visible idea instead of the repeated line: العلاج العشوائي ممكن يزيد المشكلة",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "العلاج العشوائي\nممكن يزيد المشكلة",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 19429",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W5-021",
+      "day": "2026-06-04 الخميس",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-04",
+      "time": "20:30",
+      "product_id": "02517",
+      "product": "حضانة تفريخ هوائية كبيرة غرفتين",
+      "products": "02517 | حضانة تفريخ هوائية كبيرة غرفتين",
+      "prompt": "9:16 story واقعي فاخر لمنتج حضانة تفريخ هوائية كبيرة غرفتين. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الصغار تختفي مو لأن التفريخ فشل؛ غالبا لأن ماكو عزل مضبوط. خطة النص الخارجي بعد التوليد: \"التفريخ ينجح من / أول يوم عزل صحيح\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: لقطة ثابتة للصغار ثم rack focus على العازل لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: التفريخ ينجح من أول يوم عزل صحيح\nأول يوم عزل صحيح\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: لقطة ثابتة للصغار ثم rack focus على العازل\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-ysl-506",
+      "psychology": "Care + Status + DM Conversion",
+      "seo_caption": "التفريخ ينجح من أول يوم عزل صحيح",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "التفريخ ينجح من أول يوم عزل صحيح",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02517",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-022",
+      "day": "2026-06-05 الجمعة",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-05",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "ستوري 9:16 بخلفية حوض داكنة، نص عربي كبير Changa،  Cyan accent، بدون ازدحام وبدون رموز.\n\nTEXT OVERLAY: نرتبلك قائمة بداية حسب فلوسك\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "نرتبلك قائمة بداية حسب فلوسك",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، مربع السؤال في الثلث السفلي، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "نرتبلك قائمة بداية حسب فلوسك",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-023",
+      "day": "2026-06-05 الجمعة",
+      "type": "reel",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-06-05",
+      "time": "21:15",
+      "product_id": "C1-1065-1",
+      "product": "أكل عائم بروتين 45% وزن 300g",
+      "products": "C1-1065-1 | أكل عائم بروتين 45% وزن 300g",
+      "prompt": "9:16 vertical reel واقعي فاخر لمنتج أكل عائم بروتين 45% وزن 300g. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: أكل كثير أو حجم غلط يعني أمونيا أعلى وماء أسوأ. خطة النص الخارجي بعد التوليد: \"القاعدة مو أكثر / أكل؛ القاعدة أكل مناسب\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة\nMOTION: top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1065",
+      "psychology": "Care + Tribe",
+      "seo_caption": "أكل عائم بروتين 45% وزن 300g مو منتج ينراد لكل شخص. ينراد إذا مشكلتك فعلا ضمن تغذية. يوصل حجم حبة وبروتين مناسب لنوع السمك بدل أكل واحد لكل شيء.\nدز نوع السمك ونحددلك الأكل والحجم.\n#AQUAVO #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب",
+      "motion_direction": "top shot للحبة ثم cut إلى السمك يأكل خلال دقيقتين",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1065-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W5-024",
+      "day": "2026-06-05 الجمعة",
+      "type": "story",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-06-05",
+      "time": "20:30",
+      "product_id": "02771",
+      "product": "حضانة أكريليك 20x10x10",
+      "products": "02771 | حضانة أكريليك 20x10x10",
+      "prompt": "9:16 story واقعي فاخر لمنتج حضانة أكريليك 20x10x10. خلفية حوض داكنة Deep Ocean #0a1628 مع لمعة Cyan #199bb8 من اليمين وضوء Amber دافئ من اليسار. أسلوب 2026: Blueprint Design annotations رصينة حول سبب الاستخدام، Grainy Blur خفيف 5%، تصوير 85mm، قطرات ماء حقيقية، لا كارتون، لا خلفية بيضاء. المشهد يحل مشكلة: الصغار تختفي مو لأن التفريخ فشل؛ غالبا لأن ماكو عزل مضبوط. خطة النص الخارجي بعد التوليد: \"التفريخ ينجح من / أول يوم عزل صحيح\" بخط Changa ExtraBold للعناوين وCairo للدعم، المكان: العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة. الحركة للريلز/الستوري: لقطة ثابتة للصغار ثم rack focus على العازل لا ترسم النص داخل الصورة نفسها؛ اترك مناطق نظيفة للتايبوغرافي الحقيقي بعد التوليد.\n\nTEXT OVERLAY: التفريخ ينجح من أول يوم عزل صحيح\nأول يوم عزل صحيح\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION: لقطة ثابتة للصغار ثم rack focus على العازل\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-acrylic-incubator-201010",
+      "psychology": "Care + Status + DM Conversion",
+      "seo_caption": "التفريخ ينجح من أول يوم عزل صحيح",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "التفريخ ينجح من أول يوم عزل صحيح",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02771",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    }
+  ]
+}
