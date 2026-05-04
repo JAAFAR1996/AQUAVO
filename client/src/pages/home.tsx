@@ -192,15 +192,15 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
 
           {/* 1. Hero & Video Section (Wide Box: 8 cols, 2 rows) */}
-          <div className="lg:col-span-8 lg:row-span-2 rounded-2xl overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-black min-h-[400px] md:min-h-[500px]">
+          <div className="lg:col-span-8 lg:row-span-2 rounded-2xl overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-black min-h-[280px] md:min-h-[400px] lg:min-h-[500px] animate-in fade-in duration-700">
             <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500 z-10" />
-            {/* Hero poster as LCP element with fetchpriority */}
+            {/* Hero poster as LCP element */}
             <img
               src={heroImage}
               alt="حوض أسماك بتصميم إيواغومي احترافي"
               className="absolute inset-0 w-full h-full object-cover"
               fetchPriority="high"
-              decoding="sync"
+              decoding="async"
               width={1200}
               height={800}
               sizes="(max-width: 1024px) 100vw, 66vw"
@@ -210,12 +210,12 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-60"></div>
 
             {/* Overlay Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20 text-right">
+            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-20 text-right">
               <div className="inline-flex items-center gap-2 bg-primary px-4 py-1 rounded-full text-black font-extrabold mb-4 text-sm md:text-base animate-pulse-glow">
                 <span className="uppercase tracking-widest">جديد 2026</span>
                 <Crown className="w-4 h-4" />
               </div>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
+              <h1 className="text-3xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
                 حول <span className="text-primary text-stroke-sm">حوضك</span> <br />
                 إلى <span className="text-accent">تحفة فنية</span>.
               </h1>
@@ -233,6 +233,7 @@ export default function Home() {
               </div>
             </div>
           </div>
+
 
           {/* 2. Best Sellers List (Tall Box: 4 cols, 3 rows) */}
           <div className="lg:col-span-4 lg:row-span-3 rounded-[2.5rem] bg-card/80 dark:bg-white/5 border border-border dark:border-white/10 backdrop-blur-xl p-6 flex flex-col shadow-xl overflow-hidden relative min-h-[600px]">
