@@ -166,9 +166,8 @@
   }
 }
 
-/* Default (AQUAVO Brand - Dark Premium) - Dark Mode */
-:root,
-.dark {
+/* AQUAVO Default Theme = Dark (applied on :root AND .dark) */
+:root {
   /* AQUAVO Dark Navy Background */
   --background: 222 47% 6%;
   --foreground: 210 20% 96%;
@@ -203,10 +202,8 @@
   --border: 0 0% 100% / 0.08;
   --input: 222 35% 18%;
   --ring: 194 76% 41%;
-  /* Ring matches Brand Primary */
 
   --radius: 1.5rem;
-  /* Super Rounded (rounded-3xl mostly) */
 
   --chart-1: 194 76% 41%;
   --chart-2: 12 100% 67%;
@@ -218,43 +215,67 @@
   --font-sans: 'Cairo', sans-serif;
 }
 
-/* Light Theme (2025 Clean & Minimal - Hyper-minimalism) */
-.light,
-[data-theme='light'] {
-  /* Pure White Background with Subtle Warmth */
-  --background: 0 0% 100%;
-  --foreground: 200 15% 12%;
+/* Dark class — same as :root */
+.dark {
+  --background: 222 47% 6%;
+  --foreground: 210 20% 96%;
+  --card: 222 40% 10%;
+  --card-foreground: 210 20% 96%;
+  --popover: 222 40% 10%;
+  --popover-foreground: 210 20% 96%;
+  --primary: 194 76% 41%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 222 35% 16%;
+  --secondary-foreground: 210 20% 96%;
+  --muted: 222 25% 22%;
+  --muted-foreground: 210 15% 60%;
+  --accent: 12 100% 67%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 20% 98%;
+  --border: 0 0% 100% / 0.08;
+  --input: 222 35% 18%;
+  --ring: 194 76% 41%;
+}
 
-  /* Clean Card Design */
-  --card: 210 20% 98%;
-  --card-foreground: 200 15% 12%;
+/* Light Theme — AQUAVO Clean White */
+.light,
+[data-theme='light'],
+html.light {
+  color-scheme: light;
+  /* Clean White Background */
+  --background: 210 20% 98%;
+  --foreground: 222 47% 10%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 10%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 200 15% 12%;
+  --popover-foreground: 222 47% 10%;
 
-  /* Vibrant Teal/Cyan - Clear and Energetic */
-  --primary: 180 85% 40%;
+  /* AQUAVO Brand Primary stays same */
+  --primary: 194 76% 38%;
   --primary-foreground: 0 0% 100%;
 
   /* Soft Gray Secondary */
-  --secondary: 210 15% 94%;
-  --secondary-foreground: 200 15% 12%;
+  --secondary: 210 15% 93%;
+  --secondary-foreground: 222 47% 10%;
 
-  /* Subtle Muted Tones */
-  --muted: 210 12% 95%;
-  --muted-foreground: 200 10% 45%;
+  /* Subtle Muted */
+  --muted: 210 12% 94%;
+  --muted-foreground: 210 10% 42%;
 
-  /* Amber Gold Accent — 2026 Quiet Luxury */
-  --accent: 51 85% 50%;
+  /* AQUAVO Accent stays same */
+  --accent: 12 100% 60%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
 
   /* Crisp Borders */
-  --border: 210 15% 88%;
-  --input: 210 15% 92%;
-  --ring: 180 85% 40%;
+  --border: 210 15% 85%;
+  --input: 210 15% 90%;
+  --ring: 194 76% 38%;
 }
 
 @layer base {
