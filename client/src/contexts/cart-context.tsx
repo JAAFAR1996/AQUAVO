@@ -185,8 +185,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({
             productId: product.id,
             quantity,
-            // Send variant info so server stores correct price per variant
-            variantPrice: productPrice !== Number(product.price) ? productPrice : undefined,
+            // _variantId is set in product-details.tsx when a variant is selected
+            // Always send variantPrice when it's a variant product
+            variantPrice: (product as any)._variantId
+              ? Number(product.price)
+              : undefined,
             variantLabel: (product as any)._variantLabel ?? undefined,
             variantId: (product as any)._variantId ?? undefined,
           }),
