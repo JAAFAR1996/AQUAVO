@@ -59,11 +59,14 @@
   <!-- Critical CSS for Above-the-Fold Content -->
   <style>
     :root {
-      /* Deep Navy Background */
-      --background: 222 47% 4%; 
+      /* Deep Navy Background - AQUAVO Brand */
+      --background: 222 47% 6%;
       --foreground: 210 40% 98%;
-      /* Neon Lime Primary */
-      --primary: 111 100% 54% 
+      /* AQUAVO Brand Primary: #199bb8 */
+      --primary: 194 76% 41%;
+      --primary-foreground: 0 0% 100%;
+      /* AQUAVO Accent: #ff7b5a */
+      --accent: 12 100% 67%;
     }
 
     body {
@@ -102,7 +105,7 @@
       box-sizing: border-box;
       padding: 96px 16px 48px;
       background: hsl(var(--background));
-      animation: critical-shell-hide .12s linear 6500ms forwards
+      animation: critical-shell-hide .3s linear 2000ms forwards
     }
 
     .critical-home-card {

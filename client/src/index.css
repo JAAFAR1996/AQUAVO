@@ -166,51 +166,51 @@
   }
 }
 
-/* Default (2025 Ocean Theme - Ethereal Blues & Nature-Inspired) - Dark Mode */
+/* Default (AQUAVO Brand - Dark Premium) - Dark Mode */
 :root,
 .dark {
-  /* Soft Deep Ocean Theme - 2025 Trends */
-  --background: 210 60% 8%;
-  --foreground: 210 20% 98%;
+  /* AQUAVO Dark Navy Background */
+  --background: 222 47% 6%;
+  --foreground: 210 20% 96%;
 
   /* Glassmorphism Variables */
   --card-bg: 0 0% 100% / 0.05;
   --card-border: 0 0% 100% / 0.1;
 
-  --card: 210 50% 12%;
-  --card-foreground: 210 20% 98%;
+  --card: 222 40% 10%;
+  --card-foreground: 210 20% 96%;
 
-  --popover: 210 50% 12%;
-  --popover-foreground: 210 20% 98%;
+  --popover: 222 40% 10%;
+  --popover-foreground: 210 20% 96%;
 
-  /* Bright Aqua/Teal - 2025 Ocean Inspired (#1dd3d3) */
-  --primary: 180 85% 48%;
-  --primary-foreground: 210 60% 8%;
+  /* AQUAVO Brand Primary: #199bb8 */
+  --primary: 194 76% 41%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 210 40% 18%;
-  --secondary-foreground: 210 20% 98%;
+  --secondary: 222 35% 16%;
+  --secondary-foreground: 210 20% 96%;
 
-  --muted: 210 25% 25%;
-  --muted-foreground: 210 15% 65%;
+  --muted: 222 25% 22%;
+  --muted-foreground: 210 15% 60%;
 
-  /* Amber Gold Accent — 2026 Quiet Luxury (#ffd700) */
-  --accent: 51 100% 50%;
-  --accent-foreground: 210 60% 8%;
+  /* AQUAVO Accent: #ff7b5a (Coral/Orange) */
+  --accent: 12 100% 67%;
+  --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
 
-  --border: 0 0% 100% / 0.1;
-  --input: 210 40% 20%;
-  --ring: 180 85% 48%;
-  /* Ring matches Primary */
+  --border: 0 0% 100% / 0.08;
+  --input: 222 35% 18%;
+  --ring: 194 76% 41%;
+  /* Ring matches Brand Primary */
 
   --radius: 1.5rem;
   /* Super Rounded (rounded-3xl mostly) */
 
-  --chart-1: 180 85% 48%;
-  --chart-2: 15 100% 68%;
-  --chart-3: 210 50% 35%;
+  --chart-1: 194 76% 41%;
+  --chart-2: 12 100% 67%;
+  --chart-3: 222 40% 30%;
   --chart-4: 45 85% 55%;
   --chart-5: 280 60% 60%;
 

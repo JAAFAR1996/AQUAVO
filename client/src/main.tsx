@@ -29,7 +29,7 @@ const deferFontTimer = window.setTimeout(() => {
   } else {
     enableDeferredFonts();
   }
-}, 8000);
+}, 1500);
 
 window.addEventListener("pagehide", () => window.clearTimeout(deferFontTimer), { once: true });
 
