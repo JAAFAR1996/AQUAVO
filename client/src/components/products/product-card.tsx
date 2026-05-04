@@ -39,9 +39,8 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     ? Math.min(...product.variants.map(v => v.price))
     : undefined;
 
-  // إظهار السعر فقط لمنتجات YEE و General إذا كان المنتج يمتلك سعر أكبر من صفر
-  const isPurchasableBrand = ["YEE", "GENERAL"].includes(product.brand?.toUpperCase() || "");
-  const hasPrice = isPurchasableBrand && ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
+  // كل منتج عنده سعر أكبر من صفر يمكن شراؤه — لا قيود على البراند
+  const hasPrice = ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
