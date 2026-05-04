@@ -30,6 +30,7 @@ import { Plus, Pencil, Trash2, Image as ImageIcon, Save, X } from "lucide-react"
 import type { ProductVariant } from "@/types";
 import { ImageSelector } from "@/components/admin/image-selector";
 import { cn } from "@/lib/utils";
+import { addCsrfHeader } from "@/lib/csrf"; // ✅ CSRF header for protected routes
 
 interface ProductVariantsManagerProps {
   productId: string;
@@ -173,27 +174,32 @@ export function ProductVariantsManager({
     try {
       const response = await fetch(`/api/products/${productId}/variants`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }), // ✅ CSRF + JSON
+        credentials: "include", // ✅ session cookie
         body: JSON.stringify({
           hasVariants: variants.length > 0,
           variants: variants.length > 0 ? variants : null,
         }),
       });
 
-      if (!response.ok) throw new Error("فشل في حفظ الخيارات");
+      if (!response.ok) {
+        const errBody = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
+        console.error("[Variants] Save failed:", response.status, errBody);
+        throw new Error(errBody.message || `HTTP ${response.status}`);
+      }
 
       toast({
         title: "نجح! ✅",
-        description: "تم حفظ الخيارات بنجاح",
+        description: "تم حفظ الخيارات في قاعدة البيانات بنجاح",
       });
 
       onUpdate();
     } catch (error) {
+      const msg = error instanceof Error ? error.message : "خطأ غير معروف";
+      console.error("[Variants] handleSaveToDatabase error:", msg);
       toast({
-        title: "خطأ",
-        description: "فشل في حفظ الخيارات",
+        title: "خطأ في الحفظ",
+        description: `فشل: ${msg}`,
         variant: "destructive",
       });
     } finally {
@@ -267,8 +273,8 @@ export function ProductVariantsManager({
     setEditingPriceId(null);
 
     toast({
-      title: "تم! ✅",
-      description: "تم تحديث السعر",
+      title: "✏️ تم تعديل السعر",
+      description: "⚠️ اضغط \"حفظ التغييرات\" أعلاه لحفظه في قاعدة البيانات",
     });
   };
 
