@@ -225,6 +225,10 @@ export const cartItems = pgTable("cart_items", {
   userId: text("user_id").references(() => users.id).notNull(),
   productId: text("product_id").references(() => products.id).notNull(),
   quantity: integer("quantity").notNull().default(1),
+  // Variant info — stored to preserve correct price per size/option
+  variantPrice: numeric("variant_price"),   // سعر الخيار المحدد (مثل: 48,400 لحجم 35×35)
+  variantLabel: text("variant_label"),       // اسم الخيار (مثل: "40×23×25 سم")
+  variantId: text("variant_id"),             // معرّف الخيار (مثل: "small")
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({

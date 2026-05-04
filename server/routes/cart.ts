@@ -35,7 +35,10 @@ export function createCartRouter(): RouterType {
 
     const addItemSchema = z.object({
         productId: z.string(),
-        quantity: z.number().int().positive()
+        quantity: z.number().int().positive(),
+        variantPrice: z.number().positive().optional(), // سعر الخيار المحدد
+        variantLabel: z.string().optional(),           // اسم الخيار (مثل: 40×23 سم)
+        variantId: z.string().optional(),              // معرّف الخيار
     });
 
     router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -48,7 +51,14 @@ export function createCartRouter(): RouterType {
             }
 
             const data = addItemSchema.parse(req.body);
-            const item = await storage.addToCart(userId, data.productId, data.quantity);
+            const item = await storage.addToCart(
+                userId,
+                data.productId,
+                data.quantity,
+                data.variantPrice,
+                data.variantLabel,
+                data.variantId
+            );
 
             // Track cart add interaction (fire-and-forget)
             analyticsTracker.trackCartAdd({

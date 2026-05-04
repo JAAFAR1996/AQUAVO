@@ -1,0 +1,1702 @@
+{
+  "meta": {
+    "week": 2,
+    "theme": "AQUAVO Baghdad Sales + Education Week 2",
+    "generated_at": "2026-05-03T19:11:37",
+    "source": "C:\\Users\\jaafa\\Desktop\\basarai\\backend\\AQUAVO_CONTENT_CALENDAR.xlsx",
+    "prompt_count": 29,
+    "brand_rules": {
+      "brand": "AQUAVO",
+      "version": "AQUAVO Brand Identity System 2026 v1.0",
+      "market": "Baghdad / Iraq",
+      "mission": "Upgrade aquarium keeping in Iraq from random trial-and-error into professional care with trusted tools and real knowledge.",
+      "positioning": "The expert Iraqi aquarium store for hobbyists tired of weak products and wrong advice; teach first, sell the right solution second.",
+      "archetype": "The Sage + The Hero",
+      "tagline": "AQUAVO - mustaqbal ahwad al-Iraq",
+      "voice": {
+        "dialect": "Pure Baghdadi Arabic",
+        "tone": "Expert, calm, confident, premium, never desperate",
+        "emoji_rule": "Zero emoji in public captions, prompts, and on-image text",
+        "cta_rule": "Avoid hard-sell lines. Stories must not ask for comments and must not show manual sticker UI. Feed posts/carousels can use calm engagement. No visible logo, website URL, company name, QR code, watermark, brand badge, or bottom signature inside generated images."
+      },
+      "colors": {
+        "primary": {
+          "aquavo_cyan": "#199BB8",
+          "deep_cyan": "#0D7A94"
+        },
+        "secondary": {
+          "coral_accent": "#FF7B5A",
+          "amber_gold": "#FFD700",
+          "aqua_bright": "#1DD3D3"
+        },
+        "backgrounds": {
+          "abyss": "#010611",
+          "deep_ocean": "#0A1628",
+          "ocean_floor": "#0F2035",
+          "surface": "#1A3050"
+        },
+        "semantic": {
+          "success": "#22C55E",
+          "warning": "#EAB308",
+          "error": "#EF4444",
+          "info": "#3B82F6"
+        },
+        "rule": "Dark mode only, never white as primary background, never more than three active colors in one design."
+      },
+      "typography": {
+        "arabic_headline": "Changa Bold 700/800",
+        "arabic_body": "Cairo Regular 400 / SemiBold 600",
+        "english_labels": "Inter 400/500/700/900",
+        "video_text": "Changa Bold"
+      },
+      "photography": {
+        "background": "Dark slate, dark walnut, #0A1628, or real aquarium image with 70% dark overlay",
+        "lighting": "Warm amber side light from left + cool cyan rim light from right",
+        "camera": "Canon R5, 50-100mm, f/2.8-4.0",
+        "composition": "Rule of thirds; product on intersection point where possible",
+        "grade": "Moody Aquatic: deep blue/teal shadows, warm amber highlights, -10% general saturation, cyan/green boost, +15% contrast, 5-8% film grain, light vignette",
+        "forbidden": "White plastic background, direct flash, cold fluorescent lighting, random angles, oversaturated filters"
+      },
+      "social_templates": {
+        "story_reel": "1080x1920; hook white, body #199BB8, CTA #FF7B5A; no visible logo or bottom signature",
+        "instagram_post": "1080x1080 or 1080x1350",
+        "carousel": "1080x1350",
+        "facebook_ad": "1200x628",
+        "closing_screen": "#0A1628 background with simple fade only; no logo, no wordmark, no bottom signature"
+      },
+      "motion": {
+        "closing": "fade to dark background without any logo or wordmark",
+        "cards": "slide up y 20 to 0 + fade-in",
+        "buttons": "active scale 0.97",
+        "bubbles": "slow float 10-16 seconds",
+        "loading": "shimmer or skeleton, not spinner"
+      }
+    }
+  },
+  "prompts": [
+    {
+      "id": "W2-001",
+      "day": "2026-05-09 السبت",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-09",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: أكثر شي يضوجك: الطحالب لو ريحة الماء؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "أكثر شي يضوجك: الطحالب لو ريحة الماء",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "أكثر شي يضوجك: الطحالب لو ريحة الماء؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-002-S1",
+      "day": "2026-05-09 السبت",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-002-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-09",
+      "time": "20:00",
+      "product_id": "C5-1144-1a",
+      "product": "سيفون تغيير ماء مقوّى 1.5m",
+      "products": "C5-1144-1a | سيفون تغيير ماء مقوّى 1.5m",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: thickened 1.5m aquarium water-change siphon hose. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"تنظيف الحوض مو\nمعناها تقلب حياة السمك\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 1/3, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: بدّل ماء بدون\nما تقلب الحوض. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE-3621",
+      "psychology": "Reciprocity + Commitment",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالصيانة الصح مو معناها تقلب الحوض كل مرة. سيفون تغيير ماء مقوّى 1.5m يسهّل تغيير الماء الجزئي ويخلي الصيانة أنظف وأهدأ على السمك.\nدز كلمة صيانة ونرتبلك جدول تغيير ماء بسيط.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "بدّل ماء بدون\nما تقلب الحوض",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1144-1a",
+      "carousel_slide": 1,
+      "carousel_slide_count": 3,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-002-S2",
+      "day": "2026-05-09 السبت",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-002-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-09",
+      "time": "20:00",
+      "product_id": "C5-1144-1a",
+      "product": "سيفون تغيير ماء مقوّى 1.5m",
+      "products": "C5-1144-1a | سيفون تغيير ماء مقوّى 1.5m",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: thickened 1.5m aquarium water-change siphon hose. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"تنظيف الحوض مو\nمعناها تقلب حياة السمك\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 2/3, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: ليش تصير؟\nالسبب مو دايماً واضح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE-3621",
+      "psychology": "Reciprocity + Commitment",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالصيانة الصح مو معناها تقلب الحوض كل مرة. سيفون تغيير ماء مقوّى 1.5m يسهّل تغيير الماء الجزئي ويخلي الصيانة أنظف وأهدأ على السمك.\nدز كلمة صيانة ونرتبلك جدول تغيير ماء بسيط.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "ليش تصير؟\nالسبب مو دايماً واضح",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1144-1a",
+      "carousel_slide": 2,
+      "carousel_slide_count": 3,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-002-S3",
+      "day": "2026-05-09 السبت",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-002-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-09",
+      "time": "20:00",
+      "product_id": "C5-1144-1a",
+      "product": "سيفون تغيير ماء مقوّى 1.5m",
+      "products": "C5-1144-1a | سيفون تغيير ماء مقوّى 1.5m",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: thickened 1.5m aquarium water-change siphon hose. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"تنظيف الحوض مو\nمعناها تقلب حياة السمك\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 3/3, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: الحل العملي\nيبدي من التشخيص الصح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE-3621",
+      "psychology": "Reciprocity + Commitment",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالصيانة الصح مو معناها تقلب الحوض كل مرة. سيفون تغيير ماء مقوّى 1.5m يسهّل تغيير الماء الجزئي ويخلي الصيانة أنظف وأهدأ على السمك.\nدز كلمة صيانة ونرتبلك جدول تغيير ماء بسيط.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "الحل العملي\nيبدي من التشخيص الصح",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1144-1a",
+      "carousel_slide": 3,
+      "carousel_slide_count": 3,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-003",
+      "day": "2026-05-09 السبت",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-09",
+      "time": "20:30",
+      "product_id": "C3-1010-3",
+      "product": "فحص أمونيا/أمونيا نيتروجين حوالي 60 مرة",
+      "products": "C3-1010-3 | فحص أمونيا/أمونيا نيتروجين حوالي 60 مرة",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: ammonia nitrogen aquarium test kit, about 60 tests. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: test strip or vial near the aquarium, clear educational mood, emphasize checking water before guessing the problem.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: الفحص يسبق العلاج\nغالبا ما ينشاف\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c3-1010",
+      "psychology": "Authority + Commitment + DM Conversion",
+      "seo_caption": "الفحص يسبق العلاج",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "الفحص يسبق العلاج",
+      "motion_direction": "insert shot للنتيجة ثم close-up على القرار",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C3-1010-3",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-004",
+      "day": "2026-05-10 الأحد",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-10",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: تحب نشرح فحص الأمونيا والنترايت بطريقة سهلة؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "تحب نشرح فحص الأمونيا والنترايت بطريقة سهلة",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "تحب نشرح فحص الأمونيا والنترايت بطريقة سهلة؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-005",
+      "day": "2026-05-10 الأحد",
+      "type": "reel",
+      "carousel_group_id": "",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-05-10",
+      "time": "21:15",
+      "product_id": "1.8.3.2",
+      "product": "سيفون تغيير ماء ببالون سحب 1.7m",
+      "products": "1.8.3.2 | سيفون تغيير ماء ببالون سحب 1.7m",
+      "prompt": "9:16 vertical short-form video creative, 1080x1920 feel, designed for TikTok, Instagram Reels, and Facebook Reels.\nHero product: durable 1.7m aquarium water-change siphon with thickened hand pump bulb. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nUse this as the key visual / first frame for a short video; keep the opening frame readable within the first two seconds.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"تنظيف الحوض مو\nمعناها تقلب حياة السمك\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\YEE-3621",
+      "psychology": "Reciprocity + Commitment",
+      "seo_caption": "الصيانة الصح مو معناها تقلب الحوض كل مرة.\nسيفون تغيير ماء ببالون سحب 1.7m يسهّل تغيير الماء الجزئي ويخلي الصيانة أنظف وأهدأ على السمك.\nدز كلمة صيانة ونرتبلك جدول تغيير ماء بسيط.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "بدّل ماء بدون\nما تقلب الحوض",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Problem/Solution. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 1.8.3.2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-006",
+      "day": "2026-05-10 الأحد",
+      "type": "post",
+      "carousel_group_id": "",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-05-10",
+      "time": "12:30",
+      "product_id": "C5-1123-2",
+      "product": "حوض تيار جانبي 60×15×15cm مع مضخة",
+      "products": "C5-1123-2",
+      "prompt": "4:5 vertical static feed post, 1080x1350 feel, designed for Instagram Feed and Facebook Feed.\nHero product: side-filter stream aquarium tank, 60x15x15cm, 6mm glass, with water pump. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: clean tank size/space decision, stable base, simple beginner setup, no overcrowding.\nUse a static feed composition with a clear subject and no motion instructions.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"أول قرار بالحوض\nيحدد نصف نجاح التربية\"\nTEXT PLACEMENT: Place the tank/product on the lower-third line; leave dark negative space on the left for the Arabic headline.\nMOTION / VIDEO DIRECTION: Static image only; use shallow depth of field, realistic reflections, and premium lighting to create depth.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-tank-601515",
+      "psychology": "Status + Identity + Saveable Proof",
+      "seo_caption": "اختيار حجم الحوض يحدد نص نجاح التجربة من البداية.\nحوض تيار جانبي 60×15×15cm مع مضخة ينطي مساحة أفضل للترتيب والسباحة، ويخلي الصيانة أسهل.\nمو كل منتج ينراد لكل حوض؛ الاختيار الصح يعتمد على حجم الحوض والمشكلة الفعلية.\nدز مساحة المكان ونقترحلك مقاس يناسبك.\n#AQUAVO #حوض_اسماك #احواض_زجاج #اسماك_زينة #العراق #بغداد\n\n💡 دز نوع السمك والعدد بالتعليقات حتى نحدد الحجم المناسب لحوضك!",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، المنتج/الحوض على خط الثلث السفلي، مساحة سالبة داكنة يسار الصورة للمعلومة",
+      "text_overlay": "الحجم الصح\nيريّحك بالصيانة",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C5-1123-2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-007",
+      "day": "2026-05-10 الأحد",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-10",
+      "time": "20:30",
+      "product_id": "C3-1010-1",
+      "product": "فحص نترايت حوالي 100 مرة",
+      "products": "C3-1010-1 | فحص نترايت حوالي 100 مرة",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: nitrite aquarium test kit, about 100 tests. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: test strip or vial near the aquarium, clear educational mood, emphasize checking water before guessing the problem.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: الفحص يسبق العلاج\nغالبا ما ينشاف\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c3-1010",
+      "psychology": "Authority + Commitment + DM Conversion",
+      "seo_caption": "الفحص يسبق العلاج",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "الفحص يسبق العلاج",
+      "motion_direction": "insert shot للنتيجة ثم close-up على القرار",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C3-1010-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-008",
+      "day": "2026-05-11 الإثنين",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-11",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: شنو حجم حوضك الحالي؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "شنو حجم حوضك الحالي",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "شنو حجم حوضك الحالي؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-009",
+      "day": "2026-05-11 الإثنين",
+      "type": "reel",
+      "carousel_group_id": "",
+      "platform": "TikTok + IG Reels",
+      "publish_date": "2026-05-11",
+      "time": "14:00",
+      "product_id": "C4-1117-1",
+      "product": "فلتر داخلي منخفض الماء قدرة 30W",
+      "products": "C4-1117-1 | فلتر داخلي منخفض الماء قدرة 30W",
+      "prompt": "9:16 vertical short-form video creative, 1080x1920 feel, designed for TikTok, Instagram Reels, and Facebook Reels.\nHero product: 30W low-water-level internal aquarium filter. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nUse this as the key visual / first frame for a short video; keep the opening frame readable within the first two seconds.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"تنظيف الحوض مو\nمعناها تقلب حياة السمك\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c4-1117",
+      "psychology": "Reciprocity + Commitment",
+      "seo_caption": "صفاء الماء وحده مو دليل إن الحوض آمن.\nفلتر داخلي منخفض الماء قدرة 30W ينطي مساحة أكثر للبكتيريا النافعة داخل الفلتر حتى تشتغل الدورة البيولوجية بثبات.\nدز صورة الفلتر ونكلك ترتيب الميديا المناسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "الفلتر مو\nإسفنجة وبس",
+      "motion_direction": "قبل/بعد بقطع سريع بين ماء متعب وعملية تغيير جزئي",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Demo/Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C4-1117-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-010",
+      "day": "2026-05-11 الإثنين",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-11",
+      "time": "20:30",
+      "product_id": "C4-1123-1a",
+      "product": "شرائط فحص ماء 9 في 1 للمبتدئين - 50 شريط",
+      "products": "C4-1123-1a | شرائط فحص ماء 9 في 1 للمبتدئين - 50 شريط",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: 9-in-1 beginner aquarium water test strips, 50 strips, with comparison chart. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: test strip or vial near the aquarium, clear educational mood, emphasize checking water before guessing the problem.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: الفحص يسبق العلاج\nغالبا ما ينشاف\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c4-1123-1a",
+      "psychology": "Authority + Commitment + DM Conversion",
+      "seo_caption": "الفحص يسبق العلاج",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "الفحص يسبق العلاج",
+      "motion_direction": "insert shot للنتيجة ثم close-up على القرار",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C4-1123-1a",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-011",
+      "day": "2026-05-12 الثلاثاء",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-12",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: تستخدم ماء حنفية لو RO؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "تستخدم ماء حنفية لو RO",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "تستخدم ماء حنفية لو RO؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-012",
+      "day": "2026-05-12 الثلاثاء",
+      "type": "reel",
+      "carousel_group_id": "",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-05-12",
+      "time": "21:15",
+      "product_id": "C4-1008-1",
+      "product": "صندوق عزل معلّق كبير للأسماك",
+      "products": "C4-1008-1 | صندوق عزل معلّق كبير للأسماك",
+      "prompt": "9:16 vertical short-form video creative, 1080x1920 feel, designed for TikTok, Instagram Reels, and Facebook Reels.\nHero product: large suspended fish isolation box. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nUse this as the key visual / first frame for a short video; keep the opening frame readable within the first two seconds.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c4-1008",
+      "psychology": "Care + Status",
+      "seo_caption": "العزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة.\nصندوق عزل معلّق كبير للأسماك يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "عزل مؤقت\nبدون فوضى",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Education. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C4-1008-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-013",
+      "day": "2026-05-12 الثلاثاء",
+      "type": "post",
+      "carousel_group_id": "",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-05-12",
+      "time": "12:30",
+      "product_id": "C1-1127-1",
+      "product": "أكل رانشو/گولد فش مع سبيرولينا 290g حبيبات غاطسة 3.0mm",
+      "products": "C1-1127-1 | أكل رانشو/گولد فش مع سبيرولينا 290g حبيبات غاطسة 3.0mm",
+      "prompt": "4:5 vertical static feed post, 1080x1350 feel, designed for Instagram Feed and Facebook Feed.\nHero product: Ranchu/goldfish color-enhancing feed with spirulina, slow sinking 3.0mm pellets, 290g. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: measured feeding portion, healthy fish response, no overfeeding cloud or dirty water.\nUse a static feed composition with a clear subject and no motion instructions.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use shallow depth of field, realistic reflections, and premium lighting to create depth.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1134-ranchu-sinking",
+      "psychology": "Care + Tribe + Saveable Proof",
+      "seo_caption": "مو كل سمك ياكل نفس الحجم ونفس النوع.\nأكل رانشو/گولد فش مع سبيرولينا 290g حبيبات غاطسة 3.0mm ينطي حجم ونوع أكل أقرب لاحتياج السمك، بدل أكل واحد لكل الأنواع.\nمو كل منتج ينراد لكل حوض؛ الاختيار الصح يعتمد على حجم الحوض والمشكلة الفعلية.\nدز نوع السمك وحجمه ونحددلك الأكل المناسب.\n#AQUAVO #اكل_اسماك #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "الأكل المناسب\nأقل وساخة",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1127-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-014",
+      "day": "2026-05-12 الثلاثاء",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-12",
+      "time": "20:30",
+      "product_id": "C2-1005-1",
+      "product": "كبسولات بكتيريا نافعة ونترفاينگ 50 حبة",
+      "products": "C2-1005-1 | كبسولات بكتيريا نافعة ونترفاينگ 50 حبة",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: YEE nitrifying bacteria and probiotic capsules, 50 capsules. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: clean water flow, filter media close-up, biofiltration logic, avoid saying clear water automatically means safe water.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: البكتيريا النافعة مو دواء سحري\nدليل أن الحوض آمن\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c2-1005",
+      "psychology": "Authority + Loss Aversion + DM Conversion",
+      "seo_caption": "البكتيريا النافعة مو دواء سحري",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "البكتيريا النافعة مو دواء سحري",
+      "motion_direction": "فتح الفلتر من اليسار لليمين مع callouts على الميديا",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C2-1005-1",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-015",
+      "day": "2026-05-13 الأربعاء",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-13",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: تعرف شكد حرارة حوضك هسه؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "تعرف شكد حرارة حوضك هسه",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "تعرف شكد حرارة حوضك هسه؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-016",
+      "day": "2026-05-13 الأربعاء",
+      "type": "post",
+      "carousel_group_id": "",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-05-13",
+      "time": "12:30",
+      "product_id": "02517",
+      "product": "حاضنة هوائية كبيرة بغرفتين",
+      "products": "02517 | حاضنة هوائية كبيرة بغرفتين",
+      "prompt": "4:5 vertical static feed post, 1080x1350 feel, designed for Instagram Feed and Facebook Feed.\nHero product: large air-driven double-room breeding/incubator box. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nUse a static feed composition with a clear subject and no motion instructions.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-ysl-506",
+      "psychology": "Care + Status",
+      "seo_caption": "العزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة.\nحاضنة هوائية كبيرة بغرفتين يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nمو كل منتج ينراد لكل حوض؛ الاختيار الصح يعتمد على حجم الحوض والمشكلة الفعلية.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "عزل مؤقت\nبدون فوضى",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02517",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-017",
+      "day": "2026-05-13 الأربعاء",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-13",
+      "time": "20:30",
+      "product_id": "C2-1005-2",
+      "product": "كبسولات بكتيريا نافعة ونترفاينگ 100 حبة",
+      "products": "C2-1005-2 | كبسولات بكتيريا نافعة ونترفاينگ 100 حبة",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: YEE nitrifying bacteria and probiotic capsules, 100 capsules. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: clean water flow, filter media close-up, biofiltration logic, avoid saying clear water automatically means safe water.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: البكتيريا النافعة مو دواء سحري\nدليل أن الحوض آمن\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c2-1005",
+      "psychology": "Authority + Loss Aversion + DM Conversion",
+      "seo_caption": "البكتيريا النافعة مو دواء سحري",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "البكتيريا النافعة مو دواء سحري",
+      "motion_direction": "فتح الفلتر من اليسار لليمين مع callouts على الميديا",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C2-1005-2",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-018",
+      "day": "2026-05-14 الخميس",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-14",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: تفضل فيديو قصير لو بوست خطوات؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "تفضل فيديو قصير لو بوست خطوات",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "تفضل فيديو قصير لو بوست خطوات؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 98,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-019-S1",
+      "day": "2026-05-14 الخميس",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-019-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-14",
+      "time": "20:00",
+      "product_id": "02771",
+      "product": "حاضنة أكريليك 20×10×10cm",
+      "products": "02771 | حاضنة أكريليك 20×10×10cm",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: acrylic fish breeding/incubator box, 20x10x10cm. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 1/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: عزل مؤقت\nبدون فوضى. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-acrylic-incubator-201010",
+      "psychology": "Care + Status",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالعزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة. حاضنة أكريليك 20×10×10cm يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "عزل مؤقت\nبدون فوضى",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02771",
+      "carousel_slide": 1,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-019-S2",
+      "day": "2026-05-14 الخميس",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-019-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-14",
+      "time": "20:00",
+      "product_id": "02771",
+      "product": "حاضنة أكريليك 20×10×10cm",
+      "products": "02771 | حاضنة أكريليك 20×10×10cm",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: acrylic fish breeding/incubator box, 20x10x10cm. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 2/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: ليش تصير؟\nالسبب مو دايماً واضح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-acrylic-incubator-201010",
+      "psychology": "Care + Status",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالعزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة. حاضنة أكريليك 20×10×10cm يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "ليش تصير؟\nالسبب مو دايماً واضح",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02771",
+      "carousel_slide": 2,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-019-S3",
+      "day": "2026-05-14 الخميس",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-019-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-14",
+      "time": "20:00",
+      "product_id": "02771",
+      "product": "حاضنة أكريليك 20×10×10cm",
+      "products": "02771 | حاضنة أكريليك 20×10×10cm",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: acrylic fish breeding/incubator box, 20x10x10cm. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 3/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: الحل العملي\nيبدي من التشخيص الصح. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-acrylic-incubator-201010",
+      "psychology": "Care + Status",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالعزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة. حاضنة أكريليك 20×10×10cm يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "الحل العملي\nيبدي من التشخيص الصح",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02771",
+      "carousel_slide": 3,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-019-S4",
+      "day": "2026-05-14 الخميس",
+      "type": "carousel_slide",
+      "carousel_group_id": "W2-019-CAR",
+      "platform": "Instagram Carousel + Facebook Album",
+      "publish_date": "2026-05-14",
+      "time": "20:00",
+      "product_id": "02771",
+      "product": "حاضنة أكريليك 20×10×10cm",
+      "products": "02771 | حاضنة أكريليك 20×10×10cm",
+      "prompt": "4:5 carousel cover image, designed as the first slide for Instagram Carousel and Facebook Album.\nHero product: acrylic fish breeding/incubator box, 20x10x10cm. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: practical installation/use, clean aquascape context, product solves a small but important maintenance problem.\nGenerate the carousel cover only; keep the composition strong enough to introduce a multi-slide educational post.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"التفريخ ينجح من\nأول يوم عزل صحيح\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use lighting, depth, and composition instead of motion.\n\nCAROUSEL STRUCTURE: this is slide 4/4, not a single-image carousel. Keep the same dark aquarium visual system across all slides, but make this slide carry only its own idea. Visible text for this slide exactly: قبل لا تشتري\nراجع هالنقاط. No comment CTA, no sticker UI, no logo, no website.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-acrylic-incubator-201010",
+      "psychology": "Care + Status",
+      "seo_caption": "احفظ البوست حتى ترجعله وقت الصيانة.\nالعزل الصح ينقذ الموقف، بس مو كل عزل ينفع لكل حالة. حاضنة أكريليك 20×10×10cm يفيد بالعزل المؤقت، التفريخ، أو حماية الصغار حسب نوع الاستخدام.\nدز نوع السمك والهدف من العزل ونختارلك الأنسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "قبل لا تشتري\nراجع هالنقاط",
+      "motion_direction": "لقطة ثابتة للصغار ثم rack focus على العازل",
+      "music_recommendation": "premium calm product bed, warm low synth, 70-84 BPM",
+      "psychology_score": 92,
+      "brand_compliance": 96,
+      "improvement_notes": "Guide. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 02771",
+      "carousel_slide": 4,
+      "carousel_slide_count": 4,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-020",
+      "day": "2026-05-14 الخميس",
+      "type": "post",
+      "carousel_group_id": "",
+      "platform": "Facebook Post + Instagram Feed",
+      "publish_date": "2026-05-14",
+      "time": "12:30",
+      "product_id": "C1-1082-5",
+      "product": "أكل سمك شكل دود أحمر حبيبات 0.5mm وزن 115g",
+      "products": "C1-1082-5 | أكل سمك شكل دود أحمر حبيبات 0.5mm وزن 115g",
+      "prompt": "4:5 vertical static feed post, 1080x1350 feel, designed for Instagram Feed and Facebook Feed.\nHero product: red-worm-style fish feed, 0.5mm granules, 115g. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: measured feeding portion, healthy fish response, no overfeeding cloud or dirty water.\nUse a static feed composition with a clear subject and no motion instructions.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"القاعدة مو أكثر\nأكل؛ القاعدة أكل مناسب\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Static image only; use shallow depth of field, realistic reflections, and premium lighting to create depth.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-c1-1082-2a",
+      "psychology": "Care + Tribe + Saveable Proof",
+      "seo_caption": "مو كل سمك ياكل نفس الحجم ونفس النوع.\nأكل سمك شكل دود أحمر حبيبات 0.5mm وزن 115g ينطي حجم ونوع أكل أقرب لاحتياج السمك، بدل أكل واحد لكل الأنواع.\nمو كل منتج ينراد لكل حوض؛ الاختيار الصح يعتمد على حجم الحوض والمشكلة الفعلية.\nدز نوع السمك وحجمه ونحددلك الأكل المناسب.\n#AQUAVO #اكل_اسماك #اسماك_زينة #احواض_اسماك #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، callout blueprint صغير أسفل يسار، المنتج واضح في الوسط مع هامش 20%",
+      "text_overlay": "الأكل المناسب\nأقل وساخة",
+      "motion_direction": "صورة ثابتة فقط؛ استخدم عمق مجال وإضاءة لتعويض غياب الحركة",
+      "music_recommendation": "subtle documentary bed, calm confidence, low percussion",
+      "psychology_score": 93,
+      "brand_compliance": 96,
+      "improvement_notes": "Static Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: C1-1082-5",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1350,
+          "aspect_ratio": "4:5"
+        }
+      }
+    },
+    {
+      "id": "W2-021",
+      "day": "2026-05-14 الخميس",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-14",
+      "time": "20:30",
+      "product_id": "19429",
+      "product": "مزيل طحالب للحوض 500ml",
+      "products": "19429",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: aquarium algaecide, 500ml. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: diagnosis-first aquarium care, a clean water sample/test tube, controlled product use, no exaggerated cure promise, no sick or dead fish close-up.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: لا تعالج عمياني افحص أول\nالسمكة، افهم الماء\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Begin with a calm check/observation shot, then show controlled product use without fear-based dramatization.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-yyh-189",
+      "psychology": "Authority + Loss Aversion + DM Conversion",
+      "seo_caption": "لا تعالج عمياني افحص أول",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "لا تعالج عمياني افحص أول",
+      "motion_direction": "لقطة فحص/ملاحظة ثم استخدام المنتج بهدوء بدون تهويل",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 94,
+      "brand_compliance": 96,
+      "improvement_notes": "Proof. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 19429",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-022",
+      "day": "2026-05-15 الجمعة",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-15",
+      "time": "09:00",
+      "product_id": "",
+      "product": "",
+      "products": "",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nNo product hero. Create a clean community Q&A aquarium background for an Arabic question overlay.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: premium dark aquarium background with subtle fish silhouettes, designed mainly as a question sticker/story background.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: شنو نوع الفلتر اللي تستخدمه؟\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Very subtle dark-water movement, or keep it as a still image if the placement is a static Story.\nDo not render Arabic text inside the image; leave clean negative space for the Arabic overlay to be added later.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Curiosity Gap + Commitment",
+      "seo_caption": "شنو نوع الفلتر اللي تستخدمه",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين، نص السؤال في الثلث السفلي مدمج بالصورة، مساحة فارغة حول النص حتى يبقى مقروء بالموبايل",
+      "text_overlay": "شنو نوع الفلتر اللي تستخدمه؟",
+      "motion_direction": "خلفية ماء داكنة بحركة خفيفة جدا أو still image إذا النشر Story ثابت",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 95,
+      "brand_compliance": 96,
+      "improvement_notes": "Community/Q&A. مدخل لجمع أسئلة الجمهور وتحويلها إلى محتوى.",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-023",
+      "day": "2026-05-15 الجمعة",
+      "type": "reel",
+      "carousel_group_id": "",
+      "platform": "TikTok + IG Reels + Facebook Reels",
+      "publish_date": "2026-05-15",
+      "time": "21:15",
+      "product_id": "05617a",
+      "product": "قطن فلترة 6D أزرق 50×40 قطعتين",
+      "products": "05617a | قطن فلترة 6D أزرق 50×40 قطعتين",
+      "prompt": "9:16 vertical short-form video creative, 1080x1920 feel, designed for TikTok, Instagram Reels, and Facebook Reels.\nHero product: blue upgraded 6D aquarium filter pad/cotton, 50x40, two pieces. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: clean water flow, filter media close-up, biofiltration logic, avoid saying clear water automatically means safe water.\nUse this as the key visual / first frame for a short video; keep the opening frame readable within the first two seconds.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: \"النظافة شكل، والاستقرار أرقام\"\nTEXT PLACEMENT: Place the headline in the upper-right safe zone, add a small blueprint-style callout in the lower-left, keep the product clear in the center with about 20% margin.\nMOTION / VIDEO DIRECTION: Subtle cinematic product movement; no shaky camera and no distracting effects.",
+      "reference_image": "C:\\Users\\jaafa\\Desktop\\Original_HighRes_Images\\client\\public\\images\\products\\yee\\yee-blue-new-upgraded-6d-filter-cotton-5040-two-pieces",
+      "psychology": "Authority + Loss Aversion",
+      "seo_caption": "صفاء الماء وحده مو دليل إن الحوض آمن.\nقطن فلترة 6D أزرق 50×40 قطعتين ينطي مساحة أكثر للبكتيريا النافعة داخل الفلتر حتى تشتغل الدورة البيولوجية بثبات.\nدز صورة الفلتر ونكلك ترتيب الميديا المناسب.\n#AQUAVO #احواض_اسماك #اسماك_زينة #العراق #بغداد",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "الفلتر مو\nإسفنجة وبس",
+      "motion_direction": "فتح الفلتر من اليسار لليمين مع callouts على الميديا",
+      "music_recommendation": "dark cinematic aquarium pulse, 78-92 BPM, soft water texture, no aggressive beat",
+      "psychology_score": 96,
+      "brand_compliance": 96,
+      "improvement_notes": "Soft Sale. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 05617a",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "high",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    },
+    {
+      "id": "W2-024",
+      "day": "2026-05-15 الجمعة",
+      "type": "story",
+      "carousel_group_id": "",
+      "platform": "Instagram Stories + Facebook Stories",
+      "publish_date": "2026-05-15",
+      "time": "20:30",
+      "product_id": "19939",
+      "product": "مثبت ماء ضد الإجهاد 1000ml",
+      "products": "19939 | مثبت ماء ضد الإجهاد 1000ml",
+      "prompt": "9:16 vertical Story creative, 1080x1920 feel, designed for Instagram Stories and Facebook Stories.\nHero product: anti-stress aquarium water stabilizer, 1000ml. Use the provided product reference image for packaging accuracy; do not invent label text, logos, or extra claims.\nPremium realistic aquarium commercial style. Dark deep-ocean background (#0A1628), cyan rim light (#199BB8) from the right, warm amber fill light from the left, real water reflections, subtle droplets, shallow depth of field, refined 2026 social-commerce look. No cartoon, no white studio background, no clutter.\nVisual idea: safer water preparation, water sample + conditioner in a calm maintenance scene, no claim that it treats fish disease.\nKeep UI-safe margins and a simple thumb-stopping composition.\nDo not render any Arabic or English words inside the image. Leave clean negative space for real typography added after generation. No prices, no fake badges, no watermark, no excessive icons, no exaggerated medical before/after scene.\n\nPOST-PRODUCTION WRITING ONLY:\nTEXT OVERLAY: ماء الحنفية يحتاج تجهيز\nالسمكة، افهم الماء\"\nTEXT PLACEMENT: العنوان أعلى يمين داخل safe zone. No CTA, no comment request, no sticker UI, no manual interaction box.\nMOTION / VIDEO DIRECTION: Begin with a calm check/observation shot, then show controlled product use without fear-based dramatization.\n\nSTORY RULE: visible text must be only the story question/headline. Do not render comment CTAs, comment boxes, reply boxes, poll stickers, question stickers, or manual sticker UI. If interaction is needed, it happens through platform API metadata, not inside the generated image.",
+      "reference_image": "",
+      "psychology": "Authority + Loss Aversion + DM Conversion",
+      "seo_caption": "ماء الحنفية يحتاج تجهيز",
+      "seo_hashtags": [
+        "#AQUAVO",
+        "#احواض_اسماك",
+        "#اسماك_زينة",
+        "#بغداد",
+        "#العراق"
+      ],
+      "sticker": "",
+      "text_placement": "العنوان أعلى يمين داخل safe zone 8%، المنتج في الثلث الأوسط، CTA أو support أسفل يسار فوق 78% حتى لا يتعارض مع UI المنصة",
+      "text_overlay": "ماء الحنفية يحتاج تجهيز",
+      "motion_direction": "لقطة فحص/ملاحظة ثم استخدام المنتج بهدوء بدون تهويل",
+      "music_recommendation": "minimal water ambience or no music, no manual sticker instruction inside the image",
+      "psychology_score": 97,
+      "brand_compliance": 96,
+      "improvement_notes": "Product Tip. استخدم المنتج كحل داخل قصة تعليمية، لا تفتتح بسعر أو خصم. ID: 19939",
+      "carousel_slide": null,
+      "carousel_slide_count": null,
+      "generation_settings": {
+        "recommended_model": {
+          "primary": {
+            "key": "gpt2",
+            "id": "gpt-image-2",
+            "name": "GPT Image 2",
+            "provider": "openai"
+          },
+          "fallback": {
+            "key": "nano",
+            "id": "gemini-2.5-flash-image",
+            "name": "NanoBanana 2",
+            "provider": "gemini"
+          },
+          "quality": "medium",
+          "reasoning": "Use GPT Image 2 first for strict Arabic layout and premium product realism; use NanoBanana 2 when product-reference reconstruction is more important."
+        },
+        "dimensions": {
+          "width": 1080,
+          "height": 1920,
+          "aspect_ratio": "9:16"
+        }
+      }
+    }
+  ]
+}

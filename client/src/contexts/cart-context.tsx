@@ -182,7 +182,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
           method: "POST",
           headers: addCsrfHeader({ "Content-Type": "application/json" }),
           credentials: "include",
-          body: JSON.stringify({ productId: product.id, quantity }),
+          body: JSON.stringify({
+            productId: product.id,
+            quantity,
+            // Send variant info so server stores correct price per variant
+            variantPrice: productPrice !== Number(product.price) ? productPrice : undefined,
+            variantLabel: (product as any)._variantLabel ?? undefined,
+            variantId: (product as any)._variantId ?? undefined,
+          }),
         });
         if (res.ok) {
           const newItem = await res.json();

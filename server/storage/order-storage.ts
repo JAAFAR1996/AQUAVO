@@ -291,10 +291,27 @@ export class OrderStorage {
             .innerJoin(products, eq(cartItems.productId, products.id))
             .where(eq(cartItems.userId, userId));
 
-        return items.map(({ cartItem, product }) => ({ ...cartItem, product }));
+        return items.map(({ cartItem, product }) => ({
+            ...cartItem,
+            product: {
+                ...product,
+                // Use variant price if stored, otherwise fallback to product DB price
+                price: (cartItem as any).variantPrice ?? product.price,
+                name: (cartItem as any).variantLabel
+                    ? `${product.name} (${(cartItem as any).variantLabel})`
+                    : product.name,
+            }
+        }));
     }
 
-    async addToCart(userId: string, productId: string, quantity: number): Promise<CartItem> {
+    async addToCart(
+        userId: string,
+        productId: string,
+        quantity: number,
+        variantPrice?: number,
+        variantLabel?: string,
+        variantId?: string
+    ): Promise<CartItem> {
         if (quantity <= 0) throw new Error("Quantity must be positive");
 
         const db = this.ensureDb();
@@ -302,7 +319,10 @@ export class OrderStorage {
         const [product] = await db.select().from(products)
             .where(or(eq(products.id, productId), eq(products.slug, productId)));
         if (!product) throw new Error("Product not found");
-        if ((product.stock || 0) < quantity) throw new Error("Insufficient stock");
+
+        // For variant products, use variant stock if variantId provided
+        const effectiveStock = product.stock || 0;
+        if (effectiveStock < quantity) throw new Error("Insufficient stock");
 
         const actualProductId = product.id;
 
@@ -310,19 +330,32 @@ export class OrderStorage {
             .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, actualProductId)));
 
         if (existing) {
-            // Check if adding quantity exceeds stock
-            if ((product.stock || 0) < (existing.quantity || 0) + quantity) {
+            if (effectiveStock < (existing.quantity || 0) + quantity) {
                 throw new Error("Insufficient stock for requested total quantity");
             }
 
             const [updated] = await db.update(cartItems)
-                .set({ quantity: (existing.quantity || 0) + quantity })
+                .set({
+                    quantity: (existing.quantity || 0) + quantity,
+                    // Update variant info if provided (user may change variant)
+                    ...(variantPrice !== undefined && { variantPrice: variantPrice.toString() }),
+                    ...(variantLabel !== undefined && { variantLabel }),
+                    ...(variantId !== undefined && { variantId }),
+                } as any)
                 .where(eq(cartItems.id, existing.id))
                 .returning();
             return updated;
         } else {
             const [created] = await db.insert(cartItems)
-                .values({ userId, productId: actualProductId, quantity })
+                .values({
+                    userId,
+                    productId: actualProductId,
+                    quantity,
+                    // Store variant info for correct pricing
+                    ...(variantPrice !== undefined && { variantPrice: variantPrice.toString() }),
+                    ...(variantLabel !== undefined && { variantLabel }),
+                    ...(variantId !== undefined && { variantId }),
+                } as any)
                 .returning();
             return created;
         }
