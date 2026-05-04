@@ -238,44 +238,34 @@
   --ring: 194 76% 41%;
 }
 
-/* Light Theme — AQUAVO Clean White */
-.light,
-[data-theme='light'],
+/* Light Theme — AQUAVO Clean White
+   Applied when theme-switcher adds .light to <html>
+   Uses !important-level specificity via html.light selector */
 html.light {
   color-scheme: light;
-  /* Clean White Background */
-  --background: 210 20% 98%;
-  --foreground: 222 47% 10%;
+  --background: 210 20% 98% !important;
+  --foreground: 222 47% 10% !important;
+  --card: 0 0% 100% !important;
+  --card-foreground: 222 47% 10% !important;
+  --popover: 0 0% 100% !important;
+  --popover-foreground: 222 47% 10% !important;
+  --primary: 194 76% 38% !important;
+  --primary-foreground: 0 0% 100% !important;
+  --secondary: 210 15% 93% !important;
+  --secondary-foreground: 222 47% 10% !important;
+  --muted: 210 12% 94% !important;
+  --muted-foreground: 210 10% 42% !important;
+  --accent: 12 100% 60% !important;
+  --accent-foreground: 0 0% 100% !important;
+  --destructive: 0 72% 51% !important;
+  --destructive-foreground: 0 0% 100% !important;
+  --border: 210 15% 85% !important;
+  --input: 210 15% 90% !important;
+  --ring: 194 76% 38% !important;
+}
 
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 10%;
-
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 10%;
-
-  /* AQUAVO Brand Primary stays same */
-  --primary: 194 76% 38%;
-  --primary-foreground: 0 0% 100%;
-
-  /* Soft Gray Secondary */
-  --secondary: 210 15% 93%;
-  --secondary-foreground: 222 47% 10%;
-
-  /* Subtle Muted */
-  --muted: 210 12% 94%;
-  --muted-foreground: 210 10% 42%;
-
-  /* AQUAVO Accent stays same */
-  --accent: 12 100% 60%;
-  --accent-foreground: 0 0% 100%;
-
-  --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-
-  /* Crisp Borders */
-  --border: 210 15% 85%;
-  --input: 210 15% 90%;
-  --ring: 194 76% 38%;
+html.dark {
+  color-scheme: dark;
 }
 
 @layer base {

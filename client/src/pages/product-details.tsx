@@ -116,15 +116,15 @@ export default function ProductDetails() {
 
   const handleAddToCart = () => {
     if (product) {
-      // Create a modified product with variant info in the name
+      // IMPORTANT: Always use the BASE product ID for cart API
+      // The variant-specific ID (e.g. "yxl-003-small") doesn't exist in DB
       const variantLabel = selectedVariant?.label || selectedVariant?.id || "";
       const productToAdd = selectedVariant
         ? {
           ...product,
           name: variantLabel ? `${product.name} (${variantLabel})` : product.name,
           price: selectedVariant.price,
-          // Use variant-specific ID if available to track separately in cart
-          id: `${product.id}-${selectedVariant.id}`,
+          id: product.id, // ← Always use base product ID (NOT variant composite ID)
         }
         : product;
 

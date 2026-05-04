@@ -21,23 +21,16 @@ export function ThemeSwitcher() {
 
   const applyTheme = (newTheme: ThemeOption) => {
     const root = document.documentElement;
-
-    // Remove all theme-related attributes and classes
-    root.removeAttribute("data-theme");
+    // Remove both classes first
     root.classList.remove('dark', 'light');
 
     if (newTheme === 'system') {
-      // Use system preference
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (prefersDark) {
-        root.classList.add('dark');
-      } else {
-        root.classList.add('light');
-      }
+      root.classList.add(prefersDark ? 'dark' : 'light');
     } else if (newTheme === 'dark') {
       root.classList.add('dark');
-    } else if (newTheme === 'light') {
-      root.classList.add('light');
+    } else {
+      root.classList.add('light'); // html.light triggers CSS light vars
     }
   };
 
