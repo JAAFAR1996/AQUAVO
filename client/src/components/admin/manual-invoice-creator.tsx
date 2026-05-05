@@ -57,7 +57,10 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const [createdInvoice, setCreatedInvoice] = useState<{ invoiceNo: string; customerLink: string; whatsappUrl: string } | null>(null);
 
   const subtotal = items.reduce((s, i) => s + i.total, 0);
-  const total = Math.max(0, subtotal - discount + delivery);
+  const rawTotal = Math.max(0, subtotal - discount + delivery);
+  // التقريب لأقرب 250 دينار عراقي تصاعدياً
+  const total = Math.ceil(rawTotal / 250) * 250;
+  const roundingDifference = total - rawTotal;
 
   // بحث المنتجات
   const searchProducts = useCallback(async (q: string) => {
@@ -368,7 +371,8 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
             {[
               { label: "المجموع الفرعي", value: subtotal },
               ...(discount > 0 ? [{ label: "الخصم", value: -discount }] : []),
-              ...(delivery > 0 ? [{ label: "التوصيل", value: delivery }] : []),
+              ...(delivery > 0 ? [{ label: `التوصيل إلى ${customerCity || "..."}`, value: delivery }] : []),
+              ...(roundingDifference > 0 ? [{ label: "تقريب المبلغ", value: roundingDifference }] : []),
             ].map((row, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontSize: 14 }}>
                 <span style={{ color: "#94a3b8" }}>{row.label}</span>

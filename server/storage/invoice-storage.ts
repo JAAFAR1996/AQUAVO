@@ -225,6 +225,13 @@ export class InvoiceStorage {
       customerAddress: invoice.customerAddress ?? "",
       notes: `طلب واتساب — فاتورة ${invoice.invoiceNo}`,
       source: "whatsapp",
+      items: (invoice.items as any[]).map((i) => ({
+        productId: i.productId,
+        quantity: i.quantity,
+        priceAtPurchase: i.unitPrice,
+        variantLabel: i.variantLabel || undefined,
+        variantId: i.variantId || undefined
+      })),
       createdAt: new Date(),
       updatedAt: new Date(),
     } as any);

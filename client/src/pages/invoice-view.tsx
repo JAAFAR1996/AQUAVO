@@ -211,7 +211,10 @@ export default function InvoiceView() {
             {[
               { label: "المجموع الفرعي", value: invoice.subtotal },
               ...(invoice.discount > 0 ? [{ label: "الخصم", value: -invoice.discount }] : []),
-              ...(invoice.delivery > 0 ? [{ label: "رسوم التوصيل", value: invoice.delivery }] : []),
+              ...(invoice.delivery > 0 ? [{ label: `التوصيل إلى ${invoice.customerCity || "..."}`, value: invoice.delivery }] : []),
+              ...((invoice.total - (invoice.subtotal - invoice.discount + invoice.delivery)) > 0 
+                  ? [{ label: "تقريب المبلغ", value: (invoice.total - (invoice.subtotal - invoice.discount + invoice.delivery)) }] 
+                  : []),
             ].map((row, i) => (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ color: "#94a3b8" }}>{row.label}</span>
