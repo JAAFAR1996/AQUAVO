@@ -246,10 +246,13 @@ export class InvoiceStorage {
         orderId,
         productId: item.productId,
         quantity: item.quantity,
-        price: String(item.unitPrice),
-        productName: item.name,
-        variantLabel: item.variantLabel ?? null,
-        createdAt: new Date(),
+        priceAtPurchase: String(item.unitPrice),
+        totalPrice: String(item.unitPrice * item.quantity),
+        metadata: {
+          productName: item.name,
+          variantLabel: item.variantLabel ?? null,
+          variantId: item.variantId ?? null,
+        },
       } as any);
 
       // Deduct stock
