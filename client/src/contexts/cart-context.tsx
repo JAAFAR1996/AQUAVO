@@ -8,15 +8,23 @@ import { ttqAddToCart } from "@/lib/tiktok-pixel";
 
 export interface CartItem {
   id: string;
+  productId: string;
   name: string;
   price: number;
   quantity: number;
   image: string;
   slug: string;
+  variantId?: string;
+  variantLabel?: string;
 }
 
 // Type for server cart item response
 interface ServerCartItem {
+  id: string;
+  productId: string;
+  variantId?: string;
+  variantLabel?: string;
+  variantPrice?: string | number;
   product: {
     id: string;
     name: string;
@@ -80,8 +88,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 headers: addCsrfHeader({ "Content-Type": "application/json" }),
                 credentials: "include",
                 body: JSON.stringify({
-                  productId: item.id,
+                  productId: item.productId,
                   quantity: item.quantity,
+                  variantId: item.variantId,
+                  variantLabel: item.variantLabel,
+                  variantPrice: item.price
                 }),
               }).catch(err => {
                 console.error(`Failed to push item ${item.id} to server:`, err);
@@ -106,12 +117,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
             const serverItems = await cartRes.json();
             if (Array.isArray(serverItems)) {
               const mappedItems = serverItems.map((item: ServerCartItem) => ({
-                id: item.product.id,
+                id: item.id,
+                productId: item.productId,
                 name: item.product.name,
                 price: Number(item.product.price),
                 quantity: item.quantity,
                 image: item.product.thumbnail || item.product.images?.[0] || '',
                 slug: item.product.slug,
+                variantId: item.variantId,
+                variantLabel: item.variantLabel,
               }));
               setItems(mappedItems);
             }
@@ -125,12 +139,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
               const serverItems = await cartRes.json();
               if (Array.isArray(serverItems)) {
                 const mappedItems = serverItems.map((item: ServerCartItem) => ({
-                  id: item.product.id,
+                  id: item.id,
+                  productId: item.productId,
                   name: item.product.name,
                   price: Number(item.product.price),
                   quantity: item.quantity,
                   image: item.product.thumbnail || item.product.images?.[0] || '',
                   slug: item.product.slug,
+                  variantId: item.variantId,
+                  variantLabel: item.variantLabel,
                 }));
                 setItems(mappedItems);
               }
@@ -200,12 +217,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const cartRes = await fetch("/api/cart", { credentials: "include" });
           const serverItems = await cartRes.json();
           const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.product.id,
+            id: item.id,
+            productId: item.productId,
             name: item.product.name,
             price: Number(item.product.price),
             quantity: item.quantity,
             image: item.product.thumbnail || item.product.images?.[0] || '',
             slug: item.product.slug,
+            variantId: item.variantId,
+            variantLabel: item.variantLabel,
           }));
           setItems(mappedItems);
         } else {
@@ -233,22 +253,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } else {
       // Client Side
-      const existingItem = items.find((item) => item.id === product.id);
+      const variantId = (product as any)._variantId;
+      const cartItemId = `${product.id}-${variantId || 'default'}`;
+      
+      const existingItem = items.find((item) => item.id === cartItemId);
       let newItems;
       if (existingItem) {
         newItems = items.map((item) =>
-          item.id === product.id
+          item.id === cartItemId
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
         const newItem: CartItem = {
-          id: product.id,
+          id: cartItemId,
+          productId: product.id,
           name: product.name,
           price: Number(product.price),
           quantity: quantity,
           image: product.thumbnail || product.image || product.images?.[0] || '',
           slug: product.slug,
+          variantId: variantId ?? undefined,
+          variantLabel: (product as any)._variantLabel ?? undefined,
         };
         newItems = [...items, newItem];
       }
@@ -267,16 +293,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
       return;
     }
-    if (yeeProducts.length < products.length) {
+    if (purchasableProducts.length < products.length) {
       toast({
         title: "تنبيه",
-        description: `تم إضافة ${yeeProducts.length} منتج فقط — البقية قريباً.`,
+        description: `تم إضافة ${purchasableProducts.length} منتج فقط — البقية قريباً.`,
       });
     }
     if (user) {
       // Server Side: Add all concurrently then update state
       try {
-        const promises = yeeProducts.map(product =>
+        const promises = purchasableProducts.map(product =>
           fetch("/api/cart", {
             method: "POST",
             headers: addCsrfHeader({ "Content-Type": "application/json" }),
@@ -292,12 +318,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (cartRes.ok) {
           const serverItems = await cartRes.json();
           const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.product.id,
+            id: item.id,
+            productId: item.productId,
             name: item.product.name,
             price: Number(item.product.price),
             quantity: item.quantity,
             image: item.product.thumbnail || item.product.images?.[0] || '',
             slug: item.product.slug,
+            variantId: item.variantId,
+            variantLabel: item.variantLabel,
           }));
           setItems(mappedItems);
         }
@@ -316,8 +345,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       setItems(prev => {
         let newItems = [...prev];
-        yeeProducts.forEach(product => {
-          const existingIndex = newItems.findIndex(i => i.id === product.id);
+        purchasableProducts.forEach((product: any) => {
+          const variantId = product._variantId;
+          const cartItemId = `${product.id}-${variantId || 'default'}`;
+          
+          const existingIndex = newItems.findIndex(i => i.id === cartItemId);
           if (existingIndex > -1) {
             newItems[existingIndex] = {
               ...newItems[existingIndex],
@@ -325,12 +357,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
             };
           } else {
             newItems.push({
-              id: product.id,
+              id: cartItemId,
+              productId: product.id,
               name: product.name,
               price: Number(product.price),
               quantity: 1,
               image: product.thumbnail || product.image || product.images?.[0] || '',
               slug: product.slug,
+              variantId: variantId ?? undefined,
+              variantLabel: product._variantLabel ?? undefined,
             });
           }
         });
@@ -364,12 +399,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const serverItems = await cartRes.json();
           if (Array.isArray(serverItems)) {
             const mappedItems = serverItems.map((item: ServerCartItem) => ({
-              id: item.product.id,
+              id: item.id,
+              productId: item.productId,
               name: item.product.name,
               price: Number(item.product.price),
               quantity: item.quantity,
               image: item.product.thumbnail || item.product.images?.[0] || '',
               slug: item.product.slug,
+              variantId: item.variantId,
+              variantLabel: item.variantLabel,
             }));
             setItems(mappedItems);
           }
@@ -472,12 +510,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const serverItems = await cartRes.json();
         if (Array.isArray(serverItems)) {
           const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.product.id,
+            id: item.id,
+            productId: item.productId,
             name: item.product.name,
             price: Number(item.product.price),
             quantity: item.quantity,
             image: item.product.thumbnail || item.product.images?.[0] || '',
             slug: item.product.slug,
+            variantId: item.variantId,
+            variantLabel: item.variantLabel,
           }));
           setItems(mappedItems);
         }

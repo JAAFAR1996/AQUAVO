@@ -2257,3 +2257,82 @@ export const insertLoyaltyTransactionSchema = z.object({
 
 export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
 export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
+
+// ============================================================
+// MANUAL INVOICES — فواتير واتساب اليدوية
+// ============================================================
+
+export interface ManualInvoiceItem {
+  productId: string;
+  variantId?: string;
+  variantLabel?: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  imageUrl?: string;
+}
+
+export type InvoiceStatus = 'draft' | 'sent' | 'confirmed' | 'rejected' | 'completed' | 'cancelled';
+
+export const manualInvoices = pgTable("manual_invoices", {
+  id:         text("id").primaryKey(),
+  invoiceNo:  text("invoice_no").unique().notNull(),
+  token:      text("token").unique().notNull(),           // رابط العميل الآمن
+
+  // بيانات العميل
+  customerName:    text("customer_name").notNull(),
+  customerPhone:   text("customer_phone").notNull(),
+  customerCity:    text("customer_city"),
+  customerAddress: text("customer_address"),
+  customerNotes:   text("customer_notes"),
+
+  // المنتجات
+  items:    jsonb("items").notNull().$type<ManualInvoiceItem[]>(),
+  subtotal: numeric("subtotal", { precision: 12, scale: 2 }).notNull().default("0"),
+  discount: numeric("discount", { precision: 12, scale: 2 }).notNull().default("0"),
+  delivery: numeric("delivery", { precision: 12, scale: 2 }).notNull().default("0"),
+  total:    numeric("total", { precision: 12, scale: 2 }).notNull().default("0"),
+
+  // الحالة
+  status:    text("status").notNull().default("draft").$type<InvoiceStatus>(),
+  createdBy: text("created_by"),
+  orderId:   text("order_id"),
+
+  // التوقيتات
+  createdAt:   timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt:   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  sentAt:      timestamp("sent_at",      { withTimezone: true }),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }),
+  rejectedAt:  timestamp("rejected_at",  { withTimezone: true }),
+  expiresAt:   timestamp("expires_at",   { withTimezone: true }),
+}, (table) => ({
+  tokenIdx:     index("manual_invoices_token_idx").on(table.token),
+  statusIdx:    index("manual_invoices_status_idx").on(table.status),
+  createdByIdx: index("manual_invoices_created_by_idx").on(table.createdBy),
+}));
+
+export const insertManualInvoiceSchema = z.object({
+  customerName:    z.string().min(1, "اسم العميل مطلوب"),
+  customerPhone:   z.string().min(7, "رقم الهاتف غير صحيح"),
+  customerCity:    z.string().optional(),
+  customerAddress: z.string().optional(),
+  customerNotes:   z.string().optional(),
+  items: z.array(z.object({
+    productId:    z.string().min(1),
+    variantId:    z.string().optional(),
+    variantLabel: z.string().optional(),
+    name:         z.string().min(1),
+    quantity:     z.number().int().positive(),
+    unitPrice:    z.number().positive(),
+    total:        z.number().positive(),
+    imageUrl:     z.string().optional(),
+  })).min(1, "أضف منتجاً واحداً على الأقل"),
+  subtotal: z.number().min(0),
+  discount: z.number().min(0).default(0),
+  delivery: z.number().min(0).default(0),
+  total:    z.number().positive(),
+});
+
+export type ManualInvoice = typeof manualInvoices.$inferSelect;
+export type InsertManualInvoice = z.infer<typeof insertManualInvoiceSchema>;

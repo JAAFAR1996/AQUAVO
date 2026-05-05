@@ -72,6 +72,7 @@ const FishPatientsPage = lazy(() => import("@/pages/fish-patients"));
 const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
 const LinksPage = lazy(() => import("@/pages/links"));
 const TemperatureGuide = lazy(() => import("@/pages/temperature-guide"));
+const InvoiceView = lazy(() => import("@/pages/invoice-view"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -625,6 +626,17 @@ function Router() {
         )}
       </Route>
 
+      {/* Manual Invoice View (Standalone) */}
+      <Route path="/invoice/:token">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <InvoiceView />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       <Route>
         {() => (<Suspense fallback={<PageLoader />}><NotFound /></Suspense>)}
       </Route>
@@ -642,7 +654,7 @@ function App() {
   useMetaPageView();
 
   // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
-  const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location);
+  const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location) || location.startsWith('/invoice/');
   const shouldLoadHostedAnalytics = isHostedAnalyticsOrigin();
 
   useEffect(() => {

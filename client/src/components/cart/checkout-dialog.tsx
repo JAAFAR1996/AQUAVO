@@ -69,7 +69,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     if (open && cartItems.length > 0) {
       ttqInitiateCheckout(
         cartItems.map(item => ({
-          id: item.id,
+          id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -80,7 +80,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       metaTrackInitiateCheckout({
         totalIQD: cartTotal,
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-        productIds: cartItems.map(i => i.id),
+        productIds: cartItems.map(i => i.productId),
       });
     }
   }, [open]);
@@ -134,7 +134,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       // TikTok Pixel: AddPaymentInfo when user proceeds to confirm
       ttqAddPaymentInfo(
         cartItems.map(item => ({
-          id: item.id,
+          id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -162,7 +162,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           },
           items: cartItems.map(item => ({
             ...item,
-            productId: item.id
+            productId: item.productId
           })),
           total: cartTotal,
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,
@@ -192,7 +192,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       // TikTok Pixel: PlaceAnOrder on successful order
       ttqPlaceAnOrder(
         cartItems.map(item => ({
-          id: item.id,
+          id: item.productId,
           name: item.name,
           price: item.price,
           quantity: item.quantity,
@@ -203,7 +203,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       metaTrackPurchase({
         orderId: orderData.id || 'unknown',
         totalIQD: cartTotal,
-        productIds: cartItems.map(i => i.id),
+        productIds: cartItems.map(i => i.productId),
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         phone: customerInfo.phone,
       });

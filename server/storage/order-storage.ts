@@ -1,5 +1,5 @@
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products } from "../../shared/schema.js";
-import { eq, desc, and, sql, gte, or } from "drizzle-orm";
+import { eq, desc, and, sql, gte, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
 
 export class OrderStorage {
@@ -327,7 +327,11 @@ export class OrderStorage {
         const actualProductId = product.id;
 
         const [existing] = await db.select().from(cartItems)
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, actualProductId)));
+            .where(and(
+                eq(cartItems.userId, userId), 
+                eq(cartItems.productId, actualProductId),
+                variantId ? eq(cartItems.variantId, variantId) : isNull(cartItems.variantId)
+            ));
 
         if (existing) {
             if (effectiveStock < (existing.quantity || 0) + quantity) {
@@ -361,27 +365,19 @@ export class OrderStorage {
         }
     }
 
-    async updateCartItem(userId: string, productId: string, quantity: number): Promise<CartItem> {
+    async updateCartItem(userId: string, itemId: string, quantity: number): Promise<CartItem> {
         const db = this.ensureDb();
-        const [product] = await db.select().from(products)
-            .where(or(eq(products.id, productId), eq(products.slug, productId)));
-        if (!product) throw new Error("Product not found");
-
         const [updated] = await db.update(cartItems)
             .set({ quantity })
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, product.id)))
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.id, itemId)))
             .returning();
         return updated;
     }
 
-    async removeFromCart(userId: string, productId: string): Promise<void> {
+    async removeFromCart(userId: string, itemId: string): Promise<void> {
         const db = this.ensureDb();
-        const [product] = await db.select().from(products)
-            .where(or(eq(products.id, productId), eq(products.slug, productId)));
-        if (!product) return;
-
         await db.delete(cartItems)
-            .where(and(eq(cartItems.userId, userId), eq(cartItems.productId, product.id)));
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.id, itemId)));
     }
 
     async clearCart(userId: string): Promise<void> {

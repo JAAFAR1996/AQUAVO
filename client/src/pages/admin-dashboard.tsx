@@ -58,6 +58,7 @@ import { EarlyAccessManagement } from "@/components/admin/early-access-managemen
 import { WaveProphetPanel } from "@/components/admin/wave-prophet-panel";
 import { CatalogLivePanel } from "@/components/admin/catalog-live-panel";
 import { MiroFishPanel } from "@/components/admin/mirofish-panel";
+import InvoicesList from "@/components/admin/invoices-list";
 import {
   Plus,
   Pencil,
@@ -754,6 +755,7 @@ export default function AdminDashboard() {
           <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
+          <TabsTrigger value="invoices">فواتير واتساب</TabsTrigger>
           <TabsTrigger value="customers">العملاء</TabsTrigger>
           <TabsTrigger value="reviews">المراجعات</TabsTrigger>
           <TabsTrigger value="gallery">المعرض</TabsTrigger>
@@ -766,6 +768,11 @@ export default function AdminDashboard() {
         {/* Early Access Management Tab */}
         <TabsContent value="early-access" className="space-y-4">
           <EarlyAccessManagement />
+        </TabsContent>
+
+        {/* WhatsApp Invoices Tab */}
+        <TabsContent value="invoices" className="space-y-4">
+          <InvoicesList />
         </TabsContent>
 
         {/* AI Insights Tab */}

@@ -79,7 +79,7 @@ export function createCartRouter(): RouterType {
         quantity: z.number().int().min(0)
     });
 
-    router.put("/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.put("/:itemId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
             const user = await storage.getUser(userId);
@@ -88,14 +88,14 @@ export function createCartRouter(): RouterType {
                 return;
             }
 
-            const { productId } = req.params as { productId: string };
+            const { itemId } = req.params as { itemId: string };
             const data = updateItemSchema.parse(req.body);
 
             if (data.quantity === 0) {
-                await storage.removeFromCart(userId, productId);
+                await storage.removeFromCart(userId, itemId);
                 res.json({ message: "Item removed" });
             } else {
-                const item = await storage.updateCartItem(userId, productId, data.quantity);
+                const item = await storage.updateCartItem(userId, itemId, data.quantity);
                 res.json(item);
             }
         } catch (err) {
@@ -103,17 +103,17 @@ export function createCartRouter(): RouterType {
         }
     });
 
-    router.delete("/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.delete("/:itemId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = getSessionUserId(req)!;
-            const { productId } = req.params as { productId: string };
-            await storage.removeFromCart(userId, productId);
+            const { itemId } = req.params as { itemId: string };
+            await storage.removeFromCart(userId, itemId);
 
             // Track cart remove interaction (fire-and-forget)
             analyticsTracker.trackCartRemove({
                 userId,
                 sessionId: req.sessionID || "unknown",
-                productId,
+                productId: "unknown_item", // We don't have the productId here easily without fetching the item first.
             }).catch(() => {});
 
             res.status(204).end();

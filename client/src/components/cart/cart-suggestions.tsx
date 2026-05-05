@@ -7,7 +7,7 @@ import type { Product } from "@/types";
 
 export function CartSuggestions() {
   const { items: cartItems, addItem } = useCart();
-  const productIds = cartItems.map((item) => item.id);
+  const productIds = cartItems.map((item) => item.productId);
 
   const { data } = useQuery({
     queryKey: ["cart-suggestions", productIds.join(",")],
