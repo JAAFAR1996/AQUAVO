@@ -106,7 +106,9 @@ router.post("/event", async (req: Request, res: Response) => {
 
     if (!metaRes.ok) {
       console.error("[CAPI] Meta error:", metaData);
-      return res.status(500).json({ ok: false, error: metaData });
+      // Return 200 OK to the client so analytics failures don't cause frontend errors or 500 alerts,
+      // but still provide the error info in the JSON response
+      return res.status(200).json({ ok: false, error: metaData });
     }
 
     console.log(`[CAPI] ${event_name} sent — eventID: ${event_id}`);
