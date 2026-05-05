@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams } from "wouter";
-import { CheckCircle2, XCircle, Clock, Package, MapPin, Phone, AlertTriangle, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Package, MapPin, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 
 interface InvoiceItem {
   productId: string;
@@ -101,25 +101,26 @@ export default function InvoiceView() {
 
   // ── Styles ─────────────────────────────────────────────────────────────────
   const s = {
-    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: "'Cairo', 'Changa', sans-serif", padding: "24px 16px", direction: "rtl" as const },
-    card:    { maxWidth: 600, margin: "0 auto", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20, overflow: "hidden" },
-    header:  { background: "linear-gradient(135deg, #0d1b2a 0%, #199bb820 100%)", padding: "32px 24px", textAlign: "center" as const, borderBottom: "1px solid rgba(25,155,184,0.2)" },
-    logo:    { fontSize: 28, fontWeight: 800, color: "#199bb8", letterSpacing: 4, marginBottom: 4 },
-    invNo:   { color: "#94a3b8", fontSize: 13, marginTop: 4 },
-    body:    { padding: "24px" },
-    section: { marginBottom: 20 },
-    label:   { color: "#64748b", fontSize: 12, marginBottom: 4 },
-    value:   { color: "#e2e8f0", fontWeight: 600 },
-    divider: { borderTop: "1px solid rgba(255,255,255,0.06)", margin: "16px 0" },
-    itemRow: { display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" },
-    itemImg: { width: 52, height: 52, borderRadius: 8, objectFit: "cover" as const, background: "#1e2a3a", flexShrink: 0 },
+    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: "'Cairo', 'Changa', sans-serif", padding: "16px 12px", direction: "rtl" as const },
+    card:    { maxWidth: 460, margin: "0 auto", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden" },
+    header:  { background: "linear-gradient(135deg, #0d1b2a 0%, #199bb820 100%)", padding: "24px 20px", textAlign: "center" as const, borderBottom: "1px solid rgba(25,155,184,0.2)" },
+    logo:    { fontSize: 24, fontWeight: 800, color: "#199bb8", letterSpacing: 3, marginBottom: 2 },
+    invNo:   { color: "#94a3b8", fontSize: 12, marginTop: 4 },
+    body:    { padding: "20px" },
+    section: { marginBottom: 16 },
+    label:   { color: "#64748b", fontSize: 11, marginBottom: 2 },
+    value:   { color: "#e2e8f0", fontWeight: 600, fontSize: 13 },
+    divider: { borderTop: "1px solid rgba(255,255,255,0.06)", margin: "12px 0" },
+    itemRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" },
+    itemImg: { width: 44, height: 44, borderRadius: 8, objectFit: "cover" as const, background: "#1e2a3a", flexShrink: 0 },
     itemName:{ flex: 1 },
-    badge:   (color: string) => ({ display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 999, background: `${color}20`, color, fontWeight: 700, fontSize: 14, border: `1px solid ${color}40` }),
-    total:   { background: "rgba(25,155,184,0.08)", borderRadius: 12, padding: "16px", border: "1px solid rgba(25,155,184,0.2)" },
-    btnOk:   { width: "100%", padding: "16px", borderRadius: 12, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 18, fontWeight: 800, border: "none", cursor: "pointer", marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
-    btnNo:   { width: "100%", padding: "14px", borderRadius: 12, background: "transparent", color: "#ef4444", fontSize: 16, fontWeight: 600, border: "1px solid #ef444440", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
-    success: { textAlign: "center" as const, padding: "40px 24px" },
-    rejected:{ textAlign: "center" as const, padding: "40px 24px" },
+    badge:   (color: string) => ({ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 12px", borderRadius: 999, background: `${color}20`, color, fontWeight: 700, fontSize: 13, border: `1px solid ${color}40` }),
+    total:   { background: "rgba(25,155,184,0.08)", borderRadius: 10, padding: "14px", border: "1px solid rgba(25,155,184,0.2)" },
+    btnOk:   { width: "100%", padding: "14px", borderRadius: 10, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 16, fontWeight: 800, border: "none", cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
+    btnNo:   { width: "100%", padding: "12px", borderRadius: 10, background: "transparent", color: "#ef4444", fontSize: 15, fontWeight: 600, border: "1px solid #ef444440", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
+    success: { textAlign: "center" as const, padding: "30px 20px" },
+    rejected:{ textAlign: "center" as const, padding: "30px 20px" },
+    promoBox:{ background: "linear-gradient(145deg, rgba(25,155,184,0.05), rgba(255,215,0,0.05))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px", marginTop: "20px", display: "flex", gap: "10px", alignItems: "flex-start" }
   };
 
   if (loading) return (
@@ -284,6 +285,23 @@ export default function InvoiceView() {
               <p style={{ color: "#94a3b8" }}>هذه الفاتورة ملغاة</p>
             </div>
           )}
+
+          {/* Promo Box */}
+          <div style={s.promoBox}>
+            <div style={{ flexShrink: 0, marginTop: 2 }}>
+              <Sparkles color="#ffd700" size={24} />
+            </div>
+            <div>
+              <h4 style={{ color: "#ffd700", margin: "0 0 4px 0", fontSize: 13, fontWeight: 800 }}>رسالة من AQUAVO</h4>
+              <p style={{ color: "#e2e8f0", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
+                لو قمت بإنشاء حساب والطلب مباشرة من موقعنا، لعاد إليك مبلغ <span style={{color: "#199bb8", fontWeight: 700}}>التقريب</span> كاش باك في محفظتك!
+                وأيضاً ستحصل على <span style={{color: "#199bb8", fontWeight: 700}}>نقاط ولاء</span> مع كل طلب، ترتقي بك في مستويات العضوية لتكسب 
+                <span style={{color: "#22c55e", fontWeight: 700}}> خصومات دائمة</span> وربما <span style={{color: "#22c55e", fontWeight: 700}}>توصيل مجاني دائم</span>!
+                <br/>
+                <a href="/register" target="_blank" rel="noopener noreferrer" style={{ color: "#199bb8", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>سجل الآن واصنع حسابك بالموقع</a>
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Footer */}
