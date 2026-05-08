@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
+import { orderLimiter } from "../middleware/rate-limit.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
@@ -39,8 +40,8 @@ const createOrderSchema = z.object({
 export function createOrderRouter(): RouterType {
     const router = Router();
 
-    // Create Order
-    router.post("/", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Create Order (rate-limited: 10/hour per IP)
+    router.post("/", orderLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
             const userId = sess?.userId;

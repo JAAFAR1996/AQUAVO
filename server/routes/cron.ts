@@ -168,4 +168,30 @@ router.get("/email-campaigns", async (req: Request, res: Response) => {
     }
 });
 
+/**
+ * GET /api/cron/db-warmup
+ * 
+ * Called by Vercel Cron every 4 minutes to keep NEON DB warm.
+ * NEON auto-suspends after ~5 min of inactivity, causing 2-5s cold start.
+ * This ping prevents that penalty for real users.
+ */
+router.get("/db-warmup", async (req: Request, res: Response) => {
+    try {
+        const { getDb } = await import("../db.js");
+        const { sql } = await import("drizzle-orm");
+        const db = getDb();
+        if (!db) {
+            return res.status(200).json({ status: "skip", message: "No DB configured" });
+        }
+        const start = Date.now();
+        await db.execute(sql`SELECT 1`);
+        const duration = Date.now() - start;
+        res.status(200).json({ status: "warm", latencyMs: duration, timestamp: new Date().toISOString() });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.warn(`[Cron] DB warmup failed: ${msg}`);
+        res.status(200).json({ status: "cold", error: msg });
+    }
+});
+
 export default router;

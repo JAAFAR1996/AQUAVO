@@ -9,6 +9,7 @@ server/public
 # Environment variables
 .env
 .env.local
+.env.production
 .env.*.local
 !.env.example
 

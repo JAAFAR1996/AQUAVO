@@ -11,6 +11,13 @@ interface AppError extends Error {
   isOperational?: boolean;
 }
 
+// Neon cold-start fingerprints
+const NEON_COLD_START_PHRASES = ['high traffic', 'try again in a minute', 'starting up'];
+function isNeonColdStart(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : '';
+  return NEON_COLD_START_PHRASES.some(p => msg.includes(p));
+}
+
 /**
  * Global error handler
  */
@@ -37,6 +44,15 @@ export function errorHandler(
       path: req.path,
       method: req.method,
       timestamp: new Date().toISOString()
+    });
+  }
+
+  // Handle Neon cold-start errors (DB waking up)
+  if (isNeonColdStart(err)) {
+    res.setHeader('Retry-After', '5');
+    return res.status(503).json({
+      error: 'الخادم يستيقظ، يرجى إعادة المحاولة خلال ثوانٍ.',
+      retryAfter: 5,
     });
   }
 

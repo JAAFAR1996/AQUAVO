@@ -3,6 +3,37 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
 
+// ── Neon cold-start: smart 503 retry ─────────────────────────────────────────
+// When Neon's serverless DB is waking up the server returns 503 + Retry-After.
+// We transparently wait and retry instead of throwing an error to the user.
+async function fetchWithRetryOn503(
+  url: string,
+  options: RequestInit,
+  maxRetries = 3
+): Promise<Response> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
+    let res: Response;
+    try {
+      res = await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timeoutId);
+    }
+    // If 503 and not last attempt → honour Retry-After and retry
+    if (res.status === 503 && attempt < maxRetries) {
+      const retryAfter = parseInt(res.headers.get('Retry-After') ?? '3', 10);
+      const waitMs = (isNaN(retryAfter) ? 3 : retryAfter) * 1000;
+      console.warn(`[API] 503 received — retrying in ${waitMs}ms (attempt ${attempt}/${maxRetries})`);
+      await new Promise(r => setTimeout(r, waitMs));
+      continue;
+    }
+    return res;
+  }
+  // Unreachable — TypeScript
+  throw new Error('fetchWithRetryOn503: exhausted retries');
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     const text = (await res.text()) || res.statusText;
@@ -39,12 +70,12 @@ export async function apiRequest(
   timeoutMs?: number,
 ): Promise<Response> {
   try {
-    const res = await fetchWithTimeout(url, {
+    const res = await fetchWithRetryOn503(url, {
       method,
       headers: data ? { "Content-Type": "application/json" } : {},
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
-    }, timeoutMs);
+    });
 
     await throwIfResNotOk(res);
     return res;
@@ -63,7 +94,7 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
       try {
-        const res = await fetchWithTimeout(queryKey.join("/") as string, {
+        const res = await fetchWithRetryOn503(queryKey.join("/") as string, {
           credentials: "include",
         });
 

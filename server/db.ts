@@ -1,6 +1,51 @@
 import { drizzle, type NeonDatabase } from "drizzle-orm/neon-serverless";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
+
+// ── Neon cold-start retry ────────────────────────────────────────────────────
+// When Neon's serverless compute wakes from sleep it briefly returns:
+//   "Our servers are experiencing high traffic right now, please try again"
+// Instead of surfacing that to users we transparently retry with backoff.
+const NEON_COLD_START_PHRASES = [
+  'high traffic',
+  'try again in a minute',
+  'starting up',
+  'connection refused',
+  'ECONNREFUSED',
+];
+
+function isNeonColdStart(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message.toLowerCase() : String(err).toLowerCase();
+  return NEON_COLD_START_PHRASES.some(phrase => msg.includes(phrase));
+}
+
+/**
+ * Wraps any async DB operation with automatic retry on Neon cold-start errors.
+ * Usage: const result = await withRetry(() => db.select()...)
+ */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  { maxAttempts = 3, baseDelayMs = 1000 }: { maxAttempts?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const isColdStart = isNeonColdStart(err);
+      const isLastAttempt = attempt === maxAttempts;
+
+      if (isColdStart && !isLastAttempt) {
+        const delayMs = baseDelayMs * Math.pow(2, attempt - 1); // 1s → 2s → 4s
+        console.warn(`[DB] Neon cold-start detected — retrying in ${delayMs}ms (attempt ${attempt}/${maxAttempts})`);
+        await new Promise(r => setTimeout(r, delayMs));
+        continue;
+      }
+      throw err;
+    }
+  }
+  // TypeScript: unreachable, but satisfies return type
+  throw new Error('withRetry: exhausted all attempts');
+}
 import * as schema from "../shared/schema.js";
 
 type DbClient = NeonDatabase<typeof schema>;

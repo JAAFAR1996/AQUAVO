@@ -1,0 +1,1750 @@
+[
+  {
+    "name": "طقم اختبار الأمونيا والنيتريت",
+    "price": "12000",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "ammonia",
+        "label": "اختبار الأمونيا (~60 اختبار)",
+        "price": 12000,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "العدد": "~60 اختبار",
+          "النوع": "أمونيا",
+          "الموديل": "C3-1010"
+        }
+      },
+      {
+        "id": "nitrite",
+        "label": "اختبار النيتريت (~100 اختبار)",
+        "price": 12000,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "العدد": "~100 اختبار",
+          "النوع": "نيتريت",
+          "الموديل": "C3-1010"
+        }
+      }
+    ]
+  },
+  {
+    "name": "حلقات سيراميك بيولوجية",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "سيليكون أحواض 121 — آمن للأسماك",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "محلول أزرق الميثيلين — 600 مل",
+    "price": "10000",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "علف شامل — حبيبات دقيقة 0.2 مم — 210 جم",
+    "price": "9500",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "فرشاة خراطيم مزدوجة — 1.55م",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "تربة نباتات مائية مخصّبة",
+    "price": "7650",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "fine15",
+        "label": "حبيبات ناعمة 1.5 لتر",
+        "price": 7650,
+        "stock": 8,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "1.5 لتر",
+          "النوع": "ناعم",
+          "الموديل": "YFF-049"
+        }
+      },
+      {
+        "id": "coarse3",
+        "label": "حبيبات خشنة 3 لتر",
+        "price": 12300,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "3 لتر",
+          "النوع": "خشن",
+          "الموديل": "YFF-052"
+        }
+      }
+    ]
+  },
+  {
+    "name": "سماد أساس للتربة المزروعة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "صمام تحكم هواء 4 ملم",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "عبوة عيّنات أعلاف متنوعة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "قطن فلتر 6D مطوّر — قطعتين",
+    "price": "12597",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "قطن فلتر أبيض 30×50 سم",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حاضنة أكريليك شفافة — 20×10×10 سم",
+    "price": "12300",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "مزيل ترسّبات كلسية — 200 مل",
+    "price": "6200",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "روبيان ملحي مجفّف بالتبريد — 18 جم",
+    "price": "6850",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "سخان كوارتز — 100 واط",
+    "price": "24850",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "شرائط اختبار الماء 9 في 1 — 50 شريط",
+    "price": "10250",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "full",
+        "label": "العبوة الكاملة (50 شريط + علبة + جدول)",
+        "price": 10250,
+        "stock": 8,
+        "isDefault": true,
+        "specifications": {
+          "النوع": "عبوة كاملة",
+          "الموديل": "C4-1123"
+        }
+      },
+      {
+        "id": "refill",
+        "label": "عبوة بديلة (50 شريط فقط)",
+        "price": 5850,
+        "stock": 8,
+        "isDefault": false,
+        "specifications": {
+          "النوع": "عبوة بديلة (Refill)",
+          "الموديل": "C4-1123"
+        }
+      }
+    ]
+  },
+  {
+    "name": "علف أسماك الزينة الصغيرة — 75 جم",
+    "price": "6450",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "حوض زجاجي فائق الشفافية — Ultra Clear",
+    "price": "37500",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "40x23",
+        "label": "40×23×25 سم (5 مم)",
+        "price": 37500,
+        "stock": 1,
+        "isDefault": true,
+        "specifications": {
+          "السعة": "~23 لتر",
+          "الأبعاد": "40×23×25 سم",
+          "السماكة": "5 مم",
+          "الموديل": "YXL-003"
+        }
+      },
+      {
+        "id": "50x27",
+        "label": "50×27×30 سم (5 مم)",
+        "price": 54464,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "السعة": "~40 لتر",
+          "الأبعاد": "50×27×30 سم",
+          "السماكة": "5 مم",
+          "الموديل": "YKK-50"
+        }
+      },
+      {
+        "id": "60x30",
+        "label": "60×30×35 سم (5 مم)",
+        "price": 65931,
+        "stock": 1,
+        "isDefault": false,
+        "specifications": {
+          "السعة": "~63 لتر",
+          "الأبعاد": "60×30×35 سم",
+          "السماكة": "5 مم",
+          "الموديل": "YKK-60"
+        }
+      },
+      {
+        "id": "35cube",
+        "label": "35×35×35 سم مكعب (6 مم)",
+        "price": 48400,
+        "stock": 2,
+        "isDefault": false,
+        "specifications": {
+          "السعة": "~43 لتر",
+          "الأبعاد": "35×35×35 سم",
+          "السماكة": "6 مم",
+          "الموديل": "YEE-1090"
+        }
+      },
+      {
+        "id": "40cube",
+        "label": "40×40×40 سم مكعب (6 مم)",
+        "price": 55500,
+        "stock": 2,
+        "isDefault": false,
+        "specifications": {
+          "السعة": "~64 لتر",
+          "الأبعاد": "40×40×40 سم",
+          "السماكة": "6 مم",
+          "الموديل": "YCG-40"
+        }
+      },
+      {
+        "id": "60x40",
+        "label": "60×40×40 سم (8 مم)",
+        "price": 91767,
+        "stock": 2,
+        "isDefault": false,
+        "specifications": {
+          "السعة": "~96 لتر",
+          "الأبعاد": "60×40×40 سم",
+          "السماكة": "8 مم",
+          "الموديل": "C5-1062"
+        }
+      }
+    ]
+  },
+  {
+    "name": "سخان ستيل مدرّع — غير قابل للكسر",
+    "price": "15000",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "50w",
+        "label": "50 واط",
+        "price": 15000,
+        "stock": 8,
+        "isDefault": true,
+        "specifications": {
+          "مناسب": "أحواض 20-50 لتر",
+          "القدرة": "50 واط",
+          "الموديل": "YEE-3006"
+        }
+      },
+      {
+        "id": "100w",
+        "label": "100 واط",
+        "price": 15000,
+        "stock": 8,
+        "isDefault": false,
+        "specifications": {
+          "مناسب": "أحواض 50-100 لتر",
+          "القدرة": "100 واط",
+          "الموديل": "YEE-3007"
+        }
+      },
+      {
+        "id": "200w",
+        "label": "200 واط",
+        "price": 15000,
+        "stock": 8,
+        "isDefault": false,
+        "specifications": {
+          "مناسب": "أحواض 100-200 لتر",
+          "القدرة": "200 واط",
+          "الموديل": "YEE-3008"
+        }
+      }
+    ]
+  },
+  {
+    "name": "مواد ترشيح 16 في 1 احترافية — 2.5 كغم",
+    "price": "15350",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "رمل أبيض ناصع",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "سخان الساموراي الأسود — 100 واط",
+    "price": "17999",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "أنبوب بلاستيكي مقوّى 16 مم",
+    "price": "1480",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حوض بانوراما 60 سم — مع فلتر ومضخة",
+    "price": "75705",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "رمل نهري طبيعي",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "سكيمر سطحي كهربائي — DoPhin",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "طعام روبيان الزينة — 260 جم",
+    "price": "10850",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "شجرة موس جاهزة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مواد ترشيح 6 في 1 — 500 جم",
+    "price": "9050",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "مكنسة رمل كهربائية — 20 واط",
+    "price": "27600",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "مضخة هواء صغيرة هادئة — 3 واط",
+    "price": "10600",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "صمام منع رجوع الماء",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "علاج البقع البيضاء (الإيك) — 300 مل",
+    "price": "9000",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "علف بيتا 3 في 1 — 15 جم",
+    "price": "5850",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "مثبّت مياه مضاد للإجهاد — 500 مل",
+    "price": "10850",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "حجر التنين الأزرق (دراقون ستون)",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حلقة التنفس البيولوجية — أبيض",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ورق الكاتابا (اللوز الاستوائي)",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "شبكة كوي ألمنيوم — تلسكوبية",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ميزان حرارة رقمي ذكي",
+    "price": "6900",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "إضاءة LED ثلاثية الألوان — 3.5 واط",
+    "price": "10845",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "بيض أرتيميا مقشّر 80 جم — مع مُغذّي",
+    "price": "8849",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "حاضنة هوائية كبيرة بغرفتين",
+    "price": "8400",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "طقم أدوات أحواض احترافي 5 قطع",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ثيرموميتر زجاجي بماصة شفط",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "شبكة موس ستانلس 8×8 سم",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "سبايدر وود — وسط",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "طعام سرطان الناسك مجفّف — 55 جم",
+    "price": "10300",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "رمل هولندي احترافي",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "صخر السلايت الأسود",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "طوب ترشيح بكتيري عالي الكثافة",
+    "price": "7595",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "علف أسماك الزينة — بروتين عالي",
+    "price": "9500",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "موزع هواء بلاستيكي — بصمامات",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "4-port",
+        "image": "/images/products/houyi/houyi-air-distributor/houyi-air-distributor-2.png",
+        "label": "4 منافذ",
+        "price": 0,
+        "stock": 45,
+        "isDefault": true,
+        "specifications": {
+          "اللون": "أزرق",
+          "المادة": "بلاستيك عالي الجودة",
+          "الاستخدام": "مثالي لحوض واحد بعدة أحجار هواء",
+          "عدد المنافذ": "4"
+        }
+      },
+      {
+        "id": "6-port",
+        "image": "/images/products/houyi/houyi-air-distributor/houyi-air-distributor-1.png",
+        "label": "6 منافذ",
+        "price": 0,
+        "stock": 30,
+        "isDefault": false,
+        "specifications": {
+          "اللون": "أزرق",
+          "المادة": "بلاستيك عالي الجودة",
+          "الاستخدام": "لمن عندهم أكثر من حوض أو يحتاجون توزيع أكبر",
+          "عدد المنافذ": "6"
+        }
+      }
+    ]
+  },
+  {
+    "name": "محلول أزرق الميثيلين الكلاسيكي — 235 مل",
+    "price": "11249",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "جذر الروديدندرون الطبيعي",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "rhododendron-30-35cm",
+        "label": "30–35 سم",
+        "price": 0,
+        "stock": 0,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "30–35 سم",
+          "النوع": "بدون قاعدة"
+        }
+      },
+      {
+        "id": "rhododendron-40-45cm",
+        "label": "40–45 سم",
+        "price": 0,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "40–45 سم",
+          "النوع": "بدون قاعدة"
+        }
+      },
+      {
+        "id": "rhododendron-50-55cm",
+        "label": "50–55 سم",
+        "price": 0,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "50–55 سم",
+          "النوع": "بدون قاعدة"
+        }
+      },
+      {
+        "id": "rhododendron-with-base",
+        "label": "مع قاعدة حجرية 30–45 سم",
+        "price": 0,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "30–45 سم",
+          "النوع": "مع قاعدة حجرية"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ماصة شفط كلاسيكية لخرطوم الهواء",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "علف الفراشة كوي — 300 جم",
+    "price": "8500",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "معجون ملء وإخفاء — لون الخشب",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مادة ترشيح 3D كوكيز — 500 جم",
+    "price": "10950",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "طعام رانشو الذهبية — سبيرولينا 290 جم",
+    "price": "12500",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "ثيرموميتر رقمي بشاشة LED",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ويف ميكر WP-50M",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "كربون نشط لتصفية المياه",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مشبك أكريليك لتثبيت أنابيب الفلتر",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "معالج الأمونيا بالبروبيوتيك النشط",
+    "price": "16450",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "400ml",
+        "label": "400 مل",
+        "price": 12450,
+        "stock": 5,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "400 مل",
+          "الموديل": "c2-1016"
+        }
+      },
+      {
+        "id": "760ml",
+        "label": "760 مل",
+        "price": 16450,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "760 مل",
+          "الموديل": "c2-1016"
+        }
+      }
+    ]
+  },
+  {
+    "name": "أكياس نقل سمك قابلة للنفخ - 100 قطعة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "قطن تثبيت موس ونباتات — 50 غرام",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "brown",
+        "image": "/images/products/houyi/houyi-medium-cotton/houyi-medium-cotton-1.png",
+        "label": "بني 50 غرام",
+        "price": 0,
+        "stock": 30,
+        "isDefault": true,
+        "specifications": {
+          "اللون": "بني — يندمج مع الأخشاب"
+        }
+      },
+      {
+        "id": "grey",
+        "image": "/images/products/houyi/houyi-medium-cotton/houyi-medium-cotton-2.png",
+        "label": "رمادي 50 غرام",
+        "price": 0,
+        "stock": 30,
+        "isDefault": false,
+        "specifications": {
+          "اللون": "رمادي — يندمج مع الحجارة"
+        }
+      }
+    ]
+  },
+  {
+    "name": "شفاطات تثبيت جدارية",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "خرطوم هواء أحواض — ملوّن",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "4m-black",
+        "image": "/images/products/houyi/houyi-oxygenation-tube/Gemini_Generated_Image_p3at6op3at6op3at.png",
+        "label": "4 متر أسود",
+        "price": 0,
+        "stock": 10,
+        "isDefault": true
+      },
+      {
+        "id": "4m-white",
+        "image": "/images/products/houyi/houyi-oxygenation-tube/Gemini_Generated_Image_unvjivunvjivunvj.png",
+        "label": "4 متر أبيض",
+        "price": 0,
+        "stock": 10
+      },
+      {
+        "id": "100m-black",
+        "image": "https://res.cloudinary.com/dyczh8ogv/image/upload/v1774893574/aquavo-products/acaojgendts04vscoyew.jpg",
+        "label": "100 متر أسود",
+        "price": 0,
+        "stock": 5
+      },
+      {
+        "id": "100m-white",
+        "image": "https://res.cloudinary.com/dyczh8ogv/image/upload/v1774893575/aquavo-products/pdxztk2jbrnjfeivmyhn.jpg",
+        "label": "100 متر أبيض",
+        "price": 0,
+        "stock": 5
+      }
+    ]
+  },
+  {
+    "name": "كبسولات بكتيريا نافعة — نيتروجين",
+    "price": "8600",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "50caps",
+        "label": "50 كبسولة",
+        "price": 8600,
+        "stock": 12,
+        "isDefault": true,
+        "specifications": {
+          "العدد": "50 كبسولة",
+          "الموديل": "C2-1005"
+        }
+      },
+      {
+        "id": "100caps",
+        "label": "100 كبسولة",
+        "price": 12000,
+        "stock": 8,
+        "isDefault": false,
+        "specifications": {
+          "العدد": "100 كبسولة",
+          "الموديل": "C2-1005"
+        }
+      }
+    ]
+  },
+  {
+    "name": "سبايدر وود — خشب تشعّبي طبيعي",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "sm",
+        "image": "/images/products/houyi/houyi-wood-products/spider-wood-sm.png",
+        "label": "صغير 10-20 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "10-20 سم"
+        }
+      },
+      {
+        "id": "md",
+        "image": "/images/products/houyi/houyi-wood-products/spider-wood-md.png",
+        "label": "وسط 20-35 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "20-35 سم"
+        }
+      },
+      {
+        "id": "lg",
+        "image": "/images/products/houyi/houyi-wood-products/spider-wood-lg.png",
+        "label": "كبير 35-50 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "35-50 سم"
+        }
+      },
+      {
+        "id": "root",
+        "image": "/images/products/houyi/houyi-wood-products/spider-wood-root.png",
+        "label": "جذر ضخم 40-60 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "40-60 سم"
+        }
+      }
+    ]
+  },
+  {
+    "name": "خشب طافٍ مصقول — دريفت وود",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "sm",
+        "label": "صغير 13-20 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "13-20 سم"
+        }
+      },
+      {
+        "id": "md",
+        "label": "متوسط 18-30 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "18-30 سم"
+        }
+      },
+      {
+        "id": "lg",
+        "label": "كبير 30-45 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "30-45 سم"
+        }
+      },
+      {
+        "id": "xl",
+        "label": "كبير جداً 50-60 سم",
+        "price": 0,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "50-60 سم"
+        }
+      }
+    ]
+  },
+  {
+    "name": "مزيل طحالب آمن — 500 مل",
+    "price": "10800",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "صخور اللافا البركانية",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "black",
+        "image": "/images/products/houyi/houyi-volcanic-stone/houyi-volcanic-stone-2.jpg",
+        "label": "أسود",
+        "price": 0,
+        "stock": 25,
+        "isDefault": true
+      },
+      {
+        "id": "red",
+        "image": "/images/products/houyi/houyi-volcanic-stone/houyi-volcanic-stone-1.jpg",
+        "label": "أحمر",
+        "price": 0,
+        "stock": 25
+      }
+    ]
+  },
+  {
+    "name": "أغصان تايلاندية مقشّرة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "فرشاة مغناطيسية كبيرة",
+    "price": "10000",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "سيفون تنظيف وتغيير ماء — 3 في 1",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "كوب تغذية أسماك بماصة شفط",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "green",
+        "image": "/images/products/houyi/houyi-feeding-cup/GREEN.jpg",
+        "label": "أخضر",
+        "price": 0,
+        "stock": 20,
+        "isDefault": true
+      },
+      {
+        "id": "white",
+        "image": "/images/products/houyi/houyi-feeding-cup/Hd9b0cce5a1c8423485d1183e97c265c6x.png",
+        "label": "أبيض",
+        "price": 0,
+        "stock": 20
+      }
+    ]
+  },
+  {
+    "name": "مسحوق مضاد بكتيري — 10 أكياس",
+    "price": "8300",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "حلقة تثبيت نباتات — سيراميك بركاني",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "سبايدر وود — كبير",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حامل أدوات أكريليك شفاف",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حجر البيوميس الخفيف",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حلقات ترشيح نانو مختلطة",
+    "price": "9587",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "وصلات خراطيم هواء 4 ملم",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "shape-t",
+        "image": "/images/products/houyi/houyi-connectors-4mm/houyi-connectors-4mm-3.png",
+        "label": "شكل T (تفريعة ثلاثية)",
+        "price": 0,
+        "stock": 50,
+        "isDefault": true,
+        "specifications": {
+          "الشكل": "T — تفريع ثلاثي",
+          "القطر": "4 ملم",
+          "الاستخدام": "توزيع الهواء لاتجاهين + مدخل"
+        }
+      },
+      {
+        "id": "shape-y",
+        "image": "/images/products/houyi/houyi-connectors-4mm/Gemini_Generated_Image_gcjcaxgcjcaxgcjc.png",
+        "label": "شكل Y (تفريعة مزدوجة)",
+        "price": 0,
+        "stock": 50,
+        "isDefault": false,
+        "specifications": {
+          "الشكل": "Y — تفريع مزدوج",
+          "القطر": "4 ملم",
+          "الاستخدام": "تقسيم خرطوم واحد إلى اثنين"
+        }
+      },
+      {
+        "id": "shape-i",
+        "image": "/images/products/houyi/houyi-connectors-4mm/houyi-connectors-4mm-2.png",
+        "label": "شكل I (توصيل مستقيم)",
+        "price": 0,
+        "stock": 50,
+        "isDefault": false,
+        "specifications": {
+          "الشكل": "I — توصيل مستقيم",
+          "القطر": "4 ملم",
+          "الاستخدام": "وصل خرطومين ببعض"
+        }
+      }
+    ]
+  },
+  {
+    "name": "شبكة عزل وفصل أسماك",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ملح متعدد الفيتامينات — علبة 500 جم",
+    "price": "9000",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "طقم تنظيف أحواض 5 في 1",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حجرة فلتر أكريليك شفافة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ثيرموميتر عريض سهل القراءة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مزيل الطبقة الزيتية — 3 واط",
+    "price": "11848",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "حقنة تغذية وتسميد دقيقة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "خيط تثبيت موس شفاف",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ماصة تثبيت خراطيم الهواء",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "علف البيتا المقاتل — 130 جم",
+    "price": "6993",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "مزيل طحالب —600 مل",
+    "price": "9652",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "سبايدر وود — جذر ضخم",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "شبكة صيد تلسكوبية — ستانلس ستيل",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "حجر هواء أسطواني — أحجام متعددة",
+    "price": "1000",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "10x25-grey",
+        "label": "10×25 مم — رمادي",
+        "price": 500,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "10×25 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "10x30-grey",
+        "label": "10×30 مم — رمادي",
+        "price": 500,
+        "stock": 10,
+        "specifications": {
+          "الحجم": "10×30 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "12x25-grey",
+        "label": "12×25 مم — رمادي",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "12×25 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "12x25-blue",
+        "label": "12×25 مم — أزرق",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "12×25 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "13x25-grey",
+        "label": "13×25 مم — رمادي",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "13×25 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "13x25-blue",
+        "label": "13×25 مم — أزرق",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "13×25 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "15x25-grey",
+        "label": "15×25 مم — رمادي",
+        "price": 500,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "15×25 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "15x25-blue",
+        "label": "15×25 مم — أزرق",
+        "price": 500,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "15×25 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "15x30-grey",
+        "label": "15×30 مم — رمادي",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "15×30 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "15x30-blue",
+        "label": "15×30 مم — أزرق",
+        "price": 500,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "15×30 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x30-grey",
+        "label": "18×30 مم — رمادي",
+        "price": 1000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "18×30 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x30-blue",
+        "label": "18×30 مم — أزرق",
+        "price": 1000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "18×30 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x45-grey",
+        "label": "18×45 مم — رمادي",
+        "price": 1000,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "18×45 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x45-blue",
+        "label": "18×45 مم — أزرق",
+        "price": 1000,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "18×45 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x50-grey",
+        "label": "18×50 مم — رمادي",
+        "price": 1000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "18×50 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "18x50-blue",
+        "label": "18×50 مم — أزرق",
+        "price": 1000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "18×50 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "20x50-grey",
+        "label": "20×50 مم — رمادي",
+        "price": 1000,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "20×50 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "20x50-blue",
+        "label": "20×50 مم — أزرق",
+        "price": 1000,
+        "stock": 5,
+        "specifications": {
+          "الحجم": "20×50 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم"
+        }
+      },
+      {
+        "id": "25x40-grey",
+        "label": "25×40 مم — رمادي",
+        "price": 1250,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×40 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "25x40-blue",
+        "label": "25×40 مم — أزرق",
+        "price": 1250,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×40 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "25x50-grey",
+        "label": "25×50 مم — رمادي",
+        "price": 1250,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×50 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "25x50-blue",
+        "label": "25×50 مم — أزرق",
+        "price": 1250,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×50 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "25x100-grey",
+        "label": "25×100 مم — رمادي",
+        "price": 2000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×100 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "25x100-blue",
+        "label": "25×100 مم — أزرق",
+        "price": 2000,
+        "stock": 2,
+        "specifications": {
+          "الحجم": "25×100 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "30x70-grey",
+        "label": "30×70 مم — رمادي",
+        "price": 1750,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "30×70 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "30x70-blue",
+        "label": "30×70 مم — أزرق",
+        "price": 1750,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "30×70 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "30x100-grey",
+        "label": "30×100 مم — رمادي",
+        "price": 2000,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "30×100 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "30x100-blue",
+        "label": "30×100 مم — أزرق",
+        "price": 2000,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "30×100 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "50x50-grey",
+        "label": "50×50 مم — رمادي",
+        "price": 2500,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "50×50 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "50x50-blue",
+        "label": "50×50 مم — أزرق",
+        "price": 2500,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "50×50 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "50x100-grey",
+        "label": "50×100 مم — رمادي",
+        "price": 3500,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "50×100 مم",
+          "اللون": "رمادي",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      },
+      {
+        "id": "50x100-blue",
+        "label": "50×100 مم — أزرق",
+        "price": 3500,
+        "stock": 1,
+        "specifications": {
+          "الحجم": "50×100 مم",
+          "اللون": "أزرق",
+          "قطر التوصيل": "4 مم أو 8 مم"
+        }
+      }
+    ]
+  },
+  {
+    "name": "رمل الجداول الطبيعي — 2-6 مم، لا يحتاج غسيلاً",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مشبك تثبيت خرطوم على الحوض ",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مضخة هواء SUNSUN — هادئة بمنفذين",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "موزع هواء ستانلس ستيل — بصمامات",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "4-port",
+        "image": "/images/products/houyi/houyi-stainless-steel-shunt/houyi-stainless-steel-shunt-1.png",
+        "label": "4 منافذ",
+        "price": 0,
+        "stock": 10,
+        "isDefault": true
+      },
+      {
+        "id": "6-port",
+        "image": "/images/products/houyi/houyi-stainless-steel-shunt/houyi-stainless-steel-shunt-2.jpg",
+        "label": "6 منافذ",
+        "price": 0,
+        "stock": 10
+      }
+    ]
+  },
+  {
+    "name": "غراء تثبيت الموس والنباتات",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "moss-glue-5g-green",
+        "image": "/images/products/houyi/houyi-moss-glue/houyi-moss-glue-3.png",
+        "label": "5 غرام — أخضر",
+        "price": 0,
+        "stock": 0,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "5 غرام",
+          "اللون": "أخضر"
+        }
+      },
+      {
+        "id": "moss-glue-5g-white",
+        "image": "/images/products/houyi/houyi-moss-glue/houyi-moss-glue-1.png",
+        "label": "5 غرام — أبيض",
+        "price": 0,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "5 غرام",
+          "اللون": "أبيض"
+        }
+      },
+      {
+        "id": "moss-glue-20g-white",
+        "image": "/images/products/houyi/houyi-moss-glue/houyi-moss-glue-2.png",
+        "label": "20 غرام — أبيض",
+        "price": 0,
+        "stock": 0,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "20 غرام",
+          "اللون": "أبيض"
+        }
+      }
+    ]
+  },
+  {
+    "name": "فلتر إسفنجي هوائي XY-180 — ترشيح مزدوج",
+    "price": "3500",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "xy-180",
+        "label": "XY-180 — صغير",
+        "price": 3000,
+        "stock": 5,
+        "isDefault": true,
+        "specifications": {
+          "الحجم": "صغير",
+          "الموديل": "XY-180"
+        }
+      },
+      {
+        "id": "xy-2835",
+        "label": "XY-2835 — كبير",
+        "price": 3500,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الحجم": "كبير",
+          "الموديل": "XY-2835"
+        }
+      }
+    ]
+  },
+  {
+    "name": "خشب الجبل الطبيعي",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "كيس شبكي لمواد الفلتر",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "black-15x20",
+        "image": "/images/products/houyi/houyi-net-bag/H7129d7e91eb34918a98c67972e68644dC.jpg",
+        "label": "أسود 15×20",
+        "price": 0,
+        "stock": 20
+      },
+      {
+        "id": "black-20x30",
+        "image": "/images/products/houyi/houyi-net-bag/H7129d7e91eb34918a98c67972e68644dC.jpg",
+        "label": "أسود 20×30",
+        "price": 0,
+        "stock": 20
+      },
+      {
+        "id": "black-30x40",
+        "image": "/images/products/houyi/houyi-net-bag/H7129d7e91eb34918a98c67972e68644dC.jpg",
+        "label": "أسود 30×40",
+        "price": 0,
+        "stock": 20,
+        "isDefault": true
+      },
+      {
+        "id": "white-15x20",
+        "image": "/images/products/houyi/houyi-net-bag/WHITE.jpg",
+        "label": "أبيض 15×20",
+        "price": 0,
+        "stock": 20
+      },
+      {
+        "id": "white-20x30",
+        "image": "/images/products/houyi/houyi-net-bag/WHITE.jpg",
+        "label": "أبيض 20×30",
+        "price": 0,
+        "stock": 20
+      },
+      {
+        "id": "white-30x40",
+        "image": "/images/products/houyi/houyi-net-bag/WHITE.jpg",
+        "label": "أبيض 30×40",
+        "price": 0,
+        "stock": 20
+      }
+    ]
+  },
+  {
+    "name": "خشبة غاطسة طبيعية — حجم كبير",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "منشفة أحواض مايكروفايبر",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "رمل أمريكا الجنوبية — أحمر وأسود",
+    "price": "0",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "red",
+        "image": "/images/products/houyi/houyi-south-american-sand/houyi-south-american-sand-1.jpg",
+        "label": "أحمر",
+        "price": 0,
+        "stock": 30,
+        "isDefault": true
+      },
+      {
+        "id": "black",
+        "image": "/images/products/houyi/houyi-south-american-sand/houyi-south-american-sand-4.jpg",
+        "label": "أسود",
+        "price": 0,
+        "stock": 30,
+        "isDefault": false
+      }
+    ]
+  },
+  {
+    "name": "شبكة صيد نايلون ناعمة",
+    "price": "0",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "ملح أحواض متعدد الفيتامينات — 500 جم",
+    "price": "8648",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "سيفون تغيير ماء 1.5 متر — نسخة مقوّاة بمضخة ضغط",
+    "price": "6500",
+    "hasVariants": true,
+    "variants": [
+      {
+        "id": "15m",
+        "label": "1.5 متر (مقوى)",
+        "price": 6500,
+        "stock": 10,
+        "isDefault": true,
+        "specifications": {
+          "الطول": "1.5 متر",
+          "الموديل": "C5-1144"
+        }
+      },
+      {
+        "id": "17m",
+        "label": "1.7 متر (سميك)",
+        "price": 8500,
+        "stock": 10,
+        "isDefault": false,
+        "specifications": {
+          "الطول": "1.7 متر",
+          "الموديل": "YEE-3621"
+        }
+      }
+    ]
+  },
+  {
+    "name": "سيفون تغيير ماء 1.7 متر — بمضخة يدوية مقوّاة",
+    "price": "3500",
+    "hasVariants": false,
+    "variants": null
+  },
+  {
+    "name": "مزيل كلور ومثبّت مياه — 535 مل",
+    "price": "6599",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "علف رانشو غارق — 500 جم",
+    "price": "12348",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "صندوق عزل وولادة عائم — شفاف",
+    "price": "11950",
+    "hasVariants": false,
+    "variants": []
+  },
+  {
+    "name": "ناشر فقاعات كروي — 50 مم",
+    "price": "9976",
+    "hasVariants": false,
+    "variants": []
+  }
+]
