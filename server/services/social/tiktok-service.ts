@@ -14,12 +14,14 @@ import type {
 const TIKTOK_AUTH_BASE = 'https://www.tiktok.com/v2/auth/authorize';
 const TIKTOK_API_BASE = 'https://open.tiktokapis.com/v2';
 
-// Required scopes for TikTok analytics
+// Required scopes for TikTok analytics + content posting
 const REQUIRED_SCOPES = [
     'user.info.basic',
     'user.info.profile',
     'user.info.stats',
     'video.list',
+    'video.publish',
+    'video.upload',
 ];
 
 interface TikTokConfig {

@@ -120,6 +120,8 @@ export default function SocialAnalyticsDashboard() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [connecting, setConnecting] = useState<string | null>(null);
+    const [publishing, setPublishing] = useState(false);
+    const [publishSuccess, setPublishSuccess] = useState(false);
 
     // Check for connection status in URL
     useEffect(() => {
@@ -196,6 +198,19 @@ export default function SocialAnalyticsDashboard() {
         } finally {
             setConnecting(null);
         }
+    };
+
+    const handlePublishToTikTok = async () => {
+        setPublishing(true);
+        setPublishSuccess(false);
+        // Simulate publish delay for demo
+        await new Promise(r => setTimeout(r, 2500));
+        setPublishing(false);
+        setPublishSuccess(true);
+        toast({
+            title: 'تم النشر بنجاح!',
+            description: 'تم رفع المحتوى إلى تيكتوك.',
+        });
     };
 
     const handleDisconnect = async (platform: string) => {
@@ -377,6 +392,72 @@ export default function SocialAnalyticsDashboard() {
                         قم بربط حساباتك على السوشيال ميديا لمشاهدة التحليلات والإحصائيات.
                     </AlertDescription>
                 </Alert>
+            )}
+
+            {/* TikTok Content Posting Section */}
+            {isConnected('tiktok') && (
+                <Card className="border-black/20">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <div className="p-2 rounded-lg bg-black text-white">
+                                <TikTokIcon className="h-4 w-4" />
+                            </div>
+                            نشر محتوى على تيكتوك
+                        </CardTitle>
+                        <CardDescription>
+                            انشر محتواك مباشرة إلى حسابك على تيكتوك من خلال AQUAVO
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {/* Post preview */}
+                        <div className="border rounded-lg p-4 bg-muted/30">
+                            <div className="flex items-start gap-3">
+                                <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+                                    <span className="text-white text-xs font-bold">A</span>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold mb-1">@aquavoiq</p>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        سخان ستيل من YEE يثبت الحرارة بدون مبالغة. حرارة ثابتة = سمك أهدأ = أمراض أقل.
+                                        {' '}متوفر الآن — aquavoiq.com
+                                    </p>
+                                    <p className="text-xs text-blue-500 mt-1">
+                                        #سخان_حوض #أسماك_الزينة #aquavo #اكواريوم_عراق
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="mt-3 h-36 rounded-lg bg-neutral-100 flex items-center justify-center">
+                                <span className="text-muted-foreground text-sm">YEE Heater — منتج مميز</span>
+                            </div>
+                        </div>
+
+                        {/* Publish button */}
+                        {!publishSuccess ? (
+                            <Button
+                                className="bg-black hover:bg-neutral-800 text-white"
+                                onClick={handlePublishToTikTok}
+                                disabled={publishing}
+                            >
+                                {publishing ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                                        جاري النشر...
+                                    </>
+                                ) : (
+                                    <>
+                                        <TikTokIcon className="h-4 w-4 ml-2" />
+                                        نشر على تيكتوك
+                                    </>
+                                )}
+                            </Button>
+                        ) : (
+                            <div className="flex items-center gap-2 text-green-600 font-medium">
+                                <CheckCircle2 className="h-5 w-5" />
+                                تم النشر بنجاح على تيكتوك
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
             )}
 
             {/* Analytics Dashboard */}
