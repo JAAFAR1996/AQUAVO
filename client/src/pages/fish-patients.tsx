@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { addCsrfHeader } from "@/lib/csrf";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -83,7 +84,7 @@ export default function FishPatients() {
   // ── Fetch patients ──
   const fetchPatients = useCallback(async () => {
     try {
-      const res = await fetch("/api/fish-patients");
+      const res = await fetch("/api/fish-patients", { credentials: "include" });
       if (res.status === 401) {
         setError("يجب تسجيل الدخول لعرض سجل أسماكك");
         setLoading(false);
@@ -101,7 +102,7 @@ export default function FishPatients() {
   // ── Fetch follow-ups ──
   const fetchFollowUps = useCallback(async () => {
     try {
-      const res = await fetch("/api/fish-patients/follow-ups/pending");
+      const res = await fetch("/api/fish-patients/follow-ups/pending", { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         if (data.success) setFollowUps(data.data || []);
@@ -112,7 +113,7 @@ export default function FishPatients() {
   // ── Fetch medical records for a fish ──
   const fetchRecords = useCallback(async (fishId: string) => {
     try {
-      const res = await fetch(`/api/fish-patients/${fishId}`);
+      const res = await fetch(`/api/fish-patients/${fishId}`, { credentials: "include" });
       const data = await res.json();
       if (data.success) {
         setSelectedFish(data.data.patient);
@@ -135,7 +136,8 @@ export default function FishPatients() {
     try {
       const res = await fetch("/api/fish-patients", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({
           name: formData.get("name"),
           species: formData.get("species") || undefined,
@@ -159,7 +161,8 @@ export default function FishPatients() {
     try {
       await fetch(`/api/fish-patients/${fishId}/records/${recordId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({ followUpCompleted: true }),
       });
       fetchFollowUps();

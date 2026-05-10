@@ -2,6 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 import { BackToTop } from "@/components/back-to-top";
+import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -31,43 +32,43 @@ const shippingZones: ShippingZone[] = [
     {
         region: "بغداد",
         cities: ["جميع المناطق"],
-        price: "5,000 د.ع",
-        deliveryTime: "1-2 يوم",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
     {
         region: "المحافظات الوسطى",
         cities: ["كربلاء", "النجف", "بابل", "الديوانية", "واسط"],
-        price: "10,000 د.ع",
-        deliveryTime: "2-3 أيام",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
     {
         region: "المحافظات الجنوبية",
         cities: ["البصرة", "ذي قار", "ميسان", "المثنى"],
-        price: "12,000 د.ع",
-        deliveryTime: "3-4 أيام",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
     {
         region: "المحافظات الشمالية",
         cities: ["نينوى", "صلاح الدين", "كركوك", "ديالى"],
-        price: "12,000 د.ع",
-        deliveryTime: "3-4 أيام",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
     {
         region: "إقليم كردستان",
         cities: ["أربيل", "السليمانية", "دهوك"],
-        price: "15,000 د.ع",
-        deliveryTime: "4-5 أيام",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
     {
         region: "الأنبار",
         cities: ["الرمادي", "الفلوجة", "هيت"],
-        price: "15,000 د.ع",
-        deliveryTime: "4-5 أيام",
+        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
+        deliveryTime: DELIVERY_DAYS,
         available: true,
     },
 ];
@@ -232,7 +233,7 @@ export default function Shipping() {
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>شحن مجاني للطلبات فوق 100,000 د.ع داخل بغداد</span>
+                                            <span>شحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD.toLocaleString()} د.ع</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -267,7 +268,7 @@ export default function Shipping() {
                                     <ul className="space-y-3 text-sm text-amber-900 dark:text-amber-200">
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold">•</span>
-                                            <span>الأسماك الحية: تتطلب تنسيقاً خاصاً للشحن. تواصل معنا أولاً.</span>
+                                            <span>المنتجات الكبيرة أو القابلة للكسر: تتطلب تنسيقاً خاصاً للشحن. تواصل معنا أولاً.</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold">•</span>
@@ -275,7 +276,7 @@ export default function Shipping() {
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold">•</span>
-                                            <span>المناطق النائية: قد تستغرق وقتاً إضافياً 1-2 يوم.</span>
+                                            <span>المناطق النائية: قد تستغرق وقتاً إضافياً بسيطاً.</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <span className="font-bold">•</span>
@@ -300,13 +301,13 @@ export default function Shipping() {
                                     فريقنا جاهز للإجابة على أي سؤال
                                 </p>
                                 <div className="flex flex-wrap gap-4 justify-center">
-                                    <a href="https://wa.me/9647747880673?text=مرحباً، عندي استفسار عن التوصيل" target="_blank" rel="noopener noreferrer">
+                                    <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، عندي استفسار عن التوصيل")}`} target="_blank" rel="noopener noreferrer">
                                         <Button size="lg" className="gap-2">
                                             <MessageCircle className="w-5 h-5" />
                                             تواصل عبر واتساب
                                         </Button>
                                     </a>
-                                    <a href="tel:+9647747880673">
+                                    <a href={`tel:+${WHATSAPP_NUMBER}`}>
                                         <Button size="lg" variant="outline" className="gap-2">
                                             <Phone className="w-5 h-5" />
                                             اتصل بنا

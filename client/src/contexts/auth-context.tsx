@@ -16,7 +16,6 @@ interface User {
   cashbackBalance?: number;
   totalSpent?: number;
   createdAt?: string;
-  isEarlyAccess?: boolean;
   preferences?: {
     tourSeen?: Record<string, boolean>;
     [key: string]: any;

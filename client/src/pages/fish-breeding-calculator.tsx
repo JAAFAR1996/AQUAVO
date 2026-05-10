@@ -50,7 +50,7 @@ import {
 import { breedingSpecies, type BreedingSpecies, type FryGrowthStage } from "@/data/breeding-data";
 import { toast } from "sonner";
 import { addCsrfHeader } from "@/lib/csrf";
-import { generateBreedingPDF } from "@/lib/pdf-generator";
+// PDF generator lazy-loaded on demand (jspdf + html-to-image are ~200KB)
 
 export default function FishBreedingCalculator() {
   const [, setLocation] = useLocation();
@@ -157,7 +157,8 @@ export default function FishBreedingCalculator() {
     try {
       const fileName = `breeding-plan-${species.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
 
-      // Use the dedicated PDF container which includes the full report
+      // Lazy-load PDF generator only when user clicks download
+      const { generateBreedingPDF } = await import("@/lib/pdf-generator");
       await generateBreedingPDF('pdf-export-container', fileName);
 
       toast.dismiss(loadingToast);

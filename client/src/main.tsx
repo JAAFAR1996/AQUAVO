@@ -17,7 +17,8 @@ function enableDeferredFonts() {
   });
 }
 
-enableDeferredAppStyles();
+// Flip deferred app CSS to active after first paint (allows critical shell to render first)
+requestAnimationFrame(() => enableDeferredAppStyles());
 
 const deferFontTimer = window.setTimeout(() => {
   const requestIdleCallback = (window as any).requestIdleCallback as

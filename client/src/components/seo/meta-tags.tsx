@@ -38,7 +38,7 @@ interface MetaTagsProps {
  */
 export function MetaTags({
     title,
-    description = "AQUAVO - وجهتك الأولى لمعدات وتقنيات أحواض الأسماك المتطورة في العراق",
+    description = "AQUAVO - معدات أحواض أصلية وبريميوم في العراق — توصيل لكل المحافظات",
     keywords = [],
     image = "https://aquavo.iq/logo_aquavo.png",
     url,
@@ -50,7 +50,7 @@ export function MetaTags({
 }: MetaTagsProps) {
     useEffect(() => {
         // Update title - proper format for SEO
-        const fullTitle = `${title} | AQUAVO - تكنولوجيا الحياة المائية`;
+        const fullTitle = `${title} | AQUAVO - معدات أحواض أصلية | العراق`;
         document.title = fullTitle;
 
         // Helper to set meta tag
@@ -173,7 +173,32 @@ export function ProductSchema({
                 "@type": "Organization",
                 name: "AQUAVO",
             },
-            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            shippingDetails: {
+                "@type": "OfferShippingDetails",
+                shippingRate: {
+                    "@type": "MonetaryAmount",
+                    value: 5000,
+                    currency: "IQD",
+                },
+                shippingDestination: {
+                    "@type": "DefinedRegion",
+                    addressCountry: "IQ",
+                },
+                deliveryTime: {
+                    "@type": "ShippingDeliveryTime",
+                    handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+                    transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+                },
+            },
+            hasMerchantReturnPolicy: {
+                "@type": "MerchantReturnPolicy",
+                applicableCountry: "IQ",
+                returnPolicyCategory: "https://schema.org/MerchantReturnNotPermitted",
+                merchantReturnDays: 0,
+                returnMethod: "https://schema.org/ReturnByMail",
+                returnFees: "https://schema.org/FreeReturn",
+            },
         },
         aggregateRating:
             rating && reviewCount && reviewCount > 0

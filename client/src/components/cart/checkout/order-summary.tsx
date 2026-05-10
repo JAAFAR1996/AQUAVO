@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { formatIQD } from "@/lib/utils";
 import { Truck, Info } from "lucide-react";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 interface OrderSummaryProps {
     cartTotal: number;
@@ -116,7 +117,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
             {/* تنبيه الشحن المجاني */}
             {!isFreeShipping && (
                 <p className="text-xs text-muted-foreground text-center">
-                    باقي {formatIQD(100000 - cartTotal)} للتوصيل المجاني
+                    باقي {formatIQD(FREE_SHIPPING_THRESHOLD - cartTotal)} للتوصيل المجاني
                 </p>
             )}
         </div>

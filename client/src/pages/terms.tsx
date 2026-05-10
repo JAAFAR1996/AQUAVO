@@ -18,6 +18,7 @@ import {
   Mail,
   MessageCircle
 } from "lucide-react";
+import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function Terms() {
   const sections = [
@@ -48,8 +49,8 @@ export default function Terms() {
       title: "الشحن والتوصيل",
       content: [
          "التوصيل مجاني للطلبات فوق 100,000 دينار عراقي",
-         "رسوم التوصيل 5,000 د.ع لبغداد — وتختلف للمحافظات",
-         "مدة التوصيل: 1-3 أيام لبغداد، 3-5 أيام للمحافظات",
+         "رسوم التوصيل 5,000 د.ع لكل العراق",
+         "مدة التوصيل: خلال 24 ساعة لجميع المحافظات",
          "يجب فحص المنتجات عند الاستلام — أي ضرر واضح يُبلّغ فوراً",
          "التأخير الناتج عن ظروف قاهرة لا يترتب عليه تعويض"
       ]
@@ -317,7 +318,7 @@ export default function Terms() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
                   <a
-                    href="tel:+9647747880673"
+                    href={`tel:+${WHATSAPP_NUMBER}`}
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
                   >
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
@@ -329,7 +330,7 @@ export default function Terms() {
                     </div>
                   </a>
                   <a
-                    href="https://wa.me/9647747880673"
+                    href={WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"

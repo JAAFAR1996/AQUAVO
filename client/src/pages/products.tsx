@@ -229,7 +229,7 @@ export default function Products() {
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="المنتجات"
-        description="تسوق أحدث منتجات أحواض الأسماك، الأحياء المائية، والمعدات في العراق."
+        description="تسوق معدات ومستلزمات أحواض أصلية في العراق."
       />
       <OrganizationSchema />
       <Navbar />

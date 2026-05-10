@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { Link } from "wouter";
 import confetti from "canvas-confetti";
+import { WHATSAPP_URL } from "@/lib/constants/shipping";
 
 // ─────────────────────────────────────────────────
 // DATA
@@ -628,7 +629,7 @@ function FinalScene() {
 
         {/* WhatsApp */}
         <motion.div {...fadeUp(4)}>
-          <button onClick={() => { vib(20); playBubble(); window.open("https://wa.me/9647747880673","_blank"); }}
+          <button onClick={() => { vib(20); playBubble(); window.open(WHATSAPP_URL,"_blank"); }}
             className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
             style={{
               background:"rgba(255,255,255,0.05)", backdropFilter:"blur(20px)",

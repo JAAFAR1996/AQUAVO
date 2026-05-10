@@ -22,7 +22,6 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { useState } from "react";
-import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 
 interface OrderStatus {
   id: string;
@@ -73,7 +72,7 @@ export default function OrderTracking() {
     setIsSearching(true);
 
     try {
-      const response = await fetch(`/api/orders/track/${orderNumber}`);
+      const response = await fetch(`/api/orders/track/${orderNumber}`, { credentials: "include" });
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error("لم يتم العثور على الطلب. يرجى التحقق من الرقم.");
@@ -172,7 +171,6 @@ export default function OrderTracking() {
             transition={{ duration: 0.6 }}
             className="flex flex-col items-center"
           >
-            <ShrimpMascot mood="working" size="lg" className="mb-4" />
             <Badge variant="outline" className="mb-4 border-primary/50 text-primary bg-primary/10 px-4 py-1 text-sm">
               <Package className="w-4 h-4 ml-2" />
               تتبع الشحنات

@@ -305,7 +305,7 @@ export default function CommunityGallery() {
           <div className="mb-12">
             <div className="bg-gradient-to-r from-yellow-500/10 via-amber-500/10 to-yellow-500/10 border-2 border-yellow-500/50 rounded-2xl p-8 relative overflow-hidden">
               <div className="absolute top-4 right-4">
-                <Crown className="h-12 w-12 text-yellow-500 animate-bounce" />
+                <Crown className="h-12 w-12 text-yellow-500" />
               </div>
 
               <div className="grid md:grid-cols-2 gap-6 items-center">

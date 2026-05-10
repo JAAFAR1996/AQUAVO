@@ -41,6 +41,7 @@ const FishHealthDiagnosis = lazy(() => import("@/pages/fish-health-diagnosis"));
 const Blog = lazy(() => import("@/pages/blog"));
 const BlogPost = lazy(() => import("@/pages/blog-post"));
 const OrderConfirmation = lazy(() => import("@/pages/order-confirmation"));
+const CheckoutPage = lazy(() => import("@/pages/checkout"));
 const Register = lazy(() => import("@/pages/register"));
 const Compare = lazy(() => import("@/pages/compare"));
 const AquariumWizard = lazy(() => import("@/pages/aquarium-wizard"));
@@ -50,9 +51,7 @@ const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
-const EarlyAccess = lazy(() => import("@/pages/early-access"));
 const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
-const Deals = lazy(() => import("@/pages/deals"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
@@ -77,7 +76,6 @@ const InvoiceView = lazy(() => import("@/pages/invoice-view"));
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
 const OnboardingTour = lazy(() => import("@/components/onboarding-tour").then(m => ({ default: m.OnboardingTour })));
-const WinnerNotificationBanner = lazy(() => import("@/components/notifications/winner-notification-banner").then(m => ({ default: m.WinnerNotificationBanner })));
 const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.InstallPrompt })));
 const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
 const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
@@ -328,9 +326,6 @@ function Router() {
         )}
       </Route>
 
-      <Route path="/deals">
-        {() => (<Suspense fallback={<PageLoader />}><Deals /></Suspense>)}
-      </Route>
       <Route path="/wishlist">
         {() => (<Suspense fallback={<PageLoader />}><Wishlist /></Suspense>)}
       </Route>
@@ -593,12 +588,12 @@ function Router() {
         )}
       </Route>
 
-      {/* Early Access Landing Page - No navbar/footer */}
-      <Route path="/early-access">
+      {/* Checkout Page - Full page checkout (replaces dialog on mobile) */}
+      <Route path="/checkout">
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <EarlyAccess />
+              <CheckoutPage />
             </Suspense>
           </ErrorBoundary>
         )}
@@ -654,7 +649,7 @@ function App() {
   useMetaPageView();
 
   // Standalone pages that should NOT show global UI (chatbot, FAB, scroll progress, etc.)
-  const isStandalonePage = ['/links', '/early-access', '/temperature-guide'].includes(location) || location.startsWith('/invoice/');
+  const isStandalonePage = ['/links', '/temperature-guide', '/checkout'].includes(location) || location.startsWith('/invoice/');
   const shouldLoadHostedAnalytics = isHostedAnalyticsOrigin();
 
   useEffect(() => {
@@ -707,13 +702,6 @@ function App() {
                     </IdleMount>
                   )}
 
-                  {!isStandalonePage && (
-                    <IdleMount timeout={30000}>
-                      <Suspense fallback={null}>
-                        <WinnerNotificationBanner />
-                      </Suspense>
-                    </IdleMount>
-                  )}
                   <IdleMount timeout={22000}>
                     <Suspense fallback={null}>
                       <UpdateBanner />

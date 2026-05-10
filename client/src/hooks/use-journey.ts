@@ -38,7 +38,7 @@ export function useJourney() {
     const { data: savedPlan, isLoading: isLoadingSavedPlan } = useQuery({
         queryKey: ["journey-plan"],
         queryFn: async () => {
-            const res = await fetch("/api/journey/plans");
+            const res = await fetch("/api/journey/plans", { credentials: "include" });
             if (!res.ok) return null;
             const data = await res.json();
             return data.data;

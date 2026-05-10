@@ -13,7 +13,6 @@ import { preferLocalWebp } from "@/lib/image-variants";
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
-import { SpotlightEffect } from "@/components/effects/spotlight-effect";
 
 // Lazy-load below-fold heavy components (reduces initial bundle by ~50KB)
 const PersonalizedSection = lazy(() => import("@/components/home/personalized-section").then(m => ({ default: m.PersonalizedSection })));
@@ -137,7 +136,7 @@ function DeferredMount({ children, timeout = 12000 }: { children: ReactNode; tim
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const [shouldFetchSales, setShouldFetchSales] = useState(false);
+  const [shouldFetchSales] = useState(true);
 
   // Random hero image selection on page load
   const heroImage = useMemo(() => {
@@ -145,21 +144,6 @@ export default function Home() {
     return HERO_IMAGES[randomIndex];
   }, []);
 
-  useEffect(() => {
-    let idleId: number | undefined;
-    const timer = window.setTimeout(() => {
-      idleId = (window as any).requestIdleCallback?.(
-        () => setShouldFetchSales(true),
-        { timeout: 2500 }
-      );
-      if (!idleId) setShouldFetchSales(true);
-    }, 7000);
-
-    return () => {
-      window.clearTimeout(timer);
-      if (idleId) (window as any).cancelIdleCallback(idleId);
-    };
-  }, []);
 
   // Fetch Top Selling Data (Dynamic based on sales)
   const { data: salesData, isLoading: salesIsLoading } = useQuery({
@@ -178,7 +162,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">
       <MetaTags
         title="الرئيسية"
-        description="AQUAVO - وجهتك الأولى لمستلزمات أحواض الأسماك، نباتات الزينة، والعناية بالحياة المائية في العراق."
+        description="AQUAVO - معدات وإكسسوارات أحواض أصلية في العراق — الدفع عند الاستلام."
       />
       <OrganizationSchema />
       <WebsiteSchema />
@@ -186,7 +170,6 @@ export default function Home() {
 
       <Navbar />
 
-      <SpotlightEffect />
       <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative">
         {/* Bento Grid Layout - Gen Z Style */}
         <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
@@ -216,9 +199,12 @@ export default function Home() {
                 <Crown className="w-4 h-4" />
               </div>
               <h1 className="text-3xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
-                حول <span className="text-primary text-stroke-sm">حوضك</span> <br />
-                إلى <span className="text-accent">تحفة فنية</span>.
+                معدات <span className="text-primary text-stroke-sm">أحواض</span> <br />
+                أصلية <span className="text-accent">لكل العراق</span>.
               </h1>
+              <p className="text-white/80 text-base md:text-xl font-medium mb-2 drop-shadow">
+                الدفع عند الاستلام — توصيل لكل العراق خلال 24 ساعة — شحن مجاني فوق 100 ألف
+              </p>
 
               <div className="flex flex-wrap gap-4 justify-end mt-6">
                 <Button
@@ -243,7 +229,7 @@ export default function Home() {
               </Link>
               <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground dark:text-white">
                 {hasRealSales ? (
-                  <>الأكثر مبيعاً <Trophy className="w-6 h-6 text-yellow-500 animate-bounce" /></>
+                  <>الأكثر مبيعاً <Trophy className="w-6 h-6 text-yellow-500" /></>
                 ) : (
                   <>اختيارات AQUAVO <Sparkles className="w-6 h-6 text-primary animate-pulse" /></>
                 )}

@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Facebook, Instagram, Phone, Mail, MapPin, Fish, CreditCard, Truck, Shield, Clock, ChevronLeft, Youtube, MessageCircle, Lock, Award, Heart, FileText, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import { addCsrfHeader } from "@/lib/csrf";
+import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -98,7 +99,7 @@ export default function Footer() {
             </div>
             <div>
               <p className="font-medium text-white text-sm">الدفع عند الاستلام</p>
-              <p className="text-xs text-slate-400">أو التحويل البنكي</p>
+              <p className="text-xs text-slate-400">نقداً عند التوصيل</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors">
@@ -125,19 +126,18 @@ export default function Footer() {
             <div className="p-2 bg-green-500/20 rounded-full mb-2">
               <Award className="h-5 w-5 text-green-500" />
             </div>
-            <p className="font-medium text-white text-xs">ضمان استرداد المبلغ</p>
-            <p className="text-[10px] text-slate-400">راضي أو مردود</p>
+            <p className="font-medium text-white text-xs">استبدال المعيب</p>
+            <p className="text-[10px] text-slate-400">إذا وصل تالف أو خاطئ</p>
           </div>
           <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
             <div className="p-2 bg-amber-500/20 rounded-full mb-2">
               <Shield className="h-5 w-5 text-amber-500" />
             </div>
             <p className="font-medium text-white text-xs">منتجات أصلية 100%</p>
-            <p className="text-[10px] text-slate-400">وكلاء معتمدون</p>
+            <p className="text-[10px] text-slate-400">نستورد مباشرة من YEE</p>
           </div>
           {/* YEE Certificate of Authenticity */}
-          <Link href="/verify-certificate/yee">
-            <a className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer">
+          <Link href="/verify-certificate/yee" className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer">
             <div className="p-2 bg-yellow-500/20 rounded-full mb-2 group-hover:bg-yellow-500/30 transition-colors">
               <FileText className="h-5 w-5 text-yellow-500" />
             </div>
@@ -146,7 +146,6 @@ export default function Footer() {
               <ExternalLink className="h-3 w-3 text-yellow-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </p>
             <p className="text-[10px] text-yellow-400/70">منتجات أصلية 100% — اضغط للتحقق</p>
-            </a>
           </Link>
         </div>
 
@@ -200,7 +199,7 @@ export default function Footer() {
                 </svg>
               </a>
               <a
-                href="https://wa.me/9647747880673"
+                href={WHATSAPP_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="تواصل معنا على واتساب"
@@ -298,7 +297,7 @@ export default function Footer() {
             <ul className="space-y-3 text-sm text-slate-400">
               <li>
                 <a
-                  href="tel:+9647747880673"
+                  href={`tel:+${WHATSAPP_NUMBER}`}
                   className="flex items-center gap-3 hover:text-primary transition-colors group"
                 >
                   <div className="p-2 bg-slate-800 group-hover:bg-primary/20 rounded-full transition-colors">
@@ -320,7 +319,7 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="https://wa.me/9647747880673"
+                  href={WHATSAPP_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 hover:text-green-500 transition-colors group"
@@ -409,7 +408,7 @@ export default function Footer() {
                     <span>📊</span> العرض التقديمي
                   </button>
                 </Link>
-                <a href="https://wa.me/9647747880673?text=مرحباً، أريد الاستثمار في AQUAVO" target="_blank" rel="noopener noreferrer">
+                <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، أريد الاستثمار في AQUAVO")}`} target="_blank" rel="noopener noreferrer">
                   <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
                     <MessageCircle className="w-4 h-4" /> تواصل معنا
                   </button>

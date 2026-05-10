@@ -23,13 +23,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, LogOut, Package as PackageIcon } from "lucide-react";
-import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { NavbarStyleSwitcher } from "@/components/navbar/NavbarStyleSwitcher";
 import { useNavbarPreferences, type NavbarStyle } from "@/hooks/use-navbar-preferences";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
+import { trackCartOpen } from "@/lib/analytics";
 
 const GlobalSearch = lazy(() => import("@/components/search/global-search").then(m => ({ default: m.GlobalSearch })));
 const CheckoutDialog = lazy(() => import("@/components/cart/checkout-dialog").then(m => ({ default: m.CheckoutDialog })));
@@ -120,7 +119,6 @@ export default function Navbar() {
   const navLinks = [
     { href: "/", label: "الرئيسية", icon: Home },
     { href: "/products", label: "المنتجات", icon: Package },
-    { href: "/deals", label: "العروض", icon: Tag },
     { href: "/wishlist", label: "المفضلة", icon: Heart },
     { href: "/fish-encyclopedia", label: "موسوعة الأسماك", icon: BookOpen },
     { href: "/calculators", label: "الحاسبات", icon: Calculator },
@@ -207,10 +205,6 @@ export default function Navbar() {
           <div className="nav-actions flex items-center gap-1 xs:gap-1.5 sm:gap-3">
             {/* Theme switcher - Always visible */}
             <ThemeSwitcher />
-            {/* Hide on mobile to prevent icon overlap */}
-            <div className="hidden sm:block">
-              <NavbarStyleSwitcher />
-            </div>
             <div className="hidden md:block">
               <FontSizeControllerCompact />
             </div>
@@ -305,7 +299,7 @@ export default function Navbar() {
 
             <NotificationBell />
 
-            <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+            <Sheet open={isCartOpen} onOpenChange={(open) => { setIsCartOpen(open); if (open) trackCartOpen(); }}>
               <SheetTrigger asChild>
                 <Button
                   variant="outline"
@@ -335,9 +329,11 @@ export default function Navbar() {
                 <div className="mt-6 flex flex-col h-[calc(100vh-180px)]">
                   {cartItems.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                      <ShrimpMascot mood="sad" size="xl" className="mb-4 grayscale hover:grayscale-0 transition-all" />
-                      <p className="font-medium text-lg mt-4">السلة فارغة...</p>
-                      <p className="text-sm font-bold text-primary mt-2">الجمبري زعلان 😢</p>
+                      <ShoppingCart className="w-16 h-16 mb-4 opacity-20" />
+                      <p className="font-medium text-lg">السلة فارغة</p>
+                      <Link href="/products">
+                        <Button variant="link" className="text-primary mt-2">تصفح المنتجات</Button>
+                      </Link>
                     </div>
                   ) : (
                     <>
@@ -398,7 +394,14 @@ export default function Navbar() {
                           <span className="font-medium">المجموع:</span>
                           <span className="text-xl font-bold text-primary">{formatIQD(totalPrice)}</span>
                         </div>
-                        <Button className="w-full" size="lg" onClick={() => setIsCheckoutOpen(true)}>
+                        <Button className="w-full" size="lg" onClick={() => {
+                          if (isMobile) {
+                            setIsCartOpen(false);
+                            window.location.href = "/checkout";
+                          } else {
+                            setIsCheckoutOpen(true);
+                          }
+                        }}>
                           إتمام الشراء
                         </Button>
                       </div>

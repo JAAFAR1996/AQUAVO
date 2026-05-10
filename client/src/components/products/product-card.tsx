@@ -12,8 +12,8 @@ import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
 import { Link } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
-import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 import { formatNumber, formatPrice } from "@/lib/format";
+import { trackAddToCart } from "@/lib/analytics";
 import { cardImage } from "@/lib/cloudinary";
 
 interface ProductCardProps {
@@ -47,16 +47,19 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     e.stopPropagation();
     addItem(product);
 
+    // GA4: add_to_cart event
+    trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: Number(product.price),
+      quantity: 1,
+    });
+
     // Track A/B Conversion
     trackABConversion(EXPERIMENTS.ADD_TO_CART_BUTTON.name, 'added_to_cart');
     toast({
-      title: "عاشت ايدك! �",
-      description: (
-        <div className="flex items-center gap-3">
-          <ShrimpMascot mood="drinking" size="lg" className="w-20 h-20 animate-bounce" />
-          <span>خيار رهيب! انضاف {product.name} للسلة، بالعافية عليك.</span>
-        </div>
-      ),
+      title: "تمت الإضافة",
+      description: `${product.name} انضاف للسلة.`,
     });
   };
 

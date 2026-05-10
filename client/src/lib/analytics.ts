@@ -217,6 +217,15 @@ export function trackLogin(method: string) {
   });
 }
 
+// CRO tracking events
+export function trackWhatsAppClick(page: string, productName?: string) {
+  trackEvent('whatsapp_click', 'CRO', productName ? `${page}:${productName}` : page);
+}
+
+export function trackCartOpen() {
+  trackEvent('cart_open', 'CRO');
+}
+
 // Custom AQUAVO events
 export function trackEasterEggFound(eggName: string) {
   trackEvent('easter_egg_found', 'Gamification', eggName);

@@ -27,8 +27,8 @@ export function Testimonials() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">
               <ShieldCheck className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-bold">دفع إلكتروني آمن</h3>
-            <p className="text-muted-foreground text-sm">وسائل دفع متعددة ومحمية بالكامل لضمان راحة بالك أثناء التسوق.</p>
+            <h3 className="text-xl font-bold">الدفع عند الاستلام</h3>
+            <p className="text-muted-foreground text-sm">ادفع نقداً عند استلام طلبك — بدون دفع مسبق.</p>
           </div>
 
           <div className="flex flex-col items-center gap-4 p-6 bg-background rounded-2xl shadow-sm border border-border/50 hover:border-primary/50 transition-colors">
@@ -36,7 +36,7 @@ export function Testimonials() {
               <Award className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold">منتجات أصلية 100%</h3>
-            <p className="text-muted-foreground text-sm">نحن وكلاء معتمدون لأكبر العلامات التجارية العالمية في عالم الأسماك.</p>
+            <p className="text-muted-foreground text-sm">نستورد مباشرة من الشركات المصنعة — جميع المنتجات أصلية ومضمونة.</p>
           </div>
 
           <div className="flex flex-col items-center gap-4 p-6 bg-background rounded-2xl shadow-sm border border-border/50 hover:border-primary/50 transition-colors">

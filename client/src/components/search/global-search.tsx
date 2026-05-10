@@ -34,7 +34,6 @@ const MAX_RECENT_SEARCHES = 5;
 const staticPages = [
   { title: "الرئيسية", url: "/", keywords: ["home", "رئيسية", "البداية"] },
   { title: "المنتجات", url: "/products", keywords: ["products", "منتجات", "متجر"] },
-  { title: "العروض", url: "/deals", keywords: ["deals", "عروض", "تخفيضات", "خصم"] },
   { title: "المفضلة", url: "/wishlist", keywords: ["wishlist", "مفضلة", "قائمة"] },
   { title: "موسوعة الأسماك", url: "/fish-encyclopedia", keywords: ["fish", "encyclopedia", "موسوعة", "أسماك"] },
 

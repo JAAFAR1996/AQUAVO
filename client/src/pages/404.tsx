@@ -3,7 +3,6 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { ErrorState, errorMessages } from "@/components/ui/error-state";
 import { MetaTags } from "@/components/seo/meta-tags";
-import { ShrimpMascot } from "@/components/gamification/shrimp-mascot";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
@@ -28,9 +27,7 @@ export default function NotFound() {
               <div className="flex flex-wrap gap-3 justify-center">
                 {[
                   { label: "موسوعة الأسماك", path: "/fish-encyclopedia" },
-
                   { label: "بدء رحلتك", path: "/journey" },
-                  { label: "العروض", path: "/deals" },
                   { label: "الرئيسية", path: "/" },
                   { label: "المنتجات", path: "/products" },
                 ].map((link) => (
@@ -45,13 +42,10 @@ export default function NotFound() {
               </div>
             </div>
 
-            {/* Animated 404 with Shrimp Mascot */}
+            {/* Animated 404 */}
             <div className="relative mt-8 flex flex-col items-center justify-center space-y-4">
               <h1 className="text-9xl font-black text-center select-none text-primary/20">404</h1>
-              <div className="absolute inset-0 flex items-center justify-center -mt-8">
-                <ShrimpMascot mood="sad" size="xl" animate />
-              </div>
-              <p className="text-xl font-bold text-muted-foreground animate-pulse">الجمبري ضيع الطريق... 🦐</p>
+              <p className="text-lg font-medium text-muted-foreground">هذه الصفحة غير موجودة — جرب الروابط أعلاه</p>
             </div>
           </ErrorState>
         </div>

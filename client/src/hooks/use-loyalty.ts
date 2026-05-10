@@ -5,6 +5,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query";
+import { addCsrfHeader } from "@/lib/csrf";
 
 export interface LoyaltyBalance {
   loyaltyPoints: number;
@@ -105,7 +106,7 @@ export async function previewRedeem(
 ): Promise<RedeemPreview> {
   const res = await fetch("/api/loyalty/preview-redeem", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: addCsrfHeader({ "Content-Type": "application/json" }),
     credentials: "include",
     body: JSON.stringify({ orderTotal, usePoints, useCashback }),
   });

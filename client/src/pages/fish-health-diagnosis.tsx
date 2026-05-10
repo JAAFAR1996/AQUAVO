@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+import { addCsrfHeader } from "@/lib/csrf";
 import { MetaTags } from "@/components/seo/meta-tags";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -244,7 +245,7 @@ export default function FishHealthDiagnosis() {
   // Fetch user's registered fish
   const fetchMyFish = useCallback(async () => {
     try {
-      const res = await fetch("/api/fish-patients");
+      const res = await fetch("/api/fish-patients", { credentials: "include" });
       if (res.ok) {
         const data = await res.json();
         if (data.success) setMyFish(data.data || []);
@@ -267,7 +268,8 @@ export default function FishHealthDiagnosis() {
       const diagData = diagnosis as any;
       const res = await fetch(`/api/fish-patients/${fishId}/records`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({
           diagnosis: diagData.primaryDiagnosis?.diseaseName || diagData.diagnosis,
           arabicDiagnosis: diagData.primaryDiagnosis?.arabicName || diagData.arabicDiagnosis,
@@ -302,7 +304,8 @@ export default function FishHealthDiagnosis() {
     try {
       const res = await fetch("/api/fish-patients", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({
           name: newFishName.trim(),
           species: userContextSpecies || undefined,
@@ -371,6 +374,8 @@ export default function FishHealthDiagnosis() {
 
       const response = await fetch('/api/ai-advanced/visual/analyze-upload', {
         method: 'POST',
+        headers: addCsrfHeader(),
+        credentials: 'include',
         body: formData,
       });
 
@@ -445,7 +450,8 @@ export default function FishHealthDiagnosis() {
     try {
       const res = await fetch("/api/simulation/thousand-scenarios", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
         body: JSON.stringify({
           species: userContextSpecies || undefined,
           symptoms: userContextSymptoms || (diagnosis.symptoms?.join("، ") ?? ""),
@@ -1223,7 +1229,8 @@ export default function FishHealthDiagnosis() {
                                 try {
                                   await fetch('/api/ai-advanced/diagnosis/feedback', {
                                     method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
+                                    headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
+                                    credentials: 'include',
                                     body: JSON.stringify({ analysisId, isCorrect: true, rating: 5 }),
                                   });
                                   setFeedbackSent(true);
@@ -1350,7 +1357,8 @@ export default function FishHealthDiagnosis() {
                                   try {
                                     await fetch('/api/ai-advanced/diagnosis/feedback', {
                                       method: 'POST',
-                                      headers: { 'Content-Type': 'application/json' },
+                                      headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
+                                      credentials: 'include',
                                       body: JSON.stringify({
                                         analysisId,
                                         isCorrect: false,

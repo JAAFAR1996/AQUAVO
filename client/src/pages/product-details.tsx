@@ -34,6 +34,8 @@ import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProdu
 import { ProductCard } from "@/components/products/product-card";
 import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
+import { trackViewItem, trackAddToCart } from "@/lib/analytics";
+import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function ProductDetails() {
   const params = useParams();
@@ -99,6 +101,13 @@ export default function ProductDetails() {
         priceIQD: Number(displayPrice),
         category: product.category,
       });
+      // GA4: view_item event
+      trackViewItem({
+        id: product.id,
+        name: product.name,
+        price: Number(displayPrice),
+        category: product.category,
+      });
     }
   }, [product?.id, displayPrice]);
 
@@ -151,11 +160,18 @@ export default function ProductDetails() {
           quantity,
           category: product.category,
         });
+        // GA4: add_to_cart event
+        trackAddToCart({
+          id: productToAdd.id,
+          name: productToAdd.name,
+          price: trackPrice,
+          quantity,
+        });
       }
       setIsAddedToCart(true);
       toast({
-        title: "يا سلام! 🦐",
-        description: `خيار رهيب! ضفنا ${quantity} قطع من ${productToAdd.name} للكيس.`,
+        title: "تمت الإضافة",
+        description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${productToAdd.name} انضاف للسلة.`,
       });
       setTimeout(() => setIsAddedToCart(false), 2000);
     }
@@ -335,7 +351,8 @@ export default function ProductDetails() {
                   </div>
                 )}
 
-                {/* Rating */}
+                {/* Rating — hide if no reviews */}
+                {product.reviewCount > 0 && (
                 <div className="flex items-center gap-2 mb-6">
                   <div className="flex text-amber-400">
                     {[...Array(5)].map((_, i) => (
@@ -349,6 +366,7 @@ export default function ProductDetails() {
                     {product.rating} ({product.reviewCount} تقييم)
                   </span>
                 </div>
+                )}
 
                 <div className="mb-4">
                   {hasPrice ? (
@@ -496,6 +514,19 @@ export default function ProductDetails() {
                         <Share2 className="w-5 h-5" />
                       </Button>
                     </div>
+                    {/* WhatsApp CTA — secondary */}
+                    <a
+                      href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أسأل عن ${product.name} ${window.location.href}`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 text-sm font-medium transition-colors"
+                      onClick={() => {
+                        import("@/lib/analytics").then(m => m.trackWhatsAppClick("product", product.name));
+                      }}
+                    >
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.624-1.467A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.57-5.913-1.652l-.424-.252-2.744.871.876-2.67-.276-.44A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>
+                      اسألنا على واتساب
+                    </a>
                   </div>
                 )}
 
@@ -531,8 +562,8 @@ export default function ProductDetails() {
                           <RotateCcw className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">إرجاع سهل</p>
-                          <p className="text-xs text-muted-foreground">خلال 7 أيام</p>
+                          <p className="text-sm font-medium">استبدال المعيب</p>
+                          <p className="text-xs text-muted-foreground">إذا وصل تالف</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -550,8 +581,7 @@ export default function ProductDetails() {
 
                 {/* YEE Certificate of Authenticity - Trust Signal */}
                 {product?.brand?.toLowerCase() === 'yee' && (
-                  <Link href="/verify-certificate/yee">
-                    <a className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer">
+                  <Link href="/verify-certificate/yee" className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer">
                     <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
                       <FileText className="w-5 h-5 text-yellow-600" />
                     </div>
@@ -563,7 +593,6 @@ export default function ProductDetails() {
                       <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">شهادة أصالة من الشركة المصنعة — اضغط للتحقق</p>
                     </div>
                     <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" />
-                    </a>
                   </Link>
                 )}
               </div>
@@ -728,19 +757,17 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="font-semibold mb-2">سياسة الشحن</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>توصيل مجاني للطلبات فوق 100,000 دينار عراقي</li>
-                        <li>التوصيل خلال 2-3 أيام عمل داخل بغداد</li>
-                        <li>التوصيل خلال 4-7 أيام عمل لبقية المحافظات</li>
-                        <li>إمكانية تتبع الطلب عبر رقم الشحنة</li>
+                        <li>توصيل لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع — خلال {DELIVERY_DAYS}</li>
+                        <li>شحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD.toLocaleString()} د.ع</li>
                       </ul>
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-2">سياسة الإرجاع</h3>
+                      <h3 className="font-semibold mb-2">سياسة الاستبدال</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>يمكن إرجاع المنتج خلال 7 أيام من تاريخ الاستلام</li>
-                        <li>يجب أن يكون المنتج في حالته الأصلية مع العبوة</li>
-                        <li>يتم استرداد المبلغ كاملاً في حالة عيب المنتج</li>
-                        <li>رسوم الشحن غير قابلة للاسترداد في حالة تغيير الرأي</li>
+                        <li>نستبدل المنتجات التالفة أو الخاطئة فقط</li>
+                        <li>أبلغنا خلال 48 ساعة من الاستلام مع صور للمنتج</li>
+                        <li>لا إرجاع لتغيير الرأي</li>
+                        <li>تواصل معنا عبر واتساب للمطالبات</li>
                       </ul>
                     </div>
                   </CardContent>
@@ -830,6 +857,24 @@ export default function ProductDetails() {
 
       <BackToTop />
       <Footer />
+
+      {/* P1.8: Sticky mobile Add to Cart bar */}
+      {product && hasPrice && !isOutOfStock && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-background/95 backdrop-blur border-t border-border p-3 flex items-center gap-3 safe-bottom">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold text-primary truncate">{formatPrice(displayPrice)}</p>
+            <p className="text-xs text-muted-foreground truncate">{product.name}</p>
+          </div>
+          <Button
+            size="sm"
+            className="gap-2 h-10 px-6 font-bold shrink-0"
+            onClick={handleAddToCart}
+          >
+            <ShoppingCart className="w-4 h-4" />
+            أضف للسلة
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

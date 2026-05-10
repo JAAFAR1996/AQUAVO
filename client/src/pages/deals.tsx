@@ -12,6 +12,7 @@ import { ShoppingCart, Star, Percent, Tag, TrendingDown, Timer, Sparkles } from 
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
+import { addCsrfHeader } from "@/lib/csrf";
 
 import { BackToTop } from "@/components/back-to-top";
 import { Product } from "@/types";
@@ -258,12 +259,28 @@ export default function Deals() {
             <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
               اشترك في نشرتنا البريدية واحصل على إشعارات فورية عند إضافة عروض جديدة
             </p>
-            <form className="max-w-md mx-auto flex gap-3" onSubmit={(e) => {
+            <form className="max-w-md mx-auto flex gap-3" onSubmit={async (e) => {
               e.preventDefault();
-              toast({
-                title: "شكراً لك!",
-                description: "تم الاشتراك بنجاح في النشرة البريدية",
-              });
+              const form = e.currentTarget;
+              const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement;
+              if (!emailInput?.value) return;
+              try {
+                const res = await fetch('/api/newsletter/subscribe', {
+                  method: 'POST',
+                  headers: addCsrfHeader({ 'Content-Type': 'application/json' }),
+                  credentials: 'include',
+                  body: JSON.stringify({ email: emailInput.value }),
+                });
+                if (res.ok) {
+                  emailInput.value = "";
+                  toast({ title: "شكراً لك!", description: "تم الاشتراك بنجاح في النشرة البريدية" });
+                } else {
+                  const data = await res.json();
+                  toast({ title: "خطأ", description: data.message || "حدث خطأ أثناء الاشتراك", variant: "destructive" });
+                }
+              } catch {
+                toast({ title: "خطأ", description: "حدث خطأ أثناء الاشتراك", variant: "destructive" });
+              }
             }}>
               <input
                 type="email"

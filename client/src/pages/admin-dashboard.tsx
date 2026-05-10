@@ -54,7 +54,6 @@ import { PriceSuggestionsPanel } from "@/components/admin/price-suggestions-pane
 import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
-import { EarlyAccessManagement } from "@/components/admin/early-access-management";
 import { WaveProphetPanel } from "@/components/admin/wave-prophet-panel";
 import { CatalogLivePanel } from "@/components/admin/catalog-live-panel";
 import { MiroFishPanel } from "@/components/admin/mirofish-panel";
@@ -84,7 +83,6 @@ import {
   Tag,
   Shield,
   Settings,
-  Ticket,
 } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -744,7 +742,6 @@ export default function AdminDashboard() {
 
         <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12 h-auto p-1">
           <TabsTrigger value="products">المنتجات</TabsTrigger>
-          <TabsTrigger value="early-access" className="gap-1"><Ticket className="w-3 h-3" />الحجز المبكر</TabsTrigger>
           <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
           <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
           <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
@@ -764,11 +761,6 @@ export default function AdminDashboard() {
           <TabsTrigger value="security">الأمان</TabsTrigger>
           <TabsTrigger value="settings">الإعدادات</TabsTrigger>
         </TabsList>
-
-        {/* Early Access Management Tab */}
-        <TabsContent value="early-access" className="space-y-4">
-          <EarlyAccessManagement />
-        </TabsContent>
 
         {/* WhatsApp Invoices Tab */}
         <TabsContent value="invoices" className="space-y-4">

@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { WHATSAPP_URL } from "@/lib/constants/shipping";
 
 interface Product {
     id: string;
@@ -489,7 +490,7 @@ export function AIChatBot() {
     // Handle contact support
     const handleContactSupport = useCallback(() => {
         // Open WhatsApp or Instagram
-        window.open("https://wa.me/9647747880673?text=مرحباً، أحتاج مساعدة من فريق AQUAVO", "_blank");
+        window.open(`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، أحتاج مساعدة من فريق AQUAVO")}`, "_blank");
     }, []);
 
     // Quick questions
@@ -518,7 +519,7 @@ export function AIChatBot() {
                             }}
                         >
                             <p className="text-xs text-foreground leading-relaxed">
-                                🦐 هلا! تحتاج مساعدة؟ اسألني عن أي شي — أسماك، أحواض، أو منتجات!
+                                هلا! تحتاج مساعدة؟ اسألني عن أي شي — أسماك، أحواض، أو منتجات!
                             </p>
                             <div className="flex items-center gap-1 mt-1.5 text-primary">
                                 <span className="text-[10px] font-medium">ابدأ محادثة</span>

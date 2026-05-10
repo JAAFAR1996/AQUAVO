@@ -15,6 +15,7 @@ import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { formatIQD, formatDate } from "@/lib/utils";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
+import { DELIVERY_DAYS } from "@/lib/constants/shipping";
 
 // Proper interface for order data
 interface OrderItem {
@@ -46,12 +47,8 @@ interface OrderData {
     };
 }
 
-const getDeliveryEstimate = (address: string) => {
-    if (!address) return "خلال 2-4 أيام عمل";
-    if (address.includes("بغداد") || address.toLowerCase().includes("baghdad")) {
-        return "خلال 1 - 2 يوم عمل";
-    }
-    return "خلال 2 - 4 أيام عمل";
+const getDeliveryEstimate = () => {
+    return `خلال ${DELIVERY_DAYS}`;
 };
 
 export default function OrderConfirmation() {
@@ -300,7 +297,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                         <Truck className="w-4 h-4 text-muted-foreground" />
                                         <span className="text-muted-foreground">التوصيل المتوقع</span>
                                     </div>
-                                    <span className="font-medium">{getDeliveryEstimate(address)}</span>
+                                    <span className="font-medium">{getDeliveryEstimate()}</span>
                                 </div>
 
                                 <div className="flex items-center justify-between text-sm">

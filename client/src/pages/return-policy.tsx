@@ -20,65 +20,58 @@ import {
   ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function ReturnPolicy() {
   const steps = [
     {
       icon: MessageCircle,
       title: "تواصل معنا",
-      description: "اتصل بخدمة العملاء أو أرسل رسالة عبر واتساب لبدء طلب الإرجاع"
+      description: "أرسل رسالة عبر واتساب خلال 48 ساعة من الاستلام مع صور للمنتج"
     },
     {
       icon: FileText,
-      title: "احصل على موافقة",
-      description: "سنراجع طلبك ونرسل لك رقم تأكيد الإرجاع خلال 24 ساعة"
+      title: "نراجع الطلب",
+      description: "سنراجع الصور ونرد عليك خلال 24 ساعة"
     },
     {
       icon: Package,
-      title: "غلّف المنتج",
-      description: "أعد تغليف المنتج بعناية في العبوة الأصلية مع جميع الملحقات"
+      title: "استبدال المنتج",
+      description: "نرسل لك منتج بديل سليم أو نسترد المبلغ"
     },
     {
       icon: Truck,
-      title: "أرسل أو سنستلم",
-      description: "يمكنك إرسال المنتج أو طلب استلام من موقعك (مجاناً في بغداد)"
+      title: "التوصيل",
+      description: "نتحمل كلفة شحن البديل للمنتجات التالفة"
     }
   ];
 
   const eligibleItems = [
-    "الأحواض والديكورات غير المستخدمة",
-    "الفلاتر والمضخات في حالتها الأصلية",
-    "الإضاءة والملحقات الإلكترونية",
-    "مستلزمات التنظيف والصيانة",
-    "الأطعمة المغلقة غير المفتوحة"
+    "منتج وصل تالف أو مكسور أثناء الشحن",
+    "منتج خاطئ غير الذي طلبته",
+    "منتج به عيب صناعي واضح",
+    "منتج ناقص أو بدون ملحقاته الأساسية"
   ];
 
   const nonEligibleItems = [
-    "الأسماك والكائنات الحية",
-    "النباتات المائية الحية",
-    "الأطعمة المفتوحة أو المستخدمة",
-    "المنتجات التالفة بسبب سوء الاستخدام",
-    "العناصر المخصصة حسب الطلب"
+    "تغيير الرأي بعد الاستلام",
+    "منتجات تالفة بسبب سوء الاستخدام",
+    "الإبلاغ بعد مرور 48 ساعة من الاستلام",
+    "بدون صور توضح المشكلة"
   ];
 
   const refundMethods = [
     {
-      icon: CreditCard,
-      title: "استرداد نقدي",
-      description: "استرداد كامل المبلغ بنفس طريقة الدفع الأصلية",
-      time: "3-7 أيام عمل"
-    },
-    {
       icon: RotateCcw,
       title: "استبدال المنتج",
-      description: "استبدال بمنتج آخر بنفس القيمة أو أعلى مع دفع الفرق",
-      time: "فوري عند الاستلام"
+      description: "نرسل لك منتج بديل سليم",
+      time: "خلال 24-48 ساعة"
     },
     {
-      icon: Shield,
-      title: "رصيد متجر",
-      description: "احصل على رصيد بقيمة 110% لاستخدامه في مشترياتك القادمة",
-      time: "فوري"
+      icon: CreditCard,
+      title: "استرداد المبلغ",
+      description: "إذا لم يتوفر بديل، نسترد المبلغ كاملاً",
+      time: "خلال 24-48 ساعة"
     }
   ];
 
@@ -100,13 +93,13 @@ export default function ReturnPolicy() {
           >
             <Badge variant="outline" className="mb-4 border-primary/50 text-primary bg-primary/10 px-4 py-1 text-sm">
               <RotateCcw className="w-4 h-4 ml-2" />
-              سياسة مرنة
+              سياسة الاستبدال
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-6" data-testid="text-page-title">
-              سياسة الإرجاع والاستبدال
+              سياسة الاستبدال
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              راحتك أولويتنا. نقدم سياسة إرجاع مرنة وسهلة لضمان رضاك التام عن مشترياتك.
+              نستبدل المنتجات التالفة أو الخاطئة فقط. أبلغنا خلال 48 ساعة من الاستلام مع صور توضح المشكلة.
             </p>
           </motion.div>
         </div>
@@ -125,8 +118,8 @@ export default function ReturnPolicy() {
                   <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Clock className="w-8 h-8 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">7 أيام</h3>
-                  <p className="text-muted-foreground">فترة الإرجاع من تاريخ الاستلام</p>
+                  <h3 className="text-2xl font-bold mb-2">48 ساعة</h3>
+                  <p className="text-muted-foreground">مهلة الإبلاغ من تاريخ الاستلام</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -141,8 +134,8 @@ export default function ReturnPolicy() {
                   <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                     <Truck className="w-8 h-8 text-green-500" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">استلام مجاني</h3>
-                  <p className="text-muted-foreground">نستلم المنتجات مجاناً داخل بغداد</p>
+                  <h3 className="text-2xl font-bold mb-2">شحن البديل مجاني</h3>
+                  <p className="text-muted-foreground">نتحمل كلفة شحن المنتج البديل</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -204,7 +197,7 @@ export default function ReturnPolicy() {
                     <div className="w-10 h-10 bg-green-500/20 rounded-full flex items-center justify-center">
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-green-600">المنتجات المؤهلة للإرجاع</h2>
+                    <h2 className="text-2xl font-bold text-green-600">المنتجات المشمولة بضمان الاستبدال</h2>
                   </div>
                   <ul className="space-y-3">
                     {eligibleItems.map((item) => (
@@ -229,7 +222,7 @@ export default function ReturnPolicy() {
                     <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center">
                       <XCircle className="w-5 h-5 text-red-500" />
                     </div>
-                    <h2 className="text-2xl font-bold text-red-600">المنتجات غير المؤهلة</h2>
+                    <h2 className="text-2xl font-bold text-red-600">حالات لا يشملها الضمان</h2>
                   </div>
                   <ul className="space-y-3">
                     {nonEligibleItems.map((item) => (
@@ -324,7 +317,7 @@ export default function ReturnPolicy() {
                 </div>
                 <div className="grid md:grid-cols-3 gap-6">
                   <a
-                    href="tel:+9647747880673"
+                    href={`tel:+${WHATSAPP_NUMBER}`}
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
                   >
                     <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
@@ -336,7 +329,7 @@ export default function ReturnPolicy() {
                     </div>
                   </a>
                   <a
-                    href="https://wa.me/9647747880673"
+                    href={WHATSAPP_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"

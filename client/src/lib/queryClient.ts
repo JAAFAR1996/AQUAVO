@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { addCsrfHeader } from "@/lib/csrf";
 
 // Default timeout for API requests (30 seconds)
 const DEFAULT_TIMEOUT_MS = 30000;
@@ -72,7 +73,7 @@ export async function apiRequest(
   try {
     const res = await fetchWithRetryOn503(url, {
       method,
-      headers: data ? { "Content-Type": "application/json" } : {},
+      headers: data ? addCsrfHeader({ "Content-Type": "application/json" }) : addCsrfHeader(),
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
     });

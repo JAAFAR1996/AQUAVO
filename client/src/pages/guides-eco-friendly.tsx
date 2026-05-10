@@ -300,7 +300,7 @@ export default function EcoFriendlyGuide() {
               <Link href="/faq">
                 <Button variant="outline" className="border-slate-700 hover:bg-slate-800">الأسئلة الشائعة</Button>
               </Link>
-              <Link href="/contact">
+              <Link href="/faq">
                 <Button className="bg-teal-600 hover:bg-teal-700">تواصل معنا</Button>
               </Link>
             </div>

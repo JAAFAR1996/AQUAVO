@@ -19,6 +19,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { trackBioLinkClick } from '@/lib/analytics';
+import { WHATSAPP_URL } from '@/lib/constants/shipping';
 
 // ═══════════════════════════════════════════════
 // CONFIGURATION
@@ -44,7 +45,7 @@ const LINKS_CONFIG = {
       id: 'whatsapp',
       label: 'تواصل واتساب',
       sublabel: 'رد فوري — اسألنا أي شي!',
-      url: 'https://wa.me/9647747880678?text=' + encodeURIComponent('مرحبا! جيت من QR Code الكتيب 🐟'),
+      url: `${WHATSAPP_URL}?text=${encodeURIComponent('مرحبا! جيت من QR Code الكتيب 🐟')}`,
       icon: 'whatsapp',
       color: 'from-emerald-400 to-emerald-600',
       glow: 'shadow-emerald-500/20',

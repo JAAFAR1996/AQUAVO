@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { OptimizedImage } from "@/components/ui/optimized-image";
+import { formatPrice } from "@/lib/format";
 
 interface ProductOfTheWeekProps {
   product: Product;
@@ -88,11 +89,13 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
               </h2>
 
               <div className="flex items-center gap-4 flex-wrap">
+                {product.reviewCount > 0 && (
                 <div className="flex items-center gap-1 text-amber-400 bg-amber-400/10 px-3 py-1 rounded-lg">
                   <Star className="h-5 w-5 fill-current" />
                   <span className="text-foreground font-bold">{product.rating}</span>
                   <span className="text-muted-foreground text-sm">({product.reviewCount} تقييم)</span>
                 </div>
+                )}
                 {product.difficulty && <DifficultyBadge level={product.difficulty} />}
               </div>
             </div>
@@ -103,7 +106,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
               <div className="flex flex-col">
-                <span className="text-4xl font-bold text-purple-500">قريباً جداً ✨</span>
+                <span className="text-4xl font-bold text-primary">{product.price > 0 ? formatPrice(product.price) : "قريباً"}</span>
               </div>
 
               <div className="flex-1 w-full sm:w-auto flex gap-3">

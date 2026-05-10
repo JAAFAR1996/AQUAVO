@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "wouter";
 import { CheckCircle2, XCircle, Clock, Package, MapPin, AlertTriangle, Loader2, Sparkles } from "lucide-react";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface InvoiceItem {
   productId: string;
@@ -64,7 +65,11 @@ export default function InvoiceView() {
     if (!confirm("هل أنت متأكد من قبول هذا الطلب؟")) return;
     setActionLoading(true);
     try {
-      const r = await fetch(`/api/invoice/${token}/confirm`, { method: "POST" });
+      const r = await fetch(`/api/invoice/${token}/confirm`, {
+        method: "POST",
+        headers: addCsrfHeader(),
+        credentials: "include",
+      });
       const d = await r.json();
       if (d.success) {
         setActionDone("confirmed");
@@ -84,7 +89,11 @@ export default function InvoiceView() {
     if (!confirm("هل أنت متأكد من رفض هذا الطلب؟")) return;
     setActionLoading(true);
     try {
-      const r = await fetch(`/api/invoice/${token}/reject`, { method: "POST" });
+      const r = await fetch(`/api/invoice/${token}/reject`, {
+        method: "POST",
+        headers: addCsrfHeader(),
+        credentials: "include",
+      });
       const d = await r.json();
       if (d.success) {
         setActionDone("rejected");

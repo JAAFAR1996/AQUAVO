@@ -225,11 +225,6 @@ export default function Profile() {
                                                 <Gift className="w-3 h-3" />
                                                 {loyaltyPoints} نقطة
                                             </Badge>
-                                            {user.isEarlyAccess && (
-                                                <Badge variant="outline" className="gap-1 border-amber-500 text-amber-600 dark:text-amber-400">
-                                                    ⭐ مستخدم مبكر
-                                                </Badge>
-                                            )}
                                         </div>
                                     </div>
 

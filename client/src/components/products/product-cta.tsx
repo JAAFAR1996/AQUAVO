@@ -1,4 +1,5 @@
 import { ShoppingCart, Loader2, Check, AlertTriangle, Package, Truck } from "lucide-react";
+import { DELIVERY_TEXT } from "@/lib/constants/shipping";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -153,8 +154,7 @@ export function ProductCTA({
             <div className="flex items-center gap-2 p-3 bg-muted/30 rounded-lg">
                 <Truck className="w-5 h-5 text-primary" />
                 <div className="text-sm">
-                    <span className="font-medium">توصيل سريع</span>
-                    <span className="text-muted-foreground"> - خلال 2-3 أيام عمل</span>
+                    <span className="font-medium">{DELIVERY_TEXT}</span>
                 </div>
             </div>
         </div>
