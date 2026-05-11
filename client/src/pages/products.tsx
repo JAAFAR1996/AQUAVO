@@ -167,6 +167,18 @@ export default function Products() {
       filtered = [...boosted, ...rest];
     }
 
+    // Always push products without a price ("قريباً") to the bottom
+    const hasPrice = (p: Product) => {
+      if ((p.price ?? 0) > 0) return true;
+      if (p.hasVariants && p.variants?.length) {
+        return p.variants.some(v => (v.price ?? 0) > 0);
+      }
+      return false;
+    };
+    const withPrice = filtered.filter(p => hasPrice(p));
+    const noPrice = filtered.filter(p => !hasPrice(p));
+    filtered = [...withPrice, ...noPrice];
+
     return filtered;
   }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
 
@@ -229,16 +241,16 @@ export default function Products() {
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="معدات أحواض أصلية لكل العراق"
-        description="منتجات YEE الأصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة."
+        description="منتجات أصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة لكل العراق."
       />
       <OrganizationSchema />
       <Navbar />
 
-      <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8" dir="rtl">
         {/* Header */}
         <div className="text-center space-y-2 sm:space-y-3 mb-4 sm:mb-8">
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground">معدات أحواض أصلية لكل العراق</h1>
-          <p className="text-sm sm:text-lg text-muted-foreground">منتجات YEE الأصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة.</p>
+          <p className="text-sm sm:text-lg text-muted-foreground">منتجات أصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة لكل العراق.</p>
           <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm text-muted-foreground mt-2">
             <span>أصلي 100%</span>
             <span>·</span>

@@ -280,7 +280,7 @@ export default function ProductDetails() {
       <BreadcrumbSchema items={breadcrumbItems} />
 
       <Navbar />
-      <main id="main-content" className="flex-1 py-8 md:py-12">
+      <main id="main-content" className="flex-1 py-8 md:py-12" dir="rtl">
         <div className="container mx-auto px-4">
           <>
             {/* Breadcrumbs */}
@@ -768,17 +768,17 @@ export default function ProductDetails() {
                       معلومات الشحن والإرجاع
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-4" dir="rtl">
                     <div>
-                      <h3 className="font-semibold mb-2">سياسة الشحن</h3>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <h3 className="font-semibold mb-2 text-right">سياسة الشحن</h3>
+                      <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
                         <li>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</li>
                         <li>يوصل خلال {DELIVERY_DAYS}</li>
                       </ul>
                     </div>
                     <div>
-                      <h3 className="font-semibold mb-2">سياسة الاستبدال</h3>
-                      <ul className="list-disc list-inside space-y-1 text-muted-foreground">
+                      <h3 className="font-semibold mb-2 text-right">سياسة الاستبدال</h3>
+                      <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
                         <li>نستبدل المنتجات التالفة أو الخاطئة فقط</li>
                         <li>أبلغنا خلال 48 ساعة من الاستلام مع صور للمنتج</li>
                         <li>لا إرجاع لتغيير الرأي</li>
@@ -797,8 +797,8 @@ export default function ProductDetails() {
                       إرشادات الاستخدام والأمان
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div dir="rtl">
+                  <CardContent className="space-y-4" dir="rtl">
+                    <div>
                       <h3 className="font-semibold mb-2 text-right">طريقة الاستخدام</h3>
                       {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
                         <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
@@ -819,7 +819,7 @@ export default function ProductDetails() {
                         </ul>
                       )}
                     </div>
-                    <div dir="rtl">
+                    <div>
                       <h3 className="font-semibold mb-2 text-right">تحذيرات الأمان</h3>
                       {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
                         <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">

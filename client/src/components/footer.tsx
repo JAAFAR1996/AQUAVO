@@ -67,7 +67,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-slate-900 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 text-slate-200 mt-auto relative overflow-hidden">
+    <footer className="bg-slate-900 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 text-slate-200 mt-auto relative overflow-hidden" dir="rtl">
       <div className="absolute inset-0 opacity-5">
         <div className="absolute top-10 left-10 w-32 h-32 bg-primary rounded-full blur-3xl" />
         <div className="absolute bottom-10 right-10 w-40 h-40 bg-blue-500 rounded-full blur-3xl" />

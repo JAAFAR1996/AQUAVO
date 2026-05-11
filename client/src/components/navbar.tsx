@@ -134,6 +134,7 @@ export default function Navbar() {
         className={navbarClasses}
         role="navigation"
         aria-label="التنقل الرئيسي"
+        dir="rtl"
       >
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="md:hidden">

@@ -170,7 +170,7 @@ export default function Home() {
 
       <Navbar />
 
-      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative">
+      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative" dir="rtl">
         {/* Bento Grid Layout - Gen Z Style */}
         <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
 
@@ -180,12 +180,13 @@ export default function Home() {
             {/* Hero poster as LCP element */}
             <img
               src={heroImage}
+              srcSet={`${heroImage.replace('.webp', '-640.webp')} 640w, ${heroImage} 1024w`}
               alt="حوض أسماك بتصميم إيواغومي احترافي"
               className="absolute inset-0 w-full h-full object-cover"
               fetchPriority="high"
               decoding="async"
-              width={1200}
-              height={800}
+              width={1024}
+              height={1024}
               sizes="(max-width: 1024px) 100vw, 66vw"
             />
             {/* Video loads lazily after poster is visible */}

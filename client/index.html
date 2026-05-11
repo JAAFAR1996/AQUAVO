@@ -9,6 +9,12 @@
   <meta name="keywords" content="__META_KEYWORDS__" />
   <link rel="canonical" href="__META_URL__" />
 
+  <!-- Preload LCP hero image for fastest possible render (responsive) -->
+  <link rel="preload" fetchpriority="high" as="image" type="image/webp"
+    href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
+    imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
+    imagesizes="(max-width: 1024px) 100vw, 66vw" />
+
   <!-- Open Graph / Facebook -->
   <meta property="og:title" content="__META_TITLE__" />
   <meta property="og:description" content="__META_DESCRIPTION__" />
@@ -166,7 +172,7 @@
 
 </head>
 
-<body>
+<body dir="rtl">
   <!-- Minimal loading shell — just dark bg + shimmer navbar, no content-specific images -->
   <div id="loading-shell" style="
     position:fixed;inset:0;z-index:9999;
@@ -206,7 +212,7 @@
       </div>
     </div>
   </div>
-  <div id="root"></div>
+  <div id="root" dir="rtl"></div>
   <script type="module" src="/src/main.tsx"></script>
 </body>
 

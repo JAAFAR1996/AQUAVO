@@ -275,6 +275,8 @@ html.dark {
 
   body {
     @apply font-sans antialiased bg-background text-foreground transition-colors duration-300;
+    direction: rtl;
+    text-align: right;
   }
 
   /* Gen Z Typography */
@@ -808,6 +810,13 @@ html, body {
 
 [dir="rtl"] {
   text-align: right;
+}
+
+/* RTL list markers — bullets on the right side */
+[dir="rtl"] ul,
+[dir="rtl"] ol {
+  padding-right: 1.5em;
+  padding-left: 0;
 }
 
 /* LTR exceptions for numbers, phone, code */
