@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from "react";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Crown, Sparkles } from "lucide-react";
+import { ArrowRight, Trophy, Crown, Sparkles, Package, Truck, Banknote, Headphones } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { useQuery } from "@tanstack/react-query";
@@ -194,8 +194,8 @@ export default function Home() {
 
             {/* Overlay Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-20 text-right">
-              <div className="inline-flex items-center gap-2 bg-primary px-4 py-1 rounded-full text-black font-extrabold mb-4 text-sm md:text-base animate-pulse-glow">
-                <span className="uppercase tracking-widest">جديد 2026</span>
+              <div className="inline-flex items-center gap-2 bg-primary px-4 py-1 rounded-full text-white font-extrabold mb-4 text-sm md:text-base animate-pulse-glow">
+                <span className="uppercase tracking-widest">أصلي 100%</span>
                 <Crown className="w-4 h-4" />
               </div>
               <h1 className="text-3xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
@@ -203,17 +203,17 @@ export default function Home() {
                 أصلية <span className="text-accent">لكل العراق</span>.
               </h1>
               <p className="text-white/80 text-base md:text-xl font-medium mb-2 drop-shadow">
-                الدفع عند الاستلام — توصيل لكل العراق خلال 24 ساعة — شحن مجاني فوق 100 ألف
+                الدفع عند الاستلام — توصيل لكل العراق خلال 24 ساعة — توصيل ثابت 5,000 د.ع
               </p>
 
               <div className="flex flex-wrap gap-4 justify-end mt-6">
                 <Button
                   size="lg"
-                  className="rounded-full bg-primary text-black hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(204,255,0,0.4)] transition-all hover:scale-105 active:scale-95"
+                  className="rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(25,155,184,0.4)] transition-all hover:scale-105 active:scale-95"
                   onClick={() => setLocation("/products")}
                   data-tour="hero-cta"
                 >
-                  تسوق الآن <ArrowRight className="mr-2 w-5 h-5 rotate-180" />
+                  تصفح المنتجات <ArrowRight className="mr-2 w-5 h-5 rotate-180" />
                 </Button>
                 {/* Play button removed */}
               </div>
@@ -264,7 +264,7 @@ export default function Home() {
                           )}
                         </>
                       ) : (
-                        <span className="font-bold text-muted-foreground text-xs">قريباً ✨</span>
+                        <span className="font-bold text-muted-foreground text-xs">قريباً</span>
                       )}
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export default function Home() {
                         )}
                       </>
                     ) : (
-                      <span className="text-2xl font-black text-muted-foreground">قريباً ✨</span>
+                      <span className="text-2xl font-black text-muted-foreground">قريباً</span>
                     )}
                   </div>
 
@@ -329,6 +329,26 @@ export default function Home() {
               So Product of Day is Col 1-4, CTA is Col 5-8.
               This perfectly fills the grid.
           */}
+        </div>
+
+        {/* Trust Signals Bar */}
+        <div className="mt-8 flex flex-wrap justify-center gap-6 md:gap-10 py-4 px-6 rounded-2xl bg-card/50 border border-border/50 backdrop-blur-sm">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Package className="w-4 h-4 text-primary" />
+            <span>منتجات أصلية</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Truck className="w-4 h-4 text-primary" />
+            <span>توصيل لكل العراق خلال 24 ساعة</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Banknote className="w-4 h-4 text-primary" />
+            <span>الدفع عند الاستلام</span>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Headphones className="w-4 h-4 text-primary" />
+            <span>دعم 24/7</span>
+          </div>
         </div>
 
         {/* AI Personalized Recommendations */}

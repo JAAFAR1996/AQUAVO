@@ -80,8 +80,8 @@ export default function Footer() {
               <Truck className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="font-medium text-white text-sm">توصيل سريع</p>
-              <p className="text-xs text-slate-400">لجميع أنحاء العراق</p>
+              <p className="font-medium text-white text-sm">توصيل خلال 24 ساعة</p>
+              <p className="text-xs text-slate-400">لكل العراق</p>
             </div>
           </div>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors">
@@ -334,7 +334,7 @@ export default function Footer() {
                 <div className="p-2 bg-slate-800 rounded-full">
                   <MapPin className="h-4 w-4 text-primary" />
                 </div>
-                <span>بغداد – العراق<br />شارع الكرادة الرئيسي</span>
+                <span>بغداد – العراق</span>
               </li>
             </ul>
 

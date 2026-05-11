@@ -90,6 +90,7 @@ export function NotificationBell() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const [popoverOpen, setPopoverOpen] = useState(false);
   const [modalNotif, setModalNotif] = useState<Notification | null>(null);
 
   // Fetch notifications
@@ -131,6 +132,7 @@ export function NotificationBell() {
       }
 
       const dest = resolveNotifUrl(notif);
+      setPopoverOpen(false);
       if (dest) {
         navigate(dest);
       } else {
@@ -145,7 +147,7 @@ export function NotificationBell() {
 
   return (
     <>
-      <Popover>
+      <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"

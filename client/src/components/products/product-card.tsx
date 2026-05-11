@@ -179,7 +179,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 </>
               ) : (
                 <span className="text-sm font-medium text-muted-foreground">
-                  قريباً جداً ✨
+                  قريباً
                 </span>
               )}
             </div>

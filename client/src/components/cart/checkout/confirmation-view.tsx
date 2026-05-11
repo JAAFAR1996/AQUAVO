@@ -79,14 +79,14 @@ export function ConfirmationView({
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">العنوان</span>
-                        <span className="font-medium text-left max-w-[60%]">
+                        <span className="font-medium text-right max-w-[60%]">
                             {GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label} - {customerInfo.address}
                         </span>
                     </div>
                     {customerInfo.notes && (
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">ملاحظات</span>
-                            <span className="font-medium text-left max-w-[60%]">{customerInfo.notes}</span>
+                            <span className="font-medium text-right max-w-[60%]">{customerInfo.notes}</span>
                         </div>
                     )}
                 </div>

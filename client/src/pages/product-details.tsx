@@ -12,7 +12,7 @@ import { formatNumber, formatPrice } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package, FileText, ExternalLink } from "lucide-react";
+import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package, FileText, ExternalLink, Clock } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -288,6 +288,12 @@ export default function ProductDetails() {
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
+                    <Link href="/">الرئيسية</Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
                     <Link href="/products">المنتجات</Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -382,7 +388,7 @@ export default function ProductDetails() {
                     </div>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <span className="text-2xl font-bold text-muted-foreground">قريباً جداً ✨</span>
+                      <span className="text-2xl font-bold text-muted-foreground">قريباً</span>
                     </div>
                   )}
                 </div>
@@ -421,22 +427,19 @@ export default function ProductDetails() {
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4">
                   {displayStock > 0 ? (
-                    displayStock <= (product.lowStockThreshold || 10) ? (
+                    displayStock <= 5 ? (
                       <>
                         <AlertTriangle className="w-4 h-4 text-amber-500" />
                         <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                          متبقي {displayStock} فقط - اطلب الآن!
+                          متبقي {displayStock} فقط
                         </span>
                       </>
                     ) : (
                       <>
                         <Check className="w-4 h-4 text-green-500" />
                         <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                          متوفر في المخزن
+                          متوفر حالياً — الكمية حسب المخزون
                         </span>
-                        <Badge variant="secondary" className="text-xs">
-                          {displayStock} قطعة
-                        </Badge>
                       </>
                     )
                   ) : (
@@ -447,6 +450,18 @@ export default function ProductDetails() {
                       </span>
                     </>
                   )}
+                </div>
+
+                {/* Shipping Info */}
+                <div className="flex flex-col gap-1 mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Truck className="w-4 h-4 text-primary" />
+                    <span className="font-medium">التوصيل: 5,000 د.ع لكل العراق</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" />
+                    <span>يوصل خلال 24 ساعة</span>
+                  </div>
                 </div>
 
                 {/* Description */}
@@ -525,7 +540,7 @@ export default function ProductDetails() {
                       }}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.624-1.467A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.57-5.913-1.652l-.424-.252-2.744.871.876-2.67-.276-.44A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>
-                      اسألنا على واتساب
+                      دعم AQUAVO متوفر 24/7
                     </a>
                   </div>
                 )}
@@ -534,7 +549,7 @@ export default function ProductDetails() {
                 {!hasPrice && (
                   <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled>
                     <Package className="w-5 h-5" />
-                    قريباً جداً
+                    قريباً
                   </Button>
                 )}
                 {hasPrice && displayStock <= 0 && (
@@ -553,8 +568,8 @@ export default function ProductDetails() {
                           <Truck className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">توصيل سريع</p>
-                          <p className="text-xs text-muted-foreground">2-3 أيام</p>
+                          <p className="text-sm font-medium">توصيل خلال 24 ساعة</p>
+                          <p className="text-xs text-muted-foreground">لكل العراق</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -645,8 +660,8 @@ export default function ProductDetails() {
                             <Truck className="w-5 h-5 text-amber-600" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-sm">شحن سريع</h3>
-                            <p className="text-sm text-muted-foreground">يصلك خلال 2-3 أيام عمل مع تغليف آمن</p>
+                            <h3 className="font-bold text-sm">توصيل خلال 24 ساعة</h3>
+                            <p className="text-sm text-muted-foreground">لكل العراق مع تغليف آمن</p>
                           </div>
                         </div>
                       </div>
@@ -757,8 +772,8 @@ export default function ProductDetails() {
                     <div>
                       <h3 className="font-semibold mb-2">سياسة الشحن</h3>
                       <ul className="list-disc list-inside space-y-1 text-muted-foreground">
-                        <li>توصيل لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع — خلال {DELIVERY_DAYS}</li>
-                        <li>شحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD.toLocaleString()} د.ع</li>
+                        <li>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</li>
+                        <li>يوصل خلال {DELIVERY_DAYS}</li>
                       </ul>
                     </div>
                     <div>
@@ -899,7 +914,7 @@ function RecommendationsSection({ productId, type, title }: { productId: string,
     <div className="mt-16">
       <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
         {title}
-        {type === 'trending' && <span className="text-sm font-normal text-red-500 bg-red-100 px-2 py-1 rounded-full animate-pulse">🔥 مباشر</span>}
+        {type === 'trending' && <span className="text-sm font-normal text-red-500 bg-red-100 px-2 py-1 rounded-full animate-pulse">مباشر</span>}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product: Product) => (

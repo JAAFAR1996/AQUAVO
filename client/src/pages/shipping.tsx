@@ -91,8 +91,8 @@ const features = [
     },
     {
         icon: Clock,
-        title: "توصيل سريع",
-        description: "نسعى لتوصيل طلبك بأسرع وقت ممكن",
+        title: "توصيل خلال 24 ساعة",
+        description: "نوصل طلبك لكل العراق خلال 24 ساعة",
     },
 ];
 
@@ -233,7 +233,7 @@ export default function Shipping() {
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>شحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD.toLocaleString()} د.ع</span>
+                                            <span>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</span>
                                         </li>
                                         <li className="flex items-start gap-2">
                                             <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />

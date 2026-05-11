@@ -106,7 +106,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             syncStorage.removeItem(CART_STORAGE_KEY);
 
             toast({
-              title: "تم دمج سلتك ✨",
+              title: "تم دمج سلتك",
               description: `تمت إضافة ${localItems.length} منتج من سلتك السابقة`,
             });
           }
@@ -186,8 +186,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const productPrice = Number(product.price);
     if (!productPrice || productPrice <= 0) {
       toast({
-        title: "قريباً! 🐠",
-        description: "هذا المنتج غير متوفر حالياً — سيتوفر قريباً إن شاء الله.",
+        title: "غير متوفر حالياً",
+        description: "هذا المنتج غير متوفر حالياً — سيتوفر قريباً.",
         variant: "destructive",
       });
       return;
@@ -246,8 +246,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error("Failed to add to server cart", err);
         toast({
-          title: "أوبس! 🦐",
-          description: "الجمبري أكل الكيبل! حاول مرة ثانية.",
+          title: "حدث خطأ",
+          description: "لم نتمكن من إضافة المنتج — حاول مرة ثانية.",
           variant: "destructive",
         });
       }
@@ -287,7 +287,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const purchasableProducts = products.filter(p => Number(p.price) > 0);
     if (purchasableProducts.length === 0) {
       toast({
-        title: "قريباً! 🐠",
+        title: "غير متوفرة حالياً",
         description: "هذه المنتجات غير متوفرة حالياً.",
         variant: "destructive",
       });

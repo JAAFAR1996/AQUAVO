@@ -168,8 +168,8 @@
 
 /* AQUAVO Default Theme = Dark (applied on :root AND .dark) */
 :root {
-  /* AQUAVO Dark Navy Background */
-  --background: 222 47% 6%;
+  /* AQUAVO Dark Navy Background — Deep Ocean #0a1628 */
+  --background: 216 60% 10%;
   --foreground: 210 20% 96%;
 
   /* Glassmorphism Variables */
@@ -800,9 +800,24 @@ body.is-touch-device {
   }
 }
 
-/* Improved RTL support for mobile */
+/* Global RTL support — Arabic content */
+html, body {
+  direction: rtl;
+  text-align: right;
+}
+
 [dir="rtl"] {
   text-align: right;
+}
+
+/* LTR exceptions for numbers, phone, code */
+[dir="ltr"],
+input[type="tel"],
+input[type="number"],
+input[type="email"],
+.font-mono {
+  direction: ltr;
+  text-align: left;
 }
 
 /* High contrast mode support */

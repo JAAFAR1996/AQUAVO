@@ -324,7 +324,6 @@ export function LocalBusinessSchema() {
         priceRange: "$$",
         address: {
             "@type": "PostalAddress",
-            streetAddress: "شارع المنصور",
             addressLocality: "بغداد",
             addressCountry: "IQ",
         },

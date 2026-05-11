@@ -322,7 +322,7 @@ export class OrderStorage {
 
         // For variant products, use variant stock if variantId provided
         const effectiveStock = product.stock || 0;
-        if (effectiveStock < quantity) throw new Error("Insufficient stock");
+        if (effectiveStock < quantity) throw new Error("وصلت للكمية المتوفرة حالياً من هذا المنتج");
 
         const actualProductId = product.id;
 
@@ -335,7 +335,7 @@ export class OrderStorage {
 
         if (existing) {
             if (effectiveStock < (existing.quantity || 0) + quantity) {
-                throw new Error("Insufficient stock for requested total quantity");
+                throw new Error("وصلت للكمية المتوفرة حالياً من هذا المنتج");
             }
 
             const [updated] = await db.update(cartItems)

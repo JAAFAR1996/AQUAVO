@@ -228,8 +228,8 @@ export default function Products() {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title="المنتجات"
-        description="تسوق معدات ومستلزمات أحواض أصلية في العراق."
+        title="معدات أحواض أصلية لكل العراق"
+        description="منتجات YEE الأصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة."
       />
       <OrganizationSchema />
       <Navbar />
@@ -237,8 +237,15 @@ export default function Products() {
       <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8">
         {/* Header */}
         <div className="text-center space-y-2 sm:space-y-3 mb-4 sm:mb-8">
-          <h1 className="text-2xl sm:text-4xl font-bold text-foreground">جميع المنتجات</h1>
-          <p className="text-sm sm:text-lg text-muted-foreground">تصفح مجموعتنا الكاملة من المنتجات عالية الجودة</p>
+          <h1 className="text-2xl sm:text-4xl font-bold text-foreground">معدات أحواض أصلية لكل العراق</h1>
+          <p className="text-sm sm:text-lg text-muted-foreground">منتجات YEE الأصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة.</p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm text-muted-foreground mt-2">
+            <span>أصلي 100%</span>
+            <span>·</span>
+            <span>توصيل 24 ساعة</span>
+            <span>·</span>
+            <span>دعم 24/7</span>
+          </div>
         </div>
 
         {/* Airbnb-style Category Scroll Bar */}
@@ -278,7 +285,7 @@ export default function Products() {
                   <SelectValue placeholder="ترتيب حسب" />
                 </SelectTrigger>
                 <SelectContent>
-                  {user && <SelectItem value="smart">✨ مخصص لك</SelectItem>}
+                  {user && <SelectItem value="smart">مخصص لك</SelectItem>}
                   <SelectItem value="default">الافتراضي</SelectItem>
                   <SelectItem value="price-asc">السعر: الأقل</SelectItem>
                   <SelectItem value="price-desc">السعر: الأعلى</SelectItem>
@@ -351,7 +358,7 @@ export default function Products() {
                 {!hasMore && finalProducts.length > 24 && (
                   <div className="text-center mt-8 p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/20">
                     <p className="text-lg font-semibold text-primary">
-                      ✨ شاهدت جميع المنتجات المتاحة
+                      شاهدت جميع المنتجات المتاحة
                     </p>
                     <p className="text-muted-foreground mt-2">
                       تم عرض {finalProducts.length} منتج

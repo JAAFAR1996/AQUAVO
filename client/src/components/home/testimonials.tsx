@@ -19,7 +19,7 @@ export function Testimonials() {
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary">
               <Truck className="w-8 h-8" />
             </div>
-            <h3 className="text-lg font-bold">توصيل سريع وموثوق</h3>
+            <h3 className="text-lg font-bold">توصيل خلال 24 ساعة</h3>
             <p className="text-muted-foreground text-sm">شحن آمن لجميع معدات وأحواض الأسماك القابلة للكسر لكافة المحافظات.</p>
           </div>
 

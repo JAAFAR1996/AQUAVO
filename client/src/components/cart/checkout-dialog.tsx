@@ -106,8 +106,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
 
   const getDeliveryEstimate = () => {
-    if (customerInfo.governorate === "baghdad") return "خلال 1 - 2 يوم عمل";
-    return "خلال 2 - 4 أيام عمل";
+    return "توصيل خلال 24 ساعة";
   };
 
   const validatePhone = (phone: string): boolean => {
@@ -294,7 +293,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
       } else if (coupon.type === "free_shipping") {
         setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق شحن مجاني 🚚");
+        setCouponSuccess("تم تطبيق توصيل مجاني");
       }
     } catch (error) {
       console.error("Coupon error:", error);

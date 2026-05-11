@@ -264,7 +264,7 @@ export default function CheckoutPage() {
         setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
       } else if (coupon.type === "free_shipping") {
         setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق شحن مجاني");
+        setCouponSuccess("تم تطبيق توصيل مجاني");
       }
     } catch (error) {
       console.error("Coupon error:", error);

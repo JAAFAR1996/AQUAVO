@@ -1,7 +1,6 @@
 import { Separator } from "@/components/ui/separator";
 import { formatIQD } from "@/lib/utils";
 import { Truck, Info } from "lucide-react";
-import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 interface OrderSummaryProps {
     cartTotal: number;
@@ -38,14 +37,10 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                     <span>{formatIQD(cartTotal)}</span>
                 </div>
 
-                {/* رسوم التوصيل */}
+                {/* أجور التوصيل */}
                 <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">التوصيل</span>
-                    {isFreeShipping ? (
-                        <span className="text-green-600 dark:text-green-400 font-medium">مجاني</span>
-                    ) : (
-                        <span>{formatIQD(deliveryFee)}</span>
-                    )}
+                    <span className="text-muted-foreground">أجور التوصيل</span>
+                    <span>{formatIQD(deliveryFee)}</span>
                 </div>
 
                 {/* خصم الكوبون */}
@@ -94,14 +89,14 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
             {/* رسالة تشجيعية لغير المسجلين */}
             {!isLoggedIn && roundingDiff > 0 && (
                 <p className="text-xs text-primary/80 text-center">
-                    💡 سجّل بالموقع ويرجعلك {formatIQD(roundingDiff)} كرصيد باقي!
+                    سجّل بالموقع ويرجعلك {formatIQD(roundingDiff)} كرصيد باقي
                 </p>
             )}
 
             {/* نقاط مكتسبة — للمسجلين فقط */}
             {isLoggedIn && cashbackEarned && cashbackEarned > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
-                    ✨ ستحصل على +{cashbackEarned} نقطة باقي تقريب
+                    ستحصل على +{cashbackEarned} نقطة باقي تقريب
                 </p>
             )}
 
@@ -111,15 +106,13 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                     <Truck className="w-3.5 h-3.5" />
                     {getDeliveryEstimate()}
                 </span>
-                <span>💰 الدفع عند الاستلام</span>
+                <span>الدفع عند الاستلام</span>
             </div>
 
-            {/* تنبيه الشحن المجاني */}
-            {!isFreeShipping && (
-                <p className="text-xs text-muted-foreground text-center">
-                    باقي {formatIQD(FREE_SHIPPING_THRESHOLD - cartTotal)} للتوصيل المجاني
-                </p>
-            )}
+            {/* رسالة شفافية */}
+            <p className="text-xs text-muted-foreground text-center">
+                لا توجد تكاليف مخفية
+            </p>
         </div>
     );
 }
