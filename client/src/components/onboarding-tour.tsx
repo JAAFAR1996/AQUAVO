@@ -222,15 +222,22 @@ export function OnboardingTour() {
 
         setSteps(pageSteps);
 
-        // Check if THIS specific page's tour has been seen
+        // Global dismiss: once any tour is finished/skipped, never show again
+        const globalDismissed = localStorage.getItem('aquavo_tours_dismissed');
+        if (globalDismissed) {
+            setRun(false);
+            return;
+        }
+
+        // Only auto-show the tour on the home page (first visit)
+        // Other pages: user can trigger manually if needed
         const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
         const hasSeen = localStorage.getItem(seenKey);
 
-        if (!hasSeen && pageSteps.length > 0) {
-            // Small delay to ensure DOM is ready
+        if (!hasSeen && pageSteps.length > 0 && path === '/') {
             const timer = setTimeout(() => {
                 setRun(true);
-            }, 1500); // Increased delay for stability
+            }, 2000);
             return () => clearTimeout(timer);
         } else {
             setRun(false);
@@ -248,6 +255,7 @@ export function OnboardingTour() {
 
         if (difficultStatuses.includes(status)) {
             localStorage.setItem(seenKey, 'true');
+            localStorage.setItem('aquavo_tours_dismissed', 'true');
             setRun(false);
         }
     };

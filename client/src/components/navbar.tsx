@@ -262,22 +262,28 @@ export default function Navbar() {
               </Link>
             )}
 
+            {/* Mobile: icon only */}
             <Button
               variant="ghost"
               size="icon"
-              className="relative group"
-              aria-label="البحث (Ctrl+K)"
+              className="md:hidden relative"
+              aria-label="البحث"
               onClick={() => setIsSearchOpen(true)}
               data-tour="navbar-search"
             >
               <Search className="h-5 w-5" aria-hidden="true" />
-              <Badge
-                variant="outline"
-                className="hidden sm:block absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] px-1 py-0 pointer-events-none whitespace-nowrap"
-              >
-                Ctrl+K
-              </Badge>
             </Button>
+            {/* Desktop: visible search bar placeholder */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border/60 bg-muted/40 hover:bg-muted/70 transition-colors text-sm text-muted-foreground min-w-[180px] lg:min-w-[220px]"
+              data-tour="navbar-search"
+              aria-label="البحث (Ctrl+K)"
+            >
+              <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="truncate">ابحث عن منتج...</span>
+              <kbd className="mr-auto text-[10px] border rounded px-1 py-0.5 bg-background text-muted-foreground/60">⌘K</kbd>
+            </button>
 
             <Link href="/wishlist">
               <Button
@@ -357,7 +363,7 @@ export default function Navbar() {
                                   <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-6 w-6 rounded-full text-xs"
+                                    className="h-8 w-8 rounded-full text-sm"
                                     onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                     aria-label={`تقليل كمية ${item.name}`}
                                   >
@@ -367,7 +373,7 @@ export default function Navbar() {
                                   <Button
                                     variant="outline"
                                     size="icon"
-                                    className="h-6 w-6 rounded-full text-xs"
+                                    className="h-8 w-8 rounded-full text-sm"
                                     onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                     aria-label={`زيادة كمية ${item.name}`}
                                   >

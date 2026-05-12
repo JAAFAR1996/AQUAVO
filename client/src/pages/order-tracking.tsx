@@ -96,7 +96,7 @@ export default function OrderTracking() {
 
       const mappedOrder: OrderDetails = {
         orderNumber: data.orderNumber || data.id,
-        orderDate: new Date(data.createdAt).toLocaleDateString("en-GB"),
+        orderDate: new Date(data.createdAt).toLocaleDateString("ar-IQ"),
         estimatedDelivery: data.estimatedDelivery
           ? new Date(data.estimatedDelivery).toLocaleDateString("ar-IQ", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
           : "قريباً",

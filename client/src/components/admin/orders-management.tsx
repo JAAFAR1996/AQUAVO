@@ -423,10 +423,10 @@ export function OrdersManagement() {
               <div className="border rounded-lg p-4 space-y-3 bg-muted/30">
                 <h3 className="font-bold text-sm flex items-center gap-2 border-b pb-2 mb-2">💰 تفاصيل الحركة المالية</h3>
 
-                {/* مجموع المنتجات */}
+                {/* مجموع المنتجات (total already includes delivery - discount, so derive subtotal) */}
                 <div className="flex justify-between text-sm">
                   <span>مجموع المنتجات:</span>
-                  <span className="font-semibold">{Number(selectedOrder.total ?? 0).toLocaleString()} د.ع</span>
+                  <span className="font-semibold">{(Number(selectedOrder.total ?? 0) - Number(selectedOrder.shippingCost ?? 0) + Number(selectedOrder.discountTotal ?? 0)).toLocaleString()} د.ع</span>
                 </div>
 
                 {/* تكلفة التوصيل */}

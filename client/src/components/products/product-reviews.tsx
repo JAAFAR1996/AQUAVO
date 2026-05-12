@@ -281,7 +281,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
+    return new Date(dateString).toLocaleDateString("ar-IQ", {
       year: "numeric",
       month: "long",
       day: "numeric",

@@ -330,7 +330,7 @@ function Router() {
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Wishlist /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/search">
-        {() => (<Suspense fallback={<PageLoader />}><SearchResults /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><SearchResults /></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded compare page */}
@@ -400,7 +400,7 @@ function Router() {
       </Route>
 
       <Route path="/sustainability">
-        {() => (<Suspense fallback={<PageLoader />}><Sustainability /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Sustainability /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/about">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><About /></Suspense></ErrorBoundary>)}
@@ -409,13 +409,13 @@ function Router() {
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><WhyAquavo /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/return-policy">
-        {() => (<Suspense fallback={<PageLoader />}><ReturnPolicy /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><ReturnPolicy /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/privacy-policy">
-        {() => (<Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/terms">
-        {() => (<Suspense fallback={<PageLoader />}><Terms /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Terms /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/verify-certificate/yee">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense></ErrorBoundary>)}
@@ -445,7 +445,7 @@ function Router() {
       </Route>
 
       <Route path="/order-tracking">
-        {() => (<Suspense fallback={<PageLoader />}><OrderTracking /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><OrderTracking /></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded blog */}
@@ -487,10 +487,10 @@ function Router() {
       <Route path="/returns">{() => <Redirect to="/return-policy" />}</Route>
 
       <Route path="/shipping">
-        {() => (<Suspense fallback={<PageLoader />}><Shipping /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Shipping /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/login">
-        {() => (<Suspense fallback={<PageLoader />}><Login /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Login /></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded register */}

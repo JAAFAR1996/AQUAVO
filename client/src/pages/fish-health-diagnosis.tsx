@@ -380,8 +380,11 @@ export default function FishHealthDiagnosis() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('يجب تسجيل الدخول أولاً لاستخدام التشخيص الذكي');
+        }
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || 'فشل تحليل الصورة');
+        throw new Error(errorData?.error || errorData?.message || 'فشل تحليل الصورة. حاول مرة أخرى.');
       }
 
       const result = await response.json();
@@ -424,6 +427,8 @@ export default function FishHealthDiagnosis() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'حدث خطأ أثناء التحليل';
       setError(message);
+      // Still wait for steps to finish to avoid state leaks
+      await stepsPromise.catch(() => {});
     } finally {
       setIsAnalyzing(false);
       setCurrentStep(0);

@@ -46,10 +46,11 @@ export function useJourney() {
     });
 
     useEffect(() => {
-        if (savedPlan) {
+        // Only restore saved plan if there is no active local session
+        // (i.e., user hasn't started making selections in this browser)
+        const hasLocalSession = !!localStorage.getItem("wizardStep");
+        if (savedPlan && !hasLocalSession) {
             setWizardData(savedPlan);
-            // Optional: Restore step if saved in plan, for now we stick to local storage step
-            // or maybe we want to ask user? For simplicity we keep current behavior.
         }
     }, [savedPlan]);
 

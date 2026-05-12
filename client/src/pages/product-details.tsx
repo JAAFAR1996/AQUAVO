@@ -618,7 +618,7 @@ export default function ProductDetails() {
               <TabsList className="w-full justify-start gap-2 flex-wrap h-auto p-2">
                 <TabsTrigger value="benefits" className="rounded-full">لماذا هذا المنتج؟</TabsTrigger>
                 <TabsTrigger value="specs" className="rounded-full">المواصفات الفنية</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-full">التقييمات ({product.reviewCount})</TabsTrigger>
+                <TabsTrigger value="reviews" className="rounded-full">التقييمات ({product.reviewCount ?? 0})</TabsTrigger>
                 <TabsTrigger value="shipping" className="rounded-full">الشحن والإرجاع</TabsTrigger>
                 <TabsTrigger value="usage" className="rounded-full">إرشادات الاستخدام</TabsTrigger>
               </TabsList>

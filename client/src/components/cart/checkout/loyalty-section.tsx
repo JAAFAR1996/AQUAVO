@@ -65,6 +65,16 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
         } catch (error) {
             console.error("Preview redemption failed:", error);
             setPreview(null);
+            setUseCashback(false);
+            onPointsChange({
+                usePoints: false,
+                useCashback: false,
+                pointsToUse: 0,
+                cashbackToUse: 0,
+                pointsDiscount: 0,
+                roundedAmount: cartTotal,
+                cashbackEarned: 0,
+            });
         } finally {
             setIsLoadingPreview(false);
         }

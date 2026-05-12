@@ -285,7 +285,7 @@ export function ProfileReferral() {
                                             <p className="text-sm font-medium">صديق جديد</p>
                                             <p className="text-xs text-muted-foreground">
                                                 {referral.signupDate
-                                                    ? new Date(referral.signupDate).toLocaleDateString("en-GB")
+                                                    ? new Date(referral.signupDate).toLocaleDateString("ar-IQ")
                                                     : "قريباً"}
                                             </p>
                                         </div>

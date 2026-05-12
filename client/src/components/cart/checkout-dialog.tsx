@@ -69,31 +69,31 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   // TikTok Pixel: InitiateCheckout when dialog opens
   useEffect(() => {
     if (open && cartItems.length > 0) {
-      ttqInitiateCheckout(
-        cartItems.map(item => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        cartTotal
-      );
-      // Meta Pixel: InitiateCheckout
-      metaTrackInitiateCheckout({
-        totalIQD: cartTotal,
-        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-        productIds: cartItems.map(i => i.productId),
-      });
-      // GA4: begin_checkout event
-      trackBeginCheckout(
-        cartItems.map(item => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        cartTotal
-      );
+      try {
+        ttqInitiateCheckout(
+          cartItems.map(item => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          cartTotal
+        );
+        metaTrackInitiateCheckout({
+          totalIQD: cartTotal,
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          productIds: cartItems.map(i => i.productId),
+        });
+        trackBeginCheckout(
+          cartItems.map(item => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          cartTotal
+        );
+      } catch (_) { /* pixel error — never block checkout */ }
     }
   }, [open]);
 
@@ -192,6 +192,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
       const orderData = await response.json();
 
+      // Complete order first — never let pixel errors block this
       onCheckoutComplete({
         customerInfo,
         items: cartItems,
@@ -200,40 +201,44 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         orderNumber: orderData.id
       });
 
-      // TikTok Pixel: PlaceAnOrder on successful order
-      ttqPlaceAnOrder(
-        cartItems.map(item => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-        cartTotal
-      );
-      // Meta Pixel: Purchase (most critical event for ROAS)
-      metaTrackPurchase({
-        orderId: orderData.id || 'unknown',
-        totalIQD: cartTotal,
-        productIds: cartItems.map(i => i.productId),
-        numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
-        phone: customerInfo.phone,
-      });
-      // GA4: purchase event
-      trackPurchase({
-        orderId: orderData.id || 'unknown',
-        total: cartTotal,
-        items: cartItems.map(item => ({
-          id: item.productId,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-        })),
-      });
-
       setStep('info');
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });
       setAgreed(false);
       onOpenChange(false);
+
+      // Fire-and-forget pixel tracking — errors must never block checkout
+      try {
+        ttqPlaceAnOrder(
+          cartItems.map(item => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          cartTotal
+        );
+      } catch (_) { /* pixel error — ignore */ }
+      try {
+        metaTrackPurchase({
+          orderId: orderData.id || 'unknown',
+          totalIQD: cartTotal,
+          productIds: cartItems.map(i => i.productId),
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          phone: customerInfo.phone,
+        });
+      } catch (_) { /* pixel error — ignore */ }
+      try {
+        trackPurchase({
+          orderId: orderData.id || 'unknown',
+          total: cartTotal,
+          items: cartItems.map(item => ({
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+        });
+      } catch (_) { /* pixel error — ignore */ }
     } catch (error: unknown) {
       console.error("Checkout error:", error);
       const message = error instanceof Error ? error.message : "حدث خطأ";
@@ -353,7 +358,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               isLoggedIn={!!user}
             />
 
-            <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
+            <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg" disabled={isSubmitting}>
               متابعة للتأكيد
             </Button>
           </div>

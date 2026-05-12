@@ -186,7 +186,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
             <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm text-amber-500 justify-end" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
               <span aria-hidden="true">★</span>
               <span className="font-medium text-foreground">{product.rating}</span>
-              <span className="text-muted-foreground">({product.reviewCount})</span>
+              <span className="text-muted-foreground">({product.reviewCount ?? 0})</span>
             </div>
           </CardContent>
 

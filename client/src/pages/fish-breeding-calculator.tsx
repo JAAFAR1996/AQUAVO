@@ -657,7 +657,7 @@ export default function FishBreedingCalculator() {
                         <div className="space-y-2">
                           <Label>البريد الإلكتروني</Label>
                           <Input
-                            placeholder="name@example.com"
+                            placeholder="البريد الإلكتروني"
                             type="email"
                             value={emailAddress}
                             onChange={(e) => setEmailAddress(e.target.value)}
