@@ -25,9 +25,14 @@ import {
     Activity,
     Clock,
     Globe,
-    Search
+    Search,
+    Lock,
+    Eye,
+    EyeOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Label } from "@/components/ui/label";
+import { addCsrfHeader } from "@/lib/csrf";
 
 interface SecurityStats {
     totalLoginAttempts: number;
@@ -62,6 +67,9 @@ export default function SecurityManagement() {
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [searchEmail, setSearchEmail] = useState("");
+    const [passwordForm, setPasswordForm] = useState({ current: "", newPass: "", confirm: "" });
+    const [showPasswords, setShowPasswords] = useState(false);
+    const [changingPassword, setChangingPassword] = useState(false);
 
     // Fetch security stats
     const { data: stats, isLoading: statsLoading } = useQuery<SecurityStats>({
@@ -166,6 +174,91 @@ export default function SecurityManagement() {
                     نسخة احتياطية
                 </Button>
             </div>
+
+            {/* Change Password Section */}
+            <Card className="border-red-200 dark:border-red-900/50">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                        <Lock className="w-5 h-5 text-red-500" />
+                        تغيير كلمة مرور الأدمن
+                    </CardTitle>
+                    <CardDescription>يُنصح بتغيير كلمة المرور بشكل دوري واستخدام كلمة قوية</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <form onSubmit={async (e) => {
+                        e.preventDefault();
+                        if (passwordForm.newPass !== passwordForm.confirm) {
+                            toast({ title: "كلمتا المرور غير متطابقتين", variant: "destructive" });
+                            return;
+                        }
+                        if (passwordForm.newPass.length < 8) {
+                            toast({ title: "كلمة المرور يجب أن تكون 8 أحرف على الأقل", variant: "destructive" });
+                            return;
+                        }
+                        setChangingPassword(true);
+                        try {
+                            const res = await fetch("/api/users/user/change-password", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", ...addCsrfHeader() },
+                                credentials: "include",
+                                body: JSON.stringify({ currentPassword: passwordForm.current, newPassword: passwordForm.newPass }),
+                            });
+                            if (!res.ok) {
+                                const err = await res.json().catch(() => null);
+                                throw new Error(err?.message || "فشل تغيير كلمة المرور");
+                            }
+                            toast({ title: "✅ تم تغيير كلمة المرور بنجاح" });
+                            setPasswordForm({ current: "", newPass: "", confirm: "" });
+                        } catch (err: any) {
+                            toast({ title: err.message || "فشل تغيير كلمة المرور", variant: "destructive" });
+                        } finally {
+                            setChangingPassword(false);
+                        }
+                    }} className="grid gap-4 max-w-md">
+                        <div className="space-y-2">
+                            <Label>كلمة المرور الحالية</Label>
+                            <div className="relative">
+                                <Input
+                                    type={showPasswords ? "text" : "password"}
+                                    value={passwordForm.current}
+                                    onChange={(e) => setPasswordForm(p => ({ ...p, current: e.target.value }))}
+                                    required
+                                />
+                                <button type="button" className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setShowPasswords(!showPasswords)}>
+                                    {showPasswords ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>كلمة المرور الجديدة</Label>
+                            <Input
+                                type={showPasswords ? "text" : "password"}
+                                value={passwordForm.newPass}
+                                onChange={(e) => setPasswordForm(p => ({ ...p, newPass: e.target.value }))}
+                                required
+                                minLength={8}
+                            />
+                            {passwordForm.newPass && (
+                                <p className={`text-xs ${passwordForm.newPass.length >= 8 && /[A-Z]/.test(passwordForm.newPass) && /[0-9]/.test(passwordForm.newPass) ? "text-green-500" : "text-amber-500"}`}>
+                                    {passwordForm.newPass.length >= 8 && /[A-Z]/.test(passwordForm.newPass) && /[0-9]/.test(passwordForm.newPass) ? "✓ كلمة مرور قوية" : "⚠ يُفضل: 8+ أحرف، حرف كبير، رقم"}
+                                </p>
+                            )}
+                        </div>
+                        <div className="space-y-2">
+                            <Label>تأكيد كلمة المرور الجديدة</Label>
+                            <Input
+                                type={showPasswords ? "text" : "password"}
+                                value={passwordForm.confirm}
+                                onChange={(e) => setPasswordForm(p => ({ ...p, confirm: e.target.value }))}
+                                required
+                            />
+                        </div>
+                        <Button type="submit" disabled={changingPassword} className="w-fit">
+                            {changingPassword ? "جاري التغيير..." : "تغيير كلمة المرور"}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
