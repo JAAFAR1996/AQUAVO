@@ -43,9 +43,6 @@ import SettingsManagement from "@/components/admin/settings-management";
 import { AnimatedCounter } from "@/components/ui/animated-counter";
 import { CouponsManagement } from "@/components/admin/coupons-management";
 import { AuditLogsTab } from "@/components/admin/audit-logs-tab";
-import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
-import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
-import { AiContentHub } from "@/components/admin/ai-content-hub";
 import { NotificationLogPanel } from "@/components/admin/notification-log-panel";
 
 import SecurityManagement from "@/components/admin/security-management";
@@ -54,9 +51,6 @@ import { PriceSuggestionsPanel } from "@/components/admin/price-suggestions-pane
 import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
-import { WaveProphetPanel } from "@/components/admin/wave-prophet-panel";
-import { CatalogLivePanel } from "@/components/admin/catalog-live-panel";
-import { MiroFishPanel } from "@/components/admin/mirofish-panel";
 import InvoicesList from "@/components/admin/invoices-list";
 import {
   Plus,
@@ -519,7 +513,11 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteProduct = async (productId: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا المنتج؟ هذا الإجراء لا يمكن التراجع عنه.")) return;
+    const confirmation = window.prompt("⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nلحذف المنتج، اكتب كلمة «حذف» في الحقل أدناه:");
+    if (confirmation !== "حذف") {
+      if (confirmation !== null) toast({ title: "تم الإلغاء", description: "لم تتم كتابة كلمة «حذف» بشكل صحيح" });
+      return;
+    }
 
     try {
       const response = await fetch(`/api/admin/products/${productId}`, {
@@ -740,15 +738,9 @@ export default function AdminDashboard() {
 
       <Tabs defaultValue="products" className="w-full">
 
-        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-12 h-auto p-1">
+        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-13 h-auto p-1 gap-1">
           <TabsTrigger value="products">المنتجات</TabsTrigger>
           <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
-          <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
-          <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
-          <TabsTrigger value="ai-content">✍️ محتوى AI</TabsTrigger>
-          <TabsTrigger value="wave-prophet">🌊 نبي الموجة</TabsTrigger>
-          <TabsTrigger value="catalog-live">🛍️ الكتالوج الحي</TabsTrigger>
-          <TabsTrigger value="mirofish">🐠 MiroFish</TabsTrigger>
           <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
@@ -778,35 +770,6 @@ export default function AdminDashboard() {
           <AIInsightsPanel />
         </TabsContent>
 
-        {/* AI Monitor Tab */}
-        <TabsContent value="ai-monitor" className="space-y-4">
-          <AiMonitorPanel />
-        </TabsContent>
-
-        {/* AI Learnings Tab */}
-        <TabsContent value="ai-learnings" className="space-y-4">
-          <AiLearningsPanel />
-        </TabsContent>
-
-        {/* AI Content Hub Tab */}
-        <TabsContent value="ai-content" className="space-y-4">
-          <AiContentHub />
-        </TabsContent>
-
-        {/* Wave Prophet Tab */}
-        <TabsContent value="wave-prophet" className="space-y-4">
-          <WaveProphetPanel />
-        </TabsContent>
-
-        {/* Catalog Live Tab */}
-        <TabsContent value="catalog-live" className="space-y-4">
-          <CatalogLivePanel />
-        </TabsContent>
-
-        {/* MiroFish Deep Simulation Tab */}
-        <TabsContent value="mirofish" className="space-y-4">
-          <MiroFishPanel />
-        </TabsContent>
 
         {/* Notification Log Tab */}
         <TabsContent value="notifications" className="space-y-4">

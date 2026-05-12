@@ -402,11 +402,11 @@ export default function Navbar() {
                           <span className="text-xl font-bold text-primary">{formatIQD(totalPrice)}</span>
                         </div>
                         <Button className="w-full" size="lg" onClick={() => {
+                          setIsCartOpen(false);
                           if (isMobile) {
-                            setIsCartOpen(false);
                             window.location.href = "/checkout";
                           } else {
-                            setIsCheckoutOpen(true);
+                            setTimeout(() => setIsCheckoutOpen(true), 150);
                           }
                         }}>
                           إتمام الشراء
@@ -427,7 +427,14 @@ export default function Navbar() {
         )}
 
         {isCheckoutOpen && (
-          <Suspense fallback={null}>
+          <Suspense fallback={
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+              <div className="bg-background rounded-lg p-8 text-center space-y-3 shadow-xl">
+                <div className="animate-spin mx-auto w-8 h-8 border-4 border-primary border-t-transparent rounded-full" />
+                <p className="text-sm font-medium">جاري تحميل صفحة الدفع...</p>
+              </div>
+            </div>
+          }>
             <CheckoutDialog
               open={isCheckoutOpen}
               onOpenChange={setIsCheckoutOpen}

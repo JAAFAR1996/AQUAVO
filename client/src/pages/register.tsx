@@ -333,13 +333,9 @@ export default function Register() {
                                         />
                                         <Label htmlFor="terms" className="text-sm font-normal cursor-pointer leading-relaxed">
                                             أوافق على{" "}
-                                            <Link href="/terms">
-                                                <span className="text-primary hover:underline">الشروط والأحكام</span>
-                                            </Link>{" "}
+                                            <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>الشروط والأحكام</a>{" "}
                                             و{" "}
-                                            <Link href="/privacy-policy">
-                                                <span className="text-primary hover:underline">سياسة الخصوصية</span>
-                                            </Link>
+                                            <a href="/privacy-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline" onClick={(e) => e.stopPropagation()}>سياسة الخصوصية</a>
                                         </Label>
                                     </div>
 

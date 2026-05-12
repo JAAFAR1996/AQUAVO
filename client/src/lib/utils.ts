@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatIQD(amount: number): string {
-  return new Intl.NumberFormat('ar-IQ', {
+  return new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
