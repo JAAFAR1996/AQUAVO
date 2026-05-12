@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User } from "@shared/schema";
-import { Loader2, User as UserIcon, Mail, Calendar, Search, ChevronLeft, ChevronRight, ShieldCheck, Users } from "lucide-react";
+import { Loader2, User as UserIcon, Mail, Phone, Calendar, Search, ChevronLeft, ChevronRight, ShieldCheck, Users } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,7 @@ export default function CustomersManagement() {
             });
             if (debouncedSearch) params.append("search", debouncedSearch);
 
-            const res = await fetch(`/api/admin/users?${params}`);
+            const res = await fetch(`/api/admin/users?${params}`, { credentials: "include" });
             if (!res.ok) throw new Error("Failed to fetch users");
             return res.json();
         }
@@ -41,7 +41,7 @@ export default function CustomersManagement() {
     const { data: stats } = useQuery<{ total: number, admins: number, customers: number }>({
         queryKey: ["/api/admin/users/stats"],
         queryFn: async () => {
-            const res = await fetch("/api/admin/users/stats");
+            const res = await fetch("/api/admin/users/stats", { credentials: "include" });
             if (!res.ok) throw new Error("Failed to fetch user stats");
             return res.json();
         }
@@ -119,6 +119,7 @@ export default function CustomersManagement() {
                                 <TableRow>
                                     <TableHead className="text-right">المستخدم</TableHead>
                                     <TableHead className="text-right">البريد الإلكتروني</TableHead>
+                                    <TableHead className="text-right">الهاتف</TableHead>
                                     <TableHead className="text-center">تاريخ التسجيل</TableHead>
                                     <TableHead className="text-center">الدور</TableHead>
                                 </TableRow>
@@ -142,6 +143,12 @@ export default function CustomersManagement() {
                                                 <span className="text-sm">{user.email}</span>
                                             </div>
                                         </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Phone className="h-4 w-4 text-muted-foreground" />
+                                                <span dir="ltr">{(user as any).phone || "—"}</span>
+                                            </div>
+                                        </TableCell>
                                         <TableCell className="text-center">
                                             <div className="flex items-center justify-center gap-1 text-muted-foreground text-sm">
                                                 <Calendar className="h-4 w-4" />
@@ -157,7 +164,7 @@ export default function CustomersManagement() {
                                 ))}
                                 {users.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                                             {search ? "لا توجد نتائج للبحث" : "لا يوجد مستخدمين"}
                                         </TableCell>
                                     </TableRow>
