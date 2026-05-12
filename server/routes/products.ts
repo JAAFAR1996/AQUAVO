@@ -1,7 +1,7 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
-import { requireAuth, getSession } from "../middleware/auth.js";
+import { requireAuth, requireAdmin, getSession } from "../middleware/auth.js";
 import { recommendationEngine } from "../services/recommendation-engine.js";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
@@ -281,7 +281,7 @@ export function createProductRouter(): RouterType {
 
             if (semanticResults.length > 0) {
                 // Filter to decent similarity threshold
-                const relevant = semanticResults.filter(r => r.similarity > 0.3);
+                const relevant = semanticResults.filter(r => r.similarity > 0.5);
                 const relevantIds = relevant.slice(0, 12).map(r => r.productId);
                 const validProducts = await storage.getProductsByIds(relevantIds);
 
@@ -466,7 +466,7 @@ export function createProductRouter(): RouterType {
     });
 
     // Update product variants
-    router.put("/:productId/variants", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.put("/:productId/variants", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { productId } = req.params as { productId: string };
             const { hasVariants, variants } = req.body as { hasVariants: boolean; variants: any[] | null };

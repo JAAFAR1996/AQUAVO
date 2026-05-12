@@ -289,7 +289,7 @@ export function createUserRouter(): RouterType {
     });
 
     // Reset Password
-    router.post("/auth/reset-password", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    router.post("/auth/reset-password", passwordResetLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { token, newPassword } = req.body;
 

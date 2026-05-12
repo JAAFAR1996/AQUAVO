@@ -59,6 +59,7 @@ export default function OrderConfirmation() {
     useEffect(() => {
         const duration = 3000;
         const end = Date.now() + duration;
+        let rafId: number;
 
         const frame = () => {
             confetti({
@@ -77,10 +78,11 @@ export default function OrderConfirmation() {
             });
 
             if (Date.now() < end) {
-                requestAnimationFrame(frame);
+                rafId = requestAnimationFrame(frame);
             }
         };
-        frame();
+        rafId = requestAnimationFrame(frame);
+        return () => cancelAnimationFrame(rafId);
     }, []);
 
     // TikTok Pixel: Purchase event once order data is loaded

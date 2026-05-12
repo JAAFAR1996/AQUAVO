@@ -134,7 +134,9 @@ export class OrderStorage {
                         (!coupon.endDate || new Date(coupon.endDate) >= now);
                     const isValidAmount = !coupon.minOrderAmount || subtotal >= Number(coupon.minOrderAmount);
 
-                    if (isValidDate && isValidAmount) {
+                    const isNotExhausted = !coupon.maxUses || (coupon.usedCount || 0) < coupon.maxUses;
+
+                    if (isValidDate && isValidAmount && isNotExhausted) {
                         couponId = coupon.id;
                         if (coupon.type === 'percentage') {
                             discount = Math.round((subtotal * Number(coupon.value)) / 100);
@@ -208,12 +210,14 @@ export class OrderStorage {
         return (await db.select().from(coupons).where(eq(coupons.code, code)).limit(1))[0];
     }
 
-    async getCouponsByUserId(userId: string): Promise<Coupon[]> {
+    async getCouponsByUserId(_userId: string): Promise<Coupon[]> {
         const db = this.ensureDb();
-        // Since coupons doesn't have a userId fk effectively (based on schema shown earlier, user_coupons usually linking table), 
-        // assuming global access or TODO: specific implementation based on schema if customized.
-        // For now returning all active coupons as "available to user" or public coupons
-        return await db.select().from(coupons).where(eq(coupons.isActive, true));
+        // Return active public coupons that haven't exceeded their usage limit
+        return await db.select().from(coupons)
+            .where(and(
+                eq(coupons.isActive, true),
+                or(isNull(coupons.maxUses), sql`${coupons.usedCount} < ${coupons.maxUses}`)
+            ));
     }
 
     async createCoupon(coupon: Partial<Coupon>): Promise<Coupon> {

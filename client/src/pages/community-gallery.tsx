@@ -35,10 +35,10 @@ export default function CommunityGallery() {
   const [formData, setFormData] = useState({
     customerName: "",
     customerPhone: "",
-    imageUrl: "",
     tankSize: "",
     description: ""
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -64,17 +64,20 @@ export default function CommunityGallery() {
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const payload = {
-        ...data,
-        imageBase64: data.imageUrl // Server expects imageBase64
-      };
+    mutationFn: async ({ fields, file }: { fields: typeof formData; file: File }) => {
+      const body = new FormData();
+      body.append("image", file);
+      body.append("customerName", fields.customerName);
+      body.append("customerPhone", fields.customerPhone);
+      body.append("tankSize", fields.tankSize);
+      body.append("description", fields.description);
 
+      // Do NOT set Content-Type — browser sets it automatically with the correct boundary
       const res = await fetch("/api/gallery", {
         method: "POST",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        headers: addCsrfHeader(), // CSRF only, no Content-Type
         credentials: "include",
-        body: JSON.stringify(payload)
+        body,
       });
 
       if (!res.ok) {
@@ -97,66 +100,62 @@ export default function CommunityGallery() {
       setFormData({
         customerName: "",
         customerPhone: "",
-        imageUrl: "",
         tankSize: "",
         description: ""
       });
+      setImageFile(null);
       setImagePreview("");
       queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
     },
     onError: (error) => {
       console.error("Gallery Upload Error:", error);
       toast({
-        title: "❌ خطأ",
+        title: "خطأ",
         description: error instanceof Error ? error.message : "حدث خطأ أثناء إرسال الصورة. حاول مرة أخرى.",
         variant: "destructive"
       });
     }
   });
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: "نوع الملف غير مدعوم",
-          description: "الرجاء رفع ملف صورة.",
-          variant: "destructive"
-        });
-        return;
-      }
+    if (!file) return;
 
-      try {
-        const { compressImage } = await import("@/lib/image-utils");
-        // Compress to 4MB max for Vercel
-        const base64 = await compressImage(file, 4);
-
-        setImagePreview(base64);
-        setFormData(prev => ({ ...prev, imageUrl: base64 }));
-      } catch (error) {
-        console.error("Error processing image:", error);
-        toast({
-          title: "خطأ في معالجة الصورة",
-          description: "لم نتمكن من معالجة الصورة. يرجى المحاولة مرة أخرى.",
-          variant: "destructive"
-        });
-      }
+    if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+      toast({
+        title: "نوع الملف غير مدعوم",
+        description: "الرجاء رفع ملف صورة (JPG, PNG, WebP, GIF).",
+        variant: "destructive",
+      });
+      return;
     }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "الملف كبير جداً",
+        description: "الحد الأقصى لحجم الصورة 5 ميغابايت.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.customerName || !formData.customerPhone || !formData.imageUrl) {
+    if (!formData.customerName || !formData.customerPhone || !imageFile) {
       toast({
         title: "معلومات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة",
-        variant: "destructive"
+        description: "يرجى ملء جميع الحقول المطلوبة ورفع صورة",
+        variant: "destructive",
       });
       return;
     }
 
-    submitMutation.mutate(formData);
+    submitMutation.mutate({ fields: formData, file: imageFile });
   };
 
   const winner = submissions.find(s => s.isWinner && s.isApproved);
@@ -214,8 +213,9 @@ export default function CommunityGallery() {
                             size="sm"
                             className="absolute top-2 right-2"
                             onClick={() => {
+                              URL.revokeObjectURL(imagePreview);
                               setImagePreview("");
-                              setFormData(prev => ({ ...prev, imageUrl: "" }));
+                              setImageFile(null);
                             }}
                           >
                             إزالة

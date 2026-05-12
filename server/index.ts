@@ -91,14 +91,14 @@ const apiOnly = (fn: any) => (req: Request, res: Response, next: NextFunction) =
 
 app.use(apiOnly(
   express.json({
-    limit: '20mb',
+    limit: '5mb',
     verify: (req: any, _res: any, buf: Buffer) => {
       req.rawBody = buf;
     },
   }),
 ));
 
-app.use(apiOnly(express.urlencoded({ extended: true, limit: '20mb' })));
+app.use(apiOnly(express.urlencoded({ extended: true, limit: '5mb' })));
 
 // Security: Request body sanitization (must be AFTER parsing)
 app.use(apiOnly(sanitizeBody));

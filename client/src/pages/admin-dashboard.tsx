@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -184,9 +185,8 @@ function slugify(text: string): string {
 }
 
 export default function AdminDashboard() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const queryClient = useQueryClient();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   // Filter states
   const [filterBrand, setFilterBrand] = useState<string>("all");
@@ -241,7 +241,6 @@ export default function AdminDashboard() {
   const [activeOrdersCount, setActiveOrdersCount] = useState<number>(0);
 
   useEffect(() => {
-    fetchProducts();
     fetchMetadata();
     fetch("/api/admin/orders", { credentials: "include" })
       .then(r => r.ok ? r.json() : [])
@@ -281,83 +280,24 @@ export default function AdminDashboard() {
     }
   };
 
-  const fetchProducts = async () => {
-    try {
-      // Fetch all products for admin dashboard (override default 50 limit)
+  const { data: productsData, isLoading: loading } = useQuery({
+    queryKey: ["products"],
+    queryFn: async (): Promise<Product[]> => {
       const response = await fetch("/api/products?limit=1000", {
         credentials: "include",
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
-      setProducts(data.products || []);
-      setLoading(false);
-    } catch (error) {
-      console.error("Error fetching products:", error);
-      toast({
-        title: "خطأ",
-        description: "فشل تحميل المنتجات",
-        variant: "destructive",
-      });
-      setLoading(false);
-    }
-  };
+      return data.products ?? [];
+    },
+  });
 
-  const handleCreateProduct = async () => {
-    try {
-      // Validate required fields
-      if (!formData.name || formData.name.trim() === '') {
-        toast({
-          title: "خطأ",
-          description: "يرجى إدخال اسم المنتج",
-          variant: "destructive",
-        });
-        return;
-      }
+  const products: Product[] = productsData ?? [];
 
-      if (!formData.brand || formData.brand.trim() === '') {
-        toast({
-          title: "خطأ",
-          description: "يرجى اختيار أو إدخال العلامة التجارية",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!formData.category || formData.category.trim() === '') {
-        toast({
-          title: "خطأ",
-          description: "يرجى اختيار أو إدخال الفئة",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      if (!formData.description || formData.description.trim() === '') {
-        toast({
-          title: "خطأ",
-          description: "يرجى إدخال وصف المنتج",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Generate slug if not provided
-      const slug = formData.slug || slugify(formData.name || '');
-
-      const productPayload = {
-        ...formData,
-        slug,
-        imageBase64: imageBase64 || undefined,
-      };
-
-      if (import.meta.env.DEV) {
-        console.log('Sending product data:', { ...productPayload, imageBase64: imageBase64 ? '[IMAGE DATA]' : 'none' });
-      }
-
+  const createProductMutation = useMutation({
+    mutationFn: async (productPayload: Partial<Product> & { imageBase64?: string }) => {
       const response = await fetch("/api/admin/products", {
         method: "POST",
         headers: addCsrfHeader({
@@ -367,187 +307,165 @@ export default function AdminDashboard() {
         body: JSON.stringify(productPayload),
       });
 
-      if (response.ok) {
-        toast({
-          title: "نجح",
-          description: "تم إضافة المنتج بنجاح",
-        });
-        fetchProducts();
-        setIsDialogOpen(false);
-        resetForm();
-      } else {
+      if (!response.ok) {
         const error = await response.json();
-
-        // Handle specific error cases
-        if (response.status === 401) {
-          if (error.error === "NO_SESSION") {
-            toast({
-              title: "خطأ في إعداد الموقع",
-              description: "Environment Variables غير مضافة في Vercel. يرجى مراجعة ملف URGENT_VERCEL_SETUP.md",
-              variant: "destructive",
-            });
-          } else if (error.error === "NOT_LOGGED_IN") {
-            toast({
-              title: "غير مسجل دخول",
-              description: "يرجى تسجيل الدخول مرة أخرى",
-              variant: "destructive",
-            });
-            window.location.href = "/admin/login";
-          } else {
-            toast({
-              title: "غير مصرح",
-              description: error.message || "يرجى تسجيل الدخول كمدير",
-              variant: "destructive",
-            });
-          }
-        } else if (response.status === 403) {
-          toast({
-            title: "ممنوع",
-            description: "حسابك ليس له صلاحيات إدارة. Role: " + (error.message || "user"),
-            variant: "destructive",
-          });
-        } else {
-          toast({
-            title: "خطأ",
-            description: error.message || "فشل إضافة المنتج",
-            variant: "destructive",
-          });
-        }
+        const err = Object.assign(new Error(error.message || "فشل إضافة المنتج"), {
+          status: response.status,
+          code: error.error as string | undefined,
+        });
+        throw err;
       }
-    } catch (error) {
-      console.error("Error creating product:", error);
 
-      // Check for network errors
-      if (error instanceof TypeError && error.message.includes("fetch")) {
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "نجح", description: "تم إضافة المنتج بنجاح" });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: Error & { status?: number; code?: string }) => {
+      if (error.status === 401) {
+        if (error.code === "NO_SESSION") {
+          toast({
+            title: "خطأ في إعداد الموقع",
+            description: "Environment Variables غير مضافة في Vercel. يرجى مراجعة ملف URGENT_VERCEL_SETUP.md",
+            variant: "destructive",
+          });
+        } else if (error.code === "NOT_LOGGED_IN") {
+          toast({ title: "غير مسجل دخول", description: "يرجى تسجيل الدخول مرة أخرى", variant: "destructive" });
+          window.location.href = "/admin/login";
+        } else {
+          toast({ title: "غير مصرح", description: error.message || "يرجى تسجيل الدخول كمدير", variant: "destructive" });
+        }
+      } else if (error.status === 403) {
+        toast({ title: "ممنوع", description: "حسابك ليس له صلاحيات إدارة. Role: " + (error.message || "user"), variant: "destructive" });
+      } else if (error instanceof TypeError && error.message.includes("fetch")) {
         toast({
           title: "خطأ في الاتصال",
           description: "لا يمكن الاتصال بالخادم. تأكد من: 1) اتصالك بالإنترنت، 2) الخادم يعمل على المنفذ الصحيح، 3) لا يوجد حاجز ناري يمنع الاتصال.",
           variant: "destructive",
         });
-      } else if (error instanceof Error) {
-        // More detailed error messages
+      } else {
         let errorMessage = error.message;
-        if (error.message.includes('Failed to fetch')) {
+        if (errorMessage.includes("Failed to fetch")) {
           errorMessage = "فشل الاتصال بالخادم. تأكد من أن الخادم يعمل وأن عنوان API صحيح.";
-        } else if (error.message.includes('NetworkError')) {
+        } else if (errorMessage.includes("NetworkError")) {
           errorMessage = "خطأ في الشبكة. تحقق من اتصالك بالإنترنت.";
         }
-
-        toast({
-          title: "خطأ",
-          description: errorMessage,
-          variant: "destructive",
-        });
-      } else {
-        toast({
-          title: "خطأ غير متوقع",
-          description: "حدث خطأ غير معروف أثناء إضافة المنتج. يرجى المحاولة مرة أخرى أو مراجعة Console للتفاصيل.",
-          variant: "destructive",
-        });
+        toast({ title: "خطأ", description: errorMessage, variant: "destructive" });
       }
-    }
-  };
+    },
+  });
 
-  const handleUpdateProduct = async () => {
-    if (!selectedProduct) {
-      toast({
-        title: "خطأ",
-        description: "لم يتم تحديد أي منتج",
-        variant: "destructive",
-      });
+  const handleCreateProduct = () => {
+    // Validate required fields
+    if (!formData.name || formData.name.trim() === "") {
+      toast({ title: "خطأ", description: "يرجى إدخال اسم المنتج", variant: "destructive" });
+      return;
+    }
+    if (!formData.brand || formData.brand.trim() === "") {
+      toast({ title: "خطأ", description: "يرجى اختيار أو إدخال العلامة التجارية", variant: "destructive" });
+      return;
+    }
+    if (!formData.category || formData.category.trim() === "") {
+      toast({ title: "خطأ", description: "يرجى اختيار أو إدخال الفئة", variant: "destructive" });
+      return;
+    }
+    if (!formData.description || formData.description.trim() === "") {
+      toast({ title: "خطأ", description: "يرجى إدخال وصف المنتج", variant: "destructive" });
       return;
     }
 
-    try {
-      // Remove date fields that the server will regenerate
-      const { createdAt, updatedAt, deletedAt, ...cleanFormData } = formData as any;
+    const slug = formData.slug || slugify(formData.name ?? "");
+    const productPayload = { ...formData, slug, imageBase64: imageBase64 || undefined };
 
-      const productPayload = {
-        ...cleanFormData,
-        imageBase64: imageBase64 || undefined,
-      };
+    if (import.meta.env.DEV) {
+      console.log("Sending product data:", { ...productPayload, imageBase64: imageBase64 ? "[IMAGE DATA]" : "none" });
+    }
 
-      const response = await fetch(`/api/admin/products/${selectedProduct.id}`, {
+    createProductMutation.mutate(productPayload);
+  };
+
+  const updateProductMutation = useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: Partial<Product> & { imageBase64?: string } }) => {
+      const response = await fetch(`/api/admin/products/${id}`, {
         method: "PATCH",
         headers: addCsrfHeader({
           "Content-Type": "application/json",
         }),
         credentials: "include",
-        body: JSON.stringify(productPayload),
+        body: JSON.stringify(payload),
       });
 
-      if (response.ok) {
-        toast({
-          title: "نجح",
-          description: "تم تحديث المنتج بنجاح",
-        });
-        fetchProducts();
-        setIsDialogOpen(false);
-        resetForm();
-      } else {
+      if (!response.ok) {
         const error = await response.json();
-        toast({
-          title: "خطأ",
-          description: error.message || "فشل تحديث المنتج",
-          variant: "destructive",
-        });
+        throw new Error(error.message || "فشل تحديث المنتج");
       }
-    } catch (error) {
-      console.error("Error updating product:", error);
 
-      // Check for network errors
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "نجح", description: "تم تحديث المنتج بنجاح" });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
+      setIsDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: Error) => {
       if (error instanceof TypeError && error.message.includes("fetch")) {
-        toast({
-          title: "خطأ في الاتصال",
-          description: "تأكد من اتصالك بالإنترنت وأن الخادم يعمل.",
-          variant: "destructive",
-        });
+        toast({ title: "خطأ في الاتصال", description: "تأكد من اتصالك بالإنترنت وأن الخادم يعمل.", variant: "destructive" });
       } else {
-        toast({
-          title: "خطأ",
-          description: `حدث خطأ أثناء تحديث المنتج: ${error instanceof Error ? error.message : "خطأ غير معروف"}`,
-          variant: "destructive",
-        });
+        toast({ title: "خطأ", description: `حدث خطأ أثناء تحديث المنتج: ${error.message}`, variant: "destructive" });
       }
-    }
-  };
+    },
+  });
 
-  const handleDeleteProduct = async (productId: string) => {
-    const confirmation = window.prompt("⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nلحذف المنتج، اكتب كلمة «حذف» في الحقل أدناه:");
-    if (confirmation !== "حذف") {
-      if (confirmation !== null) toast({ title: "تم الإلغاء", description: "لم تتم كتابة كلمة «حذف» بشكل صحيح" });
+  const handleUpdateProduct = () => {
+    if (!selectedProduct) {
+      toast({ title: "خطأ", description: "لم يتم تحديد أي منتج", variant: "destructive" });
       return;
     }
 
-    try {
+    // Remove date fields that the server will regenerate
+    const { createdAt, updatedAt, deletedAt, ...cleanFormData } = formData as Partial<Product> & { createdAt?: string; updatedAt?: string; deletedAt?: string };
+    const payload = { ...cleanFormData, imageBase64: imageBase64 || undefined };
+
+    updateProductMutation.mutate({ id: selectedProduct.id, payload });
+  };
+
+  const deleteProductMutation = useMutation({
+    mutationFn: async (productId: string) => {
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "DELETE",
         headers: addCsrfHeader(),
         credentials: "include",
       });
 
-      if (response.ok) {
-        toast({
-          title: "نجح",
-          description: "تم حذف المنتج بنجاح",
-        });
-        fetchProducts();
-      } else {
+      if (!response.ok) {
         const error = await response.json();
-        toast({
-          title: "خطأ",
-          description: error.message || "فشل حذف المنتج",
-          variant: "destructive",
-        });
+        throw new Error(error.message || "فشل حذف المنتج");
       }
-    } catch (error) {
+
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "نجح", description: "تم حذف المنتج بنجاح" });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: Error) => {
       console.error("Error deleting product:", error);
-      toast({
-        title: "خطأ",
-        description: "حدث خطأ أثناء حذف المنتج",
-        variant: "destructive",
-      });
+      toast({ title: "خطأ", description: error.message || "حدث خطأ أثناء حذف المنتج", variant: "destructive" });
+    },
+  });
+
+  const handleDeleteProduct = (productId: string) => {
+    const confirmation = window.prompt("⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nلحذف المنتج، اكتب كلمة «حذف» في الحقل أدناه:");
+    if (confirmation !== "حذف") {
+      if (confirmation !== null) toast({ title: "تم الإلغاء", description: "لم تتم كتابة كلمة «حذف» بشكل صحيح" });
+      return;
     }
+
+    deleteProductMutation.mutate(productId);
   };
 
   const openEditDialog = (product: Product) => {
@@ -1591,7 +1509,7 @@ export default function AdminDashboard() {
               variants={(variantsProduct as any).variants || null}
               hasVariants={(variantsProduct as any).hasVariants || false}
               onUpdate={() => {
-                fetchProducts();
+                void queryClient.invalidateQueries({ queryKey: ["products"] });
                 setIsVariantsDialogOpen(false);
               }}
             />

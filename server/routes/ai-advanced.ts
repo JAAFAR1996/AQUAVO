@@ -110,6 +110,7 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
  */
 router.post(
   "/visual/analyze-upload",
+  requireAuth as any,
   upload.single("image"),
   async (req, res) => {
     try {
@@ -183,6 +184,10 @@ router.post(
 router.get("/visual/history/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    const sessionUserId = (req as any).user?.id;
+    if (sessionUserId !== userId) {
+      return res.status(403).json({ success: false, error: "غير مصرح" });
+    }
     const limit = parseInt(req.query.limit as string) || 10;
 
     const history = await visualAI.getUserAnalysisHistory(userId, limit);
@@ -251,7 +256,7 @@ router.get("/visual/stats", requireAdmin as any, async (req, res) => {
  * POST /api/ai-advanced/diagnosis/feedback
  * تقديم ملاحظات على التشخيص (Feedback Loop)
  */
-router.post("/diagnosis/feedback", async (req, res) => {
+router.post("/diagnosis/feedback", requireAuth as any, async (req, res) => {
   try {
     const { analysisId, isCorrect, correctDisease, notes, treatmentWorked, rating } = req.body;
 
@@ -291,7 +296,7 @@ router.post("/diagnosis/feedback", async (req, res) => {
  * GET /api/ai-advanced/diagnosis/stats
  * إحصائيات منظومة التشخيص الذكية
  */
-router.get("/diagnosis/stats", async (req, res) => {
+router.get("/diagnosis/stats", requireAdmin as any, async (req, res) => {
   try {
     const stats = await visualAI.getCaseStats();
     res.json({
@@ -311,7 +316,7 @@ router.get("/diagnosis/stats", async (req, res) => {
  * GET /api/ai-advanced/diagnosis/cases
  * الحالات المشخصة الحديثة
  */
-router.get("/diagnosis/cases", async (req, res) => {
+router.get("/diagnosis/cases", requireAdmin as any, async (req, res) => {
   try {
     const limit = parseInt(req.query.limit as string) || 10;
     const cases = await visualAI.findSimilarCases(limit);
@@ -338,6 +343,10 @@ router.get("/diagnosis/cases", async (req, res) => {
 router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    const sessionUserId = (req as any).user?.id;
+    if (sessionUserId !== userId) {
+      return res.status(403).json({ success: false, error: "غير مصرح" });
+    }
     const limit = parseInt(req.query.limit as string) || 20;
 
     const history = await sentimentAnalyzer.getUserSentimentHistory(userId, limit);
@@ -363,6 +372,10 @@ router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) =>
 router.get("/sentiment/average/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    const sessionUserId = (req as any).user?.id;
+    if (sessionUserId !== userId) {
+      return res.status(403).json({ success: false, error: "غير مصرح" });
+    }
     const days = parseInt(req.query.days as string) || 30;
 
     const average = await sentimentAnalyzer.getUserAverageSentiment(userId, days);
@@ -417,6 +430,10 @@ router.get("/sentiment/frustrated-users", requireAdmin as any, async (req, res) 
 router.get("/predictions/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    const sessionUserId = (req as any).user?.id;
+    if (sessionUserId !== userId) {
+      return res.status(403).json({ success: false, error: "غير مصرح" });
+    }
     const predictions = await predictiveAnalytics.getPredictionsForUser(userId);
 
     res.json({
@@ -459,6 +476,10 @@ router.post("/predictions/run", requireAdmin as any, async (req, res) => {
 router.get("/churn/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    const sessionUserId = (req as any).user?.id;
+    if (sessionUserId !== userId) {
+      return res.status(403).json({ success: false, error: "غير مصرح" });
+    }
     const analysis = await churnDetector.analyzeUser(userId);
 
     res.json({

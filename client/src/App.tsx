@@ -417,7 +417,7 @@ function Router() {
       <Route path="/terms">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Terms /></Suspense></ErrorBoundary>)}
       </Route>
-      <Route path="/verify-certificate/yee">
+      <Route path="/verify-certificate/:id">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense></ErrorBoundary>)}
       </Route>
 
@@ -518,11 +518,11 @@ function Router() {
       </Route>
 
       <Route path="/forgot-password">
-        {() => (<Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><ForgotPassword /></Suspense></ErrorBoundary>)}
       </Route>
 
       <Route path="/admin/login">
-        {() => (<Suspense fallback={<PageLoader />}><AdminLogin /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><AdminLogin /></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded admin dashboard */}

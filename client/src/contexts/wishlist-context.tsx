@@ -184,7 +184,7 @@ export function WishlistProvider({ children }: { children: ReactNode }) {
           headers: addCsrfHeader(),
           credentials: "include"
         });
-        setItems(items.filter((item) => item.id !== id));
+        setItems(prev => prev.filter((item) => item.id !== id));
       } catch (err) {
         console.error("Failed to remove from server wishlist", err);
       }

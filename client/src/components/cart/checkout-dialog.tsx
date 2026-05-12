@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
-import { CartItem } from "@/contexts/cart-context";
+import { CartItem, useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -29,6 +29,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
   const { user } = useAuth();
+  const { clearCart } = useCart();
   const { toast } = useToast();
   const [step, setStep] = useState<'info' | 'confirm'>('info');
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
@@ -163,6 +164,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
+        credentials: "include",
         headers: addCsrfHeader({
           "Content-Type": "application/json",
         }),
@@ -201,6 +203,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         orderNumber: orderData.id
       });
 
+      clearCart();
       setStep('info');
       setCustomerInfo({ name: '', phone: '', governorate: '', address: '', notes: '' });
       setAgreed(false);

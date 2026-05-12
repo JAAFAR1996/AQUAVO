@@ -227,23 +227,29 @@ export function createOrderRouter(): RouterType {
     // Enrich order items with product names/prices from DB (handles old orders missing productName)
     async function enrichOrderItems(order: any) {
         const rawItems = (order.items as any[]) || [];
-        const enrichedItems = await Promise.all(
-            rawItems.map(async (item: any) => {
-                // If productName already exists (new orders), use it
-                if (item.productName) return item;
-                // Otherwise fetch from DB (old orders)
-                try {
-                    const product = await storage.getProduct(item.productId);
-                    return {
-                        ...item,
-                        productName: product?.name || item.productId,
-                        priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
-                    };
-                } catch {
-                    return { ...item, productName: item.productId, priceAtPurchase: item.priceAtPurchase || "0" };
-                }
-            })
-        );
+
+        // Batch fetch only items missing productName (old orders) — avoids N+1
+        const missingIds = rawItems
+            .filter((item: any) => !item.productName)
+            .map((item: any) => item.productId);
+
+        const productMap = new Map<string, any>();
+        if (missingIds.length > 0) {
+            try {
+                const products = await storage.getProductsByIds(missingIds);
+                products.forEach((p: any) => productMap.set(p.id, p));
+            } catch { /* non-blocking — fall back to item IDs */ }
+        }
+
+        const enrichedItems = rawItems.map((item: any) => {
+            if (item.productName) return item;
+            const product = productMap.get(item.productId);
+            return {
+                ...item,
+                productName: product?.name || item.productId,
+                priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
+            };
+        });
         // Build loyalty object from stored DB columns
         const loyalty = {
             pointsEarned: (order as any).pointsEarned ?? 0,
@@ -280,16 +286,17 @@ export function createOrderRouter(): RouterType {
 
             // Get order items from the JSONB field (items are stored inline, not in a separate table)
             const rawItems = (order.items as any[]) || [];
-            const enrichedItems = await Promise.all(
-                rawItems.map(async (item: any) => {
-                    const product = await storage.getProduct(item.productId);
-                    return {
-                        name: product?.name || product?.arabicName || "منتج غير معروف",
-                        imageUrl: product?.image || "",
-                        quantity: item.quantity
-                    };
-                })
-            );
+            const productIds = rawItems.map((item: any) => item.productId);
+            const trackProducts = productIds.length > 0 ? await storage.getProductsByIds(productIds) : [];
+            const trackMap = new Map(trackProducts.map((p: any) => [p.id, p]));
+            const enrichedItems = rawItems.map((item: any) => {
+                const product = trackMap.get(item.productId);
+                return {
+                    name: product?.name || product?.arabicName || "منتج غير معروف",
+                    imageUrl: product?.image || "",
+                    quantity: item.quantity
+                };
+            });
 
             // Calculate estimated delivery
             // Base estimation: orders take 1-3 days to process, then 1-3 days to ship

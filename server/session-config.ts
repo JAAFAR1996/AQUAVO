@@ -10,11 +10,9 @@ export function buildSessionSecret(env = process.env.NODE_ENV): string {
 
   if (!secret) {
     if (env === "production") {
-      // In production without SESSION_SECRET, generate random one but warn
-      console.warn("⚠️ SESSION_SECRET not set in production. Using random secret (sessions won't persist across restarts)");
-      return crypto.randomBytes(32).toString("hex");
+      throw new Error("SESSION_SECRET environment variable is required in production. Set it to a random string of at least 32 characters.");
     }
-    // Generate a strong per-boot secret for development to avoid weak defaults
+    // Development: per-boot random secret is fine
     return crypto.randomBytes(32).toString("hex");
   }
 
