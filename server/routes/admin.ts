@@ -88,6 +88,56 @@ export function createAdminRouter(): RouterType {
                                 orderTotal
                             );
                             console.log(`[Admin] ✅ Approved loyalty points for order ${order.id}`);
+
+                            // 🎁 Bonus Reveal — توليد مكافأة إضافية عند التوصيل
+                            try {
+                                const bonus = await loyaltyStorage.generateOrderBonus(
+                                    (order as any).userId,
+                                    order.id
+                                );
+                                if (bonus) {
+                                    console.log(`[Admin] 🎁 Bonus generated for order ${order.id}: ${bonus.label}`);
+                                }
+                            } catch (bonusErr) {
+                                console.error("[Admin] Failed to generate bonus:", bonusErr);
+                            }
+
+                            // 📊 Milestone check — فحص معالم التقدم
+                            try {
+                                const milestoneResult = await loyaltyStorage.checkMilestones(
+                                    (order as any).userId
+                                );
+                                if (milestoneResult.milestones.length > 0) {
+                                    console.log(`[Admin] 📊 Milestones for order ${order.id}:`, milestoneResult.milestones.map(m => m.message));
+                                }
+                            } catch (milestoneErr) {
+                                console.error("[Admin] Failed to check milestones:", milestoneErr);
+                            }
+
+                            // 🏅 Badge check — فحص الشارات
+                            try {
+                                const { badgeEngine } = await import("../storage/badge-engine.js");
+                                const newBadges = await badgeEngine.checkAndAwardBadges(
+                                    (order as any).userId
+                                );
+                                if (newBadges.length > 0) {
+                                    console.log(`[Admin] 🏅 Badges awarded for order ${order.id}:`, newBadges.map(b => b.title));
+                                }
+                            } catch (badgeErr) {
+                                console.error("[Admin] Failed to check badges:", badgeErr);
+                            }
+
+                            // 📋 Challenge progress — تحديث التحديات
+                            try {
+                                const { challengeStorage } = await import("../storage/challenge-storage.js");
+                                await challengeStorage.updateProgress(
+                                    (order as any).userId,
+                                    "cross_category",
+                                    1
+                                );
+                            } catch (challengeErr) {
+                                console.error("[Admin] Failed to update challenges:", challengeErr);
+                            }
                         }
                     } catch (loyaltyErr) {
                         console.error("[Admin] Failed to approve loyalty points:", loyaltyErr);
@@ -1177,7 +1227,7 @@ export function createAdminRouter(): RouterType {
     // Get detailed customer profile (للمدير: ملف عميل كامل)
     router.get("/ai/customer-profile/:userId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { userId } = req.params;
+            const userId = req.params.userId as string;
             const { customerProfiler } = await import("../services/customer-profiler.js");
 
             const fullProfile = await customerProfiler.getFullProfile(userId);
@@ -1197,7 +1247,7 @@ export function createAdminRouter(): RouterType {
     // Analyze customer now (تحليل عميل فوري)
     router.post("/ai/analyze-customer/:userId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { userId } = req.params;
+            const userId = req.params.userId as string;
             const { customerProfiler } = await import("../services/customer-profiler.js");
 
             await customerProfiler.analyzeAndUpdateProfile(userId);

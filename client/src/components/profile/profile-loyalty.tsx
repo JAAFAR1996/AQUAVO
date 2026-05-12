@@ -1,10 +1,12 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle, Crown, Star, Gift, TrendingUp, Users, ShoppingCart, History, Coins, ArrowUpCircle, ArrowDownCircle, Sparkles, Loader2, Clock, ShieldCheck } from "lucide-react";
-import { useMemo } from "react";
-import { useLoyaltyBalance, useLoyaltyHistory } from "@/hooks/use-loyalty";
+import { CheckCircle, Crown, Star, Gift, TrendingUp, Users, ShoppingCart, History, Coins, ArrowUpCircle, ArrowDownCircle, Sparkles, Loader2, Clock, ShieldCheck, Fish, ClipboardList, AlertCircle, Award, Target, Lock, Wrench } from "lucide-react";
+import { useState } from "react";
+import { useLoyaltyBalance, useLoyaltyHistory, useMilestones, useBadges, useChallenges, useWinback, useRecommendations, saveAquariumProfile } from "@/hooks/use-loyalty";
 import { formatIQD } from "@/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 
 // Tier configuration - must match backend MEMBERSHIP_TIERS (spent-based)
 const TIER_CONFIG = {
@@ -70,6 +72,18 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
     // Fetch real data from API
     const { data: balance, isLoading: isLoadingBalance } = useLoyaltyBalance();
     const { data: history, isLoading: isLoadingHistory } = useLoyaltyHistory(10);
+    const { data: milestonesData } = useMilestones();
+    const { data: badgesData } = useBadges();
+    const { data: challengesData } = useChallenges();
+    const { data: winbackData } = useWinback();
+    const { data: recommendationsData } = useRecommendations();
+    const queryClient = useQueryClient();
+
+    // Quiz state
+    const [showQuiz, setShowQuiz] = useState(false);
+    const [quizSubmitting, setQuizSubmitting] = useState(false);
+    const [quizResult, setQuizResult] = useState<{ points: number; alreadyCompleted: boolean } | null>(null);
+    const [quizForm, setQuizForm] = useState({ tankSize: "", fishType: "", mainProblem: "", tankAge: "" });
 
     // Use API data or fallback
     const actualPoints = balance?.loyaltyPoints ?? fallbackPoints;
@@ -81,12 +95,29 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
     const progressPercent = balance?.progressPercent ?? 0;
     const amountToNextTier = balance?.amountToNextTier;
     const tierInfo = balance?.tierInfo;
+    const welcomeBonusClaimed = balance?.welcomeBonusClaimed ?? false;
+    const aquariumProfile = balance?.aquariumProfile;
 
     const currentTierConfig = TIER_CONFIG[actualTier] || TIER_CONFIG.bronze;
     const currentIndex = TIER_ORDER.indexOf(actualTier);
     const nextTier = currentIndex < TIER_ORDER.length - 1 ? TIER_ORDER[currentIndex + 1] : null;
     const nextTierConfig = nextTier ? TIER_CONFIG[nextTier] : null;
     const CurrentIcon = currentTierConfig.icon;
+
+    const handleQuizSubmit = async () => {
+        if (!quizForm.tankSize || !quizForm.fishType || !quizForm.mainProblem || !quizForm.tankAge) return;
+        setQuizSubmitting(true);
+        try {
+            const result = await saveAquariumProfile(quizForm);
+            setQuizResult(result);
+            queryClient.invalidateQueries({ queryKey: ["/api/loyalty/balance"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/loyalty/history"] });
+        } catch (e) {
+            console.error("Quiz submit failed:", e);
+        } finally {
+            setQuizSubmitting(false);
+        }
+    };
 
     // Transaction type labels and icons
     const getTransactionInfo = (type: string, amount: number) => {
@@ -103,6 +134,24 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                 return { label: "استبدال", icon: <ArrowDownCircle className="w-4 h-4 text-red-500" />, color: "text-red-600" };
             case "tier_bonus":
                 return { label: "ترقية", icon: <ArrowUpCircle className="w-4 h-4 text-cyan-500" />, color: "text-cyan-600" };
+            case "welcome_bonus":
+                return { label: "ترحيب", icon: <Gift className="w-4 h-4 text-emerald-500" />, color: "text-emerald-600" };
+            case "quiz_earn":
+                return { label: "استبيان", icon: <ClipboardList className="w-4 h-4 text-indigo-500" />, color: "text-indigo-600" };
+            case "bonus_reveal":
+                return { label: "مكافأة", icon: <Sparkles className="w-4 h-4 text-pink-500" />, color: "text-pink-600" };
+            case "order_cancelled":
+                return { label: "إلغاء", icon: <ArrowDownCircle className="w-4 h-4 text-red-500" />, color: "text-red-600" };
+            case "badge_earn":
+                return { label: "شارة", icon: <Award className="w-4 h-4 text-amber-500" />, color: "text-amber-600" };
+            case "challenge_complete":
+                return { label: "تحدي", icon: <Target className="w-4 h-4 text-teal-500" />, color: "text-teal-600" };
+            case "monthly_completion":
+                return { label: "ختم الشهر", icon: <CheckCircle className="w-4 h-4 text-green-500" />, color: "text-green-600" };
+            case "winback":
+                return { label: "رجعة", icon: <Gift className="w-4 h-4 text-emerald-500" />, color: "text-emerald-600" };
+            case "ai_bonus":
+                return { label: "ذكي", icon: <Sparkles className="w-4 h-4 text-violet-500" />, color: "text-violet-600" };
             default:
                 return { label: type, icon: <Sparkles className="w-4 h-4 text-gray-500" />, color: "text-gray-600" };
         }
@@ -221,6 +270,183 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                     </div>
                 </div>
 
+                {/* Milestone Alerts */}
+                {milestonesData && milestonesData.milestones.length > 0 && (
+                    <div className="space-y-2">
+                        {milestonesData.milestones.map((m, i) => (
+                            <div key={i} className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-xl p-4">
+                                <AlertCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                                <div>
+                                    <p className="text-sm font-medium">{m.message}</p>
+                                    {m.tier && (
+                                        <Badge variant="secondary" className="mt-1 text-xs">
+                                            {TIER_CONFIG[m.tier as TierKey]?.label ?? m.tier}
+                                        </Badge>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Winback Banner */}
+                {winbackData && winbackData.type !== "none" && winbackData.message && (
+                    <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
+                                <Gift className="w-5 h-5 text-emerald-500" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{winbackData.message}</p>
+                                {winbackData.type === "discount" && (
+                                    <p className="text-xs text-muted-foreground mt-1">
+                                        الكوبون مفعّل بحسابك — استخدمه بطلبك القادم
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Aquarium Quiz — if not completed */}
+                {!aquariumProfile && !quizResult && (
+                    <div className="border border-indigo-200 dark:border-indigo-800 rounded-xl overflow-hidden">
+                        <div className="bg-indigo-50 dark:bg-indigo-950/30 px-4 py-3 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Fish className="w-5 h-5 text-indigo-500" />
+                                <span className="font-semibold text-sm">ملف حوضك الشخصي</span>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">+30 نقطة</Badge>
+                        </div>
+                        {!showQuiz ? (
+                            <div className="p-4 text-center">
+                                <p className="text-sm text-muted-foreground mb-3">
+                                    أجب على 4 أسئلة بسيطة واحصل على 30 نقطة ولاء
+                                </p>
+                                <Button variant="outline" size="sm" onClick={() => setShowQuiz(true)}>
+                                    ابدأ الاستبيان
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="p-4 space-y-3">
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">حجم الحوض</label>
+                                    <select
+                                        className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                                        value={quizForm.tankSize}
+                                        onChange={(e) => setQuizForm(f => ({ ...f, tankSize: e.target.value }))}
+                                    >
+                                        <option value="">اختر...</option>
+                                        <option value="small">صغير (أقل من 50 لتر)</option>
+                                        <option value="medium">متوسط (50-150 لتر)</option>
+                                        <option value="large">كبير (150-300 لتر)</option>
+                                        <option value="xlarge">ضخم (أكثر من 300 لتر)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">نوع الأسماك الرئيسي</label>
+                                    <select
+                                        className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                                        value={quizForm.fishType}
+                                        onChange={(e) => setQuizForm(f => ({ ...f, fishType: e.target.value }))}
+                                    >
+                                        <option value="">اختر...</option>
+                                        <option value="freshwater">مياه عذبة</option>
+                                        <option value="saltwater">مياه مالحة</option>
+                                        <option value="mixed">مختلط</option>
+                                        <option value="planted">أحواض نباتية</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">المشكلة الرئيسية</label>
+                                    <select
+                                        className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                                        value={quizForm.mainProblem}
+                                        onChange={(e) => setQuizForm(f => ({ ...f, mainProblem: e.target.value }))}
+                                    >
+                                        <option value="">اختر...</option>
+                                        <option value="algae">طحالب</option>
+                                        <option value="disease">أمراض الأسماك</option>
+                                        <option value="water_quality">جودة المياه</option>
+                                        <option value="feeding">التغذية</option>
+                                        <option value="none">لا توجد مشاكل</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-xs font-medium text-muted-foreground mb-1 block">عمر الحوض</label>
+                                    <select
+                                        className="w-full border rounded-lg px-3 py-2 text-sm bg-background"
+                                        value={quizForm.tankAge}
+                                        onChange={(e) => setQuizForm(f => ({ ...f, tankAge: e.target.value }))}
+                                    >
+                                        <option value="">اختر...</option>
+                                        <option value="new">جديد (أقل من شهر)</option>
+                                        <option value="months">1-6 أشهر</option>
+                                        <option value="year">6 أشهر - سنة</option>
+                                        <option value="established">أكثر من سنة</option>
+                                    </select>
+                                </div>
+                                <Button
+                                    className="w-full"
+                                    size="sm"
+                                    onClick={handleQuizSubmit}
+                                    disabled={quizSubmitting || !quizForm.tankSize || !quizForm.fishType || !quizForm.mainProblem || !quizForm.tankAge}
+                                >
+                                    {quizSubmitting ? <Loader2 className="w-4 h-4 animate-spin ml-2" /> : null}
+                                    احفظ واحصل على 30 نقطة
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Quiz completed result */}
+                {quizResult && !quizResult.alreadyCompleted && (
+                    <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-xl p-4 text-center">
+                        <CheckCircle className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                        <p className="font-semibold text-sm">ملف حوضك جاهز!</p>
+                        <p className="text-xs text-muted-foreground">كسبت {quizResult.points} نقطة ولاء</p>
+                    </div>
+                )}
+
+                {/* Aquarium Profile Summary — if already completed */}
+                {aquariumProfile && (
+                    <div className="bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900 rounded-xl p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Fish className="w-4 h-4 text-indigo-500" />
+                            <span className="font-semibold text-sm">ملف حوضك</span>
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                            {aquariumProfile.tankSize && <span>الحجم: {aquariumProfile.tankSize}</span>}
+                            {aquariumProfile.fishType && <span>النوع: {aquariumProfile.fishType}</span>}
+                            {aquariumProfile.mainProblem && <span>المشكلة: {aquariumProfile.mainProblem}</span>}
+                            {aquariumProfile.tankAge && <span>العمر: {aquariumProfile.tankAge}</span>}
+                        </div>
+                    </div>
+                )}
+
+                {/* Personalized Recommendations */}
+                {recommendationsData && recommendationsData.length > 0 && (
+                    <div className="bg-gradient-to-r from-primary/5 to-cyan-500/5 border border-primary/10 rounded-xl p-4">
+                        <h4 className="font-semibold mb-3 flex items-center gap-2 text-sm">
+                            <Sparkles className="w-4 h-4 text-primary" />
+                            توصيات مخصصة لحوضك
+                        </h4>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            {recommendationsData.map((rec, i) => (
+                                <div key={i} className="flex items-start gap-2 p-2 bg-background/50 rounded-lg">
+                                    <Fish className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                                    <div>
+                                        <p className="text-xs font-medium">{rec.label}</p>
+                                        <p className="text-[10px] text-muted-foreground">{rec.reason}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* Tiers Progress */}
                 <div className="grid grid-cols-4 gap-2 sm:gap-4">
                     {TIER_ORDER.map((tierKey) => {
@@ -281,7 +507,7 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                             </div>
                             <div>
                                 <p className="font-medium text-sm">تقييم المنتجات</p>
-                                <p className="text-xs text-muted-foreground">كل تقييم = 10 نقاط</p>
+                                <p className="text-xs text-muted-foreground">15 نقطة للتقييم + 10 مع صورة</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3 p-3 bg-background rounded-lg">
@@ -295,6 +521,108 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                         </div>
                     </div>
                 </div>
+
+                {/* Professional Badges */}
+                {badgesData && badgesData.length > 0 && (
+                    <div className="border rounded-xl p-4">
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                            <Award className="w-5 h-5 text-primary" />
+                            الشارات الاحترافية
+                        </h4>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            {badgesData.map((badge) => {
+                                const IconComponent = badge.icon === "Crown" ? Crown
+                                    : badge.icon === "Star" ? Star
+                                    : badge.icon === "ShoppingCart" ? ShoppingCart
+                                    : badge.icon === "Fish" ? Fish
+                                    : badge.icon === "Users" ? Users
+                                    : badge.icon === "ShieldCheck" ? ShieldCheck
+                                    : badge.icon === "Wrench" ? Wrench
+                                    : Award;
+                                return (
+                                    <div
+                                        key={badge.id}
+                                        className={`text-center p-3 rounded-xl border transition-all ${
+                                            badge.earned
+                                                ? "bg-primary/5 border-primary/30"
+                                                : "bg-muted/30 opacity-50 border-transparent"
+                                        }`}
+                                    >
+                                        <div className={`w-10 h-10 mx-auto rounded-full flex items-center justify-center mb-2 ${
+                                            badge.earned ? "bg-primary/10" : "bg-muted"
+                                        }`}>
+                                            {badge.earned ? (
+                                                <IconComponent className="w-5 h-5 text-primary" />
+                                            ) : (
+                                                <Lock className="w-4 h-4 text-muted-foreground" />
+                                            )}
+                                        </div>
+                                        <p className="text-xs font-semibold">{badge.title}</p>
+                                        {badge.earned ? (
+                                            <p className="text-[10px] text-green-600">+{badge.pointsReward} نقطة</p>
+                                        ) : (
+                                            <p className="text-[10px] text-muted-foreground">{badge.description}</p>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Monthly Challenges */}
+                {challengesData && challengesData.length > 0 && (
+                    <div className="border rounded-xl p-4">
+                        <h4 className="font-semibold mb-4 flex items-center gap-2">
+                            <Target className="w-5 h-5 text-primary" />
+                            تحديات الشهر
+                            <Badge variant="secondary" className="text-xs mr-auto">
+                                {challengesData.filter(c => c.completed).length}/{challengesData.length}
+                            </Badge>
+                        </h4>
+                        <div className="space-y-3">
+                            {challengesData.map((ch) => (
+                                <div
+                                    key={ch.id}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border ${
+                                        ch.completed
+                                            ? "bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800"
+                                            : "bg-background border-border"
+                                    }`}
+                                >
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                        ch.completed ? "bg-green-500" : "bg-muted"
+                                    }`}>
+                                        {ch.completed ? (
+                                            <CheckCircle className="w-4 h-4 text-white" />
+                                        ) : (
+                                            <Target className="w-4 h-4 text-muted-foreground" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium ${ch.completed ? "line-through text-muted-foreground" : ""}`}>
+                                            {ch.title}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Progress value={(ch.progress / ch.target) * 100} className="h-1.5 flex-1" />
+                                            <span className="text-[10px] text-muted-foreground">
+                                                {ch.progress}/{ch.target}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <span className="text-xs font-bold text-primary">+{ch.rewardPoints}</span>
+                                </div>
+                            ))}
+                            {challengesData.every(c => c.completed) && (
+                                <div className="text-center p-3 bg-gradient-to-r from-primary/5 to-cyan-500/5 rounded-lg">
+                                    <p className="text-sm font-semibold text-primary">
+                                        أكملت جميع التحديات — ختم الشهر +50 نقطة
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Benefits Summary */}
                 <div className="border rounded-xl p-4">

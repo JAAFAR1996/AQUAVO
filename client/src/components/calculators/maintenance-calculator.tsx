@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Calendar, Bell, Clock, CheckCircle2, Info } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 export function MaintenanceCalculator() {
+    const { toast } = useToast();
     const [tankSize, setTankSize] = useState("");
     const [fishCount, setFishCount] = useState("");
     const [plantDensity, setPlantDensity] = useState("medium");
@@ -22,7 +24,10 @@ export function MaintenanceCalculator() {
     const generateSchedule = () => {
         const size = parseFloat(tankSize);
         const fish = parseInt(fishCount);
-        if (!size || !fish) return;
+        if (!size || !fish) {
+            toast({ title: "بيانات ناقصة", description: "يرجى إدخال حجم الحوض وعدد الأسماك", variant: "destructive" });
+            return;
+        }
 
         // Calculate water change percentage based on bioload
         const bioloadFactor = fish / (size / 10); // Fish per 10 liters

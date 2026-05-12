@@ -327,7 +327,7 @@ function Router() {
       </Route>
 
       <Route path="/wishlist">
-        {() => (<Suspense fallback={<PageLoader />}><Wishlist /></Suspense>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Wishlist /></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/search">
         {() => (<Suspense fallback={<PageLoader />}><SearchResults /></Suspense>)}

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, index, check, serial } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, integer, boolean, timestamp, jsonb, numeric, index, uniqueIndex, check, serial } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -34,6 +34,13 @@ export const users = pgTable("users", {
   cashbackBalance: integer("cashback_balance").default(0),
   pendingCashbackBalance: integer("pending_cashback_balance").default(0),
   totalSpent: integer("total_spent").default(0), // إجمالي المشتريات التراكمي بالدينار - لحساب مستوى العضوية
+  welcomeBonusClaimed: boolean("welcome_bonus_claimed").default(false),
+  aquariumProfile: jsonb("aquarium_profile").$type<{
+    tankSize?: string;
+    fishType?: string;
+    mainProblem?: string;
+    tankAge?: string;
+  }>(),
   preferences: jsonb("preferences").$type<{
     tourSeen?: Record<string, boolean>; // e.g. { "/": true, "/products": true }
     theme?: "light" | "dark" | "system";
@@ -129,6 +136,13 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name"),
   customerEmail: text("customer_email"),
   customerPhone: text("customer_phone"),
+  bonusPrize: jsonb("bonus_prize").$type<{
+    type: string;
+    value: number;
+    label: string;
+    couponId?: string;
+  }>(),
+  bonusClaimedAt: timestamp("bonus_claimed_at"),
   carrier: text("carrier"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -2227,9 +2241,9 @@ export type InsertFishMedicalRecord = z.infer<typeof insertFishMedicalRecordSche
 export const loyaltyTransactions = pgTable("loyalty_transactions", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: text("user_id").references(() => users.id).notNull(),
-  type: text("type").notNull(), // 'purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired'
+  type: text("type").notNull(), // 'purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired', 'welcome_bonus', 'quiz_earn', 'bonus_reveal', 'order_cancelled'
   pointsType: text("points_type").notNull().default("loyalty"), // 'loyalty' | 'cashback'
-  status: text("status").notNull().default("approved"), // 'pending', 'approved', 'rejected'
+  status: text("status").notNull().default("approved"), // 'pending', 'approved', 'rejected', 'cancelled'
   amount: integer("amount").notNull(), // Positive = earned, Negative = spent
   balanceAfter: integer("balance_after").notNull(), // الرصيد بعد العملية
   orderId: text("order_id").references(() => orders.id), // الطلب المرتبط (إن وجد)
@@ -2245,9 +2259,9 @@ export const loyaltyTransactions = pgTable("loyalty_transactions", {
 
 export const insertLoyaltyTransactionSchema = z.object({
   userId: z.string().min(1),
-  type: z.enum(['purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired']),
+  type: z.enum(['purchase_earn', 'referral_earn', 'review_earn', 'rounding_earn', 'redeem', 'tier_bonus', 'expired', 'welcome_bonus', 'quiz_earn', 'bonus_reveal', 'order_cancelled', 'badge_earn', 'challenge_complete', 'monthly_completion', 'winback', 'ai_bonus']),
   pointsType: z.enum(['loyalty', 'cashback']).default('loyalty'),
-  status: z.enum(['pending', 'approved', 'rejected']).default('approved'),
+  status: z.enum(['pending', 'approved', 'rejected', 'cancelled']).default('approved'),
   amount: z.number().int(),
   balanceAfter: z.number().int(),
   orderId: z.string().optional(),
@@ -2257,6 +2271,105 @@ export const insertLoyaltyTransactionSchema = z.object({
 
 export type LoyaltyTransaction = typeof loyaltyTransactions.$inferSelect;
 export type InsertLoyaltyTransaction = z.infer<typeof insertLoyaltyTransactionSchema>;
+
+// ========================================
+// Loyalty Coupons (كوبونات الولاء)
+// ========================================
+
+export const loyaltyCoupons = pgTable("loyalty_coupons", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  type: text("type").notNull(), // 'discount_pct', 'discount_fixed', 'free_shipping', 'bonus_points'
+  value: jsonb("value").notNull().$type<{ amount: number; percent?: number; label: string }>(),
+  minOrderAmount: integer("min_order_amount").default(0),
+  maxDiscount: integer("max_discount"),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  usedOrderId: text("used_order_id").references(() => orders.id),
+  source: text("source"), // 'welcome', 'bonus_reveal', 'milestone', 'winback', 'challenge'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index("loyalty_coupons_user_id_idx").on(table.userId),
+  expiresAtIdx: index("loyalty_coupons_expires_at_idx").on(table.expiresAt),
+  sourceIdx: index("loyalty_coupons_source_idx").on(table.source),
+}));
+
+export const insertLoyaltyCouponSchema = z.object({
+  userId: z.string().min(1),
+  type: z.enum(['discount_pct', 'discount_fixed', 'free_shipping', 'bonus_points']),
+  value: z.object({
+    amount: z.number(),
+    percent: z.number().optional(),
+    label: z.string(),
+  }),
+  minOrderAmount: z.number().int().optional(),
+  maxDiscount: z.number().int().optional(),
+  expiresAt: z.date(),
+  source: z.string().optional(),
+});
+
+export type LoyaltyCoupon = typeof loyaltyCoupons.$inferSelect;
+export type InsertLoyaltyCoupon = z.infer<typeof insertLoyaltyCouponSchema>;
+
+// ========================================
+// Badges (شارات احترافية)
+// ========================================
+
+export const badges = pgTable("badges", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  slug: text("slug").unique().notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  icon: text("icon").notNull(), // Lucide icon name
+  pointsReward: integer("points_reward").default(0),
+  criteria: jsonb("criteria").notNull().$type<{ type: string; target: number }>(),
+  sortOrder: integer("sort_order").default(0),
+});
+
+export const userBadges = pgTable("user_badges", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  badgeId: text("badge_id").references(() => badges.id).notNull(),
+  earnedAt: timestamp("earned_at").defaultNow().notNull(),
+}, (table) => ({
+  userBadgeUnique: uniqueIndex("user_badges_unique_idx").on(table.userId, table.badgeId),
+  userIdIdx: index("user_badges_user_id_idx").on(table.userId),
+}));
+
+export type Badge = typeof badges.$inferSelect;
+export type UserBadge = typeof userBadges.$inferSelect;
+
+// ========================================
+// Monthly Challenges (تحديات شهرية)
+// ========================================
+
+export const challenges = pgTable("challenges", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  month: text("month").notNull(), // '2026-05'
+  title: text("title").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // 'review', 'referral', 'cross_category'
+  target: integer("target").notNull().default(1),
+  rewardPoints: integer("reward_points").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  monthTypeUnique: uniqueIndex("challenges_month_type_idx").on(table.month, table.type),
+}));
+
+export const userChallenges = pgTable("user_challenges", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").references(() => users.id).notNull(),
+  challengeId: text("challenge_id").references(() => challenges.id).notNull(),
+  progress: integer("progress").default(0),
+  completedAt: timestamp("completed_at"),
+  pointsAwarded: boolean("points_awarded").default(false),
+}, (table) => ({
+  userChallengeUnique: uniqueIndex("user_challenges_unique_idx").on(table.userId, table.challengeId),
+  userIdIdx: index("user_challenges_user_id_idx").on(table.userId),
+}));
+
+export type Challenge = typeof challenges.$inferSelect;
+export type UserChallenge = typeof userChallenges.$inferSelect;
 
 // ============================================================
 // MANUAL INVOICES — فواتير واتساب اليدوية

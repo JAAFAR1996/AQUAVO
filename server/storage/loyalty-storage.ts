@@ -16,8 +16,10 @@ import {
   users,
   orders,
   loyaltyTransactions,
+  loyaltyCoupons,
   type User,
   type LoyaltyTransaction,
+  type LoyaltyCoupon,
 } from "../../shared/schema.js";
 
 // ========================================
@@ -42,8 +44,20 @@ const CASHBACK_POINT_VALUE_IQD = 1;
 /** نقاط إحالة صديق عند أول شراء */
 const REFERRAL_FIRST_PURCHASE_BONUS = 25;
 
-/** نقاط كتابة تقييم */
-const REVIEW_POINTS = 10;
+/** نقاط كتابة تقييم نصي */
+const REVIEW_POINTS = 15;
+
+/** نقاط إضافية لتقييم مع صورة */
+const REVIEW_PHOTO_BONUS = 10;
+
+/** نقاط الترحيب للمستخدم الجديد */
+const WELCOME_BONUS_POINTS = 20;
+
+/** نقاط إكمال استبيان الحوض */
+const QUIZ_BONUS_POINTS = 30;
+
+/** قيمة نقطة الولاء عند الاستبدال (بالدينار) — قابلة للتعديل */
+const LOYALTY_POINT_REDEEM_VALUE_IQD = 20;
 
 /** مستويات العضوية - حدود الإنفاق بالدينار العراقي */
 export const MEMBERSHIP_TIERS = {
@@ -188,6 +202,10 @@ export interface LoyaltyBalance {
   amountToNextTier: number | null;
   /** نسبة التقدم للمستوى التالي */
   progressPercent: number;
+  /** هل تم منح نقاط الترحيب */
+  welcomeBonusClaimed: boolean;
+  /** ملف الحوض */
+  aquariumProfile: { tankSize?: string; fishType?: string; mainProblem?: string; tankAge?: string } | null;
 }
 
 // ========================================
@@ -637,6 +655,8 @@ export class LoyaltyStorage {
       totalSpent,
       amountToNextTier: amountToNextTier && amountToNextTier > 0 ? amountToNextTier : null,
       progressPercent,
+      welcomeBonusClaimed: user.welcomeBonusClaimed ?? false,
+      aquariumProfile: (user.aquariumProfile as any) ?? null,
     };
   }
 
@@ -666,7 +686,7 @@ export class LoyaltyStorage {
   /**
    * منح نقاط عند كتابة تقييم
    */
-  async awardReviewPoints(userId: string, reviewId: string): Promise<number> {
+  async awardReviewPoints(userId: string, reviewId: string, hasPhoto: boolean = false): Promise<number> {
     const db = this.ensureDb();
 
     const [user] = await db
@@ -677,7 +697,8 @@ export class LoyaltyStorage {
 
     if (!user) return 0;
 
-    const newBalance = (user.loyaltyPoints ?? 0) + REVIEW_POINTS;
+    const totalPoints = REVIEW_POINTS + (hasPhoto ? REVIEW_PHOTO_BONUS : 0);
+    const newBalance = (user.loyaltyPoints ?? 0) + totalPoints;
 
     await db
       .update(users)
@@ -687,17 +708,18 @@ export class LoyaltyStorage {
       })
       .where(eq(users.id, userId));
 
+    const photoText = hasPhoto ? " (مع صورة)" : "";
     await this.logTransaction(userId, {
       type: "review_earn",
       pointsType: "loyalty",
       status: "approved",
-      amount: REVIEW_POINTS,
+      amount: totalPoints,
       balanceAfter: newBalance,
-      description: `كسبت ${REVIEW_POINTS} نقاط لكتابة تقييم`,
-      metadata: { reviewId },
+      description: `كسبت ${totalPoints} نقاط لكتابة تقييم${photoText}`,
+      metadata: { reviewId, hasPhoto },
     });
 
-    return REVIEW_POINTS;
+    return totalPoints;
   }
 
   // ----------------------------------------
@@ -743,6 +765,387 @@ export class LoyaltyStorage {
     });
 
     return REFERRAL_FIRST_PURCHASE_BONUS;
+  }
+
+  // ----------------------------------------
+  // 8. نقاط الترحيب (Welcome Bonus)
+  // ----------------------------------------
+
+  /**
+   * منح نقاط ترحيبية للمستخدم الجديد — مرة واحدة فقط
+   */
+  async awardWelcomeBonus(userId: string): Promise<number> {
+    const db = this.ensureDb();
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) return 0;
+    if (user.welcomeBonusClaimed) return 0;
+
+    const newBalance = (user.loyaltyPoints ?? 0) + WELCOME_BONUS_POINTS;
+
+    await db
+      .update(users)
+      .set({
+        loyaltyPoints: newBalance,
+        welcomeBonusClaimed: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    await this.logTransaction(userId, {
+      type: "welcome_bonus" as any,
+      pointsType: "loyalty",
+      status: "approved",
+      amount: WELCOME_BONUS_POINTS,
+      balanceAfter: newBalance,
+      description: `حسابك جاهز. بديت بـ ${WELCOME_BONUS_POINTS} نقطة، وباقيلك خطوات بسيطة للمستوى الفضي.`,
+    });
+
+    return WELCOME_BONUS_POINTS;
+  }
+
+  // ----------------------------------------
+  // 9. استبيان الحوض (Aquarium Profile Quiz)
+  // ----------------------------------------
+
+  /**
+   * حفظ ملف الحوض الشخصي ومنح نقاط (مرة واحدة فقط)
+   */
+  async saveAquariumProfile(
+    userId: string,
+    profile: { tankSize: string; fishType: string; mainProblem: string; tankAge: string },
+  ): Promise<{ points: number; alreadyCompleted: boolean }> {
+    const db = this.ensureDb();
+
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user) throw new Error("User not found");
+
+    const alreadyCompleted = !!user.aquariumProfile;
+
+    await db
+      .update(users)
+      .set({
+        aquariumProfile: profile,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    if (alreadyCompleted) {
+      return { points: 0, alreadyCompleted: true };
+    }
+
+    const newBalance = (user.loyaltyPoints ?? 0) + QUIZ_BONUS_POINTS;
+
+    await db
+      .update(users)
+      .set({
+        loyaltyPoints: newBalance,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId));
+
+    await this.logTransaction(userId, {
+      type: "quiz_earn" as any,
+      pointsType: "loyalty",
+      status: "approved",
+      amount: QUIZ_BONUS_POINTS,
+      balanceAfter: newBalance,
+      description: `ملف حوضك جاهز! كسبت ${QUIZ_BONUS_POINTS} نقطة.`,
+      metadata: { quizProfile: profile },
+    });
+
+    return { points: QUIZ_BONUS_POINTS, alreadyCompleted: false };
+  }
+
+  // ----------------------------------------
+  // 10. Bonus Reveal — توليد مكافأة الطلب (server-side)
+  // ----------------------------------------
+
+  /**
+   * توليد مكافأة عشوائية عند تحويل الطلب لـ delivered
+   * يُستدعى من admin.ts عند تغيير الحالة — ليس من الفرونت
+   */
+  async generateOrderBonus(
+    userId: string,
+    orderId: string,
+  ): Promise<{ type: string; value: number; label: string } | null> {
+    const db = this.ensureDb();
+
+    // فحص: هل الطلب لديه مكافأة مسبقاً؟
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    if (!order) return null;
+    if ((order as any).bonusPrize) return null; // مكافأة موجودة مسبقاً
+
+    // فحص: حد 4 مكافآت شهرياً
+    const monthStart = new Date();
+    monthStart.setDate(1);
+    monthStart.setHours(0, 0, 0, 0);
+
+    const monthlyBonuses = await db
+      .select()
+      .from(orders)
+      .where(
+        sql`${orders.userId} = ${userId} AND ${orders.bonusClaimedAt} IS NOT NULL AND ${orders.bonusClaimedAt} >= ${monthStart}`
+      );
+
+    if (monthlyBonuses.length >= 4) return null;
+
+    // توليد الجائزة (weighted random)
+    const rand = Math.random() * 100;
+    let prize: { type: string; value: number; label: string };
+
+    if (rand < 40) {
+      prize = { type: "bonus_points", value: 5, label: "+5 نقاط بونص" };
+    } else if (rand < 65) {
+      prize = { type: "bonus_points", value: 10, label: "+10 نقاط بونص" };
+    } else if (rand < 80) {
+      prize = { type: "free_shipping", value: 0, label: "شحن مجاني للطلب الجاي" };
+    } else if (rand < 90) {
+      prize = { type: "discount_5pct", value: 5, label: "خصم 5% على الطلب الجاي" };
+    } else if (rand < 98) {
+      prize = { type: "bonus_points", value: 25, label: "+25 نقاط بونص" };
+    } else {
+      prize = { type: "product_sample", value: 0, label: "عينة منتج صغيرة" };
+    }
+
+    // حفظ الجائزة على الطلب
+    await db
+      .update(orders)
+      .set({
+        bonusPrize: prize,
+        bonusClaimedAt: new Date(),
+      })
+      .where(eq(orders.id, orderId));
+
+    // إذا كانت نقاط بونص، أضفها مباشرة
+    if (prize.type === "bonus_points" && prize.value > 0) {
+      const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      if (user) {
+        const newBalance = (user.loyaltyPoints ?? 0) + prize.value;
+        await db
+          .update(users)
+          .set({ loyaltyPoints: newBalance, updatedAt: new Date() })
+          .where(eq(users.id, userId));
+
+        await this.logTransaction(userId, {
+          type: "bonus_reveal" as any,
+          pointsType: "loyalty",
+          status: "approved",
+          amount: prize.value,
+          balanceAfter: newBalance,
+          orderId,
+          description: `طلبك فعّل مكافأة إضافية: ${prize.label}`,
+          metadata: { prizeType: prize.type },
+        });
+      }
+    }
+
+    return prize;
+  }
+
+  /**
+   * جلب مكافأة طلب معين (للعرض بالفرونت)
+   */
+  async getOrderBonus(orderId: string): Promise<{
+    prize: { type: string; value: number; label: string } | null;
+    status: "pending" | "revealed" | "none";
+    orderStatus: string;
+  }> {
+    const db = this.ensureDb();
+
+    const [order] = await db
+      .select()
+      .from(orders)
+      .where(eq(orders.id, orderId))
+      .limit(1);
+
+    if (!order) return { prize: null, status: "none", orderStatus: "unknown" };
+
+    const orderStatus = order.status;
+
+    if ((order as any).bonusPrize) {
+      return {
+        prize: (order as any).bonusPrize,
+        status: "revealed",
+        orderStatus,
+      };
+    }
+
+    if (orderStatus === "confirmed" || orderStatus === "processing" || orderStatus === "shipped") {
+      return { prize: null, status: "pending", orderStatus };
+    }
+
+    return { prize: null, status: "none", orderStatus };
+  }
+
+  // ----------------------------------------
+  // 11. Milestone Alerts — إشعارات التقدم
+  // ----------------------------------------
+
+  /**
+   * حساب التقدم والمعالم المهمة — يُستدعى بعد approveOrderPoints
+   * يرجع رسائل للعرض إن وجدت معالم جديدة
+   */
+  async checkMilestones(userId: string): Promise<{
+    milestones: Array<{ type: string; message: string; tier?: string }>;
+    tierChanged: boolean;
+    newTier?: string;
+  }> {
+    const db = this.ensureDb();
+    const milestones: Array<{ type: string; message: string; tier?: string }> = [];
+
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) return { milestones: [], tierChanged: false };
+
+    const totalSpent = user.totalSpent ?? 0;
+    const currentTier = (user.loyaltyTier as TierName) || "bronze";
+    const loyaltyPoints = user.loyaltyPoints ?? 0;
+
+    // فحص تقدم المستوى — 25%, 50%, 75%
+    const tierOrder: TierName[] = ["bronze", "silver", "gold", "diamond"];
+    const currentIndex = tierOrder.indexOf(currentTier);
+    const nextTier = currentIndex < tierOrder.length - 1 ? tierOrder[currentIndex + 1] : null;
+
+    if (nextTier) {
+      const nextTierInfo = MEMBERSHIP_TIERS[nextTier];
+      const currentTierInfo = MEMBERSHIP_TIERS[currentTier];
+      const range = nextTierInfo.minSpent - currentTierInfo.minSpent;
+      const progress = totalSpent - currentTierInfo.minSpent;
+      const percent = Math.round((progress / range) * 100);
+
+      if (percent >= 75 && percent < 100) {
+        milestones.push({
+          type: "tier_progress_75",
+          message: `باقيلك ${(nextTierInfo.minSpent - totalSpent).toLocaleString()} د.ع للمستوى ${nextTierInfo.name}. قريب جداً!`,
+          tier: nextTier,
+        });
+      } else if (percent >= 50 && percent < 75) {
+        milestones.push({
+          type: "tier_progress_50",
+          message: `نص الطريق! باقيلك ${(nextTierInfo.minSpent - totalSpent).toLocaleString()} د.ع للمستوى ${nextTierInfo.name}.`,
+          tier: nextTier,
+        });
+      }
+    }
+
+    // فحص معالم النقاط (كل 50 نقطة)
+    const pointMilestones = [50, 100, 200, 500, 1000];
+    for (const milestone of pointMilestones) {
+      if (loyaltyPoints >= milestone && loyaltyPoints < milestone + 20) {
+        milestones.push({
+          type: `points_${milestone}`,
+          message: `وصلت ${milestone} نقطة! نقاطك تعكس ولاءك لـ AQUAVO.`,
+        });
+        break;
+      }
+    }
+
+    return {
+      milestones,
+      tierChanged: false,
+      newTier: currentTier,
+    };
+  }
+
+  // ----------------------------------------
+  // 12. Loyalty Coupons — كوبونات الولاء
+  // ----------------------------------------
+
+  /**
+   * إنشاء كوبون ولاء جديد
+   */
+  async createLoyaltyCoupon(data: {
+    userId: string;
+    type: "discount_pct" | "discount_fixed" | "free_shipping" | "bonus_points";
+    value: { amount: number; percent?: number; label: string };
+    minOrderAmount?: number;
+    maxDiscount?: number;
+    expiresAt: Date;
+    source?: string;
+  }): Promise<typeof loyaltyCoupons.$inferSelect> {
+    const db = this.ensureDb();
+
+    const [coupon] = await db.insert(loyaltyCoupons).values({
+      userId: data.userId,
+      type: data.type,
+      value: data.value,
+      minOrderAmount: data.minOrderAmount ?? 0,
+      maxDiscount: data.maxDiscount,
+      expiresAt: data.expiresAt,
+      source: data.source,
+    }).returning();
+
+    return coupon;
+  }
+
+  /**
+   * جلب كوبونات المستخدم الفعالة (غير مستخدمة وغير منتهية)
+   */
+  async getUserActiveCoupons(userId: string): Promise<Array<typeof loyaltyCoupons.$inferSelect>> {
+    const db = this.ensureDb();
+
+    return db
+      .select()
+      .from(loyaltyCoupons)
+      .where(
+        sql`${loyaltyCoupons.userId} = ${userId} AND ${loyaltyCoupons.usedAt} IS NULL AND ${loyaltyCoupons.expiresAt} > NOW()`
+      )
+      .orderBy(loyaltyCoupons.expiresAt);
+  }
+
+  /**
+   * جلب كل كوبونات المستخدم (شامل المنتهية والمستخدمة)
+   */
+  async getUserAllCoupons(userId: string): Promise<Array<typeof loyaltyCoupons.$inferSelect>> {
+    const db = this.ensureDb();
+
+    return db
+      .select()
+      .from(loyaltyCoupons)
+      .where(eq(loyaltyCoupons.userId, userId))
+      .orderBy(desc(loyaltyCoupons.createdAt));
+  }
+
+  /**
+   * استخدام كوبون على طلب
+   */
+  async useCoupon(couponId: string, orderId: string): Promise<boolean> {
+    const db = this.ensureDb();
+
+    const [coupon] = await db
+      .select()
+      .from(loyaltyCoupons)
+      .where(eq(loyaltyCoupons.id, couponId))
+      .limit(1);
+
+    if (!coupon) return false;
+    if (coupon.usedAt) return false;
+    if (new Date(coupon.expiresAt) < new Date()) return false;
+
+    await db
+      .update(loyaltyCoupons)
+      .set({
+        usedAt: new Date(),
+        usedOrderId: orderId,
+      })
+      .where(eq(loyaltyCoupons.id, couponId));
+
+    return true;
   }
 
   // ----------------------------------------

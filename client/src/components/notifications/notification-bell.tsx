@@ -134,7 +134,16 @@ export function NotificationBell() {
       const dest = resolveNotifUrl(notif);
       setPopoverOpen(false);
       if (dest) {
-        navigate(dest);
+        // Delay navigation until popover close animation finishes
+        // Without this, Radix Popover steals focus and blocks wouter's navigate
+        setTimeout(() => {
+          // Force navigation even if already on the same route
+          if (window.location.pathname === dest) {
+            window.location.href = dest;
+          } else {
+            navigate(dest);
+          }
+        }, 150);
       } else {
         // No destination — show full message in a modal
         setModalNotif(notif);

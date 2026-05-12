@@ -52,7 +52,11 @@ export function CartSuggestions() {
               >
                 <ShoppingCart className="h-3 w-3" />
               </Button>
-              <span className="text-[10px] font-bold text-purple-500">قريباً ✨</span>
+              <span className="text-[10px] font-bold text-primary">
+                {product.price && Number(product.price) > 0
+                  ? `${Number(product.price).toLocaleString("en-US")} د.ع`
+                  : ""}
+              </span>
             </div>
           </div>
         ))}

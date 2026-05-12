@@ -159,7 +159,20 @@ export default function Wishlist() {
 
                   {/* Price */}
                   <div className="flex items-baseline gap-2">
-                    <span className="text-xl font-bold text-purple-500">قريباً جداً ✨</span>
+                    {item.price > 0 ? (
+                      <>
+                        <span className="text-xl font-bold text-primary">
+                          {item.price.toLocaleString("en-US")} د.ع
+                        </span>
+                        {item.originalPrice && item.originalPrice > item.price && (
+                          <span className="text-sm text-muted-foreground line-through">
+                            {item.originalPrice.toLocaleString("en-US")}
+                          </span>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-lg font-bold text-muted-foreground">السعر غير متوفر</span>
+                    )}
                   </div>
 
                   {/* Rating */}

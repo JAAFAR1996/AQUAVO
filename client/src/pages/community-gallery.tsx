@@ -102,7 +102,7 @@ export default function CommunityGallery() {
         description: ""
       });
       setImagePreview("");
-      queryClient.invalidateQueries({ queryKey: ["/api/gallery/submissions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/gallery"] });
     },
     onError: (error) => {
       console.error("Gallery Upload Error:", error);

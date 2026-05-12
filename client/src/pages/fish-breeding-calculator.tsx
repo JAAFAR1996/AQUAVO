@@ -756,7 +756,7 @@ export default function FishBreedingCalculator() {
                               <div className="flex flex-col items-center min-w-[60px]">
                                 <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
                                   <span className="font-bold text-primary">
-                                    {stage.week === 0 ? "Now" : "W" + stage.week}
+                                    {stage.week === 0 ? "الآن" : "أ" + stage.week}
                                   </span>
                                 </div>
                                 <Badge variant="outline" className="text-xs">
@@ -765,10 +765,7 @@ export default function FishBreedingCalculator() {
                               </div>
 
                               <div className="flex-1">
-                                <h3 className="font-bold text-lg mb-1">{stage.stageAr}</h3>
-                                <p className="text-sm text-muted-foreground mb-2">
-                                  {stage.stage}
-                                </p>
+                                <h3 className="font-bold text-lg mb-2">{stage.stageAr}</h3>
 
                                 <div className="flex items-start gap-2 mb-2">
                                   <Beaker className="h-4 w-4 text-blue-500 mt-0.5" />
@@ -962,7 +959,7 @@ export default function FishBreedingCalculator() {
                   <div className="flex justify-between border-t border-slate-200 pt-2 mt-1">
                     <span className="text-slate-700 font-medium">سنوي (تقريبي):</span>
                     <span className="font-black text-green-800 text-base" dir="ltr">
-                      {species.breedingInterval > 0 ? Math.floor(365 / species.breedingInterval * species.avgFryCount.max * numberOfPairs) : 'N/A'}+
+                      {species.breedingInterval > 0 ? Math.floor(365 / species.breedingInterval * species.avgFryCount.max * numberOfPairs) : 'غير متاح'}+
                     </span>
                   </div>
                 </div>

@@ -69,6 +69,15 @@ export function createUserRouter(): RouterType {
                 console.error("Failed to create welcome coupon/log:", couponErr);
             }
 
+            // Award Welcome Bonus (20 loyalty points)
+            try {
+                const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                await loyaltyStorage.awardWelcomeBonus(user.id);
+                console.log(`[Register] Welcome bonus awarded to ${user.email}`);
+            } catch (bonusErr) {
+                console.error("Failed to award welcome bonus:", bonusErr);
+            }
+
             // Process referral code if provided
             if (referralCode) {
                 try {

@@ -7,8 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Waves, Info } from "lucide-react";
 import { Link } from "wouter";
+import { useToast } from "@/hooks/use-toast";
 
 export function SaltCalculator() {
+    const { toast } = useToast();
     const [volume, setVolume] = useState("");
     const [currentSalinity, setCurrentSalinity] = useState("");
     const [targetSalinity, setTargetSalinity] = useState("");
@@ -20,7 +22,12 @@ export function SaltCalculator() {
         const current = parseFloat(currentSalinity);
         const target = parseFloat(targetSalinity);
 
-        if (v && target !== undefined && current !== undefined) {
+        if (!v || isNaN(v) || isNaN(current) || isNaN(target)) {
+            toast({ title: "بيانات ناقصة", description: "يرجى إدخال حجم الحوض والملوحة الحالية والمطلوبة", variant: "destructive" });
+            return;
+        }
+
+        if (v > 0 && !isNaN(current) && !isNaN(target)) {
             // Salinity calculation: approximately 35g of salt per liter increases salinity by 1 ppt
             const difference = target - current;
             const saltNeeded = v * difference * 35; // grams
