@@ -14,8 +14,8 @@ interface DifficultyBadgeProps {
   className?: string;
 }
 
-export function DifficultyBadge({ level = "medium", className }: DifficultyBadgeProps) {
-  const config = difficultyConfig[level];
+export function DifficultyBadge({ level, className }: DifficultyBadgeProps) {
+  const config = difficultyConfig[level as DifficultyLevel] ?? difficultyConfig.medium;
   
   return (
     <Badge variant="outline" className={cn("font-medium border", config.bg, config.color, className)}>

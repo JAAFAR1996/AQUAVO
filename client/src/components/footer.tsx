@@ -84,7 +84,7 @@ export default function Footer() {
               <p className="text-xs text-slate-400">لكل العراق</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors">
+          <Link href="/return-policy" className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors cursor-pointer">
             <div className="p-2 bg-green-500/20 rounded-full">
               <Shield className="h-5 w-5 text-green-500" />
             </div>
@@ -92,8 +92,8 @@ export default function Footer() {
               <p className="font-medium text-white text-sm">ضمان الجودة</p>
               <p className="text-xs text-slate-400">منتجات أصلية 100%</p>
             </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors">
+          </Link>
+          <Link href="/shipping" className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors cursor-pointer">
             <div className="p-2 bg-amber-500/20 rounded-full">
               <CreditCard className="h-5 w-5 text-amber-500" />
             </div>
@@ -101,7 +101,7 @@ export default function Footer() {
               <p className="font-medium text-white text-sm">الدفع عند الاستلام</p>
               <p className="text-xs text-slate-400">نقداً عند التوصيل</p>
             </div>
-          </div>
+          </Link>
           <div className="flex items-center gap-3 p-4 rounded-xl bg-slate-800/60 hover:bg-slate-800/80 transition-colors">
             <div className="p-2 bg-blue-500/20 rounded-full">
               <Clock className="h-5 w-5 text-blue-500" />
@@ -122,20 +122,20 @@ export default function Footer() {
             <p className="font-medium text-white text-xs">شهادة SSL</p>
             <p className="text-[10px] text-slate-400">موقع آمن ومشفر</p>
           </div>
-          <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
+          <Link href="/return-policy" className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center hover:bg-slate-800/40 transition-colors cursor-pointer">
             <div className="p-2 bg-green-500/20 rounded-full mb-2">
               <Award className="h-5 w-5 text-green-500" />
             </div>
             <p className="font-medium text-white text-xs">استبدال المعيب</p>
             <p className="text-[10px] text-slate-400">إذا وصل تالف أو خاطئ</p>
-          </div>
-          <div className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center">
+          </Link>
+          <Link href="/return-policy" className="flex flex-col items-center p-4 rounded-lg bg-slate-800/20 text-center hover:bg-slate-800/40 transition-colors cursor-pointer">
             <div className="p-2 bg-amber-500/20 rounded-full mb-2">
               <Shield className="h-5 w-5 text-amber-500" />
             </div>
             <p className="font-medium text-white text-xs">منتجات أصلية 100%</p>
             <p className="text-[10px] text-slate-400">نستورد مباشرة من YEE</p>
-          </div>
+          </Link>
           {/* YEE Certificate of Authenticity */}
           <Link href="/verify-certificate/yee" className="flex flex-col items-center p-4 rounded-lg bg-gradient-to-br from-yellow-900/30 to-amber-800/20 text-center border border-yellow-600/30 hover:border-yellow-500/50 transition-all hover:scale-[1.02] group cursor-pointer">
             <div className="p-2 bg-yellow-500/20 rounded-full mb-2 group-hover:bg-yellow-500/30 transition-colors">

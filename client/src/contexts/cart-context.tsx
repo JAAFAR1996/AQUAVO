@@ -439,9 +439,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const updateQuantity = useCallback(async (id: string, quantity: number) => {
+    // Never auto-remove — user must use the trash button explicitly
     if (quantity <= 0) {
-      removeItem(id);
-      return;
+      quantity = 1;
     }
 
     // Store old quantity for potential rollback

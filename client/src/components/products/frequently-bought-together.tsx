@@ -127,9 +127,10 @@ export function FrequentlyBoughtTogether({
                                     {/* Product Image */}
                                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-muted/30 mb-2">
                                         <img
-                                            src={product.image}
+                                            src={product.image || "/logo_aquavo.png"}
                                             alt={product.name}
                                             className="w-full h-full object-contain p-1"
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/logo_aquavo.png"; }}
                                         />
                                     </div>
 
@@ -140,7 +141,13 @@ export function FrequentlyBoughtTogether({
 
                                     {/* Price */}
                                     <div className="text-center">
-                                        <span className="text-sm font-bold text-purple-500">قريباً جداً ✨</span>
+                                        {product.price > 0 ? (
+                                            <span className="text-sm font-bold text-primary">
+                                                {product.price.toLocaleString()} د.ع
+                                            </span>
+                                        ) : (
+                                            <span className="text-xs text-muted-foreground">قريباً</span>
+                                        )}
                                     </div>
                                 </div>
 
@@ -162,7 +169,18 @@ export function FrequentlyBoughtTogether({
                             المجموع ({selectedProducts.length} منتجات):
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-2xl font-bold text-purple-500">قريباً جداً ✨</span>
+                            {totalPrice > 0 ? (
+                                <span className="text-2xl font-bold text-primary">
+                                    {totalPrice.toLocaleString()} د.ع
+                                </span>
+                            ) : (
+                                <span className="text-lg font-bold text-muted-foreground">غير متاح حالياً</span>
+                            )}
+                            {savings > 0 && (
+                                <span className="text-sm text-green-600 line-through">
+                                    {totalOriginalPrice.toLocaleString()} د.ع
+                                </span>
+                            )}
                         </div>
                     </div>
 

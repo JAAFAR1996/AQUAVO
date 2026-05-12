@@ -18,6 +18,34 @@ export interface ProductFilters {
     sortOrder?: 'asc' | 'desc';
 }
 
+// Arabic/Iraqi synonym groups for search expansion
+const SEARCH_SYNONYMS: string[][] = [
+    ["مصباح", "إضاءة", "ليت", "نور", "LED", "لايت", "انارة", "ضوء"],
+    ["فلتر", "فلترة", "تنقية", "تصفية", "منقي", "فلاتر"],
+    ["سخان", "هيتر", "تدفئة", "حرارة", "heater"],
+    ["مضخة", "بمب", "pump", "مضخات"],
+    ["طعام", "أكل", "علف", "غذاء", "فود", "food"],
+    ["حصى", "صخور", "تربة", "ركيزة", "substrate", "حجر"],
+    ["نبات", "نباتات", "شجر", "عشب", "زرع", "موس", "plant"],
+    ["هواء", "أكسجين", "تهوية", "فقاعات", "ناشر", "airstone"],
+    ["ديكور", "زينة", "خلفية", "اكسسوار"],
+    ["حوض", "أحواض", "تانك", "tank", "اكواريوم", "aquarium"],
+    ["دواء", "علاج", "مضاد", "بكتيريا", "فطريات"],
+    ["اختبار", "فحص", "تست", "test", "قياس", "أمونيا"],
+    ["كلور", "مزيل", "كلورين", "معالج"],
+];
+
+function expandSearchTerms(search: string): string[] {
+    const terms = [search];
+    const lower = search.toLowerCase();
+    for (const group of SEARCH_SYNONYMS) {
+        if (group.some(s => lower.includes(s.toLowerCase()))) {
+            terms.push(...group);
+        }
+    }
+    return [...new Set(terms)];
+}
+
 export class ProductStorage {
     private db = getDb();
     private highSalesCache: { ids: string[]; expires: number } | null = null;
@@ -78,10 +106,12 @@ export class ProductStorage {
         if (filters?.maxPrice) conditions.push(lte(products.price, filters.maxPrice.toString()));
 
         if (filters?.search) {
-            const searchTerm = `%${filters.search}%`;
-            conditions.push(
-                sql`(${products.name} ILIKE ${searchTerm} OR ${products.description} ILIKE ${searchTerm})`
-            );
+            const searchTerms = expandSearchTerms(filters.search);
+            const searchConditions = searchTerms.map(term => {
+                const likeTerm = `%${term}%`;
+                return sql`(${products.name} ILIKE ${likeTerm} OR ${products.description} ILIKE ${likeTerm})`;
+            });
+            conditions.push(sql`(${sql.join(searchConditions, sql` OR `)})`);
         }
 
         // Ensure soft deleted products are hidden

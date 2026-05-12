@@ -485,6 +485,8 @@ function Router() {
       <Route path="/cart">{() => <Redirect to="/" />}</Route>
       <Route path="/admin-login">{() => <Redirect to="/admin/login" />}</Route>
       <Route path="/returns">{() => <Redirect to="/return-policy" />}</Route>
+      <Route path="/fish-doctor">{() => <Redirect to="/fish-health-diagnosis" />}</Route>
+      <Route path="/auth">{() => <Redirect to="/login" />}</Route>
 
       <Route path="/shipping">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Shipping /></Suspense></ErrorBoundary>)}

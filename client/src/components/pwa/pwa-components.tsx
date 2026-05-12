@@ -12,13 +12,16 @@ export function InstallPrompt({ className }: { className?: string }) {
     const [dismissed, setDismissed] = useState(false);
 
     useEffect(() => {
-        const wasDismissed = sessionStorage.getItem("pwa-install-dismissed");
-        if (wasDismissed) setDismissed(true);
+        const dismissedAt = localStorage.getItem("pwa-install-dismissed");
+        if (dismissedAt) {
+            const daysSinceDismiss = (Date.now() - Number(dismissedAt)) / (1000 * 60 * 60 * 24);
+            if (daysSinceDismiss < 7) setDismissed(true);
+        }
     }, []);
 
     const handleDismiss = () => {
         setDismissed(true);
-        sessionStorage.setItem("pwa-install-dismissed", "true");
+        localStorage.setItem("pwa-install-dismissed", String(Date.now()));
     };
 
     if (!isInstallable || isInstalled || dismissed) return null;

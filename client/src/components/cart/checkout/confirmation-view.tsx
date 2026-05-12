@@ -190,7 +190,7 @@ export function ConfirmationView({
                         <p className="text-xs text-muted-foreground">
                             + تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء لترقية عضويتك 🌟
                         </p>
-                        <a href="/auth" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
+                        <a href="/register" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
                             سجّل الآن واستفاد!
                         </a>
                     </div>
@@ -201,7 +201,7 @@ export function ConfirmationView({
                         <p className="text-xs text-muted-foreground">
                             لو كنت مسجّل، كنت تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء من هذا الطلب + رصيد باقي تستخدمه لاحقاً!
                         </p>
-                        <a href="/auth" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
+                        <a href="/register" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
                             سجّل الآن مجاناً
                         </a>
                     </div>

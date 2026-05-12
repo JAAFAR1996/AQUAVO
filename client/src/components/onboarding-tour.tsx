@@ -233,11 +233,13 @@ export function OnboardingTour() {
         // Other pages: user can trigger manually if needed
         const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
         const hasSeen = localStorage.getItem(seenKey);
+        const sessionDismissed = sessionStorage.getItem('aquavo_tour_session_done');
 
-        if (!hasSeen && pageSteps.length > 0 && path === '/') {
+        // Never auto-show if already seen this page or dismissed this session
+        if (!hasSeen && !sessionDismissed && pageSteps.length > 0 && path === '/') {
             const timer = setTimeout(() => {
                 setRun(true);
-            }, 2000);
+            }, 5000);
             return () => clearTimeout(timer);
         } else {
             setRun(false);
@@ -256,6 +258,7 @@ export function OnboardingTour() {
         if (difficultStatuses.includes(status)) {
             localStorage.setItem(seenKey, 'true');
             localStorage.setItem('aquavo_tours_dismissed', 'true');
+            sessionStorage.setItem('aquavo_tour_session_done', 'true');
             setRun(false);
         }
     };
@@ -307,7 +310,7 @@ export function OnboardingTour() {
             continuous
             showSkipButton
             scrollToFirstStep
-            disableOverlayClose
+            disableOverlayClose={false}
             locale={{
                 back: 'السابق',
                 close: 'إغلاق',
