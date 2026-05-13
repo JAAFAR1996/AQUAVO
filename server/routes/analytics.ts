@@ -741,25 +741,55 @@ router.get("/pages", requireAdmin, async (req: Request, res: Response, next: Nex
     }
 });
 
-// ─── GET /api/admin/analytics/active-now — real-time from heartbeat store ────
-router.get("/active-now", requireAdmin, (req: Request, res: Response): void => {
-    const cutoff = Date.now() - HEARTBEAT_TTL;
-    const byPageMap = new Map<string, { total: number; loggedIn: number; anonymous: number }>();
+// ─── GET /api/admin/analytics/active-now — heartbeats + DB fallback ──────────
+router.get("/active-now", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const byPageMap = new Map<string, { total: number; loggedIn: number; anonymous: number }>();
 
-    for (const entry of heartbeats.values()) {
-        if (entry.ts < cutoff) continue;
-        const existing = byPageMap.get(entry.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
-        existing.total++;
-        if (entry.userId) existing.loggedIn++; else existing.anonymous++;
-        byPageMap.set(entry.pagePath, existing);
+        // 1. Heartbeat Map (clients with new JS sending pings every 45s)
+        const cutoff = Date.now() - HEARTBEAT_TTL;
+        const seenSessions = new Set<string>();
+        for (const [sid, entry] of heartbeats.entries()) {
+            if (entry.ts < cutoff) continue;
+            seenSessions.add(sid);
+            const e = byPageMap.get(entry.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
+            e.total++;
+            if (entry.userId) e.loggedIn++; else e.anonymous++;
+            byPageMap.set(entry.pagePath, e);
+        }
+
+        // 2. DB fallback — sessions with a page view in last 90s (covers clients without heartbeat JS)
+        const db = getDb();
+        if (db) {
+            const since90 = new Date(Date.now() - 90_000);
+            const recent = await db
+                .select({
+                    pagePath:  pageViews.pagePath,
+                    sessionId: pageViews.sessionId,
+                    userId:    pageViews.userId,
+                })
+                .from(pageViews)
+                .where(gte(pageViews.createdAt, since90));
+
+            for (const row of recent) {
+                // Skip sessions already counted via heartbeat
+                if (row.sessionId && seenSessions.has(row.sessionId)) continue;
+                const e = byPageMap.get(row.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
+                e.total++;
+                if (row.userId) e.loggedIn++; else e.anonymous++;
+                byPageMap.set(row.pagePath, e);
+            }
+        }
+
+        const byPage = [...byPageMap.entries()]
+            .map(([pagePath, counts]) => ({ pagePath, ...counts }))
+            .sort((a, b) => b.total - a.total);
+
+        const total = byPage.reduce((s, r) => s + r.total, 0);
+        res.json({ total, byPage });
+    } catch (err: any) {
+        next(err);
     }
-
-    const byPage = [...byPageMap.entries()]
-        .map(([pagePath, counts]) => ({ pagePath, ...counts }))
-        .sort((a, b) => b.total - a.total);
-
-    const total = byPage.reduce((s, r) => s + r.total, 0);
-    res.json({ total, byPage });
 });
 
 export function createAnalyticsRouter(): RouterType {
