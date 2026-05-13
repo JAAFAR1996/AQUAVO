@@ -379,89 +379,18 @@ export default function Products() {
                 )}
               </>
             ) : (
-              <div className="text-center py-12 px-4">
-                {/* Animated aquarium scene */}
-                <div className="relative w-40 h-40 mx-auto mb-6">
-                  <div
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background: "radial-gradient(ellipse at 40% 35%, rgba(25,155,184,0.18) 0%, rgba(25,155,184,0.06) 60%, transparent 100%)",
-                      border: "1px solid rgba(25,155,184,0.15)",
-                    }}
-                  />
-                  {/* Fish SVG — pure CSS swim */}
-                  <svg
-                    viewBox="0 0 80 50"
-                    className="absolute inset-0 m-auto w-24 h-16"
-                    style={{ animation: "aq-swim 3s ease-in-out infinite" }}
-                  >
-                    <style>{`
-                      @keyframes aq-swim {
-                        0%,100% { transform: translateX(0) translateY(0) rotate(-3deg); }
-                        25%      { transform: translateX(4px) translateY(-3px) rotate(2deg); }
-                        75%      { transform: translateX(-4px) translateY(3px) rotate(-2deg); }
-                      }
-                      @keyframes aq-bubble {
-                        0%   { opacity:0; transform: translateY(0) scale(.6); }
-                        40%  { opacity:.7; }
-                        100% { opacity:0; transform: translateY(-22px) scale(1); }
-                      }
-                    `}</style>
-                    {/* Body */}
-                    <ellipse cx="36" cy="25" rx="22" ry="13" fill="rgba(25,155,184,0.55)" />
-                    {/* Tail */}
-                    <polygon points="14,25 4,14 4,36" fill="rgba(25,155,184,0.4)" />
-                    {/* Fin */}
-                    <ellipse cx="36" cy="14" rx="10" ry="5" fill="rgba(25,155,184,0.3)" />
-                    {/* Eye */}
-                    <circle cx="52" cy="21" r="4" fill="white" />
-                    <circle cx="53" cy="21" r="2" fill="#0a1628" />
-                    {/* Bubble */}
-                    <circle cx="62" cy="14" r="2.5" fill="none" stroke="rgba(25,155,184,0.5)" strokeWidth="1"
-                      style={{ animation: "aq-bubble 2s ease-out infinite" }} />
-                    <circle cx="66" cy="9" r="1.8" fill="none" stroke="rgba(25,155,184,0.4)" strokeWidth="1"
-                      style={{ animation: "aq-bubble 2s ease-out infinite", animationDelay: "0.4s" }} />
-                  </svg>
-                  {/* Seaweed dots */}
-                  <div className="absolute bottom-4 left-8 w-1 h-8 rounded-full opacity-30"
-                    style={{ background: "linear-gradient(to top, #199bb8, transparent)" }} />
-                  <div className="absolute bottom-4 right-10 w-1 h-5 rounded-full opacity-20"
-                    style={{ background: "linear-gradient(to top, #199bb8, transparent)" }} />
+              <div className="text-center py-16 bg-muted/30 rounded-xl">
+                <div className="w-20 h-20 mx-auto bg-muted rounded-full flex items-center justify-center mb-6">
+                  <AlertCircle className="w-10 h-10 text-muted-foreground" />
                 </div>
-
-                <h3 className="text-xl font-bold text-foreground mb-2">
-                  ما لقينا منتجات بهذه الفلاتر
+                <h3 className="text-2xl font-bold mb-3">
+                  لم يتم العثور على منتجات
                 </h3>
-                <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto leading-relaxed">
-                  جرب تغيير الفلاتر أو تصفح كل المنتجات
+                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                  جرب تغيير أو إزالة بعض الفلاتر للحصول على نتائج أكثر
                 </p>
-
-                {/* Quick category shortcuts */}
-                {availableCategories.length > 0 && (
-                  <div className="flex flex-wrap justify-center gap-2 mb-6">
-                    {availableCategories.slice(0, 4).map(cat => (
-                      <button
-                        key={cat}
-                        onClick={() => {
-                          setFilters({
-                            priceRange: [minPrice, maxPrice],
-                            categories: [cat],
-                            brands: [],
-                            difficulties: [],
-                            tags: [],
-                          });
-                        }}
-                        className="px-3 py-1.5 rounded-full text-xs border border-primary/30 text-primary hover:bg-primary/10 transition-colors"
-                      >
-                        {cat}
-                      </button>
-                    ))}
-                  </div>
-                )}
-
                 <Button
                   variant="outline"
-                  className="border-primary/40 text-primary hover:bg-primary/10"
                   onClick={() => setFilters({
                     priceRange: [minPrice, maxPrice],
                     categories: [],
@@ -470,7 +399,7 @@ export default function Products() {
                     tags: [],
                   })}
                 >
-                  عرض كل المنتجات
+                  مسح جميع الفلاتر
                 </Button>
               </div>
             )}
