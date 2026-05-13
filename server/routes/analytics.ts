@@ -8,26 +8,50 @@ import { pageViews } from "../../shared/schema.js";
 
 const router = Router();
 
-// ─── In-memory heartbeat store — real-time active users ──────────────────────
-interface HeartbeatEntry { pagePath: string; userId: string | null; ts: number; }
-const heartbeats = new Map<string, HeartbeatEntry>(); // key = sessionId
-const HEARTBEAT_TTL = 90_000; // 90s — gone after 1.5 missed beats (beat every 45s)
+// ─── Real-time Presence Store ─────────────────────────────────────────────────
+// Key = sessionId, Value = { pagePath, userId, ts }
+// Enter: added immediately on page load
+// Leave: removed immediately via sendBeacon (instant updates on navigation)
+// Heartbeat: refreshes TTL every 20s (safety net for closed tabs)
+interface PresenceEntry { pagePath: string; userId: string | null; ts: number; }
+const presence = new Map<string, PresenceEntry>();
+const PRESENCE_TTL = 60_000; // 60s — user gone if no heartbeat for 1 min
 
-// Clean stale entries every minute
+// Cleanup stale entries every 30s
 setInterval(() => {
-    const cutoff = Date.now() - HEARTBEAT_TTL;
-    for (const [sid, entry] of heartbeats) {
-        if (entry.ts < cutoff) heartbeats.delete(sid);
-    }
-}, 60_000);
+    const cutoff = Date.now() - PRESENCE_TTL;
+    for (const [sid, e] of presence) if (e.ts < cutoff) presence.delete(sid);
+}, 30_000);
 
-// POST /api/analytics/heartbeat — called by client every 45s
+const getPresenceUserId = (req: Request): string | null =>
+    (req.session as Record<string, unknown>)?.userId as string | null ?? null;
+
+// POST /api/analytics/presence — enter page
+router.post("/presence", (req: Request, res: Response): void => {
+    const { sessionId, pagePath } = req.body as { sessionId?: string; pagePath?: string };
+    if (!sessionId || !pagePath) { res.json({ ok: true }); return; }
+    presence.set(sessionId.slice(0, 64), {
+        pagePath: pagePath.slice(0, 255),
+        userId: getPresenceUserId(req),
+        ts: Date.now(),
+    });
+    res.json({ ok: true });
+});
+
+// POST /api/analytics/presence/leave — leave page instantly
+router.post("/presence/leave", (req: Request, res: Response): void => {
+    const { sessionId } = req.body as { sessionId?: string };
+    if (sessionId) presence.delete(sessionId.slice(0, 64));
+    res.json({ ok: true });
+});
+
+// POST /api/analytics/heartbeat — refresh TTL (safety net, every 20s)
 router.post("/heartbeat", (req: Request, res: Response): void => {
     const { sessionId, pagePath } = req.body as { sessionId?: string; pagePath?: string };
     if (!sessionId || !pagePath) { res.json({ ok: true }); return; }
-    heartbeats.set(sessionId.slice(0, 64), {
+    presence.set(sessionId.slice(0, 64), {
         pagePath: pagePath.slice(0, 255),
-        userId: (req.session as any)?.userId ?? null,
+        userId: getPresenceUserId(req),
         ts: Date.now(),
     });
     res.json({ ok: true });
@@ -741,55 +765,24 @@ router.get("/pages", requireAdmin, async (req: Request, res: Response, next: Nex
     }
 });
 
-// ─── GET /api/admin/analytics/active-now — heartbeats + DB fallback ──────────
-router.get("/active-now", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const byPageMap = new Map<string, { total: number; loggedIn: number; anonymous: number }>();
+// ─── GET /api/admin/analytics/active-now — pure presence Map ─────────────────
+router.get("/active-now", requireAdmin, (req: Request, res: Response): void => {
+    const cutoff = Date.now() - PRESENCE_TTL;
+    const byPageMap = new Map<string, { total: number; loggedIn: number; anonymous: number }>();
 
-        // 1. Heartbeat Map (clients with new JS sending pings every 45s)
-        const cutoff = Date.now() - HEARTBEAT_TTL;
-        const seenSessions = new Set<string>();
-        for (const [sid, entry] of heartbeats.entries()) {
-            if (entry.ts < cutoff) continue;
-            seenSessions.add(sid);
-            const e = byPageMap.get(entry.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
-            e.total++;
-            if (entry.userId) e.loggedIn++; else e.anonymous++;
-            byPageMap.set(entry.pagePath, e);
-        }
-
-        // 2. DB fallback — sessions with a page view in last 90s (covers clients without heartbeat JS)
-        const db = getDb();
-        if (db) {
-            const since90 = new Date(Date.now() - 90_000);
-            const recent = await db
-                .select({
-                    pagePath:  pageViews.pagePath,
-                    sessionId: pageViews.sessionId,
-                    userId:    pageViews.userId,
-                })
-                .from(pageViews)
-                .where(gte(pageViews.createdAt, since90));
-
-            for (const row of recent) {
-                // Skip sessions already counted via heartbeat
-                if (row.sessionId && seenSessions.has(row.sessionId)) continue;
-                const e = byPageMap.get(row.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
-                e.total++;
-                if (row.userId) e.loggedIn++; else e.anonymous++;
-                byPageMap.set(row.pagePath, e);
-            }
-        }
-
-        const byPage = [...byPageMap.entries()]
-            .map(([pagePath, counts]) => ({ pagePath, ...counts }))
-            .sort((a, b) => b.total - a.total);
-
-        const total = byPage.reduce((s, r) => s + r.total, 0);
-        res.json({ total, byPage });
-    } catch (err: any) {
-        next(err);
+    for (const entry of presence.values()) {
+        if (entry.ts < cutoff) continue;
+        const e = byPageMap.get(entry.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
+        e.total++;
+        if (entry.userId) e.loggedIn++; else e.anonymous++;
+        byPageMap.set(entry.pagePath, e);
     }
+
+    const byPage = [...byPageMap.entries()]
+        .map(([pagePath, counts]) => ({ pagePath, ...counts }))
+        .sort((a, b) => b.total - a.total);
+
+    res.json({ total: byPage.reduce((s, r) => s + r.total, 0), byPage });
 });
 
 export function createAnalyticsRouter(): RouterType {

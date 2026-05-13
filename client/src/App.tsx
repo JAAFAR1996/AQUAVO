@@ -851,25 +851,56 @@ function PageViewTracker() {
       if (!idleId) trackVisit();
     }, 5000);
 
-    // Heartbeat — tells the server "I'm still on this page" every 45s
-    const sendHeartbeat = () => {
-      try {
-        fetch("/api/analytics/heartbeat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ sessionId: getClientSessionId(), pagePath: location }),
-        }).catch(() => {});
-      } catch { /* never crash */ }
+    // ── Presence system — real-time "who's on which page" ────────────────────
+    const sid = getClientSessionId();
+    const presencePayload = JSON.stringify({ sessionId: sid, pagePath: location });
+    const leavePayload    = JSON.stringify({ sessionId: sid });
+
+    // Enter: tell server we're on this page NOW
+    fetch("/api/analytics/presence", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: presencePayload,
+    }).catch(() => {});
+
+    // Heartbeat: refresh TTL every 20s (safety net for tabs closed without navigation)
+    const heartbeatTimer = window.setInterval(() => {
+      fetch("/api/analytics/heartbeat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: presencePayload,
+      }).catch(() => {});
+    }, 20_000);
+
+    // Leave on tab hide / page close (sendBeacon fires even during navigation)
+    const handleHide = () => {
+      if (document.visibilityState === "hidden") {
+        navigator.sendBeacon("/api/analytics/presence/leave",
+          new Blob([leavePayload], { type: "application/json" }));
+      }
     };
-    sendHeartbeat(); // immediate on page load
-    const heartbeatTimer = window.setInterval(sendHeartbeat, 45_000);
+    const handlePageHide = (e: PageTransitionEvent) => {
+      if (!e.persisted) { // true = bfcache, keep alive
+        navigator.sendBeacon("/api/analytics/presence/leave",
+          new Blob([leavePayload], { type: "application/json" }));
+      }
+    };
+    document.addEventListener("visibilitychange", handleHide);
+    window.addEventListener("pagehide", handlePageHide);
 
     return () => {
       clearTimeout(timer);
       window.clearTimeout(visitTimer);
       window.clearInterval(heartbeatTimer);
+      document.removeEventListener("visibilitychange", handleHide);
+      window.removeEventListener("pagehide", handlePageHide);
       if (idleId) (window as any).cancelIdleCallback(idleId);
+
+      // Leave: immediately remove from presence when navigating to another page
+      navigator.sendBeacon("/api/analytics/presence/leave",
+        new Blob([leavePayload], { type: "application/json" }));
     };
   }, [location, sendDuration]);
 
