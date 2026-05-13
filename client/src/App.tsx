@@ -851,9 +851,24 @@ function PageViewTracker() {
       if (!idleId) trackVisit();
     }, 5000);
 
+    // Heartbeat — tells the server "I'm still on this page" every 45s
+    const sendHeartbeat = () => {
+      try {
+        fetch("/api/analytics/heartbeat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ sessionId: getClientSessionId(), pagePath: location }),
+        }).catch(() => {});
+      } catch { /* never crash */ }
+    };
+    sendHeartbeat(); // immediate on page load
+    const heartbeatTimer = window.setInterval(sendHeartbeat, 45_000);
+
     return () => {
       clearTimeout(timer);
       window.clearTimeout(visitTimer);
+      window.clearInterval(heartbeatTimer);
       if (idleId) (window as any).cancelIdleCallback(idleId);
     };
   }, [location, sendDuration]);

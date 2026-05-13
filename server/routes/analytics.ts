@@ -8,6 +8,31 @@ import { pageViews } from "../../shared/schema.js";
 
 const router = Router();
 
+// ─── In-memory heartbeat store — real-time active users ──────────────────────
+interface HeartbeatEntry { pagePath: string; userId: string | null; ts: number; }
+const heartbeats = new Map<string, HeartbeatEntry>(); // key = sessionId
+const HEARTBEAT_TTL = 90_000; // 90s — gone after 1.5 missed beats (beat every 45s)
+
+// Clean stale entries every minute
+setInterval(() => {
+    const cutoff = Date.now() - HEARTBEAT_TTL;
+    for (const [sid, entry] of heartbeats) {
+        if (entry.ts < cutoff) heartbeats.delete(sid);
+    }
+}, 60_000);
+
+// POST /api/analytics/heartbeat — called by client every 45s
+router.post("/heartbeat", (req: Request, res: Response): void => {
+    const { sessionId, pagePath } = req.body as { sessionId?: string; pagePath?: string };
+    if (!sessionId || !pagePath) { res.json({ ok: true }); return; }
+    heartbeats.set(sessionId.slice(0, 64), {
+        pagePath: pagePath.slice(0, 255),
+        userId: (req.session as any)?.userId ?? null,
+        ts: Date.now(),
+    });
+    res.json({ ok: true });
+});
+
 interface AnalyticsQuery {
     period?: "7d" | "30d" | "90d";
 }
@@ -716,31 +741,25 @@ router.get("/pages", requireAdmin, async (req: Request, res: Response, next: Nex
     }
 });
 
-// ─── GET /api/admin/analytics/active-now — real-time active users ─────────────
-router.get("/active-now", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const db = getDb();
-        if (!db) { res.json({ total: 0, byPage: [] }); return; }
+// ─── GET /api/admin/analytics/active-now — real-time from heartbeat store ────
+router.get("/active-now", requireAdmin, (req: Request, res: Response): void => {
+    const cutoff = Date.now() - HEARTBEAT_TTL;
+    const byPageMap = new Map<string, { total: number; loggedIn: number; anonymous: number }>();
 
-        const since = new Date(Date.now() - 5 * 60 * 1000); // last 5 minutes
-
-        const byPage = await db
-            .select({
-                pagePath:  pageViews.pagePath,
-                total:     sql<number>`cast(count(*) as int)`,
-                loggedIn:  sql<number>`cast(count(distinct ${pageViews.userId}) filter (where ${pageViews.userId} is not null) as int)`,
-                anonymous: sql<number>`cast(count(*) filter (where ${pageViews.userId} is null) as int)`,
-            })
-            .from(pageViews)
-            .where(gte(pageViews.createdAt, since))
-            .groupBy(pageViews.pagePath)
-            .orderBy(desc(sql`count(*)`));
-
-        const total = byPage.reduce((s, r) => s + r.total, 0);
-        res.json({ total, byPage });
-    } catch (err: any) {
-        next(err);
+    for (const entry of heartbeats.values()) {
+        if (entry.ts < cutoff) continue;
+        const existing = byPageMap.get(entry.pagePath) ?? { total: 0, loggedIn: 0, anonymous: 0 };
+        existing.total++;
+        if (entry.userId) existing.loggedIn++; else existing.anonymous++;
+        byPageMap.set(entry.pagePath, existing);
     }
+
+    const byPage = [...byPageMap.entries()]
+        .map(([pagePath, counts]) => ({ pagePath, ...counts }))
+        .sort((a, b) => b.total - a.total);
+
+    const total = byPage.reduce((s, r) => s + r.total, 0);
+    res.json({ total, byPage });
 });
 
 export function createAnalyticsRouter(): RouterType {
