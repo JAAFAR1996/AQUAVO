@@ -679,6 +679,9 @@ router.get("/sources", requireAdmin, async (req: Request, res: Response, next: N
 // ─── GET /api/admin/analytics/pages — top pages by real view count ───────────
 router.get("/pages", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+        const db = getDb();
+        if (!db) { res.status(500).json({ pages: [], days: 30 }); return; }
+
         const days  = Math.min(Number(req.query.days) || 30, 365);
         const limit = Math.min(Number(req.query.limit) || 30, 100);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
@@ -686,9 +689,9 @@ router.get("/pages", requireAdmin, async (req: Request, res: Response, next: Nex
         const rows = await db
             .select({
                 pagePath:    pageViews.pagePath,
-                views:       sql<number>`count(*)::int`,
-                uniqueUsers: sql<number>`count(distinct ${pageViews.userId})::int`,
-                avgDuration: sql<number>`round(avg(${pageViews.duration}))::int`,
+                views:       sql<number>`cast(count(*) as int)`,
+                uniqueUsers: sql<number>`cast(count(distinct ${pageViews.userId}) as int)`,
+                avgDuration: sql<number>`cast(coalesce(round(avg(${pageViews.duration})), 0) as int)`,
             })
             .from(pageViews)
             .where(gte(pageViews.createdAt, since))

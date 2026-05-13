@@ -150,7 +150,7 @@ export function AnalyticsDashboard() {
         avgDuration: number | null;
     }
 
-    const { data: pagesData } = useQuery<{ pages: PageStat[]; days: number }>({
+    const { data: pagesData, error: pagesError } = useQuery<{ pages: PageStat[]; days: number }>({
         queryKey: ["admin-analytics-pages", period],
         queryFn: async () => {
             const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
@@ -670,7 +670,11 @@ export function AnalyticsDashboard() {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            {!pagesData ? (
+                            {pagesError ? (
+                                <p className="text-center text-destructive py-8 text-sm">
+                                    تعذر تحميل البيانات — {(pagesError as Error).message}
+                                </p>
+                            ) : !pagesData ? (
                                 <div className="flex items-center justify-center h-32">
                                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                                 </div>

@@ -9,7 +9,7 @@
 
 import { getDb } from "../db.js";
 import { notificationLog, users, coupons } from "../../shared/schema.js";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { MEMBERSHIP_TIERS } from "../storage/loyalty-storage.js";
 import { storage } from "../storage/index.js";
 
@@ -95,11 +95,18 @@ export class LoyaltyNotificationService {
     const totalEarned = result.purchasePoints + result.roundingPoints;
     if (totalEarned <= 0) return;
 
+    // جلب الرصيد الحالي من DB مباشرة (processOrderPoints لا يرجع newLoyaltyBalance)
+    let currentBalance: number | null = result.newLoyaltyBalance ?? null;
+    if (currentBalance == null || isNaN(currentBalance)) {
+      const [u] = await db.select({ lb: users.loyaltyBalance }).from(users).where(eq(users.id, userId)).limit(1);
+      currentBalance = Number(u?.lb ?? 0);
+    }
+
     let bodyText = `حصلت على +${result.purchasePoints} نقطة ولاء`;
     if (result.roundingPoints > 0) {
       bodyText += ` و +${result.roundingPoints} نقطة باقي تقريب`;
     }
-    bodyText += ` 🎉 رصيدك الحالي: ${result.newLoyaltyBalance} نقطة`;
+    bodyText += ` — رصيدك الحالي: ${currentBalance} نقطة`;
 
     await db.insert(notificationLog).values({
       userId,
