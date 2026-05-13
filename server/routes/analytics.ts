@@ -676,22 +676,32 @@ router.get("/sources", requireAdmin, async (req: Request, res: Response, next: N
     }
 });
 
-// ─── GET /api/admin/analytics/pages — top pages by real view count ───────────
+// ─── GET /api/admin/analytics/pages — full per-page analytics ────────────────
 router.get("/pages", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
         const db = getDb();
-        if (!db) { res.status(500).json({ pages: [], days: 30 }); return; }
+        if (!db) { res.status(500).json({ pages: [], days: 30, totalViews: 0 }); return; }
 
         const days  = Math.min(Number(req.query.days) || 30, 365);
-        const limit = Math.min(Number(req.query.limit) || 30, 100);
+        const limit = Math.min(Number(req.query.limit) || 50, 200);
         const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
         const rows = await db
             .select({
-                pagePath:    pageViews.pagePath,
-                views:       sql<number>`cast(count(*) as int)`,
-                uniqueUsers: sql<number>`cast(count(distinct ${pageViews.userId}) as int)`,
-                avgDuration: sql<number>`cast(coalesce(round(avg(${pageViews.duration})), 0) as int)`,
+                pagePath:       pageViews.pagePath,
+                views:          sql<number>`cast(count(*) as int)`,
+                uniqueUsers:    sql<number>`cast(count(distinct ${pageViews.userId}) as int)`,
+                anonymousViews: sql<number>`cast(count(*) filter (where ${pageViews.userId} is null) as int)`,
+                avgDuration:    sql<number>`cast(coalesce(round(avg(${pageViews.duration})), 0) as int)`,
+                mobileViews:    sql<number>`cast(count(*) filter (where ${pageViews.deviceType} = 'mobile') as int)`,
+                desktopViews:   sql<number>`cast(count(*) filter (where ${pageViews.deviceType} = 'desktop') as int)`,
+                fromGoogle:     sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'google') as int)`,
+                fromFacebook:   sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'facebook') as int)`,
+                fromDirect:     sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'direct') as int)`,
+                fromInstagram:  sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'instagram') as int)`,
+                fromTiktok:     sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'tiktok') as int)`,
+                fromWhatsapp:   sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} = 'whatsapp') as int)`,
+                fromOther:      sql<number>`cast(count(*) filter (where ${pageViews.detectedSource} not in ('google','facebook','direct','instagram','tiktok','whatsapp')) as int)`,
             })
             .from(pageViews)
             .where(gte(pageViews.createdAt, since))
@@ -699,7 +709,35 @@ router.get("/pages", requireAdmin, async (req: Request, res: Response, next: Nex
             .orderBy(desc(sql`count(*)`))
             .limit(limit);
 
-        res.json({ pages: rows, days });
+        const totalViews = rows.reduce((s, r) => s + r.views, 0);
+        res.json({ pages: rows, days, totalViews });
+    } catch (err: any) {
+        next(err);
+    }
+});
+
+// ─── GET /api/admin/analytics/active-now — real-time active users ─────────────
+router.get("/active-now", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const db = getDb();
+        if (!db) { res.json({ total: 0, byPage: [] }); return; }
+
+        const since = new Date(Date.now() - 5 * 60 * 1000); // last 5 minutes
+
+        const byPage = await db
+            .select({
+                pagePath:  pageViews.pagePath,
+                total:     sql<number>`cast(count(*) as int)`,
+                loggedIn:  sql<number>`cast(count(distinct ${pageViews.userId}) filter (where ${pageViews.userId} is not null) as int)`,
+                anonymous: sql<number>`cast(count(*) filter (where ${pageViews.userId} is null) as int)`,
+            })
+            .from(pageViews)
+            .where(gte(pageViews.createdAt, since))
+            .groupBy(pageViews.pagePath)
+            .orderBy(desc(sql`count(*)`));
+
+        const total = byPage.reduce((s, r) => s + r.total, 0);
+        res.json({ total, byPage });
     } catch (err: any) {
         next(err);
     }

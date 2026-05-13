@@ -147,18 +147,40 @@ export function AnalyticsDashboard() {
         pagePath: string;
         views: number;
         uniqueUsers: number;
-        avgDuration: number | null;
+        anonymousViews: number;
+        avgDuration: number;
+        mobileViews: number;
+        desktopViews: number;
+        fromGoogle: number;
+        fromFacebook: number;
+        fromDirect: number;
+        fromInstagram: number;
+        fromTiktok: number;
+        fromWhatsapp: number;
+        fromOther: number;
     }
 
-    const { data: pagesData, error: pagesError } = useQuery<{ pages: PageStat[]; days: number }>({
+    interface ActiveNowPage { pagePath: string; total: number; loggedIn: number; anonymous: number; }
+
+    const { data: pagesData, error: pagesError } = useQuery<{ pages: PageStat[]; days: number; totalViews: number }>({
         queryKey: ["admin-analytics-pages", period],
         queryFn: async () => {
             const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
-            const res = await fetch(`/api/admin/analytics/pages?days=${days}&limit=30`, { credentials: "include" });
+            const res = await fetch(`/api/admin/analytics/pages?days=${days}&limit=50`, { credentials: "include" });
             if (!res.ok) throw new Error("Failed");
             return res.json();
         },
         refetchInterval: 60_000,
+    });
+
+    const { data: activeNow } = useQuery<{ total: number; byPage: ActiveNowPage[] }>({
+        queryKey: ["admin-analytics-active-now"],
+        queryFn: async () => {
+            const res = await fetch("/api/admin/analytics/active-now", { credentials: "include" });
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
+        },
+        refetchInterval: 30_000, // poll every 30s
     });
 
     const { data: journeysData } = useQuery<JourneySession[]>({
@@ -658,20 +680,51 @@ export function AnalyticsDashboard() {
                 </TabsContent>
 
                 {/* Pages Tab */}
-                <TabsContent value="pages" className="mt-4">
+                <TabsContent value="pages" className="mt-4 space-y-4">
+
+                    {/* Active Now Banner */}
+                    <Card className="border-green-500/30 bg-green-500/5">
+                        <CardContent className="py-4">
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <div className="flex items-center gap-3">
+                                    <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500" />
+                                    </span>
+                                    <span className="font-bold text-green-400 text-lg">{activeNow?.total ?? "…"}</span>
+                                    <span className="text-sm text-muted-foreground">شخص على الموقع الان (آخر 5 دقائق)</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(activeNow?.byPage ?? []).slice(0, 5).map(p => (
+                                        <div key={p.pagePath} className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-3 py-1 text-xs">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                            <span className="font-mono text-green-300" dir="ltr">
+                                                {p.pagePath === "/" ? "الرئيسية" : p.pagePath.replace(/^\//, "").replace(/\/\d+$/, "/…")}
+                                            </span>
+                                            <span className="font-bold text-green-400">{p.total}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Pages Detail Table */}
                     <Card>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <LayoutList className="w-5 h-5 text-primary" />
-                                أكثر الصفحات مشاهدة
-                            </CardTitle>
-                            <CardDescription>
-                                بيانات حقيقية من جدول pageViews — آخر {pagesData?.days ?? "…"} يوم
-                            </CardDescription>
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <CardTitle className="flex items-center gap-2 text-base">
+                                    <LayoutList className="w-4 h-4 text-primary" />
+                                    تفاصيل الصفحات — آخر {pagesData?.days ?? "…"} يوم
+                                </CardTitle>
+                                <div className="text-xs text-muted-foreground">
+                                    إجمالي: <strong className="text-foreground">{(pagesData?.totalViews ?? 0).toLocaleString("ar-IQ")}</strong> مشاهدة
+                                </div>
+                            </div>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="p-0">
                             {pagesError ? (
-                                <p className="text-center text-destructive py-8 text-sm">
+                                <p className="text-center text-destructive py-8 text-sm px-4">
                                     تعذر تحميل البيانات — {(pagesError as Error).message}
                                 </p>
                             ) : !pagesData ? (
@@ -679,53 +732,97 @@ export function AnalyticsDashboard() {
                                     <Loader2 className="w-6 h-6 animate-spin text-primary" />
                                 </div>
                             ) : pagesData.pages.length === 0 ? (
-                                <p className="text-center text-muted-foreground py-8">لا توجد بيانات بعد</p>
+                                <p className="text-center text-muted-foreground py-8">لا توجد بيانات بعد — ستظهر بعد أول زيارة للموقع</p>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="overflow-x-auto">
                                     {/* Header */}
-                                    <div className="grid grid-cols-12 gap-2 px-3 py-1 text-xs text-muted-foreground font-medium">
-                                        <span className="col-span-6">الصفحة</span>
-                                        <span className="col-span-2 text-center">المشاهدات</span>
-                                        <span className="col-span-2 text-center">زوار فريدون</span>
-                                        <span className="col-span-2 text-center">متوسط الوقت</span>
+                                    <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-x-2 px-4 py-2 text-xs text-muted-foreground font-semibold border-b border-border bg-muted/30 min-w-[780px]">
+                                        <span>الصفحة</span>
+                                        <span className="text-center">مشاهدات</span>
+                                        <span className="text-center">مسجلين</span>
+                                        <span className="text-center">ضيوف</span>
+                                        <span className="text-center">وقت متوسط</span>
+                                        <span className="text-center">موبايل%</span>
+                                        <span className="text-center">أبرز المصادر</span>
                                     </div>
-                                    {pagesData.pages.map((page, i) => {
-                                        const maxViews = pagesData.pages[0]?.views ?? 1;
-                                        const pct = Math.round((page.views / maxViews) * 100);
-                                        const mins = page.avgDuration ? Math.floor(page.avgDuration / 60) : 0;
-                                        const secs = page.avgDuration ? page.avgDuration % 60 : 0;
-                                        const label = page.pagePath
-                                            .replace(/^\//, "")
-                                            .replace(/\/\d+$/, "/…")
-                                            || "الرئيسية";
-                                        return (
-                                            <div key={page.pagePath} className="grid grid-cols-12 gap-2 items-center px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors">
-                                                <div className="col-span-6 flex items-center gap-2 min-w-0">
-                                                    <span className="text-xs text-muted-foreground w-5 shrink-0">{i + 1}</span>
-                                                    <div className="min-w-0 flex-1">
-                                                        <p className="text-sm font-medium truncate" dir="ltr">{page.pagePath}</p>
-                                                        <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                                            <div
-                                                                className="h-full rounded-full bg-primary/70"
-                                                                style={{ width: `${pct}%`, transition: "width 0.6s ease" }}
-                                                            />
+                                    <div className="divide-y divide-border min-w-[780px]">
+                                        {pagesData.pages.map((page, i) => {
+                                            const maxViews = pagesData.pages[0]?.views ?? 1;
+                                            const barPct  = Math.round((page.views / maxViews) * 100);
+                                            const mins    = Math.floor((page.avgDuration ?? 0) / 60);
+                                            const secs    = (page.avgDuration ?? 0) % 60;
+                                            const totalDev = (page.mobileViews + page.desktopViews) || 1;
+                                            const mobilePct = Math.round((page.mobileViews / totalDev) * 100);
+                                            const activePage = activeNow?.byPage.find(p => p.pagePath === page.pagePath);
+
+                                            // Top source
+                                            const sources = [
+                                                { k: "google",    v: page.fromGoogle,    label: "Google",    color: "text-sky-400" },
+                                                { k: "facebook",  v: page.fromFacebook,  label: "Facebook",  color: "text-blue-400" },
+                                                { k: "instagram", v: page.fromInstagram, label: "Instagram", color: "text-pink-400" },
+                                                { k: "tiktok",    v: page.fromTiktok,    label: "TikTok",    color: "text-purple-400" },
+                                                { k: "whatsapp",  v: page.fromWhatsapp,  label: "WhatsApp",  color: "text-green-400" },
+                                                { k: "direct",    v: page.fromDirect,    label: "مباشر",     color: "text-muted-foreground" },
+                                                { k: "other",     v: page.fromOther,     label: "أخرى",      color: "text-muted-foreground" },
+                                            ].filter(s => s.v > 0).sort((a, b) => b.v - a.v);
+
+                                            return (
+                                                <div key={page.pagePath} className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1.5fr] gap-x-2 px-4 py-2.5 hover:bg-muted/20 transition-colors items-center">
+                                                    {/* Page path + bar */}
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <span className="text-xs text-muted-foreground w-5 shrink-0 text-center">{i + 1}</span>
+                                                        <div className="min-w-0 flex-1">
+                                                            <div className="flex items-center gap-1.5">
+                                                                <p className="text-xs font-mono truncate text-foreground" dir="ltr">{page.pagePath}</p>
+                                                                {activePage && activePage.total > 0 && (
+                                                                    <span className="shrink-0 inline-flex items-center gap-1 bg-green-500/15 text-green-400 text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-green-500/20">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+                                                                        {activePage.total}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            <div className="mt-1 h-1 rounded-full bg-muted overflow-hidden">
+                                                                <div className="h-full rounded-full bg-primary/60" style={{ width: `${barPct}%` }} />
+                                                            </div>
                                                         </div>
                                                     </div>
+                                                    {/* Views */}
+                                                    <div className="text-center">
+                                                        <span className="text-sm font-bold text-primary">{page.views.toLocaleString()}</span>
+                                                    </div>
+                                                    {/* Logged-in unique */}
+                                                    <div className="text-center">
+                                                        <span className="text-xs text-blue-400">{page.uniqueUsers.toLocaleString()}</span>
+                                                    </div>
+                                                    {/* Anonymous */}
+                                                    <div className="text-center">
+                                                        <span className="text-xs text-muted-foreground">{page.anonymousViews.toLocaleString()}</span>
+                                                    </div>
+                                                    {/* Avg duration */}
+                                                    <div className="text-center">
+                                                        <span className="text-xs text-amber-400 font-mono">
+                                                            {page.avgDuration > 0 ? `${mins}:${String(secs).padStart(2, "0")}` : "—"}
+                                                        </span>
+                                                    </div>
+                                                    {/* Mobile % */}
+                                                    <div className="text-center">
+                                                        <span className={`text-xs font-medium ${mobilePct > 60 ? "text-primary" : "text-muted-foreground"}`}>
+                                                            {mobilePct}%
+                                                        </span>
+                                                    </div>
+                                                    {/* Top sources */}
+                                                    <div className="flex flex-wrap gap-1 justify-center">
+                                                        {sources.slice(0, 3).map(s => (
+                                                            <span key={s.k} className={`text-[10px] ${s.color}`}>
+                                                                {s.label} <strong>{s.v}</strong>
+                                                            </span>
+                                                        ))}
+                                                        {sources.length === 0 && <span className="text-[10px] text-muted-foreground">—</span>}
+                                                    </div>
                                                 </div>
-                                                <div className="col-span-2 text-center">
-                                                    <span className="text-sm font-bold text-primary">{page.views.toLocaleString("ar-IQ")}</span>
-                                                </div>
-                                                <div className="col-span-2 text-center">
-                                                    <span className="text-sm text-muted-foreground">{page.uniqueUsers.toLocaleString("ar-IQ")}</span>
-                                                </div>
-                                                <div className="col-span-2 text-center">
-                                                    <span className="text-xs text-muted-foreground">
-                                                        {page.avgDuration ? `${mins}:${String(secs).padStart(2, "0")}` : "—"}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                             )}
                         </CardContent>
