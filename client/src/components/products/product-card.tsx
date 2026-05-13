@@ -15,6 +15,7 @@ import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { trackAddToCart } from "@/lib/analytics";
 import { cardImage } from "@/lib/cloudinary";
+import { CartPulse } from "@/components/ui/micro-animations";
 
 interface ProductCardProps {
   product: Product;
@@ -28,6 +29,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
   const { toast } = useToast();
   const { addItem } = useCart();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [cartAdded, setCartAdded] = useState(false);
 
   // A/B Testing: Button Text
   const buttonVariant = useABTest(EXPERIMENTS.ADD_TO_CART_BUTTON.name);
@@ -46,6 +48,8 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     e.preventDefault();
     e.stopPropagation();
     addItem(product);
+    setCartAdded(true);
+    setTimeout(() => setCartAdded(false), 700);
 
     // GA4: add_to_cart event
     trackAddToCart({
@@ -191,29 +195,31 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
           </CardContent>
 
           <CardFooter className="p-2 sm:p-4 pt-0">
-            <Button
-              className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-              onClick={handleAddToCart}
-              aria-label={`أضف ${product.name} إلى سلة المشتريات`}
-              disabled={!hasPrice || isOutOfStock}
-            >
-              {hasPrice && !isOutOfStock ? (
-                <>
-                  <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-                  {buttonText}
-                </>
-              ) : !hasPrice ? (
-                <>
-                  <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
-                  قريباً جداً
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
-                  نفذت الكمية
-                </>
-              )}
-            </Button>
+            <CartPulse triggered={cartAdded} onComplete={() => setCartAdded(false)}>
+              <Button
+                className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
+                onClick={handleAddToCart}
+                aria-label={`أضف ${product.name} إلى سلة المشتريات`}
+                disabled={!hasPrice || isOutOfStock}
+              >
+                {hasPrice && !isOutOfStock ? (
+                  <>
+                    <ShoppingCart className="w-4 h-4" aria-hidden="true" />
+                    {buttonText}
+                  </>
+                ) : !hasPrice ? (
+                  <>
+                    <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
+                    قريباً جداً
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
+                    نفذت الكمية
+                  </>
+                )}
+              </Button>
+            </CartPulse>
           </CardFooter>
         </Card>
       </Link>

@@ -22,6 +22,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { PageTransition } from "@/components/ui/page-transition";
 
 // Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
@@ -194,13 +195,13 @@ function DeferredThirdPartyAnalytics() {
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/ar" component={Home} />
+      <Route path="/">{() => <PageTransition><Home /></PageTransition>}</Route>
+      <Route path="/ar">{() => <PageTransition><Home /></PageTransition>}</Route>
       <Route path="/products">
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Products />
+              <PageTransition><Products /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -208,11 +209,13 @@ function Router() {
 
       {/* Aquarium Setup Wizard */}
       <Route path="/aquarium-wizard">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <AquariumWizard />
-          </Suspense>
-        </ErrorBoundary>
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><AquariumWizard /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
       </Route>
 
 
@@ -221,7 +224,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <ProductDetails />
+              <PageTransition><ProductDetails /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -231,7 +234,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <EcoFriendlyGuide />
+              <PageTransition><EcoFriendlyGuide /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -242,7 +245,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <BeginnerGuide />
+              <PageTransition><BeginnerGuide /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -253,7 +256,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Calculators />
+              <PageTransition><Calculators /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -264,7 +267,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Journey />
+              <PageTransition><Journey /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -275,7 +278,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <AITools />
+              <PageTransition><AITools /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -290,7 +293,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FishEncyclopedia />
+              <PageTransition><FishEncyclopedia /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -298,28 +301,30 @@ function Router() {
 
       {/* Fish Compatibility Calculator */}
       <Route path="/fish-compatibility">
-        <ErrorBoundary>
-          <Suspense fallback={<PageLoader />}>
-            <FishCompatibility />
-          </Suspense>
-        </ErrorBoundary>
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><FishCompatibility /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
       </Route>
       {/* Alias for /encyclopedia */}
       <Route path="/encyclopedia">
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FishEncyclopedia />
+              <PageTransition><FishEncyclopedia /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
       </Route>
 
       <Route path="/wishlist">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Wishlist /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Wishlist /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/search">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><SearchResults /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><SearchResults /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded compare page */}
@@ -327,7 +332,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Compare />
+              <PageTransition><Compare /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -338,7 +343,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <CommunityGallery />
+              <PageTransition><CommunityGallery /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -349,7 +354,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FishHealthDiagnosis />
+              <PageTransition><FishHealthDiagnosis /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -360,7 +365,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FishPatientsPage />
+              <PageTransition><FishPatientsPage /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -371,7 +376,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <CulturalTwin />
+              <PageTransition><CulturalTwin /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -382,32 +387,32 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FishBreedingCalculator />
+              <PageTransition><FishBreedingCalculator /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
       </Route>
 
       <Route path="/sustainability">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Sustainability /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Sustainability /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/about">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><About /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><About /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/why-aquavo">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><WhyAquavo /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><WhyAquavo /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/return-policy">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><ReturnPolicy /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><ReturnPolicy /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/privacy-policy">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PrivacyPolicy /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><PrivacyPolicy /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/terms">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Terms /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Terms /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/verify-certificate/:id">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><VerifyCertificate /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><VerifyCertificate /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
 
 
@@ -417,7 +422,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Contact />
+              <PageTransition><Contact /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -428,7 +433,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <FAQ />
+              <PageTransition><FAQ /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -438,14 +443,14 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <OrderConfirmation />
+              <PageTransition><OrderConfirmation /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
       </Route>
 
       <Route path="/order-tracking">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><OrderTracking /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><OrderTracking /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
 
       {/* Lazy loaded blog */}
@@ -453,7 +458,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Blog />
+              <PageTransition><Blog /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -464,7 +469,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <BlogPost />
+              <PageTransition><BlogPost /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -475,7 +480,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <InvestPage />
+              <PageTransition><InvestPage /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
@@ -489,7 +494,7 @@ function Router() {
       <Route path="/auth">{() => <Redirect to="/login" />}</Route>
 
       <Route path="/shipping">
-        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Shipping /></Suspense></ErrorBoundary>)}
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Shipping /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/login">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><Login /></Suspense></ErrorBoundary>)}
@@ -511,7 +516,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
-              <Profile />
+              <PageTransition><Profile /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}

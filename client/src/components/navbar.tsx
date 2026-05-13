@@ -9,6 +9,7 @@ import { FontSizeControllerCompact } from "@/components/ui/font-size-controller"
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { CartSuggestions } from "@/components/cart/cart-suggestions";
+import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { formatIQD, generateOrderNumber, cn } from "@/lib/utils";
 import { useCart, CartItem } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
@@ -353,6 +354,9 @@ export default function Navbar() {
                     </div>
                   ) : (
                     <>
+                      <div className="mb-4">
+                        <ShippingProgress />
+                      </div>
                       <div className="flex-1 overflow-auto space-y-4">
                         {cartItems.map((item) => (
                           <div key={item.id} className="flex gap-3 p-3 rounded-lg border bg-card">

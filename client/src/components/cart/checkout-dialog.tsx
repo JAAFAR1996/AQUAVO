@@ -13,6 +13,7 @@ import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 // Sub-components
+import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
 import { CustomerInfoForm } from "./checkout/customer-info-form";
 import { CouponSection } from "./checkout/coupon-section";
@@ -408,6 +409,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                 onPointsChange={handleLoyaltyChange}
               />
             )}
+
+            {!isFreeShipping && <ShippingProgress compact />}
 
             <OrderSummary
               cartTotal={cartTotal}

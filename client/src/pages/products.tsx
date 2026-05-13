@@ -1,4 +1,6 @@
 import { useMemo, useState, useEffect } from "react";
+import { useInView } from "@/hooks/use-in-view";
+import { Reveal } from "@/components/ui/reveal";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -193,6 +195,12 @@ export default function Products() {
     setDisplayCount(prev => prev + 24);
   };
 
+  const { ref: sentinelRef, inView: sentinelInView } = useInView({ threshold: 0.5, once: false });
+
+  useEffect(() => {
+    if (sentinelInView && hasMore) loadMore();
+  }, [sentinelInView, hasMore]);
+
   const isLoading = isAttributesLoading || isProductsLoading;
 
   // Calculate category counts from ALL products (not filtered)
@@ -339,30 +347,22 @@ export default function Products() {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {displayedProducts.map((product, index) => (
-                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
-                      <ProductCard
-                        product={product}
-                        priority={index < 8}
-                        onQuickView={(p) => setQuickViewProduct(p)}
-                        onCompare={(p) => addToCompare(p.id)}
-                      />
-                    </div>
+                    <Reveal key={product.id} delay={Math.min(index % 8 * 60, 400)}>
+                      <div data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
+                        <ProductCard
+                          product={product}
+                          priority={index < 8}
+                          onQuickView={(p) => setQuickViewProduct(p)}
+                          onCompare={(p) => addToCompare(p.id)}
+                        />
+                      </div>
+                    </Reveal>
                   ))}
                 </div>
 
-                {/* Load More Button */}
                 {hasMore && (
-                  <div className="flex justify-center mt-12">
-                    <Button
-                      onClick={loadMore}
-                      size="lg"
-                      className="min-w-[250px] bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-                    >
-                      تحميل المزيد من المنتجات
-                      <span className="mr-2">
-                        ({finalProducts.length - displayCount} متبقي)
-                      </span>
-                    </Button>
+                  <div ref={sentinelRef} className="h-16 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
                   </div>
                 )}
 

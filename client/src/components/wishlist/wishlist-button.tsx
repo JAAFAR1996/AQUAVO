@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types";
 import { cn } from "@/lib/utils";
 import { HeartFloatAnimation } from "./heart-float-animation";
+import { HeartBeat } from "@/components/ui/micro-animations";
 
 interface WishlistButtonProps {
   product: Product;
@@ -62,10 +63,12 @@ export function WishlistButton({
           onClick={handleToggleWishlist}
           aria-label={inWishlist ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} للمفضلة`}
         >
-          <Heart
-            className={cn("w-4 h-4 transition-all", inWishlist && "fill-current")}
-            aria-hidden="true"
-          />
+          <HeartBeat active={inWishlist}>
+            <Heart
+              className={cn("w-4 h-4 transition-all", inWishlist && "fill-current")}
+              aria-hidden="true"
+            />
+          </HeartBeat>
           {inWishlist ? "إزالة من المفضلة" : "أضف للمفضلة"}
         </Button>
       </>
@@ -88,13 +91,15 @@ export function WishlistButton({
         onClick={handleToggleWishlist}
         aria-label={inWishlist ? `إزالة ${product.name} من المفضلة` : `إضافة ${product.name} للمفضلة`}
       >
-        <Heart
-          className={cn(
-            "w-4 h-4 transition-all",
-            inWishlist && "fill-current scale-110"
-          )}
-          aria-hidden="true"
-        />
+        <HeartBeat active={inWishlist}>
+          <Heart
+            className={cn(
+              "w-4 h-4 transition-all",
+              inWishlist && "fill-current scale-110"
+            )}
+            aria-hidden="true"
+          />
+        </HeartBeat>
         {showBadge && totalItems > 0 && (
           <span
             className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
