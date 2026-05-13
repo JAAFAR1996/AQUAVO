@@ -13,7 +13,7 @@ export function ViewerCount({ productId }: ViewerCountProps) {
     <div className="flex items-center gap-2 text-sm">
       <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
       <span className="text-xs text-amber-400/80">
-        {count} شخص يشوف هذا المنتج الحين
+        {count} شخص يشوف هذا المنتج الان
       </span>
     </div>
   );
