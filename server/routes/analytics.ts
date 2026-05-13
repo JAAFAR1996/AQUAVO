@@ -676,6 +676,32 @@ router.get("/sources", requireAdmin, async (req: Request, res: Response, next: N
     }
 });
 
+// ─── GET /api/admin/analytics/pages — top pages by real view count ───────────
+router.get("/pages", requireAdmin, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const days  = Math.min(Number(req.query.days) || 30, 365);
+        const limit = Math.min(Number(req.query.limit) || 30, 100);
+        const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+
+        const rows = await db
+            .select({
+                pagePath:    pageViews.pagePath,
+                views:       sql<number>`count(*)::int`,
+                uniqueUsers: sql<number>`count(distinct ${pageViews.userId})::int`,
+                avgDuration: sql<number>`round(avg(${pageViews.duration}))::int`,
+            })
+            .from(pageViews)
+            .where(gte(pageViews.createdAt, since))
+            .groupBy(pageViews.pagePath)
+            .orderBy(desc(sql`count(*)`))
+            .limit(limit);
+
+        res.json({ pages: rows, days });
+    } catch (err: any) {
+        next(err);
+    }
+});
+
 export function createAnalyticsRouter(): RouterType {
     return router;
 }

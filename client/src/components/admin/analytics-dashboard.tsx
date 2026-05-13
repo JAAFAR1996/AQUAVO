@@ -22,6 +22,7 @@ import {
     Clock,
     Monitor,
     Smartphone,
+    LayoutList,
 } from "lucide-react";
 import {
     LineChart,
@@ -141,6 +142,24 @@ export function AnalyticsDashboard() {
         startedAt: string;
         pages: { path: string; duration: number | null; timestamp: string }[];
     }
+
+    interface PageStat {
+        pagePath: string;
+        views: number;
+        uniqueUsers: number;
+        avgDuration: number | null;
+    }
+
+    const { data: pagesData } = useQuery<{ pages: PageStat[]; days: number }>({
+        queryKey: ["admin-analytics-pages", period],
+        queryFn: async () => {
+            const days = period === "7d" ? 7 : period === "30d" ? 30 : 90;
+            const res = await fetch(`/api/admin/analytics/pages?days=${days}&limit=30`, { credentials: "include" });
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
+        },
+        refetchInterval: 60_000,
+    });
 
     const { data: journeysData } = useQuery<JourneySession[]>({
         queryKey: ["admin-analytics-journeys"],
@@ -319,7 +338,7 @@ export function AnalyticsDashboard() {
 
             {/* Charts */}
             <Tabs defaultValue="sales" dir="rtl">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="sales">
                         <BarChart3 className="w-4 h-4 ml-2" />
                         المبيعات
@@ -331,6 +350,10 @@ export function AnalyticsDashboard() {
                     <TabsTrigger value="traffic">
                         <PieChart className="w-4 h-4 ml-2" />
                         الزيارات
+                    </TabsTrigger>
+                    <TabsTrigger value="pages">
+                        <LayoutList className="w-4 h-4 ml-2" />
+                        الصفحات
                     </TabsTrigger>
                     <TabsTrigger value="journeys">
                         <Route className="w-4 h-4 ml-2" />
@@ -628,6 +651,77 @@ export function AnalyticsDashboard() {
                             ) : (
                                 <div className="py-8 text-center text-muted-foreground text-sm">
                                     لا توجد رحلات مسجلة بعد — ستظهر تلقائياً عند بدء الزيارات
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+
+                {/* Pages Tab */}
+                <TabsContent value="pages" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <LayoutList className="w-5 h-5 text-primary" />
+                                أكثر الصفحات مشاهدة
+                            </CardTitle>
+                            <CardDescription>
+                                بيانات حقيقية من جدول pageViews — آخر {pagesData?.days ?? "…"} يوم
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {!pagesData ? (
+                                <div className="flex items-center justify-center h-32">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                </div>
+                            ) : pagesData.pages.length === 0 ? (
+                                <p className="text-center text-muted-foreground py-8">لا توجد بيانات بعد</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {/* Header */}
+                                    <div className="grid grid-cols-12 gap-2 px-3 py-1 text-xs text-muted-foreground font-medium">
+                                        <span className="col-span-6">الصفحة</span>
+                                        <span className="col-span-2 text-center">المشاهدات</span>
+                                        <span className="col-span-2 text-center">زوار فريدون</span>
+                                        <span className="col-span-2 text-center">متوسط الوقت</span>
+                                    </div>
+                                    {pagesData.pages.map((page, i) => {
+                                        const maxViews = pagesData.pages[0]?.views ?? 1;
+                                        const pct = Math.round((page.views / maxViews) * 100);
+                                        const mins = page.avgDuration ? Math.floor(page.avgDuration / 60) : 0;
+                                        const secs = page.avgDuration ? page.avgDuration % 60 : 0;
+                                        const label = page.pagePath
+                                            .replace(/^\//, "")
+                                            .replace(/\/\d+$/, "/…")
+                                            || "الرئيسية";
+                                        return (
+                                            <div key={page.pagePath} className="grid grid-cols-12 gap-2 items-center px-3 py-2 rounded-lg hover:bg-muted/40 transition-colors">
+                                                <div className="col-span-6 flex items-center gap-2 min-w-0">
+                                                    <span className="text-xs text-muted-foreground w-5 shrink-0">{i + 1}</span>
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-medium truncate" dir="ltr">{page.pagePath}</p>
+                                                        <div className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden">
+                                                            <div
+                                                                className="h-full rounded-full bg-primary/70"
+                                                                style={{ width: `${pct}%`, transition: "width 0.6s ease" }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-2 text-center">
+                                                    <span className="text-sm font-bold text-primary">{page.views.toLocaleString("ar-IQ")}</span>
+                                                </div>
+                                                <div className="col-span-2 text-center">
+                                                    <span className="text-sm text-muted-foreground">{page.uniqueUsers.toLocaleString("ar-IQ")}</span>
+                                                </div>
+                                                <div className="col-span-2 text-center">
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {page.avgDuration ? `${mins}:${String(secs).padStart(2, "0")}` : "—"}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </CardContent>

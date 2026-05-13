@@ -51,6 +51,8 @@ import AnalyticsDashboard from "@/components/admin/analytics-dashboard";
 import { PriceSuggestionsPanel } from "@/components/admin/price-suggestions-panel";
 import { AIInsightsPanel } from "@/components/admin/ai-insights-panel";
 import { AIChatPanel } from "@/components/admin/ai-chat-panel";
+import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
+import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
 import InvoicesList from "@/components/admin/invoices-list";
 import {
@@ -687,6 +689,8 @@ export default function AdminDashboard() {
         <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-13 h-auto p-1 gap-1">
           <TabsTrigger value="products">المنتجات</TabsTrigger>
           <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
+          <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
+          <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
           <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
           <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
@@ -716,6 +720,13 @@ export default function AdminDashboard() {
           <AIInsightsPanel />
         </TabsContent>
 
+        <TabsContent value="ai-monitor" className="space-y-4">
+          <AiMonitorPanel />
+        </TabsContent>
+
+        <TabsContent value="ai-learnings" className="space-y-4">
+          <AiLearningsPanel />
+        </TabsContent>
 
         {/* Notification Log Tab */}
         <TabsContent value="notifications" className="space-y-4">
