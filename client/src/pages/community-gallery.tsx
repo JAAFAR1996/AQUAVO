@@ -1,6 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +43,14 @@ export default function CommunityGallery() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
+
+  // Auto-fill name from logged-in user
+  useEffect(() => {
+    if (user?.fullName && !formData.customerName) {
+      setFormData(prev => ({ ...prev, customerName: user.fullName! }));
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.fullName]);
 
   const { data: submissions = [], isLoading } = useQuery<GallerySubmission[]>({
     queryKey: ["/api/gallery"],
@@ -149,7 +157,7 @@ export default function CommunityGallery() {
     if (!formData.customerName || !formData.customerPhone || !imageFile) {
       toast({
         title: "معلومات ناقصة",
-        description: "يرجى ملء جميع الحقول المطلوبة ورفع صورة",
+        description: "يرجى ملء الاسم ورقم الهاتف ورفع صورة",
         variant: "destructive",
       });
       return;
@@ -188,7 +196,11 @@ export default function CommunityGallery() {
                   أضف صورة للألبوم
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent
+                className="max-w-2xl"
+                onEscapeKeyDown={(e) => { if (imageFile || formData.customerName) e.preventDefault(); }}
+                onInteractOutside={(e) => { if (imageFile || formData.customerName) e.preventDefault(); }}
+              >
                 <DialogHeader>
                   <DialogTitle className="text-2xl">شارك حوض أسماكك في ألبوم العائلة</DialogTitle>
                 </DialogHeader>
@@ -248,7 +260,7 @@ export default function CommunityGallery() {
                     />
                   </div>
 
-                  {/* Phone */}
+                  {/* Phone — optional */}
                   <div>
                     <Label htmlFor="phone">رقم الهاتف *</Label>
                     <Input

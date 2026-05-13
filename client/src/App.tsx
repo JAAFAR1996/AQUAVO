@@ -1,5 +1,6 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { lazy, Suspense, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { PageLoader, AppInitLoader } from "@/components/ui/loaders";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -72,6 +73,7 @@ const CulturalTwin = lazy(() => import("@/pages/cultural-twin"));
 const LinksPage = lazy(() => import("@/pages/links"));
 const TemperatureGuide = lazy(() => import("@/pages/temperature-guide"));
 const InvoiceView = lazy(() => import("@/pages/invoice-view"));
+const Contact = lazy(() => import("@/pages/contact"));
 
 // Lazy load heavy global components
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
@@ -187,20 +189,7 @@ function DeferredThirdPartyAnalytics() {
 }
 
 
-// Loading component for lazy-loaded pages
-function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
-          <div className="absolute inset-0 w-16 h-16 border-4 border-transparent border-b-primary/40 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }}></div>
-        </div>
-        <p className="text-sm text-muted-foreground animate-pulse">جاري التحميل...</p>
-      </div>
-    </div>
-  );
-}
+// PageLoader and AppInitLoader are imported from @/components/ui/loaders
 
 function Router() {
   return (
@@ -423,6 +412,17 @@ function Router() {
 
 
 
+      {/* Contact page */}
+      <Route path="/contact">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Contact />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Lazy loaded FAQ */}
       <Route path="/faq">
         {() => (
@@ -641,7 +641,7 @@ function Router() {
   );
 }
 
-function App() {
+function AppShell() {
   // Initialize device detection (adds body classes automatically)
   useDeviceDetection();
   const [location] = useLocation();
@@ -854,6 +854,36 @@ function PageViewTracker() {
   }, [location, sendDuration]);
 
   return null;
+}
+
+function hasSeenInitLoader() {
+  try {
+    if (typeof window === "undefined") return true;
+    return window.sessionStorage.getItem("aq_init") === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markInitLoaderSeen() {
+  try {
+    if (typeof window === "undefined") return;
+    window.sessionStorage.setItem("aq_init", "1");
+  } catch {
+    // Storage can be unavailable in private/sandboxed browser contexts.
+  }
+}
+
+// Aurora init loader shown once per session (first paint only), then AppShell takes over
+function App() {
+  const [initDone, setInitDone] = useState(hasSeenInitLoader);
+  const handleInitDone = useCallback(() => {
+    markInitLoaderSeen();
+    setInitDone(true);
+  }, []);
+
+  if (!initDone) return <AppInitLoader onDone={handleInitDone} />;
+  return <AppShell />;
 }
 
 export default App;

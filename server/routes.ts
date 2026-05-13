@@ -51,6 +51,19 @@ export async function registerRoutes(
   app: express.Application,
 ): Promise<Server> {
 
+  // Public settings endpoint — no auth, used by checkout to display shipping fee
+  app.get("/api/settings/shipping", async (_req, res) => {
+    try {
+      const shippingFee = await storage.getSetting("shipping_fee");
+      res.json({
+        shippingFee: Number(shippingFee ?? 5000),
+        freeShippingThreshold: 100000,
+      });
+    } catch {
+      res.json({ shippingFee: 5000, freeShippingThreshold: 100000 });
+    }
+  });
+
   // API Routes
   app.use("/api/fish", createFishRouter(storage));
   app.use("/api/products", createProductRouter());

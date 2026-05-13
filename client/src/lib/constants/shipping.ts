@@ -1,10 +1,10 @@
 export const DELIVERY_FEE = 5000;
 export const BAGHDAD_SHIPPING = DELIVERY_FEE;
 export const OTHER_GOVERNORATES_SHIPPING = DELIVERY_FEE;
-export const FREE_SHIPPING_THRESHOLD = Infinity; // No free shipping — fixed 5,000 IQD for all Iraq
+export const FREE_SHIPPING_THRESHOLD = 100000;
 export const DELIVERY_DAYS = "24 ساعة";
 export const BAGHDAD_DELIVERY_DAYS = DELIVERY_DAYS;
 export const OTHER_DELIVERY_DAYS = DELIVERY_DAYS;
-export const DELIVERY_TEXT = "توصيل ثابت لكل العراق: 5,000 د.ع";
+export const DELIVERY_TEXT = `توصيل ثابت لكل العراق: ${DELIVERY_FEE.toLocaleString()} د.ع. مجاني للطلبات من ${FREE_SHIPPING_THRESHOLD.toLocaleString()} د.ع وأكثر`;
 export const WHATSAPP_NUMBER = "9647747880673";
 export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;

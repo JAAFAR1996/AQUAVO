@@ -1,4 +1,4 @@
-import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products } from "../../shared/schema.js";
+import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings } from "../../shared/schema.js";
 import { eq, desc, and, sql, gte, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
 
@@ -115,8 +115,10 @@ export class OrderStorage {
                     .where(eq(products.id, product.id));
             }
 
-            // 2. Calculate Delivery Fee (Logic must match frontend: 5000 if < 100000, else 0)
-            let deliveryFee = subtotal > 100000 ? 0 : 5000;
+            // 2. Calculate Delivery Fee — reads from settings DB (fallback 5000)
+            const shippingRow = await db.select().from(settings).where(eq(settings.key, "shipping_fee")).limit(1);
+            const configuredFee = Number(shippingRow[0]?.value ?? 5000);
+            let deliveryFee = subtotal >= 100000 ? 0 : configuredFee;
 
             // 3. Apply Coupon
             let discount = 0;

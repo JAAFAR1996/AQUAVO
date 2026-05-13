@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
@@ -9,7 +10,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
+import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
@@ -24,13 +25,40 @@ interface CheckoutDialogProps {
   onOpenChange: (open: boolean) => void;
   cartItems: CartItem[];
   cartTotal: number;
-  onCheckoutComplete: (orderData: { customerInfo: CustomerInfo; items: CartItem[]; total: number; orderId?: string; orderNumber?: string }) => void;
+  onCheckoutComplete: (orderData: {
+    customerInfo: CustomerInfo;
+    items: CartItem[];
+    total: number;
+    subtotal?: number;
+    deliveryFee?: number;
+    discount?: number;
+    roundedTotal?: number;
+    cashbackUsed?: number;
+    pointsEarned?: number;
+    cashbackEarned?: number;
+    orderId?: string;
+    orderNumber?: string;
+  }) => void;
+}
+
+interface ServerOrderItem {
+  productId?: string;
+  productName?: string;
+  quantity?: number;
+  priceAtPurchase?: string | number;
 }
 
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
   const { user } = useAuth();
   const { clearCart } = useCart();
   const { toast } = useToast();
+
+  // Read shipping fee from settings (admin-configurable)
+  const { data: shippingConfig } = useQuery<{ shippingFee: number; freeShippingThreshold: number }>({
+    queryKey: ["/api/settings/shipping"],
+    staleTime: 1000 * 60 * 10,
+  });
+  const SHIPPING_FEE = shippingConfig?.shippingFee ?? 5000;
   const [step, setStep] = useState<'info' | 'confirm'>('info');
   const [customerInfo, setCustomerInfo] = useState<CustomerInfo>({
     name: '',
@@ -162,6 +190,12 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
     setIsSubmitting(true);
     try {
+      const governorateLabel = GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label;
+      const submittedCustomerInfo = {
+        ...customerInfo,
+        address: `${governorateLabel || customerInfo.governorate} - ${customerInfo.address}`,
+      };
+
       const response = await fetch("/api/orders", {
         method: "POST",
         credentials: "include",
@@ -169,10 +203,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           "Content-Type": "application/json",
         }),
         body: JSON.stringify({
-          customerInfo: {
-            ...customerInfo,
-            address: `${GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`
-          },
+          customerInfo: submittedCustomerInfo,
           items: cartItems.map(item => ({
             ...item,
             productId: item.productId
@@ -193,14 +224,44 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       }
 
       const orderData = await response.json();
+      const serverTotal = Number(orderData.total ?? grandTotal);
+      const serverDeliveryFee = Number(orderData.shippingCost ?? deliveryFee);
+      const serverDiscount = Number(orderData.discountTotal ?? discount);
+      const serverRoundedTotal = Number(orderData.loyalty?.roundedTotal ?? orderData.roundedTotal ?? serverTotal);
+      const serverItems = Array.isArray(orderData.items) ? orderData.items as ServerOrderItem[] : [];
+      const invoiceItems = serverItems.length > 0
+        ? serverItems.map((item) => {
+            const cartItem = cartItems.find((cartItem) => cartItem.productId === item.productId);
+            const productId = item.productId || cartItem?.productId || cartItem?.id || "";
+            return {
+              id: cartItem?.id || productId,
+              productId,
+              name: item.productName || cartItem?.name || productId,
+              price: Number(item.priceAtPurchase ?? cartItem?.price ?? 0),
+              quantity: item.quantity || cartItem?.quantity || 1,
+              image: cartItem?.image || "",
+              slug: cartItem?.slug || "",
+              variantId: cartItem?.variantId,
+              variantLabel: cartItem?.variantLabel,
+            };
+          })
+        : cartItems;
+      const serverSubtotal = invoiceItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
       // Complete order first — never let pixel errors block this
       onCheckoutComplete({
-        customerInfo,
-        items: cartItems,
-        total: cartTotal,
+        customerInfo: submittedCustomerInfo,
+        items: invoiceItems,
+        total: serverTotal,
+        subtotal: serverSubtotal,
+        deliveryFee: serverDeliveryFee,
+        discount: serverDiscount,
+        roundedTotal: serverRoundedTotal,
+        cashbackUsed: orderData.loyalty?.cashbackUsed ?? 0,
+        pointsEarned: orderData.loyalty?.pointsEarned ?? 0,
+        cashbackEarned: orderData.loyalty?.cashbackEarned ?? 0,
         orderId: orderData.id,
-        orderNumber: orderData.id
+        orderNumber: orderData.orderNumber ?? orderData.id
       });
 
       clearCart();
@@ -259,9 +320,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
     setStep('info');
   };
 
-  // Shipping Logic: بغداد 5,000 — خارج بغداد 8,000
-  const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
-  const deliveryFee = (cartTotal > FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping") ? 0 : baseDeliveryFee;
+  // Shipping: ثابت لكل العراق — يُقرأ من إعدادات الأدمن
+  const deliveryFee = (cartTotal >= FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping") ? 0 : SHIPPING_FEE;
   const isFreeShipping = deliveryFee === 0;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);

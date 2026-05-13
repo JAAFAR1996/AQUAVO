@@ -7,6 +7,7 @@ import { formatIQD, formatDate, formatShortDate } from "@/lib/utils";
 import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
+import { DELIVERY_FEE, FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -64,8 +65,10 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     (sum, item) => sum + (item.price * item.quantity), 0
   );
 
-  const deliveryFee = orderData?.deliveryFee ?? Math.max(0, grandTotal - calculatedSubtotal + (orderData?.discount ?? 0));
   const discount = orderData?.discount ?? 0;
+  const inferredDeliveryFee = Math.max(0, grandTotal - calculatedSubtotal + discount);
+  const fallbackDeliveryFee = calculatedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DELIVERY_FEE;
+  const deliveryFee = orderData?.deliveryFee ?? (inferredDeliveryFee > 0 ? inferredDeliveryFee : fallbackDeliveryFee);
 
   // المبلغ اللي يدفعه نقداً = roundedTotal مباشرة (الكاش باك مخصوم قبل التقريب)
   const actualPayAmount = roundedTotal;

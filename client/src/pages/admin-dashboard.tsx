@@ -57,6 +57,7 @@ import {
   Plus,
   Pencil,
   Trash2,
+  Copy,
   Search,
   Package,
   ShoppingCart,
@@ -467,6 +468,33 @@ export default function AdminDashboard() {
 
     deleteProductMutation.mutate(productId);
   };
+
+  const duplicateProductMutation = useMutation({
+    mutationFn: async (product: Product) => {
+      const { id, ...data } = product as Product & Record<string, unknown>;
+      void id;
+      const payload = {
+        ...data,
+        name: `نسخة من ${product.name}`,
+        slug: `${product.slug}-copy-${Date.now()}`,
+      };
+      const res = await fetch("/api/admin/products", {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error("فشل نسخ المنتج");
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({ title: "تم النسخ", description: "تم إنشاء نسخة من المنتج بنجاح" });
+      void queryClient.invalidateQueries({ queryKey: ["products"] });
+    },
+    onError: (error: Error) => {
+      toast({ title: "خطأ", description: error.message, variant: "destructive" });
+    },
+  });
 
   const openEditDialog = (product: Product) => {
     setSelectedProduct(product);
@@ -906,6 +934,15 @@ export default function AdminDashboard() {
                               </Button>
                               <Button
                                 size="sm"
+                                variant="outline"
+                                title="نسخ المنتج"
+                                disabled={duplicateProductMutation.isPending}
+                                onClick={() => duplicateProductMutation.mutate(product)}
+                              >
+                                <Copy className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
                                 variant="destructive"
                                 onClick={() => handleDeleteProduct(product.id)}
                               >
@@ -1057,7 +1094,22 @@ export default function AdminDashboard() {
 
       {/* Product Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+        <DialogContent
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          dir="rtl"
+          onEscapeKeyDown={(e) => {
+            if (formData.name) {
+              e.preventDefault();
+              if (window.confirm("هل تريد إغلاق النموذج؟ سيتم فقدان البيانات غير المحفوظة.")) {
+                setIsDialogOpen(false);
+                resetForm();
+              }
+            }
+          }}
+          onInteractOutside={(e) => {
+            if (formData.name) e.preventDefault();
+          }}
+        >
           <DialogHeader>
             <DialogTitle>
               {isEditMode ? "تعديل المنتج" : "إضافة منتج جديد"}

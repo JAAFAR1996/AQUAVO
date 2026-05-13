@@ -228,7 +228,7 @@ export default function CheckoutPage() {
   };
 
   const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
-  const deliveryFee = cartTotal > FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping" ? 0 : baseDeliveryFee;
+  const deliveryFee = cartTotal >= FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping" ? 0 : baseDeliveryFee;
   const isFreeShipping = deliveryFee === 0;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);

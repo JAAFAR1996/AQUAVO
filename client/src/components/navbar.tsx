@@ -40,9 +40,18 @@ interface OrderData {
     phone: string;
     address: string;
     notes: string;
+    governorate?: string;
   };
   items: CartItem[];
   total: number;
+  subtotal?: number;
+  deliveryFee?: number;
+  discount?: number;
+  roundedTotal?: number;
+  cashbackUsed?: number;
+  pointsEarned?: number;
+  cashbackEarned?: number;
+  status?: string;
   orderNumber: string;
   orderDate: Date;
 }
@@ -103,7 +112,7 @@ export default function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  const handleCheckoutComplete = (data: { customerInfo: OrderData['customerInfo']; items: CartItem[]; total: number; orderId?: string; orderNumber?: string }) => {
+  const handleCheckoutComplete = (data: Omit<OrderData, "orderNumber" | "orderDate"> & { orderId?: string; orderNumber?: string }) => {
     const newOrderData: OrderData = {
       ...data,
       orderNumber: data.orderNumber || generateOrderNumber(),
