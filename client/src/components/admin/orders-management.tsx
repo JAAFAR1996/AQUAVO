@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Eye, AlertTriangle } from "lucide-react";
+import { Package, Search, Eye, AlertTriangle, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -68,6 +68,7 @@ interface Order {
   pointsEarned?: number;
   roundingCashback?: number;
   notes?: string;
+  codReceived?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -81,6 +82,8 @@ const ORDER_STATUSES = {
   rejected: { label: "رفض الاستلام ❌", color: "bg-red-600 hover:bg-red-700" },
   returned: { label: "تم الاسترجاع 📦", color: "bg-purple-500 hover:bg-purple-600 text-white" },
   cancelled: { label: "ملغي", color: "bg-gray-500 hover:bg-gray-600" },
+  rejected_returned: { label: "رجع للبائع", color: "bg-orange-600 hover:bg-orange-700" },
+  rejected_carrier:  { label: "بقي بالشركة", color: "bg-rose-700 hover:bg-rose-800" },
 };
 
 const getDisplayTotal = (order: Order) => {
@@ -103,6 +106,7 @@ export function OrdersManagement() {
   // Triple confirmation state for rejection
   const [rejectOrderId, setRejectOrderId] = useState<string | null>(null);
   const [rejectStep, setRejectStep] = useState(0);
+  const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -162,6 +166,24 @@ export function OrdersManagement() {
     } catch (error: any) {
       console.error("Error updating order:", error);
       toast({ title: "خطأ", description: error.message || "فشل تحديث الحالة", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteOrder = async () => {
+    if (!deleteOrderId) return;
+    try {
+      const response = await fetch(`/api/admin/orders/${deleteOrderId}`, {
+        method: "DELETE",
+        headers: addCsrfHeader({}),
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("فشل الحذف");
+      setOrders((prev) => prev.filter((o) => o.id !== deleteOrderId));
+      toast({ title: "تم الحذف", description: "تم حذف الطلب بنجاح" });
+    } catch {
+      toast({ title: "خطأ", description: "فشل حذف الطلب", variant: "destructive" });
+    } finally {
+      setDeleteOrderId(null);
     }
   };
 
@@ -286,6 +308,14 @@ export function OrdersManagement() {
                         <Button size="sm" variant="outline" onClick={() => { setSelectedOrder(order); setIsDetailOpen(true); }}>
                           <Eye className="h-4 w-4" />
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
+                          onClick={() => setDeleteOrderId(order.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
 
                         {order.status === 'pending' && (
                           <Button size="sm" className="bg-yellow-500 hover:bg-yellow-600 text-black" onClick={() => handleStatusChange(order.id, 'processing')}>
@@ -350,6 +380,27 @@ export function OrdersManagement() {
             <Button onClick={handleRejectConfirm} className="bg-red-600 hover:bg-red-700 text-white">
               {rejectStep < 3 ? `تأكيد (${rejectStep}/3)` : "🔴 رفض نهائي!"}
             </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Order AlertDialog */}
+      <AlertDialog open={!!deleteOrderId} onOpenChange={(open) => { if (!open) setDeleteOrderId(null); }}>
+        <AlertDialogContent className="bg-[#0d1f3c] border-[#1e3a5f]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">تأكيد حذف الطلب</AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-400">
+              هل تريد حذف هذا الطلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#1e3a5f] text-gray-300">إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleDeleteOrder}
+            >
+              حذف نهائي
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

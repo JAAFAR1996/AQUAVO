@@ -38,6 +38,7 @@ export default function InvoicesList() {
   const [showCreator, setShowCreator] = useState(false);
   const [stats, setStats] = useState<Record<string, number>>({});
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
   const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://www.aquavoiq.com";
 
@@ -89,6 +90,24 @@ export default function InvoicesList() {
     } catch (e: any) {
       toast({ title: "خطأ", description: e.message, variant: "destructive" });
     } finally { setActionLoading(null); }
+  };
+
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoiceId) return;
+    try {
+      const response = await fetch(`/api/admin/invoices/${deleteInvoiceId}`, {
+        method: "DELETE",
+        headers: addCsrfHeader({}),
+        credentials: "include",
+      });
+      if (!response.ok) throw new Error("فشل الحذف");
+      setInvoices((prev) => prev.filter((inv) => inv.id !== deleteInvoiceId));
+      toast({ title: "تم الحذف", description: "تم حذف الفاتورة" });
+    } catch {
+      toast({ title: "خطأ", description: "فشل حذف الفاتورة", variant: "destructive" });
+    } finally {
+      setDeleteInvoiceId(null);
+    }
   };
 
   const copyLink = (token: string) => {
@@ -217,6 +236,18 @@ export default function InvoicesList() {
                           <XCircle size={13} />
                         </button>
                       )}
+                      {/* حذف */}
+                      <button
+                        onClick={() => setDeleteInvoiceId(inv.id)}
+                        title="حذف"
+                        style={{
+                          padding: "4px 10px", borderRadius: 6, cursor: "pointer",
+                          background: "#ef444420", color: "#ef4444", border: "1px solid #ef444440",
+                          fontSize: 12, fontWeight: 600,
+                        }}
+                      >
+                        حذف
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -232,6 +263,38 @@ export default function InvoicesList() {
           onClose={() => setShowCreator(false)}
           onSaved={fetchAll}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteInvoiceId && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000,
+        }}>
+          <div style={{
+            background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 12,
+            padding: 24, maxWidth: 400, width: "90%",
+          }}>
+            <h3 style={{ color: "#fff", margin: "0 0 8px" }}>تأكيد حذف الفاتورة</h3>
+            <p style={{ color: "#94a3b8", margin: "0 0 20px", fontSize: 14 }}>
+              هل تريد حذف هذه الفاتورة نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.
+            </p>
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setDeleteInvoiceId(null)}
+                style={{ padding: "8px 16px", borderRadius: 6, background: "#1e3a5f", color: "#94a3b8", border: "none", cursor: "pointer" }}
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleDeleteInvoice}
+                style={{ padding: "8px 16px", borderRadius: 6, background: "#ef4444", color: "#fff", border: "none", cursor: "pointer" }}
+              >
+                حذف نهائي
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
