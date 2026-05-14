@@ -29,6 +29,13 @@
       "when": 1771807297298,
       "tag": "0003_tidy_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778718130008,
+      "tag": "0004_slim_red_shift",
+      "breakpoints": true
     }
   ]
 }
