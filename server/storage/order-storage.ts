@@ -53,6 +53,12 @@ export class OrderStorage {
         return updatedOrder;
     }
 
+    async deleteOrder(id: string): Promise<boolean> {
+        const db = this.ensureDb();
+        const result = await db.delete(orders).where(eq(orders.id, id)).returning({ id: orders.id });
+        return result.length > 0;
+    }
+
     /**
      * Generate unique order number based on database sequence
      * Format: FW-YYMMDD-XXXX where XXXX is sequential for the day

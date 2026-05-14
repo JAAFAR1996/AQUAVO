@@ -280,6 +280,13 @@ export class InvoiceStorage {
     });
     return stats;
   }
+
+  async deleteById(id: string): Promise<boolean> {
+    const db = getDb();
+    if (!db) throw new Error("DB not initialized");
+    const result = await db.delete(manualInvoices).where(eq(manualInvoices.id, id)).returning({ id: manualInvoices.id });
+    return result.length > 0;
+  }
 }
 
 export const invoiceStorage = new InvoiceStorage();
