@@ -86,6 +86,10 @@ export const products = pgTable("products", {
   // Product variants (for products with multiple sizes/options like HYGGER)
   variants: jsonb("variants").$type<ProductVariant[] | null>(),
   hasVariants: boolean("has_variants").notNull().default(false),
+  // Accounting: cost fields (set by admin manually)
+  costPrice: numeric("cost_price").default("0"),
+  packagingCost: numeric("packaging_cost").default("0"),
+  insertCost: numeric("insert_cost").default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),
