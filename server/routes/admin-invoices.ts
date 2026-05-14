@@ -92,6 +92,18 @@ router.post("/:id/cancel", async (req: Request, res: Response, next: NextFunctio
   } catch (err) { next(err); }
 });
 
+/** DELETE /api/admin/invoices/:id — حذف نهائي */
+router.delete("/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const deleted = await invoiceStorage.deleteById(req.params.id);
+    if (!deleted) {
+      res.status(404).json({ success: false, message: "الفاتورة غير موجودة" });
+      return;
+    }
+    res.json({ success: true });
+  } catch (err) { next(err); }
+});
+
 export function createAdminInvoicesRouter() {
   return router;
 }
