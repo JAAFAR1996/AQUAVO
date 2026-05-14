@@ -1,4 +1,4 @@
-import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings } from "../../shared/schema.js";
+import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, gte, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
 
@@ -55,6 +55,16 @@ export class OrderStorage {
 
     async deleteOrder(id: string): Promise<boolean> {
         const db = this.ensureDb();
+        // Clear nullable FK references first
+        await db.update(referrals).set({ firstOrderId: null } as any).where(eq(referrals.firstOrderId as any, id));
+        await db.update(autoOrders).set({ lastOrderId: null } as any).where(eq(autoOrders.lastOrderId as any, id));
+        await db.update(loyaltyTransactions).set({ orderId: null } as any).where(eq(loyaltyTransactions.orderId as any, id));
+        await db.update(loyaltyCoupons).set({ usedOrderId: null } as any).where(eq(loyaltyCoupons.usedOrderId as any, id));
+        // Delete child rows with NOT NULL FK
+        await db.delete(returnRequests).where(eq(returnRequests.orderId, id));
+        await db.delete(orderItems).where(eq(orderItems.orderId, id));
+        await db.delete(payments).where(eq(payments.orderId, id));
+        // Now delete the order itself
         const result = await db.delete(orders).where(eq(orders.id, id)).returning({ id: orders.id });
         return result.length > 0;
     }

@@ -25,6 +25,7 @@ export interface IStorage {
     getOrder(id: string): Promise<Order | undefined>;
     createOrder(order: Partial<Order>): Promise<Order>;
     updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined>;
+    deleteOrder(id: string): Promise<boolean>;
     getReviews(productId: string): Promise<Review[]>;
     getAllReviews(): Promise<Review[]>;
     getReview(id: string): Promise<Review | undefined>;
