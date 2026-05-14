@@ -73,9 +73,15 @@ export default function AccountingPanel() {
   const { toast } = useToast();
   const qc = useQueryClient();
   const [period, setPeriod] = useState<Period>("month");
-  const [view, setView] = useState<"products" | "orders">("products");
+  const [view, setView] = useState<"products" | "orders" | "cod" | "coupons">("products");
   const [editProduct, setEditProduct] = useState<ProductProfit | null>(null);
   const [costs, setCosts] = useState({ costPrice: 0, packagingCost: 0, insertCost: 0 });
+  const [showSettlement, setShowSettlement] = useState(false);
+  const [settlementForm, setSettlementForm] = useState({ carrier: "", amount: "", notes: "" });
+  const [newCostDate, setNewCostDate] = useState("");
+  const [costHistory, setCostHistory] = useState<Array<{
+    id: string; effectiveFrom: string; costPrice: string; packagingCost: string; insertCost: string;
+  }>>([]);
 
   const { data: summary, isLoading: loadingSum } = useQuery<Summary>({
     queryKey: ["accounting-summary", period],
@@ -105,6 +111,32 @@ export default function AccountingPanel() {
     enabled: view === "orders",
   });
 
+  const { data: codData } = useQuery({
+    queryKey: ["/api/admin/accounting/cod-summary"],
+    queryFn: async () => {
+      const r = await fetch("/api/admin/accounting/cod-summary", { credentials: "include" });
+      if (!r.ok) throw new Error("failed");
+      const j = await r.json();
+      return j.data as {
+        totalCod: number;
+        totalReceived: number;
+        totalPending: number;
+        settlements: Array<{ id: string; carrier: string; amount: string; notes: string | null; createdAt: string }>;
+      };
+    },
+  });
+
+  const { data: couponsData } = useQuery({
+    queryKey: ["/api/admin/accounting/coupons", period],
+    queryFn: async () => {
+      const periodParam = (period as string) || "month";
+      const r = await fetch(`/api/admin/accounting/coupons?period=${periodParam}`, { credentials: "include" });
+      if (!r.ok) throw new Error("failed");
+      const j = await r.json();
+      return j.data as Array<{ couponCode: string; usageCount: number; totalDiscount: number; avgDiscount: number }>;
+    },
+  });
+
   const saveCosts = useMutation({
     mutationFn: async () => {
       if (!editProduct) return;
@@ -124,6 +156,39 @@ export default function AccountingPanel() {
     },
     onError: () => toast({ title: "خطأ في الحفظ", variant: "destructive" }),
   });
+
+  const handleCreateSettlement = async () => {
+    if (!settlementForm.carrier || !settlementForm.amount) return;
+    try {
+      const r = await fetch("/api/admin/accounting/settlements", {
+        method: "POST",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+        body: JSON.stringify({
+          carrier: settlementForm.carrier,
+          amount: Number(settlementForm.amount),
+          notes: settlementForm.notes || undefined,
+        }),
+      });
+      if (!r.ok) throw new Error("فشل");
+      await qc.invalidateQueries({ queryKey: ["/api/admin/accounting/cod-summary"] });
+      setShowSettlement(false);
+      setSettlementForm({ carrier: "", amount: "", notes: "" });
+      toast({ title: "تم تسجيل الدفعة" });
+    } catch {
+      toast({ title: "خطأ", description: "فشل تسجيل الدفعة", variant: "destructive" });
+    }
+  };
+
+  const fetchCostHistory = async (productId: string) => {
+    try {
+      const r = await fetch(`/api/admin/accounting/cost-history/${productId}`, { credentials: "include" });
+      if (r.ok) {
+        const j = await r.json();
+        setCostHistory(j.data);
+      }
+    } catch { /* ignore */ }
+  };
 
   return (
     <div className="space-y-6 p-4" dir="rtl">
@@ -209,6 +274,18 @@ export default function AccountingPanel() {
         >
           تفصيل الطلبات
         </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-t ${view === "cod" ? "bg-[#199bb8] text-white" : "text-[#199bb8]"}`}
+          onClick={() => setView("cod")}
+        >
+          شركة الشحن
+        </button>
+        <button
+          className={`px-4 py-2 text-sm rounded-t ${view === "coupons" ? "bg-[#199bb8] text-white" : "text-[#199bb8]"}`}
+          onClick={() => setView("coupons")}
+        >
+          الكوبونات
+        </button>
       </div>
 
       {/* Products Table */}
@@ -255,6 +332,7 @@ export default function AccountingPanel() {
                       onClick={() => {
                         setEditProduct(row);
                         setCosts({ costPrice: row.cogs / (row.unitsSold || 1), packagingCost: 0, insertCost: 0 });
+                        fetchCostHistory(row.productId);
                       }}
                     >
                       <Pencil className="w-3 h-3 ml-1" /> تعديل
@@ -307,6 +385,106 @@ export default function AccountingPanel() {
         </div>
       )}
 
+      {/* COD Section */}
+      {view === "cod" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+            <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, padding: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>إجمالي COD المسلّم</div>
+              <div style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>
+                {(codData?.totalCod ?? 0).toLocaleString()} د.ع
+              </div>
+            </div>
+            <div style={{ background: "#0d1f3c", border: "1px solid #22c55e40", borderRadius: 10, padding: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>مستلم من الشركة</div>
+              <div style={{ color: "#22c55e", fontSize: 20, fontWeight: 700 }}>
+                {(codData?.totalReceived ?? 0).toLocaleString()} د.ع
+              </div>
+            </div>
+            <div style={{ background: "#0d1f3c", border: "1px solid #ef444440", borderRadius: 10, padding: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>باقي عند الشركة</div>
+              <div style={{ color: "#ef4444", fontSize: 20, fontWeight: 700 }}>
+                {(codData?.totalPending ?? 0).toLocaleString()} د.ع
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowSettlement(true)}
+            style={{ alignSelf: "flex-start", padding: "8px 16px", borderRadius: 8, background: "#199bb8", color: "#fff", border: "none", cursor: "pointer", fontWeight: 600 }}
+          >
+            تسجيل دفعة جديدة
+          </button>
+          <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ borderBottom: "1px solid #1e3a5f" }}>
+                  {["شركة الشحن", "المبلغ", "ملاحظات", "التاريخ"].map((h) => (
+                    <th key={h} style={{ padding: "10px 14px", textAlign: "right", color: "#94a3b8", fontSize: 12 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {(codData?.settlements ?? []).map((s) => (
+                  <tr key={s.id} style={{ borderBottom: "1px solid #1e3a5f20" }}>
+                    <td style={{ padding: "10px 14px", color: "#fff" }}>{s.carrier}</td>
+                    <td style={{ padding: "10px 14px", color: "#22c55e" }}>{Number(s.amount).toLocaleString()} د.ع</td>
+                    <td style={{ padding: "10px 14px", color: "#94a3b8" }}>{s.notes ?? "—"}</td>
+                    <td style={{ padding: "10px 14px", color: "#94a3b8" }}>{new Date(s.createdAt).toLocaleDateString("ar-IQ")}</td>
+                  </tr>
+                ))}
+                {(codData?.settlements ?? []).length === 0 && (
+                  <tr><td colSpan={4} style={{ padding: 20, textAlign: "center", color: "#94a3b8" }}>لا توجد دفعات مسجلة</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {showSettlement && (
+            <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+              <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 12, padding: 24, maxWidth: 400, width: "90%" }}>
+                <h3 style={{ color: "#fff", margin: "0 0 16px" }}>تسجيل دفعة من شركة الشحن</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <input placeholder="اسم شركة الشحن" value={settlementForm.carrier} onChange={(e) => setSettlementForm((p) => ({ ...p, carrier: e.target.value }))} style={{ padding: "8px 12px", borderRadius: 6, background: "#0a1628", border: "1px solid #1e3a5f", color: "#fff" }} />
+                  <input type="number" placeholder="المبلغ (د.ع)" value={settlementForm.amount} onChange={(e) => setSettlementForm((p) => ({ ...p, amount: e.target.value }))} style={{ padding: "8px 12px", borderRadius: 6, background: "#0a1628", border: "1px solid #1e3a5f", color: "#fff" }} />
+                  <input placeholder="ملاحظات (اختياري)" value={settlementForm.notes} onChange={(e) => setSettlementForm((p) => ({ ...p, notes: e.target.value }))} style={{ padding: "8px 12px", borderRadius: 6, background: "#0a1628", border: "1px solid #1e3a5f", color: "#fff" }} />
+                </div>
+                <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 20 }}>
+                  <button onClick={() => setShowSettlement(false)} style={{ padding: "8px 16px", borderRadius: 6, background: "#1e3a5f", color: "#94a3b8", border: "none", cursor: "pointer" }}>إلغاء</button>
+                  <button onClick={handleCreateSettlement} style={{ padding: "8px 16px", borderRadius: 6, background: "#199bb8", color: "#fff", border: "none", cursor: "pointer" }}>حفظ</button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Coupons Section */}
+      {view === "coupons" && (
+        <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr style={{ borderBottom: "1px solid #1e3a5f" }}>
+                {["رمز الكوبون", "عدد الاستخدامات", "إجمالي الخصم", "متوسط الخصم"].map((h) => (
+                  <th key={h} style={{ padding: "10px 14px", textAlign: "right", color: "#94a3b8", fontSize: 12 }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {(couponsData ?? []).map((c) => (
+                <tr key={c.couponCode} style={{ borderBottom: "1px solid #1e3a5f20" }}>
+                  <td style={{ padding: "10px 14px", color: "#fff", fontFamily: "monospace" }}>{c.couponCode}</td>
+                  <td style={{ padding: "10px 14px", color: "#199bb8" }}>{c.usageCount}</td>
+                  <td style={{ padding: "10px 14px", color: "#ef4444" }}>{c.totalDiscount.toLocaleString()} د.ع</td>
+                  <td style={{ padding: "10px 14px", color: "#94a3b8" }}>{c.avgDiscount.toLocaleString()} د.ع</td>
+                </tr>
+              ))}
+              {(couponsData ?? []).length === 0 && (
+                <tr><td colSpan={4} style={{ padding: 20, textAlign: "center", color: "#94a3b8" }}>لا توجد كوبونات في هذه الفترة</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
       {/* Edit Costs Dialog */}
       <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
         <DialogContent className="bg-[#0a1628] border-[#199bb8]/30 text-white" dir="rtl">
@@ -340,6 +518,51 @@ export default function AccountingPanel() {
                 onChange={e => setCosts(c => ({ ...c, insertCost: Number(e.target.value) }))}
                 className="bg-[#010611] border-[#199bb8]/40 text-white"
               />
+            </div>
+            {/* Cost History Section */}
+            <div style={{ borderTop: "1px solid #1e3a5f", marginTop: 16, paddingTop: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>تطبيق السعر من تاريخ محدد (اختياري):</div>
+              <input
+                type="date"
+                value={newCostDate}
+                onChange={(e) => setNewCostDate(e.target.value)}
+                style={{ padding: "6px 10px", borderRadius: 6, background: "#0a1628", border: "1px solid #1e3a5f", color: "#fff", width: "100%", marginBottom: 8 }}
+              />
+              <button
+                disabled={!newCostDate}
+                onClick={async () => {
+                  const productId = editProduct?.productId;
+                  if (!productId || !newCostDate) return;
+                  await fetch(`/api/admin/accounting/cost-history/${productId}`, {
+                    method: "POST",
+                    headers: addCsrfHeader({ "Content-Type": "application/json" }),
+                    credentials: "include",
+                    body: JSON.stringify({
+                      costPrice: Number(costs?.costPrice ?? 0),
+                      packagingCost: Number(costs?.packagingCost ?? 0),
+                      insertCost: Number(costs?.insertCost ?? 0),
+                      effectiveFrom: newCostDate,
+                    }),
+                  });
+                  await fetchCostHistory(productId);
+                  setNewCostDate("");
+                  toast({ title: "تم حفظ السعر الجديد من التاريخ المحدد" });
+                }}
+                style={{ padding: "6px 12px", borderRadius: 6, background: "#199bb8", color: "#fff", border: "none", cursor: "pointer", opacity: newCostDate ? 1 : 0.5 }}
+              >
+                حفظ بتاريخ محدد
+              </button>
+              {costHistory.length > 0 && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6 }}>التاريخ السابق:</div>
+                  {costHistory.slice(0, 5).map((h, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#94a3b8", padding: "4px 0", borderBottom: "1px solid #1e3a5f20" }}>
+                      <span>{new Date(h.effectiveFrom).toLocaleDateString("ar-IQ")}</span>
+                      <span>تكلفة: {h.costPrice} | تغليف: {h.packagingCost} | كارت: {h.insertCost}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
