@@ -43,12 +43,16 @@ interface ProductProfit {
   packaging: number;
   netProfit: number;
   margin: number;
+  costPrice: number;
+  packagingCost: number;
+  insertCost: number;
 }
 
 interface OrderProfit {
   orderId: string;
   orderNumber: string | null;
   customerName: string | null;
+  status: string;
   createdAt: string;
   revenue: number;
   cogs: number;
@@ -69,10 +73,23 @@ const PERIODS: { value: Period; label: string }[] = [
   { value: "year",  label: "هذه السنة" },
 ];
 
+const ORDER_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  pending:           { label: "انتظار",     color: "#ef4444" },
+  confirmed:         { label: "مؤكد",       color: "#3b82f6" },
+  processing:        { label: "تجهيز",      color: "#f59e0b" },
+  shipped:           { label: "عند الشركة", color: "#f97316" },
+  delivered:         { label: "موصّل",      color: "#22c55e" },
+  rejected:          { label: "مرفوض",      color: "#ef4444" },
+  rejected_returned: { label: "رجع للبائع", color: "#f97316" },
+  rejected_carrier:  { label: "بقي بالشركة",color: "#dc2626" },
+  returned:          { label: "مسترجع",     color: "#a855f7" },
+  cancelled:         { label: "ملغي",       color: "#6b7280" },
+};
+
 export default function AccountingPanel() {
   const { toast } = useToast();
   const qc = useQueryClient();
-  const [period, setPeriod] = useState<Period>("month");
+  const [period, setPeriod] = useState<Period>("year");
   const [view, setView] = useState<"products" | "orders" | "cod" | "coupons">("products");
   const [editProduct, setEditProduct] = useState<ProductProfit | null>(null);
   const [costs, setCosts] = useState({ costPrice: 0, packagingCost: 0, insertCost: 0 });
@@ -249,13 +266,17 @@ export default function AccountingPanel() {
             <CardTitle className="text-white text-sm">تفصيل التكاليف</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
-              <CostItem label="تكلفة البضاعة"  value={fmt(summary.totalCogs)} />
-              <CostItem label="التغليف والكارت" value={fmt(summary.totalPackaging)} />
-              <CostItem label="كوبونات الخصم"   value={fmt(summary.totalCoupons)} />
-              <CostItem label="نقاط الولاء"      value={fmt(summary.totalLoyalty)} />
-              <CostItem label="تكلفة التوصيل"   value={fmt(summary.totalShipping)} />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <CostItem label="تكلفة البضاعة"   value={fmt(summary.totalCogs)} />
+              <CostItem label="التغليف والكارت"  value={fmt(summary.totalPackaging)} />
+              <CostItem label="كوبونات الخصم"    value={fmt(summary.totalCoupons)} />
+              <CostItem label="نقاط الولاء"       value={fmt(summary.totalLoyalty)} />
             </div>
+            {summary.totalShipping > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                * التوصيل {fmt(summary.totalShipping)} — يدفعه الزبون للشركة مباشرة، مو من حسابك
+              </p>
+            )}
           </CardContent>
         </Card>
       )}
@@ -331,7 +352,7 @@ export default function AccountingPanel() {
                       className="text-[#199bb8] hover:text-white"
                       onClick={() => {
                         setEditProduct(row);
-                        setCosts({ costPrice: row.cogs / (row.unitsSold || 1), packagingCost: 0, insertCost: 0 });
+                        setCosts({ costPrice: row.costPrice, packagingCost: row.packagingCost, insertCost: row.insertCost });
                         fetchCostHistory(row.productId);
                       }}
                     >
@@ -353,11 +374,12 @@ export default function AccountingPanel() {
               <TableRow className="bg-[#010611] border-[#199bb8]/20">
                 <TableHead className="text-[#199bb8]">رقم الطلب</TableHead>
                 <TableHead className="text-[#199bb8]">الزبون</TableHead>
+                <TableHead className="text-[#199bb8] text-center">الحالة</TableHead>
                 <TableHead className="text-[#199bb8] text-center">إيراد</TableHead>
-                <TableHead className="text-[#199bb8] text-center">تكلفة</TableHead>
+                <TableHead className="text-[#199bb8] text-center">تكلفة بضاعة</TableHead>
                 <TableHead className="text-[#199bb8] text-center">كوبون</TableHead>
                 <TableHead className="text-[#199bb8] text-center">نقاط</TableHead>
-                <TableHead className="text-[#199bb8] text-center">توصيل</TableHead>
+                <TableHead className="text-[#199bb8] text-center">توصيل (معلومة)</TableHead>
                 <TableHead className="text-[#199bb8] text-center">صافي الربح</TableHead>
               </TableRow>
             </TableHeader>
@@ -370,11 +392,20 @@ export default function AccountingPanel() {
                 <TableRow key={row.orderId} className="border-[#199bb8]/10 hover:bg-[#010611]/50">
                   <TableCell className="text-[#199bb8] font-mono text-xs">{row.orderNumber ?? row.orderId.slice(0, 8)}</TableCell>
                   <TableCell className="text-gray-300">{row.customerName ?? "—"}</TableCell>
+                  <TableCell className="text-center">
+                    <span style={{
+                      fontSize: 11, padding: "2px 8px", borderRadius: 99, fontWeight: 600,
+                      background: (ORDER_STATUS_LABELS[row.status]?.color ?? "#6b7280") + "20",
+                      color: ORDER_STATUS_LABELS[row.status]?.color ?? "#6b7280",
+                    }}>
+                      {ORDER_STATUS_LABELS[row.status]?.label ?? row.status}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-center text-green-400">{fmt(row.revenue)}</TableCell>
                   <TableCell className="text-center text-red-400">{fmt(row.cogs + row.packaging)}</TableCell>
                   <TableCell className="text-center text-orange-400">{row.couponDiscount > 0 ? fmt(row.couponDiscount) : "—"}</TableCell>
                   <TableCell className="text-center text-yellow-400">{row.loyaltyDiscount > 0 ? fmt(row.loyaltyDiscount) : "—"}</TableCell>
-                  <TableCell className="text-center text-gray-400">{fmt(row.shipping)}</TableCell>
+                  <TableCell className="text-center text-gray-500 text-xs">{row.shipping > 0 ? fmt(row.shipping) : "—"}</TableCell>
                   <TableCell className="text-center font-bold" style={{ color: row.netProfit >= 0 ? "#22c55e" : "#ef4444" }}>
                     {fmt(row.netProfit)}
                   </TableCell>
@@ -388,21 +419,29 @@ export default function AccountingPanel() {
       {/* COD Section */}
       {view === "cod" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-            <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, padding: 16 }}>
-              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>إجمالي COD المسلّم</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12, marginBottom: 4 }}>
+            <div style={{ background: "#0d1f3c", border: "1px solid #199bb840", borderRadius: 10, padding: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>موصّل (جمعت الشركة فلوسه)</div>
               <div style={{ color: "#fff", fontSize: 20, fontWeight: 700 }}>
-                {(codData?.totalCod ?? 0).toLocaleString()} د.ع
+                {((codData as any)?.totalDelivered ?? codData?.totalCod ?? 0).toLocaleString()} د.ع
               </div>
             </div>
+            <div style={{ background: "#0d1f3c", border: "1px solid #f9731640", borderRadius: 10, padding: 16 }}>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>في الطريق (لسه ما وصل)</div>
+              <div style={{ color: "#f97316", fontSize: 20, fontWeight: 700 }}>
+                {((codData as any)?.totalInTransit ?? 0).toLocaleString()} د.ع
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
             <div style={{ background: "#0d1f3c", border: "1px solid #22c55e40", borderRadius: 10, padding: 16 }}>
-              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>مستلم من الشركة</div>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>استلمت من الشركة</div>
               <div style={{ color: "#22c55e", fontSize: 20, fontWeight: 700 }}>
                 {(codData?.totalReceived ?? 0).toLocaleString()} د.ع
               </div>
             </div>
             <div style={{ background: "#0d1f3c", border: "1px solid #ef444440", borderRadius: 10, padding: 16 }}>
-              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>باقي عند الشركة</div>
+              <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 4 }}>باقي عند الشركة (موصّل بس لم يدفعون)</div>
               <div style={{ color: "#ef4444", fontSize: 20, fontWeight: 700 }}>
                 {(codData?.totalPending ?? 0).toLocaleString()} د.ع
               </div>

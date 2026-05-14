@@ -47,6 +47,7 @@ interface OrderProfit {
   orderId: string;
   orderNumber: string | null;
   customerName: string | null;
+  status: string;
   createdAt: Date;
   revenue: number;
   cogs: number;
@@ -67,13 +68,15 @@ interface ProductProfit {
   packaging: number;
   netProfit: number;
   margin: number;
+  costPrice: number;
+  packagingCost: number;
+  insertCost: number;
 }
 
 function calcOrderProfit(order: any, costMap: CostMap): OrderProfit {
   const items: Array<{ productId: string; quantity: number; priceAtPurchase: number }> =
     Array.isArray(order.items) ? order.items : [];
 
-  const orderTotal = Number(order.total) || 0;
   let revenue = 0;
   let cogs = 0;
   let packaging = 0;
@@ -90,17 +93,19 @@ function calcOrderProfit(order: any, costMap: CostMap): OrderProfit {
     }
   }
 
-  const couponDiscount   = Number(order.discountTotal)   || 0;
-  const loyaltyDiscount  = Number(order.pointsDiscount)  || 0;
-  const shipping         = Number(order.shippingCost)    || 0;
+  const couponDiscount  = Number(order.discountTotal)  || 0;
+  const loyaltyDiscount = Number(order.pointsDiscount) || 0;
+  // shipping is paid by customer to carrier — not a seller expense, shown for info only
+  const shipping        = Number(order.shippingCost)   || 0;
 
-  const netProfit = revenue - cogs - packaging - couponDiscount - loyaltyDiscount - shipping;
+  const netProfit = revenue - cogs - packaging - couponDiscount - loyaltyDiscount;
   const margin    = revenue > 0 ? Math.round((netProfit / revenue) * 100) : 0;
 
   return {
     orderId:        order.id,
     orderNumber:    order.orderNumber ?? null,
     customerName:   order.customerName ?? null,
+    status:         order.status ?? "pending",
     createdAt:      order.createdAt,
     revenue,
     cogs,
@@ -139,7 +144,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       const prods = await db
         .select()
         .from(products)
-        .where(and(inArray(products.id, [...productIds]), isNull(products.deletedAt)));
+        .where(inArray(products.id, [...productIds]));
       for (const p of prods) {
         costMap[p.id] = {
           costPrice:     Number(p.costPrice)     || 0,
@@ -166,7 +171,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       totalOrders++;
     }
 
-    const totalCosts  = totalCogs + totalPackaging + totalCoupons + totalLoyalty + totalShipping;
+    const totalCosts  = totalCogs + totalPackaging + totalCoupons + totalLoyalty;
     const netProfit   = totalRevenue - totalCosts;
     const margin      = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
 
@@ -215,7 +220,7 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       const prods = await db
         .select()
         .from(products)
-        .where(and(inArray(products.id, [...productIds]), isNull(products.deletedAt)));
+        .where(inArray(products.id, [...productIds]));
       for (const p of prods) {
         costMap[p.id] = {
           costPrice:     Number(p.costPrice)     || 0,
@@ -234,8 +239,8 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       const orderTotal = Number(o.total) || 1;
       const proportionalDeductions =
         (Number(o.discountTotal) || 0) +
-        (Number(o.pointsDiscount) || 0) +
-        (Number(o.shippingCost) || 0);
+        (Number(o.pointsDiscount) || 0);
+        // shipping excluded — paid by customer to carrier, not seller expense
 
       for (const item of items as any[]) {
         const pid = item.productId;
@@ -251,7 +256,11 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
         const lineProfit  = lineRevenue - lineCogs - linePack - lineDeduct;
 
         if (!profitMap[pid]) {
-          profitMap[pid] = { productId: pid, name: c.name, unitsSold: 0, revenue: 0, cogs: 0, packaging: 0, netProfit: 0, margin: 0 };
+          profitMap[pid] = {
+            productId: pid, name: c.name, unitsSold: 0, revenue: 0,
+            cogs: 0, packaging: 0, netProfit: 0, margin: 0,
+            costPrice: c.costPrice, packagingCost: c.packagingCost, insertCost: c.insertCost,
+          };
         }
         profitMap[pid].unitsSold  += qty;
         profitMap[pid].revenue    += lineRevenue;
@@ -321,19 +330,27 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
   try {
     const db = getDb();
 
-    const codOrders = await db!
-      .select()
-      .from(orders)
-      .where(
-        inArray(orders.status, ["shipped", "delivered", "rejected_returned", "rejected_carrier"])
-      );
+    // جمع كل الطلبات للحساب
+    const allCodOrders = await db!.select().from(orders);
 
-    const totalCod = codOrders.reduce((sum, o) => sum + (Number((o as any).roundedTotal ?? o.total) || 0), 0);
+    // الطلبات الموصلة (الشركة جمعت الفلوس من الزبون)
+    const deliveredOrders = allCodOrders.filter(o =>
+      ["delivered"].includes(o.status ?? "")
+    );
+    // الطلبات عند الشركة في الطريق (لسه ما وصلت)
+    const inTransitOrders = allCodOrders.filter(o =>
+      ["shipped"].includes(o.status ?? "")
+    );
 
-    const receivedOrders = codOrders.filter((o: any) => o.codReceived === true);
-    const totalReceived = receivedOrders.reduce((sum, o) => sum + (Number((o as any).roundedTotal ?? o.total) || 0), 0);
+    const orderAmt = (o: any) => Number(o.roundedTotal ?? o.total) || 0;
 
-    const totalPending = totalCod - totalReceived;
+    const totalDelivered  = deliveredOrders.reduce((s, o) => s + orderAmt(o), 0);
+    const totalInTransit  = inTransitOrders.reduce((s, o) => s + orderAmt(o), 0);
+    const totalCod        = totalDelivered; // الفلوس اللي جمعتها الشركة فعلاً
+
+    const receivedOrders  = deliveredOrders.filter((o: any) => o.codReceived === true);
+    const totalReceived   = receivedOrders.reduce((s, o) => s + orderAmt(o), 0);
+    const totalPending    = totalDelivered - totalReceived;
 
     const settlements = await db!
       .select()
@@ -342,7 +359,7 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
 
     res.json({
       success: true,
-      data: { totalCod, totalReceived, totalPending, settlements },
+      data: { totalCod, totalDelivered, totalInTransit, totalReceived, totalPending, settlements },
     });
   } catch (err) { next(err); }
 });
