@@ -1,8 +1,8 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products } from "../../shared/schema.js";
-import { and, gte, lte, isNull, inArray, eq } from "drizzle-orm";
+import { orders, products, shippingSettlements, productCostHistory } from "../../shared/schema.js";
+import { and, gte, lte, isNull, inArray, eq, desc } from "drizzle-orm";
 import { ApifyClient } from "apify-client";
 
 const router = Router();
@@ -312,6 +312,84 @@ router.get("/orders", async (req: Request, res: Response, next: NextFunction): P
     result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
     res.json({ success: true, data: result });
+  } catch (err) { next(err); }
+});
+
+// ─── GET /api/admin/accounting/cod-summary ──────────────────────────────────
+
+router.get("/cod-summary", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+
+    const codOrders = await db!
+      .select()
+      .from(orders)
+      .where(
+        inArray(orders.status, ["shipped", "delivered", "rejected_returned", "rejected_carrier"])
+      );
+
+    const totalCod = codOrders.reduce((sum, o) => sum + (Number((o as any).roundedTotal ?? o.total) || 0), 0);
+
+    const receivedOrders = codOrders.filter((o: any) => o.codReceived === true);
+    const totalReceived = receivedOrders.reduce((sum, o) => sum + (Number((o as any).roundedTotal ?? o.total) || 0), 0);
+
+    const totalPending = totalCod - totalReceived;
+
+    const settlements = await db!
+      .select()
+      .from(shippingSettlements)
+      .orderBy(desc(shippingSettlements.createdAt));
+
+    res.json({
+      success: true,
+      data: { totalCod, totalReceived, totalPending, settlements },
+    });
+  } catch (err) { next(err); }
+});
+
+// ─── POST /api/admin/accounting/settlements ─────────────────────────────────
+
+router.post("/settlements", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    const { carrier, amount, notes, orderIds } = req.body as {
+      carrier: string;
+      amount: number;
+      notes?: string;
+      orderIds?: string[];
+    };
+
+    if (!carrier || !amount || Number(amount) <= 0) {
+      res.status(400).json({ success: false, message: "carrier و amount مطلوبان" });
+      return;
+    }
+
+    const [settlement] = await db!
+      .insert(shippingSettlements)
+      .values({ carrier, amount: String(amount), notes: notes ?? null })
+      .returning();
+
+    if (Array.isArray(orderIds) && orderIds.length > 0) {
+      await db!
+        .update(orders)
+        .set({ codReceived: true } as any)
+        .where(inArray(orders.id, orderIds));
+    }
+
+    res.status(201).json({ success: true, data: settlement });
+  } catch (err) { next(err); }
+});
+
+// ─── GET /api/admin/accounting/settlements ──────────────────────────────────
+
+router.get("/settlements", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    const list = await db!
+      .select()
+      .from(shippingSettlements)
+      .orderBy(desc(shippingSettlements.createdAt));
+    res.json({ success: true, data: list });
   } catch (err) { next(err); }
 });
 
