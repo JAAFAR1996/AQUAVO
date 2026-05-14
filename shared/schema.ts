@@ -148,12 +148,34 @@ export const orders = pgTable("orders", {
   }>(),
   bonusClaimedAt: timestamp("bonus_claimed_at"),
   carrier: text("carrier"),
+  codReceived: boolean("cod_received").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("orders_user_id_idx").on(table.userId),
   createdAtIdx: index("orders_created_at_idx").on(table.createdAt),
   statusIdx: index("orders_status_idx").on(table.status),
+}));
+
+export const shippingSettlements = pgTable("shipping_settlements", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  carrier: text("carrier").notNull(),
+  amount: numeric("amount").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const productCostHistory = pgTable("product_cost_history", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  productId: text("product_id").references(() => products.id).notNull(),
+  costPrice: numeric("cost_price").notNull().default("0"),
+  packagingCost: numeric("packaging_cost").notNull().default("0"),
+  insertCost: numeric("insert_cost").notNull().default("0"),
+  effectiveFrom: timestamp("effective_from").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  productIdIdx: index("pch_product_id_idx").on(table.productId),
+  effectiveFromIdx: index("pch_effective_from_idx").on(table.effectiveFrom),
 }));
 
 export const reviews = pgTable("reviews", {
