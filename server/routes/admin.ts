@@ -217,6 +217,49 @@ export function createAdminRouter(): RouterType {
                     }
                 }
 
+                // 📦 رجوع البضاعة للمخزون عند رجوع من العميل
+                if (newStatus === "rejected_returned" && oldStatus !== "rejected_returned") {
+                    try {
+                        const { getDb } = await import("../db.js");
+                        const { products: productsTable } = await import("../../shared/schema.js");
+                        const { eq: eqOp, sql: sqlOp } = await import("drizzle-orm");
+                        const dbConn = getDb();
+                        if (dbConn && Array.isArray((order as any).items)) {
+                            for (const item of ((order as any).items as any[])) {
+                                if (item.productId && item.quantity) {
+                                    await dbConn
+                                        .update(productsTable)
+                                        .set({ stock: sqlOp`stock + ${item.quantity}` } as any)
+                                        .where(eqOp(productsTable.id, item.productId));
+                                }
+                            }
+                            console.log(`[Admin] 📦 Stock restored for rejected_returned order ${order.id}`);
+                        }
+                    } catch (stockErr) {
+                        console.error("[Admin] Failed to restore stock:", stockErr);
+                    }
+                    try {
+                        const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                        if ((order as any).userId) {
+                            await loyaltyStorage.cancelOrderPoints((order as any).userId, order.id);
+                        }
+                    } catch (loyaltyErr) {
+                        console.error("[Admin] Failed to cancel loyalty points:", loyaltyErr);
+                    }
+                }
+
+                // 🚚 رفض + بقي عند شركة الشحن — لا تغيير بالمخزون
+                if (newStatus === "rejected_carrier" && oldStatus !== "rejected_carrier") {
+                    try {
+                        const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+                        if ((order as any).userId) {
+                            await loyaltyStorage.cancelOrderPoints((order as any).userId, order.id);
+                        }
+                    } catch (loyaltyErr) {
+                        console.error("[Admin] Failed to cancel loyalty points:", loyaltyErr);
+                    }
+                }
+
                 // 📦 استلام من شركة النقل — إرجاع المخزون
                 if (newStatus === "returned" && oldStatus !== "returned") {
                     try {
@@ -290,6 +333,27 @@ export function createAdminRouter(): RouterType {
 
             res.json(order);
         } catch (err) { next(err); }
+    });
+
+    router.delete("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const deleted = await storage.deleteOrder(id);
+            if (!deleted) {
+                res.status(404).json({ success: false, message: "الطلب غير موجود" });
+                return;
+            }
+            await storage.createAuditLog({
+                userId: (req as any).session?.userId || "admin",
+                action: "delete",
+                entityType: "order",
+                entityId: id,
+                changes: {}
+            });
+            res.json({ success: true });
+        } catch (err) {
+            next(err);
+        }
     });
 
     // Users
