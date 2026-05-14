@@ -36,6 +36,7 @@ import simulationRouter from "./routes/simulation.js";
 import miroFishRouter from "./routes/mirofish.js";
 import capiRouter from "./routes/capi.js";
 import { createAdminInvoicesRouter } from "./routes/admin-invoices.js";
+import { createAccountingRouter } from "./routes/accounting.js";
 import { createInvoiceRouter } from "./routes/invoice.js";
 import { storage } from "./storage/index.js";
 
@@ -141,6 +142,7 @@ export async function registerRoutes(
 
   // Manual Invoices (WhatsApp orders)
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/invoice", createInvoiceRouter());
 
   // Error handling middleware
