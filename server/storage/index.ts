@@ -187,6 +187,7 @@ class CombinedStorage implements IStorage {
 
     // Order Delegation
     getOrders = this.orderStorage.getOrders.bind(this.orderStorage);
+    deleteOrder = this.orderStorage.deleteOrder.bind(this.orderStorage);
     getOrder = this.orderStorage.getOrder.bind(this.orderStorage);
     createOrder = this.orderStorage.createOrder.bind(this.orderStorage);
     updateOrder = this.orderStorage.updateOrder.bind(this.orderStorage);
