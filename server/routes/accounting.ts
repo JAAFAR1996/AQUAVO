@@ -471,4 +471,85 @@ router.post("/competitor-check", async (req: Request, res: Response, next: NextF
   } catch (err) { next(err); }
 });
 
+// ─── GET /api/admin/accounting/cost-history/:productId ──────────────────────
+
+router.get("/cost-history/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    const { productId } = req.params as { productId: string };
+    const history = await db!
+      .select()
+      .from(productCostHistory)
+      .where(eq(productCostHistory.productId, productId))
+      .orderBy(desc(productCostHistory.effectiveFrom));
+    res.json({ success: true, data: history });
+  } catch (err) { next(err); }
+});
+
+// ─── POST /api/admin/accounting/cost-history/:productId ─────────────────────
+
+router.post("/cost-history/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    const { productId } = req.params as { productId: string };
+    const { costPrice, packagingCost, insertCost, effectiveFrom } = req.body as {
+      costPrice: number;
+      packagingCost: number;
+      insertCost: number;
+      effectiveFrom: string;
+    };
+
+    if (!effectiveFrom) {
+      res.status(400).json({ success: false, message: "effectiveFrom مطلوب" });
+      return;
+    }
+
+    const [entry] = await db!
+      .insert(productCostHistory)
+      .values({
+        productId,
+        costPrice:     String(costPrice     ?? 0),
+        packagingCost: String(packagingCost ?? 0),
+        insertCost:    String(insertCost    ?? 0),
+        effectiveFrom: new Date(effectiveFrom),
+      })
+      .returning();
+
+    res.status(201).json({ success: true, data: entry });
+  } catch (err) { next(err); }
+});
+
+// ─── GET /api/admin/accounting/coupons ──────────────────────────────────────
+
+router.get("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    const { period = "month", from, to } = req.query as Record<string, string>;
+    const { start, end } = periodRange(period, from, to);
+
+    const allOrders = await db!
+      .select()
+      .from(orders)
+      .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
+
+    const map: Record<string, { couponCode: string; usageCount: number; totalDiscount: number }> = {};
+    for (const o of allOrders) {
+      if (!o.couponId) continue;
+      const discount = Number(o.discountTotal) || 0;
+      if (!map[o.couponId]) {
+        map[o.couponId] = { couponCode: o.couponId, usageCount: 0, totalDiscount: 0 };
+      }
+      map[o.couponId].usageCount++;
+      map[o.couponId].totalDiscount += discount;
+    }
+
+    const result = Object.values(map).map((c) => ({
+      ...c,
+      avgDiscount: c.usageCount > 0 ? Math.round(c.totalDiscount / c.usageCount) : 0,
+    })).sort((a, b) => b.totalDiscount - a.totalDiscount);
+
+    res.json({ success: true, data: result });
+  } catch (err) { next(err); }
+});
+
 export function createAccountingRouter() { return router; }
