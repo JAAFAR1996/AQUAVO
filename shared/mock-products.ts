@@ -39,6 +39,9 @@ export const mockProducts: Product[] = [
     deletedAt: null,
     variants: null,
     hasVariants: false,
+    costPrice: null,
+    packagingCost: null,
+    insertCost: null,
   },
   {
     id: "aquaclear-70",
@@ -70,6 +73,9 @@ export const mockProducts: Product[] = [
     deletedAt: null,
     variants: null,
     hasVariants: false,
+    costPrice: null,
+    packagingCost: null,
+    insertCost: null,
   },
   {
     id: "seachem-prime",
@@ -101,6 +107,9 @@ export const mockProducts: Product[] = [
     deletedAt: null,
     variants: null,
     hasVariants: false,
+    costPrice: null,
+    packagingCost: null,
+    insertCost: null,
   },
   {
     id: "eheim-jager-200w",
@@ -132,5 +141,8 @@ export const mockProducts: Product[] = [
     deletedAt: null,
     variants: null,
     hasVariants: false,
+    costPrice: null,
+    packagingCost: null,
+    insertCost: null,
   },
 ];
