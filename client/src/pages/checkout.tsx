@@ -82,7 +82,7 @@ export default function CheckoutPage() {
         cartTotal
       );
       metaTrackInitiateCheckout({
-        totalIQD: cartTotal,
+        totalIQD: cartTotal + deliveryFee,
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         productIds: cartItems.map((i) => i.productId),
       });

@@ -110,7 +110,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           cartTotal
         );
         metaTrackInitiateCheckout({
-          totalIQD: cartTotal,
+          totalIQD: grandTotal,
           numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
           productIds: cartItems.map(i => i.productId),
         });

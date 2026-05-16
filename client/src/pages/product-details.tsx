@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
@@ -84,33 +84,39 @@ export default function ProductDetails() {
   // Current display values (from selected variant or product)
   const displayPrice = selectedVariant?.price ?? product?.price ?? 0;
 
-  // TikTok Pixel: ViewContent event
+  // Tracks which productId has already fired ViewContent — prevents double-fire
+  // caused by displayPrice changing when selectedVariant initializes after product loads.
+  const viewContentFiredForId = useRef<string | null>(null);
+
+  // ViewContent: fires once per product, after variant price is resolved
   useEffect(() => {
-    if (product && displayPrice > 0) {
-      ttqViewContent({
-        id: product.id,
-        name: product.name,
-        category: product.category,
-        price: Number(displayPrice),
-        brand: product.brand,
-        description: product.description,
-      });
-      // Meta Pixel: ViewContent event
-      metaTrackViewContent({
-        productId: product.id,
-        productName: product.name,
-        priceIQD: Number(displayPrice),
-        category: product.category,
-      });
-      // GA4: view_item event
-      trackViewItem({
-        id: product.id,
-        name: product.name,
-        price: Number(displayPrice),
-        category: product.category,
-      });
-    }
-  }, [product?.id, displayPrice]);
+    // For products with embedded variants, wait until selectedVariant is set
+    const variantReady = !hasEmbeddedVariants || selectedVariant !== null;
+    if (!product || displayPrice <= 0 || !variantReady) return;
+    if (viewContentFiredForId.current === product.id) return;
+    viewContentFiredForId.current = product.id;
+
+    ttqViewContent({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      price: Number(displayPrice),
+      brand: product.brand,
+      description: product.description,
+    });
+    metaTrackViewContent({
+      productId: product.id,
+      productName: product.name,
+      priceIQD: Number(displayPrice),
+      category: product.category,
+    });
+    trackViewItem({
+      id: product.id,
+      name: product.name,
+      price: Number(displayPrice),
+      category: product.category,
+    });
+  }, [product?.id, displayPrice, hasEmbeddedVariants, selectedVariant?.id]);
 
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
@@ -269,9 +275,9 @@ export default function ProductDetails() {
 
       <ProductSchema
         name={product.name}
-        description={product.description || ""} // Changed product.description to product.specs as per original code
-        image={product.image || ""} // Changed product.images?.[0] to product.image as per original code
-        price={product.price}
+        description={product.description || ""}
+        image={product.image || ""}
+        price={displayPrice}
         brand={product.brand}
         inStock={inStock}
         rating={productRating}
