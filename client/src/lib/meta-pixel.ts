@@ -11,9 +11,6 @@ declare global {
 
 const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID;
 
-// IQD→USD conversion rate (approximate, for Meta reporting)
-const IQD_TO_USD_RATE = 1650;
-
 // ─── Initialize Pixel ────────────────────────────────────────────────────────
 export function initMetaPixel() {
   if (typeof window === "undefined" || !PIXEL_ID) return;
@@ -92,8 +89,8 @@ export function metaTrackViewContent(params: {
       content_name: params.productName,
       content_type: "product",
       content_category: params.category || "",
-      value: params.priceIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD,
+      currency: "IQD",
     }, { eventID: eventId });
   }
 
@@ -108,8 +105,8 @@ export function metaTrackViewContent(params: {
       content_name: params.productName,
       content_type: "product",
       content_category: params.category || "",
-      value: params.priceIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD,
+      currency: "IQD",
     },
   });
 }
@@ -130,8 +127,8 @@ export function metaTrackAddToCart(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: (params.priceIQD * params.quantity) / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD * params.quantity,
+      currency: "IQD",
       num_items: params.quantity,
     }, { eventID: eventId });
   }
@@ -144,8 +141,8 @@ export function metaTrackAddToCart(params: {
     custom_data: {
       content_ids: [params.productId],
       content_name: params.productName,
-      value: (params.priceIQD * params.quantity) / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD * params.quantity,
+      currency: "IQD",
       num_items: params.quantity,
     },
   });
@@ -163,8 +160,8 @@ export function metaTrackInitiateCheckout(params: {
   if (isPixelReady()) {
     window.fbq("track", "InitiateCheckout", {
       content_ids: params.productIds,
-      value: params.totalIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.totalIQD,
+      currency: "IQD",
       num_items: params.numItems,
     }, { eventID: eventId });
   }
@@ -176,8 +173,8 @@ export function metaTrackInitiateCheckout(params: {
     fbp,
     custom_data: {
       content_ids: params.productIds,
-      value: params.totalIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.totalIQD,
+      currency: "IQD",
       num_items: params.numItems,
     },
   });
@@ -191,14 +188,24 @@ export function metaTrackPurchase(params: {
   numItems: number;
   phone?: string;
 }) {
+  // Dedup: fire once per real order ID (survives page refresh via localStorage)
+  if (params.orderId && params.orderId !== "unknown") {
+    const dedupKey = `meta_px_${params.orderId}`;
+    try {
+      if (localStorage.getItem(dedupKey)) return;
+      localStorage.setItem(dedupKey, "1");
+    } catch { /* private browsing — skip dedup, allow fire */ }
+  }
+
   const eventId = generateEventId();
   const { fbc, fbp } = getFbCookies();
 
   if (isPixelReady()) {
     window.fbq("track", "Purchase", {
       content_ids: params.productIds,
-      value: params.totalIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      content_type: "product",
+      value: params.totalIQD,
+      currency: "IQD",
       num_items: params.numItems,
       order_id: params.orderId,
     }, { eventID: eventId });
@@ -212,8 +219,9 @@ export function metaTrackPurchase(params: {
     phone: params.phone,
     custom_data: {
       content_ids: params.productIds,
-      value: params.totalIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      content_type: "product",
+      value: params.totalIQD,
+      currency: "IQD",
       num_items: params.numItems,
       order_id: params.orderId,
     },
@@ -271,8 +279,8 @@ export function metaTrackAddToWishlist(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: params.priceIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD,
+      currency: "IQD",
     }, { eventID: eventId });
   }
 
@@ -285,8 +293,8 @@ export function metaTrackAddToWishlist(params: {
       content_ids: [params.productId],
       content_name: params.productName,
       content_type: "product",
-      value: params.priceIQD / IQD_TO_USD_RATE,
-      currency: "USD",
+      value: params.priceIQD,
+      currency: "IQD",
     },
   });
 }

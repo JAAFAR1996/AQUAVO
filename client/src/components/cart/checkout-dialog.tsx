@@ -286,7 +286,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       try {
         metaTrackPurchase({
           orderId: orderData.id || 'unknown',
-          totalIQD: cartTotal,
+          totalIQD: serverTotal,
           productIds: cartItems.map(i => i.productId),
           numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
           phone: customerInfo.phone,
