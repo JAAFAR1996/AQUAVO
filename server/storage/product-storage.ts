@@ -533,22 +533,24 @@ export class ProductStorage {
             // 2. Run bestSellers + productOfWeek queries in PARALLEL
             const [bestSellersResult, explicitProductOfWeek] = await Promise.all([
                 db.select().from(products)
-                    .where(and(bestSellerCondition, isNull(products.deletedAt)))
+                    .where(and(bestSellerCondition, isNull(products.deletedAt), gt(products.stock, 0)))
                     .orderBy(desc(products.isBestSeller), desc(products.rating))
-                    .limit(12),
+                    .limit(16),
                 db.select().from(products)
-                    .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt)))
+                    .where(and(eq(products.isProductOfWeek, true), isNull(products.deletedAt), gt(products.stock, 0)))
                     .limit(1),
             ]);
 
-            let bestSellers = bestSellersResult;
+            // Filter out price=0 products (not ready for sale)
+            let bestSellers = bestSellersResult.filter(p => parseFloat(String(p.price ?? "0")) > 0);
 
-            // Fallback if still empty (just get newest)
+            // Fallback if still empty (get newest in-stock with real price)
             if (bestSellers.length === 0) {
-                bestSellers = await db.select().from(products)
-                    .where(isNull(products.deletedAt))
+                const fallback = await db.select().from(products)
+                    .where(and(isNull(products.deletedAt), gt(products.stock, 0)))
                     .orderBy(desc(products.createdAt))
-                    .limit(10);
+                    .limit(14);
+                bestSellers = fallback.filter(p => parseFloat(String(p.price ?? "0")) > 0);
             }
 
             let productOfWeek = explicitProductOfWeek.length > 0 ? explicitProductOfWeek[0] : null;

@@ -245,12 +245,27 @@ export function createProductRouter(): RouterType {
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 4);
 
-            const suggestionIds = sorted.map(([id]) => id);
-            const suggestions = await storage.getProductsByIds(suggestionIds);
+            if (sorted.length > 0) {
+                const suggestionIds = sorted.map(([id]) => id);
+                const suggestions = await storage.getProductsByIds(suggestionIds);
+                const validSuggestions = suggestions.filter(p =>
+                    parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0
+                );
+                if (validSuggestions.length > 0) {
+                    res.json({ suggestions: validSuggestions, reason: "أكمل حوضك - منتجات تُشترى عادةً معاً" });
+                    return;
+                }
+            }
+
+            // Fallback: trending in-stock products not already in cart
+            const trending = await storage.getTrendingProducts();
+            const fallback = trending
+                .filter(p => !cartIdSet.has(p.id) && parseFloat(String(p.price ?? "0")) > 0 && (p.stock ?? 0) > 0)
+                .slice(0, 4);
 
             res.json({
-                suggestions,
-                reason: "أكمل حوضك - منتجات تُشترى عادةً معاً",
+                suggestions: fallback,
+                reason: fallback.length > 0 ? "منتجات قد تعجبك" : "",
             });
         } catch (err) {
             next(err);

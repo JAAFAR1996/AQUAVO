@@ -1,12 +1,12 @@
 {
-    "name": "AQUAVO - مستقبل الأحواض",
+    "name": "AQUAVO - مستلزمات أحواض الزينة",
     "short_name": "AQUAVO",
-    "description": "AQUAVO - وجهتك الأولى لمعدات وتقنيات أحواض الأسماك المتطورة في العراق",
+    "description": "AQUAVO - وجهتك الأولى لمعدات وتقنيات أحواض الزينة في العراق",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait-primary",
     "theme_color": "#199bb8",
-    "background_color": "#ffffff",
+    "background_color": "#0a1628",
     "dir": "rtl",
     "lang": "ar",
     "categories": [
@@ -41,10 +41,10 @@
             "url": "/products"
         },
         {
-            "name": "موسوعة الأسماك",
-            "short_name": "الموسوعة",
-            "description": "اكتشف أنواع الأسماك",
-            "url": "/fish-encyclopedia"
+            "name": "تتبع طلبي",
+            "short_name": "تتبع الطلب",
+            "description": "تتبع حالة طلبك",
+            "url": "/track"
         },
         {
             "name": "قائمة الرغبات",

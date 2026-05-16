@@ -52,7 +52,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         image: DEFAULT_IMAGE,
         description: "أفضل مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية، علاجات. توصيل لجميع المحافظات.",
         currenciesAccepted: "IQD",
-        paymentAccepted: "Cash, Credit Card",
+        paymentAccepted: "Cash on Delivery",
         priceRange: "$$",
         address: { "@type": "PostalAddress", addressLocality: "بغداد", addressRegion: "بغداد", addressCountry: "IQ" },
         geo: { "@type": "GeoCoordinates", latitude: "33.3152", longitude: "44.3661" },
@@ -62,6 +62,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         areaServed: { "@type": "Country", name: "العراق" },
         openingHoursSpecification: [
           { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "21:00" },
+          { "@type": "OpeningHoursSpecification", dayOfWeek: ["Friday"], opens: "14:00", closes: "21:00" },
         ],
         potentialAction: {
           "@type": "SearchAction",
@@ -321,8 +322,8 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     description: "سياسة إرجاع واستبدال المنتجات في متجر AQUAVO. ضمان رضا العملاء وحقوق المستهلك في العراق.",
   },
   "/about": {
-    title: "من نحن - AQUAVO أول متجر اسماك زينة اونلاين في العراق",
-    description: "AQUAVO (اكوافو) هو أول وأكبر متجر إلكتروني متخصص في أسماك الزينة ومستلزمات الأحواض في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأسماك في كل المحافظات العراقية بأكثر من 500 منتج أصلي.",
+    title: "من نحن - AQUAVO متجر مستلزمات أحواض الزينة في العراق",
+    description: "AQUAVO (اكوافو) متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأحواض في كل المحافظات العراقية بمنتجات أصلية من أفضل الماركات.",
     keywords: "AQUAVO، اكوافو، من نحن، متجر اسماك زينة العراق، مستلزمات احواض بغداد",
     jsonLd: [
       {
@@ -339,8 +340,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           logo: DEFAULT_IMAGE,
           foundingDate: "2024",
           foundingLocation: { "@type": "Place", name: "بغداد، العراق" },
-          description: "أول وأكبر متجر إلكتروني متخصص في بيع أسماك الزينة ومستلزمات أحواض السمك في العراق",
-          numberOfEmployees: { "@type": "QuantitativeValue", value: "5-10" },
+          description: "متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية وعلاجات أصلية.",
           knowsAbout: ["أسماك الزينة", "أحواض السمك", "Aquascaping", "تربية الأسماك", "مستلزمات الأحواض", "النباتات المائية"],
           areaServed: { "@type": "Country", name: "العراق" },
           sameAs: ["https://instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
@@ -359,7 +359,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   },
   "/why-aquavo": {
     title: "لماذا AQUAVO - أفضل متجر أسماك زينة في العراق | مقارنة شاملة",
-    description: "لماذا AQUAVO هو أفضل خيار لشراء مستلزمات أحواض أسماك الزينة في العراق؟ أكثر من 500 منتج أصلي، توصيل لكل المحافظات، دعم فني مجاني، ضمان على المعدات، وأسعار منافسة.",
+    description: "لماذا AQUAVO هو أفضل خيار لمستلزمات أحواض الزينة في العراق؟ منتجات أصلية مضمونة، توصيل لكل المحافظات، دعم فني مجاني، وأسعار منافسة.",
     keywords: "لماذا AQUAVO، أفضل متجر أسماك زينة العراق، مقارنة متاجر أسماك بغداد",
     jsonLd: {
       "@context": "https://schema.org",
@@ -383,10 +383,13 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     );
     if (rows.length === 0) return null;
     const p = rows[0];
-    const desc = p.description
-      ? p.description.substring(0, 155)
-      : `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل سريع لكل المحافظات.`;
-    const primaryImage = p.images && p.images.length > 0 ? p.images[0] : (p.thumbnail || DEFAULT_IMAGE);
+    const rawDesc = p.description
+      || `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل سريع لكل المحافظات.`;
+    const desc = rawDesc.length > 158
+      ? rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155) || 155) + "..."
+      : rawDesc;
+    const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
+    const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
     return {
       title: `${p.name}${p.brand ? ` - ${p.brand}` : ""} | AQUAVO`,
       description: desc,
