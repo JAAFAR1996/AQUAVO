@@ -120,6 +120,45 @@ Camera:      Canon R5 / Hasselblad X2D, 85mm, f/2.0-2.8
 **Total:** 62 prompts improved | **Completed:** 0 images generated
 ---
 
+## 🐟 WHAT AQUAVO DOES NOT SELL
+
+**CRITICAL for SEO, content, and JSON-LD:**
+- NO live fish, NO live animals, NO water plants
+- Valid categories: filters, heaters, food, decor, tanks, lighting, water treatment
+- Any content mentioning "أسماك حية" or "نباتات مائية" is WRONG — fix immediately
+- **Payment:** Cash on Delivery ONLY (no payment gateway is currently enabled — do not imply credit cards)
+- **Shipping:** 5,000 IQD flat fee across Iraq
+- **Support:** 24/7 — do not contradict this with restrictive opening hours in copy or JSON-LD
+
+---
+
+## ⚡ SERVER-SIDE GOTCHAS (bugs fixed 2026-05)
+
+- **BigInt safety:** Drizzle + Neon can return BigInt/Decimal — always sanitize before `res.json()`:
+  ```ts
+  JSON.parse(JSON.stringify(obj, (_k, v) => typeof v === "bigint" ? Number(v) : v))
+  ```
+- **req.body null-check:** sendBeacon without Content-Type leaves `req.body` undefined. Always:
+  ```ts
+  const { x } = (req.body ?? {}) as { x?: string }
+  ```
+- **OG images must be absolute:** Product images are stored as relative `/images/...` paths.
+  In `ssr-meta.ts`: `rawImage.startsWith("http") ? rawImage : \`${BASE}${rawImage}\``
+- **Top-selling must filter:** Add `gt(products.stock, 0)` to Drizzle query + in-memory `parseFloat(price) > 0`
+- **Cart suggestions fallback:** Co-purchase data is sparse early on — always fallback to `getTrendingProducts()`
+- **VetRAG in serverless:** Embeddings reset per cold start — keyword search is the reliable path
+
+---
+
+## 🔍 SEO RULES (ssr-meta.ts is the source of truth)
+
+- `api/ssr-meta.ts` controls ALL meta tags, JSON-LD, and OG for every page — edit there first
+- Meta description truncation: `rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155)) + "..."`
+- JSON-LD must never include fish or plants in product ItemList or business description
+- OG images: always build absolute URL before returning from ssr-meta.ts
+
+---
+
 ## ⚠️ CRITICAL RULES (NEVER VIOLATE)
 
 1. **Database = NEON only** — لا local، لا SQLite
@@ -133,6 +172,23 @@ Camera:      Canon R5 / Hasselblad X2D, 85mm, f/2.0-2.8
 
 ---
 
+## 📢 AQUAVO CONTENT ENGINE REFERENCES
+
+For content, reels, stories, carousels, campaign planning, and social media strategy, always reference:
+
+- `.agents/memory/07_hooks_2026.md` — 8 hook types, 3-second formula, algorithm signals, Iraqi dialect rules
+- `.agents/memory/08_design_text_effects_2026.md` — color palette, typography, safe zone, 8 text effects, cinematic grade
+- `.agents/memory/09_weekly_calendar_2026.md` — TOFU/MOFU/BOFU, weekly model, batch creation, metrics
+- `.agents/memory/10_platform_psychology_2026.md` — 12 psychological triggers, buying journey, color psychology, shareability
+
+**Content Rules:**
+- Use these files as internal operating principles — not as public claims
+- Numbers and percentages in these files are internal design guidelines — do not publish as verified facts without a cited source
+- Keep AQUAVO tone: premium Iraqi/Baghdadi, no emojis, no pushy CTA, no fake urgency, no invented specs or prices
+- Scarcity and FOMO: only use when the condition is real and true
+
+---
+
 ## 🔗 QUICK REFERENCES
 
 - Brand Identity: `.agents/memory/02_brand_identity.md`
@@ -141,4 +197,4 @@ Camera:      Canon R5 / Hasselblad X2D, 85mm, f/2.0-2.8
 - Content Engine: `.agents/memory/05_content_engine.md`
 - Psychology Framework: `.agents/memory/06_psychology_framework.md`
 
-> **Last Updated:** 2026-05-01 02:54 | Prompts: 62 | Completed: 0
+> **Last Updated:** 2026-05-16 | Prompts: 62 | Completed: 0

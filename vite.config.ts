@@ -6,6 +6,66 @@ import { metaImagesPlugin } from "./vite-plugin-meta-images";
 import viteCompression from "vite-plugin-compression";
 import { visualizer } from "rollup-plugin-visualizer";
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const getVendorChunkName = (id: string): string | null => {
+  if (id.includes("commonjsHelpers")) return "vendor-commonjs";
+  if (!id.includes("node_modules")) return null;
+
+  const moduleId = id.replace(/\\/g, "/");
+  const includesPackage = (packageName: string) =>
+    moduleId.includes(`/node_modules/${packageName}/`) ||
+    moduleId.includes(`/node_modules/.pnpm/${packageName.replace("/", "+")}@`);
+
+  if (
+    includesPackage("react") ||
+    includesPackage("react-dom") ||
+    includesPackage("scheduler")
+  ) {
+    return "vendor-react";
+  }
+
+  if (
+    [
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-select",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-accordion",
+    ].some(includesPackage)
+  ) {
+    return "vendor-ui";
+  }
+
+  if (includesPackage("lucide-react")) return "vendor-icons";
+  if (includesPackage("framer-motion")) return "vendor-animation";
+
+  if (
+    includesPackage("recharts") ||
+    includesPackage("recharts-scale") ||
+    moduleId.includes("/node_modules/d3-")
+  ) {
+    return "vendor-charts";
+  }
+
+  if (
+    [
+      "@tanstack/react-query",
+      "date-fns",
+      "wouter",
+      "zod",
+      "clsx",
+      "tailwind-merge",
+    ].some(includesPackage)
+  ) {
+    return "vendor-utils";
+  }
+
+  return null;
+};
+
 export default defineConfig({
   plugins: [
     react(),
@@ -31,10 +91,6 @@ export default defineConfig({
       brotliSize: true,
     }),
   ],
-  // Remove console.log and debugger statements in production
-  esbuild: {
-    drop: process.env.NODE_ENV === 'production' ? ['console', 'debugger'] : [],
-  },
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
@@ -57,71 +113,30 @@ export default defineConfig({
     modulePreload: false,
     // Enable CSS code splitting for better caching
     cssCodeSplit: true,
-    // Minification settings
-    minify: 'esbuild',
-    // Target modern browsers for smaller bundles
-    target: 'es2020',
-    rollupOptions: {
+    minify: "oxc",
+    target: "baseline-widely-available",
+    rolldownOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes("commonjsHelpers")) return "vendor-commonjs";
-          if (!id.includes("node_modules")) return;
-
-          const moduleId = id.replace(/\\/g, "/");
-          const includesPackage = (packageName: string) =>
-            moduleId.includes(`/node_modules/${packageName}/`) ||
-            moduleId.includes(`/node_modules/.pnpm/${packageName.replace("/", "+")}@`);
-
-          if (
-            includesPackage("react") ||
-            includesPackage("react-dom") ||
-            includesPackage("scheduler")
-          ) {
-            return "vendor-react";
-          }
-
-          if (
-            [
-              "@radix-ui/react-dialog",
-              "@radix-ui/react-dropdown-menu",
-              "@radix-ui/react-select",
-              "@radix-ui/react-tabs",
-              "@radix-ui/react-tooltip",
-              "@radix-ui/react-popover",
-              "@radix-ui/react-accordion",
-            ].some(includesPackage)
-          ) {
-            return "vendor-ui";
-          }
-
-          if (includesPackage("lucide-react")) return "vendor-icons";
-          if (includesPackage("framer-motion")) return "vendor-animation";
-
-          if (
-            includesPackage("recharts") ||
-            includesPackage("recharts-scale") ||
-            moduleId.includes("/node_modules/d3-")
-          ) {
-            return "vendor-charts";
-          }
-
-          if (
-            [
-              "@tanstack/react-query",
-              "date-fns",
-              "wouter",
-              "zod",
-              "clsx",
-              "tailwind-merge",
-            ].some(includesPackage)
-          ) {
-            return "vendor-utils";
-          }
+        minify: isProduction
+          ? {
+              compress: {
+                dropConsole: true,
+                dropDebugger: true,
+              },
+            }
+          : "dce-only",
+        codeSplitting: {
+          groups: [
+            {
+              name: getVendorChunkName,
+              test: (id) => id.includes("commonjsHelpers") || id.includes("node_modules"),
+            },
+          ],
         },
         // Asset file naming for better caching
-        assetFileNames: 'assets/[name]-[hash][extname]',
-        chunkFileNames: 'chunks/[name]-[hash].js',
-        entryFileNames: 'entries/[name]-[hash].js',
+        assetFileNames: "assets/[name]-[hash][extname]",
+        chunkFileNames: "chunks/[name]-[hash].js",
+        entryFileNames: "entries/[name]-[hash].js",
       },
     },
   },

@@ -97,6 +97,9 @@ export interface Product {
   isProductOfWeek?: boolean;
   stock?: number;
   lowStockThreshold?: number;
+  costPrice?: number | string | null;
+  packagingCost?: number | string | null;
+  insertCost?: number | string | null;
 
   // Product variants (for products with multiple sizes like HYGGER)
   variants?: ProductVariant[] | null;

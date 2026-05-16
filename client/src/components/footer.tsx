@@ -179,7 +179,7 @@ export default function Footer() {
                 <Facebook className="h-4 w-4" />
               </a>
               <a
-                href="https://instagram.com/aquavo_iq"
+                href="https://www.instagram.com/aquavo_iq"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="تابعنا على إنستغرام"
@@ -218,19 +218,19 @@ export default function Footer() {
             </h4>
             <div className="text-slate-400 text-sm leading-relaxed space-y-3">
               <p className="font-medium text-white text-base">
-                💔 سمكة صغيرة... غيّرت كل شي
+                سمكة صغيرة... غيّرت كل شي
               </p>
               <p className="italic border-r-2 border-primary/50 pr-3">
                 "في يوم ميلادي، أهداني أبي سمكة ذهبية صغيرة. كانت أول صديق حقيقي لي. سميتها 'نور' لأنها كانت تضيء غرفتي بحركتها..."
               </p>
               <p>
-                بعد أسبوع واحد فقط، ماتت نور. 😢
+                بعد أسبوع واحد فقط، ماتت نور.
               </p>
               <p>
                 السبب؟ <span className="text-red-400 font-semibold">منتجات رديئة</span> من بائع لم يهتم. فلتر لا يعمل، طعام منتهي الصلاحية، ونصائح خاطئة.
               </p>
               <p className="font-medium text-white">
-                لم أنسَ ذلك الألم أبداً. 🔥
+                لم أنسَ ذلك الألم أبداً.
               </p>
               <div className="bg-slate-800/50 rounded-lg p-3 border border-slate-700">
                 <p className="text-white font-semibold mb-2">لهذا أسسنا AQUAVO:</p>
@@ -239,8 +239,8 @@ export default function Footer() {
                 </p>
               </div>
               <div className="pt-2">
-                <p className="font-medium text-primary mb-2 flex items-center gap-2">
-                  <span className="text-lg">🎯</span> وعدنا لكم:
+                <p className="font-medium text-primary mb-2">
+                  وعدنا لكم:
                 </p>
                 <ul className="space-y-2">
                   <li className="flex items-start gap-2">
@@ -338,12 +338,12 @@ export default function Footer() {
               </li>
             </ul>
 
-            {/* Business Hours */}
+            {/* Support Info */}
             <div className="pt-2 border-t border-slate-700">
-              <p className="text-slate-400 text-sm font-semibold mb-2">ساعات العمل:</p>
-              <p className="text-xs text-slate-400">
-                <span className="block">السبت - الخميس: 9:00 ص - 10:00 م</span>
-                <span className="block">الجمعة: 10:00 ص - 10:00 م</span>
+              <p className="text-xs text-slate-400 space-y-1">
+                <span className="block">الدعم متوفر 24/7</span>
+                <span className="block">التوصيل لكل العراق خلال 24 ساعة</span>
+                <span className="block">أجور التوصيل: 5,000 د.ع</span>
               </p>
             </div>
 
@@ -376,48 +376,6 @@ export default function Footer() {
             </div>
           </div>
         </div>
-        {/* Invest With Us Section */}
-        <div className="py-8 border-b border-slate-800/50">
-          <div className="bg-gradient-to-r from-primary/10 via-slate-800/50 to-blue-500/10 rounded-2xl p-6 md:p-8 border border-primary/20">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="text-center md:text-right flex-1">
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-2 flex items-center justify-center md:justify-start gap-2">
-                  <span className="text-2xl">🚀</span> استثمر معنا
-                </h3>
-                <p className="text-slate-400 text-sm md:text-base mb-4">
-                  انضم لنا في بناء أكبر منصة لأحواض السمك في العراق
-                </p>
-                <div className="flex flex-wrap justify-center md:justify-start gap-4 text-xs md:text-sm">
-                  <div className="flex items-center gap-1 bg-slate-800/60 px-3 py-1.5 rounded-full">
-                    <span className="text-primary font-bold">$60M</span>
-                    <span className="text-slate-400">حجم السوق</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-slate-800/60 px-3 py-1.5 rounded-full">
-                    <span className="text-green-400 font-bold">40%</span>
-                    <span className="text-slate-400">هامش الربح</span>
-                  </div>
-                  <div className="flex items-center gap-1 bg-slate-800/60 px-3 py-1.5 rounded-full">
-                    <span className="text-amber-400 font-bold">18 شهر</span>
-                    <span className="text-slate-400">استرداد الاستثمار</span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <Link href="/invest">
-                  <button className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
-                    <span>📊</span> العرض التقديمي
-                  </button>
-                </Link>
-                <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، أريد الاستثمار في AQUAVO")}`} target="_blank" rel="noopener noreferrer">
-                  <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-all hover:scale-105 flex items-center gap-2 whitespace-nowrap">
-                    <MessageCircle className="w-4 h-4" /> تواصل معنا
-                  </button>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="border-t border-slate-800/50 py-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-sm text-slate-500">

@@ -36,7 +36,6 @@ import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
 import { trackViewItem, trackAddToCart } from "@/lib/analytics";
 import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL } from "@/lib/constants/shipping";
-import { ViewerCount } from "@/components/products/viewer-count";
 
 export default function ProductDetails() {
   const params = useParams();
@@ -399,8 +398,6 @@ export default function ProductDetails() {
                     </div>
                   )}
                 </div>
-
-                <ViewerCount productId={product.id} />
 
                 {/* Product Variants - Check for multi-dimensional first, then embedded */}
                 {hasEmbeddedVariants && product.variants && (

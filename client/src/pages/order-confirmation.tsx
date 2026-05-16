@@ -347,8 +347,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                             )}
                                             {shippingCost === 0 && subtotal > 0 && (
                                                 <div className="flex items-center justify-between text-green-600">
-                                                    <span>🚚 التوصيل</span>
-                                                    <span>مجاني ✨</span>
+                                                    <span>التوصيل</span>
+                                                    <span>مجاني</span>
                                                 </div>
                                             )}
                                             {discountAmount > 0 && (

@@ -83,7 +83,7 @@ export function LuxuryProductShowcase({ product }: LuxuryProductShowcaseProps) {
             transition={{ delay: 0.7 }}
             className="absolute -left-12 bottom-1/4 bg-card/80 backdrop-blur-md p-6 rounded-2xl border border-white/10 shadow-xl max-w-[200px]"
           >
-            <div className="text-2xl font-bold text-purple-500">قريباً جداً ✨</div>
+            <div className="text-2xl font-bold text-purple-500">قريباً جداً</div>
           </motion.div>
         </motion.div>
       </div>

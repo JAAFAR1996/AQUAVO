@@ -44,7 +44,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
         <div className="py-4">
           <Input
             type="search"
-            placeholder="ابحث عن فلتر، سخان، نباتات..."
+            placeholder="ابحث عن فلتر، سخان، معدات..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="text-lg"
@@ -61,7 +61,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
                   <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-16 h-16 object-contain rounded-md bg-white" />
                   <div>
                     <h4 className="font-semibold">{product.name}</h4>
-                    <p className="text-sm font-bold text-purple-500">قريباً جداً ✨</p>
+                    <p className="text-sm font-bold text-purple-500">قريباً جداً</p>
                   </div>
                 </div>
               </Link>

@@ -40,7 +40,10 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                 {/* أجور التوصيل */}
                 <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">أجور التوصيل</span>
-                    <span>{formatIQD(deliveryFee)}</span>
+                    {isFreeShipping
+                        ? <span className="text-green-600 dark:text-green-400">مجاني</span>
+                        : <span>{formatIQD(deliveryFee)}</span>
+                    }
                 </div>
 
                 {/* خصم الكوبون */}

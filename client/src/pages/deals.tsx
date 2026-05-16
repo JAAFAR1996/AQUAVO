@@ -231,7 +231,7 @@ export default function Deals() {
 
                       {/* Price */}
                       <div className="space-y-1">
-                        <span className="text-2xl font-bold text-purple-500">قريباً جداً ✨</span>
+                        <span className="text-2xl font-bold text-purple-500">قريباً جداً</span>
                       </div>
 
                       {/* Add to Cart Button */}

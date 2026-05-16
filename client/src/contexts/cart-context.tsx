@@ -212,39 +212,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }),
         });
         if (res.ok) {
-          const newItem = await res.json();
-          // Ideally rely on the response for the new state, but refreshing full cart ensures sync
+          await res.json();
+          // Refresh full cart to ensure sync with server state
           const cartRes = await fetch("/api/cart", { credentials: "include" });
-          const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.id,
-            productId: item.productId,
-            name: item.product.name,
-            price: Number(item.product.price),
-            quantity: item.quantity,
-            image: item.product.thumbnail || item.product.images?.[0] || '',
-            slug: item.product.slug,
-            variantId: item.variantId,
-            variantLabel: item.variantLabel,
-          }));
-          setItems(mappedItems);
+          if (cartRes.ok) {
+            const serverItems = await cartRes.json();
+            const mappedItems = serverItems.map((item: ServerCartItem) => ({
+              id: item.id,
+              productId: item.productId,
+              name: item.product.name,
+              price: Number(item.product.price),
+              quantity: item.quantity,
+              image: item.product.thumbnail || item.product.images?.[0] || '',
+              slug: item.product.slug,
+              variantId: item.variantId,
+              variantLabel: item.variantLabel,
+            }));
+            setItems(mappedItems);
+          }
+          // If cartRes is not ok, item was still added — optimistic local state is already correct
         } else {
-          try {
-            if (res.status === 401) {
-              toast({
-                title: "جلسة منتهية",
-                description: "يرجى تسجيل الدخول مرة أخرى لإضافة المنتجات.",
-                variant: "destructive",
-              });
-            } else {
-              throw new Error("Server responded with " + res.status);
-            }
-          } catch (e) {
-            throw e;
+          if (res.status === 401) {
+            toast({
+              title: "جلسة منتهية",
+              description: "يرجى تسجيل الدخول مرة أخرى لإضافة المنتجات.",
+              variant: "destructive",
+            });
+          } else {
+            throw new Error("Server responded with " + res.status);
           }
         }
       } catch (err) {
-        console.error("Failed to add to server cart", err);
+        console.warn("Failed to add to server cart", err);
         toast({
           title: "حدث خطأ",
           description: "لم نتمكن من إضافة المنتج — حاول مرة ثانية.",
@@ -396,20 +395,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (!res.ok) {
           // Rollback on failure - refetch from server
           const cartRes = await fetch("/api/cart", { credentials: "include" });
-          const serverItems = await cartRes.json();
-          if (Array.isArray(serverItems)) {
-            const mappedItems = serverItems.map((item: ServerCartItem) => ({
-              id: item.id,
-              productId: item.productId,
-              name: item.product.name,
-              price: Number(item.product.price),
-              quantity: item.quantity,
-              image: item.product.thumbnail || item.product.images?.[0] || '',
-              slug: item.product.slug,
-              variantId: item.variantId,
-              variantLabel: item.variantLabel,
-            }));
-            setItems(mappedItems);
+          if (cartRes.ok) {
+            const serverItems = await cartRes.json();
+            if (Array.isArray(serverItems)) {
+              const mappedItems = serverItems.map((item: ServerCartItem) => ({
+                id: item.id,
+                productId: item.productId,
+                name: item.product.name,
+                price: Number(item.product.price),
+                quantity: item.quantity,
+                image: item.product.thumbnail || item.product.images?.[0] || '',
+                slug: item.product.slug,
+                variantId: item.variantId,
+                variantLabel: item.variantLabel,
+              }));
+              setItems(mappedItems);
+            }
           }
           toast({
             title: "فشل حذف المنتج",
@@ -418,7 +419,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           });
         }
       } catch (err) {
-        console.error("Failed to remove from server cart", err);
+        console.warn("Failed to remove from server cart", err);
         toast({
           title: "فشل حذف المنتج",
           variant: "destructive",
@@ -476,7 +477,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           });
         }
       } catch (err) {
-        console.error("Failed to update server cart", err);
+        console.warn("Failed to update server cart", err);
         // Rollback on error
         setItems(prev => prev.map((item) =>
           item.id === id ? { ...item, quantity: oldQuantity } : item
@@ -524,7 +525,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
       }
     } catch (err) {
-      console.error("Failed to refetch cart:", err);
+      console.warn("Failed to refetch cart:", err);
     }
   }, [user]);
 
@@ -538,7 +539,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         setItems([]);
       } catch (err) {
-        console.error("Failed to clear server cart", err);
+        console.warn("Failed to clear server cart", err);
       }
     } else {
       saveCart([]);

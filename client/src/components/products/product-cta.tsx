@@ -42,7 +42,7 @@ export function ProductCTA({
             {/* Price Section */}
             <div className="space-y-2">
                 <div className="flex items-baseline gap-3 flex-wrap">
-                    <span className="text-4xl font-bold text-purple-500">قريباً جداً ✨</span>
+                    <span className="text-4xl font-bold text-purple-500">قريباً جداً</span>
                 </div>
             </div>
 

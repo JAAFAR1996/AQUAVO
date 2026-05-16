@@ -23,6 +23,7 @@ interface SearchResult {
   subtitle?: string;
   image?: string;
   price?: number;
+  stock?: number;
   url: string;
   category?: string;
 }
@@ -156,6 +157,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           subtitle: product.brand,
           image: product.image,
           price: product.price,
+          stock: product.stock,
           url: `/products/${product.slug}`,
           category: product.category,
         });
@@ -181,6 +183,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           subtitle: product.brand,
           image: product.image,
           price: product.price,
+          stock: product.stock,
           url: `/products/${product.slug}`,
           category: product.category,
         });
@@ -223,6 +226,19 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           });
         }
       }
+    });
+
+    // Sort: in-stock products before coming-soon, pages last
+    results.sort((a, b) => {
+      if (a.type !== "product" && b.type === "product") return 1;
+      if (a.type === "product" && b.type !== "product") return -1;
+      if (a.type === "product" && b.type === "product") {
+        const aInStock = (a.stock ?? 1) > 0;
+        const bInStock = (b.stock ?? 1) > 0;
+        if (aInStock && !bInStock) return -1;
+        if (!aInStock && bInStock) return 1;
+      }
+      return 0;
     });
 
     return results.slice(0, 12);
@@ -300,7 +316,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
           <Input
             ref={inputRef}
             type="search"
-            placeholder="ابحث عن المنتجات، الصفحات، الأسماك..."
+            placeholder="ابحث عن المنتجات، الصفحات، المعدات..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="border-0 focus-visible:ring-0 text-lg"
@@ -356,8 +372,8 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                         {result.subtitle}
                       </div>
                     )}
-                    {result.price !== undefined && (
-                      <div className="text-xs font-bold text-purple-500 mt-1">قريباً جداً ✨</div>
+                    {result.type === "product" && result.stock === 0 && (
+                      <div className="text-xs text-muted-foreground mt-1">قريباً</div>
                     )}
                   </div>
                   <Badge variant="secondary" className="shrink-0">

@@ -1,29 +1,29 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, lazy, Suspense } from "react";
 import { useInView } from "@/hooks/use-in-view";
-import { Reveal } from "@/components/ui/reveal";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
-import { ComparisonDrawer, useComparison } from "@/components/products/product-comparison";
+import { useComparison } from "@/contexts/comparison-context";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { FilterBar } from "@/components/products/filter-bar";
-import { FilterModal, FilterState } from "@/components/products/filter-modal";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { FilterState } from "@/components/products/filter-modal";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchProductAttributes, fetchPersonalizedOrder } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
-
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-
 import { BackToTop } from "@/components/back-to-top";
-import { QuickViewModal } from "@/components/products/quick-view-modal";
 import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
+
+const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
+const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
+const ComparisonDrawer = lazy(() => import("@/components/products/product-comparison").then(m => ({ default: m.ComparisonDrawer })));
 
 type SortOption = "default" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
 
@@ -235,13 +235,14 @@ export default function Products() {
     return count;
   }, [filters, minPrice, maxPrice]);
 
-  // Toggle category
+  // Toggle individual raw category — the CategoryScrollBar handles single-select
+  // at the group level by clearing existing selections before adding the new group.
   const handleCategoryToggle = (category: string) => {
     setFilters(prev => ({
       ...prev,
       categories: prev.categories.includes(category)
         ? prev.categories.filter(c => c !== category)
-        : [...prev.categories, category]
+        : [...prev.categories, category],
     }));
   };
 
@@ -256,20 +257,13 @@ export default function Products() {
 
       <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8" dir="rtl">
         {/* Header */}
-        <div className="text-center space-y-2 sm:space-y-3 mb-4 sm:mb-8">
+        <div className="text-center space-y-1 sm:space-y-2 mb-5 sm:mb-6">
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground">معدات أحواض أصلية لكل العراق</h1>
-          <p className="text-sm sm:text-lg text-muted-foreground">منتجات أصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة لكل العراق.</p>
-          <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm text-muted-foreground mt-2">
-            <span>أصلي 100%</span>
-            <span>·</span>
-            <span>توصيل 24 ساعة</span>
-            <span>·</span>
-            <span>دعم 24/7</span>
-          </div>
+          <p className="text-sm sm:text-base text-muted-foreground">اختار القسم المناسب لحوضك، وشوف المنتجات المتوفرة مباشرة.</p>
         </div>
 
-        {/* Airbnb-style Category Scroll Bar */}
-        <div className="border-b border-border mb-4">
+        {/* Category Selector — primary navigation */}
+        <div className="mb-5 rounded-xl border border-border/50 overflow-hidden shadow-sm">
           <CategoryScrollBar
             categories={availableCategories}
             selectedCategories={filters.categories}
@@ -347,16 +341,14 @@ export default function Products() {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {displayedProducts.map((product, index) => (
-                    <Reveal key={product.id} delay={Math.min(index % 8 * 60, 400)}>
-                      <div data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
-                        <ProductCard
-                          product={product}
-                          priority={index < 8}
-                          onQuickView={(p) => setQuickViewProduct(p)}
-                          onCompare={(p) => addToCompare(p.id)}
-                        />
-                      </div>
-                    </Reveal>
+                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
+                      <ProductCard
+                        product={product}
+                        priority={index < 8}
+                        onQuickView={(p) => setQuickViewProduct(p)}
+                        onCompare={(p) => addToCompare(p.id)}
+                      />
+                    </div>
                   ))}
                 </div>
 
@@ -420,27 +412,35 @@ export default function Products() {
 
       <BackToTop />
 
-      {/* Quick View Modal */}
-      <QuickViewModal
-        product={quickViewProduct}
-        isOpen={!!quickViewProduct}
-        onClose={() => setQuickViewProduct(null)}
-      />
+      <Suspense fallback={null}>
+        {quickViewProduct && (
+          <QuickViewModal
+            product={quickViewProduct}
+            isOpen={!!quickViewProduct}
+            onClose={() => setQuickViewProduct(null)}
+          />
+        )}
+      </Suspense>
 
-      {/* Filter Modal - Airbnb Style */}
-      <FilterModal
-        isOpen={isFilterModalOpen}
-        onClose={() => setIsFilterModalOpen(false)}
-        filters={filters}
-        onApplyFilters={setFilters}
-        availableBrands={availableBrands}
-        maxPrice={maxPrice}
-        minPrice={minPrice}
-        brandCounts={brandCounts}
-        resultCount={finalProducts.length}
-      />
+      <Suspense fallback={null}>
+        {isFilterModalOpen && (
+          <FilterModal
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+            filters={filters}
+            onApplyFilters={setFilters}
+            availableBrands={availableBrands}
+            maxPrice={maxPrice}
+            minPrice={minPrice}
+            brandCounts={brandCounts}
+            resultCount={finalProducts.length}
+          />
+        )}
+      </Suspense>
 
-      <ComparisonDrawer products={finalProducts} />
+      <Suspense fallback={null}>
+        <ComparisonDrawer products={finalProducts} />
+      </Suspense>
 
       <Footer />
     </div>

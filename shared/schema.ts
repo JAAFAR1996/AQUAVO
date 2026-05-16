@@ -149,6 +149,7 @@ export const orders = pgTable("orders", {
   bonusClaimedAt: timestamp("bonus_claimed_at"),
   carrier: text("carrier"),
   codReceived: boolean("cod_received").default(false),
+  boxCost: numeric("box_cost").default("0"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -540,6 +541,11 @@ export const insertProductSchema = z.object({
   isNew: z.boolean().optional(),
   isBestSeller: z.boolean().optional(),
   isProductOfWeek: z.boolean().optional(),
+  costPrice: z.string().optional(),
+  packagingCost: z.string().optional(),
+  insertCost: z.string().optional(),
+  variants: z.array(z.any()).nullable().optional(),
+  hasVariants: z.boolean().optional(),
   specifications: z.record(z.string(), z.any()),
 });
 export const insertOrderSchema = createInsertSchema(orders);

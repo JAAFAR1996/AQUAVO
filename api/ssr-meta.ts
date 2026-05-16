@@ -32,12 +32,14 @@ interface PageMeta {
   description: string;
   keywords?: string;
   ogType?: string;
+  ogTitle?: string;
   jsonLd?: object | object[];
 }
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
     title: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+    ogTitle: "AQUAVO — معدات أحواض بريميوم في العراق",
     description: "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.",
     keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة",
     ogType: "website",
@@ -58,7 +60,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         geo: { "@type": "GeoCoordinates", latitude: "33.3152", longitude: "44.3661" },
         telephone: "+964-774-788-0673",
         contactPoint: { "@type": "ContactPoint", telephone: "+964-774-788-0673", contactType: "customer service", availableLanguage: ["Arabic", "ar"] },
-        sameAs: ["https://instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
+        sameAs: ["https://www.instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
         areaServed: { "@type": "Country", name: "العراق" },
         openingHoursSpecification: [
           { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "21:00" },
@@ -330,7 +332,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@context": "https://schema.org",
         "@type": "AboutPage",
         name: "من نحن - AQUAVO",
-        description: "AQUAVO هو أول متجر اونلاين متخصص في أسماك الزينة في العراق",
+        description: "AQUAVO هو أول متجر اونلاين متخصص في مستلزمات أحواض الزينة في العراق",
         url: `${BASE}/about`,
         mainEntity: {
           "@type": "Organization",
@@ -341,9 +343,9 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           foundingDate: "2024",
           foundingLocation: { "@type": "Place", name: "بغداد، العراق" },
           description: "متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية وعلاجات أصلية.",
-          knowsAbout: ["أسماك الزينة", "أحواض السمك", "Aquascaping", "تربية الأسماك", "مستلزمات الأحواض", "النباتات المائية"],
+          knowsAbout: ["أحواض الزينة", "معدات الأحواض", "Aquascaping", "مستلزمات الأحواض", "فلاتر المياه", "معالجة مياه الأحواض"],
           areaServed: { "@type": "Country", name: "العراق" },
-          sameAs: ["https://instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
+          sameAs: ["https://www.instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
         },
         inLanguage: "ar",
       },
@@ -401,7 +403,7 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
         "@type": "Product",
         name: p.name,
         description: desc,
-        image: p.thumbnail || primaryImage,
+        image: primaryImage,
         brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
         offers: {
           "@type": "Offer",
@@ -549,6 +551,18 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     .replace(/__META_IMAGE__/g, meta.image)
     .replace(/__META_OG_TYPE__/g, meta.ogType || "website");
 
+  if (meta.ogTitle) {
+    const escapedOgTitle = escapeHtml(meta.ogTitle);
+    result = result.replace(
+      /(<meta property="og:title" content=")[^"]*(")/,
+      `$1${escapedOgTitle}$2`
+    );
+    result = result.replace(
+      /(<meta name="twitter:title" content=")[^"]*(")/,
+      `$1${escapedOgTitle}$2`
+    );
+  }
+
   // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
@@ -622,7 +636,7 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
     lines.push(`## Contact\n`);
     lines.push(`- Phone: +964 774 788 0673`);
     lines.push(`- Website: ${BASE}`);
-    lines.push(`- Instagram: [@aquavo_iq](https://instagram.com/aquavo_iq)`);
+    lines.push(`- Instagram: [@aquavo_iq](https://www.instagram.com/aquavo_iq)`);
     lines.push(`- TikTok: [@aquavo.iq](https://www.tiktok.com/@aquavo.iq)\n`);
   }
 

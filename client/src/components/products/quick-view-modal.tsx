@@ -124,7 +124,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         {/* Price */}
                         <div className="flex items-baseline gap-3 justify-end mb-4">
                             <span className="text-3xl font-bold text-purple-500">
-                                قريباً جداً ✨
+                                قريباً جداً
                             </span>
                         </div>
 

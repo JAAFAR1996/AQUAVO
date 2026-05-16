@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Joyride, { CallBackProps, STATUS, Step, Styles } from 'react-joyride';
+import { Joyride, STATUS, type EventData, type Options, type Step, type Styles } from 'react-joyride';
 import { useLocation } from 'wouter';
 
 export function OnboardingTour() {
@@ -32,7 +32,7 @@ export function OnboardingTour() {
                         </div>
                     ),
                     placement: 'center',
-                    disableBeacon: true,
+                    skipBeacon: true,
                 },
                 // Mobile-specific step for Menu
                 ...(isMobile ? [{
@@ -95,7 +95,7 @@ export function OnboardingTour() {
                         </div>
                     ),
                     placement: 'center',
-                    disableBeacon: true,
+                    skipBeacon: true,
                 },
                 {
                     target: '[data-tour="products-filter"]',
@@ -129,7 +129,7 @@ export function OnboardingTour() {
                         </div>
                     ),
                     placement: 'center',
-                    disableBeacon: true,
+                    skipBeacon: true,
                 },
                 {
                     target: '[data-tour="calculators-tabs"]',
@@ -163,7 +163,7 @@ export function OnboardingTour() {
                         </div>
                     ),
                     placement: 'center',
-                    disableBeacon: true,
+                    skipBeacon: true,
                 },
                 {
                     target: '[data-tour="encyclopedia-search"]',
@@ -197,7 +197,7 @@ export function OnboardingTour() {
                         </div>
                     ),
                     placement: 'center',
-                    disableBeacon: true,
+                    skipBeacon: true,
                 },
                 {
                     target: '[data-tour="health-upload"]',
@@ -247,7 +247,7 @@ export function OnboardingTour() {
 
     }, [location, isMobile]);
 
-    const handleJoyrideCallback = (data: CallBackProps) => {
+    const handleJoyrideCallback = (data: EventData) => {
         const { status } = data;
         const difficultStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
@@ -263,15 +263,18 @@ export function OnboardingTour() {
         }
     };
 
+    const tourOptions: Partial<Options> = {
+        zIndex: 10000,
+        primaryColor: '#0ea5e9',
+        textColor: '#334155',
+        backgroundColor: '#ffffff',
+        arrowColor: '#ffffff',
+        overlayClickAction: 'close',
+        buttons: ['back', 'close', 'skip', 'primary'],
+    };
+
     const tourStyles: Partial<Styles> = {
-        options: {
-            zIndex: 10000,
-            primaryColor: '#0ea5e9',
-            textColor: '#334155',
-            backgroundColor: '#ffffff',
-            arrowColor: '#ffffff',
-        },
-        buttonNext: {
+        buttonPrimary: {
             backgroundColor: '#0ea5e9',
             color: '#ffffff',
             fontFamily: 'inherit',
@@ -308,9 +311,8 @@ export function OnboardingTour() {
             steps={steps}
             run={run}
             continuous
-            showSkipButton
             scrollToFirstStep
-            disableOverlayClose={false}
+            options={tourOptions}
             locale={{
                 back: 'السابق',
                 close: 'إغلاق',
@@ -319,10 +321,9 @@ export function OnboardingTour() {
                 skip: 'تخطي',
             }}
             styles={tourStyles}
-            callback={handleJoyrideCallback}
-            floaterProps={{
+            onEvent={handleJoyrideCallback}
+            floatingOptions={{
                 hideArrow: false,
-                disableAnimation: true, // Sometimes helps with mobile positioning
             }}
         />
     );

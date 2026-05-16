@@ -1,62 +1,73 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { orders, products, shippingSettlements, productCostHistory } from "../../shared/schema.js";
-import { and, gte, lte, isNull, inArray, eq, desc } from "drizzle-orm";
-import { ApifyClient } from "apify-client";
+import { and, gte, lte, inArray, eq, desc } from "drizzle-orm";
+import {
+  accountingCostHistoryInputSchema,
+  accountingCostInputSchema,
+  accountingPeriodSchema,
+  accountingSettlementInputSchema,
+  type AccountingPeriod,
+} from "../../shared/accounting.js";
 
 const router = Router();
 router.use(requireAdmin);
 
-// ─── helpers ────────────────────────────────────────────────────────────────
+type Db = NonNullable<ReturnType<typeof getDb>>;
+type OrderRow = typeof orders.$inferSelect;
+type ProductRow = typeof products.$inferSelect;
+type CostHistoryRow = typeof productCostHistory.$inferSelect;
 
-function periodRange(period: string, from?: string, to?: string): { start: Date; end: Date } {
-  const now = new Date();
-  if (period === "custom" && from && to) {
-    return { start: new Date(from), end: new Date(to) };
-  }
-  if (period === "day") {
-    const start = new Date(now); start.setHours(0, 0, 0, 0);
-    const end   = new Date(now); end.setHours(23, 59, 59, 999);
-    return { start, end };
-  }
-  if (period === "year") {
-    return {
-      start: new Date(now.getFullYear(), 0, 1),
-      end:   new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999),
-    };
-  }
-  // default: month
-  return {
-    start: new Date(now.getFullYear(), now.getMonth(), 1),
-    end:   new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
-  };
+interface OrderLineItem {
+  productId?: string;
+  quantity?: number | string;
+  priceAtPurchase?: number | string;
 }
 
-interface CostMap {
-  [productId: string]: {
-    costPrice: number;
-    packagingCost: number;
-    insertCost: number;
-    name: string;
-    price: number;
-  };
+interface ProductCost {
+  productId: string;
+  name: string;
+  price: number;
+  costPrice: number;
+  packagingCost: number;
+  insertCost: number;
+  costsComplete: boolean;
+}
+
+interface CostResolver {
+  getCurrent(productId: string): ProductCost | undefined;
+  getEffective(productId: string, at: Date): ProductCost | undefined;
+}
+
+interface OrderProfitItem {
+  productId: string;
+  name: string;
+  qty: number;
+  priceAtPurchase: number;
 }
 
 interface OrderProfit {
   orderId: string;
   orderNumber: string | null;
   customerName: string | null;
+  customerPhone: string | null;
   status: string;
-  createdAt: Date;
+  createdAt: string;
   revenue: number;
   cogs: number;
   packaging: number;
   couponDiscount: number;
   loyaltyDiscount: number;
   shipping: number;
+  boxCost: number;
   netProfit: number;
   margin: number;
+  costsComplete: boolean;
+  missingCostLines: number;
+  missingProductLines: number;
+  items: OrderProfitItem[];
 }
 
 interface ProductProfit {
@@ -71,369 +82,584 @@ interface ProductProfit {
   costPrice: number;
   packagingCost: number;
   insertCost: number;
+  costsComplete: boolean;
+  missingCostLines: number;
+  missingProductLines: number;
 }
 
-function calcOrderProfit(order: any, costMap: CostMap): OrderProfit {
-  const items: Array<{ productId: string; quantity: number; priceAtPurchase: number }> =
-    Array.isArray(order.items) ? order.items : [];
+const competitorCheckSchema = z.object({
+  productName: z.string().trim().min(1),
+  brand: z.string().trim().optional(),
+});
 
-  let revenue = 0;
-  let cogs = 0;
-  let packaging = 0;
+function getAccountingDb(res: Response): Db | null {
+  const db = getDb();
+  if (!db) {
+    res.status(503).json({ success: false, message: "قاعدة البيانات غير مهيأة" });
+    return null;
+  }
+  return db;
+}
 
-  for (const item of items) {
-    const qty = item.quantity || 1;
-    const price = Number(item.priceAtPurchase) || 0;
-    revenue += price * qty;
+function toNumber(value: unknown): number {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
 
-    const c = costMap[item.productId];
-    if (c) {
-      cogs += c.costPrice * qty;
-      packaging += (c.packagingCost + c.insertCost) * qty;
+// المبلغ الفعلي الذي يدفعه الزبون — مقرّب لأقرب 250 دينار
+function orderCollectedAmount(order: OrderRow): number {
+  if (order.roundedTotal != null) return toNumber(order.roundedTotal);
+  const raw = toNumber(order.total);
+  return Math.round(raw / 250) * 250;
+}
+
+function toDate(value: unknown): Date {
+  return value instanceof Date ? value : new Date(String(value));
+}
+
+// الطلبات المحققة (delivered فقط) — الإيراد الفعلي
+const REALIZED_STATUSES = ["delivered"] as const;
+// الطلبات الملغاة/المرفوضة
+const CANCELLED_STATUSES = ["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned"] as const;
+// الطلبات قيد التنفيذ
+const IN_PROGRESS_STATUSES = ["pending", "confirmed", "processing", "shipped"] as const;
+
+function periodRange(period: AccountingPeriod, from?: string, to?: string): { start: Date; end: Date } {
+  const now = new Date();
+  if (period === "custom" && from && to) {
+    const start = new Date(from);
+    const end = new Date(to);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  if (period === "day") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(now);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  if (period === "week") {
+    const day = now.getDay();
+    const diffToSat = (day + 1) % 7; // السبت بداية الأسبوع (عراقي)
+    const start = new Date(now);
+    start.setDate(now.getDate() - diffToSat);
+    start.setHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    end.setHours(23, 59, 59, 999);
+    return { start, end };
+  }
+  if (period === "year") {
+    return {
+      start: new Date(now.getFullYear(), 0, 1),
+      end: new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999),
+    };
+  }
+  // month (default)
+  return {
+    start: new Date(now.getFullYear(), now.getMonth(), 1),
+    end: new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999),
+  };
+}
+
+function getPeriodQuery(req: Request): { period: AccountingPeriod; from?: string; to?: string } {
+  const rawPeriod = typeof req.query.period === "string" ? req.query.period : "month";
+  const parsedPeriod = accountingPeriodSchema.safeParse(rawPeriod);
+  const period = parsedPeriod.success ? parsedPeriod.data : "month";
+  const from = typeof req.query.from === "string" ? req.query.from : undefined;
+  const to = typeof req.query.to === "string" ? req.query.to : undefined;
+  return { period, from, to };
+}
+
+function getOrderItems(order: OrderRow): OrderLineItem[] {
+  return Array.isArray(order.items) ? (order.items as OrderLineItem[]) : [];
+}
+
+function lineQuantity(item: OrderLineItem): number {
+  const qty = toNumber(item.quantity);
+  return qty > 0 ? qty : 1;
+}
+
+function orderSubtotal(items: OrderLineItem[]): number {
+  return items.reduce((sum, item) => {
+    return sum + toNumber(item.priceAtPurchase) * lineQuantity(item);
+  }, 0);
+}
+
+function productCostFromProduct(product: ProductRow): ProductCost {
+  const costPrice = toNumber(product.costPrice);
+  return {
+    productId: product.id,
+    name: product.name,
+    price: toNumber(product.price),
+    costPrice,
+    packagingCost: toNumber(product.packagingCost),
+    insertCost: toNumber(product.insertCost),
+    costsComplete: costPrice > 0,
+  };
+}
+
+function productCostFromHistory(product: ProductRow, history: CostHistoryRow): ProductCost {
+  const costPrice = toNumber(history.costPrice);
+  return {
+    productId: product.id,
+    name: product.name,
+    price: toNumber(product.price),
+    costPrice,
+    packagingCost: toNumber(history.packagingCost),
+    insertCost: toNumber(history.insertCost),
+    costsComplete: costPrice > 0,
+  };
+}
+
+async function buildCostResolver(db: Db, productIds: Set<string>): Promise<CostResolver> {
+  const productMap = new Map<string, ProductRow>();
+  const historyMap = new Map<string, CostHistoryRow[]>();
+
+  if (productIds.size > 0) {
+    const ids = [...productIds];
+    const productRows = await db.select().from(products).where(inArray(products.id, ids));
+    for (const product of productRows) productMap.set(product.id, product);
+
+    const historyRows = await db
+      .select()
+      .from(productCostHistory)
+      .where(inArray(productCostHistory.productId, ids))
+      .orderBy(desc(productCostHistory.effectiveFrom));
+
+    for (const history of historyRows) {
+      const rows = historyMap.get(history.productId) ?? [];
+      rows.push(history);
+      historyMap.set(history.productId, rows);
     }
   }
 
-  const couponDiscount  = Number(order.discountTotal)  || 0;
-  const loyaltyDiscount = Number(order.pointsDiscount) || 0;
-  // shipping is paid by customer to carrier — not a seller expense, shown for info only
-  const shipping        = Number(order.shippingCost)   || 0;
+  return {
+    getCurrent(productId: string) {
+      const product = productMap.get(productId);
+      return product ? productCostFromProduct(product) : undefined;
+    },
+    getEffective(productId: string, at: Date) {
+      const product = productMap.get(productId);
+      if (!product) return undefined;
 
-  const netProfit = revenue - cogs - packaging - couponDiscount - loyaltyDiscount;
-  const margin    = revenue > 0 ? Math.round((netProfit / revenue) * 100) : 0;
+      const effectiveHistory = historyMap
+        .get(productId)
+        ?.find((history) => toDate(history.effectiveFrom).getTime() <= at.getTime());
+
+      return effectiveHistory
+        ? productCostFromHistory(product, effectiveHistory)
+        : productCostFromProduct(product);
+    },
+  };
+}
+
+function collectProductIds(orderRows: OrderRow[]): Set<string> {
+  const productIds = new Set<string>();
+  for (const order of orderRows) {
+    for (const item of getOrderItems(order)) {
+      if (item.productId) productIds.add(item.productId);
+    }
+  }
+  return productIds;
+}
+
+async function getOrdersForPeriod(db: Db, start: Date, end: Date): Promise<OrderRow[]> {
+  return await db
+    .select()
+    .from(orders)
+    .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
+}
+
+// للربح الفعلي فقط: طلبات موصّلة
+async function getRealizedOrdersForPeriod(db: Db, start: Date, end: Date): Promise<OrderRow[]> {
+  return await db
+    .select()
+    .from(orders)
+    .where(
+      and(
+        gte(orders.createdAt, start),
+        lte(orders.createdAt, end),
+        inArray(orders.status, [...REALIZED_STATUSES])
+      )
+    );
+}
+
+function calcOrderProfit(order: OrderRow, costs: CostResolver): OrderProfit {
+  const rawItems = getOrderItems(order);
+  const createdAt = toDate(order.createdAt);
+  let cogs = 0;
+  let missingCostLines = 0;
+  let missingProductLines = 0;
+  const resolvedItems: OrderProfitItem[] = [];
+
+  for (const item of rawItems) {
+    const qty = lineQuantity(item);
+    const price = toNumber(item.priceAtPurchase);
+
+    if (!item.productId) {
+      missingProductLines++;
+      resolvedItems.push({ productId: "", name: "منتج غير معروف", qty, priceAtPurchase: price });
+      continue;
+    }
+
+    const cost = costs.getEffective(item.productId, createdAt);
+    if (!cost) {
+      missingProductLines++;
+      resolvedItems.push({ productId: item.productId, name: item.productId, qty, priceAtPurchase: price });
+      continue;
+    }
+    if (!cost.costsComplete) missingCostLines++;
+
+    cogs += cost.costPrice * qty;
+    resolvedItems.push({ productId: item.productId, name: cost.name, qty, priceAtPurchase: price });
+  }
+
+  // الإيراد = المبلغ الذي يستلمه البائع فعلاً من الشركة (مقرّب - الشحن)
+  const shipping = toNumber(order.shippingCost);
+  const revenue = orderCollectedAmount(order) - shipping;
+  const packaging = toNumber(order.boxCost);
+  const couponDiscount = toNumber(order.discountTotal);
+  const loyaltyDiscount = toNumber(order.pointsDiscount);
+  // الكوبونات والنقاط مدموجة في المبلغ المحصّل — تُعرض للمعلومة فقط
+  const netProfit = revenue - cogs - packaging;
+  const margin = revenue > 0 ? Math.round((netProfit / revenue) * 100) : 0;
 
   return {
-    orderId:        order.id,
-    orderNumber:    order.orderNumber ?? null,
-    customerName:   order.customerName ?? null,
-    status:         order.status ?? "pending",
-    createdAt:      order.createdAt,
+    orderId: order.id,
+    orderNumber: order.orderNumber ?? null,
+    customerName: order.customerName ?? null,
+    customerPhone: order.customerPhone ?? null,
+    status: order.status ?? "pending",
+    createdAt: createdAt.toISOString(),
     revenue,
     cogs,
     packaging,
+    boxCost: packaging,
     couponDiscount,
     loyaltyDiscount,
     shipping,
     netProfit,
     margin,
+    costsComplete: missingCostLines === 0 && missingProductLines === 0,
+    missingCostLines,
+    missingProductLines,
+    items: resolvedItems,
   };
 }
 
-// ─── GET /api/admin/accounting/summary ──────────────────────────────────────
+function serializeCostHistory(history: CostHistoryRow) {
+  return {
+    id: history.id,
+    productId: history.productId,
+    costPrice: toNumber(history.costPrice),
+    packagingCost: toNumber(history.packagingCost),
+    insertCost: toNumber(history.insertCost),
+    effectiveFrom: toDate(history.effectiveFrom).toISOString(),
+    createdAt: toDate(history.createdAt).toISOString(),
+  };
+}
 
 router.get("/summary", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { period = "month", from, to } = req.query as Record<string, string>;
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
+    const allOrders = await getOrdersForPeriod(db, start, end);
+    const realizedOrders = allOrders.filter((o) => REALIZED_STATUSES.includes(o.status as (typeof REALIZED_STATUSES)[number]));
+    const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
 
-    const allOrders = await db
-      .select()
-      .from(orders)
-      .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
+    let totalRevenue = 0;
+    let totalCogs = 0;
+    let totalPackaging = 0;
+    let totalCoupons = 0;
+    let totalLoyalty = 0;
+    let missingCostLines = 0;
+    let missingProductLines = 0;
 
-    const productIds = new Set<string>();
-    for (const o of allOrders) {
-      const items = Array.isArray(o.items) ? o.items : [];
-      for (const item of items as any[]) {
-        if (item.productId) productIds.add(item.productId);
-      }
+    for (const order of realizedOrders) {
+      const profit = calcOrderProfit(order, costs);
+      totalRevenue += profit.revenue;
+      totalCogs += profit.cogs;
+      totalPackaging += profit.packaging;
+      // الكوبونات والنقاط للعرض فقط — مدموجة في الإيراد المحصّل
+      totalCoupons += profit.couponDiscount;
+      totalLoyalty += profit.loyaltyDiscount;
+      missingCostLines += profit.missingCostLines;
+      missingProductLines += profit.missingProductLines;
     }
 
-    const costMap: CostMap = {};
-    if (productIds.size > 0) {
-      const prods = await db
-        .select()
-        .from(products)
-        .where(inArray(products.id, [...productIds]));
-      for (const p of prods) {
-        costMap[p.id] = {
-          costPrice:     Number(p.costPrice)     || 0,
-          packagingCost: Number(p.packagingCost) || 0,
-          insertCost:    Number(p.insertCost)    || 0,
-          name:          p.name,
-          price:         Number(p.price)         || 0,
-        };
-      }
-    }
+    const deliveredCount = allOrders.filter((o) => o.status === "delivered").length;
+    const cancelledCount = allOrders.filter((o) => CANCELLED_STATUSES.includes(o.status as (typeof CANCELLED_STATUSES)[number])).length;
+    const rejectedCount = allOrders.filter((o) => ["rejected", "rejected_returned", "rejected_carrier"].includes(o.status ?? "")).length;
+    const inProgressCount = allOrders.filter((o) => IN_PROGRESS_STATUSES.includes(o.status as (typeof IN_PROGRESS_STATUSES)[number])).length;
+    const rtoCount = allOrders.filter((o) => [...CANCELLED_STATUSES].includes(o.status as (typeof CANCELLED_STATUSES)[number])).length;
+    const rtoRate = allOrders.length > 0 ? Math.round((rtoCount / allOrders.length) * 100) : 0;
+    const aov = deliveredCount > 0 ? Math.round(totalRevenue / deliveredCount) : 0;
 
-    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0;
-    let totalCoupons = 0, totalLoyalty = 0, totalShipping = 0;
-    let totalOrders = 0;
-
-    for (const o of allOrders) {
-      const p = calcOrderProfit(o, costMap);
-      totalRevenue   += p.revenue;
-      totalCogs      += p.cogs;
-      totalPackaging += p.packaging;
-      totalCoupons   += p.couponDiscount;
-      totalLoyalty   += p.loyaltyDiscount;
-      totalShipping  += p.shipping;
-      totalOrders++;
-    }
-
-    const totalCosts  = totalCogs + totalPackaging + totalCoupons + totalLoyalty;
-    const netProfit   = totalRevenue - totalCosts;
-    const margin      = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+    // التكاليف = بضاعة + كارتونات فقط (الكوبونات مدموجة في الإيراد)
+    const totalCosts = totalCogs + totalPackaging;
+    const netProfit = totalRevenue - totalCosts;
+    const margin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
 
     res.json({
       success: true,
       data: {
         period,
-        totalOrders,
+        totalOrders: allOrders.length,
+        deliveredCount,
+        cancelledCount,
+        rejectedCount,
+        inProgressCount,
+        rtoRate,
+        aov,
         totalRevenue,
         totalCogs,
         totalPackaging,
         totalCoupons,
         totalLoyalty,
-        totalShipping,
         totalCosts,
         netProfit,
         margin,
+        costsComplete: missingCostLines === 0 && missingProductLines === 0,
+        missingCostLines,
+        missingProductLines,
       },
     });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/products ─────────────────────────────────────
 
 router.get("/products", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { period = "month", from, to } = req.query as Record<string, string>;
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
-
-    const allOrders = await db
-      .select()
-      .from(orders)
-      .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
-
-    const productIds = new Set<string>();
-    for (const o of allOrders) {
-      const items = Array.isArray(o.items) ? o.items : [];
-      for (const item of items as any[]) {
-        if (item.productId) productIds.add(item.productId);
-      }
-    }
-
-    const costMap: CostMap = {};
-    if (productIds.size > 0) {
-      const prods = await db
-        .select()
-        .from(products)
-        .where(inArray(products.id, [...productIds]));
-      for (const p of prods) {
-        costMap[p.id] = {
-          costPrice:     Number(p.costPrice)     || 0,
-          packagingCost: Number(p.packagingCost) || 0,
-          insertCost:    Number(p.insertCost)    || 0,
-          name:          p.name,
-          price:         Number(p.price)         || 0,
-        };
-      }
-    }
-
+    const allOrders = await getRealizedOrdersForPeriod(db, start, end);
+    const costs = await buildCostResolver(db, collectProductIds(allOrders));
     const profitMap: Record<string, ProductProfit> = {};
 
-    for (const o of allOrders) {
-      const items = Array.isArray(o.items) ? o.items : [];
-      const orderTotal = Number(o.total) || 1;
-      const proportionalDeductions =
-        (Number(o.discountTotal) || 0) +
-        (Number(o.pointsDiscount) || 0);
-        // shipping excluded — paid by customer to carrier, not seller expense
+    for (const order of allOrders) {
+      const items = getOrderItems(order);
+      const subtotal = orderSubtotal(items);
+      const createdAt = toDate(order.createdAt);
+      // الإيراد الفعلي للطلب = المحصّل - الشحن
+      const orderRevenue = orderCollectedAmount(order) - toNumber(order.shippingCost);
+      // نسبة توزيع الإيراد الفعلي على المنتجات (تعكس الخصومات والتقريب)
+      const revenueRatio = subtotal > 0 ? orderRevenue / subtotal : 1;
+      const boxCost = toNumber(order.boxCost);
 
-      for (const item of items as any[]) {
-        const pid = item.productId;
-        const qty = item.quantity || 1;
-        const price = Number(item.priceAtPurchase) || 0;
-        const c = costMap[pid];
-        if (!c) continue;
+      for (const item of items) {
+        const productId = item.productId;
+        const qty = lineQuantity(item);
+        const price = toNumber(item.priceAtPurchase);
+        const lineGross = price * qty;
+        // الإيراد الحقيقي لهذا المنتج بعد الخصم والتقريب
+        const lineRevenue = lineGross * revenueRatio;
+        // توزيع كلفة الكارتونة نسبياً
+        const lineDeduct = subtotal > 0 ? boxCost * (lineGross / subtotal) : 0;
 
-        const lineRevenue = price * qty;
-        const lineCogs    = c.costPrice * qty;
-        const linePack    = (c.packagingCost + c.insertCost) * qty;
-        const lineDeduct  = lineRevenue > 0 ? proportionalDeductions * (lineRevenue / orderTotal) : 0;
-        const lineProfit  = lineRevenue - lineCogs - linePack - lineDeduct;
+        if (!productId) continue;
 
-        if (!profitMap[pid]) {
-          profitMap[pid] = {
-            productId: pid, name: c.name, unitsSold: 0, revenue: 0,
-            cogs: 0, packaging: 0, netProfit: 0, margin: 0,
-            costPrice: c.costPrice, packagingCost: c.packagingCost, insertCost: c.insertCost,
+        const currentCost = costs.getCurrent(productId);
+        const effectiveCost = costs.getEffective(productId, createdAt);
+        if (!currentCost || !effectiveCost) continue;
+
+        const lineCogs = effectiveCost.costPrice * qty;
+        const linePack = (effectiveCost.packagingCost + effectiveCost.insertCost) * qty;
+        const lineProfit = lineRevenue - lineCogs - linePack - lineDeduct;
+
+        if (!profitMap[productId]) {
+          profitMap[productId] = {
+            productId,
+            name: currentCost.name,
+            unitsSold: 0,
+            revenue: 0,
+            cogs: 0,
+            packaging: 0,
+            netProfit: 0,
+            margin: 0,
+            costPrice: currentCost.costPrice,
+            packagingCost: currentCost.packagingCost,
+            insertCost: currentCost.insertCost,
+            costsComplete: true,
+            missingCostLines: 0,
+            missingProductLines: 0,
           };
         }
-        profitMap[pid].unitsSold  += qty;
-        profitMap[pid].revenue    += lineRevenue;
-        profitMap[pid].cogs       += lineCogs;
-        profitMap[pid].packaging  += linePack;
-        profitMap[pid].netProfit  += lineProfit;
+
+        profitMap[productId].unitsSold += qty;
+        profitMap[productId].revenue += lineRevenue;
+        profitMap[productId].cogs += lineCogs;
+        profitMap[productId].packaging += linePack;
+        profitMap[productId].netProfit += lineProfit;
+        if (!effectiveCost.costsComplete) {
+          profitMap[productId].missingCostLines++;
+          profitMap[productId].costsComplete = false;
+        }
       }
     }
 
-    const result = Object.values(profitMap).map(p => ({
-      ...p,
-      margin: p.revenue > 0 ? Math.round((p.netProfit / p.revenue) * 100) : 0,
-    })).sort((a, b) => b.netProfit - a.netProfit);
+    const result = Object.values(profitMap)
+      .map((product) => ({
+        ...product,
+        margin: product.revenue > 0 ? Math.round((product.netProfit / product.revenue) * 100) : 0,
+      }))
+      .sort((a, b) => b.netProfit - a.netProfit);
 
     res.json({ success: true, data: result });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/orders ───────────────────────────────────────
 
 router.get("/orders", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { period = "month", from, to } = req.query as Record<string, string>;
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
-
-    const allOrders = await db
-      .select()
-      .from(orders)
-      .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
-
-    const productIds = new Set<string>();
-    for (const o of allOrders) {
-      const items = Array.isArray(o.items) ? o.items : [];
-      for (const item of items as any[]) {
-        if (item.productId) productIds.add(item.productId);
-      }
-    }
-
-    const costMap: CostMap = {};
-    if (productIds.size > 0) {
-      const prods = await db
-        .select()
-        .from(products)
-        .where(and(inArray(products.id, [...productIds]), isNull(products.deletedAt)));
-      for (const p of prods) {
-        costMap[p.id] = {
-          costPrice: Number(p.costPrice) || 0,
-          packagingCost: Number(p.packagingCost) || 0,
-          insertCost: Number(p.insertCost) || 0,
-          name: p.name,
-          price: Number(p.price) || 0,
-        };
-      }
-    }
-
-    const result = allOrders.map(o => calcOrderProfit(o, costMap));
-    result.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    const allOrders = await getOrdersForPeriod(db, start, end);
+    const costs = await buildCostResolver(db, collectProductIds(allOrders));
+    const result = allOrders
+      .map((order) => calcOrderProfit(order, costs))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     res.json({ success: true, data: result });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/cod-summary ──────────────────────────────────
 
 router.get("/cod-summary", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
+    const db = getAccountingDb(res);
+    if (!db) return;
 
-    // جمع كل الطلبات للحساب
-    const allCodOrders = await db!.select().from(orders);
+    const [allCodOrders, settlements] = await Promise.all([
+      db.select().from(orders),
+      db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt)),
+    ]);
 
-    // الطلبات الموصلة (الشركة جمعت الفلوس من الزبون)
-    const deliveredOrders = allCodOrders.filter(o =>
-      ["delivered"].includes(o.status ?? "")
-    );
-    // الطلبات عند الشركة في الطريق (لسه ما وصلت)
-    const inTransitOrders = allCodOrders.filter(o =>
-      ["shipped"].includes(o.status ?? "")
-    );
+    const deliveredOrders = allCodOrders.filter((order) => order.status === "delivered");
+    const inTransitOrders = allCodOrders.filter((order) => order.status === "shipped");
+    // ما يستحقه البائع = المبلغ المحصّل فعلاً - رسوم التوصيل (الشركة تاخذها لنفسها)
+    const orderNetAmount = (order: OrderRow) =>
+      orderCollectedAmount(order) - toNumber(order.shippingCost);
 
-    const orderAmt = (o: any) => Number(o.roundedTotal ?? o.total) || 0;
-
-    const totalDelivered  = deliveredOrders.reduce((s, o) => s + orderAmt(o), 0);
-    const totalInTransit  = inTransitOrders.reduce((s, o) => s + orderAmt(o), 0);
-    const totalCod        = totalDelivered; // الفلوس اللي جمعتها الشركة فعلاً
-
-    const receivedOrders  = deliveredOrders.filter((o: any) => o.codReceived === true);
-    const totalReceived   = receivedOrders.reduce((s, o) => s + orderAmt(o), 0);
-    const totalPending    = totalDelivered - totalReceived;
-
-    const settlements = await db!
-      .select()
-      .from(shippingSettlements)
-      .orderBy(desc(shippingSettlements.createdAt));
+    const totalDelivered = deliveredOrders.reduce((sum, order) => sum + orderNetAmount(order), 0);
+    const totalInTransit = inTransitOrders.reduce((sum, order) => sum + orderNetAmount(order), 0);
+    const totalCod = totalDelivered;
+    // المبلغ المستلم = مجموع كل الدفعات المسجّلة من شركات الشحن
+    const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
+    const totalPending = Math.max(0, totalDelivered - totalReceived);
 
     res.json({
       success: true,
-      data: { totalCod, totalDelivered, totalInTransit, totalReceived, totalPending, settlements },
+      data: {
+        totalCod,
+        totalDelivered,
+        totalInTransit,
+        totalReceived,
+        totalPending,
+        settlements: settlements.map((settlement) => ({
+          id: settlement.id,
+          carrier: settlement.carrier,
+          amount: toNumber(settlement.amount),
+          notes: settlement.notes,
+          createdAt: toDate(settlement.createdAt).toISOString(),
+        })),
+      },
     });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── POST /api/admin/accounting/settlements ─────────────────────────────────
 
 router.post("/settlements", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { carrier, amount, notes, orderIds } = req.body as {
-      carrier: string;
-      amount: number;
-      notes?: string;
-      orderIds?: string[];
-    };
+    const db = getAccountingDb(res);
+    if (!db) return;
 
-    if (!carrier || !amount || Number(amount) <= 0) {
-      res.status(400).json({ success: false, message: "carrier و amount مطلوبان" });
+    const parsed = accountingSettlementInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات الدفعة غير صالحة", errors: parsed.error.flatten() });
       return;
     }
 
-    const [settlement] = await db!
+    const { carrier, amount, notes, orderIds } = parsed.data;
+    const [settlement] = await db
       .insert(shippingSettlements)
       .values({ carrier, amount: String(amount), notes: notes ?? null })
       .returning();
 
     if (Array.isArray(orderIds) && orderIds.length > 0) {
-      await db!
-        .update(orders)
-        .set({ codReceived: true } as any)
-        .where(inArray(orders.id, orderIds));
+      await db.update(orders).set({ codReceived: true }).where(inArray(orders.id, orderIds));
     }
 
-    res.status(201).json({ success: true, data: settlement });
-  } catch (err) { next(err); }
+    res.status(201).json({
+      success: true,
+      data: {
+        id: settlement.id,
+        carrier: settlement.carrier,
+        amount: toNumber(settlement.amount),
+        notes: settlement.notes,
+        createdAt: toDate(settlement.createdAt).toISOString(),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/settlements ──────────────────────────────────
 
 router.get("/settlements", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const list = await db!
-      .select()
-      .from(shippingSettlements)
-      .orderBy(desc(shippingSettlements.createdAt));
-    res.json({ success: true, data: list });
-  } catch (err) { next(err); }
-});
+    const db = getAccountingDb(res);
+    if (!db) return;
 
-// ─── POST /api/admin/accounting/costs/:productId ─────────────────────────────
+    const list = await db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt));
+    res.json({
+      success: true,
+      data: list.map((settlement) => ({
+        id: settlement.id,
+        carrier: settlement.carrier,
+        amount: toNumber(settlement.amount),
+        notes: settlement.notes,
+        createdAt: toDate(settlement.createdAt).toISOString(),
+      })),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.post("/costs/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { productId } = req.params as { productId: string };
-    const { costPrice, packagingCost, insertCost } = req.body as {
-      costPrice: number;
-      packagingCost: number;
-      insertCost: number;
-    };
+    const db = getAccountingDb(res);
+    if (!db) return;
 
-    if (costPrice === undefined || packagingCost === undefined || insertCost === undefined) {
-      res.status(400).json({ success: false, message: "costPrice, packagingCost, insertCost مطلوبة" });
+    const { productId } = req.params as { productId: string };
+    const parsed = accountingCostInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات الكلفة غير صالحة", errors: parsed.error.flatten() });
       return;
     }
 
+    const { costPrice, packagingCost, insertCost } = parsed.data;
     const [updated] = await db
       .update(products)
       .set({
-        costPrice:     String(Number(costPrice)     || 0),
-        packagingCost: String(Number(packagingCost) || 0),
-        insertCost:    String(Number(insertCost)    || 0),
-        updatedAt:     new Date(),
+        costPrice: String(costPrice),
+        packagingCost: String(packagingCost),
+        insertCost: String(insertCost),
+        updatedAt: new Date(),
       })
       .where(eq(products.id, productId))
       .returning();
@@ -444,129 +670,180 @@ router.post("/costs/:productId", async (req: Request, res: Response, next: NextF
     }
 
     res.json({ success: true, data: { costPrice, packagingCost, insertCost } });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── POST /api/admin/accounting/competitor-check ─────────────────────────────
 
 router.post("/competitor-check", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { productName, brand } = req.body as { productName: string; brand: string };
-
-    if (!productName) {
-      res.status(400).json({ success: false, message: "productName مطلوب" });
+    const parsed = competitorCheckSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "productName مطلوب", errors: parsed.error.flatten() });
       return;
     }
 
-    const token = process.env.APIFY_TOKEN;
-    if (!token) {
-      res.status(500).json({ success: false, message: "APIFY_TOKEN غير مضبوط في .env" });
+    const apiKey = process.env.TAVILY_API_KEY;
+    if (!apiKey) {
+      res.status(500).json({ success: false, message: "TAVILY_API_KEY غير مضبوط في .env — سجّل مجاناً على tavily.com (1000 بحث/شهر)" });
       return;
     }
 
-    const client = new ApifyClient({ token });
-    const query = `${productName} ${brand ?? ""}`.trim();
-
-    const run = await client.actor("apify/google-shopping-scraper").call({
-      queries: query,
-      countryCode: "IQ",
-      maxItems: 8,
-      languageCode: "ar",
+    const query = `سعر ${parsed.data.productName} ${parsed.data.brand ?? ""} للبيع في العراق`.trim();
+    const response = await fetch("https://api.tavily.com/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_key: apiKey,
+        query,
+        search_depth: "basic",
+        max_results: 10,
+        include_answer: false,
+        include_images: false,
+      }),
     });
+    if (!response.ok) throw new Error(`Tavily error: ${response.status}`);
+    const data = await response.json() as Record<string, unknown>;
 
-    const { items } = await client.dataset(run.defaultDatasetId).listItems({ limit: 8 });
+    const rawResults = Array.isArray(data.results) ? data.results as Record<string, unknown>[] : [];
 
-    const results = (items as any[]).map((item: any) => ({
-      store:    item.seller   ?? item.merchantName ?? "غير معروف",
-      price:    Number(item.price?.value ?? item.price ?? 0),
-      currency: item.price?.currency ?? "IQD",
-      url:      item.url      ?? item.productUrl ?? "#",
-      title:    item.title    ?? item.name ?? productName,
-    })).filter((r: any) => r.price > 0);
+    // Extract price from content using IQD / دينار patterns
+    const priceRegex = /[\d,،٠-٩]+(?:\.\d+)?\s*(?:IQD|دينار|د\.ع|iq)/i;
+    const results = rawResults
+      .map((item) => {
+        const content = String(item.content ?? "");
+        const match = content.match(priceRegex);
+        const rawPrice = match ? match[0].replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d))).replace(/[,،]/g, "") : "";
+        const price = parseFloat(rawPrice) || 0;
+        return {
+          store: String(item.title ?? "غير معروف"),
+          price,
+          currency: "IQD",
+          url: String(item.url ?? "#"),
+          title: String(item.title ?? parsed.data.productName),
+          snippet: content.slice(0, 200),
+        };
+      })
+      .filter((r) => r.price > 0)
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 8);
 
     res.json({ success: true, data: results });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/cost-history/:productId ──────────────────────
 
 router.get("/cost-history/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
+    const db = getAccountingDb(res);
+    if (!db) return;
+
     const { productId } = req.params as { productId: string };
-    const history = await db!
+    const history = await db
       .select()
       .from(productCostHistory)
       .where(eq(productCostHistory.productId, productId))
       .orderBy(desc(productCostHistory.effectiveFrom));
-    res.json({ success: true, data: history });
-  } catch (err) { next(err); }
-});
 
-// ─── POST /api/admin/accounting/cost-history/:productId ─────────────────────
+    res.json({ success: true, data: history.map(serializeCostHistory) });
+  } catch (err) {
+    next(err);
+  }
+});
 
 router.post("/cost-history/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { productId } = req.params as { productId: string };
-    const { costPrice, packagingCost, insertCost, effectiveFrom } = req.body as {
-      costPrice: number;
-      packagingCost: number;
-      insertCost: number;
-      effectiveFrom: string;
-    };
+    const db = getAccountingDb(res);
+    if (!db) return;
 
-    if (!effectiveFrom) {
-      res.status(400).json({ success: false, message: "effectiveFrom مطلوب" });
+    const { productId } = req.params as { productId: string };
+    const parsed = accountingCostHistoryInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات تاريخ الكلفة غير صالحة", errors: parsed.error.flatten() });
       return;
     }
 
-    const [entry] = await db!
+    const { costPrice, packagingCost, insertCost, effectiveFrom } = parsed.data;
+    const [entry] = await db
       .insert(productCostHistory)
       .values({
         productId,
-        costPrice:     String(costPrice     ?? 0),
-        packagingCost: String(packagingCost ?? 0),
-        insertCost:    String(insertCost    ?? 0),
+        costPrice: String(costPrice),
+        packagingCost: String(packagingCost),
+        insertCost: String(insertCost),
         effectiveFrom: new Date(effectiveFrom),
       })
       .returning();
 
-    res.status(201).json({ success: true, data: entry });
-  } catch (err) { next(err); }
+    res.status(201).json({ success: true, data: serializeCostHistory(entry) });
+  } catch (err) {
+    next(err);
+  }
 });
-
-// ─── GET /api/admin/accounting/coupons ──────────────────────────────────────
 
 router.get("/coupons", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const db = getDb();
-    const { period = "month", from, to } = req.query as Record<string, string>;
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
-
-    const allOrders = await db!
-      .select()
-      .from(orders)
-      .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
-
+    const allOrders = await getRealizedOrdersForPeriod(db, start, end);
     const map: Record<string, { couponCode: string; usageCount: number; totalDiscount: number }> = {};
-    for (const o of allOrders) {
-      if (!o.couponId) continue;
-      const discount = Number(o.discountTotal) || 0;
-      if (!map[o.couponId]) {
-        map[o.couponId] = { couponCode: o.couponId, usageCount: 0, totalDiscount: 0 };
+
+    for (const order of allOrders) {
+      if (!order.couponId) continue;
+      const discount = toNumber(order.discountTotal);
+      if (!map[order.couponId]) {
+        map[order.couponId] = { couponCode: order.couponId, usageCount: 0, totalDiscount: 0 };
       }
-      map[o.couponId].usageCount++;
-      map[o.couponId].totalDiscount += discount;
+      map[order.couponId].usageCount++;
+      map[order.couponId].totalDiscount += discount;
     }
 
-    const result = Object.values(map).map((c) => ({
-      ...c,
-      avgDiscount: c.usageCount > 0 ? Math.round(c.totalDiscount / c.usageCount) : 0,
-    })).sort((a, b) => b.totalDiscount - a.totalDiscount);
+    const result = Object.values(map)
+      .map((coupon) => ({
+        ...coupon,
+        avgDiscount: coupon.usageCount > 0 ? Math.round(coupon.totalDiscount / coupon.usageCount) : 0,
+      }))
+      .sort((a, b) => b.totalDiscount - a.totalDiscount);
 
     res.json({ success: true, data: result });
-  } catch (err) { next(err); }
+  } catch (err) {
+    next(err);
+  }
 });
 
-export function createAccountingRouter() { return router; }
+router.patch("/orders/:orderId/box-cost", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { orderId } = req.params as { orderId: string };
+    const parsed = z.object({ boxCost: z.coerce.number().min(0) }).safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "قيمة الكارتونة غير صالحة" });
+      return;
+    }
+
+    const [updated] = await db
+      .update(orders)
+      .set({ boxCost: String(parsed.data.boxCost), updatedAt: new Date() })
+      .where(eq(orders.id, orderId))
+      .returning({ id: orders.id });
+
+    if (!updated) {
+      res.status(404).json({ success: false, message: "الطلبية غير موجودة" });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+export function createAccountingRouter() {
+  return router;
+}

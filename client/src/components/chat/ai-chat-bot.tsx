@@ -155,7 +155,7 @@ const ChatProductCard = memo(function ChatProductCard({
                             {product.rating}
                         </span>
                     )}
-                    <span className="text-[11px] font-bold text-purple-500">قريباً ✨</span>
+                    <span className="text-[11px] font-bold text-purple-500">قريباً</span>
                 </div>
             </div>
             {/* 🛒 Add to Cart — 2026 Conversational Commerce */}

@@ -300,7 +300,7 @@ export function ProductComparisonTable({
                         <TableCell className="font-medium">السعر</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
-                                <div className="font-bold text-lg text-purple-500">قريباً جداً ✨</div>
+                                <div className="font-bold text-lg text-purple-500">قريباً جداً</div>
                             </TableCell>
                         ))}
                     </TableRow>

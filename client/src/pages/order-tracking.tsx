@@ -255,7 +255,7 @@ export default function OrderTracking() {
 
               <div className="mt-6 pt-6 border-t space-y-3">
                 <p className="text-sm text-muted-foreground text-center">
-                  ستجد رقم الطلب في رسالة التأكيد عبر البريد الإلكتروني أو واتساب
+                  ستجد رقم الطلب في رسالة التأكيد التي وصلتك عبر واتساب
                 </p>
               </div>
             </Card>

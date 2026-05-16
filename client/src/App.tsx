@@ -487,7 +487,7 @@ function Router() {
       </Route>
 
       {/* Redirects for common 404s */}
-      <Route path="/cart">{() => <Redirect to="/" />}</Route>
+      <Route path="/cart">{() => <Redirect to="/?open-cart=1" />}</Route>
       <Route path="/admin-login">{() => <Redirect to="/admin/login" />}</Route>
       <Route path="/returns">{() => <Redirect to="/return-policy" />}</Route>
       <Route path="/fish-doctor">{() => <Redirect to="/fish-health-diagnosis" />}</Route>

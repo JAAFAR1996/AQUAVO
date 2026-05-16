@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from "react";
-import { ChevronLeft, ChevronRight, LayoutGrid, Fish, Waves, Heater, Sun, Gem, Droplets, Settings, Egg } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, Waves, Sun, Gem, Droplets, Settings, Wind, Box, Activity, Trash2, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -10,77 +10,112 @@ interface CategoryScrollBarProps {
     categoryCounts?: Map<string, number>;
 }
 
-// Organized category configuration - 2025 best practices
-// Using aquarium-specific icons with professional gradient-inspired colors
 interface CategoryConfig {
     label: string;
     icon: React.ElementType;
     includes: string[];
     color: string;
-    hoverColor: string;
 }
 
+// Maps display group → actual DB category name variants (lowercase-compared)
 const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
-    "طعام": {
-        label: "طعام",
-        icon: Fish,
-        includes: ["fish-food", "طعام الأسماك"],
-        color: "text-amber-500",
-        hoverColor: "group-hover:text-amber-400"
-    },
-    "فلترة": {
-        label: "فلترة",
-        icon: Waves,
-        includes: ["filters", "filtration", "الفلترة والتنقية", "التهوية والأكسجين"],
-        color: "text-sky-500",
-        hoverColor: "group-hover:text-sky-400"
-    },
-    "تدفئة": {
-        label: "تدفئة",
-        icon: Heater,
-        includes: ["heaters", "heating", "التحكم بالحرارة"],
+    "سخانات": {
+        label: "سخانات",
+        icon: Flame,
+        includes: [
+            "heaters", "heating", "التحكم بالحرارة",
+            "سخانات الحوض", "سخانات", "heater",
+        ],
         color: "text-rose-500",
-        hoverColor: "group-hover:text-rose-400"
+    },
+    "فلاتر": {
+        label: "فلاتر",
+        icon: Waves,
+        includes: [
+            "filters", "filtration", "الفلترة والتنقية",
+            "فلاتر المياه", "فلاتر", "water filters", "filter",
+        ],
+        color: "text-sky-500",
+    },
+    "مضخات وهواء": {
+        label: "مضخات وهواء",
+        icon: Wind,
+        includes: [
+            "التهوية والأكسجين", "مضخات الهواء", "مضخات",
+            "pumps", "air pumps", "pump", "oxygen",
+        ],
+        color: "text-teal-500",
     },
     "إضاءة": {
         label: "إضاءة",
         icon: Sun,
-        includes: ["lighting", "الإضاءة"],
+        includes: [
+            "lighting", "الإضاءة", "الإضاءة LED",
+            "إضاءة", "led", "light",
+        ],
         color: "text-yellow-400",
-        hoverColor: "group-hover:text-yellow-300"
     },
-    "ديكور": {
-        label: "ديكور",
-        icon: Gem,
-        includes: ["decoration", "خلفيات أحواض", "صخور", "substrate", "التربة والديكور", "التربية والديكور"],
-        color: "text-violet-500",
-        hoverColor: "group-hover:text-violet-400"
+    "أحواض": {
+        label: "أحواض",
+        icon: Box,
+        includes: [
+            "tanks", "أحواض", "aquariums", "tank", "حوض",
+        ],
+        color: "text-blue-500",
     },
-    "رعاية المياه": {
-        label: "رعاية المياه",
+    "أكل": {
+        label: "أكل",
         icon: Droplets,
-        includes: ["water-treatment", "monitoring", "معالجة المياه", "الفحص والمراقبة"],
+        includes: [
+            "fish-food", "طعام الأسماك", "أغذية الأسماك",
+            "غذاء", "طعام", "أغذية", "food", "fish food",
+        ],
+        color: "text-amber-500",
+    },
+    "علاجات ومحسنات": {
+        label: "علاجات",
+        icon: Gem,
+        includes: [
+            "water-treatment", "معالجة المياه", "معالجات المياه",
+            "معالجات", "treatments", "water treatment", "conditioner",
+        ],
         color: "text-cyan-400",
-        hoverColor: "group-hover:text-cyan-300"
     },
-    "صيانة": {
-        label: "صيانة",
-        icon: Settings,
-        includes: ["maintenance", "accessories", "الصيانة والتنظيف", "ملحقات ومستلزمات"],
+    "فحص المي": {
+        label: "فحص المي",
+        icon: Activity,
+        includes: [
+            "monitoring", "الفحص والمراقبة", "فحص المياه",
+            "اختبار المياه", "فحص", "testing", "test kits", "test",
+        ],
+        color: "text-green-400",
+    },
+    "تنظيف": {
+        label: "تنظيف",
+        icon: Trash2,
+        includes: [
+            "maintenance", "الصيانة والتنظيف", "تنظيف",
+            "cleaning", "clean",
+        ],
         color: "text-slate-400",
-        hoverColor: "group-hover:text-slate-300"
     },
-    "تربية": {
-        label: "تربية",
-        icon: Egg,
-        includes: ["breeding", "التفريخ والعزل"],
-        color: "text-pink-400",
-        hoverColor: "group-hover:text-pink-300"
-    }
+    "إكسسوارات": {
+        label: "إكسسوارات",
+        icon: Settings,
+        includes: [
+            "accessories", "ملحقات ومستلزمات", "ملحقات", "إكسسوارات",
+            "decoration", "خلفيات أحواض", "صخور", "substrate",
+            "التربة والديكور", "التربية والديكور", "الديكورات", "ديكور",
+            "decor", "breeding", "التفريخ والعزل", "misc",
+        ],
+        color: "text-violet-500",
+    },
 };
 
-// Order of categories to display
-const CATEGORY_ORDER = ["طعام", "فلترة", "تدفئة", "إضاءة", "ديكور", "رعاية المياه", "صيانة", "تربية"];
+const CATEGORY_ORDER = [
+    "سخانات", "فلاتر", "مضخات وهواء", "إضاءة",
+    "أحواض", "أكل", "علاجات ومحسنات", "فحص المي", "تنظيف", "إكسسوارات",
+];
 
 export function CategoryScrollBar({
     categories,
@@ -92,74 +127,66 @@ export function CategoryScrollBar({
     const [showLeftArrow, setShowLeftArrow] = useState(false);
     const [showRightArrow, setShowRightArrow] = useState(false);
 
-    // Group raw categories into organized groups
+    // Map each raw DB category to a display group
     const organizedCategories = useMemo(() => {
+        const used = new Set<string>();
         const result: { key: string; config: CategoryConfig; rawCategories: string[]; totalCount: number }[] = [];
 
-        for (const categoryKey of CATEGORY_ORDER) {
-            const config = CATEGORY_CONFIG[categoryKey];
+        for (const key of CATEGORY_ORDER) {
+            const config = CATEGORY_CONFIG[key];
             if (!config) continue;
 
-            // Find which raw categories from the API match this group
             const matchingRaw = categories.filter(cat =>
-                config.includes.some(inc =>
-                    cat.toLowerCase() === inc.toLowerCase() || cat === inc
-                )
+                !used.has(cat) &&
+                config.includes.some(inc => cat.toLowerCase() === inc.toLowerCase() || cat === inc)
             );
 
             if (matchingRaw.length > 0) {
-                // Calculate total count for this group
+                matchingRaw.forEach(c => used.add(c));
                 let totalCount = 0;
                 if (categoryCounts) {
-                    matchingRaw.forEach(cat => {
-                        totalCount += categoryCounts.get(cat) || 0;
-                    });
+                    matchingRaw.forEach(cat => { totalCount += categoryCounts.get(cat) || 0; });
                 }
-
-                result.push({
-                    key: categoryKey,
-                    config,
-                    rawCategories: matchingRaw,
-                    totalCount
-                });
+                result.push({ key, config, rawCategories: matchingRaw, totalCount });
             }
         }
+
+        // Fallback: show any DB categories not matched above
+        const unmatched = categories.filter(c => !used.has(c));
+        unmatched.forEach(cat => {
+            const count = categoryCounts?.get(cat) || 0;
+            result.push({
+                key: cat,
+                config: { label: cat, icon: Settings, includes: [cat], color: "text-muted-foreground" },
+                rawCategories: [cat],
+                totalCount: count,
+            });
+        });
 
         return result;
     }, [categories, categoryCounts]);
 
-    // Check if any raw category in a group is selected
-    const isGroupSelected = (rawCategories: string[]) => {
-        return rawCategories.some(cat => selectedCategories.includes(cat));
-    };
+    const isGroupSelected = (rawCategories: string[]) =>
+        rawCategories.some(cat => selectedCategories.includes(cat));
 
-    // Toggle all categories in a group
+    // Single-select behavior: clicking a group deselects all others first
     const toggleGroup = (rawCategories: string[]) => {
-        const anySelected = isGroupSelected(rawCategories);
-
-        if (anySelected) {
-            // Deselect all in group
-            rawCategories.forEach(cat => {
-                if (selectedCategories.includes(cat)) {
-                    onCategoryToggle(cat);
-                }
-            });
-        } else {
-            // Select all in group
-            rawCategories.forEach(cat => {
-                if (!selectedCategories.includes(cat)) {
-                    onCategoryToggle(cat);
-                }
-            });
+        const isSelected = isGroupSelected(rawCategories);
+        // Clear all current selections
+        selectedCategories.forEach(cat => onCategoryToggle(cat));
+        if (!isSelected) {
+            rawCategories.forEach(cat => onCategoryToggle(cat));
         }
     };
 
-    // Check scroll position
+    const clearAll = () => {
+        selectedCategories.forEach(cat => onCategoryToggle(cat));
+    };
+
     const checkScrollPosition = () => {
         if (!scrollRef.current) return;
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-        const isRTL = document.dir === 'rtl' || document.documentElement.dir === 'rtl';
-
+        const isRTL = document.documentElement.dir === "rtl";
         if (isRTL) {
             setShowRightArrow(scrollLeft < 0);
             setShowLeftArrow(scrollLeft > -(scrollWidth - clientWidth));
@@ -171,139 +198,129 @@ export function CategoryScrollBar({
 
     useEffect(() => {
         checkScrollPosition();
-        const scrollEl = scrollRef.current;
-        if (scrollEl) {
-            scrollEl.addEventListener('scroll', checkScrollPosition);
-            window.addEventListener('resize', checkScrollPosition);
-        }
+        const el = scrollRef.current;
+        if (!el) return;
+        el.addEventListener("scroll", checkScrollPosition, { passive: true });
+        window.addEventListener("resize", checkScrollPosition);
         return () => {
-            if (scrollEl) {
-                scrollEl.removeEventListener('scroll', checkScrollPosition);
-            }
-            window.removeEventListener('resize', checkScrollPosition);
+            el.removeEventListener("scroll", checkScrollPosition);
+            window.removeEventListener("resize", checkScrollPosition);
         };
     }, [categories]);
 
-    const scroll = (direction: 'left' | 'right') => {
+    const scroll = (direction: "left" | "right") => {
         if (!scrollRef.current) return;
-        const scrollAmount = 200;
-        const isRTL = document.dir === 'rtl' || document.documentElement.dir === 'rtl';
-
-        if (isRTL) {
-            scrollRef.current.scrollBy({
-                left: direction === 'right' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        } else {
-            scrollRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth'
-            });
-        }
+        const amount = 220;
+        const isRTL = document.documentElement.dir === "rtl";
+        scrollRef.current.scrollBy({
+            left: isRTL
+                ? direction === "right" ? -amount : amount
+                : direction === "left" ? -amount : amount,
+            behavior: "smooth",
+        });
     };
 
     if (organizedCategories.length === 0) return null;
 
+    const allSelected = selectedCategories.length === 0;
+
     return (
-        <div className="relative bg-gradient-to-r from-background via-card/80 to-background backdrop-blur-md border-y border-border/30 shadow-sm">
-            {/* Decorative gradient line at top */}
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+        <div className="bg-background border-b border-border/40">
+            {/* ── MOBILE: horizontal chip scroll ── */}
+            <div
+                className="sm:hidden flex items-center gap-2 overflow-x-auto py-3 px-3"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+                {/* All */}
+                <button
+                    onClick={clearAll}
+                    className={cn(
+                        "flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all min-w-[56px]",
+                        allSelected
+                            ? "bg-primary text-white border-primary shadow-sm"
+                            : "bg-muted/50 border-border/40 text-muted-foreground"
+                    )}
+                >
+                    <LayoutGrid className="w-4 h-4" />
+                    <span className="text-[11px] font-medium leading-none">الكل</span>
+                </button>
 
-            {/* ===== MOBILE LAYOUT: Compact horizontal with icons ===== */}
-            <div className="sm:hidden py-2 px-2 overflow-x-auto scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-                <div className="flex items-center gap-3 min-w-max px-2">
-                    {/* All Categories - Mobile */}
-                    <button
-                        onClick={() => selectedCategories.forEach(cat => onCategoryToggle(cat))}
-                        className={cn(
-                            "flex flex-col items-center justify-center gap-0.5 min-w-[52px] p-2 rounded-xl transition-all",
-                            selectedCategories.length === 0
-                                ? "bg-primary text-white shadow-md"
-                                : "bg-card/60 border border-border/40"
-                        )}
-                    >
-                        <LayoutGrid className="w-5 h-5" />
-                        <span className="text-[9px] font-medium">الكل</span>
-                    </button>
-
-                    {/* Category Icons - Mobile */}
-                    {organizedCategories.map(({ key, config, rawCategories }) => {
-                        const Icon = config.icon;
-                        const isSelected = isGroupSelected(rawCategories);
-                        return (
-                            <button
-                                key={key}
-                                onClick={() => toggleGroup(rawCategories)}
-                                className={cn(
-                                    "flex flex-col items-center justify-center gap-0.5 min-w-[52px] p-2 rounded-xl transition-all",
-                                    isSelected
-                                        ? "bg-primary text-white shadow-md"
-                                        : "bg-card/60 border border-border/40"
+                {organizedCategories.map(({ key, config, rawCategories, totalCount }) => {
+                    const Icon = config.icon;
+                    const isSelected = isGroupSelected(rawCategories);
+                    return (
+                        <button
+                            key={key}
+                            onClick={() => toggleGroup(rawCategories)}
+                            className={cn(
+                                "flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all min-w-[56px]",
+                                isSelected
+                                    ? "bg-primary text-white border-primary shadow-sm"
+                                    : "bg-muted/50 border-border/40 text-muted-foreground"
+                            )}
+                        >
+                            <Icon className={cn("w-4 h-4", !isSelected && config.color)} />
+                            <span className="text-[11px] font-medium leading-none whitespace-nowrap">
+                                {config.label}
+                                {totalCount > 0 && !isSelected && (
+                                    <span className="mr-0.5 opacity-60">({totalCount})</span>
                                 )}
-                            >
-                                <Icon className={cn("w-5 h-5", !isSelected && config.color)} />
-                                <span className="text-[9px] font-medium">{config.label}</span>
-                            </button>
-                        );
-                    })}
-                </div>
+                            </span>
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* ===== DESKTOP LAYOUT: Horizontal Scroll ===== */}
+            {/* ── DESKTOP: scrollable pill row ── */}
             <div className="hidden sm:block relative">
-                {/* Left Arrow */}
                 {showLeftArrow && (
-                    <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center">
-                        <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background via-background/90 to-transparent pointer-events-none" />
+                    <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center pr-1">
+                        <div className="absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-background to-transparent pointer-events-none" />
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm hover:bg-primary/10 shadow-lg border border-border/50"
-                            onClick={() => scroll('left')}
+                            className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
+                            onClick={() => scroll("left")}
                         >
                             <ChevronRight className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
-
-                {/* Right Arrow */}
                 {showRightArrow && (
-                    <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center">
-                        <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background via-background/90 to-transparent pointer-events-none" />
+                    <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center pl-1">
+                        <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-background to-transparent pointer-events-none" />
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="relative h-9 w-9 rounded-full bg-background/90 backdrop-blur-sm hover:bg-primary/10 shadow-lg border border-border/50"
-                            onClick={() => scroll('right')}
+                            className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
+                            onClick={() => scroll("right")}
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
                     </div>
                 )}
 
-                {/* Scrollable Categories - Desktop */}
                 <div
                     ref={scrollRef}
-                    className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-4 px-6"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    className="flex items-center gap-2 overflow-x-auto py-3 px-4"
+                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
                 >
-                    {/* All Categories */}
+                    {/* All */}
                     <button
-                        onClick={() => selectedCategories.forEach(cat => onCategoryToggle(cat))}
+                        onClick={clearAll}
                         className={cn(
-                            "flex items-center gap-2.5 px-5 py-2.5 rounded-2xl transition-all whitespace-nowrap text-sm font-semibold",
-                            selectedCategories.length === 0
-                                ? "bg-gradient-to-r from-primary to-cyan-500 text-white shadow-lg"
-                                : "bg-background/60 border border-border/50 text-muted-foreground hover:border-primary/30"
+                            "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0",
+                            allSelected
+                                ? "bg-primary text-white border-primary shadow-md"
+                                : "bg-muted/40 border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                         )}
                     >
-                        <LayoutGrid className="w-4 h-4" />
+                        <LayoutGrid className="w-3.5 h-3.5" />
                         <span>الكل</span>
                     </button>
 
-                    <div className="w-px h-8 bg-border/50 mx-1" />
+                    <div className="w-px h-6 bg-border/40 flex-shrink-0" />
 
-                    {/* Category Buttons */}
                     {organizedCategories.map(({ key, config, rawCategories, totalCount }) => {
                         const Icon = config.icon;
                         const isSelected = isGroupSelected(rawCategories);
@@ -312,18 +329,18 @@ export function CategoryScrollBar({
                                 key={key}
                                 onClick={() => toggleGroup(rawCategories)}
                                 className={cn(
-                                    "flex items-center gap-2.5 px-4 py-2.5 rounded-2xl transition-all whitespace-nowrap text-sm font-medium",
+                                    "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0",
                                     isSelected
-                                        ? "bg-gradient-to-r from-primary/90 to-cyan-500/90 text-white shadow-lg"
-                                        : "bg-background/60 border border-border/40 text-muted-foreground hover:border-primary/40"
+                                        ? "bg-primary text-white border-primary shadow-md"
+                                        : "bg-muted/40 border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                                 )}
                             >
-                                <Icon className={cn("w-4 h-4", isSelected ? "text-white" : config.color)} />
+                                <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-white" : config.color)} />
                                 <span>{config.label}</span>
                                 {totalCount > 0 && (
                                     <span className={cn(
-                                        "text-[10px] px-2 py-0.5 rounded-full",
-                                        isSelected ? "bg-white/25" : "bg-muted/80"
+                                        "text-[11px] px-1.5 py-0.5 rounded-full font-medium",
+                                        isSelected ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
                                     )}>
                                         {totalCount}
                                     </span>
@@ -333,9 +350,6 @@ export function CategoryScrollBar({
                     })}
                 </div>
             </div>
-
-            {/* Decorative gradient line at bottom */}
-            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         </div>
     );
 }

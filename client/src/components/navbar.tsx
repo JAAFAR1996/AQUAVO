@@ -74,7 +74,14 @@ export default function Navbar() {
 
   // Notification bell is now a dedicated component with its own state management
 
-
+  // Auto-open cart drawer when navigated from /cart
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("open-cart") === "1") {
+      setIsCartOpen(true);
+      window.history.replaceState({}, "", "/");
+    }
+  }, []);
 
   // 2025 Style hooks
   const { style: navbarStyle } = useNavbarPreferences();
@@ -190,7 +197,7 @@ export default function Navbar() {
                 <span className="text-lg sm:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-teal-500 tracking-tight">
                   AQUAVO
                 </span>
-                <span className="hidden sm:block text-xs text-muted-foreground font-medium">
+                <span className="hidden sm:block text-[13px] text-muted-foreground font-medium">
                   أكوافو للأحواض المائية
                 </span>
               </div>
@@ -202,7 +209,7 @@ export default function Navbar() {
             {navLinks.map((link) => (
               <Link key={link.href} href={link.href}>
                 <span className={cn(
-                  "nav-link text-xs lg:text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5 cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-md",
+                  "nav-link text-[13px] lg:text-sm font-medium transition-colors hover:text-primary hover:bg-primary/5 cursor-pointer flex items-center gap-1 px-2 py-1.5 rounded-md",
                   location === link.href ? "text-primary bg-primary/10" : "text-muted-foreground"
                 )}>
                   {link.icon && <link.icon className="nav-icon h-3.5 w-3.5 lg:h-4 lg:w-4" />}

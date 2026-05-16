@@ -101,7 +101,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     if (deliveryFee > 0) {
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>🚚 التوصيل:</span><span>${formatIQD(deliveryFee)}</span></div>`;
     } else {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>🚚 التوصيل:</span><span>مجاني ✨</span></div>`;
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>التوصيل:</span><span>مجاني</span></div>`;
     }
     // الخصم
     if (discount > 0) {
@@ -397,8 +397,8 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                   </div>
                 ) : (
                   <div className="total-row flex justify-between text-sm">
-                    <span className="text-green-600">🚚 التوصيل:</span>
-                    <span className="text-green-600 font-medium">مجاني ✨</span>
+                    <span className="text-green-600">التوصيل:</span>
+                    <span className="text-green-600 font-medium">مجاني</span>
                   </div>
                 )}
 
