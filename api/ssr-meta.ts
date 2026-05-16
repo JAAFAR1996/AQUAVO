@@ -22,9 +22,9 @@ function getTemplate(): string {
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
 const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
-const DEFAULT_TITLE = "AQUAVO - متجر اسماك زينة ومستلزمات احواض في العراق | بغداد";
-const DEFAULT_DESC = "AQUAVO أول متجر اونلاين متخصص في اسماك الزينة ومستلزمات الاحواض في العراق. فلاتر، سخانات، اسماك، نباتات مائية، أغذية وعلاجات بأفضل الأسعار مع توصيل لكل محافظات العراق. بيع اسماك زينة بغداد.";
-const DEFAULT_KEYWORDS = "اسماك زينة العراق، متجر اسماك زينة بغداد، مستلزمات احواض سمك، بيع اسماك زينة، احواض سمك للبيع، فلاتر احواض، سخانات احواض، شراء اسماك اونلاين العراق";
+const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
+const DEFAULT_DESC = "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.";
+const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
 
 // ─── Static page metadata ───────────────────────────────────────────────────
 interface PageMeta {
@@ -37,9 +37,9 @@ interface PageMeta {
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
-    title: "AQUAVO - متجر اسماك زينة ومستلزمات احواض في العراق | بغداد",
-    description: "AQUAVO أول متجر اونلاين متخصص في اسماك الزينة ومستلزمات الاحواض في العراق. فلاتر، سخانات، اسماك، نباتات مائية، أغذية وعلاجات بأفضل الأسعار مع توصيل لكل محافظات العراق. بيع اسماك زينة بغداد.",
-    keywords: "اسماك زينة العراق، متجر اسماك زينة بغداد، مستلزمات احواض سمك العراق، بيع اسماك زينة، احواض سمك للبيع، فلاتر احواض، سخانات احواض، شراء اسماك اونلاين العراق",
+    title: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+    description: "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.",
+    keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة",
     ogType: "website",
     jsonLd: [
       {
@@ -50,7 +50,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         url: BASE,
         logo: DEFAULT_IMAGE,
         image: DEFAULT_IMAGE,
-        description: "أول متجر اونلاين متخصص في اسماك الزينة ومستلزمات الاحواض في العراق",
+        description: "أفضل مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية، علاجات. توصيل لجميع المحافظات.",
         currenciesAccepted: "IQD",
         paymentAccepted: "Cash, Credit Card",
         priceRange: "$$",
@@ -90,15 +90,15 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     ],
   },
   "/products": {
-    title: "مستلزمات احواض اسماك الزينة في العراق - فلاتر، سخانات، اغذية | AQUAVO",
-    description: "تسوق جميع مستلزمات احواض اسماك الزينة في العراق: فلاتر، سخانات، أغذية، علاجات، نباتات مائية، إضاءة LED، ديكورات وأكثر. أسعار منافسة وتوصيل لكل المحافظات.",
-    keywords: "مستلزمات احواض سمك العراق، فلاتر احواض بغداد، سخانات احواض، اغذية اسماك زينة، نباتات مائية، شراء اونلاين",
+    title: "مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية | AQUAVO",
+    description: "تسوق جميع مستلزمات أحواض الزينة في العراق: فلاتر، سخانات، أغذية، علاجات، إضاءة LED، ديكورات وأكثر. ماركة YEE وغيرها. أسعار منافسة وتوصيل لكل المحافظات.",
+    keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، اغذية احواض، معدات YEE العراق، احواض زجاجية، علاجات مياه",
     jsonLd: [
       {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        name: "جميع مستلزمات احواض اسماك الزينة",
-        description: "تصفح جميع مستلزمات احواض اسماك الزينة في العراق",
+        name: "جميع مستلزمات أحواض الزينة",
+        description: "تصفح جميع مستلزمات أحواض الزينة في العراق",
         url: `${BASE}/products`,
         inLanguage: "ar",
         isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
@@ -107,7 +107,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@context": "https://schema.org",
         "@type": "ItemList",
         name: "فئات منتجات AQUAVO",
-        description: "جميع فئات مستلزمات احواض اسماك الزينة المتوفرة في العراق",
+        description: "جميع فئات مستلزمات أحواض الزينة المتوفرة في العراق",
         url: `${BASE}/products`,
         numberOfItems: 12,
         itemListElement: [
@@ -117,12 +117,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
           { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
           { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
-          { "@type": "ListItem", position: 7, name: "نباتات مائية", url: `${BASE}/products?category=plants` },
-          { "@type": "ListItem", position: 8, name: "ديكورات", url: `${BASE}/products?category=decorations` },
-          { "@type": "ListItem", position: 9, name: "ركائز", url: `${BASE}/products?category=substrates` },
-          { "@type": "ListItem", position: 10, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
-          { "@type": "ListItem", position: 11, name: "أسماك حية", url: `${BASE}/products?category=live-fish` },
-          { "@type": "ListItem", position: 12, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
+          { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
+          { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
+          { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
+          { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
+          { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
         ],
       },
       {
@@ -136,14 +135,14 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     ],
   },
   "/deals": {
-    title: "عروض وتخفيضات اسماك الزينة ومستلزمات الأحواض في العراق | AQUAVO",
-    description: "أقوى العروض والتخفيضات على مستلزمات احواض اسماك الزينة في العراق. خصومات يومية على الفلاتر والسخانات والأغذية والديكورات. وفّر أكثر مع AQUAVO.",
-    keywords: "عروض اسماك زينة العراق، تخفيضات مستلزمات احواض، خصومات احواض سمك بغداد، عروض يومية",
+    title: "عروض وتخفيضات مستلزمات أحواض الزينة في العراق | AQUAVO",
+    description: "أقوى العروض والتخفيضات على مستلزمات أحواض الزينة في العراق. خصومات يومية على الفلاتر والسخانات والأغذية والديكورات. وفّر أكثر مع AQUAVO.",
+    keywords: "عروض مستلزمات احواض العراق، تخفيضات احواض بغداد، خصومات فلاتر سخانات، عروض يومية AQUAVO",
   },
   "/blog": {
-    title: "مدونة اسماك الزينة - نصائح تربية وعناية بالاحواض في العراق | AQUAVO",
-    description: "مقالات ونصائح متخصصة عن تربية اسماك الزينة في العراق، العناية بالاحواض، معالجة أمراض الأسماك، وأفضل الممارسات للمبتدئين والمحترفين في بغداد والعراق.",
-    keywords: "تربية اسماك زينة العراق، نصائح احواض سمك، امراض اسماك، عناية بالاحواض، مدونة اسماك بغداد",
+    title: "مدونة أحواض الزينة — نصائح العناية والمعدات في العراق | AQUAVO",
+    description: "مقالات ونصائح متخصصة عن أحواض الزينة في العراق: العناية بالمعدات، معالجة مياه الحوض، الفلاتر والسخانات، وأفضل الممارسات للمبتدئين والمحترفين.",
+    keywords: "نصائح احواض الزينة العراق، مدونة احواض بغداد، عناية فلاتر سخانات، معلومات احواض",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",

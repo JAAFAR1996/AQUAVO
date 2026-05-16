@@ -28,7 +28,7 @@ const getPresenceUserId = (req: Request): string | null =>
 
 // POST /api/analytics/presence — enter page
 router.post("/presence", (req: Request, res: Response): void => {
-    const { sessionId, pagePath } = req.body as { sessionId?: string; pagePath?: string };
+    const { sessionId, pagePath } = ((req.body ?? {}) as { sessionId?: string; pagePath?: string });
     if (!sessionId || !pagePath) { res.json({ ok: true }); return; }
     presence.set(sessionId.slice(0, 64), {
         pagePath: pagePath.slice(0, 255),
@@ -40,14 +40,14 @@ router.post("/presence", (req: Request, res: Response): void => {
 
 // POST /api/analytics/presence/leave — leave page instantly
 router.post("/presence/leave", (req: Request, res: Response): void => {
-    const { sessionId } = req.body as { sessionId?: string };
+    const { sessionId } = ((req.body ?? {}) as { sessionId?: string });
     if (sessionId) presence.delete(sessionId.slice(0, 64));
     res.json({ ok: true });
 });
 
 // POST /api/analytics/heartbeat — refresh TTL (safety net, every 20s)
 router.post("/heartbeat", (req: Request, res: Response): void => {
-    const { sessionId, pagePath } = req.body as { sessionId?: string; pagePath?: string };
+    const { sessionId, pagePath } = ((req.body ?? {}) as { sessionId?: string; pagePath?: string });
     if (!sessionId || !pagePath) { res.json({ ok: true }); return; }
     presence.set(sessionId.slice(0, 64), {
         pagePath: pagePath.slice(0, 255),

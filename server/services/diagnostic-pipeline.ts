@@ -200,13 +200,18 @@ export class DiagnosticPipeline {
     // ═══════════════════════════════════════════════════════
     let ragContext = "";
     try {
-      const ragChunks = await vetRAG.searchKnowledge(
-        ["fish disease symptoms diagnosis treatment"],
-        3
-      );
+      const ragQuery = [
+        visionReport.species.commonName,
+        ...visionReport.visualObservations.visibleParasites,
+        ...visionReport.visualObservations.lesionsOrWounds,
+        ...visionReport.visualObservations.colorChanges,
+        visionReport.overallImpression,
+      ].filter((s): s is string => typeof s === "string" && s.trim().length > 0);
+
+      const ragChunks = await vetRAG.searchKnowledge(ragQuery.length > 0 ? ragQuery : ["fish disease treatment"], 3);
       if (ragChunks.length > 0) {
         ragContext = vetRAG.formatForPrompt(ragChunks);
-        console.log(`[Pipeline] 📖 RAG: ${ragChunks.length} knowledge chunks`);
+        console.log(`[Pipeline] 📖 RAG: ${ragChunks.length} chunks (query: ${ragQuery.slice(0, 3).join(", ")})`);
       }
     } catch (ragError) {
       console.error("[Pipeline] RAG failed (non-blocking):", ragError);

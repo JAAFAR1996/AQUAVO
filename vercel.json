@@ -3,6 +3,7 @@
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
+  "regions": ["fra1"],
   "functions": {
     "api/index.ts": {
       "memory": 1024,

@@ -199,13 +199,28 @@ export function createOrderRouter(): RouterType {
             }
 
             // إضافة معلومات النقاط في الرد
-            const response: any = { ...order };
+            // Use JSON.parse/stringify to strip any non-serializable values (BigInt, Decimal, circular refs)
+            let safeOrder: Record<string, unknown>;
+            try {
+                safeOrder = JSON.parse(JSON.stringify(order, (_k, v) =>
+                    typeof v === "bigint" ? Number(v) : v
+                ));
+            } catch {
+                safeOrder = {
+                    id: (order as any).id,
+                    orderNumber: (order as any).orderNumber,
+                    status: (order as any).status,
+                    total: String((order as any).total ?? 0),
+                };
+            }
+
+            const response: Record<string, unknown> = { ...safeOrder };
             if (loyaltyResult) {
                 response.loyalty = {
-                    pointsEarned: loyaltyResult.purchasePoints,
-                    cashbackEarned: loyaltyResult.roundingPoints,
+                    pointsEarned: loyaltyResult.purchasePoints ?? 0,
+                    cashbackEarned: loyaltyResult.roundingPoints ?? 0,
                     cashbackUsed: actualCashbackUsed,
-                    roundedTotal: loyaltyResult.roundedTotal,
+                    roundedTotal: loyaltyResult.roundedTotal != null ? Number(loyaltyResult.roundedTotal) : undefined,
                     tier: loyaltyResult.newTier,
                     tierUpgraded: loyaltyResult.tierChanged,
                 };
