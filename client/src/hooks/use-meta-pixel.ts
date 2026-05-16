@@ -11,12 +11,10 @@ import { initMetaPixel, trackMetaPageView } from "@/lib/meta-pixel";
  */
 export function useMetaPixelInit() {
   useEffect(() => {
-    // Defer pixel init to after first idle to reduce TBT (same pattern as GA)
-    if ("requestIdleCallback" in window) {
-      (window as any).requestIdleCallback(() => initMetaPixel(), { timeout: 3000 });
-    } else {
-      setTimeout(() => initMetaPixel(), 2000);
-    }
+    // Initialize immediately — deferred init causes ViewContent/AddToCart to fire
+    // before fbq stub is set up and isPixelReady() returns false, dropping events.
+    // The fbq stub queues events internally; fbevents.js loads async, no render blocking.
+    initMetaPixel();
   }, []);
 }
 
