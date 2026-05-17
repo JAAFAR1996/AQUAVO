@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { expenses } from "../../shared/schema.js";
-import { expenseInputSchema, accountingPeriodSchema, EXPENSE_CATEGORIES } from "../../shared/accounting.js";
+import { expenseInputSchema, accountingPeriodSchema, type AccountingPeriod } from "../../shared/accounting.js";
 import { and, gte, lte, eq, desc } from "drizzle-orm";
 
 const router = Router();
@@ -41,13 +41,16 @@ function serializeExpense(e: typeof expenses.$inferSelect) {
   };
 }
 
-function periodRange(period: string, from?: string, to?: string): { start: Date; end: Date } {
+function periodRange(period: AccountingPeriod, from?: string, to?: string): { start: Date; end: Date } {
   const now = new Date();
   if (period === "custom" && from && to) {
     const start = new Date(from);
     const end = new Date(to);
-    end.setHours(23, 59, 59, 999);
-    return { start, end };
+    if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && end >= start) {
+      end.setHours(23, 59, 59, 999);
+      return { start, end };
+    }
+    // fall through to month default if dates are invalid
   }
   if (period === "year") {
     return {

@@ -155,7 +155,9 @@ export const expenseInputSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES),
   amount: z.coerce.number().positive(),
   description: z.string().trim().optional(),
-  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "تاريخ غير صالح — استخدم صيغة YYYY-MM-DD"),
+  expenseDate: z.string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ غير صالح — استخدم صيغة YYYY-MM-DD")
+    .refine(v => !isNaN(new Date(v).getTime()), "تاريخ غير صالح"),
   isRecurring: z.boolean().default(false),
   recurringPeriod: z.enum(["monthly", "weekly", "yearly"]).optional(),
 });
