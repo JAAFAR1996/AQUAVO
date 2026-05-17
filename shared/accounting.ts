@@ -155,7 +155,7 @@ export const expenseInputSchema = z.object({
   category: z.enum(EXPENSE_CATEGORIES),
   amount: z.coerce.number().positive(),
   description: z.string().trim().optional(),
-  expenseDate: z.string().min(1),
+  expenseDate: z.string().regex(/^\d{4}-\d{2}-\d{2}/, "تاريخ غير صالح — استخدم صيغة YYYY-MM-DD"),
   isRecurring: z.boolean().default(false),
   recurringPeriod: z.enum(["monthly", "weekly", "yearly"]).optional(),
 });
@@ -163,11 +163,11 @@ export const expenseInputSchema = z.object({
 export const expenseResponseSchema = z.object({
   id: z.string(),
   category: z.enum(EXPENSE_CATEGORIES),
-  amount: z.number(),
+  amount: z.coerce.number(),
   description: z.string().nullable(),
   expenseDate: z.string(),
   isRecurring: z.boolean(),
-  recurringPeriod: z.string().nullable(),
+  recurringPeriod: z.enum(["monthly", "weekly", "yearly"]).nullable(),
   createdAt: z.string(),
 });
 
