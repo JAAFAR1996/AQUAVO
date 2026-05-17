@@ -345,6 +345,21 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
 
+  // One-time: rename yff-049 to remove banned "نباتات مائية" wording (CLAUDE.md §CRITICAL)
+  // Idempotent — does nothing if already renamed.
+  {
+    const db = getDb();
+    if (db) {
+      db.execute(sql`
+        UPDATE products
+        SET name = 'تربة حوض مخصّبة — تغذية بيولوجية'
+        WHERE slug = 'yff-049'
+          AND name LIKE '%نباتات%'
+      `).then(() => log("[Migration] yff-049 name fix applied (no-op if already clean)"))
+        .catch(err => log("[Migration] yff-049 name fix failed: " + err.message, "migration", "warn"));
+    }
+  }
+
   // Verify Email Connection on Startup
   verifyEmailConnection().catch(err => console.error("Email verification error:", err));
 
