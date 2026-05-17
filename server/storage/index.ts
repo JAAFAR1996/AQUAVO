@@ -266,7 +266,7 @@ class CombinedStorage implements IStorage {
             if (coProductIds.length > 0) {
                 // Get product details in batch (single query)
                 const products = await this.productStorage.getProductsByIds(coProductIds);
-                return products.filter(p => (p.stock ?? 0) > 0);
+                return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
             }
 
             // Fallback: Get products from the same category
@@ -279,7 +279,7 @@ class CombinedStorage implements IStorage {
             });
 
             return categoryProducts
-                .filter(p => p.id !== productId && (p.stock ?? 0) > 0)
+                .filter(p => p.id !== productId && (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0)
                 .slice(0, 4);
         } catch (error) {
             console.error('Error getting frequently bought together:', error);
@@ -301,7 +301,7 @@ class CombinedStorage implements IStorage {
                     // Get product details in batch (single query)
                     const productIds = similarByEmbedding.map((s: any) => s.productId);
                     const products = await this.productStorage.getProductsByIds(productIds);
-                    return products.filter(p => (p.stock ?? 0) > 0);
+                    return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
                 }
             } catch (embeddingError) {
                 console.log('[Storage] Embedding similarity not available, using fallback');
@@ -314,16 +314,18 @@ class CombinedStorage implements IStorage {
             });
 
             // Prioritize same subcategory, then same category
+            const hasRealPrice = (p: Product) => parseFloat(String(p.price ?? 0)) > 0;
+
             const sameSubcategory = categoryProducts.filter(
                 p => p.id !== productId &&
                     p.subcategory === product.subcategory &&
-                    (p.stock ?? 0) > 0
+                    (p.stock ?? 0) > 0 && hasRealPrice(p)
             );
 
             const sameCategory = categoryProducts.filter(
                 p => p.id !== productId &&
                     p.subcategory !== product.subcategory &&
-                    (p.stock ?? 0) > 0
+                    (p.stock ?? 0) > 0 && hasRealPrice(p)
             );
 
             return [...sameSubcategory, ...sameCategory].slice(0, 5);
