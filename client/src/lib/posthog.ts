@@ -2,8 +2,14 @@ import posthog from "posthog-js";
 
 const KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
 const HOST = import.meta.env.VITE_POSTHOG_HOST as string | undefined;
+const DEV = import.meta.env.DEV as boolean | undefined;
 
 let initialized = false;
+
+// Events fired before init are queued and flushed when PostHog initializes.
+// This prevents silent event loss caused by deferred init (idle callback delay).
+type QueuedEvent = { name: string; props: Record<string, unknown> };
+const queue: QueuedEvent[] = [];
 
 export function initPostHog(): void {
   if (initialized || !KEY || typeof window === "undefined") return;
@@ -15,19 +21,30 @@ export function initPostHog(): void {
     capture_pageview: false,
     capture_pageleave: false,
   });
+  if (DEV) console.info("[PostHog] initialized — host:", HOST ?? "https://us.i.posthog.com");
+  // Flush events that fired before init
+  for (const { name, props } of queue) {
+    try {
+      posthog.capture(name, props);
+      if (DEV) console.info("[PostHog] flushed queued event:", name);
+    } catch (_) { /* never block */ }
+  }
+  queue.length = 0;
 }
 
-function safe(fn: () => void): void {
-  if (!initialized) return;
-  try {
-    fn();
-  } catch (_) {
-    // never block UX
+function capture(name: string, props: Record<string, unknown>): void {
+  if (DEV) console.info("[PostHog] event:", name);
+  if (!initialized) {
+    queue.push({ name, props });
+    return;
   }
+  try {
+    posthog.capture(name, props);
+  } catch (_) { /* never block UX */ }
 }
 
 export function phTrackPageView(path: string): void {
-  safe(() => posthog.capture("$pageview", { $current_url: path }));
+  capture("$pageview", { $current_url: path });
 }
 
 export function phTrackViewContent(product: {
@@ -38,17 +55,15 @@ export function phTrackViewContent(product: {
   price: number | string;
   available: boolean;
 }): void {
-  safe(() =>
-    posthog.capture("ViewContent", {
-      product_id: product.id,
-      product_name: product.name,
-      category: product.category,
-      brand: product.brand,
-      price: Number(product.price),
-      currency: "IQD",
-      availability: product.available ? "in_stock" : "out_of_stock",
-    }),
-  );
+  capture("ViewContent", {
+    product_id: product.id,
+    product_name: product.name,
+    category: product.category,
+    brand: product.brand,
+    price: Number(product.price),
+    currency: "IQD",
+    availability: product.available ? "in_stock" : "out_of_stock",
+  });
 }
 
 export function phTrackAddToCart(product: {
@@ -58,29 +73,25 @@ export function phTrackAddToCart(product: {
   quantity: number;
   category?: string;
 }): void {
-  safe(() =>
-    posthog.capture("AddToCart", {
-      product_id: product.id,
-      product_name: product.name,
-      category: product.category,
-      price: Number(product.price),
-      currency: "IQD",
-      quantity: product.quantity,
-    }),
-  );
+  capture("AddToCart", {
+    product_id: product.id,
+    product_name: product.name,
+    category: product.category,
+    price: Number(product.price),
+    currency: "IQD",
+    quantity: product.quantity,
+  });
 }
 
 export function phTrackInitiateCheckout(data: {
   numItems: number;
   totalValue: number;
 }): void {
-  safe(() =>
-    posthog.capture("InitiateCheckout", {
-      num_items: data.numItems,
-      total_value: data.totalValue,
-      currency: "IQD",
-    }),
-  );
+  capture("InitiateCheckout", {
+    num_items: data.numItems,
+    total_value: data.totalValue,
+    currency: "IQD",
+  });
 }
 
 export function phTrackPurchase(data: {
@@ -88,40 +99,34 @@ export function phTrackPurchase(data: {
   totalValue: number;
   numItems: number;
 }): void {
-  safe(() =>
-    posthog.capture("Purchase", {
-      order_id: data.orderId,
-      total_value: data.totalValue,
-      currency: "IQD",
-      num_items: data.numItems,
-    }),
-  );
+  capture("Purchase", {
+    order_id: data.orderId,
+    total_value: data.totalValue,
+    currency: "IQD",
+    num_items: data.numItems,
+  });
 }
 
 export function phTrackCategoryClick(category: string): void {
-  safe(() => posthog.capture("CategoryClick", { category }));
+  capture("CategoryClick", { category });
 }
 
 export function phTrackSearch(data: {
   queryLength: number;
   hasResults?: boolean;
 }): void {
-  safe(() =>
-    posthog.capture("Search", {
-      query_length: data.queryLength,
-      has_results: data.hasResults,
-    }),
-  );
+  capture("Search", {
+    query_length: data.queryLength,
+    has_results: data.hasResults,
+  });
 }
 
 export function phTrackWhatsAppClick(data: {
   sourcePage: string;
   productName?: string;
 }): void {
-  safe(() =>
-    posthog.capture("WhatsAppClick", {
-      source_page: data.sourcePage,
-      product_name: data.productName,
-    }),
-  );
+  capture("WhatsAppClick", {
+    source_page: data.sourcePage,
+    product_name: data.productName,
+  });
 }
