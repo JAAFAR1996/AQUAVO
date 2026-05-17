@@ -9,6 +9,7 @@ import {
   accountingCostInputSchema,
   accountingPeriodSchema,
   accountingSettlementInputSchema,
+  type AccountingInventory,
   type AccountingPeriod,
 } from "../../shared/accounting.js";
 
@@ -851,7 +852,6 @@ router.get("/inventory", async (_req: Request, res: Response, next: NextFunction
 
     const activeProducts = await db
       .select({
-        id: products.id,
         price: products.price,
         costPrice: products.costPrice,
         stock: products.stock,
@@ -907,7 +907,7 @@ router.get("/inventory", async (_req: Request, res: Response, next: NextFunction
         comingSoonProducts,
         lowStockProducts,
         outOfStockProducts,
-      },
+      } satisfies AccountingInventory,
     });
   } catch (err) {
     next(err);
