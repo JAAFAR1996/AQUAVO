@@ -228,7 +228,7 @@ async function buildCostResolver(db: Db, productIds: Set<string>): Promise<CostR
       .select()
       .from(productCostHistory)
       .where(inArray(productCostHistory.productId, ids))
-      .orderBy(desc(productCostHistory.effectiveFrom));
+      .orderBy(desc(productCostHistory.effectiveFrom), desc(productCostHistory.createdAt));
 
     for (const history of historyRows) {
       const rows = historyMap.get(history.productId) ?? [];
@@ -767,7 +767,7 @@ router.get("/cost-history/:productId", async (req: Request, res: Response, next:
       .select()
       .from(productCostHistory)
       .where(eq(productCostHistory.productId, productId))
-      .orderBy(desc(productCostHistory.effectiveFrom));
+      .orderBy(desc(productCostHistory.effectiveFrom), desc(productCostHistory.createdAt));
 
     res.json({ success: true, data: history.map(serializeCostHistory) });
   } catch (err) {
