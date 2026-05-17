@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinanceOverview } from "@/components/admin/finance-overview";
 import { FinanceExpenses } from "@/components/admin/finance-expenses";
+import { FinanceCostChanges } from "@/components/admin/finance-cost-changes";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -61,6 +62,7 @@ export default function FinancePage() {
           <TabsTrigger value="reports">تقارير</TabsTrigger>
           <TabsTrigger value="products">ربحية المنتجات</TabsTrigger>
           <TabsTrigger value="recommendations">توصيات</TabsTrigger>
+          <TabsTrigger value="cost-changes">تغييرات الكلف</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -87,6 +89,10 @@ export default function FinancePage() {
           <div style={{ color: "#94a3b8", fontSize: 13, padding: 24, textAlign: "center" }}>
             التوصيات — قيد البناء
           </div>
+        </TabsContent>
+
+        <TabsContent value="cost-changes">
+          <FinanceCostChanges />
         </TabsContent>
       </Tabs>
     </div>
