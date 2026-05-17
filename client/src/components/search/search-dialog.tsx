@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Link } from 'wouter';
 import { Product } from '@/types';
 import { SearchIcon } from 'lucide-react';
+import { cardImage } from '@/lib/cloudinary';
 
 interface SearchDialogProps {
   open: boolean;
@@ -58,7 +59,7 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
             {filteredProducts.map(product => (
               <Link key={product.id} href={`/products/${product.slug}`} onClick={() => onOpenChange(false)}>
                 <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-muted cursor-pointer">
-                  <img src={product.image} alt={product.name} loading="lazy" decoding="async" className="w-16 h-16 object-contain rounded-md bg-white" />
+                  <img src={cardImage(product.image) || "/logo_aquavo.png"} alt={product.name} loading="lazy" decoding="async" width={64} height={64} className="w-16 h-16 object-contain rounded-md bg-white" />
                   <div>
                     <h4 className="font-semibold">{product.name}</h4>
                     <p className="text-sm font-bold text-purple-500">قريباً جداً</p>

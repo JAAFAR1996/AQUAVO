@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { type FishSpecies } from "@/data/freshwater-fish";
 import { useFishData } from "@/hooks/use-fish-data";
+import { cardImage } from "@/lib/cloudinary";
 
 interface SearchResult {
     id: string;
@@ -294,10 +295,13 @@ export function SearchAutocomplete({
                                 >
                                     <div className="w-10 h-10 rounded bg-muted/50 overflow-hidden flex-shrink-0">
                                         <img
-                                            src={result.image}
+                                            src={cardImage(result.image) || "/logo_aquavo.png"}
                                             alt={result.name}
                                             className="w-full h-full object-contain"
                                             loading="lazy"
+                                            decoding="async"
+                                            width={40}
+                                            height={40}
                                         />
                                     </div>
                                     <div className="flex-1 text-right min-w-0">

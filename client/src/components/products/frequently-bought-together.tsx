@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { cardImage } from "@/lib/cloudinary";
 
 interface Product {
     id: string;
@@ -127,9 +128,13 @@ export function FrequentlyBoughtTogether({
                                     {/* Product Image */}
                                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-muted/30 mb-2">
                                         <img
-                                            src={product.image || "/logo_aquavo.png"}
+                                            src={cardImage(product.image) || "/logo_aquavo.png"}
                                             alt={product.name}
                                             className="w-full h-full object-contain p-1"
+                                            loading="lazy"
+                                            decoding="async"
+                                            width={80}
+                                            height={80}
                                             onError={(e) => { (e.target as HTMLImageElement).src = "/logo_aquavo.png"; }}
                                         />
                                     </div>
