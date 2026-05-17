@@ -49,7 +49,6 @@ const popularItems = [
   { title: "فلاتر المياه", url: "/products?category=Filters", category: "فلاتر", keywords: ["فلتر", "فلاتر", "filter", "filters", "تصفية"] },
   { title: "سخانات الحوض", url: "/products?category=Heaters", category: "سخانات", keywords: ["سخان", "سخانات", "heater", "heaters", "تسخين", "حرارة"] },
   { title: "الإضاءة LED", url: "/products?category=Lighting", category: "إضاءة", keywords: ["ضوء", "إضاءة", "ليد", "led", "lighting", "أضواء"] },
-  { title: "النباتات المائية", url: "/products?category=Plants", category: "نباتات", keywords: ["نبات", "نباتات", "plant", "plants", "زرع"] },
   { title: "الديكورات", url: "/products?category=Decorations", category: "ديكور", keywords: ["ديكور", "زينة", "حجر", "صخور", "decoration"] },
   { title: "مضخات الهواء", url: "/products?category=Air Pumps", category: "مضخات", keywords: ["مضخة", "هواء", "أكسجين", "pump", "air"] },
   { title: "أغذية الأسماك", url: "/products?category=Food", category: "أغذية", keywords: ["طعام", "غذاء", "أكل", "food", "علف"] },
