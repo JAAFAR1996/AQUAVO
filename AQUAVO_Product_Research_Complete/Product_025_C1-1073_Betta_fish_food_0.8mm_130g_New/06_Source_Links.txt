@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-025
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_025_C1-1073_Betta_fish_food_0.8mm_130g_New\01_Original_Alibaba_Image\Product_025_Original_026_total_B46_image26.jpeg

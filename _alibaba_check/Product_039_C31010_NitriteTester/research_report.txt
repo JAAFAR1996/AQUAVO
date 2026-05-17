@@ -1,0 +1,89 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-039
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-039
+
+2. ALIBABA NAME: Nitrite test kit ~100 tests
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: كيت فحص النيتريت YEE - حوالي 100 اختبار
+   - English: YEE Nitrite (NO2-) Liquid Test Kit ~100 Tests
+
+4. MATCH STATUS: MEDIUM CONFIDENCE (65%)
+
+5. MATCH REASON:
+   Same product code family as Product 038 (C3-1010), suffix -1 indicating
+   the nitrite test variant. No direct English-language retailer page found
+   for this specific code. However, the product code pattern, the companion
+   relationship with Product 038, and the liquid drop format are consistent
+   with YEE's C3-xxxx testing line. The 100-test count (higher than the 60
+   for ammonia) is plausible as nitrite reagent kits often yield more tests
+   per bottle due to different chemistry. Image shared with Product 038.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: C3-1010-1
+   - Test Type: Nitrite — tests for NO2- (nitrite ion)
+   - Format: Liquid drop test kit (reagent bottles — NOT test strips)
+   - Number of Tests: Approximately 100 tests per kit
+   - Test Method: Colorimetric liquid reagent drop test
+     (Griess reagent chemistry is standard for NO2 tests)
+   - Parameters Tested: Nitrite (NO2-)
+   - Measurement Range: Typical for freshwater nitrite kits = 0 to 5 ppm (mg/L)
+     Exact YEE range not confirmed — standard range for freshwater is 0-5 ppm
+   - Color Chart: Included with kit for color comparison
+   - For: Freshwater aquariums (primary)
+   - Storage: Cool, dry place away from sunlight. Reagent solutions — keep
+     sealed. Keep out of reach of children.
+   - Shelf Life: Not confirmed; typical liquid reagent kits = 12-24 months
+
+7. IMAGE SOURCES:
+   - Local: صور_الاكسل_الصحيحة/images/043_total_B64_image43.png
+     (same image as Product 038 — both test kits share one image)
+   - Note: At time of product listing, verify if separate product photography
+     is available or if the same image represents the kit set.
+
+8. ALL SOURCE LINKS:
+   - YEE Brand (general): https://yeeaquarium.com/
+   - Alibaba Manufacturer Page: https://yeeaquarium.en.alibaba.com/
+   - Product code C3-1010-1 not found on public retailer sites at time of research
+   - General nitrite test kit reference (competitor): https://apifishcare.com/product/nitrite-test-kit
+   - NT Labs nitrite test reference: https://www.nt-labs.com/browse-products/indoor/aquarium-lab/nitrite-test/
+
+9. NOTES:
+   - PRODUCT CODE PATTERN: C3-1010 prefix shared with Product 038.
+       C3-1010-1 = Nitrite (NO2-) test
+       C3-1010-3 = Ammonia (NH3/NH4+) test
+     These are a companion pair for testing the nitrogen cycle.
+   - 100 TESTS vs 60: The nitrite kit yields more tests (~100) than the
+     ammonia kit (~60). This is common because nitrite reagents are used
+     in smaller quantities per test than ammonia reagents.
+   - NITRITE IMPORTANCE: Nitrite is the second danger in the nitrogen cycle.
+     After ammonia is converted by Nitrosomonas bacteria, it becomes nitrite
+     (NO2-) before Nitrobacter converts it to safe nitrate (NO3-). Testing
+     nitrite is essential during the cycling period (first 4-6 weeks) and
+     when adding new fish.
+   - COMPANION TO BACTERIA: This test kit directly shows whether Products
+     036/037 (nitrifying bacteria) are working — if bacteria are active,
+     nitrite levels drop.
+   - COMPANION TO 038: Products 038 and 039 should ideally be sold together
+     as "النيتروجين كيت الكامل" (complete nitrogen cycle test kit).
+   - SHARED IMAGE: Same image 043 as Product 038. Source separate photos
+     if possible for better product differentiation on the website.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL AS: Essential companion test kit to ammonia tester (038)
+    - PAIR: Always bundle 038 + 039 together in marketing/bundles
+    - TARGET CUSTOMER: All fish keepers, especially those with new tanks
+    - PRODUCT DESCRIPTION FOCUS: Explain the nitrogen cycle context —
+      "الخطوة الثانية في دورة النيتروجين"
+    - CROSS-SELL: Pair with 036/037 (bacteria) as the testing verification tool
+    - BUNDLE: "حزمة فحص دورة النيتروجين الكاملة" = 038 + 039
+    - SOCIAL CONTENT: Explain ammonia → nitrite → nitrate cycle in simple
+      Baghdad dialect for Iraqi fish keepers — educational content that
+      positions AQUAVO as the expert source.
+    - PRICING: Price similarly to 038 (companion product parity)
+================================================

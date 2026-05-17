@@ -1,0 +1,105 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-031
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-031
+
+2. ALIBABA NAME: Bactericidal antibacterial instant powder 2g/bag x 10 bags [1 box]
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: مسحوق YEE المضاد للبكتيريا (10 أكياس x 2 غرام)
+   - English: YEE Antibacterial Instant Powder — 10 x 2g Sachets
+
+4. MATCH STATUS: MEDIUM-HIGH CONFIDENCE — Product identified as YEE Yellow Powder antibacterial
+   sachets. Exact YYH-006 code not verified on web, but product description matches YEE Yellow
+   Powder Fish Medicine sold across Singapore, India, and SE Asia retailers.
+
+5. MATCH REASON:
+   YYH-006 is described as "bactericidal antibacterial instant powder 2g/bag x 10 bags."
+   This matches the YEE Yellow Powder Fish Medicine sold by FishyHub Singapore, Lazada SG,
+   Ultimate Aqua SG, and PetzLifeWorld India — a GMP-certified antibacterial powder in sachet
+   form. The product is specifically described as a "Japanese Powder" formula for bacterial
+   infections (tail rot, fin rot, gill rot, body rot). The 2g sachet format is consistent with
+   Japanese yellow powder formulations used widely in ornamental fish keeping. The code
+   YYH-006 is on the YEE medications line.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YYH-006
+   - Form: Powder sachet — fast-dissolving instant powder
+   - Pack Size: 10 sachets x 2g each (1 box = 20g total)
+   - Active Ingredient: NOT CONFIRMED from official source.
+     Likely nitrofurazone (yellow powder) — standard active compound in this category.
+     YEE states "natural extraction formula" on some listings. Do NOT state ingredient
+     without confirmation from packaging.
+   - Dosage (Preventive): 1 sachet (2g) per 300L water, every 15 days
+   - Dosage (Therapeutic): 2 sachets (4g) per 300L water, continuous 3-day bath.
+     Change 1/3 water on day 3 and re-dose at same rate.
+     For small tanks or dip treatment: add powder until water turns slightly yellow,
+     bath 15-30 minutes.
+     (Dosage sourced from FishyHub Singapore listing for YEE Yellow Powder series)
+   - Treatment Duration: 3 days per cycle for active infection, 15-day intervals for prevention
+   - Target Conditions: Tail rot, fin rot, gill rot, body rot, desquamation (scale loss),
+     vibriosis, septicemia, cloudy eye, digestive infections, white spot, internal/external
+     bacterial infections
+   - Safe for Shrimp: NO — bactericidal powder treatments are generally toxic to invertebrates
+   - Safe for Plants: UNKNOWN — not confirmed; fast-dissolving powder may affect plants
+   - Safe for Biological Filter: CAUTION — antibacterial agents may reduce beneficial bacteria.
+     Recommended to bypass or switch off biofilter during treatment in severe cases.
+   - Scale-less Fish: STRICTLY NOT RECOMMENDED — explicitly stated on product listings:
+     "fish without scales is strictly prohibited"
+
+7. IMAGE SOURCES:
+   - Excel image: صور_الاكسل_الصحيحة/images/039_total_B59_image39.jpeg
+   - FishyHub Singapore: https://fishyhub.com/product-detail/yee-yellow-powder-fish-medicine-japanese-powder-for-rotten-body-tail-white-spot-n-internal-external-bacteria-14229
+   - Lazada Singapore: https://www.lazada.sg/products/yee-yellow-powder-fish-medicine-japanese-powder-for-rotten-body-tail-white-spot-n-internal-external-bacteria-infection-i1817937125.html
+   - PetzLifeWorld India: https://www.petzlifeworld.in/products/yee-50g-japanesh-yellow-powder-for-ornamental-fish-and-aquarium-fish-care
+
+8. ALL SOURCE LINKS:
+   1. FishyHub Singapore — YEE Yellow Powder Fish Medicine
+      https://fishyhub.com/product-detail/yee-yellow-powder-fish-medicine-japanese-powder-for-rotten-body-tail-white-spot-n-internal-external-bacteria-14229
+   2. Lazada Singapore — YEE Yellow Powder Fish Medicine
+      https://www.lazada.sg/products/yee-yellow-powder-fish-medicine-japanese-powder-for-rotten-body-tail-white-spot-n-internal-external-bacteria-infection-i1817937125.html
+   3. Ultimate Aqua SG — YEE Yellow Powder Fish Medicine
+      https://ultimateaquasg.com/products/yee-yellow-powder-fish-medicine
+   4. PetzLifeWorld India — YEE 50g Japanese Yellow Powder
+      https://www.petzlifeworld.in/products/yee-50g-japanesh-yellow-powder-for-ornamental-fish-and-aquarium-fish-care
+   5. eBuy7 — YEE Concentrated Instant Yellow Powder 20g
+      https://www.ebuy7.com/item/582511473719
+   6. Clean Cat SG — Yee Universal Solution (related)
+      https://www.cleancatsg.com/products/yee-universal-solution-for-aquarium-fish
+   7. Aquarium Medications — Nitrofurazone / Yellow Powder background reference
+      https://www.aquarium-medications.com/2011/12/nitrofurazone-furan-2-for-aquarium-pond.html
+   8. YEE Official Website — YYH-006 NOT listed
+      https://yeeaquarium.com/
+   9. YEE Nitrifying Bacteria Dry Powder (official, DIFFERENT product — not the same)
+      https://yeeaquarium.com/product/yee-nitrifying-bacteria-dry-powder
+
+9. NOTES:
+   - NOT found on official YEE website. The official site lists a nitrifying bacteria powder
+     (completely different product) but not the antibacterial sachets.
+   - Dosage instructions confirmed: YES — from FishyHub Singapore listing.
+   - Active ingredient: NOT confirmed. Yellow powder / nitrofurazone is the likely compound
+     but should be verified from the physical box label before listing.
+   - Important label warning found on retailer listings: "Fish without scales STRICTLY PROHIBITED"
+     — this warning must appear on AQUAVO product page.
+   - The sachet format (2g per bag) is convenient and popular with Iraqi hobbyists — easy to
+     portion without needing to measure.
+   - GMP-certified manufacturing claimed on retailer descriptions.
+   - Iraqi market note: The sachet format is very practical for home hobbyists. Product targets
+     the most common fish ailments (fin rot, tail rot) which are highly prevalent in Iraqi tanks.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale: YES — with full instructions; sachet format is very practical
+    - Needs full dosage instructions: YES — both preventive and therapeutic doses
+    - Needs safety warnings:
+        * CRITICAL WARNING: Do NOT use with catfish, loaches, stingrays, or any scale-less fish
+        * WARNING: Remove shrimp and invertebrates before treatment
+        * WARNING: For ornamental fish only — not for food fish
+        * WARNING: May affect biological filtration — monitor ammonia during treatment
+        * NOTE: Each sachet is one dose for 300L (preventive) or 150L (therapeutic)
+    - Social media suitable: YES — sachet format is easy to demonstrate, practical content
+    - Alibaba Item Code: 02856a
+================================================

@@ -1,0 +1,96 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-001
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   50W pure steel heating rod YSH-50
+   Chinese name from order: 50W纯钢加热棒 YSH-50
+   Internal item code: 1.5.1.7
+   Product/model code: YEE-3006
+   Order quantity: 8
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: سخان حوض أسماك YEE YEE-3006
+   - بالإنجليزي: YEE 50W pure steel heating rod YSH-50
+
+4. حالة التطابق:
+   تطابق مؤكد 100%
+   تم العثور على تطابق خارجي مؤكد للموديل/الكود.
+
+5. سبب التقييم:
+   تم العثور على مصدر خارجي يذكر نفس الموديل/الكود، مع صور مطابقة أو صور منتج مؤكدة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: Yee US Plug 25W-500W Stainless Steel Aquarium Heater.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: YEE-3006; item code: 1.5.1.7
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: ستانلس/فولاذ حسب اسم الطلب أو المصدر
+   - Power / Watt: 50W
+   - Voltage: غير مؤكد في المصدر المفتوح المستخدم؛ تحقق من الملصق قبل البيع
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: 190mm length / 19cm (Elmir)
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: Heater + suction cup mounting (من وصف Elmir؛ عدد القطع غير مفصل)
+   - Usage: تسخين ماء حوض الأسماك
+   - Compatibility: Freshwater aquariums per Elmir listing
+   - تفاصيل أخرى من ملف الطلب: السعر=2.47887323943662، الكمية=8، الإجمالي=19.830985915492999.
+
+7. صور المنتج:
+   - Original: Product_001_Original_001_total_B10_image1.png
+   - Matched: 02_Matched_Product_Images\Product_001_01_product.webp
+   - Matched: 03_Package_Images\Product_001_02_box_front.webp
+   - Matched: 03_Package_Images\Product_001_03_box_side.webp
+   - Matched: 03_Package_Images\Product_001_04_box_chart.webp
+   - Matched: 03_Package_Images\Product_001_05_label.webp
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_01_company_fac.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_02_ptc_heater_.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_03_titanium_he.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_04_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_05_mini_turtle.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_06_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_001_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/yee-25w-500w-stainless-aquarium-heater/
+   - Elmir Ukraine - exact YSH-50 / YEE-3006 listing: https://elmir.ua/ua/heaters_for_aquariums/heater_yee_ysh-50_19cm_50w_yee-3006.html [exact]
+     Note: Confirms YSH-50, YEE-3006, 50W, 190mm, 12-34 C, 1m cable.
+   - Alibaba - YEE 50W/100W/200W/300W/500W heater listing: https://www.alibaba.com/product-detail/YEE-50W-100W-200W-300W-500W_1601027894425.html [family]
+     Note: Alibaba family listing; exact current accessibility may vary by region.
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Aa8946374dfa9497eba01c285fac527f1k.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Acbba99fbf91b447097a883b12781bea2O.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H05cec0eeb4e54da18d093930c7a560e90.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H2cda630aacf646c482bd8e946a976bb66.png_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Hce32a2fc7250479f8c4a795cd1df033aO.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://yeeaquarium.m.en.alibaba.com/tr_TR/company_profile.html
+     Image: https://s.alicdn.com/@sc04/kf/Hb88b5579df764c5d95a3bd458892f02cY.jpg_720x720q50.jpg
+   - Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+     Image: https://beshketnyk.com/content/images/25/700x700l80nn0/12977739102773.webp
+   - Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+     Image: https://beshketnyk.com/content/images/25/700x700l80nn0/44335047465542.webp
+   - Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+     Image: https://beshketnyk.com/content/images/25/700x700l80nn0/50912206454238.webp
+   - Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+     Image: https://beshketnyk.com/content/images/25/700x700l80nn0/61775367690936.webp
+   - Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+     Image: https://beshketnyk.com/content/images/25/700x700l80nn0/97657197450677.webp
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح للإدراج. مع ذلك يفضل تصوير المنتج محليًا قبل إطلاق صفحة AQUAVO، وذكر المواصفات المؤكدة فقط.
+================================================

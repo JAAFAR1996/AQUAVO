@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-052
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_052_PYD-200_Fish_tank_descaling_agent_200ml\01_Original_Alibaba_Image\Product_052_Original_053_total_B77_image53.png

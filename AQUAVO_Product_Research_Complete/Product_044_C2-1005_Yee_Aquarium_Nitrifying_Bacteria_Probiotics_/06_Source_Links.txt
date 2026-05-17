@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-044
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_044_C2-1005_Yee_Aquarium_Nitrifying_Bacteria_Probiotics_\01_Original_Alibaba_Image\Product_044_Original_045_total_B67_image45.png

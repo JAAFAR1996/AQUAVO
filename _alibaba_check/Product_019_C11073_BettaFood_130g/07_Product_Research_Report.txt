@@ -1,0 +1,125 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-019
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-019
+2. ALIBABA NAME: Betta fish food 0.8mm 130g New
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: علف سمكة البيتا YEE عالي البروتين 0.8mm - 130g
+   - English: YEE Betta Fish Food High Protein 0.8mm 130g (New Formula)
+4. MATCH STATUS: Possible Match
+5. MATCH REASON: YEE produces a confirmed betta fish food line with 0.8mm floating pellets
+   containing insect meal and krill -- this is documented on AliExpress (item 1005009217119359)
+   and multiple Singapore/Bangladesh retailers. However, the specific code C1-1073 is NOT found
+   on the official yeeaquarium.com website and NOT individually confirmed in any open B2B source.
+   The product is described as "New" version in the AQUAVO Alibaba order, suggesting a formula
+   update or repackaging. The 130g weight is confirmed as a packaging option for this family
+   (alongside 90g). Downgraded from "Confirmed" due to: (a) no official site page, (b) C1-1073
+   code not independently verified, (c) "New version" spec changes unconfirmed.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) by Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: C1-1073 (unconfirmed -- NOT found on yeeaquarium.com or major B2B sources)
+   - Market Name: "YEE Betta Fish Food" / "Special Food for Fighting Fish"
+   - Particle Size: 0.8mm (CONFIRMED from AliExpress listing and multiple retailers)
+   - Weight: 130g (confirmed as a packaging size; also sold in 90g)
+   - Protein Content: NOT precisely confirmed from open sources.
+     -- Product described as "high protein" and "protein-rich" across all retailers.
+     -- For reference: YEE betta food is confirmed to contain insect meal + krill as primary
+        protein sources, suggesting protein likely >= 40% (typical for insect-krill betta foods).
+     -- EXACT % not found in any open-access source for this specific product.
+     -- CONFIRM from product label before listing.
+   - Sinking/Floating: FLOATING (confirmed -- described as floating pellets on AliExpress and
+     retailer listings; bettas are surface feeders so floating is standard)
+   - Target Fish: Betta fish (斗鱼 / Siamese fighting fish), also suitable for other small
+     carnivorous/omnivorous fish
+   - Main Ingredients (confirmed from AliExpress article + UltimateAquaSG + CleanCatSG):
+     Insect meal, krill meal, deep-sea fish oil, spirulina, EPA, DHA, vitamins (multi),
+     minerals (multi)
+     -- Note: The "New" version may have reformulated ingredient ratios. The insect meal +
+        krill combination is confirmed for the betta food line.
+   - Special Features:
+     * High protein formula designed for carnivorous betta fish
+     * Contains EPA and DHA (omega fatty acids) from fish oil
+     * Spirulina added for body color brightening
+     * Floating pellets (0.8mm size ideal for betta mouth size)
+     * Non-turbid formula
+   - Package: Bag or small container (90g original version used small jar; 130g likely bag)
+
+7. IMAGE SOURCES:
+   - https://www.aliexpress.com/item/1005009217119359.html
+   - https://ultimateaquasg.com/products/yee-aquarium-fish-food-for-betta-fish-protein-rich-fighting-pet-food-with-epa-dha-spirulina-for-brightened-fish-body
+   - https://fishmancart.com/product/yee-special-food-for-fighting-fish-betta-food-90g-ebOILn
+   - https://www.aquartia-bd.com/product/yee-fighting-fish-90gm/
+   - https://chinaaquarium.en.made-in-china.com/product/cFlfEPhdZIki/China-Yee-High-Quality-Non-Turbid-Water-Small-Fish-Feed-Betta-Fish-Food.html
+
+8. ALL SOURCE LINKS:
+   [1] YEE Official Website - Products Page (NO specific betta page found):
+       https://yeeaquarium.com/product/
+       -- C1-1073 NOT listed on official yeeaquarium.com
+   [2] YEE Alibaba Store - Fish Food:
+       https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+       -- General fish food catalog; betta variant may appear but code not confirmed
+   [3] AliExpress - YEE Betta Fish Food (HIGH CONFIDENCE LISTING):
+       https://www.aliexpress.com/item/1005009217119359.html
+       -- Active listing; confirms 0.8mm floating pellets; insect meal + krill ingredients
+   [4] AliExpress - YEE Betta Fish Food Article/Wiki:
+       https://www.aliexpress.com/s/wiki-ssr/article/siamese-fighting-fish-food
+       -- Confirms: 0.8mm floating pellets, insect meal and krill, high protein, betta-specific
+   [5] UltimateAquaSG - YEE Betta Fish Food (EPA/DHA/Spirulina):
+       https://ultimateaquasg.com/products/yee-aquarium-fish-food-for-betta-fish-protein-rich-fighting-pet-food-with-epa-dha-spirulina-for-brightened-fish-body
+       -- Confirms: protein-rich, EPA, DHA, spirulina for color; deep sea fish oil
+   [6] FishmanCart - YEE Special Food For Fighting Fish 90g:
+       https://www.fishmancart.com/product/yee-special-food-for-fighting-fish-betta-food-90g-ebOILn
+       -- 90g variant; product image available; ingredient overlap
+   [7] Aquartia BD - YEE Fighting Fish 90g:
+       https://www.aquartia-bd.com/product/yee-fighting-fish-90gm/
+       -- Bangladesh retailer; confirms product regional availability
+   [8] Made-in-China - YEE High Quality Non-Turbid Betta Food:
+       https://chinaaquarium.en.made-in-china.com/product/cFlfEPhdZIki/China-Yee-High-Quality-Non-Turbid-Water-Small-Fish-Feed-Betta-Fish-Food.html
+       -- B2B factory listing; non-turbid water formula confirmed
+   [9] Made-in-China - YEE Betta/Goldfish/Koi Feed:
+       https://m.made-in-china.com/product/Yee-Betta-Goldfish-Koi-Feed-Small-Fish-Patch-Fish-Food-1946495375.html
+       -- Multi-fish feed reference; product photography
+   [10] Suning - YEE General Small Fish Feed (betta included):
+        https://product.suning.com/0070897497/000000012367132429.html
+        -- Chinese domestic listing; fighting fish (斗鱼) listed as target species
+   [11] Temu - YEE Betta Fish Food (floating, color-enhancing):
+        https://www.temu.com/1-bag-1-jar-yee-betta-fish-food-high-protein-floating-formula-with---floating-pellets-for-betta-fish-siamese--aquarium-color-long-lasting-floatability-easy-to-feed--with--color-enhancing-formula-supports--vitality-ideal-for-betta-fish-care-aquarium-use---g-601100739501303.html
+        -- Confirms floating formula, high protein, color enhancing; recent 2025 listing
+
+9. NOTES:
+   - CRITICAL: C1-1073 is NOT on the official YEE website (yeeaquarium.com). This is unusual
+     and suggests either: (a) it is a China-domestic-only SKU not exported via official channels,
+     (b) it is a newer/updated product not yet added to the English website, or (c) the product
+     code was changed in the "New" version. Verify with supplier.
+   - The "New" designation in the AQUAVO Alibaba order description suggests this is an updated
+     formula. The older version (90g, small container) has been available since at least 2022.
+     The 130g "New" version may have: increased weight, new packaging design, or formula changes.
+   - The 0.8mm size is CONFIRMED as appropriate for betta fish (betta mouth is typically 1-2mm
+     wide; 0.8mm pellets are easy to consume).
+   - Floating pellet is correct for betta fish (bettas are surface/mid-water feeders; they rarely
+     take food from the bottom).
+   - Insect meal as a primary protein source is a premium ingredient -- insect-based protein is
+     highly digestible for bettas and is trending in premium fish food globally.
+   - Artificial colors: NOT confirmed present in the betta food formula. All color claims
+     appear to come from natural spirulina.
+   - Suitable for solo betta keepers as well as community tanks with betta fish.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL: Yes -- bettas (سمك الحرب/بيتا) are among the most popular fish in Iraq.
+    - PRICE POSITIONING: Mid-range to premium. The 130g is a good value size for individual
+      betta keepers.
+    - DESCRIPTION FOCUS: Emphasize insect meal protein (natural, digestible), floating pellets
+      (perfect for betta surface feeding), EPA/DHA for fin health and color vibrancy.
+    - SOCIAL CONTENT: Show vibrant betta fish with fin flare photography. Color comparison
+      content works well for betta keepers (spirulina color benefit).
+    - PHOTO NOTES: Pair with high-quality betta fish photography, preferably a HalfMoon or
+      Crowntail betta. Product bag/jar should be prominent.
+    - CAUTION: Always verify the "New" formula details with the Alibaba supplier before
+      finalizing the product description. Protein % must be confirmed from label.
+    - NOTE: Do NOT list protein % on AQUAVO until confirmed. State "high protein formula with
+      insect meal and krill" based on confirmed ingredient information.
+================================================

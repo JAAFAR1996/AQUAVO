@@ -1,0 +1,6 @@
+﻿Product ID: AQUAVO-Research-049
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_049_YYH-053_Yee_Blue_Classic-Methylene_Blue_Solution_235\01_Original_Alibaba_Image\Product_049_Original_050_total_B73_image50.png
+Daraz Bangladesh - YEE Blue Classic Methylene Blue 235ml: https://www.daraz.com.bd/products/yee-blue-classic-methylene-blue-for-aquarium-fish-235ml-i410393336.html (exact)

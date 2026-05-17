@@ -74,3 +74,9 @@ nul
 ~$*
 *.tmp
 TOOLS/gmail-creator/
+
+# Playwright MCP session files (temp screenshots/logs)
+.playwright-mcp/
+
+# Superpowers plugin cache
+.superpowers/

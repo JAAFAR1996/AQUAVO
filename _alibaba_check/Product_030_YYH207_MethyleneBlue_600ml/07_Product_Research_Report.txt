@@ -1,0 +1,102 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-030
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-030
+
+2. ALIBABA NAME: Methylene blue solution 600ml
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: محلول الميثيلين بلو YEE 600ml
+   - English: YEE Methylene Blue Solution 600ml
+
+4. MATCH STATUS: HIGH CONFIDENCE — Product identified across multiple retailers in different sizes
+
+5. MATCH REASON:
+   YYH-207 Methylene Blue 600ml is the large-size bottle in the YEE Methylene Blue line.
+   Confirmed across Betta USA Aquatic (600ml product page), Sirena Aquatics Philippines,
+   Ultimate Aqua SG, Clean Cat SG, and Noon.com UAE. The product code YYH-207 corresponds
+   to the 600ml bottle (same formula as YYH-045/235ml). Methylene blue is the confirmed
+   active ingredient based on the product name and multiple retailer descriptions.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YYH-207
+   - Form: Liquid solution (blue-colored)
+   - Volume: 600ml
+   - Active Ingredient: Methylene Blue (confirmed by product name and retailer descriptions)
+   - Dosage: 5ml per 100L of water, once every 2 days, for 2-3 treatment cycles.
+     Perform 1/3 water change before each dose. (Confirmed via Betta USA Aquatic listing
+     for the YEE Methylene Blue line — applies to YYH series)
+   - Treatment Duration: 4-6 days (2-3 treatment cycles, every other day)
+   - Target Diseases: White spot (Ich), tail rot, fin rot, saprolegniasis (fungal), gill
+     disease, ectoparasites, bacterial infections, body ulcers
+   - Additional use: Egg treatment — methylene blue prevents fungal infection of fish eggs
+     during hatching
+   - Safe for Shrimp: NO — methylene blue is toxic to shrimp and invertebrates
+   - Safe for Plants: CAUTION — methylene blue may inhibit photosynthesis; not recommended
+     for heavily planted tanks during treatment
+   - Safe for Biological Filter: CAUTION — can inhibit beneficial bacteria at higher doses.
+     Use lower end of dosage range for established tanks.
+   - Safe for Scale-less Fish: Generally considered safer than malachite green but reduce
+     dose by 50% for scale-less fish as a precaution.
+
+7. IMAGE SOURCES:
+   - Excel image: صور_الاكسل_الصحيحة/images/038_total_B58_image38.png
+   - Betta USA Aquatic (large bottle): https://bettaaquatic.com/products/yee-methylene-blue-solution
+   - Betta USA Aquatic (235ml same line): https://bettaaquatic.com/products/yee-aquarium-methylene-blue
+   - Sirena Aquatics: https://sirenaaquatics.ph/products/yee-methylene-blue-essential-aquarium-water-treatment-for-fungal-and-bacterial-infections
+
+8. ALL SOURCE LINKS:
+   1. Betta USA Aquatic — YEE Methylene Blue Solution (large size / 600ml)
+      https://bettaaquatic.com/products/yee-methylene-blue-solution
+   2. Betta USA Aquatic — YEE Liquid Methylene Blue 235ml (same product line)
+      https://bettaaquatic.com/products/yee-aquarium-methylene-blue
+   3. Sirena Aquatics Philippines — Yee Methylene Blue Treatment
+      https://sirenaaquatics.ph/products/yee-methylene-blue-essential-aquarium-water-treatment-for-fungal-and-bacterial-infections
+   4. Ultimate Aqua SG — YEE Methylene Medicine Disease Treatment
+      https://ultimateaquasg.com/products/yee-aquarium-methylene-medicine-disease
+   5. Clean Cat SG — YEE Methylene Blue Treatment
+      https://www.cleancatsg.com/products/yee-methylene-blue-treatment-fish-diseases-fin-rot-white-spots
+   6. Noon.com UAE — YEE Methylene Blue 235ml and 535ml
+      https://www.noon.com/uae-en/yee-methylene-blue-235ml-and-535ml-treatment-for-bacterial-infections/Z5B38A6C363D611ACA96EZ/p/
+   7. FishmanCart — Yee Blue Classic Methylene Blue 535ml
+      https://www.fishmancart.com/product/yee-blue-classic-methylene-blue-535ml-1baGDF
+   8. Gensou SG — Aquarium Methylene Blue Treatment Guide
+      https://gensou.sg/aquarium-methylene-blue-treatment-guide/
+   9. The Aquarium Wiki — Methylene Blue general reference
+      https://www.theaquariumwiki.com/wiki/Methylene_blue
+   10. YEE Official Website (product NOT listed)
+       https://yeeaquarium.com/
+
+9. NOTES:
+   - NOT found on official YEE website. No official product page exists for YYH-207.
+   - Dosage instructions confirmed from retailer listing (Betta USA Aquatic): YES
+     Dosage: 5ml per 100L, every 2 days, 2-3 cycles, 1/3 water change before each dose.
+   - Methylene blue is a well-documented, widely used fish treatment with a long safety record
+     for ornamental fish. It is gentler than malachite green.
+   - Methylene blue has a distinctive blue color that may temporarily stain silicone, decorations,
+     and substrate. This is cosmetic only and fades after water changes.
+   - Methylene blue is also used as an egg bath: 1-2 drops per liter in a separate container
+     for egg incubation to prevent fungal kill-off.
+   - Active ingredient Methylene Blue is confirmed — this is the actual chemical compound.
+   - Noon.com UAE listing confirms product availability in Arab/Middle East market.
+   - Iraqi market note: Methylene blue is a well-established medication that hobbyists trust.
+     The distinctive blue color is visually recognizable.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale: YES — straightforward medication with clear dosage
+    - Needs full dosage instructions: YES — include Arabic instructions with sale
+    - Needs safety warnings:
+        * WARNING: Remove shrimp, crabs, and invertebrates before treatment
+        * WARNING: Remove activated carbon from filter during treatment
+        * WARNING: Will temporarily stain water blue — normal, fades after water changes
+        * WARNING: Not for use with food fish
+        * WARNING: Reduce dose by 50% for sensitive or scale-less fish
+        * NOTE: Safe to use in planted tanks at recommended doses — but monitor plants
+    - Social media suitable: YES — methylene blue is visually striking (blue water) and
+      well-known; good for educational content on disease treatment
+    - Alibaba Item Code: 19768a
+================================================

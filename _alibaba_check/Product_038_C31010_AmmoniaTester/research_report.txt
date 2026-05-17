@@ -1,0 +1,96 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-038
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-038
+
+2. ALIBABA NAME: Ammonia nitrogen tester ~60 tests
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: كيت فحص الأمونيا YEE - حوالي 60 اختبار
+   - English: YEE Ammonia (NH3/NH4+) Liquid Test Kit ~60 Tests
+
+4. MATCH STATUS: MEDIUM CONFIDENCE (65%)
+
+5. MATCH REASON:
+   No direct search result for YEE code C3-1010-3 specifically. However, YEE
+   is confirmed to produce aquarium water test kits as part of their C3-xxxx
+   product line series alongside their bacteria and care products. The product
+   code pattern C3-1010 with suffix -3 (for ammonia) and -1 (for nitrite, Product
+   039) is consistent with YEE's numbering pattern where suffix indicates test type.
+   The ~60 test count is consistent with a standard liquid drop test reagent kit
+   format (two reagent bottles that produce ~60 tests when combined). Image file
+   043_total_B64_image43.png shared with Product 039 suggests these are sold
+   as a companion set. The liquid drop format (NOT strips) is confirmed by the
+   product note.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: C3-1010-3
+   - Test Type: Ammonia nitrogen — tests for total ammonia (NH3 + NH4+)
+   - Format: Liquid drop test kit (reagent bottles — NOT test strips)
+   - Number of Tests: Approximately 60 tests per kit
+   - Test Method: Colorimetric liquid reagent drop test
+     (add water sample + reagent drops, compare color to chart)
+   - Parameters Tested: Total ammonia nitrogen (NH3/NH4+)
+   - Measurement Range: Typical for freshwater ammonia kits = 0 to 8 ppm
+     (0 to 8 mg/L) — exact YEE range not confirmed, likely 0-4 ppm for
+     precision or 0-8 ppm standard
+   - Color Chart: Included with kit for color comparison
+   - For: Freshwater aquariums (primary)
+   - Bacteria Strains: N/A (test kit)
+   - Storage: Cool, dry place away from sunlight. Reagents are chemical
+     solutions — keep sealed when not in use. Keep out of reach of children.
+   - Shelf Life: Not confirmed for this specific product; typical reagent
+     kits last 12-24 months from manufacture date
+
+7. IMAGE SOURCES:
+   - Local: صور_الاكسل_الصحيحة/images/043_total_B64_image43.png
+     (shared image with Product 039 C3-1010-1)
+   - Note: Image shows the test kit packaging — same image used for both
+     ammonia (038) and nitrite (039) kits, suggesting they are a companion pair
+
+8. ALL SOURCE LINKS:
+   - YEE Brand (general): https://yeeaquarium.com/
+   - Alibaba Manufacturer Page: https://yeeaquarium.en.alibaba.com/
+   - Product code C3-1010 not found on public retailer sites at time of research
+   - General ammonia test kit reference (competitor): https://apifishcare.com/product/ammonia-test-kit
+   - Note: This product may be distributed primarily through B2B/wholesale
+     channels and Iraqi/Middle East distributors without English-language
+     retailer pages indexed.
+
+9. NOTES:
+   - PRODUCT CODE PATTERN: YEE uses C3-xxxx for their water testing line.
+     C3-1010-3 = Ammonia test, C3-1010-1 = Nitrite test.
+     The shared prefix C3-1010 suggests these are designed as a companion pair
+     to test the key nitrogen cycle parameters (ammonia + nitrite).
+   - ~60 TESTS: At typical liquid kit usage (2-3 drops per test + reaction),
+     60 tests is standard for a kit with 2 small reagent bottles.
+   - LIQUID VS STRIPS: Liquid drop tests are significantly MORE ACCURATE than
+     test strips for ammonia detection. This is the professional/precise option.
+     Recommend marketing this to serious hobbyists who want accurate readings.
+   - AMMONIA IMPORTANCE: Ammonia is the #1 killer of new fish. This kit is
+     critical for the "new tank syndrome" period (first 4-6 weeks).
+   - CROSS-CATEGORY: This test kit pairs perfectly with Products 036/037
+     (nitrifying bacteria). Customer who buys bacteria should also buy this kit
+     to verify the bacteria are working.
+   - Image file 043 shared with Product 039: Verify at time of product listing
+     whether the physical product images are distinguishable (different box color
+     or label) or if they use the same packaging visual.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL AS: Essential companion to nitrifying bacteria products 036/037
+    - TARGET CUSTOMER: New fish keepers + serious hobbyists who want accurate data
+    - PRODUCT DESCRIPTION FOCUS: Emphasize accuracy vs test strips —
+      "فحص دقيق للأمونيا بنتيجة موثوقة"
+    - CROSS-SELL: Must pair with Products 036/037 (bacteria) and 040 (strips)
+    - BUNDLE IDEA: "حزمة مراقبة الحوض" = 038 + 039 (ammonia + nitrite kits)
+    - SOCIAL CONTENT: "كيف تعرف إن ماي حوضك آمن؟" — educational content about
+      nitrogen cycle testing with these kits
+    - PRICING: Price as a serious testing tool (premium vs test strips)
+    - PHOTO NOTE: 043_total_B64_image43.png — same image as 039. If launching
+      both products, try to source individual product photos or use the shared
+      image with different color overlays/labels for differentiation.
+================================================

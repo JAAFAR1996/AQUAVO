@@ -1,0 +1,81 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-010
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-010
+
+2. ALIBABA NAME: 400x230x250mm 5mm thick (Item Code: 06255, Product Code: YXL-003)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض زجاج شفاف 40 سم — YEE
+   - English: YEE Clear Glass Aquarium 40cm (400x230x250mm) 5mm
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   The dimensions 400x230x250mm with 5mm glass thickness are explicitly listed on multiple
+   independent retailers (Nota Fish Shop SG, BettaAquatic US) as part of the YEE super white
+   braceless / ultra white rimless small glass fish tank series. The official YEE page
+   (yeeaquarium.com/product/small-glass-fish-tank/) confirms this is the correct product family.
+   The exact product code "YXL-003" was not independently confirmed via a named product listing
+   but the dimensions and specs match the series perfectly. Item code 06255 is a supplier
+   internal code and could not be verified externally.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YXL-003 (unconfirmed via named listing; dimensions match series)
+   - Item Code (supplier): 06255
+   - Dimensions: 400 x 230 x 250 mm (L x W x H)
+   - Glass Thickness: 5mm
+   - Glass Type: Ultra-white / super white float glass (high-clarity, low-iron)
+   - Volume: 400 x 230 x 250 / 1,000,000 = 23 litres (approx. 6 US gallons)
+     [BettaAquatic lists this size as "6 Gallon" — consistent]
+   - Glue Used: German WACKER glass glue, average thickness 1–1.5mm
+   - Sealing: Handmade, master craftsman with 15+ years experience; even adhesive strips, no bubbles
+   - Light Transmittance: 91%+ (some sources say 93%)
+   - Weight: Not confirmed for this size
+   - Package Contents: Tank only (bare tank — no filter, no light)
+   - Compatible with lid/cover: Yes, YEE sells compatible lids separately
+   - Edge Finishing: Crystal grade bilateral 45-degree fine grinding, 1mm chamfer
+   - Style: Rimless / braceless (no top frame)
+
+7. IMAGE SOURCES:
+   - Local Excel image: none
+   - Official site image: https://yeeaquarium.com/product/small-glass-fish-tank/
+     (family page — multiple sizes shown, this size likely included)
+   - BettaAquatic product image: https://bettaaquatic.com/products/ultra-clear-rimless-glass-aquarium
+   - Nota Fish Shop: https://www.notafishshop.com/product-page/extra-white-glass-tank
+   - Lazada SG: https://www.lazada.sg/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-ultimate-aqua-i2234212413.html
+
+8. ALL SOURCE LINKS:
+   See 06_Source_Links.txt for full list with descriptions.
+   Key sources:
+   - https://yeeaquarium.com/product/small-glass-fish-tank/ (official family page)
+   - https://www.notafishshop.com/product-page/extra-white-glass-tank (confirms 400x230x250mm, 5mm)
+   - https://bettaaquatic.com/products/ultra-clear-rimless-glass-aquarium (confirms 40x23x25cm = 6 gal)
+   - https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass (WACKER glue, 91%+)
+
+9. NOTES:
+   - Found on official site: Family page only (yeeaquarium.com/product/small-glass-fish-tank/)
+     The specific model code YXL-003 is not individually named on the official website
+   - Multiple variants/sizes available: Yes — the YEE small glass tank series spans at least:
+     180x140x150mm, 220x160x170mm, 300x170x200mm, 300x300x300mm, 350x200x220mm,
+     400x230x250mm (this product), 500x270x300mm, 600x300x350mm
+   - Risk factors:
+     * Product code YXL-003 not confirmed via named listing — verify with supplier before publishing
+     * Item code 06255 is an internal supplier code, not searchable publicly
+   - Unconfirmed info:
+     * Exact weight (kg)
+     * Whether lid is sold separately or not included at all
+     * Exact product code YXL-003 as the official name for 400x230x250mm
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale: Yes
+    - Premium product: Yes — ultra-white glass, WACKER glue, braceless rimless design
+    - Needs special photography: Yes — plain clear tank needs lifestyle/aquascaping photography to show value
+    - Needs careful description: Yes — clarify it is tank only (bare), no filter/light included
+    - Suitable for social media: Yes — clean minimalist look works well for short-form content
+================================================

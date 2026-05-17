@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-037
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_037_YYH-207_Methylene_blue_solution_600ml\01_Original_Alibaba_Image\Product_037_Original_038_total_B58_image38.png

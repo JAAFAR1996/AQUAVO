@@ -1,0 +1,83 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-005
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Enhanced version 1.5 meters/thickened and lengthened
+   Chinese name from order: 加强版1.5米/加厚加长
+   Internal item code: C5-1144-1a
+   Product/model code: C5-1144
+   Order quantity: 10
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: منتج أحواض أسماك YEE C5-1144
+   - بالإنجليزي: YEE Enhanced version 1.5 meters/thickened and lengthened
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: Electric Aquarium Gravel Cleaner.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: غير مؤكد
+   - Model: C5-1144; item code: C5-1144-1a
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: غير مؤكد من المصادر المتاحة
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=0.36619718309859201، الكمية=10، الإجمالي=3.66.
+
+7. صور المنتج:
+   - Original: Product_005_Original_006_total_B17_image6.jpeg
+   - Matched: 02_Matched_Product_Images\Product_005_01_damsel_1p5m.png
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_01_product.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_02_in_use.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_03_airbag_fe.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_04_parts.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_05_extension.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_06_cherlam_b.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_07_cherlam_d.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_005_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/Aa7b463d6215a4b39853a9f5747e5b3a4q.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/H0cb62c7e2e204f67b723206392b0f9bfI.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/H18282b7d5410481aaa4543d8491564b1f.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/Haf1b4e3c82a94e2bbef1b2b97ba155d1U.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/He94c0274378e431e9945f2ab8d2adc5cc.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://sc04.alicdn.com/kf/H49cf8ac2bdda47b288099b3e44f9663bj/239201016/H49cf8ac2bdda47b288099b3e44f9663bj.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://sc04.alicdn.com/kf/H69e5af9b3553415f97d76eece55caf08l/239201016/H69e5af9b3553415f97d76eece55caf08l.jpg
+   - Damsel Dubai: https://damselbiz.com/products/shop-by-category/aquarium-accessories/yee-15m-aquarium-vacuum-gravel-water-filter-pump
+     Image: https://damselbiz.com/_next/image?q=75&url=https%3A%2F%2Fdamselbiz.com%2Fuploads%2Fproducts%2F1752534043268.png&w=828
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand/Generic غير مؤكد.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

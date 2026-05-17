@@ -1,0 +1,89 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-046
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-046
+
+2. ALIBABA NAME: [Refill] 9 in 1 test strips Refill 50 pieces
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: شرائط فحص الماء 9 في 1 — عبوة التعبئة 50 قطعة YEE
+   - English: YEE 9-in-1 Water Test Strips Refill Pack - 50 Strips
+
+4. MATCH STATUS: CONFIRMED MATCH (90%)
+   YEE 9-in-1 test strips with 50 pieces confirmed at multiple retailers.
+   The C4-1123-2a code specifically designates the refill variant of C4-1123-1a
+   (which includes the bucket/container). The base product (50-strip count, 9
+   parameters, YEE brand) is well documented.
+
+5. MATCH REASON:
+   YEE makes a confirmed 9-in-1 test strip product in 50-strip counts, sold across
+   multiple markets including India (PetzLifeWorld, PetKadai), with matching
+   parameter list. The "2a" suffix in C4-1123-2a vs "1a" in C4-1123-1a (Product
+   040 in this order) clearly indicates refill vs complete kit variants of the same
+   product family. This naming convention is standard for YEE's kit-plus-refill
+   product strategy.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: C4-1123-2a (Refill) | Parent: C4-1123-1a (Full kit with bucket)
+   - Type: Multi-parameter water test strips — REFILL PACK (strips only, no bucket)
+   - Quantity: 50 strips per pack
+   - Parameters Tested (9 parameters):
+       1. pH
+       2. Nitrite (NO2)
+       3. Nitrate (NO3)
+       4. Chlorine (Cl)
+       5. Total Hardness (GH)
+       6. Carbonate Hardness / KH (alkalinity)
+       7. Total Alkalinity
+       8. Free Chlorine / Chloramine
+       9. Iron (Fe) [or Copper — varies by version]
+   - Compatibility: Freshwater aquariums, saltwater, ponds, swimming pools
+   - Testing method: Dip strip in water, shake gently, read color within 30-60 sec
+   - Format: Refill strips only (no bucket/container included — that is C4-1123-1a)
+   - Quick & accurate color comparison chart included
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/051_total_B74_image51.png
+   - PetKadai India: https://petkadai.com/product/yee-9-in-1-aquarium-50-test-strips-for-freshwater-saltwater
+   - PetzLifeWorld India: https://www.petzlifeworld.in/products/yee-9-in-1-aquarium-50-test-strips-for-freshwater-saltwater
+
+8. ALL SOURCE LINKS:
+   - https://petkadai.com/product/yee-9-in-1-aquarium-50-test-strips-for-freshwater-saltwater-test-kit-with-quick-and-accurate-pond-fish-tank-and-swimming-pool-test-strips-testing-nitrite-nitrate-clorine-ph-and-more/
+   - https://www.petzlifeworld.in/products/yee-9-in-1-aquarium-50-test-strips-for-freshwater-saltwater-test-kit-with-quick-and-accurate-pond-fish-tank-and-swimming-pool-test-strips-testing-nitrite-nitrate-clorine-ph-and-more
+   - https://yeeaquarium.com/ (official manufacturer)
+
+9. NOTES:
+   - Brand Confirmation: CONFIRMED YEE (乐宠).
+
+   - Refill vs Full Kit (C4-1123-1a vs C4-1123-2a):
+     * C4-1123-1a (Product 040) = Complete kit — includes test strips + bucket/jar
+       container for dispensing and storing strips
+     * C4-1123-2a (THIS product) = Refill only — strips in bag or simple pouch,
+       designed to refill the bucket from Product 040
+     This is a smart business model: sell the bucket kit once, sell refills repeatedly.
+     AQUAVO should stock both and cross-promote them together.
+
+   - 9th Parameter Variation: Some YEE listings show "Copper" as the 9th parameter
+     while others list "Iron." This may vary by production batch or market. Confirm
+     with supplier before publishing specifications.
+
+   - Storage: Keep in cool, dry place away from direct sunlight. Once bottle/pack
+     opened, humidity affects accuracy — use within 12 months of opening.
+
+   - Accuracy note: Strip tests are good for regular monitoring but less precise
+     than liquid drop tests (e.g., API). Position as convenient daily monitoring
+     tool, not clinical-grade testing.
+
+10. AQUAVO RECOMMENDATION:
+    - List as: ESSENTIAL REPEAT-PURCHASE item — high margin refill product
+    - Category: Testing & Monitoring > Water Test Strips
+    - Price strategy: Sell refill at 70-80% of full kit price (C4-1123-1a)
+    - Arabic copy: "العبوة الاقتصادية — 50 فحص بسعر واحد"
+    - Bundle: "ابدأ بالمجموعة الكاملة — جدد بالعبوة التعبئة"
+    - Cross-sell: C4-1123-1a (full bucket kit), mineral salts, water conditioners
+    - Subscription opportunity: Monthly refill subscription for serious hobbyists
+================================================

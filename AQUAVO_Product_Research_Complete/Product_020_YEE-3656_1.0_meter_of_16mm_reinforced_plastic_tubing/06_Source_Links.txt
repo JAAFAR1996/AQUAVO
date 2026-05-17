@@ -1,0 +1,6 @@
+﻿Product ID: AQUAVO-Research-020
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_020_YEE-3656_1.0_meter_of_16mm_reinforced_plastic_tubing\01_Original_Alibaba_Image\Product_020_Original_021_total_B32_image21.png
+YEE official family - digital aquarium thermometer: https://yeeaquarium.com/product/digital-aquarium-thermometer/ (possible)

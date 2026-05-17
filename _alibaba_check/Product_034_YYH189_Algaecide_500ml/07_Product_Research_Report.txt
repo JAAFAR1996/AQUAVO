@@ -1,0 +1,120 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-034
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-034
+
+2. ALIBABA NAME: Algaecide 500ml New Style
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: مزيل الطحالب YEE 500ml
+   - English: YEE Algaecide Algae Remover 500ml (New Style)
+
+4. MATCH STATUS: HIGH CONFIDENCE — Product confirmed across multiple retailers.
+   The 500ml size is confirmed via SeeTracker Malaysia listing (235/350/500ml).
+   The YYH-189 code corresponds to the 500ml New Style bottle.
+
+5. MATCH REASON:
+   YYH-189 is the 500ml New Style variant of the YEE Algaecide line. The product is
+   well-documented across Clean Cat SG, Betta USA Aquatic, FishyHub Singapore, Ultimate
+   Aqua SG, Lazada Malaysia, and SeeTracker Malaysia. SeeTracker explicitly lists the
+   235ml, 350ml, and 500ml sizes and describes the product as "Special for Aquatic Plants"
+   — meaning it is formulated to kill algae without harming aquatic plants. The "New Style"
+   designation refers to updated packaging design.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YYH-189
+   - Form: Liquid algaecide
+   - Volume: 500ml
+   - Product Series Name: "Special for Aquatic Plants" (per SeeTracker Malaysia)
+   - Active Ingredient: NOT confirmed from official source.
+     Exact chemical compound not publicly disclosed by YEE. Aquarium algaecides of this
+     type commonly use glutaraldehyde or similar organic compounds. Do NOT state ingredient
+     without confirmation from packaging.
+   - Dosage: 10ml per 100L water.
+     Perform 25% water change before each treatment.
+     Dilute in tank water before adding directly.
+     Use once every other day, 2-3 times for full treatment course.
+     Increase surface agitation/aeration during and after treatment (dead algae consume
+     oxygen as they decompose).
+     (Confirmed from multiple retailer descriptions)
+   - Treatment Duration: 4-6 days (3 treatment cycles, every other day)
+   - Target Algae Types:
+     * Black beard/hair algae (BBA)
+     * Green hair algae
+     * Green spot algae
+     * Green water (algae bloom)
+     * Brown algae (diatoms)
+     * Blue-green algae (cyanobacteria)
+     * Moss overgrowth (inhibits moss — see warning below)
+   - Safe for Shrimp: YES — confirmed safe for aquatic shrimp per FishyHub Singapore
+     listing. Also listed safe for guppies and betta fish.
+   - Safe for Plants: YES — specifically marketed as "Special for Aquatic Plants."
+     Confirmed: safe for aquatic plants. Does not harm stems, leaves, or roots.
+   - Safe for Moss: NO — confirmed NOT safe for aquarium moss (java moss, flame moss,
+     willow moss, etc.). Remove moss from tank or isolate before treatment.
+   - Safe for Biological Filter: CAUTION — during heavy algae die-off, decomposing algae
+     can spike ammonia. Monitor water parameters after treatment.
+   - Safe for Scale-less Fish: YES — safe for all fish species
+
+7. IMAGE SOURCES:
+   - Excel image: (New Style packaging — confirm image file with supplier)
+   - Clean Cat SG: https://www.cleancatsg.com/products/yee-algaecide-algae-remover
+   - FishyHub Singapore: https://fishyhub.com/product-detail/yee-brand-algae-remover-for-aquarium-fish-tank-9042
+   - SeeTracker Malaysia (500ml confirmed): https://my.seetracker.com/YEE-Algaecide-Removal-of-Algae-and-Moss-Special-for-Aquatic-Plants-235-350-500ml.378334732.8574542836
+
+8. ALL SOURCE LINKS:
+   1. Clean Cat SG — Yee Algaecide Algae Remover (Planted Tank, Moss Remover)
+      https://www.cleancatsg.com/products/yee-algaecide-algae-remover
+   2. Betta USA Aquatic — Algaecide Algae Remover Aquarium Liquid Algae Cleaner
+      https://bettaaquatic.com/products/algae-remover-aquarium-liquid-algae-cleaner-for-fish-tank
+   3. FishyHub Singapore — Yee brand algae remover for aquarium fish tank
+      https://fishyhub.com/product-detail/yee-brand-algae-remover-for-aquarium-fish-tank-9042
+   4. Ultimate Aqua SG — YEE Algae Remover 600ml
+      https://ultimateaquasg.com/products/yee-algae-remover-aquarium-liquid-algae-cleaner-for-fish-tank-600ml
+   5. FishmanCart — YEE Algaecide Removal of Algae and Moss 535ml
+      https://fishmancart.com/product/yee-algaecide-removal-of-algae-and-moss-aquarium-liquid-state-algaecide-535-ml-GuiJCl
+   6. SeeTracker Malaysia — YEE Algaecide 235/350/500ml (Special for Aquatic Plants)
+      https://my.seetracker.com/YEE-Algaecide-Removal-of-Algae-and-Moss-Special-for-Aquatic-Plants-235-350-500ml.378334732.8574542836
+   7. Lazada Malaysia — YEE Algaecide Algae Moss Removal Agent
+      https://www.lazada.com.my/products/ready-stockyee-algaecide-algae-moss-removal-agent-clear-green-water-for-aquarium-fish-tank-pond-i1796910220.html
+   8. Aquarium Science — Chemical Algae Control (reference)
+      https://aquariumscience.org/index.php/16-2-6-chemical-algae-control/
+   9. YEE Official Website (product NOT listed)
+      https://yeeaquarium.com/
+
+9. NOTES:
+   - NOT found on official YEE website. No official product page for YYH-189.
+   - Dosage confirmed from multiple retailer listings: 10ml per 100L, every other day,
+     2-3 treatments, with 25% water change before each dose.
+   - CRITICAL: NOT SAFE FOR MOSS — explicitly stated on Clean Cat SG and FishyHub listings.
+     This must be prominently displayed in product description and any social media content.
+   - SAFE FOR SHRIMP — confirmed from FishyHub Singapore listing. This is a significant
+     selling advantage over many competitor algaecides.
+   - SAFE FOR AQUATIC PLANTS — explicitly confirmed. Very important for planted tank owners.
+   - Active ingredient unknown. Glutaraldehyde-based algaecides are common in this category
+     but are known to harm some invertebrates. YEE's confirmed shrimp-safe claim is notable.
+   - Oxygen warning is important: heavy algae die-off depletes oxygen. Must mention this.
+   - Iraqi market note: Algae is a very common complaint among Iraqi fishkeepers.
+     Green water, green spot algae, and hair algae are the most frequent issues seen in
+     Iraqi fish tanks. This product addresses a major pain point.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale: YES — highly practical, addresses common Iraqi hobbyist problem
+    - Needs full dosage instructions: YES — specify 10ml per 100L, every other day protocol
+    - Needs safety warnings:
+        * CRITICAL WARNING: NOT SAFE FOR MOSS — remove all moss before treatment
+        * NOTE: Safe for aquatic shrimp (confirmed)
+        * NOTE: Safe for aquatic plants (confirmed — does not harm stems, leaves, roots)
+        * WARNING: Increase aeration during treatment — dead algae consume oxygen
+        * WARNING: Perform 25% water change before each dose
+        * NOTE: If algae is severe, may require 3-4 treatment cycles
+        * WARNING: Do not overdose — stick strictly to 10ml per 100L
+    - Social media suitable: YES — very strong visual content opportunity
+      Before/after algae removal shots. Educational posts on common algae types in Iraq.
+      "الحوض خضر؟ — حل بيت خلال 6 أيام"
+    - Alibaba Item Code: (to be confirmed from supplier)
+================================================

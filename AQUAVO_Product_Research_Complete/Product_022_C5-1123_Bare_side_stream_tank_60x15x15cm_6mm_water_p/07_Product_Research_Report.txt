@@ -1,0 +1,59 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-022
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Bare side stream tank 60*15*15cm 6mm water pump
+   Chinese name from order: 裸缸侧虑溪流缸60*15*15cm 6mm送水泵
+   Internal item code: C5-1123-2
+   Product/model code: C5-1123
+   Order quantity: 2
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: حوض أسماك زجاجي YEE C5-1123
+   - بالإنجليزي: YEE Bare side stream tank 60*15*15cm 6mm water pump
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: YEE Wholesale Desktop Side Filter Aquarium.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: غير مؤكد
+   - Model: C5-1123; item code: C5-1123-2
+   - Size: 60*15*15cm
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: زجاج حسب اسم الطلب/المصدر
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: 60*15*15cm
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: تهوية/ضخ هواء لحوض الأسماك
+   - Compatibility: أحواض أسماك صغيرة إلى متوسطة حسب المصدر
+   - تفاصيل أخرى من ملف الطلب: السعر=17.295774647887299، الكمية=2، الإجمالي=34.591549295774598.
+
+7. صور المنتج:
+   - Original: Product_022_Original_023_total_B39_image23.jpeg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_022_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/yee-wholesale-desktop-side-filter-aquarium/
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand/Generic غير مؤكد.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

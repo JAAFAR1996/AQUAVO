@@ -1,0 +1,131 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-007
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-007
+
+2. ALIBABA NAME: YEE 50mm Ball Mineral Bubble Diffuser (YGG-135)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حجر الهواء الكروي يي 50mm - فقاعات دقيقة
+   - English: YEE 50mm Ball Mineral Air Diffuser - Ultra-Fine Bubbles (YGG-135)
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   The Alibaba listing at alibaba.com/product-detail/YEE-50mm-150mm-Aquarium-Fish-Tank-1600625031173.html
+   is titled "YEE Aquarium Air Pump Ball Mineral Bubble Diffuser" and covers both 50mm
+   and 150mm variants -- confirming that YEE manufactures ball-shaped mineral diffusers.
+   The official YEE product family page at yeeaquarium.com/product/yee-aquarium-air-stone-
+   oxygen-pump-air-diffuser/ covers their air stone / air diffuser range including ball
+   shapes. The YEE YE-038 (4-inch / ~100mm disc diffuser) was found on FairPrice AE,
+   confirming YEE uses "YE-0XX" and related codes for their air stone line.
+   The "YGG" prefix is NOT confirmed in any public web index: "YGG" does not appear in
+   any YEE English-language product listing. Based on Chinese brand naming convention,
+   YGG likely stands for 鱼缸气 (yúgāng qì = aquarium air), which is consistent with this
+   product type. The 50mm ball shape, mineral material, and YEE brand are all confirmed
+   through the Alibaba listing. This is rated "Strong Match" rather than "Confirmed 100%"
+   because the exact code "YGG-135" was not found verbatim on any public indexed page.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YGG-135 [From Alibaba order record -- NOT confirmed on public web index]
+   - Size: 50mm diameter (ball / sphere shape) [CONFIRMED via Alibaba listing title]
+   - Size Range in Listing: 50mm and 150mm variants available [CONFIRMED via Alibaba]
+   - Shape: Spherical / Ball [CONFIRMED via Alibaba listing and category]
+   - Material: Mineral / Sintered mineral stone [CONFIRMED type -- "mineral" stated in
+     Alibaba listing title; exact sintering temperature not confirmed for YEE specifically.
+     Industry-standard mineral air stones use white corundum/alumina sintered at ~1000C]
+   - Bubble Type: Ultra-fine / Micro bubbles [ESTIMATED based on category standard;
+     "ball mineral diffuser" category universally produces fine-to-micro bubbles]
+   - Air Tube Connection Size: 4mm ID (standard airline tubing, fits all standard air pumps)
+     [ESTIMATED -- 4mm is the universal standard for all aquarium air stones of this type;
+     NOT confirmed specifically for YGG-135]
+   - Compatible Pumps: All standard aquarium air pumps (e.g., YEE YTZ-300, YEB-901S, etc.)
+   - For Tanks: Freshwater and saltwater / marine aquariums, ponds, hydroponics
+   - Colour: Grey / Off-white [ESTIMATED based on mineral sintered stones of this type]
+   - Stainless Design Note: The official YEE product page at yeeaquarium.com/product/
+     yee-aquarium-air-stone-oxygen-pump-air-diffuser/ is noted in the brief as having a
+     "stainless steel design" -- this may refer to a stainless steel fitting/barb at the
+     connection point rather than the entire stone body being stainless steel.
+     Full stainless steel 316L sintered diffusers are a separate higher-end category.
+     [UNCONFIRMED -- verify with supplier whether stone body is mineral or stainless]
+   - Package Contents: Not confirmed. Likely includes 1x air stone + small airline segment
+     [ESTIMATED]
+   - Item Code / SKU: YGG-135 [internal order code; not confirmed in public sources]
+
+7. IMAGE SOURCES:
+   - Local Excel Image: None provided for Product 007
+   - Official YEE product family page (images visible on page):
+     https://yeeaquarium.com/product/yee-aquarium-air-stone-oxygen-pump-air-diffuser/
+   - Alibaba listing (50mm and 150mm sizes):
+     https://www.alibaba.com/product-detail/YEE-50mm-150mm-Aquarium-Fish-Tank-1600625031173.html
+   - Reference similar product (non-YEE, for shape/size comparison):
+     https://www.amazon.com/Pond-H2o-50mm-Ball-Airstone/dp/B007TLEA4K
+
+8. ALL SOURCE LINKS:
+   - YEE official air stone product family page:
+     https://yeeaquarium.com/product/yee-aquarium-air-stone-oxygen-pump-air-diffuser/
+   - YEE full product catalog:
+     https://yeeaquarium.com/product/
+   - YEE Alibaba store:
+     https://yeeaquarium.en.alibaba.com/
+   - Alibaba listing (50mm + 150mm YEE ball diffuser):
+     https://www.alibaba.com/product-detail/YEE-50mm-150mm-Aquarium-Fish-Tank-1600625031173.html
+   - FairPrice AE: YEE Large Air Stone YE-038 (same family, disc shape):
+     https://www.fairprice.ae/products/yee-aquarium-air-stone-bubble-diffuser-oxygen-stone-for-fish-tank-pond-and-hydroponics-ye-038
+   - Shopee MY: YEE YE-038 10cm Disc Air Stone (confirms YEE YE-0XX code system):
+     https://shopee.com.my/YEE-YE-038-10cm-Circular-Flat-Bubble-Air-Stone-Aquarium-Aquaponics-Aerator-Diffuser-i.43689087.5075810571
+   - Seven Master Aquarium: YEE air stone (general):
+     https://smaquarium.com/products/aquarium-air-stone-bubble-diffuser
+   - Amazon 50mm ball airstone (non-YEE, for comparison):
+     https://www.amazon.com/Pond-H2o-50mm-Ball-Airstone/dp/B007TLEA4K
+   - Amazon 50mm ball twin pack (non-YEE, for comparison):
+     https://www.amazon.com/50mm-Ball-Pond-Airstone-Twin/dp/B00BXFGBAO
+   - Walmart mineral ball air stone (non-YEE, for comparison):
+     https://www.walmart.com/ip/Air-Stone-Bubble-Mineral-Ball-Shaped-Airstones-Diffuser-for-Aquarium-Fish-Tank-Hydroponics-Air-Pump/926793855
+
+9. NOTES:
+   - Is it Generic or Brand? BRAND -- YEE (乐宠), manufactured by Weifang Yipin Pet
+     Products Co., Ltd., China. YEE is a well-established aquarium equipment brand with
+     verified presence on Alibaba, AliExpress, yeeaquarium.com, and multiple global retailers.
+   - Multiple variants found? YES -- YEE manufactures at minimum a 50mm and 150mm ball
+     diffuser variant (confirmed via Alibaba listing title). The YE-038 is a separate
+     disc/flat model (4 inch / 100mm). The YGG-135 appears to be specific to the 50mm
+     ball format.
+   - Is image from same supplier? No local Excel image was provided for this product.
+     Images must be requested from supplier or sourced from the Alibaba/official page.
+   - Risk factors:
+     a) The exact code "YGG-135" is NOT indexed on any public web source -- cannot be
+        100% confirmed without the supplier providing a product sheet.
+     b) The "stainless steel design" note from the official page is ambiguous -- verify
+        whether the stone is mineral (sintered ceramic/corundum) or stainless steel.
+        Most YEE air stones at this price point are mineral, not stainless steel.
+     c) Tube connection size (4mm) is estimated based on industry standard -- confirm
+        before publishing product specifications.
+   - Unconfirmed info to avoid:
+     a) Do not confirm "stainless steel" as the stone material without supplier verification.
+     b) Do not publish exact airflow output as it depends on the pump used.
+     c) Do not list "YGG-135" as a searchable public code on the storefront.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale? YES -- 50mm mineral ball air stones are a high-demand accessory
+      for beginners and hobbyists; they are cheap, easy to sell, and pair naturally with
+      air pumps (complementary upsell opportunity alongside YEE air pump products).
+    - Premium product? NO -- standard entry-to-mid range product; not a premium item.
+    - Needs special photography? YES -- no local image provided; request supplier images
+      or photograph in an actual aquarium setup showing the fine bubble effect for
+      compelling product photography.
+    - Needs careful description? YES -- do not confirm "stainless steel" material without
+      verification; describe as "حجر معدني مسامي" (porous mineral stone) until confirmed.
+      Clarify exact tube connection size with supplier.
+    - Suitable for social media content? YES -- fine bubble columns from a ball diffuser
+      are visually striking and work well in short video / reel content.
+    - Cross-sell potential: HIGH -- pairs naturally with all YEE air pumps in the product
+      catalog. Bundle with YTZ-300 / YEB-901S air pump for "starter aeration kit".
+    - Suggested price range: LOW to MID -- consumable accessory item; reasonable IQD
+      pricing suitable for frequent replacement purchases.
+================================================

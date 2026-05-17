@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-027
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_027_C1-1065_Floating_Grain_-_Competition_Grade_45_High_P\01_Original_Alibaba_Image\Product_027_Original_028_total_B48_image28.png

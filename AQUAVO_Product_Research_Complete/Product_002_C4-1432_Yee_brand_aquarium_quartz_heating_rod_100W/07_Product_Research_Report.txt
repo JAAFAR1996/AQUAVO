@@ -1,0 +1,113 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-002
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Yee brand aquarium quartz heating rod, 100W
+   Chinese name from order: Yee意牌水族皓源石英加热棒 100W
+   Internal item code: C4-1432-1
+   Product/model code: C4-1432
+   Order quantity: 1
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: سخان حوض أسماك YEE C4-1432
+   - بالإنجليزي: YEE Yee brand aquarium quartz heating rod, 100W
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: YEE Wholesale Aquarium Glass Heater.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: C4-1432; item code: C4-1432-1
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: كوارتز/زجاج كوارتز حسب اسم الطلب
+   - Power / Watt: 100W
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: تسخين ماء حوض الأسماك
+   - Compatibility: أحواض أسماك؛ نوع الماء غير مؤكد إلا إذا ذكر المصدر
+   - تفاصيل أخرى من ملف الطلب: السعر=9.76، الكمية=1، الإجمالي=9.76.
+
+7. صور المنتج:
+   - Original: Product_002_Original_002_total_B13_image2.jpeg
+   - Matched: 02_Matched_Product_Images\Product_002_01_main_500w_family.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_02_material.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_03_100w_safety.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_04_chip.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_05_heating_wire.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_06_temperature_control.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_07_certificate.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_08_quartz_product.jpg
+   - Matched: 02_Matched_Product_Images\Product_002_09_waterproof.jpg
+   - Matched: 03_Package_Images\Product_002_10_product_parameters.jpg
+   - Matched: 05_Usage_Images\Product_002_11_real_display.jpg
+   - Matched: 03_Package_Images\Product_002_12_200w_variant_params.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_01_company_fac.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_02_ptc_heater_.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_03_titanium_he.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_04_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_05_mini_turtle.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_06_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_002_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/yee-wholesale-aquarium-glass-heater/
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Aa8946374dfa9497eba01c285fac527f1k.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Acbba99fbf91b447097a883b12781bea2O.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H05cec0eeb4e54da18d093930c7a560e90.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H2cda630aacf646c482bd8e946a976bb66.png_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Hce32a2fc7250479f8c4a795cd1df033aO.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://yeeaquarium.m.en.alibaba.com/tr_TR/company_profile.html
+     Image: https://s.alicdn.com/@sc04/kf/Hb88b5579df764c5d95a3bd458892f02cY.jpg_720x720q50.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/O1CN01k0LMiH1GqjmvsQ60c_!!6000000000674-0-yinhe.jpg_540x540q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i1/822517260/O1CN01Gu95rS23V8JnYYhNQ_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i1/822517260/O1CN01T3JTKx23V8JfuTHGc_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i1/822517260/O1CN01l5r9om23V8XHgaaQU_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i2/822517260/O1CN01VhakDm23V8Jj3F1Vx_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i2/822517260/O1CN01vVy9x023V8RpVRK9y_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i3/822517260/O1CN018xF04323V8RnM4g3w_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i3/822517260/O1CN01A3sFQ723V8JoML8Ud_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i3/822517260/O1CN01ax42vc23V8RoA0Ca3_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i4/822517260/O1CN018SpU3q23V8Jj3HEqY_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i4/822517260/O1CN01PrRGEk23V8Jmfoe8Z_!!822517260.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-fish-tank-heating-rod-automatic-constant-temperature-quartz-explosion-proof-water-electric-small-heater-insulation.html
+     Image: https://gw.alicdn.com/imgextra/i4/822517260/O1CN01u5dHMB23V8RnnNl47_!!822517260.jpg_q90.jpg
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

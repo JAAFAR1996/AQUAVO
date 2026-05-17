@@ -1,0 +1,134 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-006
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   【Thickened airbag for durability】1.7 meters
+   Chinese name from order: 【加厚气囊 经久耐用】1.7米
+   Internal item code: 1.8.3.2
+   Product/model code: YEE-3621
+   Order quantity: 10
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: منتج أحواض أسماك YEE YEE-3621
+   - بالإنجليزي: YEE 【Thickened airbag for durability】1.7 meters
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: Electric Aquarium Gravel Cleaner.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: YEE-3621; item code: 1.8.3.2
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: غير مؤكد من المصادر المتاحة
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=0.91549295774647899، الكمية=10، الإجمالي=9.15.
+
+7. صور المنتج:
+   - Original: Product_006_Original_007_total_B18_image7.jpeg
+   - Matched: 02_Matched_Product_Images\Product_006_01_main_1p7m.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_02_product_cutout.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_03_2p6m_variant.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_04_shaking_variant.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_05_simple_variant.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_06_new_upgrade.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_07_thicken_airbag.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_08_valve.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_09_handle.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_10_silicone_material.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_11_one_shake.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_12_multifunction.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_13_airbag_closeup.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_14_manual_press.jpg
+   - Matched: 03_Package_Images\Product_006_15_parameter.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_16_hose_clamp.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_17_blue_version.jpg
+   - Matched: 02_Matched_Product_Images\Product_006_18_silicone_tube.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_01_product.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_02_in_use.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_03_airbag_fe.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_04_parts.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_05_extension.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_06_cherlam_b.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Possible_Alibaba_Official_Weifang_Yipin_Water_Changer_07_cherlam_d.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_006_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/Aa7b463d6215a4b39853a9f5747e5b3a4q.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/H0cb62c7e2e204f67b723206392b0f9bfI.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/H18282b7d5410481aaa4543d8491564b1f.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/Haf1b4e3c82a94e2bbef1b2b97ba155d1U.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://s.alicdn.com/@sc04/kf/He94c0274378e431e9945f2ab8d2adc5cc.jpg_960x960q80.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://sc04.alicdn.com/kf/H49cf8ac2bdda47b288099b3e44f9663bj/239201016/H49cf8ac2bdda47b288099b3e44f9663bj.jpg
+   - Alibaba official supplier page: https://germany.alibaba.com/product-detail/Yee-Aquarium-Cleaner-Multifunctional-Removable-Aquarium_1601009006430.html
+     Image: https://sc04.alicdn.com/kf/H69e5af9b3553415f97d76eece55caf08l/239201016/H69e5af9b3553415f97d76eece55caf08l.jpg
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://cdn.shopify.com/s/files/1/0756/5842/8716/files/44402fe5b83df76097ae11b73bdd609e_jpeg_2200x2200q80_jpg.webp?v=1683791562
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://cdn.shopify.com/s/files/1/0756/5842/8716/files/YEEAquariumWaterChanger_FishTankCleaningTool_AquariumGlassCleanerWithEasyHandlingForACleanFishTank_feature.webp?v=1683791434
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/1_2182cbb7-1f12-49bc-8fac-520373e39263.jpg?v=1683790200&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/2_153b16c8-ffac-46fd-8b1f-6ed42885b78b.jpg?v=1683790347&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/3_4b02ccfa-1608-4b56-9038-df6faeb30445.jpg?v=1683790347&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/4_e951bf12-93a7-45b5-80fe-1faecd60c93d.jpg?v=1683790348&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/5_13646d7c-b379-4501-b3e8-5b86dda6e44a.jpg?v=1683790348&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/6_df05bea2-dd6a-4eb0-94b3-495407e31eb8.jpg?v=1683790348&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/7_76842fd6-9eb7-4578-8662-f4176fd0618d.jpg?v=1683790348&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/8_70ff273d-557c-4b13-97d1-d2ab8fc5c690.jpg?v=1683790347&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/9.jpg?v=1683790347&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/cbfbf4faf76d0540fcef38196583c227_jpeg_2200x2200q80_jpg_c9f0d50b-6d69-4b56-8e12-4b0ac8d91890.webp?v=1683791959&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/files/fa1f98aa5625ccb77650852fa8af12cc_jpeg_2200x2200q80_jpg_656b3813-b6a2-46b0-8242-50e3ba458543.webp?v=1683791958&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/products/492af0828aee8da89dfda7b66654ee3d.jpg?v=1683790264&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/products/5a814a90af6cc8426b7b6c641de2b83c.jpg?v=1683790291&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/products/72212091821c0be617486075c9244e30.jpg?v=1683790285&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/products/e2b3893dbd9b8f0b2b8a24d2ff4a6961.jpg?v=1683790274&width=1946
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-aquarium-water-changer-fish-tank-cleaning-tool-aquarium-glass-cleaner-with-easy-handling-for-a-clean-fish-tank
+     Image: https://ultimateaquasg.com/cdn/shop/products/f551454621f77394e9f76618e86a9272.jpg?v=1683790253&width=1946
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

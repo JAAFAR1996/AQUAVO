@@ -1,0 +1,123 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-015
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-015
+
+2. ALIBABA NAME: 60x40x40cm 8mm (larger tank)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض زجاج كبير 60 سم — YEE (8mm)
+   - English: YEE Large Glass Aquarium 60x40x40cm 8mm (96L)
+
+4. MATCH STATUS: Possible Match — Model Code Unconfirmed, Specs Confirmed
+
+5. MATCH REASON:
+   The product code "C5-1062" does NOT appear on yeeaquarium.com (official English site).
+   However, the specifications (60x40x40cm, 8mm glass, ~96L) are confirmed by multiple
+   independent sources:
+
+   1. cloningaquapets.com: "2-Foot Ultra-Clear Open Aquarium Tank | 60x40x40 cm | 8mm
+      Glass" — EXACT dimension and glass thickness match.
+   2. terboven-aquaristik-shop.de: "Aquarium 60x40x40cm / 96 liters transparent" —
+      confirms the volume calculation.
+   3. eBay listing: "Aquarium Professional Fish Tank - 90L (60x40x40cm) Clear Glass
+      Rectangle New" — same dimensions (minor volume discrepancy due to 90L vs 96L —
+      likely usable water volume after equipment displacement vs gross volume).
+   4. chinaaquarium.en.made-in-china.com lists "Yee Factory Optiwhite Glass Aquarium
+      Fish Tank" and "Yee Aquarium Factory Wholesale Fish Tank Super White Tank" —
+      confirming YEE produces larger tanks in optiwhite/super white glass.
+
+   VOLUME CHECK: 600 x 400 x 400 / 1,000,000 = 96L gross volume.
+   Note: Some sources cite 90L — this is the net/usable water capacity (allowing for
+   substrate, equipment, and ~5cm freeboard at the top). Both figures are correct for
+   their respective measurements.
+
+   The C5 prefix in "C5-1062" likely denotes a specific product series in YEE's internal
+   catalog (C5 = possibly "Crystal 5-series" or a factory batch code). Not verifiable
+   without direct supplier confirmation.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — probable; confirmed YEE produces optiwhite/large glass tanks
+   - Product Code: C5-1062 (internal code — not found on English retail sites)
+   - Dimensions: 600x400x400mm (L x W x H)
+   - Volume: ~96 liters gross (600 x 400 x 400 / 1,000,000)
+     Net usable water: approximately 85-90L
+   - Glass Thickness: 8mm
+   - Glass Type: Ultra-clear / Optiwhite / Super White glass — confirmed for YEE large
+     tanks by chinaaquarium made-in-china listings ("Optiwhite Glass", "Super White Tank")
+   - Glue: German WACKER glass glue — YEE standard (unconfirmed for this specific code)
+   - Style: Open top, rimless rectangular tank
+   - Weight: Estimated 15-20kg empty (standard for 8mm glass 96L tank)
+   - Package Contents: Tank only (bare tank, no accessories)
+
+7. IMAGE SOURCES:
+   - No local Excel image available for this product
+   - cloningaquapets (exact spec match):
+     https://www.cloningaquapets.com/products/2-feet-ultra-clear-open-tank-l-w-h-60-40-40-cms-8mm
+   - terboven-aquaristik (96L confirmed):
+     https://terboven-aquaristik-shop.de/en/products/aquarium-60x40x40cm-96-liter-transparent
+   - eBay (general listing):
+     https://www.ebay.com/itm/295289331697
+   - YEE Optiwhite/Super White large tanks (made-in-china):
+     https://chinaaquarium.en.made-in-china.com/product/oFhfGgVPblki/China-Yee-Factory-Optiwhite-Glass-Aquarium-Fish-Tank.html
+     https://chinaaquarium.en.made-in-china.com/product/AZwtJhoOLcVk/China-Yee-Aquarium-Factory-Wholesale-Fish-Tank-Super-White-Tank.html
+
+8. ALL SOURCE LINKS:
+   - cloningaquapets — 60x40x40 8mm (exact spec match):
+     https://www.cloningaquapets.com/products/2-feet-ultra-clear-open-tank-l-w-h-60-40-40-cms-8mm
+   - terboven-aquaristik (German retailer — 96L confirmed):
+     https://terboven-aquaristik-shop.de/en/products/aquarium-60x40x40cm-96-liter-transparent
+   - eBay listing (60x40x40, 90L net):
+     https://www.ebay.com/itm/295289331697
+   - YEE large glass fish tank official page:
+     https://yeeaquarium.com/product/large-glass-fish-tank
+   - YEE Optiwhite large tanks (made-in-china):
+     https://chinaaquarium.en.made-in-china.com/product/oFhfGgVPblki/China-Yee-Factory-Optiwhite-Glass-Aquarium-Fish-Tank.html
+   - YEE Super White Tank (made-in-china):
+     https://chinaaquarium.en.made-in-china.com/product/AZwtJhoOLcVk/China-Yee-Aquarium-Factory-Wholesale-Fish-Tank-Super-White-Tank.html
+   - YEE Alibaba company overview:
+     https://yeeaquarium.en.alibaba.com/
+
+9. NOTES:
+   - CRITICAL: Model code C5-1062 NOT FOUND on yeeaquarium.com or any international
+     retailer. Three product codes for Products 013, 014, 015 are all absent from
+     English YEE catalog — strongly suggesting these are Chinese domestic SKU codes
+     or Alibaba-specific product identifiers.
+   - The 60x40x40 8mm tank is a LARGER tank category. The 8mm glass is required
+     at this volume for structural integrity — this is not optional.
+   - This tank is in the "large glass fish tank" category on yeeaquarium.com. The
+     official page mentions 120x50x50cm as an example, but the 60x40x40 is a smaller
+     "large" tank that would sit in the same product family.
+   - The 60x40x40 has a different footprint ratio than the standard 60x30x35 (Product
+     012) — it is taller and deeper, making it suitable for cichlids, goldfish, or
+     heavily planted tanks that need more swimming height.
+   - REPTI ZOO also sells a professional fish tank in 60x40x40cm on Amazon.ae (UAE),
+     showing this size has Middle East market demand.
+   - RECOMMENDED ACTION: Ask the Alibaba supplier to confirm YEE brand, provide
+     packaging photos with C5-1062 code, and confirm glass type (ultra-clear vs standard).
+
+10. AQUAVO RECOMMENDATION:
+    SALE / INTERMEDIATE-ADVANCED: This is a mid-tier large tank. 96L allows for a full
+    community aquarium or a serious aquascape. The 8mm glass is a safety and quality
+    point to emphasize — heavier, more robust than 5mm/6mm tanks.
+    Target: customers upgrading from a 30-40L starter tank.
+    Pair with: canister filter, LED light bar, heater for a complete bundle.
+    Availability in UAE market (REPTI ZOO on Amazon.ae) confirms Middle East demand
+    for this size — Iraq market should follow the same pattern.
+    Recommended social hook (Baghdad dialect):
+    "96 لتر — حوض جدي للهواة الجديين. زجاج 8mm، ما يشبه الحوض الرخيص."
+
+    RISK LEVEL: MEDIUM — verify brand/model with supplier, confirm glass type.
+
+================================================
+SOURCES USED IN THIS RESEARCH:
+- https://www.cloningaquapets.com/products/2-feet-ultra-clear-open-tank-l-w-h-60-40-40-cms-8mm
+- https://terboven-aquaristik-shop.de/en/products/aquarium-60x40x40cm-96-liter-transparent
+- https://www.ebay.com/itm/295289331697
+- https://yeeaquarium.com/product/large-glass-fish-tank
+- https://chinaaquarium.en.made-in-china.com/product/oFhfGgVPblki/China-Yee-Factory-Optiwhite-Glass-Aquarium-Fish-Tank.html
+- https://chinaaquarium.en.made-in-china.com/product/AZwtJhoOLcVk/China-Yee-Aquarium-Factory-Wholesale-Fish-Tank-Super-White-Tank.html
+================================================

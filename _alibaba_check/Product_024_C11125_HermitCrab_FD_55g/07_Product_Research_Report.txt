@@ -1,0 +1,82 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-024
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-024
+
+2. ALIBABA NAME: YEE C1-1125 Aqua-Hermit Crab Freeze-Dried Food 55g
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: غذاء السرطان الناسك المجفف بالتجميد YEE - 55g
+   - English: YEE Aqua-Hermit Freeze-Dried Hermit Crab Food 55g
+
+4. MATCH STATUS: UNCONFIRMED — PRODUCT NOT FOUND ON OFFICIAL CHANNELS
+
+5. MATCH REASON:
+   Extensive research found NO listing for product code C1-1125 on:
+   - yeeaquarium.com (official website)
+   - yeeaquarium.en.alibaba.com (official Alibaba store)
+   - AliExpress YEE store
+   - Any major international retailer
+   The "Aqua-Hermit" product line name was not confirmed anywhere online.
+   This product may be a specialty/niche SKU, an OEM/private-label product sold only
+   through specific distributors, or a newer SKU added after the official website's
+   last update. Direct confirmation from YEE factory is required before sourcing.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — CLAIMED, not verified on official channels
+   - Product Code: C1-1125 — NOT found in any online database
+   - Product Line: "Aqua-Hermit" — NOT confirmed anywhere
+   - Type: Freeze-Dried Hermit Crab Food — CLAIMED
+   - Weight: 55g — CLAIMED
+   - Container: Unknown (jar type not confirmed)
+   - Protein Content: NOT FOUND
+   - Fat Content: NOT FOUND
+   - Ingredients: NOT FOUND
+   - Suitable For: Hermit crabs (Coenobita sp.) — CLAIMED
+   - Origin: China (assumed, unconfirmed)
+
+   NOTE: YEE's confirmed freeze-dried range (from official blog post) includes:
+   Brine Shrimp, Tubifex Worms, Bloodworms, Krill, and mixed foods — NO hermit
+   crab product is listed on the official freeze-dried foods page:
+   https://yeeaquarium.com/fish-food-selectionnew-freeze-dried-fish-foods-from-yee/
+
+7. IMAGE SOURCES:
+   - NONE FOUND — no product images confirmed for C1-1125
+
+8. ALL SOURCE LINKS:
+   OFFICIAL YEE (searched, product NOT found):
+   - https://yeeaquarium.com/ (homepage — C1-1125 absent)
+   - https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+   - https://yeeaquarium.com/fish-food-selectionnew-freeze-dried-fish-foods-from-yee/
+
+   THIRD-PARTY (no YEE C1-1125 found):
+   - https://hermitcrabparadise.com/forums/viewtopic.php?t=4325
+   - https://www.etsy.com/listing/1858347622/shrimp-freeze-dried-hermit-crab-food
+   - https://mtpetemporium.com/products/freeze-dried-pollock-hermit-crab-food
+   - https://happycrabby.com/product-tag/freeze-dried/
+
+9. NOTES / VARIANTS / RISKS:
+   - HIGH RISK: Product cannot be verified through any standard sourcing channel
+   - Hermit crab food is a niche segment; YEE does not prominently market this category
+   - If product was sourced from Alibaba/local supplier, it may be a white-label product
+     using YEE's brand name without being an official YEE SKU
+   - Recommend: Contact YEE directly via yeeaquarium.com contact page to verify C1-1125
+   - Alternative: If a physical sample is available, check packaging for official YEE
+     holographic/authentication marks
+   - Do NOT list on AQUAVO website until official confirmation is obtained
+   - If the product is real and sources confirm it, primary markets are aquarists who
+     keep land hermit crabs (Coenobita) — a small but loyal niche segment in Iraq
+
+10. AQUAVO RECOMMENDATION:
+    - Status: ON HOLD — requires factory confirmation before catalog listing
+    - Action required: Contact YEE (yeeaquarium.com) with product code C1-1125 and
+      ask for official spec sheet, product images, and MOQ
+    - If confirmed: Category would be Specialty Pet Food > Hermit Crab
+    - Price tier: PREMIUM (niche product, limited supply)
+    - Marketing angle: نادر في السوق العراقي — لمربي السرطانات الناسكة
+    - Recommendation: DO NOT LIST until confirmed — risk of counterfeit/mislabeled product
+================================================

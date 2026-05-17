@@ -1,0 +1,89 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-001
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-001
+
+2. ALIBABA NAME: 50W pure steel heating rod YSH-50
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: سخان حوض الاسماك الفولاذي YEE YSH-50 - 50 واط
+   - English: YEE YSH-50 Stainless Steel Aquarium Heater 50W
+
+4. MATCH STATUS: Confirmed 100%
+
+5. MATCH REASON:
+   The model code YSH-50 directly corresponds to product code YEE-3006 as confirmed
+   by multiple independent Ukrainian retailers (Suziria, Elmir, Zooservice, Zoomagazin)
+   all listing the product as "YEE YSH-50 (YEE-3006)" with 19cm length and 50W.
+   The Alibaba name "pure steel heating rod" matches YEE's stainless steel (304 SS grade)
+   heater line. The official YEE website page lists this product family.
+   Cross-referencing: Alibaba item code 1.5.1.7 is consistent with positioning in the
+   stainless heater series (YSH-25=3005, YSH-50=3006, YSH-100=3007, YSH-200=3008, YSH-300=3009).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YEE-3006
+   - Model: YSH-50
+   - Power: 50W
+   - Voltage: 220V
+   - Frequency: 50-60Hz
+   - Heater Length: 19 cm
+   - Cable Length: 120 cm (1.2m)
+   - Temperature Range: 12°C - 34°C (adjustable)
+   - Temperature Display: Thermometer-style scale, easily visible
+   - Material: 304 Grade Stainless Steel (SS 304 - rust-resistant, shatterproof)
+   - For Tank Size: 5-15 gallons / approximately 20-60 liters
+   - Mounting: 2 suction cups included
+   - Waterproof: Fully submersible
+   - Overheating protection: Automatic power-off when overheating
+   - Safety: Double seal insulation and waterproof design
+   - Application: Freshwater and saltwater
+   - Outer Box Size: approximately 8.5 x 4.5 x 25 cm
+   - Weight: approximately 227g
+   - Package Contents: 1x heater rod, 2x suction cups
+   - Certifications: Not confirmed from sources found
+
+7. IMAGE SOURCES:
+   - Local Excel image: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images\001_total_B10_image1.png
+   - Official site images: https://yeeaquarium.com/product/yee-25w-500w-stainless-aquarium-heater/
+   - Retailer images: https://vedaaquarium.com/products/yee-stainless-steel-heater
+   - Retailer images: https://www.sagaraquarium.com/yee-stainless-steel-aquarium-heater-300w/
+
+8. ALL SOURCE LINKS:
+   - Official YEE page: https://yeeaquarium.com/product/yee-25w-500w-stainless-aquarium-heater/
+   - Alibaba listing: https://www.alibaba.com/product-detail/YEE-25w-100w-300w-500w-Fish_1600846512002.html
+   - Alibaba listing 2: https://www.alibaba.com/product-detail/YEE-50W-100W-200W-300W-500W_1601027894425.html
+   - AliExpress listing: https://www.aliexpress.com/i/32920697097.html (related stainless heater)
+   - Ukraine retailer (confirmed code): https://elmir.ua/heaters_for_aquariums/heater_yee_ysh-50_19cm_50w_yee-3006.html
+   - Ukraine retailer: https://c.suziria.ua/ru/obogrevateli-dlya-akvariuma/15184-obogrevatel-dlya-akvariuma-yee-ysh-50-metallicheskij-19-sm-50-vt.html
+   - Ukraine retailer: https://zooservice.com.ua/yee-obogrevatel-dlja-akvariuma-yee-ysh-50-metallicheskij-19-sm-50-vt-rr
+   - Australia retailer: https://www.petfectioncorner.com.au/products/auto-aquarium-heater-yee-constant-temperature-heating-rod-25-100w
+   - Fishyscape: https://www.fishyscape.com/product/yee-ss-304-grade-stainless-steel-completely-submersible-automatic-aquarium-fish-tank-heater-300-watts/
+   - Video review: https://www.youtube.com/watch?v=wrU8sp82NSo
+
+9. NOTES:
+   - Is it Generic or Brand? Brand - YEE (乐宠), manufactured by Weifang Yipin Pet Products Co., Ltd.
+   - Multiple variants found? Yes - YSH series includes 25W, 50W, 100W, 200W, 300W, 500W models.
+     The 50W (YSH-50/YEE-3006) is distinct from the 25W (YSH-25/YEE-3005) and 100W (YSH-100/YEE-3007).
+   - Is image from same supplier? Yes - local Excel image (001_total_B10_image1.png) is expected
+     to show the YSH-50 from the original supplier order.
+   - Risk factors: Voltage is 220V - suitable for Iraq (220-240V standard). No 110V variant concern.
+     Temperature range displayed as 20-30°C on some sources, 12-34°C on Ukrainian sources;
+     the dial scale shown is 20-30°C but actual range may extend beyond.
+   - Unconfirmed info to avoid: Exact certification marks (CE, etc.) not confirmed.
+     Exact wire gauge not confirmed. Specific tank volume recommendations may vary by source.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale? YES - well-established YEE brand product with confirmed specifications
+    - Premium product? YES - 304 stainless steel, explosion-proof, durable construction
+    - Needs special photography? YES - stainless steel heaters benefit from studio shots showing the
+      temperature dial clearly and the suction cup mounting system
+    - Needs careful description? YES - clarify 220V voltage for Iraqi buyers; note that it is
+      fully submersible and suitable for both fresh and saltwater; explain suction cup placement
+    - Suitable for social media content? YES - "unbreakable" steel design is a strong selling point
+      vs glass heaters; can be marketed as the durable, safe choice for Iraqi fish keepers
+================================================

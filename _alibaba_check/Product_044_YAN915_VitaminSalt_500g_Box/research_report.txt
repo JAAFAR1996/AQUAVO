@@ -1,0 +1,98 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-044
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-044
+
+2. ALIBABA NAME: 500G Multivitamin Salt Box YAN-915
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: ملح المعادن متعدد الفيتامينات YEE - 500g (علبة)
+   - English: YEE Multivitamin Mineral Salt YAN-915 - 500g Box
+
+4. MATCH STATUS: PARTIAL MATCH (85%)
+   Same confidence level as YAN-804. YEE brand confirmed; exact formula for
+   YAN-915 specifically not confirmed on any independent indexed listing.
+
+5. MATCH REASON:
+   YAN-915 is listed in the Alibaba order alongside YAN-804 with the explicit
+   descriptor "Box" (as opposed to bag for YAN-804). Both are 500g and described
+   as multivitamin mineral salt. This strongly indicates a packaging variant rather
+   than a distinct formula. YEE commonly assigns separate product codes to different
+   packaging presentations of the same formula.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YAN-915
+   - Type: Aquarium Mineral & Vitamin Salt Additive — BOX PACKAGING
+   - Weight/Volume: 500g
+   - Key Components (from YEE mineral salt line, confirmed):
+       * Natural mineral salt (no artificial chemical compounds per manufacturer)
+       * Multiple trace elements and minerals
+       * Vitamin complex (multivitamin as stated in product name)
+       * Electrolytes for osmotic pressure regulation
+   - pH Effect: Water softening / osmotic pressure regulation; no major pH shift
+   - Grain Size: N/A (dissolved additive)
+   - Buffering Duration: N/A
+   - Target Use: Freshwater ornamental fish (primary); marine fish; shrimp
+   - Dosage (from YEE general mineral salt line):
+       * Daily maintenance: 1g per 1L water (1/1000 ratio)
+       * Disease treatment: 2g per 1L water (2/1000 ratio)
+   - Functions:
+       * Strengthens fish immune system
+       * Reduces disease occurrence
+       * Regulates water osmotic pressure
+       * Inhibits harmful bacteria growth
+       * Treats fin rot, white spots, gill rot
+       * Enhances drug penetration during treatment
+   - PACKAGING DIFFERENCE vs YAN-804:
+       * YAN-915 = Cardboard box presentation (gift/retail box format)
+       * YAN-804 = Resealable bag format
+       * Box format typically preferred for gifting or premium retail shelf display
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/049_total_B72_image49.png
+   - No confirmed official product page image for YAN-915 specifically
+
+8. ALL SOURCE LINKS:
+   - https://www.cleancatsg.com/products/yee-aquarium-mineral-salt
+   - https://ultimateaquasg.com/products/yee-aquarium-salt-ornamental-sea-salt
+   - https://fishyhub.com/product-detail/yee-aquarium-salt-ornamental-sea-salt-for-aquarium-sterilization-and-antibacterial-500g-14230
+   - https://www.lazada.com.my/products/ready-stock-yee-sterilization-salt-bactericidal-salt-mineral-salt-aquarium-salt-500g-for-aquarium-fish-tank-pond-i1922786334.html
+   - https://yeeaquarium.com/ (official manufacturer)
+
+9. NOTES:
+   - Brand Confirmation: CONFIRMED as YEE (乐宠).
+
+   - YAN-804 vs YAN-915 COMPARISON (SPECIAL TASK):
+     After extensive searching of English and Chinese sources:
+     - Neither YAN-804 nor YAN-915 appear as standalone indexed product listings
+     - Both share: 500g weight, "multivitamin mineral salt" descriptor, YEE brand
+     - Key difference in Alibaba order data: YAN-804 is bag, YAN-915 is box
+     VERDICT: SAME FORMULA, DIFFERENT PACKAGING (high confidence)
+     Rationale:
+       1. Sequential-like code structure within same "YAN" family
+       2. Identical weight (500g)
+       3. Identical function description
+       4. Industry standard: Chinese aquarium brands routinely use separate SKUs
+          for bag vs box variants of same product
+     RISK: If ingredients differ (e.g., different vitamin blends), this would not
+     be detectable without supplier documentation. Recommend requesting spec sheet
+     from supplier before making formula claims in product descriptions.
+
+   - Retail note: Box packaging (YAN-915) justifies slightly higher price point
+     even if formula is identical — better unboxing experience, shelf presence.
+
+10. AQUAVO RECOMMENDATION:
+    - List as: Premium packaging variant alongside YAN-804
+    - Category: Water Treatment & Additives > Mineral Salts
+    - Price strategy: Price YAN-915 (box) 5-10% above YAN-804 (bag) if identical
+      formula — premium packaging premium
+    - Description: Emphasize box presentation for gifting / shop display
+    - Photo: Use local Excel image (box packaging visible)
+    - Cross-sell: Bundle with methylene blue and test strips for health starter kit
+    - If formula is confirmed identical to YAN-804: note "same trusted formula,
+      premium gift box packaging" in Arabic copy
+================================================

@@ -1,0 +1,121 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-018
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-018
+2. ALIBABA NAME: Goldfish feed 290g Slow Sinking 3.0mm Spirulina
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: علف السمكة الذهبية YEE بالسبيرولينا 3.0mm بطيء الغرق - 290g
+   - English: YEE Goldfish Food Spirulina Color Enhance 3.0mm Slow Sinking 290g
+4. MATCH STATUS: Strong Match
+5. MATCH REASON: YEE produces a well-documented goldfish/ranchu compound feed line (C1-1127 family)
+   featuring spirulina for color enhancement, 3.0mm pellets, and slow-sinking (慢沉) formulation.
+   Multiple sources confirm this product: Suning (苏宁) carries the ranchu/lionhead variant with
+   sinking pellets in the same weight range; Made-in-China lists YEE goldfish-koi spirulina food
+   with 3-effect formula; UltimateAquaSG lists YEE goldfish pellet in floating/sinking formats.
+   The specific C1-1127 code and 290g weight match the Alibaba source description, though the
+   exact variant designation (C1-1127-1 vs -2) is unconfirmed from open sources.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) by Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: C1-1127 (variant suffix unconfirmed; family code confirmed via Alibaba)
+   - Particle Size: 3.0mm
+   - Weight: 290g (also available in 500g and 1.3kg based on related product listings)
+   - Protein Content: Not precisely confirmed from open sources.
+     -- YEE goldfish/koi food family typically ranges 30-36% crude protein based on brand range.
+     -- The spirulina-enhanced color variant likely targets >= 32% crude protein (estimated).
+     -- CONFIRM from product label or Alibaba listing before publishing to customers.
+   - Crude Fat: Estimated >= 4% (typical for YEE goldfish range)
+   - Sinking/Floating: SLOW SINKING (慢沉) - as stated in Alibaba product description
+     -- Note: Some retailers list YEE goldfish food as "floating/sinking" (same SKU, different
+        variant codes). The C1-1127 in 290g is specifically described as slow-sinking.
+   - Target Fish: Goldfish (金鱼), Ranchu (兰寿), Oranda (文金), Lionhead (狮头), fancy goldfish
+   - Main Ingredients (confirmed from YEE product family listings / Made-in-China):
+     Imported fish meal, spirulina powder, food-grade yeast powder, chicken liver powder,
+     freeze-dried shrimp powder, wheat germ, soybean phospholipid oil powder, garlic powder,
+     amylase, beta-carotene, vitamins, minerals
+     -- Note: Some YEE goldfish variants also list: krill meal, Antarctic shrimp, astaxanthin
+   - Special Features:
+     * Spirulina compound feed -- enhances body color in goldfish
+     * Three-effect formula: Color enhancement + Growth + Immune support
+     * Slow sinking design -- reduces surface gulping (prevents swim bladder issues in goldfish)
+     * Non-turbid formula (water clarity maintained)
+     * No added artificial colorants in formula (color comes from spirulina/astaxanthin)
+   - Package: Bag (standard foil/poly pouch)
+
+7. IMAGE SOURCES:
+   - https://ultimateaquasg.com/products/yee-fish-food-pellet-for-goldfish-floating-sinking-pellets-with-rich-nutrion-high-protein-aquarium-fish-food
+   - https://product.suning.com/0070897497/12369700615.html (Suning - ranchu/lionhead variant)
+   - https://chinaaquarium.en.made-in-china.com/product/eFtAUORYZHhN/China-Yee-Fish-Food-Three-Effect-in-One-Fish-Food-Goldfish-Feed-Koi-Food.html
+   - https://www.ebay.com/itm/326733604392 (eBay listing with product image)
+   - https://www.pinterest.com/pin/yee-goldfish-floating-complete-food--4601412318025228800/
+
+8. ALL SOURCE LINKS:
+   [1] YEE Official Product Page (Goldfish Family):
+       https://yeeaquarium.com/product/yee-wholesale-goldfish-fish-food/
+       -- Official family page; C1-1127 variant details not individually broken out
+   [2] YEE Alibaba Store - Fish Food Category:
+       https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+       -- Official wholesale store
+   [3] UltimateAquaSG - YEE Goldfish Pellet (Floating/Sinking):
+       https://ultimateaquasg.com/products/yee-fish-food-pellet-for-goldfish-floating-sinking-pellets-with-rich-nutrion-high-protein-aquarium-fish-food
+       -- Floating/sinking variant; high protein confirmed; specs partially visible
+   [4] UltimateAquaSG - YEE Fish Food with Spirulina:
+       https://ultimateaquasg.com/products/yee-lucky-fish-food-with-spirulina-for-improve-out-look
+       -- Spirulina color-enhancement variant of YEE goldfish/koi line
+   [5] Suning - YEE Ranchu/Lionhead Goldfish Food (sinking, small pellets):
+       https://product.suning.com/0070897497/12369700615.html
+       -- Chinese domestic market listing; ranchu-specific formula
+   [6] Suning Mobile - YEE Goldfish Food:
+       https://m.suning.com/product/0070897497/000000012369704279.html
+       -- Sinking high-protein small pellets; floating variant also listed
+   [7] SMZDM - YEE Goldfish 540g Ranchu/Lionhead Review:
+       https://www.smzdm.com/p/144475901/
+       -- Chinese consumer review; confirms product quality and sinking behavior
+   [8] Made-in-China - YEE Koi/Goldfish Three-Effect Spirulina Food:
+       https://chinaaquarium.en.made-in-china.com/product/eFtAUORYZHhN/China-Yee-Fish-Food-Three-Effect-in-One-Fish-Food-Goldfish-Feed-Koi-Food.html
+       -- Full ingredient details; three-effect formula confirmed
+   [9] Made-in-China - YEE Spirulina Color Enhancing Fish Food:
+       https://chinaaquarium.en.made-in-china.com/product/nZAfTudwHIWr/China-Yee-Aquarium-Fish-Tank-Spirulina-Food-Color-Enhanced-Fish-Food.html
+       -- Spirulina color formula reference
+   [10] eBay - YEE Goldfish Food 1.3kg:
+        https://www.ebay.com/itm/326733604392
+        -- Larger pack listing; product image available; confirms 3.0mm and 6.0mm size options
+   [11] Pinterest - YEE Goldfish Floating Food:
+        https://www.pinterest.com/pin/yee-goldfish-floating-complete-food--4601412318025228800/
+        -- Product image reference
+
+9. NOTES:
+   - The C1-1127 product family has both FLOATING and SLOW-SINKING variants. AQUAVO is sourcing
+     specifically the SLOW SINKING 3.0mm 290g version. This is important: slow sinking is better
+     for ranchu/fancy goldfish as it reduces air ingestion and swim bladder issues. Confirm the
+     sinking behavior with supplier before listing.
+   - Protein content is NOT precisely confirmed from public sources for this exact SKU. The
+     30-36% range is an estimate based on the YEE goldfish product family. DO NOT publish specific
+     protein % without confirmation from product label or Alibaba supplier.
+   - Spirulina is confirmed as a key ingredient -- enhances the orange/red coloration of goldfish.
+     This is a strong selling point in Iraq where fancy goldfish (خنامس/كنامس) are popular.
+   - The "Three-Effect" claim (三效合一) is a YEE brand formula claim meaning: color + growth +
+     immune in one feed.
+   - No artificial colorants confirmed -- color enhancement is from natural spirulina/astaxanthin.
+   - Available in China domestic market at 3.0mm and 6.0mm; 3.0mm is the recommended size for
+     standard/medium goldfish, 6.0mm for large koi/pond fish.
+   - Weight variant 290g is mid-size; the 1.3kg and larger packs are available for bulk buyers.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL: Yes -- excellent product for the Iraqi goldfish market.
+    - PRICE POSITIONING: Mid-range specialty food. Position above generic goldfish food.
+    - DESCRIPTION FOCUS: Emphasize spirulina for color deepening (very appealing to Iraqi goldfish
+      keepers), slow-sinking benefit for ranchu/fancy goldfish (prevents swim bladder), premium
+      compound formula.
+    - SOCIAL CONTENT: Show color transformation in goldfish after regular use. Before/after.
+      Feature ranchu or oranda goldfish (popular in Iraq).
+    - PHOTO NOTES: Product bag is typically green/gold color scheme. Pair with bright goldfish
+      product photography.
+    - ARABIC CONTENT: Emphasize "يعمق لون الذهب والحمرة بالسبيرولينا الطبيعية" (deepens gold and
+      red color with natural spirulina) as key benefit.
+    - CONFIRM BEFORE LISTING: Exact protein % from label; confirm "slow sinking" behavior with
+      supplier (not floating).
+================================================

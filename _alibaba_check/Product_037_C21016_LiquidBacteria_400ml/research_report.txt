@@ -1,0 +1,94 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-037
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-037
+
+2. ALIBABA NAME: Yee Aquarium Cleansing Ammonia Series Active Probiotics 400ml
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: بكتيريا النيترجة السائلة YEE - 400 مل
+   - English: YEE Liquid Nitrifying Bacteria + Probiotics 400ml
+
+4. MATCH STATUS: HIGH CONFIDENCE (95%)
+
+5. MATCH REASON:
+   Same product family and product code as Product 036 (c2-1016). This is the
+   400ml standard/starter size of the exact same liquid nitrifying bacteria
+   formula. Confirmed via official YEE page and multiple retailer listings.
+   The 400ml size is the most commonly listed and reviewed size in Southeast
+   Asian markets (Singapore, Philippines, Malaysia, Vietnam, Thailand).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Yipin Pet Products — Weifang, China)
+   - Manufacturer: Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: c2-1016 (same code as 760ml — size variant only)
+   - Form: Liquid (aqueous suspension of live bacteria)
+   - Volume: 400ml (standard/starter size)
+   - Bacteria Type: Live (NOT dried spores) — liquid state nitrifier
+   - Bacteria Count: 500 million CFU (5 x 10^8 CFU) — same concentration as 760ml
+   - Bacteria Strains: Nitrifying bacteria (Nitrosomonas + Nitrobacter) +
+     aerobic denitrifying bacteria + mixed active probiotics
+   - Claims (confirmed — identical to 036):
+       * Rapidly clears cloudy/milky new tank water
+       * Establishes nitrogen cycle in 36 hours (new tank setup)
+       * Reduces and eliminates ammonia (NH3/NH4+)
+       * Accelerates tank cycling
+       * Speeds up ammonia-nitrogen elimination
+       * Maintains water clarity and biological balance
+   - Dosage (Initial setup): 10ml per 100L of water
+   - Dosage (Weekly maintenance): 5ml per 100L of water per week
+   - Effectiveness Time: Effective in 36 hours
+   - Shelf Life: 24 months from manufacturing date
+   - Storage: Room temperature, cool and dry, away from direct sunlight.
+     Do NOT freeze. Water temp must be at least 18°C after dosing.
+     Ensure sufficient aeration after adding.
+   - Compatibility Warning: Do NOT use with fungicides, antibiotics, or
+     sterilizing/sterilising agents.
+
+7. IMAGE SOURCES:
+   - Local: صور_الاكسل_الصحيحة/images/040_total_B60_image40.jpeg
+     (same image as Product 036 — same bottle, different label for 400ml)
+   - Retailer (SG): https://ultimateaquasg.com/products/yee-bio-active-nitrifying-liquid-beneficial-bacteria
+   - Retailer (PH): https://sirenaaquatics.ph/products/yee-nitrifier-bacteria-starter-for-cycling-aquarium-tanks
+   - Retailer (SG): https://www.cleancatsg.com/products/yee-aquarium-liquid-active-nitrifier
+
+8. ALL SOURCE LINKS:
+   - Official YEE Page: https://yeeaquarium.com/product/yee-wholesale-liquid-state-nitrifier/
+   - Official YEE Homepage: https://yeeaquarium.com/
+   - Alibaba Manufacturer: https://yeeaquarium.en.alibaba.com/
+   - Sirena Aquatics (PH): https://sirenaaquatics.ph/products/yee-nitrifier-bacteria-starter-for-cycling-aquarium-tanks
+   - CleanCat (SG): https://www.cleancatsg.com/products/yee-aquarium-liquid-active-nitrifier
+   - UltimateAqua (SG): https://ultimateaquasg.com/products/yee-bio-active-nitrifying-liquid-beneficial-bacteria
+   - TikTok Shop MY: https://shop-my.tiktok.com/pdp/1731311399046776293
+
+9. NOTES:
+   - VARIANT RELATIONSHIP: Products 036 and 037 are IDENTICAL formula.
+       036 = 760ml (large/economy size)
+       037 = 400ml (standard/starter size)
+     Same product code c2-1016. Same CFU concentration. Same dosage instructions.
+     Same effectiveness time. Same shelf life. Same storage conditions.
+   - The 400ml is the RECOMMENDED starter size for new AQUAVO customers who
+     are trying the product for the first time — lower price point, easier
+     entry, same efficacy.
+   - The 400ml size at 10ml/100L dosage covers up to 40 treatments of 100L,
+     making it suitable for tanks up to ~200L for initial setup + several
+     weeks of weekly maintenance.
+   - LIVE BACTERIA: liquid suspension — not dried spores. Handle accordingly.
+   - Some SE Asian retailers list this as "Yee Nitrifier 400ml" without
+     the "Cleansing Ammonia Series" branding — same product.
+   - Do NOT stock photo separately from 036 unless packaging visually differs —
+     use the same image file (040_total_B60_image40.jpeg) for both.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL AS: Best-seller starter for beginners — "أول خطوة لحوض نظيف"
+    - PRICING STRATEGY: 400ml = entry-level price. Bundle with Product 040
+      (9-in-1 test strips) as a "Starter Kit" for new tank owners.
+    - PRODUCT DESCRIPTION FOCUS: Same as 036 but emphasize "حجم مثالي للبداية"
+    - CROSS-SELL: Pair with Product 040 (9-in-1 strips) and Product 038
+      (Ammonia Tester C3-1010)
+    - BUNDLE IDEA: "حزمة البداية الصحيحة" = 037 (400ml bacteria) + 040 (strips) + 038 (ammonia test)
+    - SOCIAL: "ليش حوضك يصير أبيض؟ وكيف تحله في 36 ساعة" — content hook
+================================================

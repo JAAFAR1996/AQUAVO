@@ -1,0 +1,74 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-004
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300
+   Chinese name from order: 小白单孔氧气泵3W（不可调）YTZ-300
+   Internal item code: 03326
+   Product/model code: YTZ-300
+   Order quantity: 3
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: مضخة هواء لحوض الأسماك YEE YTZ-300
+   - بالإنجليزي: YEE Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300
+
+4. حالة التطابق:
+   تطابق مؤكد 100%
+   تم العثور على تطابق خارجي مؤكد للموديل/الكود.
+
+5. سبب التقييم:
+   تم العثور على مصدر خارجي يذكر نفس الموديل/الكود، مع صور مطابقة أو صور منتج مؤكدة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: YEE Factory Wholesale High-Quality Mini Aquarium Air Pump 4.4cm Ultra Quiet.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: YTZ-300; item code: 03326
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: 3W
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: Airflow 1.5L/min (8Garden/Aqua-Deco)
+   - Dimensions: 10.5 x 7.5 x 5 cm (Aqua-Deco)
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد؛ صفحات البيع لا تؤكد كل المحتويات
+   - Usage: تهوية/ضخ هواء لحوض الأسماك
+   - Compatibility: 30-60L fish tank (8Garden/Aqua-Deco)
+   - تفاصيل أخرى من ملف الطلب: السعر=1.16901408450704، الكمية=3، الإجمالي=3.51.
+
+7. صور المنتج:
+   - Original: Product_004_Original_004_total_B15_image4.png
+   - Matched: 02_Matched_Product_Images\Product_004_01_damsel_specs.jpg
+   - Matched: 02_Matched_Product_Images\Product_004_02_bloo_specs.jpg
+   - Matched: 03_Package_Images\Product_004_03_bloo_parameters.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_004_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/yee-mini-aquarium-air-pump/
+   - Damsel Dubai - exact YTZ-300 product page: https://damselbiz.com/products/shop-by-category/oxygen-air-pump/yee-mini-air-pump-oxygen-pump-ytz-300 [exact]
+     Note: Exact model name YTZ-300; brand shown as Yee Aquarium.
+   - 8Garden - exact YEE YTZ-300 air pump: https://8garden.com/products/aquarium-air-pump-single-nozzle-1-5l-minute-3-watt-yee-ytz-300 [exact]
+     Note: Confirms single nozzle, 1.5L/min, 3W, 30-60L fish tank.
+   - Aqua-Deco Ukraine - exact YTZ-300 specs: https://aqua-deco.com.ua/product/kompresor-yee-dlya-akvariuma-bezshumnij-3-vt-ytz-300/ [exact]
+     Note: Confirms 1 output, 1.5L/min, 3W, 30-60L, 10.5 x 7.5 x 5 cm.
+   - Bloo Aqua Studio: https://blooaquastudio.org/products/yee-kk-8800-single-outlet-oxyzen-pump-copy
+     Image: https://blooaquastudio.org/cdn/shop/files/5X7EXydI1666283680-800x800.jpg?v=1745418465&width=1946
+   - Bloo Aqua Studio: https://blooaquastudio.org/products/yee-kk-8800-single-outlet-oxyzen-pump-copy
+     Image: https://blooaquastudio.org/cdn/shop/files/ZcKS3PZx1666283680-776x776.jpg?v=1745418469&width=1946
+   - Damsel Dubai: https://damselbiz.com/products/shop-by-category/oxygen-air-pump/yee-mini-air-pump-oxygen-pump-ytz-300
+     Image: https://damselbiz.com/_next/image?q=75&url=https%3A%2F%2Fdamselbiz.com%2Fuploads%2Fproducts%2F1752057769385.jpg&w=828
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح للإدراج. مع ذلك يفضل تصوير المنتج محليًا قبل إطلاق صفحة AQUAVO، وذكر المواصفات المؤكدة فقط.
+================================================

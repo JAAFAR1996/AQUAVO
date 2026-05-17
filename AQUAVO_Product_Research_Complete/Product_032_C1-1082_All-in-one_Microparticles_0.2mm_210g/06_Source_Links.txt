@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-032
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_032_C1-1082_All-in-one_Microparticles_0.2mm_210g\01_Original_Alibaba_Image\Product_032_Original_033_total_B53_image33.png

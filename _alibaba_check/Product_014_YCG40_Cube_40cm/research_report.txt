@@ -1,0 +1,102 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-014
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-014
+
+2. ALIBABA NAME: 40x40x40cm 6mm thick (cube tank)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض مربع شفاف 40 سم — YEE
+   - English: YEE Cube Aquarium 40cm (400x400x400mm) 6mm
+
+4. MATCH STATUS: Possible Match — Model Code Unconfirmed
+
+5. MATCH REASON:
+   The product code "YCG-40" does NOT appear on yeeaquarium.com (official English site)
+   and was not found on any English-language retailer. Similar to Product 013, the YCG
+   prefix may be an internal Chinese domestic catalog code.
+
+   The 40x40x40cm cube with 6mm glass is a confirmed standard market size:
+   1. UNS Aquarium 40C (40x40x40cm) — major aquascape brand produces this exact size
+   2. Landen 15.6 Gallon Cube (40x40x40cm, 6mm) — direct spec match from landenaqua.com
+   3. Aqua One OptiClear Cube 40 (40x40x40cm, 64L) — Australian market
+
+   YEE is confirmed to produce cube tanks (see Product 013 notes) and the 40cm cube is
+   the next logical size up in their range.
+
+   VOLUME CHECK: 400 x 400 x 400 / 1,000,000 = 64L (confirmed by Aqua One listing
+   for same dimensions).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — probable, not 100% confirmed for YCG-40 code
+   - Product Code: YCG-40 (internal Chinese market code — not found internationally)
+   - Dimensions: 400x400x400mm (L x W x H) — perfect cube
+   - Volume: ~64 liters
+   - Glass Thickness: 6mm
+   - Glass Type: Ultra-clear low-iron glass (超白玻璃) — inferred standard for 6mm
+     cube tanks in YEE's range
+   - Glue: German WACKER glass glue — standard for YEE (unconfirmed for this specific code)
+   - Style: Open top, rimless cube
+   - Weight: Not confirmed
+   - Package Contents: Tank only (bare tank, no accessories)
+
+7. IMAGE SOURCES:
+   - No local Excel image available for this product
+   - UNS 40C reference (same dimensions, different brand):
+     https://www.azaqua.nl/en/uns-aquarium/uns-aquarium-40c-40x40x40cm
+   - Landen 40x40x40cm (competitor reference):
+     https://landenaqua.com/products/landen-15-6-gallon-cube-rimless-low-iron-aquarium-tank-15-7-l-15-7-w-15-7-h-40cm-x-40cm-x-40cm-6mm-thickness-with-nano-foam-leveling-mat-included
+   - YEE JD.com store (search YCG-40 on-site):
+     https://mall.jd.com/view_search-667334-6059386-99-1-24-1.html
+
+8. ALL SOURCE LINKS:
+   - UNS Aquarium 40C — azaqua.nl (same spec reference):
+     https://www.azaqua.nl/en/uns-aquarium/uns-aquarium-40c-40x40x40cm
+   - Landen 40cm cube (competitor reference — same size/spec):
+     https://landenaqua.com/products/landen-15-6-gallon-cube-rimless-low-iron-aquarium-tank-15-7-l-15-7-w-15-7-h-40cm-x-40cm-x-40cm-6mm-thickness-with-nano-foam-leveling-mat-included
+   - Aqua One OptiClear Cube 40 (same dimensions, 64L confirmed):
+     https://www.aquaristiconline.com.au/products/opticlearcube40
+   - YEE cube tank (made-in-china, general):
+     https://chinaaquarium.en.made-in-china.com/product/qwcTmraHYIWk/China-Yee-Living-Room-Table-Glass-Small-Cube-Ecological-Turtle-Tank-Aquarium.html
+   - YEE JD.com flagship:
+     https://mall.jd.com/view_search-667334-6059386-99-1-24-1.html
+   - YEE Alibaba catalog:
+     https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+
+9. NOTES:
+   - CRITICAL: Model code YCG-40 NOT FOUND on yeeaquarium.com or any international
+     English-language retailer. Same situation as YEE-1090 (Product 013).
+   - Both the 35cm (Product 013) and 40cm (Product 014) cube codes are absent from
+     YEE's English catalog — suggesting these are either older Chinese domestic SKU
+     codes or that YEE produces them as OEM/unbranded for Alibaba buyers.
+   - The 40cm cube at 64L is a significant tank — borderline between desktop and floor
+     stand. At 6mm glass it has adequate structural integrity.
+   - Multiple premium brands (UNS, Landen, Aqua One) produce this exact size,
+     confirming strong market demand.
+   - The YCG prefix may stand for something in YEE's internal system (possibly
+     Y = YEE, C = Crystal/Cube, G = Glass) but this is speculative.
+   - RECOMMENDED ACTION: Same as Product 013 — ask the Alibaba supplier for packaging
+     photos showing YEE brand and YCG-40 model number before ordering.
+
+10. AQUAVO RECOMMENDATION:
+    PREMIUM / DISPLAY: The 40cm cube is a statement piece — visually impressive, larger
+    volume allows more diverse stocking. Target intermediate-to-advanced hobbyists.
+    Photography: Use overhead angle + front view to showcase the cube's perfect geometry.
+    Dark background (#0a1628) with warm amber lighting will highlight the water clarity.
+    Recommended social hook (Baghdad dialect):
+    "الحوض المكعب 40 سم — 64 لتر، بس ما يشغل مساحة. شكله يغير الغرفة."
+
+    RISK LEVEL: MEDIUM — verify brand/model with supplier before listing.
+    Consider sourcing alongside Product 013 (35cm cube) as a series.
+
+================================================
+SOURCES USED IN THIS RESEARCH:
+- https://www.azaqua.nl/en/uns-aquarium/uns-aquarium-40c-40x40x40cm
+- https://landenaqua.com/products/landen-15-6-gallon-cube-rimless-low-iron-aquarium-tank-15-7-l-15-7-w-15-7-h-40cm-x-40cm-x-40cm-6mm-thickness-with-nano-foam-leveling-mat-included
+- https://www.aquaristiconline.com.au/products/opticlearcube40
+- https://chinaaquarium.en.made-in-china.com/product/qwcTmraHYIWk/China-Yee-Living-Room-Table-Glass-Small-Cube-Ecological-Turtle-Tank-Aquarium.html
+- https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+================================================

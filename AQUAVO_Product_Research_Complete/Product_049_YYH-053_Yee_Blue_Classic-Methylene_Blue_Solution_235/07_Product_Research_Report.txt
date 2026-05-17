@@ -1,0 +1,59 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-049
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Yee Blue Classic-Methylene Blue Solution 235ml
+   Chinese name from order: yee蓝色经典-亚甲基蓝溶液235ml
+   Internal item code: 02938a
+   Product/model code: YYH-053
+   Order quantity: 10
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: محلول أزرق الميثيلين للأحواض YEE YYH-053
+   - بالإنجليزي: YEE Yee Blue Classic-Methylene Blue Solution 235ml
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على مصدر خارجي يذكر نفس الموديل/الكود، لكن لم يتم تنزيل كل زوايا المنتج المؤكدة.
+   Official source status: No confirmed official company product page found. Official title: غير متاح.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: YYH-053; item code: 02938a
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: أزرق حسب اسم الطلب/الصورة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: 235ml
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: 235ml
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: غير مؤكد من المصادر المتاحة
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=0.45، الكمية=10، الإجمالي=4.5.
+
+7. صور المنتج:
+   - Original: Product_049_Original_050_total_B73_image50.png
+
+8. روابط المصادر:
+   - Daraz Bangladesh - YEE Blue Classic Methylene Blue 235ml: https://www.daraz.com.bd/products/yee-blue-classic-methylene-blue-for-aquarium-fish-235ml-i410393336.html [exact]
+     Note: Third-party 235ml page matching the local product name.
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

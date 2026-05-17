@@ -1,0 +1,59 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-034
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml
+   Chinese name from order: Yee水族冻干丰年虾块18g
+   Internal item code: C1-1086-1
+   Product/model code: C1-1086
+   Order quantity: 8
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: طعام أسماك/أحياء مائية YEE C1-1086
+   - بالإنجليزي: YEE Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: Brine Shrimp Fish Food.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: C1-1086; item code: C1-1086-1
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: غير مؤكد من المصادر المتاحة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: 18g; 225ml
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: 18g; 225ml
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: طعام/تغذية للكائنات المائية
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=0.9، الكمية=8، الإجمالي=7.2.
+
+7. صور المنتج:
+   - Original: Product_034_Original_035_total_B55_image35.jpeg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_034_Official_Family_YEE.webp
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/brine-shrimp-fish-food/
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

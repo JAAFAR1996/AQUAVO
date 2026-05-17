@@ -1,0 +1,7 @@
+﻿Product ID: AQUAVO-Research-021
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_021_YKK-60_600x300x350mm_5mm_thick\01_Original_Alibaba_Image\Product_021_Original_022_total_B35_image22.jpeg
+Official YEE family source: https://yeeaquarium.com/product/small-glass-fish-tank/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2024/03/small-glass-fish-tank.webp

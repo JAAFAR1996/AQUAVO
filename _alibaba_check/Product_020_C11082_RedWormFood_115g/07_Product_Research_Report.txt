@@ -1,0 +1,111 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-020
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-020
+2. ALIBABA NAME: Imitation red worm feed 0.5mm 115g
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: علف الديدان الحمراء الاصطناعية YEE 0.5mm - 115g
+   - English: YEE Imitation Bloodworm Pellet Feed 0.5mm 115g
+4. MATCH STATUS: Unconfirmed
+5. MATCH REASON: The specific product code C1-1082-5 (0.5mm / 115g Imitation Red Worm) was NOT
+   found in any open-access source including the official yeeaquarium.com website, YEE's Alibaba
+   store product listings, Made-in-China, AliExpress, or Singapore/Bangladesh retail sites.
+   The base code C1-1082 is referenced as a YEE product family code in the AQUAVO Alibaba order,
+   and the -5 variant designation likely refers to the 0.5mm particle size within that family.
+   YEE does produce bloodworm-type products (freeze-dried red bloodworm confirmed) and 0.5mm
+   micro pellets are within their documented size range. However, a YEE-branded "imitation
+   bloodworm PELLET" (as opposed to freeze-dried actual bloodworm) in 0.5mm/115g is not
+   independently verified. MUST confirm with supplier before listing.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) -- ASSUMED based on AQUAVO Alibaba order source
+   - Product Code: C1-1082-5 (NOT independently verified in any open source)
+   - Product Type: Imitation bloodworm pellet (仿血虫颗粒饲料) -- UNCONFIRMED
+   - Particle Size: 0.5mm (stated in AQUAVO order; within YEE's documented pellet size range)
+   - Weight: 115g (stated in AQUAVO order; NOT confirmed via external retail listings)
+   - Color: Red (imitation of bloodworm color -- common in this pellet type; may use food
+     coloring or natural red pigments such as astaxanthin/paprika extract)
+   - Protein Content: NOT FOUND in any source
+     -- Bloodworm-imitation feeds typically target 40-50% crude protein
+     -- CONFIRM from product label before listing
+   - Sinking/Floating: NOT confirmed from sources
+     -- Imitation bloodworm pellets can be floating OR sinking depending on formula
+     -- Given 0.5mm size and typical small fish targeting, likely FLOATING or SLOW SINKING
+     -- CONFIRM with supplier
+   - Target Fish: Likely small tropical fish (guppies, bettas, tetras, rasboras) and
+     nano fish that eat bloodworms naturally; possibly also betta and small cichlids
+   - Main Ingredients: NOT CONFIRMED from any source
+     -- Typical imitation bloodworm pellet ingredients would include:
+        Fish meal, shrimp meal, wheat flour, red colorant (astaxanthin or food-grade
+        colorant), vitamins, minerals
+     -- YEE freeze-dried bloodworm (different product) contains actual Chironomus larvae
+     -- CONFIRM actual ingredients from product label or supplier datasheet
+   - Special Features (UNCONFIRMED -- estimated from product type):
+     * Red color mimics bloodworm appearance to stimulate feeding response
+     * 0.5mm size for small-mouthed fish
+     * Imitation formula avoids disease/parasite risk of live/frozen bloodworms
+   - Package: Bag (likely; 115g mid-size pouch)
+   - Artificial Colors: HIGH LIKELIHOOD of artificial or natural red colorant to achieve
+     bloodworm-like red color. The specific colorant type is UNCONFIRMED. This is a
+     CRITICAL flag for shrimp keepers -- artificial colorants can harm ornamental shrimp
+     in shared tanks. CONFIRM before cross-listing recommendations.
+
+7. IMAGE SOURCES:
+   - No confirmed product images found for C1-1082-5 specifically
+   - YEE freeze-dried bloodworm (different product) images:
+     https://fishyhub.com/product-detail/yee-aquarium-fish-food-pellet-freeze-dried-red-bloodworm-for-tropical-fish-betta-guppy-goldfish-pet-food-22393
+   - YEE brand reference images:
+     https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+
+8. ALL SOURCE LINKS:
+   [1] YEE Official Website - Products (no C1-1082 page found):
+       https://yeeaquarium.com/product/
+   [2] YEE Alibaba Store - Fish Food:
+       https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+   [3] YEE Alibaba - 0.5mm Micro Pellets (family reference):
+       https://www.alibaba.com/product-detail/Yee-Aquarium-Small-Fish-Feed-Full_1600552024921.html
+   [4] FishyHub - YEE Freeze Dried Red BloodWorm (different product, brand reference):
+       https://fishyhub.com/product-detail/yee-aquarium-fish-food-pellet-freeze-dried-red-bloodworm-for-tropical-fish-betta-guppy-goldfish-pet-food-22393
+   [5] CleanCatSG - YEE Freeze Dried Bloodworm (brand reference):
+       https://www.cleancatsg.com/products/yee-aquarium-freeze-dried-bloodworm-fish-food-for-bettas-guppies-goldfish-small-fishes
+   [6] Made-in-China - YEE Color Fish Food (product family reference):
+       https://chinaaquarium.en.made-in-china.com/product/vOSTDfioZHkA/China-Yee-Fish-Nutrition-Food-Beauty-Body-Color-Small-Fish-Food-Fish-Feed.html
+   [7] Alibaba - Red Floating Pellets 0.5mm (generic market reference, not YEE):
+       https://www.alibaba.com/product-detail/Red-Floating-Pellets-Fish-Food-0_254658614.html
+
+9. NOTES:
+   - CRITICAL: This product (C1-1082-5, 0.5mm Imitation Red Worm, 115g) is NOT independently
+     confirmed from any open-access source. The research cannot verify:
+     (a) That it is actually a YEE-branded product
+     (b) The exact particle size (0.5mm stated in AQUAVO order)
+     (c) The weight (115g stated in AQUAVO order)
+     (d) The protein content
+     (e) Whether it sinks or floats
+     (f) The exact ingredients and colorant type used
+   - YEE DOES produce: (1) Freeze-dried actual bloodworm (confirmed), (2) 0.5mm micro pellets
+     for small fish (confirmed). An "imitation bloodworm pellet" at 0.5mm would logically fit
+     within their product line but is not confirmed.
+   - RED COLORANT RISK: Imitation bloodworm pellets are typically dyed red. If this product
+     uses artificial food coloring (e.g., Red 40, Sunset Yellow), it may not be suitable for
+     tanks containing ornamental shrimp. YEE's documentation on this specific product
+     is unavailable. FLAG for customer safety information.
+   - VARIANT NOTE: The "-5" in C1-1082-5 likely denotes particle size (0.5mm) within the
+     C1-1082 product family. Other variants may include -8 (0.8mm) etc.
+   - This product is suitable for: bettas, guppies, small cichlids, discus juveniles,
+     and any small carnivorous fish that are triggered by red-colored food.
+
+10. AQUAVO RECOMMENDATION:
+    - STATUS: DO NOT LIST until supplier confirms: protein %, sinking/floating, colorant type.
+    - RESEARCH ACTION NEEDED: Request product datasheet/COA from Alibaba supplier.
+      Ask specifically: (1) crude protein %, (2) sinking or floating, (3) colorant used
+      (natural astaxanthin vs artificial food dye), (4) full ingredient list.
+    - WHEN CONFIRMED: Position as a "premium feeding trigger" product for carnivorous and
+      semi-carnivorous fish. "Bloodworm-like" feeding response is a strong sales hook.
+    - ARABIC NAME: "علف الديدان الحمراء الاصطناعية" clearly communicates the imitation
+      bloodworm concept.
+    - CAUTION: Include note that this is NOT for tanks with ornamental shrimp if artificial
+      colorant is confirmed in the formula.
+================================================

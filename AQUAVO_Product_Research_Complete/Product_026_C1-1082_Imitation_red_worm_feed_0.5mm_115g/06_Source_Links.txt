@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-026
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_026_C1-1082_Imitation_red_worm_feed_0.5mm_115g\01_Original_Alibaba_Image\Product_026_Original_027_total_B47_image27.png

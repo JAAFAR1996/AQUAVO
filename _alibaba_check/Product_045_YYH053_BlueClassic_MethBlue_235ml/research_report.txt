@@ -1,0 +1,98 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-045
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-045
+
+2. ALIBABA NAME: Yee Blue Classic Methylene Blue Solution 235ml
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: محلول الميثيلين الأزرق YEE - 235ml (الكلاسيك الأزرق)
+   - English: YEE Blue Classic Methylene Blue Solution 235ml
+
+4. MATCH STATUS: CONFIRMED MATCH (98%)
+   SKU YYH-053 explicitly confirmed at multiple independent retailers with exact
+   235ml size and YEE brand. Listed on US, Singapore, Philippines, UAE, Malaysia,
+   Middle East (Snoonu Qatar) retail platforms.
+
+5. MATCH REASON:
+   Direct SKU YYH-053 confirmed by Betta USA Aquatic ($15.00, SKU listed on
+   product page). Multiple other retailers carry same product with consistent
+   specifications. Product name "Blue Classic" (蓝色经典) refers to the iconic
+   classic blue glass/plastic bottle design used by YEE for this line.
+   A 535ml variant also exists (larger version of same formula).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YYH-053
+   - Series Name: Blue Classic (蓝色经典)
+   - Type: Liquid aquarium medication — Methylene Blue solution
+   - Volume: 235ml
+   - Active Ingredient: Methylene Blue (亚甲基蓝)
+   - Key Functions:
+       * Treats white spot disease (ich / Ichthyophthirius)
+       * Treats tail rot / fin rot
+       * Treats saprolegniasis (fungal infections)
+       * Treats parasitic diseases (ectoparasites)
+       * Treats body rot, cloudy eyes
+       * Gentle conditioner safe for daily use
+       * Supports nitrification in tank
+       * Helps stabilize beneficial bacteria colonies
+       * Restores balance in tanks with weak filters or nitrite spikes
+   - pH Effect: No significant pH alteration (neutral application)
+   - Target Use: Freshwater ornamental fish (primary); also suitable for betta,
+     plecos, general community fish
+   - Dosage: 5ml per 100L of water
+   - Frequency: Once every two days; repeat 2-3 times
+   - Treatment note: Change 1/3 of water before each dose for best results
+   - Packaging: Classic blue bottle (liquid state)
+   - Related larger variant: YYH-207 = 600ml (confirmed separately in this order)
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/050_total_B73_image50.png
+   - Betta USA Aquatic: https://bettaaquatic.com/products/yee-aquarium-methylene-blue
+   - Aquatic Vision UAE: https://aquaticvision.ae/products/yee-liquid-state-methylene-blue-235ml
+   - Snoonu Qatar: https://snoonu.com/product/methylene-blue-235-ml-yee-for-fish-tank-aquariums/67516dc4e70247e5fcce0e13
+   - Sirena Aquatics PH: https://sirenaaquatics.ph/products/yee-methylene-blue-essential-aquarium-water-treatment-for-fungal-and-bacterial-infections
+
+8. ALL SOURCE LINKS:
+   - https://bettaaquatic.com/products/yee-aquarium-methylene-blue (SKU YYH-053 confirmed)
+   - https://bettaaquatic.com/products/yee-methylene-blue-solution
+   - https://aquaticvision.ae/products/yee-liquid-state-methylene-blue-235ml
+   - https://snoonu.com/product/methylene-blue-235-ml-yee-for-fish-tank-aquariums/67516dc4e70247e5fcce0e13
+   - https://sirenaaquatics.ph/products/yee-methylene-blue-essential-aquarium-water-treatment-for-fungal-and-bacterial-infections
+   - https://shopee.com.my/Yee-Aquarium-Liquid-State-Methylene-Blue-(235ml-535ml)
+   - https://www.cleancatsg.com/products/yee-methylene-blue-treatment-fish-diseases-fin-rot-white-spots
+   - https://ultimateaquasg.com/products/yee-aquarium-methylene-medicine-disease
+   - https://www.lazada.sg/products/yee-methylene-blue-medicine-535ml
+
+9. NOTES:
+   - Brand Confirmation: CONFIRMED YEE (乐宠). Strong international retail presence.
+
+   - Product Line Context (YYH Series):
+     The "YYH" prefix covers YEE's liquid medication line. Two confirmed sizes:
+     * YYH-053 = 235ml (this product, Product 045)
+     * YYH-207 = 600ml (larger format, also in this order)
+     The "Blue Classic" (蓝色经典) name refers to both the iconic blue bottle
+     aesthetic and the classic nature of methylene blue as an aquarium staple.
+
+   - Safety Note: Methylene blue stains everything blue. Warn customers to wear
+     gloves and avoid contact with tank decorations/silicone. Can harm plants and
+     beneficial bacteria at high doses.
+
+   - Iraqi market relevance: Methylene blue is a fundamental aquarium medication
+     used worldwide. High demand for disease treatment especially during summer
+     temperature spikes (common in Iraq) that stress fish.
+
+10. AQUAVO RECOMMENDATION:
+    - List as: ESSENTIAL STOCK — high-frequency purchase item
+    - Category: Medications & Treatments > Fungal & Parasitic Treatments
+    - Price strategy: Affordable entry medication; sell both 235ml and 600ml
+    - Arabic copy hook: "الدواء الأزرق الكلاسيكي — علاج موثوق منذ عقود"
+    - Photo: Blue classic bottle on dark background — excellent AQUAVO brand fit
+    - Social: Before/after type content showing fish recovery
+    - Bundle: Pair with salt products for "مجموعة الإسعاف الأولي" starter bundle
+    - Cross-sell: YYH-207 (600ml) for larger tanks, test strips for monitoring
+================================================

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>AQUAVO — 2026 Loader Concepts</title>
+<style>
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --cyan: #199bb8;
+  --cyan2: #0de8ff;
+  --gold: #ffd700;
+  --coral: #ff7b5a;
+  --dark: #0a1628;
+  --abyss: #010611;
+}
+body {
+  background: var(--abyss);
+  color: #e2e8f0;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  padding: 40px 16px 80px;
+}
+h1 { text-align:center; color:var(--cyan); font-size:1.5rem; margin-bottom:6px; letter-spacing:2px; }
+.top-sub { text-align:center; color:#475569; font-size:.85rem; margin-bottom:50px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 28px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+.card {
+  background: #080f1f;
+  border: 1px solid #1a2e4a;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color .3s, transform .25s, box-shadow .3s;
+}
+.card:hover { border-color: var(--cyan); transform: translateY(-6px); box-shadow: 0 20px 60px rgba(25,155,184,.15); }
+.card.selected { border-color: var(--cyan); box-shadow: 0 0 0 2px var(--cyan), 0 20px 60px rgba(25,155,184,.25); }
+
+.preview {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.card-info { padding: 20px 22px 22px; }
+.badge {
+  display:inline-block;
+  font-size:.65rem; font-weight:800; letter-spacing:2px; text-transform:uppercase;
+  padding: 3px 10px; border-radius:20px; margin-bottom:10px;
+}
+.badge-rec  { background:rgba(25,155,184,.15); color:var(--cyan); border:1px solid var(--cyan); }
+.badge-prem { background:rgba(255,215,0,.1); color:var(--gold); border:1px solid var(--gold); }
+.badge-bold { background:rgba(255,123,90,.1); color:var(--coral); border:1px solid var(--coral); }
+.badge-std  { background:rgba(100,116,139,.1); color:#94a3b8; border:1px solid #334155; }
+.card-title { font-size:1.05rem; font-weight:700; color:#f1f5f9; margin-bottom:6px; }
+.card-desc  { font-size:.82rem; color:#64748b; line-height:1.6; }
+
+/* ═══════════════════════════════════════════════
+   A — AURORA LIQUID (2026 Trend)
+══════════════════════════════════════════════ */
+.aurora-bg {
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse 120% 80% at 20% 50%, rgba(25,155,184,.35) 0%, transparent 60%),
+              radial-gradient(ellipse 80% 120% at 80% 30%, rgba(13,232,255,.2) 0%, transparent 55%),
+              radial-gradient(ellipse 100% 60% at 50% 80%, rgba(0,80,120,.4) 0%, transparent 60%);
+  animation: aurora-shift 4s ease-in-out infinite alternate;
+  filter: blur(20px);
+}
+@keyframes aurora-shift {
+  0%   { transform: scale(1)   translateX(0)    rotate(0deg); }
+  50%  { transform: scale(1.1) translateX(-10px) rotate(2deg); }
+  100% { transform: scale(1.05) translateX(10px) rotate(-1deg); }
+}
+.aurora-text {
+  position:relative; z-index:2;
+  display:flex; flex-direction:column; align-items:center; gap:14px;
+}
+.aurora-logo {
+  font-size:1.8rem; font-weight:900; letter-spacing:6px; color:#fff;
+  text-shadow: 0 0 30px var(--cyan2), 0 0 60px rgba(25,155,184,.5);
+  animation: aurora-glow 3s ease-in-out infinite alternate;
+}
+@keyframes aurora-glow {
+  from { text-shadow: 0 0 20px var(--cyan2), 0 0 40px rgba(25,155,184,.4); }
+  to   { text-shadow: 0 0 40px var(--cyan2), 0 0 80px rgba(13,232,255,.6), 0 0 120px rgba(25,155,184,.3); }
+}
+.aurora-bar { width:100px; height:2px; background:rgba(255,255,255,.1); border-radius:2px; overflow:hidden; }
+.aurora-bar-fill {
+  height:100%; width:30%;
+  background: linear-gradient(90deg, transparent, var(--cyan2), #fff, var(--cyan2), transparent);
+  animation: bar-scan 2s ease-in-out infinite;
+  border-radius:2px;
+}
+@keyframes bar-scan {
+  0%   { transform: translateX(-200%); }
+  100% { transform: translateX(500%); }
+}
+
+/* ═══════════════════════════════════════════════
+   B — SVG FISH DRAW (Signature)
+══════════════════════════════════════════════ */
+.fish-draw-bg {
+  position:absolute; inset:0;
+  background: radial-gradient(circle at center, #0a1f38 0%, #010611 100%);
+}
+.fish-draw-wrap { position:relative; z-index:2; }
+.fish-svg { width:160px; height:100px; }
+.fish-path {
+  fill: none;
+  stroke: var(--cyan);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 420;
+  stroke-dashoffset: 420;
+  animation: draw-fish 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px var(--cyan));
+}
+.fish-eye {
+  fill: var(--cyan2);
+  animation: eye-blink 2.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 4px var(--cyan2));
+}
+@keyframes draw-fish {
+  0%   { stroke-dashoffset: 420; opacity:.3; }
+  60%  { stroke-dashoffset: 0;   opacity:1; }
+  85%  { stroke-dashoffset: 0;   opacity:1; }
+  100% { stroke-dashoffset:-420; opacity:0; }
+}
+@keyframes eye-blink {
+  0%,55%,65%,100% { opacity:1; transform:scaleY(1); }
+  60%  { opacity:.2; transform:scaleY(.1); }
+}
+.bubbles-small {
+  position:absolute; bottom:20px; right:30px;
+  display:flex; flex-direction:column; gap:6px; align-items:center;
+}
+.b-dot {
+  width:5px; height:5px; border-radius:50%;
+  border: 1.5px solid rgba(25,155,184,.6);
+  animation: b-rise 2s ease-in-out infinite;
+}
+.b-dot:nth-child(2) { animation-delay:.4s; opacity:.7; }
+.b-dot:nth-child(3) { animation-delay:.8s; opacity:.4; }
+@keyframes b-rise {
+  0%   { transform:translateY(0);     opacity:1; }
+  100% { transform:translateY(-30px); opacity:0; }
+}
+
+/* ═══════════════════════════════════════════════
+   C — HOLOGRAPHIC GLASS (Vision Pro Style)
+══════════════════════════════════════════════ */
+.holo-bg {
+  position:absolute; inset:0;
+  background: #020c18;
+  overflow:hidden;
+}
+.holo-grain {
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity:.4;
+}
+.holo-orb {
+  position:absolute;
+  border-radius:50%;
+  filter:blur(40px);
+  animation: holo-float 5s ease-in-out infinite alternate;
+}
+.holo-orb-1 { width:120px; height:120px; background:rgba(25,155,184,.25); top:-20px; left:10%; }
+.holo-orb-2 { width:80px;  height:80px;  background:rgba(13,232,255,.15); bottom:0;  right:15%; animation-delay:1.5s; }
+.holo-orb-3 { width:60px;  height:60px;  background:rgba(255,215,0,.08);  top:30%;   right:5%;  animation-delay:3s; }
+@keyframes holo-float {
+  from { transform:translate(0,0) scale(1); }
+  to   { transform:translate(10px,-15px) scale(1.1); }
+}
+.holo-card {
+  position:relative; z-index:2;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius:16px;
+  padding: 28px 36px;
+  backdrop-filter: blur(20px);
+  display:flex; flex-direction:column; align-items:center; gap:12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 8px 32px rgba(0,0,0,.4);
+}
+.holo-logo {
+  font-size:1.4rem; font-weight:900; letter-spacing:5px;
+  background: linear-gradient(135deg, #fff 0%, var(--cyan2) 40%, var(--cyan) 70%, #fff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  animation: holo-shine 3s linear infinite;
+}
+@keyframes holo-shine {
+  0%   { background-position:0% center; }
+  100% { background-position:200% center; }
+}
+.holo-dots { display:flex; gap:10px; }
+.holo-dot {
+  width:6px; height:6px; border-radius:50%;
+  background:rgba(25,155,184,.5);
+  animation: holo-dot-pulse 1.8s ease-in-out infinite;
+}
+.holo-dot:nth-child(2) { animation-delay:.3s; }
+.holo-dot:nth-child(3) { animation-delay:.6s; }
+@keyframes holo-dot-pulse {
+  0%,100% { background:rgba(25,155,184,.3); transform:scale(.8); }
+  50%     { background:var(--cyan2); transform:scale(1.3); box-shadow:0 0 10px var(--cyan2); }
+}
+
+/* ═══════════════════════════════════════════════
+   D — CINEMATIC DEPTH LAYERS
+══════════════════════════════════════════════ */
+.cinema-bg {
+  position:absolute; inset:0;
+  background: linear-gradient(180deg, #020c18 0%, #0a1f38 50%, #020c18 100%);
+  overflow:hidden;
+}
+.cinema-wave {
+  position:absolute; width:200%; height:100%;
+  animation: cinema-wave-move 4s linear infinite;
+}
+.cinema-wave svg { width:100%; height:100%; }
+@keyframes cinema-wave-move {
+  0%   { transform:translateX(0); }
+  100% { transform:translateX(-50%); }
+}
+.cinema-content { position:relative; z-index:2; text-align:center; }
+.cinema-circle {
+  width:70px; height:70px;
+  border: 1.5px solid rgba(25,155,184,.3);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 14px;
+  position:relative;
+  animation: cinema-rotate 8s linear infinite;
+}
+.cinema-circle::before {
+  content:'';
+  position:absolute; inset:-1px;
+  border-radius:50%;
+  border: 1.5px solid transparent;
+  border-top-color: var(--cyan);
+  border-right-color: rgba(13,232,255,.5);
+  animation: cinema-rotate 2s linear infinite;
+}
+@keyframes cinema-rotate { to { transform:rotate(360deg); } }
+.cinema-inner {
+  width:48px; height:48px;
+  border:1.5px solid rgba(25,155,184,.2);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  animation: cinema-rotate 3s linear infinite reverse;
+}
+.cinema-dot {
+  width:8px; height:8px;
+  background:var(--cyan); border-radius:50%;
+  box-shadow:0 0 12px var(--cyan), 0 0 24px rgba(25,155,184,.5);
+  animation: cinema-pulse 2s ease-in-out infinite;
+}
+@keyframes cinema-pulse {
+  0%,100% { transform:scale(1); box-shadow:0 0 12px var(--cyan); }
+  50%     { transform:scale(1.3); box-shadow:0 0 20px var(--cyan2), 0 0 40px rgba(25,155,184,.4); }
+}
+.cinema-text {
+  font-size:.7rem; letter-spacing:4px; text-transform:uppercase;
+  color:rgba(255,255,255,.4);
+  animation: cinema-text-fade 3s ease-in-out infinite;
+}
+@keyframes cinema-text-fade {
+  0%,100% { opacity:.3; }
+  50%     { opacity:.8; }
+}
+
+/* ═══════════════════════════════════════════════
+   E — WATER MORPHING (CSS Blob)
+══════════════════════════════════════════════ */
+.water-bg {
+  position:absolute; inset:0;
+  background: #010d1f;
+}
+.water-blob {
+  width:100px; height:100px;
+  background: linear-gradient(135deg, var(--cyan) 0%, #0070a0 50%, rgba(25,155,184,.6) 100%);
+  border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%;
+  animation: morph-blob 4s ease-in-out infinite, float-up 6s ease-in-out infinite;
+  box-shadow: 0 0 40px rgba(25,155,184,.4), inset 0 0 20px rgba(255,255,255,.1);
+  position:relative; z-index:2;
+}
+@keyframes morph-blob {
+  0%   { border-radius:60% 40% 70% 30% / 50% 60% 40% 70%; }
+  25%  { border-radius:40% 60% 30% 70% / 60% 30% 70% 40%; }
+  50%  { border-radius:70% 30% 50% 50% / 30% 70% 30% 70%; }
+  75%  { border-radius:30% 70% 40% 60% / 70% 40% 60% 30%; }
+  100% { border-radius:60% 40% 70% 30% / 50% 60% 40% 70%; }
+}
+@keyframes float-up {
+  0%,100% { transform:translateY(0) scale(1); }
+  50%     { transform:translateY(-8px) scale(1.05); }
+}
+.water-reflection {
+  width:70px; height:15px;
+  background:rgba(25,155,184,.15);
+  border-radius:50%;
+  position:absolute; bottom:30px;
+  filter:blur(6px);
+  animation: reflection-pulse 3s ease-in-out infinite;
+}
+@keyframes reflection-pulse {
+  0%,100% { transform:scaleX(1); opacity:.5; }
+  50%     { transform:scaleX(1.2); opacity:.8; }
+}
+
+/* ═══════════════════════════════════════════════
+   F — SCAN LINE / DIGITAL AQUARIUM
+══════════════════════════════════════════════ */
+.scan-bg {
+  position:absolute; inset:0;
+  background:#010611;
+  overflow:hidden;
+}
+.scan-grid {
+  position:absolute; inset:0;
+  background-image:
+    linear-gradient(rgba(25,155,184,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(25,155,184,.04) 1px, transparent 1px);
+  background-size:20px 20px;
+}
+.scan-line {
+  position:absolute; left:0; right:0; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(25,155,184,.6), var(--cyan2), rgba(25,155,184,.6), transparent);
+  box-shadow:0 0 10px var(--cyan), 0 0 20px rgba(25,155,184,.3);
+  animation:scan-move 2.5s ease-in-out infinite;
+  z-index:3;
+}
+@keyframes scan-move {
+  0%   { top:5%;   opacity:0; }
+  10%  { opacity:1; }
+  90%  { opacity:1; }
+  100% { top:95%;  opacity:0; }
+}
+.scan-content { position:relative; z-index:2; text-align:center; }
+.scan-label {
+  font-size:.6rem; letter-spacing:5px; color:rgba(25,155,184,.6);
+  font-family:monospace; text-transform:uppercase; margin-bottom:8px;
+}
+.scan-logo {
+  font-size:1.6rem; font-weight:900; letter-spacing:6px; color:var(--cyan);
+  text-shadow:0 0 20px var(--cyan), 0 0 40px rgba(25,155,184,.4);
+  font-family:monospace;
+  animation:scan-flicker 4s ease-in-out infinite;
+}
+@keyframes scan-flicker {
+  0%,89%,91%,100% { opacity:1; }
+  90% { opacity:.6; }
+}
+.scan-bar-row { display:flex; flex-direction:column; gap:6px; margin-top:14px; width:140px; }
+.scan-bar-item { display:flex; gap:8px; align-items:center; }
+.scan-bar-label { font-size:.55rem; color:rgba(25,155,184,.5); font-family:monospace; width:40px; text-align:right; }
+.scan-bar-track { flex:1; height:3px; background:rgba(25,155,184,.1); border-radius:2px; overflow:hidden; }
+.scan-bar-fill  { height:100%; background:var(--cyan); border-radius:2px; animation:scan-bar-animate 2s ease-in-out infinite; }
+.scan-bar-fill:nth-child(1) { width:75%; }
+.scan-bar-item:nth-child(2) .scan-bar-fill { animation-delay:.4s; width:45%; }
+.scan-bar-item:nth-child(3) .scan-bar-fill { animation-delay:.8s; width:90%; }
+@keyframes scan-bar-animate {
+  0%,100% { opacity:.4; }
+  50%     { opacity:1; }
+}
+
+/* ═══════════════════════════════════════════════
+   SELECT UI
+══════════════════════════════════════════════ */
+.selected-banner {
+  display:none;
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  background:var(--cyan); color:#fff;
+  padding:12px 32px; border-radius:100px;
+  font-size:.9rem; font-weight:700;
+  box-shadow:0 8px 32px rgba(25,155,184,.5);
+  z-index:100;
+  animation:banner-in .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes banner-in {
+  from { transform:translateX(-50%) translateY(20px); opacity:0; }
+  to   { transform:translateX(-50%) translateY(0);    opacity:1; }
+}
+.tag {
+  position:absolute; top:14px; right:14px;
+  background:rgba(0,0,0,.6); color:var(--cyan);
+  font-size:.65rem; font-weight:700; letter-spacing:2px;
+  padding:3px 10px; border-radius:20px; border:1px solid rgba(25,155,184,.3);
+  backdrop-filter:blur(8px);
+  z-index:5;
+}
+</style>
+</head>
+<body>
+
+<h1>AQUAVO — 2026 Premium Loaders</h1>
+<p class="top-sub">تصاميم 2026 الحقيقية — انقر على أي تصميم لاختياره</p>
+
+<div class="grid">
+
+  <!-- A: AURORA LIQUID -->
+  <div class="card" onclick="pick(this,'A','Aurora Liquid — موجة أورورا')">
+    <div class="tag">A</div>
+    <div class="preview">
+      <div class="aurora-bg"></div>
+      <div class="aurora-text">
+        <div class="aurora-logo">AQUAVO</div>
+        <div class="aurora-bar"><div class="aurora-bar-fill"></div></div>
+      </div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-prem">Premium 2026</span>
+      <div class="card-title">Aurora Liquid</div>
+      <div class="card-desc">ألوان Aurora تتدفق خلف اسم AQUAVO المضيء — يشبه شاشات Apple Vision Pro</div>
+    </div>
+  </div>
+
+  <!-- B: SVG FISH DRAW -->
+  <div class="card" onclick="pick(this,'B','SVG Fish Draw — رسم السمكة')">
+    <div class="tag">B ⭐</div>
+    <div class="preview">
+      <div class="fish-draw-bg"></div>
+      <div class="fish-draw-wrap">
+        <svg class="fish-svg" viewBox="0 0 160 100">
+          <!-- Fish body -->
+          <path class="fish-path" d="
+            M 130 50
+            C 120 30, 90 15, 60 20
+            C 35 24, 18 35, 15 50
+            C 18 65, 35 76, 60 80
+            C 90 85, 120 70, 130 50 Z
+            M 130 50
+            C 145 38, 155 28, 150 20
+            C 142 30, 138 40, 130 50
+            C 138 60, 142 70, 150 80
+            C 155 72, 145 62, 130 50
+            M 60 50 L 25 50
+            M 60 42 C 55 40, 50 40, 48 43
+          " />
+          <!-- Eye -->
+          <circle class="fish-eye" cx="100" cy="46" r="4" />
+          <!-- Small bubbles -->
+          <circle stroke="rgba(25,155,184,.4)" fill="none" stroke-width="1.5" cx="20" cy="35" r="4"
+            style="animation: b-rise 2s .2s infinite" />
+          <circle stroke="rgba(25,155,184,.3)" fill="none" stroke-width="1" cx="14" cy="25" r="3"
+            style="animation: b-rise 2s .6s infinite" />
+          <circle stroke="rgba(25,155,184,.2)" fill="none" stroke-width="1" cx="22" cy="18" r="2"
+            style="animation: b-rise 2s 1s infinite" />
+        </svg>
+      </div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-rec">موصى به بشدة</span>
+      <div class="card-title">SVG Fish Draw</div>
+      <div class="card-desc">سمكة تُرسم بالحبر أمامك ثم تختفي — فريد 100% لـ AQUAVO، لا يوجد مثيله</div>
+    </div>
+  </div>
+
+  <!-- C: HOLOGRAPHIC GLASS -->
+  <div class="card" onclick="pick(this,'C','Holographic Glass — زجاج هولوغرافي')">
+    <div class="tag">C</div>
+    <div class="preview">
+      <div class="holo-bg">
+        <div class="holo-grain"></div>
+        <div class="holo-orb holo-orb-1"></div>
+        <div class="holo-orb holo-orb-2"></div>
+        <div class="holo-orb holo-orb-3"></div>
+      </div>
+      <div class="holo-card">
+        <div class="holo-logo">AQUAVO</div>
+        <div class="holo-dots">
+          <div class="holo-dot"></div>
+          <div class="holo-dot"></div>
+          <div class="holo-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-prem">Vision Pro Style</span>
+      <div class="card-title">Holographic Glass</div>
+      <div class="card-desc">بطاقة زجاجية شفافة فوق خلفية ضبابية مع حبوب سينمائية — تجربة ثلاثية الأبعاد</div>
+    </div>
+  </div>
+
+  <!-- D: CINEMATIC ORBIT -->
+  <div class="card" onclick="pick(this,'D','Cinematic Orbit — مدار سينمائي')">
+    <div class="tag">D</div>
+    <div class="preview">
+      <div class="cinema-bg">
+        <div class="cinema-wave">
+          <svg viewBox="0 0 800 220" preserveAspectRatio="none">
+            <path d="M0,110 C200,60 400,160 600,110 C700,85 750,75 800,80 L800,220 L0,220Z" fill="rgba(25,155,184,.05)"/>
+            <path d="M0,130 C150,100 350,170 550,120 C650,95 730,90 800,100 L800,220 L0,220Z" fill="rgba(25,155,184,.04)"/>
+          </svg>
+        </div>
+      </div>
+      <div class="cinema-content">
+        <div class="cinema-circle">
+          <div class="cinema-inner">
+            <div class="cinema-dot"></div>
+          </div>
+        </div>
+        <div class="cinema-text">AQUAVO · جاري التحميل</div>
+      </div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-std">سينمائي</span>
+      <div class="card-title">Cinematic Orbit</div>
+      <div class="card-desc">حلقات دائرية متداخلة تدور بسرعات مختلفة مع موجات ماء خفيفة في الخلفية</div>
+    </div>
+  </div>
+
+  <!-- E: WATER BLOB -->
+  <div class="card" onclick="pick(this,'E','Water Blob — قطرة مائية')">
+    <div class="tag">E</div>
+    <div class="preview" style="background:#010d1f; flex-direction:column; gap:10px;">
+      <div class="water-bg"></div>
+      <div class="water-blob"></div>
+      <div class="water-reflection"></div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-bold">مبدع</span>
+      <div class="card-title">Water Blob</div>
+      <div class="card-desc">قطرة ماء حية تتشكل وتتحول باستمرار مع ظلها المنعكس — فيزياء الماء الحقيقية</div>
+    </div>
+  </div>
+
+  <!-- F: DIGITAL SCAN -->
+  <div class="card" onclick="pick(this,'F','Digital Scan — مسح رقمي')">
+    <div class="tag">F</div>
+    <div class="preview">
+      <div class="scan-bg">
+        <div class="scan-grid"></div>
+        <div class="scan-line"></div>
+      </div>
+      <div class="scan-content">
+        <div class="scan-label">AQUAVO SYSTEM</div>
+        <div class="scan-logo">AQUAVO</div>
+        <div class="scan-bar-row">
+          <div class="scan-bar-item">
+            <div class="scan-bar-label">حوض</div>
+            <div class="scan-bar-track"><div class="scan-bar-fill"></div></div>
+          </div>
+          <div class="scan-bar-item">
+            <div class="scan-bar-label">أسماك</div>
+            <div class="scan-bar-track"><div class="scan-bar-fill"></div></div>
+          </div>
+          <div class="scan-bar-item">
+            <div class="scan-bar-label">معدات</div>
+            <div class="scan-bar-track"><div class="scan-bar-fill"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-info">
+      <span class="badge badge-bold">Cyberpunk 2026</span>
+      <div class="card-title">Digital Scan</div>
+      <div class="card-desc">شاشة رقمية بخط مسح أخضر مع شبكة وأشرطة تحميل — تقنية مستقبلية مع هوية AQUAVO</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="selected-banner" id="banner">✓ اخترت: <span id="banner-text"></span></div>
+
+<script>
+function pick(el, id, name) {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const b = document.getElementById('banner');
+  document.getElementById('banner-text').textContent = name;
+  b.style.display = 'block';
+}
+</script>
+</body>
+</html>

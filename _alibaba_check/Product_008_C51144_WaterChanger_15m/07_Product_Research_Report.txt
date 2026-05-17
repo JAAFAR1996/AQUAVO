@@ -1,0 +1,178 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-008
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-008
+
+2. ALIBABA NAME: YEE Enhanced Version 1.5 Meters / Thickened and Lengthened Electric
+   Gravel Cleaner & Water Changer (C5-1144)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: منظف الحصى الكهربائي يي 1.5م - تنظيف وتغيير الماء المحسّن
+   - English: YEE Electric Gravel Cleaner & Water Changer 1.5m - Enhanced Thickened Version
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   The official YEE product family page at yeeaquarium.com/product/electric-aquarium-gravel-
+   cleaner/ covers exactly this product type (electric aquarium gravel cleaner). Multiple
+   third-party retailers (PetzLifeWorld, Lazada MY, Tropical Aquatic Shop, Nik's Aquatic
+   Store, V Aqua) sell YEE-branded electric gravel cleaners/water changers. The 15KPA
+   suction specification is confirmed across multiple retailer listings for this product
+   line. The product is also listed on Alibaba and AliExpress under the YEE brand.
+   The model code "C5-1144" was NOT found verbatim in any public indexed source; however,
+   "C5" prefix products from YEE (乐宠) are a recognized SKU pattern for their cleaning
+   accessories category. The "enhanced / thickened / lengthened" description in the order
+   name matches the "enhanced" variants sold on AliExpress at 1.5m tube length.
+   Rated "Strong Match" because: brand confirmed (YEE), product type confirmed (electric
+   gravel cleaner + water changer), key spec confirmed (15KPA), and the 1.5m length is
+   a common variant in this product family. Exact model code C5-1144 is unconfirmed in
+   public sources.
+
+   NOTE: Products 008 and 009 are the SAME product type (YEE electric gravel cleaner /
+   water changer) but different tube lengths (1.5m vs 1.7m) and potentially different
+   airbag/bellows build quality. Product 009 (YEE-3621) adds a thickened airbag.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: C5-1144 [From Alibaba order record -- NOT confirmed on public web index]
+   - Series: "Enhanced Version" / "Thickened and Lengthened" [from order description]
+   - Tube / Hose Length: 1.5 meters [CONFIRMED -- stated in order name; 1.5m is a
+     standard variant for YEE electric gravel cleaners on the market]
+   - Suction Power: 15KPA [CONFIRMED -- multiple retailer listings for YEE electric
+     gravel cleaner confirm 15KPA maximum suction; e.g., PetzLifeWorld]
+   - Operation Type: Electric (pump-powered, NOT battery) [CONFIRMED from product
+     family name and retailer descriptions]
+   - Motor: Detachable electric motor [ESTIMATED -- YEE electric gravel cleaners in
+     this family feature a detachable/removable motor unit that can be separated for
+     cleaning; NOT confirmed specifically for C5-1144]
+   - Functions / Modes (confirmed for YEE electric gravel cleaner family):
+     1. Gravel / substrate cleaning (vacuum debris from substrate)
+     2. Water changing / draining
+     3. Sand washing (lifts and cleans fine sand without removing it)
+     4. Water pump (transfers water in/out)
+     5. Debris removal
+     6. Filter media cleaning
+     7. Water circulation
+     [Full 7-in-1 confirmed for YEE electric family at PetzLifeWorld; exact count for
+     C5-1144 specifically is ESTIMATED -- likely 5-in-1 or 7-in-1]
+   - Airbag / Bellows: Manual squeeze airbag/bellows for siphon priming [CONFIRMED
+     as present in YEE gravel cleaner family; "thickened" version implies reinforced
+     airbag walls for durability -- this is the key "enhanced" feature vs standard version]
+   - Tube Wall Thickness: Thickened ("加厚") [CONFIRMED from order name; thicker PVC
+     walls resist kinking and cracking under regular use]
+   - Drain Hose Length: Approximately 1.5m total (same as tube length) [ESTIMATED;
+     some listings note 200cm / 2m drain hose as a separate component]
+   - Power: Electric (mains powered, likely 220-240V for Chinese/Asian market) or USB
+     powered version may exist [voltage NOT confirmed for C5-1144; verify with supplier]
+   - Material: BPA-free PVC / ABS plastic [ESTIMATED based on product category standard]
+   - Filter Mesh / Strainer: Built-in gravel strainer to prevent gravel from entering
+     pump [CONFIRMED as feature in YEE gravel cleaner family]
+   - Suitable Tank Size: Small to large aquariums (adjustable reach with 1.5m tube)
+   - Compatible: Freshwater and marine/saltwater aquariums
+
+7. IMAGE SOURCES:
+   - Local Excel Image: صور_الاكسل_الصحيحة/images/006_total_B17_image6.jpeg
+     [Primary reference image from supplier order -- use as main product photo reference]
+   - Official YEE product family page:
+     https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - Alibaba listing:
+     https://www.alibaba.com/product-detail/Yee-Wholesale-Electric-Fish-Tank-Cleaner_1600512882518.html
+   - AliExpress listing:
+     https://www.aliexpress.com/item/1005004786047984.html
+   - YouTube demo video:
+     https://www.youtube.com/shorts/wZXfMlho3sM
+
+8. ALL SOURCE LINKS:
+   - YEE official electric gravel cleaner product family page:
+     https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - YEE official website:
+     https://yeeaquarium.com/
+   - YEE Alibaba store:
+     https://yeeaquarium.en.alibaba.com/
+   - Alibaba: YEE Wholesale Electric Fish Tank Cleaner Water Changer:
+     https://www.alibaba.com/product-detail/Yee-Wholesale-Electric-Fish-Tank-Cleaner_1600512882518.html
+   - Alibaba: YEE Automatic Flow Control Gravel Cleaner:
+     https://www.alibaba.com/product-detail/YEE-Automatic-Flow-Control-Gravel-Cleaner_1600511216692.html
+   - Alibaba: YEE Electrical Vacuum Gravel Cleaner with Lithium Battery:
+     https://www.alibaba.com/product-detail/Yee-Cleaning-Supplies-Aquarium-Accessories-Electrical_1600721076290.html
+   - AliExpress: YEE Fish Tank Electric Water Changer:
+     https://www.aliexpress.com/item/1005004786047984.html
+   - AliExpress DE: YEE Electric Water Changer Set:
+     https://de.aliexpress.com/i/1005006239725040.html
+   - PetzLifeWorld IN: YEE 7-in-1 Electric Gravel Cleaner 15KPA (spec confirmation):
+     https://www.petzlifeworld.in/products/petzlifeworld-automatic-aquarium-water-changer-electric-gravel-cleaner-7-in-1-fish-tank-vacuum-cleaner-with-15kpa-strong-suction-sand-washer-water-pump-for-aquarium-cleaning
+   - PetzLifeWorld IN: YEE Manual Gravel Cleaner 200cm hose:
+     https://www.petzlifeworld.in/products/yee-aquarium-water-changer-gravel-cleaner-manual-siphon-vacuum-pump-fish-tank-cleaning-tool-with-adjustable-pipe-built-in-filter-screen-200cm-drain-hose-for-easy-water-change
+   - Lazada MY: YEE Electric Gravel Cleaner Water Changer:
+     https://www.lazada.com.my/products/yee-fish-tank-electric-aquarium-gravel-cleaner-water-changer-suction-toilet-household-cleaning-tool-set-i3063717216.html
+   - Tropical Aquatic Shop: YEE Water Changer/Gravel Cleaner Siphon Set:
+     https://tropicalaquaticshop.com/product/yee-water-changer-gravel-cleaner-siphon-set/
+   - Nik's Aquatic Store: YEE Water Siphon Gravel Cleaner:
+     https://niksaquaticstore.com/product/yee-water-siphon-gravel-cleaner/
+   - FairPrice AE: YEE 20W Electric Siphon Water Changer YSL-A020:
+     https://www.fairprice.ae/products/yee-20w-electric-siphon-aquarium-water-changer-cleaner-for-easy-water-changes-and-tank-maintenance-ysl-a020-standard
+   - V Aqua LK: YEE Gravel Cleaner:
+     https://vaqua.lk/product/yee-gravel-cleaner/
+   - YouTube demo: YEE Fish Tank Electric Water Changer:
+     https://www.youtube.com/shorts/wZXfMlho3sM
+
+9. NOTES:
+   - Is it Generic or Brand? BRAND -- YEE (乐宠), manufactured by Weifang Yipin Pet
+     Products Co., Ltd., China.
+   - Multiple variants confirmed? YES -- YEE produces multiple electric gravel cleaner
+     variants. Confirmed variants in this family include:
+     * Standard (basic) version
+     * C5-1144: "Enhanced / Thickened" version, 1.5m tube [this product]
+     * YEE-3621: 1.7m tube with thickened airbag [Product 009]
+     * YSL-A020: 20W electric siphon water changer (higher power, separate family)
+     * Manual variants: 2m, 2.6m hose lengths
+   - Relationship to Product 009 (YEE-3621, 1.7m):
+     Both C5-1144 and YEE-3621 are from the same product family (YEE electric gravel
+     cleaner / water changer). Key differences:
+     * Tube length: 1.5m (C5-1144) vs 1.7m (YEE-3621)
+     * Airbag: Standard thickened (C5-1144) vs "thickened airbag" specifically noted
+       as a feature (YEE-3621)
+     * The C5 prefix vs YEE prefix may indicate different production batches or series
+     * Both share the same 15KPA suction power and core 7-in-1 function set [ESTIMATED]
+   - Is image from same supplier? YES -- local Excel image 006_total_B17_image6.jpeg
+     is the supplier-provided reference image.
+   - Risk factors:
+     a) Exact model code "C5-1144" is not found in any public web index -- cannot be
+        confirmed independently. Use as internal SKU only.
+     b) Power source (electric mains vs USB vs battery) not confirmed for C5-1144;
+        verify voltage rating with supplier.
+     c) The "7-in-1" function count is confirmed for the YEE family but may differ
+        for the specific C5-1144 SKU -- verify with supplier.
+   - Unconfirmed info to avoid:
+     a) Do not publish exact wattage (W) without supplier confirmation.
+     b) Do not confirm 7-in-1 function count for C5-1144 without verification.
+     c) Do not list C5-1144 as a publicly searchable product code.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale? YES -- electric gravel cleaners are a high-demand product for
+      aquarium owners; 1.5m is a practical length suitable for most household aquariums
+      (60-150cm long). The "enhanced / thickened" version justifies a slightly higher
+      price point vs the standard version.
+    - Premium product? MID-RANGE -- not premium, but positioned above entry-level.
+      The "thickened" construction and electric operation make it a meaningful upgrade
+      from basic manual siphons.
+    - Needs special photography? YES -- the local Excel image should be supplemented
+      with an in-use photo showing the product cleaning an actual aquarium substrate.
+      Video content (reel/short) showing the suction in action is highly effective for
+      this product type.
+    - Needs careful description? YES -- clearly distinguish "electric" (mains/USB
+      powered) from "battery-powered" versions on the storefront. Note the 15KPA
+      suction power as the key selling point.
+    - Cross-sell with Product 009? YES -- recommend Product 009 (1.7m YEE-3621) for
+      larger/deeper aquariums and this product (1.5m C5-1144) for standard home tanks.
+      Position as a clear choice: "standard" (1.5m) vs "extended reach" (1.7m).
+    - Suitable for social media content? YES -- satisfying cleaning videos / "aquarium
+      cleaning" content performs very well on social platforms. Demonstrate gravel
+      cleaning and water change functions in separate clips.
+    - Suggested price range: MID -- competitively priced electric accessory; check
+      current AliExpress/Lazada pricing for the 1.5m variant to set Iraq market price.
+================================================

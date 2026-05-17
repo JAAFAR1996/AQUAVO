@@ -1,0 +1,31 @@
+﻿Product ID: AQUAVO-Research-001
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_001_YEE-3006_50W_pure_steel_heating_rod_YSH-50\01_Original_Alibaba_Image\Product_001_Original_001_total_B10_image1.png
+Official YEE family source: https://yeeaquarium.com/product/yee-25w-500w-stainless-aquarium-heater/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/03/详情（上）_01.jpg
+Elmir Ukraine - exact YSH-50 / YEE-3006 listing: https://elmir.ua/ua/heaters_for_aquariums/heater_yee_ysh-50_19cm_50w_yee-3006.html (exact)
+Alibaba - YEE 50W/100W/200W/300W/500W heater listing: https://www.alibaba.com/product-detail/YEE-50W-100W-200W-300W-500W_1601027894425.html (family)
+Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+Image URL: https://s.alicdn.com/@sc04/kf/Aa8946374dfa9497eba01c285fac527f1k.jpg_720x720q50.jpg
+Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+Image URL: https://s.alicdn.com/@sc04/kf/Acbba99fbf91b447097a883b12781bea2O.jpg_720x720q50.jpg
+Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+Image URL: https://s.alicdn.com/@sc04/kf/H05cec0eeb4e54da18d093930c7a560e90.jpg_720x720q50.jpg
+Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+Image URL: https://s.alicdn.com/@sc04/kf/H2cda630aacf646c482bd8e946a976bb66.png_720x720q50.jpg
+Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+Image URL: https://s.alicdn.com/@sc04/kf/Hce32a2fc7250479f8c4a795cd1df033aO.jpg_720x720q50.jpg
+Alibaba official supplier page / Accio mirror: https://yeeaquarium.m.en.alibaba.com/tr_TR/company_profile.html
+Image URL: https://s.alicdn.com/@sc04/kf/Hb88b5579df764c5d95a3bd458892f02cY.jpg_720x720q50.jpg
+Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+Image URL: https://beshketnyk.com/content/images/25/700x700l80nn0/12977739102773.webp
+Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+Image URL: https://beshketnyk.com/content/images/25/700x700l80nn0/44335047465542.webp
+Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+Image URL: https://beshketnyk.com/content/images/25/700x700l80nn0/50912206454238.webp
+Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+Image URL: https://beshketnyk.com/content/images/25/700x700l80nn0/61775367690936.webp
+Beshketnyk: https://beshketnyk.com/obihrivach-dlia-akvariuma-yee-ysh-50-metalevyi-19-sm-50-vt/
+Image URL: https://beshketnyk.com/content/images/25/700x700l80nn0/97657197450677.webp

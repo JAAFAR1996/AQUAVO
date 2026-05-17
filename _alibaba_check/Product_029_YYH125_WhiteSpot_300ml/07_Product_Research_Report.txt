@@ -1,0 +1,95 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-029
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-029
+
+2. ALIBABA NAME: White Spot Cleaner 300ml
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: علاج البقع البيضاء YEE 300ml
+   - English: YEE White Spot (Ich) Treatment 300ml
+
+4. MATCH STATUS: HIGH CONFIDENCE — Product clearly identified across multiple retailers
+
+5. MATCH REASON:
+   YYH-125 White Spot Cleaner 300ml is consistently listed across Singapore, US, and Philippine
+   retailers as the YEE White Spot Treatment 300ml. Product description, code, and bottle volume
+   match across sources including B&K Pet Shop, Betta USA Aquatic, and Clean Cat SG. The product
+   is widely sold under the YEE brand (乐宠) and is specifically marketed for Ich (white spot
+   / Ichthyophthirius multifiliis) along with fungal and bacterial infections.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YYH-125
+   - Form: Liquid solution
+   - Volume: 300ml
+   - Active Ingredient: NOT CONFIRMED from official source.
+     Likely malachite green or malachite green + formalin combination (standard Ich treatment
+     chemistry), but YEE has not published the ingredient list publicly. Do NOT state active
+     ingredient unless confirmed on packaging.
+   - Dosage: NOT CONFIRMED from official YEE documentation.
+     Typical YEE liquid treatment dosage pattern is 10ml per 100L water, repeated every 2 days
+     for 2-3 treatments with 1/3 water change before each dose. VERIFY ON BOTTLE BEFORE LISTING.
+   - Treatment Duration: Typically 5-7 days for Ich (3 treatment cycles)
+   - Target Disease: White Spot / Ich (Ichthyophthirius multifiliis), fungal infections,
+     bacterial infections
+   - Safe for Shrimp: UNKNOWN — malachite green-based treatments are generally toxic to
+     invertebrates including shrimp. Treat as unsafe until confirmed otherwise.
+   - Safe for Plants: UNKNOWN — likely safe at recommended doses but not confirmed
+   - Safe for Biological Filter: LIKELY NO — malachite green can harm beneficial bacteria.
+     Recommended practice: remove activated carbon, reduce aeration during treatment.
+   - Scale-less Fish Warning: Products of this type are typically contraindicated for
+     scale-less fish (catfish, loaches, rays). Confirm on label.
+
+7. IMAGE SOURCES:
+   - Excel image: صور_الاكسل_الصحيحة/images/037_total_B57_image37.jpeg
+   - Betta USA Aquatic product page: https://bettaaquatic.com/products/yee-white-spot-treatment
+   - B&K Pet Shop: https://bkpetshop.com/products/yee-white-spot-300ml-treatment-for-fungal-and-bacteria-infections
+   - Clean Cat SG: https://www.cleancatsg.com/products/yee-white-spot-treatment-for-aquarium-fishes
+
+8. ALL SOURCE LINKS:
+   1. B&K Pet Shop — YEE White Spot 300ml
+      https://bkpetshop.com/products/yee-white-spot-300ml-treatment-for-fungal-and-bacteria-infections
+   2. Betta USA Aquatic — YEE White Spot Treatment 300ml
+      https://bettaaquatic.com/products/yee-white-spot-treatment
+   3. Clean Cat SG — Yee White Spot Treatment for Aquarium Fishes
+      https://www.cleancatsg.com/products/yee-white-spot-treatment-for-aquarium-fishes
+   4. Clean Cat SG — Yee Universal Solution (related product)
+      https://www.cleancatsg.com/products/yee-universal-solution-for-aquarium-fish
+   5. Ultimate Aqua SG — YEE Fish Medicine for Koi and Goldfish (related)
+      https://ultimateaquasg.com/products/yee-fish-medicine-for-koi-and-gold-fish-medicine-treatment-of-white-fungus-gill-tail-rot-white-spot
+   6. YEE Official Website (product NOT listed)
+      https://yeeaquarium.com/
+   7. NT Labs Anti-White Spot & Fungus (competitor reference)
+      https://www.nt-labs.com/browse-products/indoor/aquariums/anti-white-spot-fungus/
+   8. Aquarium Science — Ich Medications in More Depth (background reference)
+      https://aquariumscience.org/index.php/10-2-2-4-ich-medications-in-more-depth/
+
+9. NOTES:
+   - NOT found on official YEE website (yeeaquarium.com). No official product page exists.
+   - Dosage instructions available on bottle: YES (assumed — not retrieved from web sources)
+   - Dosage confirmed from web research: NO — must verify from physical bottle/packaging
+   - Active ingredient: NOT confirmed from any authoritative source. Malachite green is the
+     most common active compound in white spot treatments of this type.
+   - Risk: Malachite green is a potential carcinogen at high concentrations. Banned for use
+     on food fish in many countries. For ornamental fish use only.
+   - Risk: High toxicity to scaleless fish, invertebrates, and possibly disrupts biological
+     filtration. Overdosing can kill fish.
+   - Iraqi market note: This type of medication must come with clear Arabic dosage instructions.
+     Misuse is a real risk for beginners.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale: YES — with mandatory full dosage instructions
+    - Needs full dosage instructions: YES — print clear label instructions in Arabic/English
+    - Needs safety warnings:
+        * WARNING: Not for use with scaleless fish (catfish, loaches, stingrays)
+        * WARNING: Likely unsafe for shrimp — remove shrimp before treatment
+        * WARNING: Remove activated carbon before treatment
+        * WARNING: For ornamental fish only — not for food fish
+        * WARNING: Keep out of reach of children
+    - Social media suitable: YES with care — show treatment process, avoid ingredient claims
+    - Alibaba Item Code: 12420
+================================================

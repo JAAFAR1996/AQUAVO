@@ -1,0 +1,99 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-043
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-043
+
+2. ALIBABA NAME: Multivitamin mineral salt 500g
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: ملح المعادن متعدد الفيتامينات YEE - 500g
+   - English: YEE Multivitamin Mineral Salt YAN-804 - 500g
+
+4. MATCH STATUS: PARTIAL MATCH (85%)
+   Code confirmed as YEE; exact formula for YAN-804 not independently confirmed on
+   official listing. Product type and size match known YEE mineral salt range.
+
+5. MATCH REASON:
+   YEE produces multiple 500g aquarium mineral/vitamin salt SKUs. The "YAN" prefix
+   likely stands for 养鱼 (yang yu = fish keeping) or a product family code within
+   YEE's additive line. Multiple 500g mineral salt products are confirmed in the
+   YEE catalog (sold across Singapore, Malaysia, India, Philippines, UAE markets).
+   The exact ingredient differentiation between YAN-804 and YAN-915 was NOT
+   confirmed from public sources — see Notes section.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YAN-804
+   - Type: Aquarium Mineral & Vitamin Salt Additive (powder/granule)
+   - Weight/Volume: 500g
+   - Key Components (from YEE mineral salt line, confirmed):
+       * Natural mineral salt (no artificial chemical compounds per manufacturer)
+       * Multiple trace elements and minerals
+       * Vitamin complex (multivitamin as stated in product name)
+       * Electrolytes for osmotic pressure regulation
+   - pH Effect: Regulates/softens water; no significant pH shift documented
+   - Grain Size: N/A (dissolved in water)
+   - Buffering Duration: N/A
+   - Target Use: Freshwater ornamental fish (primary); also marine fish and shrimp
+   - Dosage (from YEE general mineral salt line):
+       * Daily maintenance: 1g per 1L water (1/1000 ratio)
+       * Disease treatment: 2g per 1L water (2/1000 ratio)
+   - Functions:
+       * Strengthens fish immune system
+       * Reduces disease occurrence
+       * Regulates water osmotic pressure
+       * Inhibits harmful bacteria growth
+       * Treats fin rot, white spots, gill rot
+       * Enhances drug penetration during treatment
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/048_total_B71_image48.png
+   - No confirmed official product page image for YAN-804 specifically
+
+8. ALL SOURCE LINKS:
+   - https://www.cleancatsg.com/products/yee-aquarium-mineral-salt
+   - https://ultimateaquasg.com/products/yee-aquarium-salt-ornamental-sea-salt
+   - https://fishyhub.com/product-detail/yee-aquarium-salt-ornamental-sea-salt-for-aquarium-sterilization-and-antibacterial-500g-14230
+   - https://www.lazada.com.my/products/ready-stock-yee-sterilization-salt-bactericidal-salt-mineral-salt-aquarium-salt-500g-for-aquarium-fish-tank-pond-i1922786334.html
+   - https://chinaaquarium.en.made-in-china.com/product/OwNTGBySiHhv/China-Yee-Fish-Tank-Water-Purification-Salts-Sterilization-Salt-Family-Fish-Tank-Cleaning-Salt-Special-Mineral.html
+   - https://yeeaquarium.com/ (official manufacturer)
+
+9. NOTES:
+   - Brand Confirmation: CONFIRMED as YEE (乐宠). YEE is manufactured by Weifang
+     Yipin Pet Products Co., Ltd., Shandong, China. Established 2010. Well
+     established across SE Asia, Middle East, South Asia retail channels.
+
+   - YAN-804 vs YAN-915 COMPARISON:
+     Both codes were searched extensively but neither "YAN-804" nor "YAN-915" appear
+     in indexed English or Chinese product listings under those exact SKU codes.
+     YEE sells several 500g mineral salt products with variant codes. Based on
+     available evidence:
+       * YAN-804 (Product 043): BAG packaging — the "YAN" series multivitamin
+         mineral salt in resealable bag format (inferred from image reference)
+       * YAN-915 (Product 044): BOX packaging — same or very similar formula but
+         sold in a cardboard box presentation (inferred from Alibaba order notes
+         stating "bag vs box" distinction)
+     CONCLUSION: Most likely SAME FORMULA, DIFFERENT PACKAGING. The numeric code
+     difference (804 vs 915) is consistent with YEE's practice of assigning separate
+     SKUs to different packaging formats of the same core product. This cannot be
+     confirmed as 100% certain without official specification sheets.
+     RECOMMENDATION: Treat as separate listings with note that formulas may be
+     identical; verify with supplier before claiming different formulas.
+
+   - Unconfirmed: Exact vitamin composition (which vitamins, quantities) not
+     publicly documented for this specific SKU.
+
+10. AQUAVO RECOMMENDATION:
+    - List as: Regular catalog product
+    - Category: Water Treatment & Additives > Mineral Salts
+    - Price strategy: Entry-level health maintenance product; good for bundle deals
+      with fish starter kits
+    - Description focus: Immune system support, disease prevention, everyday
+      maintenance dosing simplicity
+    - Photo: Use local Excel image; clean white-background studio shot preferred
+    - Social: Position as essential daily care item — "الصحة بالمعادن" messaging
+    - Cross-sell: Pair with methylene blue (Product 045) for disease treatment kit
+================================================

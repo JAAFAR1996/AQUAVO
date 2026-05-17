@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>AQUAVO — Page Loader Concepts</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0a1628;
+    color: #e2e8f0;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #199bb8;
+    font-size: 1.6rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+  }
+  .subtitle {
+    text-align: center;
+    color: #94a3b8;
+    margin-bottom: 48px;
+    font-size: 0.95rem;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .card {
+    background: #0d1f3c;
+    border: 1px solid #1e3a5f;
+    border-radius: 16px;
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    cursor: pointer;
+    transition: border-color 0.3s, transform 0.2s;
+    position: relative;
+  }
+  .card:hover { border-color: #199bb8; transform: translateY(-4px); }
+  .card.selected { border-color: #199bb8; background: #0f2644; }
+  .card.selected::after {
+    content: '✓ مختار';
+    position: absolute;
+    top: 12px;
+    left: 16px;
+    background: #199bb8;
+    color: white;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+  .label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #199bb8;
+    text-transform: uppercase;
+  }
+  .preview {
+    width: 180px;
+    height: 180px;
+    background: #010611;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-title { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; }
+  .card-desc { font-size: 0.85rem; color: #94a3b8; text-align: center; line-height: 1.6; }
+  .pros { font-size: 0.8rem; color: #4ade80; text-align: center; }
+  .cons { font-size: 0.8rem; color: #f87171; text-align: center; }
+
+  /* ── OPTION A: Dual Ring (الحالي) ── */
+  .ring-a {
+    width: 64px; height: 64px;
+    border: 4px solid rgba(25,155,184,0.2);
+    border-top-color: #199bb8;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .ring-a-inner {
+    position: absolute;
+    width: 64px; height: 64px;
+    border: 4px solid transparent;
+    border-bottom-color: rgba(25,155,184,0.4);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite reverse;
+  }
+
+  /* ── OPTION B: Fish Swimming ── */
+  .fish-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .fish-icon {
+    font-size: 2.5rem;
+    animation: fish-swim 1.5s ease-in-out infinite;
+  }
+  .fish-dots {
+    display: flex;
+    gap: 8px;
+  }
+  .fish-dot {
+    width: 8px; height: 8px;
+    background: #199bb8;
+    border-radius: 50%;
+    animation: fish-dot-pulse 1.5s ease-in-out infinite;
+  }
+  .fish-dot:nth-child(2) { animation-delay: 0.2s; }
+  .fish-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes fish-swim {
+    0%, 100% { transform: translateX(-8px) rotate(-5deg); }
+    50% { transform: translateX(8px) rotate(5deg); }
+  }
+  @keyframes fish-dot-pulse {
+    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); }
+  }
+
+  /* ── OPTION C: Water Ripple ── */
+  .ripple-container {
+    position: relative;
+    width: 80px; height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ripple {
+    position: absolute;
+    border: 2px solid #199bb8;
+    border-radius: 50%;
+    animation: ripple-expand 2s ease-out infinite;
+  }
+  .ripple:nth-child(2) { animation-delay: 0.6s; }
+  .ripple:nth-child(3) { animation-delay: 1.2s; }
+  .ripple-core {
+    width: 20px; height: 20px;
+    background: #199bb8;
+    border-radius: 50%;
+    z-index: 1;
+  }
+  @keyframes ripple-expand {
+    0% { width: 20px; height: 20px; opacity: 1; }
+    100% { width: 80px; height: 80px; opacity: 0; }
+  }
+
+  /* ── OPTION D: Brand Bar ── */
+  .bar-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+  }
+  .bar-logo {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #199bb8;
+    letter-spacing: 3px;
+  }
+  .bar-track {
+    width: 120px;
+    height: 3px;
+    background: rgba(25,155,184,0.15);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    position: absolute;
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, transparent, #199bb8, transparent);
+    animation: bar-slide 1.4s ease-in-out infinite;
+    border-radius: 2px;
+  }
+  @keyframes bar-slide {
+    0% { left: -40%; }
+    100% { left: 140%; }
+  }
+
+  /* ── OPTION E: Bubbles ── */
+  .bubbles {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    height: 60px;
+  }
+  .bubble {
+    width: 14px;
+    background: linear-gradient(180deg, #199bb8, #0d7a92);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    animation: bubble-rise 1.2s ease-in-out infinite;
+  }
+  .bubble:nth-child(1) { height: 28px; animation-delay: 0s; }
+  .bubble:nth-child(2) { height: 42px; animation-delay: 0.2s; }
+  .bubble:nth-child(3) { height: 56px; animation-delay: 0.4s; }
+  .bubble:nth-child(4) { height: 42px; animation-delay: 0.6s; }
+  .bubble:nth-child(5) { height: 28px; animation-delay: 0.8s; }
+  @keyframes bubble-rise {
+    0%, 100% { transform: scaleY(1); opacity: 0.7; }
+    50% { transform: scaleY(0.85); opacity: 1; }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .current-badge {
+    background: #1e3a5f;
+    color: #94a3b8;
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .result {
+    display: none;
+    text-align: center;
+    margin-top: 40px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px;
+    background: #0d1f3c;
+    border: 1px solid #199bb8;
+    border-radius: 12px;
+  }
+  .result.show { display: block; }
+  .result h3 { color: #199bb8; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h1>AQUAVO — تصاميم شاشة الانتظار</h1>
+<p class="subtitle">اختر التصميم الذي يناسب هوية الموقع — انقر لتحديد</p>
+
+<div class="grid">
+
+  <!-- OPTION A: Current -->
+  <div class="card" onclick="select(this,'A')">
+    <div class="label">A — الحالي</div>
+    <div class="preview">
+      <div class="ring-a"></div>
+      <div class="ring-a-inner"></div>
+    </div>
+    <div class="card-title">دائرة مزدوجة</div>
+    <div class="card-desc">التصميم الحالي — دائرتان متعاكستان مع نص "جاري التحميل"</div>
+    <div class="cons">جنيريك — لا يعكس هوية AQUAVO</div>
+  </div>
+
+  <!-- OPTION B: Fish -->
+  <div class="card" onclick="select(this,'B')">
+    <div class="label">B — موصى به</div>
+    <div class="preview">
+      <div class="fish-loader">
+        <div class="fish-icon">🐠</div>
+        <div class="fish-dots">
+          <div class="fish-dot"></div>
+          <div class="fish-dot"></div>
+          <div class="fish-dot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-title">سمكة تسبح</div>
+    <div class="card-desc">سمكة تتمايل يميناً ويساراً مع نقاط إيقاع — شخصية وخاصة بـ AQUAVO</div>
+    <div class="pros">هوية قوية — ممتع — لا ينسى</div>
+  </div>
+
+  <!-- OPTION C: Ripple -->
+  <div class="card" onclick="select(this,'C')">
+    <div class="label">C</div>
+    <div class="preview">
+      <div class="ripple-container">
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple"></div>
+        <div class="ripple-core"></div>
+      </div>
+    </div>
+    <div class="card-title">موجات مائية</div>
+    <div class="card-desc">حلقات تتمدد من المركز كموجات الماء — هادئة وأنيقة</div>
+    <div class="pros">بسيط — مرتبط بالماء</div>
+  </div>
+
+  <!-- OPTION D: Brand Bar -->
+  <div class="card" onclick="select(this,'D')">
+    <div class="label">D</div>
+    <div class="preview">
+      <div class="bar-loader">
+        <div class="bar-logo">AQUAVO</div>
+        <div class="bar-track">
+          <div class="bar-fill"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card-title">لوغو + شريط</div>
+    <div class="card-desc">اسم AQUAVO بالسيان + شريط تحميل يتحرك — احترافي وراقي</div>
+    <div class="pros">براند قوي — نظيف جداً</div>
+  </div>
+
+  <!-- OPTION E: Bubbles -->
+  <div class="card" onclick="select(this,'E')">
+    <div class="label">E</div>
+    <div class="preview">
+      <div class="bubbles">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+      </div>
+    </div>
+    <div class="card-title">فقاعات مائية</div>
+    <div class="card-desc">فقاعات تتنفس بتوقيت متتالي — مستوحى من أحواض الهواء</div>
+    <div class="pros">مبدع — مباشر — مرتبط بالموضوع</div>
+  </div>
+
+</div>
+
+<div class="result" id="result">
+  <h3 id="result-title"></h3>
+  <p id="result-desc" style="color:#94a3b8; font-size:0.9rem; margin-top:8px;"></p>
+</div>
+
+<script>
+  const descriptions = {
+    A: 'الحالي — دائرة مزدوجة جنيريكة',
+    B: 'سمكة تسبح — موصى به لهوية AQUAVO القوية',
+    C: 'موجات مائية — هادئة وأنيقة',
+    D: 'لوغو + شريط — احترافي وبراند واضح',
+    E: 'فقاعات مائية — مبدع ومرتبط بعالم الأحواض'
+  };
+  function select(el, choice) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    const res = document.getElementById('result');
+    res.classList.add('show');
+    document.getElementById('result-title').textContent = 'اخترت: الخيار ' + choice;
+    document.getElementById('result-desc').textContent = descriptions[choice];
+  }
+</script>
+
+</body>
+</html>

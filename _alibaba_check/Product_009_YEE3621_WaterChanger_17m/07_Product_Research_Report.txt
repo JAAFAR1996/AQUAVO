@@ -1,0 +1,169 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-009
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-009
+
+2. ALIBABA NAME: YEE [Thickened Airbag for Durability] 1.7 Meters Electric Gravel
+   Cleaner & Water Changer (YEE-3621)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: منظف الحصى الكهربائي يي 1.7م - بالون مقوى - وصول أعمق
+   - English: YEE Electric Gravel Cleaner & Water Changer 1.7m - Reinforced Airbag Edition
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   Same product family as Product 008 (C5-1144). The official YEE product family page
+   at yeeaquarium.com/product/electric-aquarium-gravel-cleaner/ covers this product type.
+   Multiple retailers confirm YEE electric gravel cleaners at 15KPA suction power.
+   The YEE-3621 model code was NOT found verbatim in any public indexed source; however,
+   the product description (thickened airbag, 1.7m length, electric gravel cleaner) maps
+   clearly to the premium variant of the YEE electric gravel cleaner family.
+   The 1.7m length positions this as the "extended reach" version above the standard
+   1.5m C5-1144. The "thickened airbag" (加厚气囊) is a noted durability upgrade.
+   Rated "Strong Match" because: brand confirmed (YEE), product type confirmed, key spec
+   confirmed (15KPA), and 1.7m is a known variant in the electric gravel cleaner market.
+   Exact model code YEE-3621 is unconfirmed in public sources.
+
+   NOTE: This product (YEE-3621, 1.7m) is the LONGER / PREMIUM VARIANT of Product 008
+   (C5-1144, 1.5m). Both perform the same core function; the primary differentiators are:
+   tube length (+20cm) and the specifically reinforced/thickened airbag bellows pump.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YEE-3621 [From Alibaba order record -- NOT confirmed on public web index]
+   - Series Distinction: "Thickened Airbag" (加厚气囊) variant -- the defining upgrade
+     over the standard C5-1144 1.5m model [CONFIRMED from order description]
+   - Tube / Hose Length: 1.7 meters [CONFIRMED -- stated in order name; longer than
+     standard 1.5m C5-1144, allowing cleaning of deeper / larger aquariums]
+   - Suction Power: 15KPA [CONFIRMED -- same as C5-1144; confirmed across multiple
+     retailer listings for the YEE electric gravel cleaner family]
+   - Operation Type: Electric (pump-powered) [CONFIRMED from product family]
+   - Motor: Detachable electric motor [ESTIMATED -- feature confirmed for YEE electric
+     gravel cleaner family; detachable motor allows separate cleaning and storage]
+   - KEY FEATURE -- Airbag / Bellows: THICKENED airbag (加厚气囊) [CONFIRMED from order
+     description as the primary distinguishing feature of this SKU over C5-1144]
+     - Thicker airbag walls = more durable, longer lifespan
+     - Reduces risk of airbag cracking or air leakage under repeated compression
+     - Provides more consistent siphon priming
+   - Functions / Modes (confirmed for YEE electric gravel cleaner family):
+     1. Gravel / substrate cleaning (vacuum debris from substrate)
+     2. Water changing / draining
+     3. Sand washing (cleans fine sand without removing it from tank)
+     4. Water pump (transfers water in/out)
+     5. Debris removal
+     6. Filter media cleaning
+     7. Water circulation
+     [7-in-1 confirmed for YEE electric family at PetzLifeWorld; exact count for
+     YEE-3621 specifically is ESTIMATED -- likely 5-in-1 or 7-in-1]
+   - Tube Wall Thickness: Thickened (matching the "enhanced" designation of this line)
+     [ESTIMATED based on family designation; consistent with the C5-1144 description]
+   - Power: Electric mains (220-240V for Chinese/Asian market) or USB version may exist
+     [voltage NOT confirmed for YEE-3621; verify with supplier]
+   - Material: BPA-free PVC / ABS plastic [ESTIMATED based on product category standard]
+   - Filter Mesh / Strainer: Built-in gravel strainer [CONFIRMED for YEE gravel cleaner
+     family; prevents gravel/substrate from entering motor]
+   - Suitable Tank Size: Medium to large aquariums; 1.7m reach is ideal for tanks
+     60-200cm length and deep aquariums [ESTIMATED based on tube length]
+   - Compatible: Freshwater and marine/saltwater aquariums
+
+7. IMAGE SOURCES:
+   - Local Excel Image: صور_الاكسل_الصحيحة/images/007_total_B18_image7.jpeg
+     [Primary reference image from supplier order -- use as main product photo reference]
+   - Official YEE product family page:
+     https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - Alibaba listing:
+     https://www.alibaba.com/product-detail/Yee-Wholesale-Electric-Fish-Tank-Cleaner_1600512882518.html
+   - AliExpress listing:
+     https://www.aliexpress.com/item/1005004786047984.html
+   - YouTube demo video:
+     https://www.youtube.com/shorts/wZXfMlho3sM
+
+8. ALL SOURCE LINKS:
+   - YEE official electric gravel cleaner product family page:
+     https://yeeaquarium.com/product/electric-aquarium-gravel-cleaner/
+   - YEE official website:
+     https://yeeaquarium.com/
+   - YEE Alibaba store:
+     https://yeeaquarium.en.alibaba.com/
+   - Alibaba: YEE Wholesale Electric Fish Tank Cleaner Water Changer:
+     https://www.alibaba.com/product-detail/Yee-Wholesale-Electric-Fish-Tank-Cleaner_1600512882518.html
+   - Alibaba: YEE Automatic Flow Control Gravel Cleaner:
+     https://www.alibaba.com/product-detail/YEE-Automatic-Flow-Control-Gravel-Cleaner_1600511216692.html
+   - Alibaba: YEE Electrical Vacuum Gravel Cleaner with Lithium Battery:
+     https://www.alibaba.com/product-detail/Yee-Cleaning-Supplies-Aquarium-Accessories-Electrical_1600721076290.html
+   - AliExpress: YEE Fish Tank Electric Water Changer:
+     https://www.aliexpress.com/item/1005004786047984.html
+   - AliExpress DE: YEE Electric Water Changer Set:
+     https://de.aliexpress.com/i/1005006239725040.html
+   - PetzLifeWorld IN: YEE 7-in-1 Electric Gravel Cleaner 15KPA (spec confirmation):
+     https://www.petzlifeworld.in/products/petzlifeworld-automatic-aquarium-water-changer-electric-gravel-cleaner-7-in-1-fish-tank-vacuum-cleaner-with-15kpa-strong-suction-sand-washer-water-pump-for-aquarium-cleaning
+   - Lazada MY: YEE Electric Gravel Cleaner Water Changer:
+     https://www.lazada.com.my/products/yee-fish-tank-electric-aquarium-gravel-cleaner-water-changer-suction-toilet-household-cleaning-tool-set-i3063717216.html
+   - Tropical Aquatic Shop: YEE Water Changer/Gravel Cleaner Siphon Set:
+     https://tropicalaquaticshop.com/product/yee-water-changer-gravel-cleaner-siphon-set/
+   - Isuru Aquarium Sri Lanka: YEE Gravel Cleaner Siphon 2.6m (same family, longer):
+     https://isuruaquarium.com/product/yee-aquarium-gravel-cleaner-siphon-2-6-m/
+   - FairPrice AE: YEE 20W Electric Siphon Water Changer YSL-A020:
+     https://www.fairprice.ae/products/yee-20w-electric-siphon-aquarium-water-changer-cleaner-for-easy-water-changes-and-tank-maintenance-ysl-a020-standard
+   - V Aqua LK: YEE Gravel Cleaner:
+     https://vaqua.lk/product/yee-gravel-cleaner/
+   - YouTube demo: YEE Fish Tank Electric Water Changer:
+     https://www.youtube.com/shorts/wZXfMlho3sM
+
+9. NOTES:
+   - Is it Generic or Brand? BRAND -- YEE (乐宠), manufactured by Weifang Yipin Pet
+     Products Co., Ltd., China.
+   - Relationship to Product 008 (C5-1144, 1.5m):
+     YEE-3621 is the longer, premium-airbag variant in the same product family.
+     Key differences vs C5-1144:
+     * Tube length: 1.7m (YEE-3621) vs 1.5m (C5-1144) -- 20cm extra reach
+     * Airbag: Specifically noted as "thickened airbag" for durability (YEE-3621)
+       vs standard thickened walls (C5-1144)
+     * Model code: YEE-prefix (YEE-3621) vs C5-prefix (C5-1144)
+     * Intended for: Larger/deeper aquariums (YEE-3621) vs standard tanks (C5-1144)
+     * Price: YEE-3621 is likely priced slightly higher than C5-1144
+   - Product variants in the YEE electric gravel cleaner family (confirmed):
+     * C5-1144: 1.5m enhanced version [Product 008]
+     * YEE-3621: 1.7m thickened airbag version [this product]
+     * Manual variants: 2m, 2.6m (non-electric siphons)
+     * YSL-A020: 20W high-power electric siphon (different class)
+   - Is image from same supplier? YES -- local Excel image 007_total_B18_image7.jpeg
+     is the supplier-provided reference image.
+   - Risk factors:
+     a) Exact model code "YEE-3621" is not found in any public web index -- cannot be
+        confirmed independently. Use as internal SKU only.
+     b) Power source (electric mains vs USB vs battery) not confirmed -- verify with
+        supplier before listing voltage on the product page.
+     c) The thickened airbag claim is from the order name; request photo of the airbag
+        component from supplier to confirm visually.
+   - Unconfirmed info to avoid:
+     a) Do not publish exact wattage (W) for YEE-3621 without supplier confirmation.
+     b) Do not confirm 7-in-1 function count without verification for this specific SKU.
+     c) Do not list YEE-3621 as a publicly searchable product code on the storefront.
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale? YES -- the 1.7m version fills a clear gap for customers with
+      larger or deeper aquariums who find the standard 1.5m version insufficient.
+    - Premium product? MID-RANGE to UPPER-MID -- the thickened airbag is a legitimate
+      durability upgrade; position as the "pro" or "extended" version in the lineup.
+    - Relationship to Product 008 for product listing:
+      List both C5-1144 and YEE-3621 as variants of the same product where possible,
+      with the option to select "1.5m Standard" or "1.7m Extended Reach" at the same
+      product page. Alternatively list separately with clear "good/better" positioning.
+    - Needs special photography? YES -- the local Excel image should be supplemented
+      with an in-use photo. Specifically show the longer reach in a tall/deep tank.
+    - The thickened airbag should be highlighted in product photos (close-up of the
+      airbag component to justify the premium over C5-1144).
+    - Suitable for social media content? YES -- pair with Product 008 content. Run a
+      direct comparison video: "standard 1.5m vs extended 1.7m" for engagement.
+    - Suggested price range: Slightly above C5-1144 (Product 008) to reflect the
+      longer tube length and reinforced airbag. The price premium should be modest
+      (5-10%) as the core product is the same.
+    - Cross-sell potential: HIGH -- pairs with large aquariums (tanks 100L+), premium
+      substrates, and other YEE maintenance accessories.
+================================================

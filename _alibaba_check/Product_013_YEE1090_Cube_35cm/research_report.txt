@@ -1,0 +1,106 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-013
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-013
+
+2. ALIBABA NAME: 35x35x35cm 6mm thick (cube tank)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض مربع شفاف 35 سم — YEE
+   - English: YEE Cube Aquarium 35cm (350x350x350mm) 6mm
+
+4. MATCH STATUS: Possible Match — Model Code Unconfirmed
+
+5. MATCH REASON:
+   The product code "YEE-1090" does NOT appear on yeeaquarium.com (official English site)
+   and was NOT found on any English-language retailer. However, the SPECIFICATIONS
+   (35x35x35cm cube, 6mm glass) match a well-known category of rimless cube aquariums
+   that multiple aquascape retailers carry as generic or OEM products.
+
+   YEE manufactures cube-style glass tanks confirmed via:
+   1. chinaaquarium.en.made-in-china.com lists "Yee Living Room Table Glass Small Cube
+      Ecological Turtle Tank Aquarium" — confirming YEE produces cube tanks.
+   2. JD.com (京东) YEE official flagship store carries cube-format tanks.
+   3. The YEE-1090 code appears to be an internal Chinese domestic market code (possibly
+      Taobao/JD.com SKU) not used on the international wholesale catalog.
+
+   The aquascapeshop.com listing for "Ultra Clear Low Iron Rimless Cube Aquarium —
+   42.9L (35x35x35cm) | 6mm Glass" matches all specifications precisely, confirming
+   this is a real, manufactured product. Whether YEE is the source factory for that
+   specific listing is not confirmed.
+
+   VOLUME CHECK: 350 x 350 x 350 / 1,000,000 = 42.875L (~42.9L as stated in notes).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) — probable, not 100% confirmed for this specific code
+   - Product Code: YEE-1090 (internal Chinese market code — not found on yeeaquarium.com)
+   - Dimensions: 350x350x350mm (L x W x H) — perfect cube
+   - Volume: ~42.9 liters
+   - Glass Thickness: 6mm
+   - Glass Type: Ultra-clear low-iron glass (超白玻璃) — inferred from YEE cube tank
+     product range; confirmed for the 35x35x35 size as a category standard
+   - Glue: German WACKER glass glue — standard for YEE products (not separately confirmed
+     for this specific cube code)
+   - Style: Open top, rimless cube
+   - Weight: Not confirmed
+   - Package Contents: Tank only (bare tank, no accessories)
+
+7. IMAGE SOURCES:
+   - No local Excel image available for this product
+   - aquascapeshop.com (matching spec, may not be YEE brand):
+     https://aquascapeshop.com/products/ultra-clear-low-iron-rimless-cube-aquarium-35x35x35cm-42-9l-6mm-glass
+   - chinaaquarium.en.made-in-china.com (YEE cube tank general):
+     https://chinaaquarium.en.made-in-china.com/product/qwcTmraHYIWk/China-Yee-Living-Room-Table-Glass-Small-Cube-Ecological-Turtle-Tank-Aquarium.html
+   - JD.com YEE flagship store (search "YEE-1090" on-site):
+     https://mall.jd.com/view_search-667334-6059386-99-1-24-1.html
+
+8. ALL SOURCE LINKS:
+   - aquascapeshop.com (35x35x35cm 6mm cube — matching specs):
+     https://aquascapeshop.com/products/ultra-clear-low-iron-rimless-cube-aquarium-35x35x35cm-42-9l-6mm-glass
+   - YEE cube tank on made-in-china (general, not specific model):
+     https://chinaaquarium.en.made-in-china.com/product/qwcTmraHYIWk/China-Yee-Living-Room-Table-Glass-Small-Cube-Ecological-Turtle-Tank-Aquarium.html
+   - JD.com YEE official store (requires on-site search):
+     https://mall.jd.com/view_search-667334-6059386-99-1-24-1.html
+   - YEE Alibaba small fish tanks catalog:
+     https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+   - Landen 35cm cube (competitor reference — same size/spec):
+     https://landenaqua.com/products/landen-35c-7-2-gallon-ultra-clear-all-glass-rimless-low-iron-aquarium-tank
+
+9. NOTES:
+   - CRITICAL: Model code YEE-1090 NOT FOUND on yeeaquarium.com or any international
+     retailer. This code is likely from a Chinese domestic catalog (Taobao/JD listing
+     code) or a third-party reseller's internal SKU.
+   - YEE does manufacture cube tanks — confirmed via Made-in-China and JD.com.
+   - The 35x35x35cm 6mm cube is a standard size that many Chinese manufacturers produce
+     (UNS, Landen, custom tanks) as well as YEE. The Alibaba supplier may be YEE or
+     may be sourcing from a different Weifang factory.
+   - RISK: Until the YEE-1090 code is verified against a YEE catalog or the supplier
+     confirms YEE brand, this should be listed as "YEE-compatible" or verified with
+     the Alibaba supplier directly.
+   - RECOMMENDED ACTION: Ask the Alibaba supplier to send a photo of the box/packaging
+     showing the YEE brand name and model number YEE-1090 before placing an order.
+   - The 35cm cube is very popular for aquascaping and planted tanks — growing market
+     segment in Iraq.
+
+10. AQUAVO RECOMMENDATION:
+    PREMIUM / AQUASCAPE: The cube format is trending in the aquascape community. Position
+    as a designer/aquascape tank. The perfect cube proportions photograph extremely well.
+    Use the dark background photography style to highlight the rimless design.
+    If YEE brand is confirmed, this is a strong product. If unconfirmed, source a
+    verified 35cm cube tank from a known YEE catalog item instead.
+    Recommended social hook (Baghdad dialect):
+    "الحوض المربع — الشكل الأكثر طلبا هسه بين عشاق الأكواسكيب. 35 سم، زجاج 6mm."
+
+    RISK LEVEL: MEDIUM — verify brand/model with supplier before listing.
+
+================================================
+SOURCES USED IN THIS RESEARCH:
+- https://aquascapeshop.com/products/ultra-clear-low-iron-rimless-cube-aquarium-35x35x35cm-42-9l-6mm-glass
+- https://chinaaquarium.en.made-in-china.com/product/qwcTmraHYIWk/China-Yee-Living-Room-Table-Glass-Small-Cube-Ecological-Turtle-Tank-Aquarium.html
+- https://www.jd.com/pinpai1/69948c14184191e14b82.html
+- https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+- https://landenaqua.com/products/landen-35c-7-2-gallon-ultra-clear-all-glass-rimless-low-iron-aquarium-tank
+================================================

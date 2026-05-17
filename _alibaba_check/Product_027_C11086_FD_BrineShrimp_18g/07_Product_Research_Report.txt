@@ -1,0 +1,108 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-027
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-027
+
+2. ALIBABA NAME: YEE Freeze-Dried Brine Shrimp Chunks/Cubes 18g 225ml Jar (C1-1086)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: جمبري ملحي مجفف بالتجميد YEE - قطع تلتصق بالزجاج - 18g
+   - English: YEE Freeze-Dried Brine Shrimp Cubes 18g 225ml Jar — Sticks to Glass
+
+4. MATCH STATUS: CONFIRMED MATCH — PRODUCT TYPE AND SPECS VERIFIED ON OFFICIAL YEE PAGE
+
+5. MATCH REASON:
+   The freeze-dried brine shrimp product is one of YEE's core fish food offerings,
+   confirmed on yeeaquarium.com with a dedicated product page. Key confirmed specs include:
+   protein ≥52.38%, sticks to glass, FD vacuum freeze-dry technology, 100% natural,
+   no pigments/attractants/hormones. The 18g / 225ml jar format is the standard retail
+   size for this product line. The "chunk/cube" form that adheres to tank glass is
+   explicitly confirmed on the official product description.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠)
+   - Product Code: C1-1086
+   - Type: Freeze-Dried (FD) Adult Brine Shrimp — NOT eggs, NOT baby shrimp
+     (Adult Artemia salina, whole shrimp, freeze-dried into chunks/cubes)
+   - Form Factor: Tablet/chunk form — STICKS TO GLASS (press cube against glass wall)
+   - Weight: 18g (net)
+   - Container: 225ml jar (wide-mouth jar with screw lid)
+   - Protein Content: ≥52.38% (crude protein — confirmed from official YEE page)
+     NOTE: Maximum observed claim: 60.49% total protein (may include non-crude measure)
+   - Crude Fat: ≥7.5%
+   - Crude Ash: ≤19.4%
+   - Total Phosphorus: ≥0.96%
+   - Crude Fiber: ≤1.5%
+   - Moisture: Not stated (FD products are low moisture by nature)
+   - Astaxanthin: Present — naturally occurring in brine shrimp, enhances fish color
+   - Vitamins: Present (multiple vitamins and minerals)
+   - Production Technology: FD (Freeze-Dried) vacuum quick-freezing — preserves
+     nutrients, flavor, and original shape
+   - Additives: NONE — no pigments, no feeding attractants, no hormones
+   - Chemical Binders: None (natural binding through freeze-dry process)
+   - Glass-Wall Adhesion: YES — confirmed. Press cube against glass to attach for
+     close-up observation of feeding
+   - Suitable For: All freshwater and marine fish, turtles, crustaceans
+   - Origin: China
+
+7. IMAGE SOURCES:
+   - YEE Official Page: https://yeeaquarium.com/product/brine-shrimp-fish-food
+   - YEE Freeze-Dried Blog: https://yeeaquarium.com/fish-food-selectionnew-freeze-dried-fish-foods-from-yee/
+   - Ultimate Aqua SG: https://ultimateaquasg.com/products/yee-shrimp-food-aquarium
+   - Alibaba listing: https://www.alibaba.com/product-detail/YEE-Pet-Food-High-Protein-Freeze_1600680896257.html
+
+8. ALL SOURCE LINKS:
+   OFFICIAL YEE:
+   - https://yeeaquarium.com/product/brine-shrimp-fish-food
+   - https://yeeaquarium.com/fish-food-selectionnew-freeze-dried-fish-foods-from-yee/
+   - https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+
+   ALIBABA / MADE IN CHINA:
+   - https://www.alibaba.com/product-detail/YEE-Pet-Food-High-Protein-Freeze_1600680896257.html
+   - https://chinaaquarium.en.made-in-china.com/product/RnYrwpsCXQWZ/China-Yee-Best-Quality-Dried-Fish-Food-Shelled-Brine-Shrimp-Eggs-Fish-Feed-Artemia-Cysts-Brine-Shrimp.html
+
+   RETAILERS:
+   - https://ultimateaquasg.com/products/yee-shrimp-food-aquarium
+   - https://www.cleancatsg.com/products/yee-aquarium-food-feed-for-shrimp
+   - https://www.cleancatsg.com/products/yee-instant-baby-brine-shrimp
+   - https://ultimateaquasg.com/products/yee-fish-food-pellet-instant-feed-baby-brine-shrimp
+   - https://www.fishmancart.com/product/yee-decapsulated-brine-shrimp-yee-artemia-decapsulated-brine-shrimp-eggs-cyst-50gm-MN5yJy
+
+   COMPETITOR REFERENCES:
+   - https://www.aquariumcoop.com/products/aquarium-co-op-freeze-dried-brine-shrimp-cubes
+   - https://interpet.co.uk/product/aquarium-food-feeding/food/freeze-dried-food-brine-shrimp-18g/
+
+9. NOTES / VARIANTS / RISKS:
+   - IMPORTANT: This is ADULT freeze-dried brine shrimp — clearly differentiate from
+     Product 023 (YYY-078) which is shelled brine shrimp EGGS. Different products,
+     different target fish, different feeding method.
+   - "Sticks to glass" is a premium UX feature — aquarists love watching fish feed up
+     close. This must be the #1 marketing point for this product.
+   - Packaging sizes confirmed on official page: 100ml, 200ml, 500ml. The 225ml jar
+     (C1-1086) may be a specific retail size between 200ml and 250ml. Verify exact
+     container volume when product arrives.
+   - Freeze-dried products have excellent shelf life (12-24 months sealed).
+   - Chunks should be broken into smaller pieces for small fish — note this in product
+     description for Iraqi buyers unfamiliar with FD foods.
+   - Superior to live brine shrimp for safety: no risk of introducing parasites/disease
+     from live food
+   - Protein 52.38%+ is excellent — higher than most freeze-dried alternatives
+
+10. AQUAVO RECOMMENDATION:
+    - Category: Fish Food > Freeze-Dried > Brine Shrimp
+    - Target buyers: All aquarists — betta keepers, community fish, goldfish, cichlids,
+      marine fish keepers
+    - Price tier: MID-PREMIUM
+    - Marketing angle: "الحياة بدون خطر — جمبري مجفف يلتصق بالزجاج لتشوف أسماكك تاكل"
+      (Life without risk — freeze-dried shrimp sticks to glass so you watch your fish eat)
+    - Key selling point: The glass-sticking feature is highly shareable on social media —
+      videos of fish feeding on glass-wall cubes perform extremely well
+    - Photo priority: HIGH — photograph cube stuck to glass with fish feeding on it
+    - Social content: Short video of cube being pressed to glass, fish immediately gathering
+    - Recommendation: PRIORITY LISTING — one of the most engaging fish foods for social media
+      content generation. High shareability = organic marketing.
+================================================

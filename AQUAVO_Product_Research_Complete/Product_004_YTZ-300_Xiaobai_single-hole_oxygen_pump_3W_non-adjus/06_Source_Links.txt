@@ -1,0 +1,16 @@
+﻿Product ID: AQUAVO-Research-004
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_004_YTZ-300_Xiaobai_single-hole_oxygen_pump_3W_non-adjus\01_Original_Alibaba_Image\Product_004_Original_004_total_B15_image4.png
+Official YEE family source: https://yeeaquarium.com/product/yee-mini-aquarium-air-pump/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/12/MINI氧气泵_01.jpg
+Damsel Dubai - exact YTZ-300 product page: https://damselbiz.com/products/shop-by-category/oxygen-air-pump/yee-mini-air-pump-oxygen-pump-ytz-300 (exact)
+8Garden - exact YEE YTZ-300 air pump: https://8garden.com/products/aquarium-air-pump-single-nozzle-1-5l-minute-3-watt-yee-ytz-300 (exact)
+Aqua-Deco Ukraine - exact YTZ-300 specs: https://aqua-deco.com.ua/product/kompresor-yee-dlya-akvariuma-bezshumnij-3-vt-ytz-300/ (exact)
+Bloo Aqua Studio: https://blooaquastudio.org/products/yee-kk-8800-single-outlet-oxyzen-pump-copy
+Image URL: https://blooaquastudio.org/cdn/shop/files/5X7EXydI1666283680-800x800.jpg?v=1745418465&width=1946
+Bloo Aqua Studio: https://blooaquastudio.org/products/yee-kk-8800-single-outlet-oxyzen-pump-copy
+Image URL: https://blooaquastudio.org/cdn/shop/files/ZcKS3PZx1666283680-776x776.jpg?v=1745418469&width=1946
+Damsel Dubai: https://damselbiz.com/products/shop-by-category/oxygen-air-pump/yee-mini-air-pump-oxygen-pump-ytz-300
+Image URL: https://damselbiz.com/_next/image?q=75&url=https%3A%2F%2Fdamselbiz.com%2Fuploads%2Fproducts%2F1752057769385.jpg&w=828

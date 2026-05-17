@@ -1,0 +1,102 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-036
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-036
+
+2. ALIBABA NAME: Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: بكتيريا النيترجة السائلة YEE - 760 مل
+   - English: YEE Liquid Nitrifying Bacteria + Probiotics 760ml
+
+4. MATCH STATUS: HIGH CONFIDENCE (95%)
+
+5. MATCH REASON:
+   Official YEE page at yeeaquarium.com/product/yee-wholesale-liquid-state-nitrifier/
+   confirms this is the YEE Liquid State Nitrifier (wholesale/retail line). Multiple
+   retailers (Sirena Aquatics PH, CleanCat SG, UltimateAqua SG, FishmanCart) all
+   list the same YEE liquid active nitrifying bacteria product. The 760ml is the
+   large/commercial size of this product family under code c2-1016. Core specs
+   (500M CFU, 10ml/100L dosage, 36-hour effectiveness, 24-month shelf life) are
+   consistent across all retailer listings.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Yipin Pet Products — Weifang, China)
+   - Manufacturer: Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: c2-1016
+   - Form: Liquid (aqueous suspension of live bacteria)
+   - Volume: 760ml (large size; same formula as 400ml variant c2-1016)
+   - Bacteria Type: Live (NOT dried spores) — liquid state nitrifier
+   - Bacteria Count: 500 million CFU (5 x 10^8 CFU) per bottle
+   - Bacteria Strains: Nitrifying bacteria (Nitrosomonas + Nitrobacter) +
+     aerobic denitrifying bacteria + mixed probiotics (active beneficial bacteria)
+   - Claims (confirmed):
+       * Rapidly clears cloudy/milky new tank water
+       * Establishes nitrogen cycle in 36 hours (new tank setup)
+       * Reduces and eliminates ammonia (NH3/NH4+) and ammonia-nitrogen
+       * Accelerates tank cycling (shortens cycling time significantly)
+       * Speeds up ammonia-nitrogen elimination for safer habitat
+       * Maintains water clarity and biological balance
+   - Dosage (Initial setup): 10ml per 100L of water
+   - Dosage (Weekly maintenance): 5ml per 100L of water per week
+   - Effectiveness Time: Effective in 36 hours (establishes nitrification)
+   - Shelf Life: 24 months from manufacturing date
+   - Storage: Store at room temperature (cool, dry place). Keep away from
+     direct sunlight. Do NOT freeze. Water temperature must be at least 18°C
+     after dosing. Ensure sufficient aeration/oxygenation after adding.
+   - Compatibility Warning: Do NOT use simultaneously with fungicides,
+     antibiotics, or sterilizing agents — these will kill the live bacteria.
+   - For: Freshwater aquariums (primary), some formulations also for marine
+   - pH Range: Bacteria active in standard freshwater pH range
+
+7. IMAGE SOURCES:
+   - Local: صور_الاكسل_الصحيحة/images/040_total_B60_image40.jpeg
+   - Retailer (SG): https://ultimateaquasg.com/products/yee-bio-active-nitrifying-liquid-beneficial-bacteria
+   - Retailer (PH): https://sirenaaquatics.ph/products/yee-nitrifier-bacteria-starter-for-cycling-aquarium-tanks
+   - Retailer (SG): https://www.cleancatsg.com/products/yee-aquarium-liquid-active-nitrifier
+   - Retailer (MY via TikTok): https://shop-my.tiktok.com/pdp/1731311399046776293
+
+8. ALL SOURCE LINKS:
+   - Official YEE Page: https://yeeaquarium.com/product/yee-wholesale-liquid-state-nitrifier/
+   - Official YEE Homepage: https://yeeaquarium.com/
+   - Alibaba Manufacturer: https://yeeaquarium.en.alibaba.com/
+   - Sirena Aquatics (PH): https://sirenaaquatics.ph/products/yee-nitrifier-bacteria-starter-for-cycling-aquarium-tanks
+   - CleanCat (SG): https://www.cleancatsg.com/products/yee-aquarium-liquid-active-nitrifier
+   - UltimateAqua (SG): https://ultimateaquasg.com/products/yee-bio-active-nitrifying-liquid-beneficial-bacteria
+   - FishmanCart: https://www.fishmancart.com/product/yee-nitrifying-bacteria-nitrobacter-nitrifier-for-aquarium-fish-tank-650-ml-Q8a7Xy
+   - HappyFishLife: https://happyfishlife.com/product/yee-probiotics-nitrifying-bacteria-nitrobacteria-nitrifier-premium-bt-grade/
+
+9. NOTES:
+   - VARIANT RELATIONSHIP: Products 036 (760ml) and 037 (400ml) are IDENTICAL
+     formula under the same product code c2-1016. The only difference is volume.
+     760ml = large/economy size, 400ml = standard/starter size.
+   - LIVE BACTERIA: This is a liquid suspension of LIVE active bacteria — NOT
+     dried spores. This means it has a finite shelf life (24 months) and must
+     not be frozen or exposed to antibacterials.
+   - The product is listed on the official YEE wholesale page confirming it is
+     part of YEE's core nitrification line for the aquarium trade.
+   - Also sold under the "Cleansing Ammonia Series" branding which emphasizes
+     the ammonia reduction function over the bacterial cycling function.
+   - Regional variant: A 650ml bottle appears on some Asian retailers — this is
+     likely the same formula with a slight volume difference for specific markets.
+     The 760ml is the larger confirmed size for the c2-1016 code.
+   - Do not confuse with YEE Nitrifying Bacteria DRY POWDER (separate product)
+     or YEE Bacteria Capsules C2-1005 (different format, different product).
+
+10. AQUAVO RECOMMENDATION:
+    - SELL AS: Core new-tank-setup essential — "البدء الصحيح لحوضك"
+    - PRICING STRATEGY: Position 760ml as economy/value size vs 400ml starter.
+      Recommend stocking both sizes. 760ml for serious hobbyists, 400ml for beginners.
+    - PRODUCT DESCRIPTION FOCUS: Emphasize "36 ساعة وحوضك يصفى" — fast results
+      for Iraqi customers who want quick water clearing.
+    - SOCIAL CONTENT: "كيف تبدأ حوضك الجديد بشكل صحيح" educational content pairing
+      this product with the ammonia test kit (Product 038).
+    - CROSS-SELL: Pair with Product 038 (Ammonia Tester) and Product 040 (9-in-1 strips)
+    - PHOTO: Use local image 040_total_B60_image40.jpeg. Consider showing
+      "before/after" cloudy vs clear water visual in social content.
+    - STORAGE NOTE FOR CUSTOMERS: Must warn Iraqi customers about summer heat —
+      keep away from direct sunlight, do not store in hot cars or direct sun exposure.
+================================================

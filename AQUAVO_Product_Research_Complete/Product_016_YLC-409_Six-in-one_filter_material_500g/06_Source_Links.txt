@@ -1,0 +1,6 @@
+﻿Product ID: AQUAVO-Research-016
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_016_YLC-409_Six-in-one_filter_material_500g\01_Original_Alibaba_Image\Product_016_Original_017_total_B28_image17.png
+YEE official possible family - 6 in 1 filter materials: https://yeeaquarium.com/product/yee-wholesale-6-in-1-aquarium-filter-materials/ (possible)

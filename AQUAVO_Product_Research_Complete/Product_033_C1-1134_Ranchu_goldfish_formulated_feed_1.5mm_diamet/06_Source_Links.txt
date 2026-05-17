@@ -1,0 +1,7 @@
+﻿Product ID: AQUAVO-Research-033
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_033_C1-1134_Ranchu_goldfish_formulated_feed_1.5mm_diamet\01_Original_Alibaba_Image\Product_033_Original_034_total_B54_image34.png
+Official YEE family source: https://yeeaquarium.com/product/yee-wholesale-goldfish-fish-food/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/03/0922金鱼兰寿鱼粮_01.jpg

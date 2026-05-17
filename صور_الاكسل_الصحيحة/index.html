@@ -1,0 +1,1328 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>صور الإكسل - المنتجات</title>
+  <style>
+    :root { color-scheme: light; }
+    body { margin:0; font-family: Tahoma, Arial, sans-serif; background:#f5f7fb; color:#111827; }
+    main { max-width:1440px; margin:0 auto; padding:22px; }
+    h1 { margin:0 0 8px; font-size:28px; }
+    p { color:#475569; line-height:1.7; }
+    .toolbar { position:sticky; top:0; z-index:10; display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding:12px; margin:16px 0; background:#fff; border:1px solid #d9e1ee; border-radius:8px; }
+    .count { margin-inline-start:auto; color:#475569; font-size:13px; }
+    button, .download { border:1px solid #cbd5e1; background:#fff; color:#111827; border-radius:6px; padding:8px 10px; cursor:pointer; font:inherit; font-size:13px; text-decoration:none; }
+    button:hover, .download:hover { background:#f8fafc; }
+    button.active { border-color:#185abc; color:#185abc; background:#eff6ff; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:14px; }
+    .card { background:#fff; border:1px solid #d9e1ee; border-top:4px solid #94a3b8; border-radius:8px; overflow:hidden; display:flex; flex-direction:column; min-height:360px; }
+    .card[data-status="correct"] { border-top-color:#15803d; }
+    .card[data-status="wrong"] { border-top-color:#b42318; opacity:.55; }
+    .image-wrap { height:220px; display:flex; align-items:center; justify-content:center; background:#fff; border-bottom:1px solid #e5e7eb; }
+    img { max-width:100%; max-height:220px; object-fit:contain; display:block; }
+    .card-body { padding:12px; display:flex; flex-direction:column; gap:7px; }
+    .card-title { direction:ltr; text-align:left; font-weight:700; }
+    .meta { direction:ltr; text-align:left; color:#64748b; font-size:12px; overflow-wrap:anywhere; }
+    details { border:1px solid #e5e7eb; border-radius:6px; padding:8px; font-size:12px; color:#334155; }
+    details p { margin:8px 0 0; direction:ltr; text-align:left; color:#334155; overflow-wrap:anywhere; }
+    .actions { display:flex; gap:6px; margin-top:4px; }
+    .actions button { flex:1; }
+    .actions .ok { border-color:#86efac; }
+    .actions .bad { border-color:#fecaca; }
+    .hidden { display:none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>صور المنتجات المستخرجة من ملف الإكسل</h1>
+    <p>المصدر الوحيد هنا هو ملف الإكسل: <span dir="ltr">C:\Users\jaafa\Desktop\upload\FishWebClean\_excel_source_客户伊拉克-Jaafar-1.7 (1).xlsx</span>. عدد الصور المستخرجة: <strong>54</strong>.</p>
+    <div class="toolbar">
+      <button type="button" data-filter="all" class="active">عرض الكل</button>
+      <button type="button" data-filter="correct">عرض الصحيح فقط</button>
+      <button type="button" data-filter="hide-wrong">إخفاء غير الصحيح</button>
+      <button type="button" id="export">تصدير اختياراتي CSV</button>
+      <button type="button" id="reset">مسح الاختيارات</button>
+      <a class="download" href="manifest.csv">manifest.csv</a>
+      <span class="count" id="count"></span>
+    </div>
+    <section class="grid" id="grid">
+      
+        <article class="card" data-key="images/001_total_B10_image1.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/001_total_B10_image1.png"><img src="images/001_total_B10_image1.png" alt="Excel image 1"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#001</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B10</div>
+            <div class="meta">Media: xl/media/image1.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 10: A=1 | C=1.5.1.7 | D=YEE-3006 | E=50W纯钢加热棒 YSH-50 | F=50W pure steel heating rod YSH-50 | G=2.47887323943662 | H=8 | I=19.830985915492999</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 1, &quot;image_file&quot;: &quot;images/001_total_B10_image1.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B10&quot;, &quot;source_media&quot;: &quot;xl/media/image1.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 10: A=1 | C=1.5.1.7 | D=YEE-3006 | E=50W纯钢加热棒 YSH-50 | F=50W pure steel heating rod YSH-50 | G=2.47887323943662 | H=8 | I=19.830985915492999&quot;, &quot;nearby_row_text&quot;: &quot;Row 9: G=（USD） | H=(PCS) | I=（USD） ; Row 10: A=1 | C=1.5.1.7 | D=YEE-3006 | E=50W纯钢加热棒 YSH-50 | F=50W pure steel heating rod YSH-50 | G=2.47887323943662 | H=8 | I=19.830985915492999 ; Row 11: A=2 | C=1.5.1.8 | D=YEE-3007 | E=100W纯钢加热棒 YSH-100 | F=100W pure steel heating rod YSH-100 | G=2.5633802816901401 | H=8 | I=20.507042253521099&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/002_total_B13_image2.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/002_total_B13_image2.jpeg"><img src="images/002_total_B13_image2.jpeg" alt="Excel image 2"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#002</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B13</div>
+            <div class="meta">Media: xl/media/image2.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 13: A=4 | C=C4-1432-1 | D=C4-1432 | E=Yee意牌水族皓源石英加热棒 100W | F=Yee brand aquarium quartz heating rod, 100W | G=9.76 | H=1 | I=9.76</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 2, &quot;image_file&quot;: &quot;images/002_total_B13_image2.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B13&quot;, &quot;source_media&quot;: &quot;xl/media/image2.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 13: A=4 | C=C4-1432-1 | D=C4-1432 | E=Yee意牌水族皓源石英加热棒 100W | F=Yee brand aquarium quartz heating rod, 100W | G=9.76 | H=1 | I=9.76&quot;, &quot;nearby_row_text&quot;: &quot;Row 12: A=3 | C=1.5.1.9 | D=YEE-3008 | E=200W纯钢加热棒 YSH-200 | F=200W pure steel heating rod YSH-200 | G=2.57746478873239 | H=8 | I=20.619718309859099 ; Row 13: A=4 | C=C4-1432-1 | D=C4-1432 | E=Yee意牌水族皓源石英加热棒 100W | F=Yee brand aquarium quartz heating rod, 100W | G=9.76 | H=1 | I=9.76 ; Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/003_total_B14_image3.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/003_total_B14_image3.jpeg"><img src="images/003_total_B14_image3.jpeg" alt="Excel image 3"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#003</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B14</div>
+            <div class="meta">Media: xl/media/image3.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 3, &quot;image_file&quot;: &quot;images/003_total_B14_image3.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B14&quot;, &quot;source_media&quot;: &quot;xl/media/image3.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169&quot;, &quot;nearby_row_text&quot;: &quot;Row 13: A=4 | C=C4-1432-1 | D=C4-1432 | E=Yee意牌水族皓源石英加热棒 100W | F=Yee brand aquarium quartz heating rod, 100W | G=9.76 | H=1 | I=9.76 ; Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169 ; Row 15: A=6 | C=03326 | D=YTZ-300 | E=小白单孔氧气泵3W（不可调）YTZ-300 | F=Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300 | G=1.16901408450704 | H=3 | I=3.51&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/004_total_B15_image4.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/004_total_B15_image4.png"><img src="images/004_total_B15_image4.png" alt="Excel image 4"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#004</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B15</div>
+            <div class="meta">Media: xl/media/image4.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 15: A=6 | C=03326 | D=YTZ-300 | E=小白单孔氧气泵3W（不可调）YTZ-300 | F=Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300 | G=1.16901408450704 | H=3 | I=3.51</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 4, &quot;image_file&quot;: &quot;images/004_total_B15_image4.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B15&quot;, &quot;source_media&quot;: &quot;xl/media/image4.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 15: A=6 | C=03326 | D=YTZ-300 | E=小白单孔氧气泵3W（不可调）YTZ-300 | F=Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300 | G=1.16901408450704 | H=3 | I=3.51&quot;, &quot;nearby_row_text&quot;: &quot;Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169 ; Row 15: A=6 | C=03326 | D=YTZ-300 | E=小白单孔氧气泵3W（不可调）YTZ-300 | F=Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300 | G=1.16901408450704 | H=3 | I=3.51 ; Row 16: A=7 | C=07154 | D=YGG-135 | E=YEE 50mm 球形矿物质气泡扩散器 | F=YEE 50mm Ball Mineral Bubble Diffuser | G=1.56 | H=15 | I=23.4&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/005_total_D14_image5.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/005_total_D14_image5.jpeg"><img src="images/005_total_D14_image5.jpeg" alt="Excel image 5"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#005</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: D14</div>
+            <div class="meta">Media: xl/media/image5.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 5, &quot;image_file&quot;: &quot;images/005_total_D14_image5.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;D14&quot;, &quot;source_media&quot;: &quot;xl/media/image5.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169&quot;, &quot;nearby_row_text&quot;: &quot;Row 13: A=4 | C=C4-1432-1 | D=C4-1432 | E=Yee意牌水族皓源石英加热棒 100W | F=Yee brand aquarium quartz heating rod, 100W | G=9.76 | H=1 | I=9.76 ; Row 14: A=5 | C=C4-1103-4 | D=C4-1103 | E=YEE黑武士加热棒 100W | F=YEE Black Warrior Heater 100W | G=3.52112676056338 | H=5 | I=17.6056338028169 ; Row 15: A=6 | C=03326 | D=YTZ-300 | E=小白单孔氧气泵3W（不可调）YTZ-300 | F=Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300 | G=1.16901408450704 | H=3 | I=3.51&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/006_total_B17_image6.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/006_total_B17_image6.jpeg"><img src="images/006_total_B17_image6.jpeg" alt="Excel image 6"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#006</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B17</div>
+            <div class="meta">Media: xl/media/image6.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 17: A=8 | C=C5-1144-1a | D=C5-1144 | E=加强版1.5米/加厚加长 | F=Enhanced version 1.5 meters/thickened and lengthened | G=0.36619718309859201 | H=10 | I=3.66</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 6, &quot;image_file&quot;: &quot;images/006_total_B17_image6.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B17&quot;, &quot;source_media&quot;: &quot;xl/media/image6.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 17: A=8 | C=C5-1144-1a | D=C5-1144 | E=加强版1.5米/加厚加长 | F=Enhanced version 1.5 meters/thickened and lengthened | G=0.36619718309859201 | H=10 | I=3.66&quot;, &quot;nearby_row_text&quot;: &quot;Row 16: A=7 | C=07154 | D=YGG-135 | E=YEE 50mm 球形矿物质气泡扩散器 | F=YEE 50mm Ball Mineral Bubble Diffuser | G=1.56 | H=15 | I=23.4 ; Row 17: A=8 | C=C5-1144-1a | D=C5-1144 | E=加强版1.5米/加厚加长 | F=Enhanced version 1.5 meters/thickened and lengthened | G=0.36619718309859201 | H=10 | I=3.66 ; Row 18: A=9 | C=1.8.3.2 | D=YEE-3621 | E=【加厚气囊 经久耐用】1.7米 | F=【Thickened airbag for durability】1.7 meters | G=0.91549295774647899 | H=10 | I=9.15&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/007_total_B18_image7.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/007_total_B18_image7.jpeg"><img src="images/007_total_B18_image7.jpeg" alt="Excel image 7"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#007</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B18</div>
+            <div class="meta">Media: xl/media/image7.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 18: A=9 | C=1.8.3.2 | D=YEE-3621 | E=【加厚气囊 经久耐用】1.7米 | F=【Thickened airbag for durability】1.7 meters | G=0.91549295774647899 | H=10 | I=9.15</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 7, &quot;image_file&quot;: &quot;images/007_total_B18_image7.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B18&quot;, &quot;source_media&quot;: &quot;xl/media/image7.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 18: A=9 | C=1.8.3.2 | D=YEE-3621 | E=【加厚气囊 经久耐用】1.7米 | F=【Thickened airbag for durability】1.7 meters | G=0.91549295774647899 | H=10 | I=9.15&quot;, &quot;nearby_row_text&quot;: &quot;Row 17: A=8 | C=C5-1144-1a | D=C5-1144 | E=加强版1.5米/加厚加长 | F=Enhanced version 1.5 meters/thickened and lengthened | G=0.36619718309859201 | H=10 | I=3.66 ; Row 18: A=9 | C=1.8.3.2 | D=YEE-3621 | E=【加厚气囊 经久耐用】1.7米 | F=【Thickened airbag for durability】1.7 meters | G=0.91549295774647899 | H=10 | I=9.15 ; Row 19: A=10 | C=C4-1117-1 | D=C4-1117 | E=高配30W 低水位 | F=High configuration 30W low water level | G=8.28169014084507 | H=5 | I=41.41&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/008_total_B19_image8.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/008_total_B19_image8.jpeg"><img src="images/008_total_B19_image8.jpeg" alt="Excel image 8"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#008</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B19</div>
+            <div class="meta">Media: xl/media/image8.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 19: A=10 | C=C4-1117-1 | D=C4-1117 | E=高配30W 低水位 | F=High configuration 30W low water level | G=8.28169014084507 | H=5 | I=41.41</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 8, &quot;image_file&quot;: &quot;images/008_total_B19_image8.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B19&quot;, &quot;source_media&quot;: &quot;xl/media/image8.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 19: A=10 | C=C4-1117-1 | D=C4-1117 | E=高配30W 低水位 | F=High configuration 30W low water level | G=8.28169014084507 | H=5 | I=41.41&quot;, &quot;nearby_row_text&quot;: &quot;Row 18: A=9 | C=1.8.3.2 | D=YEE-3621 | E=【加厚气囊 经久耐用】1.7米 | F=【Thickened airbag for durability】1.7 meters | G=0.91549295774647899 | H=10 | I=9.15 ; Row 19: A=10 | C=C4-1117-1 | D=C4-1117 | E=高配30W 低水位 | F=High configuration 30W low water level | G=8.28169014084507 | H=5 | I=41.41 ; Row 20: A=11 | C=C4-1008-1 | D=C4-1008 | E=悬浮隔离盒大号 | F=Large suspended isolation box | G=2.6760563380281699 | H=8 | I=21.41&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/009_total_B20_image9.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/009_total_B20_image9.png"><img src="images/009_total_B20_image9.png" alt="Excel image 9"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#009</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B20</div>
+            <div class="meta">Media: xl/media/image9.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 20: A=11 | C=C4-1008-1 | D=C4-1008 | E=悬浮隔离盒大号 | F=Large suspended isolation box | G=2.6760563380281699 | H=8 | I=21.41</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 9, &quot;image_file&quot;: &quot;images/009_total_B20_image9.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B20&quot;, &quot;source_media&quot;: &quot;xl/media/image9.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 20: A=11 | C=C4-1008-1 | D=C4-1008 | E=悬浮隔离盒大号 | F=Large suspended isolation box | G=2.6760563380281699 | H=8 | I=21.41&quot;, &quot;nearby_row_text&quot;: &quot;Row 19: A=10 | C=C4-1117-1 | D=C4-1117 | E=高配30W 低水位 | F=High configuration 30W low water level | G=8.28169014084507 | H=5 | I=41.41 ; Row 20: A=11 | C=C4-1008-1 | D=C4-1008 | E=悬浮隔离盒大号 | F=Large suspended isolation box | G=2.6760563380281699 | H=8 | I=21.41 ; Row 21: A=12 | C=02517 | D=YSL-506 | E=大号气动孵化盒（双房） | F=Large pneumatic incubator (double room) | G=0.99 | H=5 | I=4.95&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/010_total_B21_image10.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/010_total_B21_image10.png"><img src="images/010_total_B21_image10.png" alt="Excel image 10"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#010</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B21</div>
+            <div class="meta">Media: xl/media/image10.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 21: A=12 | C=02517 | D=YSL-506 | E=大号气动孵化盒（双房） | F=Large pneumatic incubator (double room) | G=0.99 | H=5 | I=4.95</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 10, &quot;image_file&quot;: &quot;images/010_total_B21_image10.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B21&quot;, &quot;source_media&quot;: &quot;xl/media/image10.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 21: A=12 | C=02517 | D=YSL-506 | E=大号气动孵化盒（双房） | F=Large pneumatic incubator (double room) | G=0.99 | H=5 | I=4.95&quot;, &quot;nearby_row_text&quot;: &quot;Row 20: A=11 | C=C4-1008-1 | D=C4-1008 | E=悬浮隔离盒大号 | F=Large suspended isolation box | G=2.6760563380281699 | H=8 | I=21.41 ; Row 21: A=12 | C=02517 | D=YSL-506 | E=大号气动孵化盒（双房） | F=Large pneumatic incubator (double room) | G=0.99 | H=5 | I=4.95 ; Row 22: A=13 | C=02771 | D=YKL-018 | E=亚克力培养箱 20*10*10 | F=Acrylic incubator 20*10*10 | G=2.86 | H=4 | I=11.44&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/011_total_B22_image11.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/011_total_B22_image11.jpeg"><img src="images/011_total_B22_image11.jpeg" alt="Excel image 11"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#011</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B22</div>
+            <div class="meta">Media: xl/media/image11.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 22: A=13 | C=02771 | D=YKL-018 | E=亚克力培养箱 20*10*10 | F=Acrylic incubator 20*10*10 | G=2.86 | H=4 | I=11.44</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 11, &quot;image_file&quot;: &quot;images/011_total_B22_image11.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B22&quot;, &quot;source_media&quot;: &quot;xl/media/image11.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 22: A=13 | C=02771 | D=YKL-018 | E=亚克力培养箱 20*10*10 | F=Acrylic incubator 20*10*10 | G=2.86 | H=4 | I=11.44&quot;, &quot;nearby_row_text&quot;: &quot;Row 21: A=12 | C=02517 | D=YSL-506 | E=大号气动孵化盒（双房） | F=Large pneumatic incubator (double room) | G=0.99 | H=5 | I=4.95 ; Row 22: A=13 | C=02771 | D=YKL-018 | E=亚克力培养箱 20*10*10 | F=Acrylic incubator 20*10*10 | G=2.86 | H=4 | I=11.44 ; Row 23: A=14 | C=05617a | D=YLL-087 | E=（蓝色）新升级6D 过滤棉 50*40 两片装 | F=(Blue) New upgraded 6D filter cotton 50*40 two pieces | G=3.0422535211267601 | H=4 | I=12.17&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/012_total_B23_image12.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/012_total_B23_image12.jpeg"><img src="images/012_total_B23_image12.jpeg" alt="Excel image 12"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#012</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B23</div>
+            <div class="meta">Media: xl/media/image12.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 23: A=14 | C=05617a | D=YLL-087 | E=（蓝色）新升级6D 过滤棉 50*40 两片装 | F=(Blue) New upgraded 6D filter cotton 50*40 two pieces | G=3.0422535211267601 | H=4 | I=12.17</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 12, &quot;image_file&quot;: &quot;images/012_total_B23_image12.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B23&quot;, &quot;source_media&quot;: &quot;xl/media/image12.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 23: A=14 | C=05617a | D=YLL-087 | E=（蓝色）新升级6D 过滤棉 50*40 两片装 | F=(Blue) New upgraded 6D filter cotton 50*40 two pieces | G=3.0422535211267601 | H=4 | I=12.17&quot;, &quot;nearby_row_text&quot;: &quot;Row 22: A=13 | C=02771 | D=YKL-018 | E=亚克力培养箱 20*10*10 | F=Acrylic incubator 20*10*10 | G=2.86 | H=4 | I=11.44 ; Row 23: A=14 | C=05617a | D=YLL-087 | E=（蓝色）新升级6D 过滤棉 50*40 两片装 | F=(Blue) New upgraded 6D filter cotton 50*40 two pieces | G=3.0422535211267601 | H=4 | I=12.17 ; Row 24: A=15 | C=07116 | D=YFF-042 | E=纳米培养环混合装 | F=Nano Culture Ring Mixed Pack | G=1.31 | H=8 | I=10.48&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/013_total_B24_image13.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/013_total_B24_image13.jpeg"><img src="images/013_total_B24_image13.jpeg" alt="Excel image 13"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#013</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B24</div>
+            <div class="meta">Media: xl/media/image13.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 24: A=15 | C=07116 | D=YFF-042 | E=纳米培养环混合装 | F=Nano Culture Ring Mixed Pack | G=1.31 | H=8 | I=10.48</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 13, &quot;image_file&quot;: &quot;images/013_total_B24_image13.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B24&quot;, &quot;source_media&quot;: &quot;xl/media/image13.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 24: A=15 | C=07116 | D=YFF-042 | E=纳米培养环混合装 | F=Nano Culture Ring Mixed Pack | G=1.31 | H=8 | I=10.48&quot;, &quot;nearby_row_text&quot;: &quot;Row 23: A=14 | C=05617a | D=YLL-087 | E=（蓝色）新升级6D 过滤棉 50*40 两片装 | F=(Blue) New upgraded 6D filter cotton 50*40 two pieces | G=3.0422535211267601 | H=4 | I=12.17 ; Row 24: A=15 | C=07116 | D=YFF-042 | E=纳米培养环混合装 | F=Nano Culture Ring Mixed Pack | G=1.31 | H=8 | I=10.48 ; Row 25: A=16 | C=17699a | D=YAA-009. | E=高能量培菌砖 | F=High energy culture bricks | G=0.83 | H=5 | I=4.1500000000000004&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/014_total_B25_image14.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/014_total_B25_image14.png"><img src="images/014_total_B25_image14.png" alt="Excel image 14"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#014</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B25</div>
+            <div class="meta">Media: xl/media/image14.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 25: A=16 | C=17699a | D=YAA-009. | E=高能量培菌砖 | F=High energy culture bricks | G=0.83 | H=5 | I=4.1500000000000004</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 14, &quot;image_file&quot;: &quot;images/014_total_B25_image14.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B25&quot;, &quot;source_media&quot;: &quot;xl/media/image14.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 25: A=16 | C=17699a | D=YAA-009. | E=高能量培菌砖 | F=High energy culture bricks | G=0.83 | H=5 | I=4.1500000000000004&quot;, &quot;nearby_row_text&quot;: &quot;Row 24: A=15 | C=07116 | D=YFF-042 | E=纳米培养环混合装 | F=Nano Culture Ring Mixed Pack | G=1.31 | H=8 | I=10.48 ; Row 25: A=16 | C=17699a | D=YAA-009. | E=高能量培菌砖 | F=High energy culture bricks | G=0.83 | H=5 | I=4.1500000000000004 ; Row 26: A=17 | C=11578 | D=NYH-006 | E=Nepall 3D曲奇滤材 500g | F=3D filter material | G=1.67 | H=6 | I=10.02&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/015_total_B26_image15.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/015_total_B26_image15.png"><img src="images/015_total_B26_image15.png" alt="Excel image 15"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#015</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B26</div>
+            <div class="meta">Media: xl/media/image15.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 26: A=17 | C=11578 | D=NYH-006 | E=Nepall 3D曲奇滤材 500g | F=3D filter material | G=1.67 | H=6 | I=10.02</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 15, &quot;image_file&quot;: &quot;images/015_total_B26_image15.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B26&quot;, &quot;source_media&quot;: &quot;xl/media/image15.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 26: A=17 | C=11578 | D=NYH-006 | E=Nepall 3D曲奇滤材 500g | F=3D filter material | G=1.67 | H=6 | I=10.02&quot;, &quot;nearby_row_text&quot;: &quot;Row 25: A=16 | C=17699a | D=YAA-009. | E=高能量培菌砖 | F=High energy culture bricks | G=0.83 | H=5 | I=4.1500000000000004 ; Row 26: A=17 | C=11578 | D=NYH-006 | E=Nepall 3D曲奇滤材 500g | F=3D filter material | G=1.67 | H=6 | I=10.02 ; Row 27: A=18 | C=71934 | D=YLC-410 | E=十六合一滤材 2.5kg | F=16-in-1 filter material 2.5kg | G=2.6056338028169002 | H=5 | I=13.03&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/016_total_B27_image16.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/016_total_B27_image16.png"><img src="images/016_total_B27_image16.png" alt="Excel image 16"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#016</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B27</div>
+            <div class="meta">Media: xl/media/image16.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 27: A=18 | C=71934 | D=YLC-410 | E=十六合一滤材 2.5kg | F=16-in-1 filter material 2.5kg | G=2.6056338028169002 | H=5 | I=13.03</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 16, &quot;image_file&quot;: &quot;images/016_total_B27_image16.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B27&quot;, &quot;source_media&quot;: &quot;xl/media/image16.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 27: A=18 | C=71934 | D=YLC-410 | E=十六合一滤材 2.5kg | F=16-in-1 filter material 2.5kg | G=2.6056338028169002 | H=5 | I=13.03&quot;, &quot;nearby_row_text&quot;: &quot;Row 26: A=17 | C=11578 | D=NYH-006 | E=Nepall 3D曲奇滤材 500g | F=3D filter material | G=1.67 | H=6 | I=10.02 ; Row 27: A=18 | C=71934 | D=YLC-410 | E=十六合一滤材 2.5kg | F=16-in-1 filter material 2.5kg | G=2.6056338028169002 | H=5 | I=13.03 ; Row 28: A=19 | C=17831 | D=YLC-409 | E=六合一滤材 500g | F=Six-in-one filter material 500g | G=0.971830985915493 | H=5 | I=4.8600000000000003&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/017_total_B28_image17.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/017_total_B28_image17.png"><img src="images/017_total_B28_image17.png" alt="Excel image 17"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#017</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B28</div>
+            <div class="meta">Media: xl/media/image17.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 28: A=19 | C=17831 | D=YLC-409 | E=六合一滤材 500g | F=Six-in-one filter material 500g | G=0.971830985915493 | H=5 | I=4.8600000000000003</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 17, &quot;image_file&quot;: &quot;images/017_total_B28_image17.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B28&quot;, &quot;source_media&quot;: &quot;xl/media/image17.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 28: A=19 | C=17831 | D=YLC-409 | E=六合一滤材 500g | F=Six-in-one filter material 500g | G=0.971830985915493 | H=5 | I=4.8600000000000003&quot;, &quot;nearby_row_text&quot;: &quot;Row 27: A=18 | C=71934 | D=YLC-410 | E=十六合一滤材 2.5kg | F=16-in-1 filter material 2.5kg | G=2.6056338028169002 | H=5 | I=13.03 ; Row 28: A=19 | C=17831 | D=YLC-409 | E=六合一滤材 500g | F=Six-in-one filter material 500g | G=0.971830985915493 | H=5 | I=4.8600000000000003 ; Row 29: A=20 | C=C4-1067-1 | D=C4-1067 | E=3W 油膜处理器 | F=3W oil film processor | G=2.61 | H=4 | I=10.44&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/018_total_B29_image18.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/018_total_B29_image18.png"><img src="images/018_total_B29_image18.png" alt="Excel image 18"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#018</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B29</div>
+            <div class="meta">Media: xl/media/image18.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 29: A=20 | C=C4-1067-1 | D=C4-1067 | E=3W 油膜处理器 | F=3W oil film processor | G=2.61 | H=4 | I=10.44</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 18, &quot;image_file&quot;: &quot;images/018_total_B29_image18.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B29&quot;, &quot;source_media&quot;: &quot;xl/media/image18.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 29: A=20 | C=C4-1067-1 | D=C4-1067 | E=3W 油膜处理器 | F=3W oil film processor | G=2.61 | H=4 | I=10.44&quot;, &quot;nearby_row_text&quot;: &quot;Row 28: A=19 | C=17831 | D=YLC-409 | E=六合一滤材 500g | F=Six-in-one filter material 500g | G=0.971830985915493 | H=5 | I=4.8600000000000003 ; Row 29: A=20 | C=C4-1067-1 | D=C4-1067 | E=3W 油膜处理器 | F=3W oil film processor | G=2.61 | H=4 | I=10.44 ; Row 30: A=21 | C=08116 | D=LED-318 | E=yee三色可调 3.5W 双排广角灯27cm | F=Yee three-color adjustable 3.5W double-row wide-angle light, 27cm | G=0 | H=4 | I=0 | J=Free gift&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/019_total_B30_image19.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/019_total_B30_image19.png"><img src="images/019_total_B30_image19.png" alt="Excel image 19"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#019</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B30</div>
+            <div class="meta">Media: xl/media/image19.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 30: A=21 | C=08116 | D=LED-318 | E=yee三色可调 3.5W 双排广角灯27cm | F=Yee three-color adjustable 3.5W double-row wide-angle light, 27cm | G=0 | H=4 | I=0 | J=Free gift</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 19, &quot;image_file&quot;: &quot;images/019_total_B30_image19.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B30&quot;, &quot;source_media&quot;: &quot;xl/media/image19.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 30: A=21 | C=08116 | D=LED-318 | E=yee三色可调 3.5W 双排广角灯27cm | F=Yee three-color adjustable 3.5W double-row wide-angle light, 27cm | G=0 | H=4 | I=0 | J=Free gift&quot;, &quot;nearby_row_text&quot;: &quot;Row 29: A=20 | C=C4-1067-1 | D=C4-1067 | E=3W 油膜处理器 | F=3W oil film processor | G=2.61 | H=4 | I=10.44 ; Row 30: A=21 | C=08116 | D=LED-318 | E=yee三色可调 3.5W 双排广角灯27cm | F=Yee three-color adjustable 3.5W double-row wide-angle light, 27cm | G=0 | H=4 | I=0 | J=Free gift ; Row 31: A=22 | C=07140 | D=CLS-107 | E=鱼缸磁力刷 大号 蓝色强磁 | F=Aquarium magnetic cleaning brush, large size, blue, strong magnet. | G=0 | H=3 | I=0 | J=Free gift&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/020_total_B31_image20.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/020_total_B31_image20.png"><img src="images/020_total_B31_image20.png" alt="Excel image 20"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#020</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B31</div>
+            <div class="meta">Media: xl/media/image20.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 31: A=22 | C=07140 | D=CLS-107 | E=鱼缸磁力刷 大号 蓝色强磁 | F=Aquarium magnetic cleaning brush, large size, blue, strong magnet. | G=0 | H=3 | I=0 | J=Free gift</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 20, &quot;image_file&quot;: &quot;images/020_total_B31_image20.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B31&quot;, &quot;source_media&quot;: &quot;xl/media/image20.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 31: A=22 | C=07140 | D=CLS-107 | E=鱼缸磁力刷 大号 蓝色强磁 | F=Aquarium magnetic cleaning brush, large size, blue, strong magnet. | G=0 | H=3 | I=0 | J=Free gift&quot;, &quot;nearby_row_text&quot;: &quot;Row 30: A=21 | C=08116 | D=LED-318 | E=yee三色可调 3.5W 双排广角灯27cm | F=Yee three-color adjustable 3.5W double-row wide-angle light, 27cm | G=0 | H=4 | I=0 | J=Free gift ; Row 31: A=22 | C=07140 | D=CLS-107 | E=鱼缸磁力刷 大号 蓝色强磁 | F=Aquarium magnetic cleaning brush, large size, blue, strong magnet. | G=0 | H=3 | I=0 | J=Free gift ; Row 32: A=23 | C=1.15.60 | D=YEE-3656 | E=16mm牛筋管1.0米 | F=1.0 meter of 16mm reinforced plastic tubing | G=0 | H=5 | I=0 | J=Free gift&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/021_total_B32_image21.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/021_total_B32_image21.png"><img src="images/021_total_B32_image21.png" alt="Excel image 21"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#021</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B32</div>
+            <div class="meta">Media: xl/media/image21.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 32: A=23 | C=1.15.60 | D=YEE-3656 | E=16mm牛筋管1.0米 | F=1.0 meter of 16mm reinforced plastic tubing | G=0 | H=5 | I=0 | J=Free gift</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 21, &quot;image_file&quot;: &quot;images/021_total_B32_image21.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B32&quot;, &quot;source_media&quot;: &quot;xl/media/image21.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 32: A=23 | C=1.15.60 | D=YEE-3656 | E=16mm牛筋管1.0米 | F=1.0 meter of 16mm reinforced plastic tubing | G=0 | H=5 | I=0 | J=Free gift&quot;, &quot;nearby_row_text&quot;: &quot;Row 31: A=22 | C=07140 | D=CLS-107 | E=鱼缸磁力刷 大号 蓝色强磁 | F=Aquarium magnetic cleaning brush, large size, blue, strong magnet. | G=0 | H=3 | I=0 | J=Free gift ; Row 32: A=23 | C=1.15.60 | D=YEE-3656 | E=16mm牛筋管1.0米 | F=1.0 meter of 16mm reinforced plastic tubing | G=0 | H=5 | I=0 | J=Free gift ; Row 33: A=24 | C=06255 | D=YXL-003 | E=400x230x250mm 5mm厚 | F=400x230x250mm 5mm thick | G=6.28169014084507 | H=2 | I=12.563380281690099 | J=打木箱，大小号嵌套，内部塞其它产品&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/022_total_B35_image22.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/022_total_B35_image22.jpeg"><img src="images/022_total_B35_image22.jpeg" alt="Excel image 22"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#022</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B35</div>
+            <div class="meta">Media: xl/media/image22.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 35: A=26 | C=05381 | D=YKK-60 | E=600x300x350mm 5mm厚 | F=600x300x350mm 5mm thick | G=12.5211267605634 | H=2 | I=25.042253521126799</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 22, &quot;image_file&quot;: &quot;images/022_total_B35_image22.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B35&quot;, &quot;source_media&quot;: &quot;xl/media/image22.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 35: A=26 | C=05381 | D=YKK-60 | E=600x300x350mm 5mm厚 | F=600x300x350mm 5mm thick | G=12.5211267605634 | H=2 | I=25.042253521126799&quot;, &quot;nearby_row_text&quot;: &quot;Row 34: A=25 | C=05380 | D=YKK-50 | E=500x270x300mm 5mm厚 | F=500x270x300mm 5mm thick | G=9.7323943661971803 | H=2 | I=19.4647887323944 ; Row 35: A=26 | C=05381 | D=YKK-60 | E=600x300x350mm 5mm厚 | F=600x300x350mm 5mm thick | G=12.5211267605634 | H=2 | I=25.042253521126799 ; Row 36: A=27 | C=16932 | D=YEE-1090 | E=35×35×35 6mm 厚 | F=35×35×35 6mm thick | G=8.5915492957746498 | H=2 | I=17.1830985915493 | J=打木箱，大小号嵌套，内部塞其它产品&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/023_total_B39_image23.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/023_total_B39_image23.jpeg"><img src="images/023_total_B39_image23.jpeg" alt="Excel image 23"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#023</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B39</div>
+            <div class="meta">Media: xl/media/image23.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 39: A=30 | C=C5-1123-2 | D=C5-1123 | E=裸缸侧虑溪流缸60*15*15cm 6mm送水泵 | F=Bare side stream tank 60*15*15cm 6mm water pump | G=17.295774647887299 | H=2 | I=34.591549295774598 | J=打木箱，内部塞其它产品</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 23, &quot;image_file&quot;: &quot;images/023_total_B39_image23.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B39&quot;, &quot;source_media&quot;: &quot;xl/media/image23.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 39: A=30 | C=C5-1123-2 | D=C5-1123 | E=裸缸侧虑溪流缸60*15*15cm 6mm送水泵 | F=Bare side stream tank 60*15*15cm 6mm water pump | G=17.295774647887299 | H=2 | I=34.591549295774598 | J=打木箱，内部塞其它产品&quot;, &quot;nearby_row_text&quot;: &quot;Row 38: A=29 | C=C5-1062-1 | D=C5-1062 | E=60*40*40cm 8mm | F=60*40*40cm 8mm | G=18.169014084507001 | H=2 | I=36.338028169014002 | J=打木箱，内部塞其它产品 ; Row 39: A=30 | C=C5-1123-2 | D=C5-1123 | E=裸缸侧虑溪流缸60*15*15cm 6mm送水泵 | F=Bare side stream tank 60*15*15cm 6mm water pump | G=17.295774647887299 | H=2 | I=34.591549295774598 | J=打木箱，内部塞其它产品 ; Row 40: A=Products price | I=440.68507042253498&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/024_total_B44_image24.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/024_total_B44_image24.png"><img src="images/024_total_B44_image24.png" alt="Excel image 24"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#024</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B44</div>
+            <div class="meta">Media: xl/media/image24.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 44: A=1 | C=C1-1113-2 | D=C1-1113 | E=Yee小型鱼配合饲料全效合一0.6mm75g | F=Yee Small Fish Feed All-in-One 0.6mm 75g | G=0.63 | H=25 | I=15.75</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 24, &quot;image_file&quot;: &quot;images/024_total_B44_image24.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B44&quot;, &quot;source_media&quot;: &quot;xl/media/image24.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 44: A=1 | C=C1-1113-2 | D=C1-1113 | E=Yee小型鱼配合饲料全效合一0.6mm75g | F=Yee Small Fish Feed All-in-One 0.6mm 75g | G=0.63 | H=25 | I=15.75&quot;, &quot;nearby_row_text&quot;: &quot;Row 43: A=ORDER 2 （sensitive goods）敏货 ; Row 44: A=1 | C=C1-1113-2 | D=C1-1113 | E=Yee小型鱼配合饲料全效合一0.6mm75g | F=Yee Small Fish Feed All-in-One 0.6mm 75g | G=0.63 | H=25 | I=15.75 ; Row 45: A=2 | C=C1-1127-1 | D=C1-1127 | E=金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm | F=Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm | G=1.8 | H=15 | I=27&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/025_total_B45_image25.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/025_total_B45_image25.png"><img src="images/025_total_B45_image25.png" alt="Excel image 25"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#025</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B45</div>
+            <div class="meta">Media: xl/media/image25.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 45: A=2 | C=C1-1127-1 | D=C1-1127 | E=金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm | F=Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm | G=1.8 | H=15 | I=27</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 25, &quot;image_file&quot;: &quot;images/025_total_B45_image25.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B45&quot;, &quot;source_media&quot;: &quot;xl/media/image25.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 45: A=2 | C=C1-1127-1 | D=C1-1127 | E=金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm | F=Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm | G=1.8 | H=15 | I=27&quot;, &quot;nearby_row_text&quot;: &quot;Row 44: A=1 | C=C1-1113-2 | D=C1-1113 | E=Yee小型鱼配合饲料全效合一0.6mm75g | F=Yee Small Fish Feed All-in-One 0.6mm 75g | G=0.63 | H=25 | I=15.75 ; Row 45: A=2 | C=C1-1127-1 | D=C1-1127 | E=金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm | F=Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm | G=1.8 | H=15 | I=27 ; Row 46: A=3 | C=C1-1073-1a | D=C1-1073 | E=Yee斗鱼配合饲料0.8mm130g新更换条码 | F=Betta fish food 0.8mm 130g New | G=0.97 | H=20 | I=19.399999999999999&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/026_total_B46_image26.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/026_total_B46_image26.jpeg"><img src="images/026_total_B46_image26.jpeg" alt="Excel image 26"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#026</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B46</div>
+            <div class="meta">Media: xl/media/image26.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 46: A=3 | C=C1-1073-1a | D=C1-1073 | E=Yee斗鱼配合饲料0.8mm130g新更换条码 | F=Betta fish food 0.8mm 130g New | G=0.97 | H=20 | I=19.399999999999999</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 26, &quot;image_file&quot;: &quot;images/026_total_B46_image26.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B46&quot;, &quot;source_media&quot;: &quot;xl/media/image26.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 46: A=3 | C=C1-1073-1a | D=C1-1073 | E=Yee斗鱼配合饲料0.8mm130g新更换条码 | F=Betta fish food 0.8mm 130g New | G=0.97 | H=20 | I=19.399999999999999&quot;, &quot;nearby_row_text&quot;: &quot;Row 45: A=2 | C=C1-1127-1 | D=C1-1127 | E=金鱼兰寿善玉菌+螺旋藻色扬配合饲料290g缓沉3.0mm | F=Goldfish Orchid Longevity Jade Fungus + Spirulina Color Yang Compound Feed 290g Slow Sinking 3.0mm | G=1.8 | H=15 | I=27 ; Row 46: A=3 | C=C1-1073-1a | D=C1-1073 | E=Yee斗鱼配合饲料0.8mm130g新更换条码 | F=Betta fish food 0.8mm 130g New | G=0.97 | H=20 | I=19.399999999999999 ; Row 47: A=4 | C=C1-1082-5 | D=C1-1082 | E=仿红虫0.5mm115gLLG | F=Imitation red worm feed 0.5mm 115g | G=1.35 | H=30 | I=40.5&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/027_total_B47_image27.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/027_total_B47_image27.png"><img src="images/027_total_B47_image27.png" alt="Excel image 27"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#027</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B47</div>
+            <div class="meta">Media: xl/media/image27.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 47: A=4 | C=C1-1082-5 | D=C1-1082 | E=仿红虫0.5mm115gLLG | F=Imitation red worm feed 0.5mm 115g | G=1.35 | H=30 | I=40.5</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 27, &quot;image_file&quot;: &quot;images/027_total_B47_image27.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B47&quot;, &quot;source_media&quot;: &quot;xl/media/image27.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 47: A=4 | C=C1-1082-5 | D=C1-1082 | E=仿红虫0.5mm115gLLG | F=Imitation red worm feed 0.5mm 115g | G=1.35 | H=30 | I=40.5&quot;, &quot;nearby_row_text&quot;: &quot;Row 46: A=3 | C=C1-1073-1a | D=C1-1073 | E=Yee斗鱼配合饲料0.8mm130g新更换条码 | F=Betta fish food 0.8mm 130g New | G=0.97 | H=20 | I=19.399999999999999 ; Row 47: A=4 | C=C1-1082-5 | D=C1-1082 | E=仿红虫0.5mm115gLLG | F=Imitation red worm feed 0.5mm 115g | G=1.35 | H=30 | I=40.5 ; Row 48: A=5 | C=C1-1065-1 | D=C1-1065 | E=Yee蝴蝶鲤配合饲料1.5mm300g袋装 | F=Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag | G=0.86 | H=5 | I=4.3&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/028_total_B48_image28.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/028_total_B48_image28.png"><img src="images/028_total_B48_image28.png" alt="Excel image 28"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#028</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B48</div>
+            <div class="meta">Media: xl/media/image28.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 48: A=5 | C=C1-1065-1 | D=C1-1065 | E=Yee蝴蝶鲤配合饲料1.5mm300g袋装 | F=Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag | G=0.86 | H=5 | I=4.3</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 28, &quot;image_file&quot;: &quot;images/028_total_B48_image28.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B48&quot;, &quot;source_media&quot;: &quot;xl/media/image28.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 48: A=5 | C=C1-1065-1 | D=C1-1065 | E=Yee蝴蝶鲤配合饲料1.5mm300g袋装 | F=Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag | G=0.86 | H=5 | I=4.3&quot;, &quot;nearby_row_text&quot;: &quot;Row 47: A=4 | C=C1-1082-5 | D=C1-1082 | E=仿红虫0.5mm115gLLG | F=Imitation red worm feed 0.5mm 115g | G=1.35 | H=30 | I=40.5 ; Row 48: A=5 | C=C1-1065-1 | D=C1-1065 | E=Yee蝴蝶鲤配合饲料1.5mm300g袋装 | F=Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag | G=0.86 | H=5 | I=4.3 ; Row 49: A=6 | C=C1-1066-2 | D=C1-1066 | E=Yee水族观赏虾专用粮260g | F=【40% High Protein】Special Food for Ornamental Shrimp 260g | G=1.7 | H=6 | I=10.199999999999999&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/029_total_B49_image29.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/029_total_B49_image29.png"><img src="images/029_total_B49_image29.png" alt="Excel image 29"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#029</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B49</div>
+            <div class="meta">Media: xl/media/image29.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 49: A=6 | C=C1-1066-2 | D=C1-1066 | E=Yee水族观赏虾专用粮260g | F=【40% High Protein】Special Food for Ornamental Shrimp 260g | G=1.7 | H=6 | I=10.199999999999999</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 29, &quot;image_file&quot;: &quot;images/029_total_B49_image29.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B49&quot;, &quot;source_media&quot;: &quot;xl/media/image29.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 49: A=6 | C=C1-1066-2 | D=C1-1066 | E=Yee水族观赏虾专用粮260g | F=【40% High Protein】Special Food for Ornamental Shrimp 260g | G=1.7 | H=6 | I=10.199999999999999&quot;, &quot;nearby_row_text&quot;: &quot;Row 48: A=5 | C=C1-1065-1 | D=C1-1065 | E=Yee蝴蝶鲤配合饲料1.5mm300g袋装 | F=Floating Grain - Competition Grade 45% High Protein [1.5mm Small Particles] 300g Bag | G=0.86 | H=5 | I=4.3 ; Row 49: A=6 | C=C1-1066-2 | D=C1-1066 | E=Yee水族观赏虾专用粮260g | F=【40% High Protein】Special Food for Ornamental Shrimp 260g | G=1.7 | H=6 | I=10.199999999999999 ; Row 50: A=7 | C=03446a | D=YYY-078 | E=新款脱壳卵(80g150ml)白瓶+喂食器SJ | F=New Shelled Eggs (80g 150ml) White Bottle + Feeder | G=1.65 | H=10 | I=16.5&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/030_total_B50_image30.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/030_total_B50_image30.png"><img src="images/030_total_B50_image30.png" alt="Excel image 30"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#030</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B50</div>
+            <div class="meta">Media: xl/media/image30.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 50: A=7 | C=03446a | D=YYY-078 | E=新款脱壳卵(80g150ml)白瓶+喂食器SJ | F=New Shelled Eggs (80g 150ml) White Bottle + Feeder | G=1.65 | H=10 | I=16.5</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 30, &quot;image_file&quot;: &quot;images/030_total_B50_image30.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B50&quot;, &quot;source_media&quot;: &quot;xl/media/image30.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 50: A=7 | C=03446a | D=YYY-078 | E=新款脱壳卵(80g150ml)白瓶+喂食器SJ | F=New Shelled Eggs (80g 150ml) White Bottle + Feeder | G=1.65 | H=10 | I=16.5&quot;, &quot;nearby_row_text&quot;: &quot;Row 49: A=6 | C=C1-1066-2 | D=C1-1066 | E=Yee水族观赏虾专用粮260g | F=【40% High Protein】Special Food for Ornamental Shrimp 260g | G=1.7 | H=6 | I=10.199999999999999 ; Row 50: A=7 | C=03446a | D=YYY-078 | E=新款脱壳卵(80g150ml)白瓶+喂食器SJ | F=New Shelled Eggs (80g 150ml) White Bottle + Feeder | G=1.65 | H=10 | I=16.5 ; Row 51: A=8 | C=C1-1125-1 | D=C1-1125 | E=Yee水族-寄居蟹冻干盛宴55g55g | F=Yee Aqua-Hermit Crab Freeze-Dried Feast 55g | G=1.27 | H=3 | I=3.81&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/031_total_B51_image31.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/031_total_B51_image31.png"><img src="images/031_total_B51_image31.png" alt="Excel image 31"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#031</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B51</div>
+            <div class="meta">Media: xl/media/image31.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 51: A=8 | C=C1-1125-1 | D=C1-1125 | E=Yee水族-寄居蟹冻干盛宴55g55g | F=Yee Aqua-Hermit Crab Freeze-Dried Feast 55g | G=1.27 | H=3 | I=3.81</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 31, &quot;image_file&quot;: &quot;images/031_total_B51_image31.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B51&quot;, &quot;source_media&quot;: &quot;xl/media/image31.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 51: A=8 | C=C1-1125-1 | D=C1-1125 | E=Yee水族-寄居蟹冻干盛宴55g55g | F=Yee Aqua-Hermit Crab Freeze-Dried Feast 55g | G=1.27 | H=3 | I=3.81&quot;, &quot;nearby_row_text&quot;: &quot;Row 50: A=7 | C=03446a | D=YYY-078 | E=新款脱壳卵(80g150ml)白瓶+喂食器SJ | F=New Shelled Eggs (80g 150ml) White Bottle + Feeder | G=1.65 | H=10 | I=16.5 ; Row 51: A=8 | C=C1-1125-1 | D=C1-1125 | E=Yee水族-寄居蟹冻干盛宴55g55g | F=Yee Aqua-Hermit Crab Freeze-Dried Feast 55g | G=1.27 | H=3 | I=3.81 ; Row 52: A=9 | C=C1-1069-1 | D=C1-1069 | E=鱼粮连包铜版纸吊卡DJ | F=Fish feed with coated paper hanger | G=0.62 | H=15 | I=9.3000000000000007&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/032_total_B52_image32.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/032_total_B52_image32.jpeg"><img src="images/032_total_B52_image32.jpeg" alt="Excel image 32"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#032</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B52</div>
+            <div class="meta">Media: xl/media/image32.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 52: A=9 | C=C1-1069-1 | D=C1-1069 | E=鱼粮连包铜版纸吊卡DJ | F=Fish feed with coated paper hanger | G=0.62 | H=15 | I=9.3000000000000007</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 32, &quot;image_file&quot;: &quot;images/032_total_B52_image32.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B52&quot;, &quot;source_media&quot;: &quot;xl/media/image32.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 52: A=9 | C=C1-1069-1 | D=C1-1069 | E=鱼粮连包铜版纸吊卡DJ | F=Fish feed with coated paper hanger | G=0.62 | H=15 | I=9.3000000000000007&quot;, &quot;nearby_row_text&quot;: &quot;Row 51: A=8 | C=C1-1125-1 | D=C1-1125 | E=Yee水族-寄居蟹冻干盛宴55g55g | F=Yee Aqua-Hermit Crab Freeze-Dried Feast 55g | G=1.27 | H=3 | I=3.81 ; Row 52: A=9 | C=C1-1069-1 | D=C1-1069 | E=鱼粮连包铜版纸吊卡DJ | F=Fish feed with coated paper hanger | G=0.62 | H=15 | I=9.3000000000000007 ; Row 53: A=10 | C=C1-1082-2a | D=C1-1082 | E=Yee小型鱼配合饲料全效合一0.2mm210g更换条码 | F=【All-in-one】Microparticles/0.2mm/210g | G=1.04 | H=10 | I=10.4&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/033_total_B53_image33.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/033_total_B53_image33.png"><img src="images/033_total_B53_image33.png" alt="Excel image 33"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#033</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B53</div>
+            <div class="meta">Media: xl/media/image33.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 53: A=10 | C=C1-1082-2a | D=C1-1082 | E=Yee小型鱼配合饲料全效合一0.2mm210g更换条码 | F=【All-in-one】Microparticles/0.2mm/210g | G=1.04 | H=10 | I=10.4</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 33, &quot;image_file&quot;: &quot;images/033_total_B53_image33.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B53&quot;, &quot;source_media&quot;: &quot;xl/media/image33.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 53: A=10 | C=C1-1082-2a | D=C1-1082 | E=Yee小型鱼配合饲料全效合一0.2mm210g更换条码 | F=【All-in-one】Microparticles/0.2mm/210g | G=1.04 | H=10 | I=10.4&quot;, &quot;nearby_row_text&quot;: &quot;Row 52: A=9 | C=C1-1069-1 | D=C1-1069 | E=鱼粮连包铜版纸吊卡DJ | F=Fish feed with coated paper hanger | G=0.62 | H=15 | I=9.3000000000000007 ; Row 53: A=10 | C=C1-1082-2a | D=C1-1082 | E=Yee小型鱼配合饲料全效合一0.2mm210g更换条码 | F=【All-in-one】Microparticles/0.2mm/210g | G=1.04 | H=10 | I=10.4 ; Row 54: A=11 | C=C1-1134-6 | D=C1-1134 | E=金鱼兰寿配合饲料1.5mm下沉500g袋装 | F=Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag. | G=1.69 | H=12 | I=20.28&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/034_total_B54_image34.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/034_total_B54_image34.png"><img src="images/034_total_B54_image34.png" alt="Excel image 34"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#034</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B54</div>
+            <div class="meta">Media: xl/media/image34.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 54: A=11 | C=C1-1134-6 | D=C1-1134 | E=金鱼兰寿配合饲料1.5mm下沉500g袋装 | F=Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag. | G=1.69 | H=12 | I=20.28</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 34, &quot;image_file&quot;: &quot;images/034_total_B54_image34.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B54&quot;, &quot;source_media&quot;: &quot;xl/media/image34.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 54: A=11 | C=C1-1134-6 | D=C1-1134 | E=金鱼兰寿配合饲料1.5mm下沉500g袋装 | F=Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag. | G=1.69 | H=12 | I=20.28&quot;, &quot;nearby_row_text&quot;: &quot;Row 53: A=10 | C=C1-1082-2a | D=C1-1082 | E=Yee小型鱼配合饲料全效合一0.2mm210g更换条码 | F=【All-in-one】Microparticles/0.2mm/210g | G=1.04 | H=10 | I=10.4 ; Row 54: A=11 | C=C1-1134-6 | D=C1-1134 | E=金鱼兰寿配合饲料1.5mm下沉500g袋装 | F=Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag. | G=1.69 | H=12 | I=20.28 ; Row 55: A=12 | C=C1-1086-1 | D=C1-1086 | E=Yee水族冻干丰年虾块18g | F=Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml | G=0.9 | H=8 | I=7.2&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/035_total_B55_image35.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/035_total_B55_image35.jpeg"><img src="images/035_total_B55_image35.jpeg" alt="Excel image 35"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#035</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B55</div>
+            <div class="meta">Media: xl/media/image35.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 55: A=12 | C=C1-1086-1 | D=C1-1086 | E=Yee水族冻干丰年虾块18g | F=Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml | G=0.9 | H=8 | I=7.2</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 35, &quot;image_file&quot;: &quot;images/035_total_B55_image35.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B55&quot;, &quot;source_media&quot;: &quot;xl/media/image35.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 55: A=12 | C=C1-1086-1 | D=C1-1086 | E=Yee水族冻干丰年虾块18g | F=Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml | G=0.9 | H=8 | I=7.2&quot;, &quot;nearby_row_text&quot;: &quot;Row 54: A=11 | C=C1-1134-6 | D=C1-1134 | E=金鱼兰寿配合饲料1.5mm下沉500g袋装 | F=Ranchu goldfish formulated feed, 1.5mm diameter, sinks 500g per bag. | G=1.69 | H=12 | I=20.28 ; Row 55: A=12 | C=C1-1086-1 | D=C1-1086 | E=Yee水族冻干丰年虾块18g | F=Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml | G=0.9 | H=8 | I=7.2 ; Row 56: A=13 | C=C1-1124-1 | D=C1-1124 | E=Yee意牌水族三合一斗鱼配合饲料15g | F=Yee Brand 3-in-1 Betta Fish Food 15g | G=0.48 | H=10 | I=4.8&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/036_total_B56_image36.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/036_total_B56_image36.png"><img src="images/036_total_B56_image36.png" alt="Excel image 36"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#036</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B56</div>
+            <div class="meta">Media: xl/media/image36.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 56: A=13 | C=C1-1124-1 | D=C1-1124 | E=Yee意牌水族三合一斗鱼配合饲料15g | F=Yee Brand 3-in-1 Betta Fish Food 15g | G=0.48 | H=10 | I=4.8</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 36, &quot;image_file&quot;: &quot;images/036_total_B56_image36.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B56&quot;, &quot;source_media&quot;: &quot;xl/media/image36.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 56: A=13 | C=C1-1124-1 | D=C1-1124 | E=Yee意牌水族三合一斗鱼配合饲料15g | F=Yee Brand 3-in-1 Betta Fish Food 15g | G=0.48 | H=10 | I=4.8&quot;, &quot;nearby_row_text&quot;: &quot;Row 55: A=12 | C=C1-1086-1 | D=C1-1086 | E=Yee水族冻干丰年虾块18g | F=Yee Aquarium Freeze-dried Brine Shrimp Chunks 18g 225ml | G=0.9 | H=8 | I=7.2 ; Row 56: A=13 | C=C1-1124-1 | D=C1-1124 | E=Yee意牌水族三合一斗鱼配合饲料15g | F=Yee Brand 3-in-1 Betta Fish Food 15g | G=0.48 | H=10 | I=4.8 ; Row 57: A=14 | C=12420 | D=YYH-125 | E=白点净300ml | F=White Spot Cleaner 300ml | G=0.71830985915492995 | H=10 | I=7.1830985915493004&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/037_total_B57_image37.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/037_total_B57_image37.jpeg"><img src="images/037_total_B57_image37.jpeg" alt="Excel image 37"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#037</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B57</div>
+            <div class="meta">Media: xl/media/image37.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 57: A=14 | C=12420 | D=YYH-125 | E=白点净300ml | F=White Spot Cleaner 300ml | G=0.71830985915492995 | H=10 | I=7.1830985915493004</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 37, &quot;image_file&quot;: &quot;images/037_total_B57_image37.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B57&quot;, &quot;source_media&quot;: &quot;xl/media/image37.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 57: A=14 | C=12420 | D=YYH-125 | E=白点净300ml | F=White Spot Cleaner 300ml | G=0.71830985915492995 | H=10 | I=7.1830985915493004&quot;, &quot;nearby_row_text&quot;: &quot;Row 56: A=13 | C=C1-1124-1 | D=C1-1124 | E=Yee意牌水族三合一斗鱼配合饲料15g | F=Yee Brand 3-in-1 Betta Fish Food 15g | G=0.48 | H=10 | I=4.8 ; Row 57: A=14 | C=12420 | D=YYH-125 | E=白点净300ml | F=White Spot Cleaner 300ml | G=0.71830985915492995 | H=10 | I=7.1830985915493004 ; Row 58: A=15 | C=19768a | D=YYH-207 | E=亚甲基蓝溶液 600ml | F=Methylene blue solution 600ml | G=0.93 | H=8 | I=7.44&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/038_total_B58_image38.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/038_total_B58_image38.png"><img src="images/038_total_B58_image38.png" alt="Excel image 38"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#038</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B58</div>
+            <div class="meta">Media: xl/media/image38.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 58: A=15 | C=19768a | D=YYH-207 | E=亚甲基蓝溶液 600ml | F=Methylene blue solution 600ml | G=0.93 | H=8 | I=7.44</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 38, &quot;image_file&quot;: &quot;images/038_total_B58_image38.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B58&quot;, &quot;source_media&quot;: &quot;xl/media/image38.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 58: A=15 | C=19768a | D=YYH-207 | E=亚甲基蓝溶液 600ml | F=Methylene blue solution 600ml | G=0.93 | H=8 | I=7.44&quot;, &quot;nearby_row_text&quot;: &quot;Row 57: A=14 | C=12420 | D=YYH-125 | E=白点净300ml | F=White Spot Cleaner 300ml | G=0.71830985915492995 | H=10 | I=7.1830985915493004 ; Row 58: A=15 | C=19768a | D=YYH-207 | E=亚甲基蓝溶液 600ml | F=Methylene blue solution 600ml | G=0.93 | H=8 | I=7.44 ; Row 59: A=16 | C=02856a | D=YYH-006 | E=杀菌/抑菌/速溶粉末2g/袋×10袋[1盒] | F=Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box] | G=1.1299999999999999 | H=6 | I=6.78&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/039_total_B59_image39.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/039_total_B59_image39.jpeg"><img src="images/039_total_B59_image39.jpeg" alt="Excel image 39"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#039</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B59</div>
+            <div class="meta">Media: xl/media/image39.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 59: A=16 | C=02856a | D=YYH-006 | E=杀菌/抑菌/速溶粉末2g/袋×10袋[1盒] | F=Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box] | G=1.1299999999999999 | H=6 | I=6.78</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 39, &quot;image_file&quot;: &quot;images/039_total_B59_image39.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B59&quot;, &quot;source_media&quot;: &quot;xl/media/image39.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 59: A=16 | C=02856a | D=YYH-006 | E=杀菌/抑菌/速溶粉末2g/袋×10袋[1盒] | F=Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box] | G=1.1299999999999999 | H=6 | I=6.78&quot;, &quot;nearby_row_text&quot;: &quot;Row 58: A=15 | C=19768a | D=YYH-207 | E=亚甲基蓝溶液 600ml | F=Methylene blue solution 600ml | G=0.93 | H=8 | I=7.44 ; Row 59: A=16 | C=02856a | D=YYH-006 | E=杀菌/抑菌/速溶粉末2g/袋×10袋[1盒] | F=Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box] | G=1.1299999999999999 | H=6 | I=6.78 ; Row 60: A=17 | C=c2-1016-2 | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌760ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml | G=2.34 | H=10 | I=23.4&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/040_total_B60_image40.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/040_total_B60_image40.jpeg"><img src="images/040_total_B60_image40.jpeg" alt="Excel image 40"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#040</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B60</div>
+            <div class="meta">Media: xl/media/image40.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 60: A=17 | C=c2-1016-2 | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌760ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml | G=2.34 | H=10 | I=23.4</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 40, &quot;image_file&quot;: &quot;images/040_total_B60_image40.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B60&quot;, &quot;source_media&quot;: &quot;xl/media/image40.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 60: A=17 | C=c2-1016-2 | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌760ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml | G=2.34 | H=10 | I=23.4&quot;, &quot;nearby_row_text&quot;: &quot;Row 59: A=16 | C=02856a | D=YYH-006 | E=杀菌/抑菌/速溶粉末2g/袋×10袋[1盒] | F=Bactericidal/antibacterial/instant powder 2g/bag × 10 bags [1 box] | G=1.1299999999999999 | H=6 | I=6.78 ; Row 60: A=17 | C=c2-1016-2 | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌760ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 760ml | G=2.34 | H=10 | I=23.4 ; Row 61: A=18 | C=c2-1016-1a | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌400ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 400ml | G=1.38 | H=5 | I=6.9&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/041_total_B62_image41.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/041_total_B62_image41.png"><img src="images/041_total_B62_image41.png" alt="Excel image 41"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#041</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B62</div>
+            <div class="meta">Media: xl/media/image41.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 62: A=19 | C=02924 | D=YYH-039 | E=yee蓝色经典-除氯水质稳定剂535ml | F=Yee Blue Classic-Chlorine Removal Water Stabilizer 535ml | G=0.72 | H=15 | I=10.8</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 41, &quot;image_file&quot;: &quot;images/041_total_B62_image41.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B62&quot;, &quot;source_media&quot;: &quot;xl/media/image41.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 62: A=19 | C=02924 | D=YYH-039 | E=yee蓝色经典-除氯水质稳定剂535ml | F=Yee Blue Classic-Chlorine Removal Water Stabilizer 535ml | G=0.72 | H=15 | I=10.8&quot;, &quot;nearby_row_text&quot;: &quot;Row 61: A=18 | C=c2-1016-1a | D=c2-1016 | E=Yee意牌水族净氨系列活性益生菌400ml | F=Yee Aquarium Cleansing Ammonia Series Active Probiotics 400ml | G=1.38 | H=5 | I=6.9 ; Row 62: A=19 | C=02924 | D=YYH-039 | E=yee蓝色经典-除氯水质稳定剂535ml | F=Yee Blue Classic-Chlorine Removal Water Stabilizer 535ml | G=0.72 | H=15 | I=10.8 ; Row 63: A=20 | C=16940 | D=YYH-173 | E=抗应激水质稳定剂 500ml 新风格 | F=Anti-stress water stabilizer 500ml New style | G=0.91549295774647899 | H=8 | I=7.3239436619718301&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/042_total_B63_image42.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/042_total_B63_image42.png"><img src="images/042_total_B63_image42.png" alt="Excel image 42"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#042</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B63</div>
+            <div class="meta">Media: xl/media/image42.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 63: A=20 | C=16940 | D=YYH-173 | E=抗应激水质稳定剂 500ml 新风格 | F=Anti-stress water stabilizer 500ml New style | G=0.91549295774647899 | H=8 | I=7.3239436619718301</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 42, &quot;image_file&quot;: &quot;images/042_total_B63_image42.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B63&quot;, &quot;source_media&quot;: &quot;xl/media/image42.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 63: A=20 | C=16940 | D=YYH-173 | E=抗应激水质稳定剂 500ml 新风格 | F=Anti-stress water stabilizer 500ml New style | G=0.91549295774647899 | H=8 | I=7.3239436619718301&quot;, &quot;nearby_row_text&quot;: &quot;Row 62: A=19 | C=02924 | D=YYH-039 | E=yee蓝色经典-除氯水质稳定剂535ml | F=Yee Blue Classic-Chlorine Removal Water Stabilizer 535ml | G=0.72 | H=15 | I=10.8 ; Row 63: A=20 | C=16940 | D=YYH-173 | E=抗应激水质稳定剂 500ml 新风格 | F=Anti-stress water stabilizer 500ml New style | G=0.91549295774647899 | H=8 | I=7.3239436619718301 ; Row 64: A=21 | C=C3-1010-3 | D=C3-1010 | E=【氨氮测试剂】可测约60次/精准快速 | F=【Ammonia nitrogen tester】can test about 60 times/accurate and fast | G=2.87 | H=8 | I=22.96&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/043_total_B64_image43.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/043_total_B64_image43.png"><img src="images/043_total_B64_image43.png" alt="Excel image 43"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#043</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B64</div>
+            <div class="meta">Media: xl/media/image43.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 64: A=21 | C=C3-1010-3 | D=C3-1010 | E=【氨氮测试剂】可测约60次/精准快速 | F=【Ammonia nitrogen tester】can test about 60 times/accurate and fast | G=2.87 | H=8 | I=22.96</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 43, &quot;image_file&quot;: &quot;images/043_total_B64_image43.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B64&quot;, &quot;source_media&quot;: &quot;xl/media/image43.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 64: A=21 | C=C3-1010-3 | D=C3-1010 | E=【氨氮测试剂】可测约60次/精准快速 | F=【Ammonia nitrogen tester】can test about 60 times/accurate and fast | G=2.87 | H=8 | I=22.96&quot;, &quot;nearby_row_text&quot;: &quot;Row 63: A=20 | C=16940 | D=YYH-173 | E=抗应激水质稳定剂 500ml 新风格 | F=Anti-stress water stabilizer 500ml New style | G=0.91549295774647899 | H=8 | I=7.3239436619718301 ; Row 64: A=21 | C=C3-1010-3 | D=C3-1010 | E=【氨氮测试剂】可测约60次/精准快速 | F=【Ammonia nitrogen tester】can test about 60 times/accurate and fast | G=2.87 | H=8 | I=22.96 ; Row 65: A=22 | C=C3-1010-1 | D=C3-1010 | E=【亚硝酸盐测试剂】可测约100次/精准快速 | F=【Nitrite test kit】can test about 100 times/accurate and fast | G=2.87 | H=8 | I=22.96&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/044_total_B66_image44.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/044_total_B66_image44.png"><img src="images/044_total_B66_image44.png" alt="Excel image 44"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#044</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B66</div>
+            <div class="meta">Media: xl/media/image44.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 66: A=23 | C=C4-1123-1a | D=C4-1123 | E=【新手级50条】9合1/桶装/带对比表 | F=[Novice Level 50] 9-in-1/Bucket/With Comparison Chart | G=1.62 | H=10 | I=16.2</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 44, &quot;image_file&quot;: &quot;images/044_total_B66_image44.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B66&quot;, &quot;source_media&quot;: &quot;xl/media/image44.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 66: A=23 | C=C4-1123-1a | D=C4-1123 | E=【新手级50条】9合1/桶装/带对比表 | F=[Novice Level 50] 9-in-1/Bucket/With Comparison Chart | G=1.62 | H=10 | I=16.2&quot;, &quot;nearby_row_text&quot;: &quot;Row 65: A=22 | C=C3-1010-1 | D=C3-1010 | E=【亚硝酸盐测试剂】可测约100次/精准快速 | F=【Nitrite test kit】can test about 100 times/accurate and fast | G=2.87 | H=8 | I=22.96 ; Row 66: A=23 | C=C4-1123-1a | D=C4-1123 | E=【新手级50条】9合1/桶装/带对比表 | F=[Novice Level 50] 9-in-1/Bucket/With Comparison Chart | G=1.62 | H=10 | I=16.2 ; Row 67: A=24 | C=C2-1005-1 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊50粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules | G=0.85 | H=12 | I=10.199999999999999&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/045_total_B67_image45.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/045_total_B67_image45.png"><img src="images/045_total_B67_image45.png" alt="Excel image 45"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#045</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B67</div>
+            <div class="meta">Media: xl/media/image45.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 67: A=24 | C=C2-1005-1 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊50粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules | G=0.85 | H=12 | I=10.199999999999999</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 45, &quot;image_file&quot;: &quot;images/045_total_B67_image45.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B67&quot;, &quot;source_media&quot;: &quot;xl/media/image45.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 67: A=24 | C=C2-1005-1 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊50粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules | G=0.85 | H=12 | I=10.199999999999999&quot;, &quot;nearby_row_text&quot;: &quot;Row 66: A=23 | C=C4-1123-1a | D=C4-1123 | E=【新手级50条】9合1/桶装/带对比表 | F=[Novice Level 50] 9-in-1/Bucket/With Comparison Chart | G=1.62 | H=10 | I=16.2 ; Row 67: A=24 | C=C2-1005-1 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊50粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 50 capsules | G=0.85 | H=12 | I=10.199999999999999 ; Row 68: A=25 | C=C2-1005-2 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊100粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 100 Capsules | G=1.27 | H=8 | I=10.16&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/046_total_B69_image46.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/046_total_B69_image46.png"><img src="images/046_total_B69_image46.png" alt="Excel image 46"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#046</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B69</div>
+            <div class="meta">Media: xl/media/image46.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 69: A=26 | C=19429 | D=YYH-189 | E=除藻剂 500ml 新风格 | F=Algaecide 500ml New Style | G=0.91549295774647899 | H=10 | I=9.1549295774647899</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 46, &quot;image_file&quot;: &quot;images/046_total_B69_image46.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B69&quot;, &quot;source_media&quot;: &quot;xl/media/image46.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 69: A=26 | C=19429 | D=YYH-189 | E=除藻剂 500ml 新风格 | F=Algaecide 500ml New Style | G=0.91549295774647899 | H=10 | I=9.1549295774647899&quot;, &quot;nearby_row_text&quot;: &quot;Row 68: A=25 | C=C2-1005-2 | D=C2-1005 | E=Yee意牌水族硝化菌+益生菌胶囊100粒 | F=Yee Aquarium Nitrifying Bacteria + Probiotics Capsules 100 Capsules | G=1.27 | H=8 | I=10.16 ; Row 69: A=26 | C=19429 | D=YYH-189 | E=除藻剂 500ml 新风格 | F=Algaecide 500ml New Style | G=0.91549295774647899 | H=10 | I=9.1549295774647899 ; Row 70: A=27 | C=19939 | D=YYH-216 | E=抗应激水质稳定剂 1000ml 新风格 | F=Anti-stress water stabilizer 1000ml New style | G=1.12676056338028 | H=6 | I=6.7605633802816802&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/047_total_B70_image47.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/047_total_B70_image47.png"><img src="images/047_total_B70_image47.png" alt="Excel image 47"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#047</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B70</div>
+            <div class="meta">Media: xl/media/image47.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 70: A=27 | C=19939 | D=YYH-216 | E=抗应激水质稳定剂 1000ml 新风格 | F=Anti-stress water stabilizer 1000ml New style | G=1.12676056338028 | H=6 | I=6.7605633802816802</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 47, &quot;image_file&quot;: &quot;images/047_total_B70_image47.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B70&quot;, &quot;source_media&quot;: &quot;xl/media/image47.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 70: A=27 | C=19939 | D=YYH-216 | E=抗应激水质稳定剂 1000ml 新风格 | F=Anti-stress water stabilizer 1000ml New style | G=1.12676056338028 | H=6 | I=6.7605633802816802&quot;, &quot;nearby_row_text&quot;: &quot;Row 69: A=26 | C=19429 | D=YYH-189 | E=除藻剂 500ml 新风格 | F=Algaecide 500ml New Style | G=0.91549295774647899 | H=10 | I=9.1549295774647899 ; Row 70: A=27 | C=19939 | D=YYH-216 | E=抗应激水质稳定剂 1000ml 新风格 | F=Anti-stress water stabilizer 1000ml New style | G=1.12676056338028 | H=6 | I=6.7605633802816802 ; Row 71: A=28 | C=06834 | D=YAN-804 | E=多维矿物盐500克 | F=Multivitamin mineral salt 500g | G=0.2 | H=10 | I=2&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/048_total_B71_image48.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/048_total_B71_image48.png"><img src="images/048_total_B71_image48.png" alt="Excel image 48"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#048</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B71</div>
+            <div class="meta">Media: xl/media/image48.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 71: A=28 | C=06834 | D=YAN-804 | E=多维矿物盐500克 | F=Multivitamin mineral salt 500g | G=0.2 | H=10 | I=2</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 48, &quot;image_file&quot;: &quot;images/048_total_B71_image48.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B71&quot;, &quot;source_media&quot;: &quot;xl/media/image48.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 71: A=28 | C=06834 | D=YAN-804 | E=多维矿物盐500克 | F=Multivitamin mineral salt 500g | G=0.2 | H=10 | I=2&quot;, &quot;nearby_row_text&quot;: &quot;Row 70: A=27 | C=19939 | D=YYH-216 | E=抗应激水质稳定剂 1000ml 新风格 | F=Anti-stress water stabilizer 1000ml New style | G=1.12676056338028 | H=6 | I=6.7605633802816802 ; Row 71: A=28 | C=06834 | D=YAN-804 | E=多维矿物盐500克 | F=Multivitamin mineral salt 500g | G=0.2 | H=10 | I=2 ; Row 72: A=29 | C=01831 | D=YAN-915 | E=500G多维盐盒装YAN-915 | F=500G Multivitamin Salt Box YAN-915 | G=0.87 | H=5 | I=4.3499999999999996&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/049_total_B72_image49.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/049_total_B72_image49.png"><img src="images/049_total_B72_image49.png" alt="Excel image 49"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#049</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B72</div>
+            <div class="meta">Media: xl/media/image49.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 72: A=29 | C=01831 | D=YAN-915 | E=500G多维盐盒装YAN-915 | F=500G Multivitamin Salt Box YAN-915 | G=0.87 | H=5 | I=4.3499999999999996</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 49, &quot;image_file&quot;: &quot;images/049_total_B72_image49.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B72&quot;, &quot;source_media&quot;: &quot;xl/media/image49.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 72: A=29 | C=01831 | D=YAN-915 | E=500G多维盐盒装YAN-915 | F=500G Multivitamin Salt Box YAN-915 | G=0.87 | H=5 | I=4.3499999999999996&quot;, &quot;nearby_row_text&quot;: &quot;Row 71: A=28 | C=06834 | D=YAN-804 | E=多维矿物盐500克 | F=Multivitamin mineral salt 500g | G=0.2 | H=10 | I=2 ; Row 72: A=29 | C=01831 | D=YAN-915 | E=500G多维盐盒装YAN-915 | F=500G Multivitamin Salt Box YAN-915 | G=0.87 | H=5 | I=4.3499999999999996 ; Row 73: A=30 | C=02938a | D=YYH-053 | E=yee蓝色经典-亚甲基蓝溶液235ml | F=Yee Blue Classic-Methylene Blue Solution 235ml | G=0.45 | H=10 | I=4.5&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/050_total_B73_image50.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/050_total_B73_image50.png"><img src="images/050_total_B73_image50.png" alt="Excel image 50"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#050</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B73</div>
+            <div class="meta">Media: xl/media/image50.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 73: A=30 | C=02938a | D=YYH-053 | E=yee蓝色经典-亚甲基蓝溶液235ml | F=Yee Blue Classic-Methylene Blue Solution 235ml | G=0.45 | H=10 | I=4.5</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 50, &quot;image_file&quot;: &quot;images/050_total_B73_image50.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B73&quot;, &quot;source_media&quot;: &quot;xl/media/image50.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 73: A=30 | C=02938a | D=YYH-053 | E=yee蓝色经典-亚甲基蓝溶液235ml | F=Yee Blue Classic-Methylene Blue Solution 235ml | G=0.45 | H=10 | I=4.5&quot;, &quot;nearby_row_text&quot;: &quot;Row 72: A=29 | C=01831 | D=YAN-915 | E=500G多维盐盒装YAN-915 | F=500G Multivitamin Salt Box YAN-915 | G=0.87 | H=5 | I=4.3499999999999996 ; Row 73: A=30 | C=02938a | D=YYH-053 | E=yee蓝色经典-亚甲基蓝溶液235ml | F=Yee Blue Classic-Methylene Blue Solution 235ml | G=0.45 | H=10 | I=4.5 ; Row 74: A=31 | C=C4-1123-2a | D=C4-1123 | E=【补充装】9合1/补充装/50条 | F=【Refill】9 in 1/Refill/50 pieces | G=1.06 | H=10 | I=10.6&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/051_total_B74_image51.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/051_total_B74_image51.png"><img src="images/051_total_B74_image51.png" alt="Excel image 51"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#051</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B74</div>
+            <div class="meta">Media: xl/media/image51.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 74: A=31 | C=C4-1123-2a | D=C4-1123 | E=【补充装】9合1/补充装/50条 | F=【Refill】9 in 1/Refill/50 pieces | G=1.06 | H=10 | I=10.6</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 51, &quot;image_file&quot;: &quot;images/051_total_B74_image51.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B74&quot;, &quot;source_media&quot;: &quot;xl/media/image51.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 74: A=31 | C=C4-1123-2a | D=C4-1123 | E=【补充装】9合1/补充装/50条 | F=【Refill】9 in 1/Refill/50 pieces | G=1.06 | H=10 | I=10.6&quot;, &quot;nearby_row_text&quot;: &quot;Row 73: A=30 | C=02938a | D=YYH-053 | E=yee蓝色经典-亚甲基蓝溶液235ml | F=Yee Blue Classic-Methylene Blue Solution 235ml | G=0.45 | H=10 | I=4.5 ; Row 74: A=31 | C=C4-1123-2a | D=C4-1123 | E=【补充装】9合1/补充装/50条 | F=【Refill】9 in 1/Refill/50 pieces | G=1.06 | H=10 | I=10.6 ; Row 75: A=37 | C=07509 | D=YFF-049 | E=水草泥肥力升级款细粒 1.5L | F=Water grass mud fertility upgrade fine grain 1.5L | G=1.23 | H=18 | I=22.14&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/052_total_B75_image52.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/052_total_B75_image52.png"><img src="images/052_total_B75_image52.png" alt="Excel image 52"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#052</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B75</div>
+            <div class="meta">Media: xl/media/image52.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 75: A=37 | C=07509 | D=YFF-049 | E=水草泥肥力升级款细粒 1.5L | F=Water grass mud fertility upgrade fine grain 1.5L | G=1.23 | H=18 | I=22.14</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 52, &quot;image_file&quot;: &quot;images/052_total_B75_image52.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B75&quot;, &quot;source_media&quot;: &quot;xl/media/image52.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 75: A=37 | C=07509 | D=YFF-049 | E=水草泥肥力升级款细粒 1.5L | F=Water grass mud fertility upgrade fine grain 1.5L | G=1.23 | H=18 | I=22.14&quot;, &quot;nearby_row_text&quot;: &quot;Row 74: A=31 | C=C4-1123-2a | D=C4-1123 | E=【补充装】9合1/补充装/50条 | F=【Refill】9 in 1/Refill/50 pieces | G=1.06 | H=10 | I=10.6 ; Row 75: A=37 | C=07509 | D=YFF-049 | E=水草泥肥力升级款细粒 1.5L | F=Water grass mud fertility upgrade fine grain 1.5L | G=1.23 | H=18 | I=22.14 ; Row 76: A=38 | C=07512 | D=YFF-052 | E=水草泥肥力升级款 粗粒 3L | F=Water grass mud fertility upgrade coarse grain 3L | G=2.39 | H=10 | I=23.9&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/053_total_B77_image53.png" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/053_total_B77_image53.png"><img src="images/053_total_B77_image53.png" alt="Excel image 53"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#053</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B77</div>
+            <div class="meta">Media: xl/media/image53.png</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 77: A=48 | C=13343 | D=PYD-200 | E=鱼缸除垢剂 200ml | F=Fish tank descaling agent 200ml | G=0.76056338028169002 | H=10 | I=7.6056338028169002</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 53, &quot;image_file&quot;: &quot;images/053_total_B77_image53.png&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B77&quot;, &quot;source_media&quot;: &quot;xl/media/image53.png&quot;, &quot;anchor_row_text&quot;: &quot;Row 77: A=48 | C=13343 | D=PYD-200 | E=鱼缸除垢剂 200ml | F=Fish tank descaling agent 200ml | G=0.76056338028169002 | H=10 | I=7.6056338028169002&quot;, &quot;nearby_row_text&quot;: &quot;Row 76: A=38 | C=07512 | D=YFF-052 | E=水草泥肥力升级款 粗粒 3L | F=Water grass mud fertility upgrade coarse grain 3L | G=2.39 | H=10 | I=23.9 ; Row 77: A=48 | C=13343 | D=PYD-200 | E=鱼缸除垢剂 200ml | F=Fish tank descaling agent 200ml | G=0.76056338028169002 | H=10 | I=7.6056338028169002 ; Row 78: A=55 | C=00340 | D=YEE-3606 | E=外贴电子温度计 | F=External electronic thermometer | G=1.1000000000000001 | H=4 | I=4.4000000000000004 | J=装货单备注有电池&quot;}</script>
+        </article>
+
+        <article class="card" data-key="images/054_total_B78_image54.jpeg" data-status="unset">
+          <div class="image-wrap">
+            <a href="images/054_total_B78_image54.jpeg"><img src="images/054_total_B78_image54.jpeg" alt="Excel image 54"></a>
+          </div>
+          <div class="card-body">
+            <div class="card-title">#054</div>
+            <div class="meta">Sheet: total</div>
+            <div class="meta">Cell: B78</div>
+            <div class="meta">Media: xl/media/image54.jpeg</div>
+            <details>
+              <summary>نص الصف القريب</summary>
+              <p>Row 78: A=55 | C=00340 | D=YEE-3606 | E=外贴电子温度计 | F=External electronic thermometer | G=1.1000000000000001 | H=4 | I=4.4000000000000004 | J=装货单备注有电池</p>
+            </details>
+            <div class="actions">
+              <button type="button" class="ok" data-action="correct">صحيح</button>
+              <button type="button" class="bad" data-action="wrong">غير صحيح</button>
+              <button type="button" data-action="unset">إلغاء</button>
+            </div>
+          </div>
+          <script type="application/json" class="record-json">{&quot;number&quot;: 54, &quot;image_file&quot;: &quot;images/054_total_B78_image54.jpeg&quot;, &quot;sheet&quot;: &quot;total&quot;, &quot;from_cell&quot;: &quot;B78&quot;, &quot;source_media&quot;: &quot;xl/media/image54.jpeg&quot;, &quot;anchor_row_text&quot;: &quot;Row 78: A=55 | C=00340 | D=YEE-3606 | E=外贴电子温度计 | F=External electronic thermometer | G=1.1000000000000001 | H=4 | I=4.4000000000000004 | J=装货单备注有电池&quot;, &quot;nearby_row_text&quot;: &quot;Row 77: A=48 | C=13343 | D=PYD-200 | E=鱼缸除垢剂 200ml | F=Fish tank descaling agent 200ml | G=0.76056338028169002 | H=10 | I=7.6056338028169002 ; Row 78: A=55 | C=00340 | D=YEE-3606 | E=外贴电子温度计 | F=External electronic thermometer | G=1.1000000000000001 | H=4 | I=4.4000000000000004 | J=装货单备注有电池 ; Row 79: A=Products price | I=437.15816901408402&quot;}</script>
+        </article>
+
+    </section>
+  </main>
+  <script>
+    const storageKey = 'excel-product-image-review-v1';
+    const state = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    const cards = [...document.querySelectorAll('.card')];
+    const count = document.getElementById('count');
+    let activeFilter = 'all';
+
+    function save() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function applyState() {
+      let correct = 0, wrong = 0, unset = 0, visible = 0;
+      for (const card of cards) {
+        const key = card.dataset.key;
+        const status = state[key] || 'unset';
+        card.dataset.status = status;
+        correct += status === 'correct' ? 1 : 0;
+        wrong += status === 'wrong' ? 1 : 0;
+        unset += status === 'unset' ? 1 : 0;
+        const hide =
+          (activeFilter === 'correct' && status !== 'correct') ||
+          (activeFilter === 'hide-wrong' && status === 'wrong');
+        card.classList.toggle('hidden', hide);
+        visible += hide ? 0 : 1;
+        for (const button of card.querySelectorAll('button[data-action]')) {
+          button.classList.toggle('active', button.dataset.action === status);
+        }
+      }
+      count.textContent = `المعروض: ${visible} | صحيح: ${correct} | غير صحيح: ${wrong} | غير محدد: ${unset}`;
+    }
+
+    document.addEventListener('click', (event) => {
+      const actionButton = event.target.closest('button[data-action]');
+      if (actionButton) {
+        const card = actionButton.closest('.card');
+        const key = card.dataset.key;
+        const action = actionButton.dataset.action;
+        if (action === 'unset') delete state[key];
+        else state[key] = action;
+        save();
+        applyState();
+        return;
+      }
+      const filterButton = event.target.closest('button[data-filter]');
+      if (filterButton) {
+        activeFilter = filterButton.dataset.filter;
+        document.querySelectorAll('button[data-filter]').forEach(button => button.classList.toggle('active', button === filterButton));
+        applyState();
+      }
+    });
+
+    document.getElementById('reset').addEventListener('click', () => {
+      if (!confirm('تمسح كل اختيارات صحيح/غير صحيح؟')) return;
+      for (const key of Object.keys(state)) delete state[key];
+      save();
+      applyState();
+    });
+
+    document.getElementById('export').addEventListener('click', () => {
+    const rows = [['number','status','image_file','sheet','from_cell','source_media','anchor_row_text','nearby_row_text']];
+      for (const card of cards) {
+        const record = JSON.parse(card.querySelector('.record-json').textContent);
+        rows.push([
+          record.number,
+          state[record.image_file] || 'unset',
+          record.image_file,
+          record.sheet || '',
+          record.from_cell || '',
+          record.source_media || '',
+          record.anchor_row_text || '',
+          record.nearby_row_text || ''
+        ]);
+      }
+      const csv = rows.map(row => row.map(value => '"' + String(value).replaceAll('"', '""') + '"').join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'excel_image_review_choices.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    applyState();
+  </script>
+</body>
+</html>

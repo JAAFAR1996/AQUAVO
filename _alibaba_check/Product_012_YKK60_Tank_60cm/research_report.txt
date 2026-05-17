@@ -1,0 +1,99 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-012
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-012
+
+2. ALIBABA NAME: 600x300x350mm 5mm thick (plain glass tank)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض زجاج شفاف 60 سم — YEE
+   - English: YEE Clear Glass Aquarium 60cm (600x300x350mm) 5mm
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   cloningaquapets.com lists an "Ultra Clear Open Tank Only (L*W*H = 60*30*35 Cms)" in
+   their ultra clear tank range. The dimensions match the Alibaba product exactly:
+   600x300x350mm. The same retailer also carries the 50cm variant (Product 011) from
+   the same YEE YKK series. However, the cloningaquapets listing specifies 6mm glass
+   for this size, while the Alibaba spec says 5mm. This discrepancy is significant.
+
+   Cross-referencing: The YEE official small glass fish tank page covers the full size
+   range. For 60cm tanks, YEE's official manufacturing uses 5mm glass for the standard
+   YKK-60 model. The cloningaquapets 6mm listing may be a different variant or a sourcing
+   upgrade by that specific retailer. The Alibaba YKK-60 spec of 5mm is taken as the
+   factory baseline.
+
+   Local Excel image (022_total_B35_image22.jpeg) confirmed available — this is a
+   direct visual match from the supplier's own product documentation.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YKK-60 (factory/Alibaba code)
+   - Dimensions: 600x300x350mm (L x W x H)
+   - Volume: ~63 liters (600 x 300 x 350 / 1,000,000 = 63L)
+   - Glass Thickness: 5mm (per Alibaba supplier spec)
+     NOTE: Some retailers (cloningaquapets) list this size with 6mm — possible variant
+   - Glass Type: Ultra-clear low-iron glass (超白玻璃)
+   - Light Transmittance: >91% (consistent with YEE YKK series specification)
+   - Glue: German WACKER glass glue, average thickness 1–1.5mm
+   - Edging: Crystal grade bilateral 45° fine grinding, 1mm chamfer
+   - Style: Open top, rimless, no lid included
+   - Craftsmanship: Handmade by master glassworkers with 15+ years experience
+   - Weight: Not confirmed from sources
+   - Package Contents: Tank only (bare tank, no filter or light)
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/022_total_B35_image22.jpeg
+   - https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+   - https://yeeaquarium.com/product/small-glass-fish-tank/
+   - https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-60-30-35-cm-ultra-clear-fish-tank-5mm
+
+8. ALL SOURCE LINKS:
+   - YEE Official product family page:
+     https://yeeaquarium.com/product/small-glass-fish-tank/
+   - cloningaquapets (60x30x35cm, 6mm variant):
+     https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-60-30-35-cm-ultra-clear-fish-tank-5mm
+   - cloningaquapets (Extra Clear 6mm variant same size):
+     https://www.cloningaquapets.com/products/extra-clear-open-tank-l-w-h-60-30-35-cm-6mm
+   - Singapore retailer (Ultimate Aqua SG — YEE 5mm crystal range):
+     https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+   - Singapore retailer (FishyHub):
+     https://fishyhub.com/product-detail/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-20728
+   - YEE Alibaba small fish tanks:
+     https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+
+9. NOTES:
+   - LOCAL EXCEL IMAGE AVAILABLE: صور_الاكسل_الصحيحة/images/022_total_B35_image22.jpeg
+     This is the supplier's own product photo — use as primary source.
+   - GLASS THICKNESS DISCREPANCY: The Alibaba spec says 5mm; cloningaquapets lists this
+     exact size (60x30x35) as 6mm. Before finalizing product listing, confirm with the
+     Alibaba supplier whether the YKK-60 is 5mm or 6mm. Both variants exist in the
+     market. The 6mm would be structurally preferred for 63L of water.
+   - This is the most popular size in YEE's plain glass range — very strong seller in
+     Southeast Asia and Indian markets as evidenced by multiple retailer listings.
+   - Same YKK series as Product 011 — consistent brand story and specs.
+   - No lid, filter, or light included.
+
+10. AQUAVO RECOMMENDATION:
+    SALE: The 60cm (2-foot) tank is the most accessible "first serious tank" size for
+    Iraqi hobbyists — large enough for a proper community setup, affordable enough for
+    beginners. This should be a flagship product in AQUAVO's bare tank lineup.
+    Highlight the ultra-clear glass advantage. Position alongside a YEE internal filter
+    and LED strip for a bundle deal. Use local Excel image for social posts.
+    Recommended social hook (Baghdad dialect):
+    "حوض 60 سم — الحجم المثالي للبداية. زجاج سوبر وايت، مو زجاج عادي يطلع أخضر."
+
+    ACTION REQUIRED: Confirm glass thickness with supplier (5mm vs 6mm) before listing.
+
+================================================
+SOURCES USED IN THIS RESEARCH:
+- https://yeeaquarium.com/product/small-glass-fish-tank/
+- https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-60-30-35-cm-ultra-clear-fish-tank-5mm
+- https://www.cloningaquapets.com/products/extra-clear-open-tank-l-w-h-60-30-35-cm-6mm
+- https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+- https://fishyhub.com/product-detail/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-20728
+================================================

@@ -1,0 +1,8 @@
+﻿Product ID: AQUAVO-Research-043
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_043_C4-1123_Novice_Level_50_9-in-1_Bucket_With_Compariso\01_Original_Alibaba_Image\Product_043_Original_044_total_B66_image44.png
+Alibaba - exact C4-1123 model listing: https://www.alibaba.com/product-detail/YEE-Accurate-7-in-1-Kit_11000005488940.html (exact)
+Thai Aquarium Center - YEE 9 in 1 50 pcs: https://thaiaquariumcenter.tarad.com/products_detail/view/7875551 (exact)
+Thai Aquarium Center - YEE 9 in 1 water test strips: https://thaiaquariumcenter.tarad.com/products_detail/view/7692475 (exact)

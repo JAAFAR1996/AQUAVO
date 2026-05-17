@@ -1,0 +1,10 @@
+﻿Product ID: AQUAVO-Research-051
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_051_YFF-049_Water_grass_mud_fertility_upgrade_fine_grain\01_Original_Alibaba_Image\Product_051_Original_052_total_B75_image52.png
+Official YEE family source: https://yeeaquarium.com/product/yee-wholesale-aquarium-soil/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/05/水草泥详情_01.jpg
+YEE official - Aquarium Soil family: https://yeeaquarium.com/product/yee-wholesale-aquarium-soil/ (family)
+Ultimate Aqua SG - YEE aquatic mud / nature soil variants: https://ultimateaquasg.com/products/yee-aquatic-mud-fish-tank-cleaner-nature-aquatic-soils-as-water-purifier-anti-algae (variant)
+Thai Aquarium Center - YEE Amazon Nature Aqua Soil 1.5L: https://thaiaquariumcenter.tarad.com/products_detail/view/7876070 (variant)

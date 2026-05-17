@@ -1,0 +1,61 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-011
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   (Blue) New upgraded 6D filter cotton 50*40 two pieces
+   Chinese name from order: （蓝色）新升级6D 过滤棉 50*40 两片装
+   Internal item code: 05617a
+   Product/model code: YLL-087
+   Order quantity: 4
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: منتج أحواض أسماك YEE YLL-087
+   - بالإنجليزي: YEE (Blue) New upgraded 6D filter cotton 50*40 two pieces
+
+4. حالة التطابق:
+   تطابق محتمل
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   توجد صفحة عائلة أو نتيجة مشابهة، لكن لم يظهر نفس الكود أو نفس التغليف بشكل كاف.
+   
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: غير مؤكد
+   - Model: YLL-087; item code: 05617a
+   - Size: 50*40 
+   - Color: أزرق حسب اسم الطلب/الصورة
+   - Material: قطن فلتر حسب اسم الطلب
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: 50*40 
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: ترشيح/دعم البكتيريا النافعة
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=3.0422535211267601، الكمية=4، الإجمالي=12.17.
+
+7. صور المنتج:
+   - Original: Product_011_Original_012_total_B23_image12.jpeg
+
+8. روابط المصادر:
+   - YEE official possible family - aquarium filter cotton: https://yeeaquarium.com/product/yee-wholesale-aquarium-filter-cotton/ [possible]
+     Note: Possible family page; exact model not confirmed.
+   - YEE official possible family - non-glue filter cotton: https://yeeaquarium.com/product/yee-wholesale-aquarium-non-glue-filter-cotton/ [possible]
+     Note: Possible family page; exact model not confirmed.
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand/Generic غير مؤكد.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   يحتاج وصفًا حذرًا قبل البيع. يصلح كمنتج AQUAVO فقط بعد تأكيد المورد أو تصوير المنتج محليًا، ولا يُنصح بنشر مواصفات غير ظاهرة في الصورة أو غير مدعومة برابط.
+================================================

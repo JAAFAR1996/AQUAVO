@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-036
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_036_YYH-125_White_Spot_Cleaner_300ml\01_Original_Alibaba_Image\Product_036_Original_037_total_B57_image37.jpeg

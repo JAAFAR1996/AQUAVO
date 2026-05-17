@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-041
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_041_YYH-173_Anti-stress_water_stabilizer_500ml_New_style\01_Original_Alibaba_Image\Product_041_Original_042_total_B63_image42.png

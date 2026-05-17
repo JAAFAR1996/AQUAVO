@@ -1,0 +1,111 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-006
+Date: 2026-05-13
+Researcher: AI Agent
+
+1. PRODUCT ID: AQUAVO-Research-006
+
+2. ALIBABA NAME: Xiaobai single-hole oxygen pump 3W (non-adjustable) YTZ-300
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: مضخة الهواء الصغيرة يي - نموذج YTZ-300
+   - English: YEE Mini Single-Outlet Air Pump 3W - YTZ-300 (Xiaobai Series)
+
+4. MATCH STATUS: Possible Match
+
+5. MATCH REASON:
+   The exact model code "YTZ-300" was NOT found on any publicly indexed page including
+   the official YEE website, Alibaba, AliExpress, or third-party retailers. The name
+   "Xiaobai" (小白 = "Little White") is a YEE product sub-brand/series name used in
+   their Chinese domestic market. The YEE official page at yeeaquarium.com/product/
+   yee-mini-aquarium-air-pump/ covers the "Mini Aquarium Air Pump" family which likely
+   includes the YTZ-300, but no exact specs or images for "YTZ-300" were found.
+   The closest confirmed product is the YEE YEB-901S (3W, single outlet, silent),
+   which matches the same power, outlet count, and size class. The "YTZ" prefix may
+   represent a different model series than the more common "YEB" series.
+   Item code 03326 was not found in any public source.
+   Match is "Possible" because: same brand (YEE), same wattage (3W), same outlet
+   configuration (single hole/non-adjustable) -- but exact model code unconfirmed.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) / Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: YTZ-300 (unconfirmed on public sources; from Alibaba order record)
+   - Item Code: 03326 (internal order code, not found in public sources)
+   - Series Name: Xiaobai (小白 = "Little White") - YEE Chinese domestic sub-brand
+   - Model: YTZ-300 (unconfirmed; closest public equivalent: YEB-901S)
+   - Power: 3W [CONFIRMED for family - from sagaraquarium.com and petfectioncorner.com.au]
+   - Outlets: Single hole (single outlet) [CONFIRMED from Alibaba order name]
+   - Adjustability: Non-adjustable [CONFIRMED from Alibaba order name]
+   - Airflow: 1.5 L/min [from sagaraquarium.com for 3W single outlet model; applies to
+     YEB-901S which is the same family -- treat as ESTIMATED for YTZ-300]
+   - Noise Level: Not found / not confirmed for this specific model
+   - Dimensions: Not confirmed for YTZ-300 specifically.
+     (YEB-901S reference: approximately 90x53x43mm per third-party listing -- ESTIMATED)
+   - Voltage: AC 220-240V [CONFIRMED for YEE 3W pump family from multiple sources]
+   - For Tank Size: Suitable for tanks up to approximately 45 gallons (small tanks)
+     [ESTIMATED based on YEB-901S specs, not confirmed for YTZ-300]
+   - Cable Length: Not found
+   - Package Contents: Not confirmed for YTZ-300.
+     (Typical YEE pump includes: pump unit, air tubing, air stone -- ESTIMATED)
+   - Note on "Non-adjustable": The 3W YEB-901S from sagaraquarium.com is listed as
+     having "adjustable air/oxygen control with separate controller" -- the Alibaba
+     order specifically says YTZ-300 is "non-adjustable", suggesting the YTZ-300 is
+     a simplified/budget version without flow adjustment.
+
+7. IMAGE SOURCES:
+   - Local Excel image: صور_الاكسل_الصحيحة/images/004_total_B15_image4.png
+     [This is the primary reference image from the supplier order]
+   - Official site image: https://yeeaquarium.com/product/yee-mini-aquarium-air-pump/
+     [Images on page, exact URL not extractable without page access]
+   - Alibaba/AliExpress images: Not found for exact YTZ-300 model
+   - Additional images: None confirmed specific to YTZ-300
+
+8. ALL SOURCE LINKS:
+   - Official YEE page (family): https://yeeaquarium.com/product/yee-mini-aquarium-air-pump/
+   - YEE Alibaba store: https://yeeaquarium.en.alibaba.com/
+   - Sagar Aquarium (3W single outlet - YEB-901S reference):
+     https://www.sagaraquarium.com/yee-silent-aquarium-air-pump-single-outlet-3w/
+   - Petfection Corner AU (3W/4W family):
+     https://www.petfectioncorner.com.au/products/aquarium-aerator-pump-yee-fish-culture-oxygen-pump-3w-4w
+   - Made-in-China YEE mini pump:
+     https://chinaaquarium.en.made-in-china.com/product/CZiGPptbZNhR/China-Yee-Aquarium-Pumps-Small-Fish-Tank-Accessories-Mini-Electric-Air-Pump.html
+   - AliExpress (general YEE mute pump):
+     https://de.aliexpress.com/i/1005003027372699.html
+   - Alibaba silent oxygen pump:
+     https://www.alibaba.com/product-detail/Yee-Fish-tank-silent-oxygen-pump_10000014178396.html
+
+9. NOTES:
+   - Is it Generic or Brand? Brand - YEE (乐宠), manufactured by Weifang Yipin Pet
+     Products Co., Ltd., China.
+   - Multiple variants found? YES - YEE makes a family of air pumps including YEB-901S
+     (3W/1-outlet), YEB-902S or similar (6W/2-outlet), 10W/4-outlet models. YTZ-300
+     is likely a specific sub-series model. "Xiaobai" branding is a named product line.
+   - Is image from same supplier? YES - local Excel image 004_total_B15_image4.png is
+     the supplier-provided image; assumed to be genuine YEE product photo.
+   - Risk factors:
+     a) The exact model code "YTZ-300" is not confirmed in any public English/Chinese
+        web index -- this could mean it is a newer SKU, renamed product, or China-only
+        domestic model number not listed on the international wholesale site.
+     b) The "non-adjustable" specification is noted only in the order; some 3W YEE
+        single-outlet pumps ARE adjustable (YEB-901S), so verify with supplier whether
+        YTZ-300 is truly fixed-flow or adjustable.
+     c) Item code 03326 not found on any platform -- use only as internal reference.
+   - Unconfirmed info to avoid:
+     a) Do not publish noise level (dB) specs without confirmation
+     b) Do not publish exact airflow for YTZ-300 (the 1.5 L/min figure is for YEB-901S)
+     c) Do not confirm that YTZ-300 = YEB-901S without verifying with supplier
+
+10. AQUAVO RECOMMENDATION:
+    - Suitable for sale? YES - YEE is a reputable Chinese aquarium brand; 3W single
+      outlet mini pump is appropriate for small aquariums (common beginner/small tank product)
+    - Premium product? NO - this is an entry-level/budget mini pump; not a premium item
+    - Needs special photography? YES - the local Excel image may be small/low-res;
+      request official YEE product photos from supplier
+    - Needs careful description? YES - do not list "YTZ-300" as a confirmed public model
+      number in customer-facing listings; use descriptive specs (3W, single outlet,
+      silent) instead. Clarify adjustability (non-adjustable vs adjustable) with supplier.
+    - Suitable for social media content? YES - small cute mini pump with "Xiaobai"
+      branding is photogenic and easy to show in tank setups
+================================================

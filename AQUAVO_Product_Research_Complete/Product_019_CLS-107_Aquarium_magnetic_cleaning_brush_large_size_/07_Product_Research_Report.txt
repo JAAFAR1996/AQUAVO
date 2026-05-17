@@ -1,0 +1,59 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-019
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   Aquarium magnetic cleaning brush, large size, blue, strong magnet.
+   Chinese name from order: 鱼缸磁力刷 大号 蓝色强磁
+   Internal item code: 07140
+   Product/model code: CLS-107
+   Order quantity: 3
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: منتج أحواض أسماك YEE CLS-107
+   - بالإنجليزي: YEE Aquarium magnetic cleaning brush, large size, blue, strong magnet.
+
+4. حالة التطابق:
+   تطابق محتمل
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   توجد صفحة عائلة أو نتيجة مشابهة، لكن لم يظهر نفس الكود أو نفس التغليف بشكل كاف.
+   
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: غير مؤكد
+   - Model: CLS-107; item code: 07140
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: أزرق حسب اسم الطلب/الصورة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: غير مؤكد من المصادر المتاحة
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: غير مؤكد من المصادر المتاحة
+   - Compatibility: غير مؤكد من المصادر المتاحة
+   - تفاصيل أخرى من ملف الطلب: السعر=0، الكمية=3، الإجمالي=0.
+
+7. صور المنتج:
+   - Original: Product_019_Original_020_total_B31_image20.png
+
+8. روابط المصادر:
+   - YEE official family - mini magnetic aquarium cleaning brush: https://yeeaquarium.com/product/mini-magnetic-aquarium-cleaning-brush/ [possible]
+     Note: Possible family page; exact model not confirmed.
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand/Generic غير مؤكد.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   يحتاج وصفًا حذرًا قبل البيع. يصلح كمنتج AQUAVO فقط بعد تأكيد المورد أو تصوير المنتج محليًا، ولا يُنصح بنشر مواصفات غير ظاهرة في الصورة أو غير مدعومة برابط.
+================================================

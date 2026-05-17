@@ -1,0 +1,96 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-011
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-011
+
+2. ALIBABA NAME: 500x270x300mm 5mm thick (plain glass tank)
+
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: حوض زجاج شفاف 50 سم — YEE
+   - English: YEE Clear Glass Aquarium 50cm (500x270x300mm) 5mm
+
+4. MATCH STATUS: Strong Match
+
+5. MATCH REASON:
+   YEE officially lists a "Small Glass Fish Tank" family on yeeaquarium.com that covers
+   multiple sizes including a 50cm variant. Singapore retailers (Ultimate Aqua SG,
+   FishyHub) sell the identical product described as "YEE Fish Tank, Crystal Tank With
+   5mm Thick Glass" and cloningaquapets.com lists a product titled:
+   "Ultra Clear Open Tank Only (L*W*H = 50*26*30 Cms) | 5mm" which matches the Alibaba
+   dimensions almost exactly (500x260x300mm vs 500x270x300mm — 10mm width difference
+   within tolerance for the same product family). The glass spec (5mm), brand (YEE),
+   and style (open top rimless) all align. Model code YKK-50 is the internal factory
+   code used by the Alibaba supplier; it does not appear on the English retail pages but
+   is consistent with YEE's naming pattern (YKK = plain crystal tank series).
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠 / Weifang Yipin Pet Products Co., Ltd.)
+   - Product Code: YKK-50 (factory/Alibaba code)
+   - Dimensions: 500x270x300mm (L x W x H) — retailer variant listed as 500x260x300mm
+   - Volume: ~40.5 liters (500 x 270 x 300 / 1,000,000 = 40.5L)
+   - Glass Thickness: 5mm
+   - Glass Type: Ultra-clear low-iron glass (超白玻璃)
+   - Light Transmittance: >91% (confirmed by YEE official page and retailer listings)
+     Note: YEE marketing also cites >93% for 4K HDR-grade variants
+   - Glue: German WACKER glass glue, average thickness 1–1.5mm
+   - Edging: Crystal grade bilateral 45° fine grinding, 1mm chamfer
+   - Style: Open top, rimless, no lid included
+   - Craftsmanship: Handmade by master glassworkers with 15+ years experience
+   - Weight: Not confirmed from sources
+   - Package Contents: Tank only (plain/bare tank, no filter or light)
+
+7. IMAGE SOURCES:
+   - https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+   - https://fishyhub.com/product-detail/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-20728
+   - https://yeeaquarium.com/product/small-glass-fish-tank/
+   - https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-50-26-30-cm-ultra-clear-fish-tank-5mm
+
+8. ALL SOURCE LINKS:
+   - YEE Official product family page:
+     https://yeeaquarium.com/product/small-glass-fish-tank/
+   - Singapore retailer (Ultimate Aqua SG):
+     https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+   - Singapore retailer (FishyHub):
+     https://fishyhub.com/product-detail/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-20728
+   - India retailer (cloningaquapets — matching 50x26x30 variant):
+     https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-50-26-30-cm-ultra-clear-fish-tank-5mm
+   - YEE Alibaba company page:
+     https://yeeaquarium.en.alibaba.com/
+
+9. NOTES:
+   - The YKK-50 code is an internal Alibaba/wholesale code and may not appear on
+     consumer retail listings. Retail pages simply describe it by dimensions.
+   - The width dimension varies slightly between sources (260mm vs 270mm). This is
+     likely a measurement rounding or a minor variant difference — both are the 50cm
+     family tank.
+   - YEE's small glass tank family also includes 30cm, 40cm, 60cm, and 80cm variants,
+     so the 50cm is a confirmed mid-range option in this series.
+   - No lid, filter, or light included — pure bare tank as noted on Alibaba.
+   - Glass is confirmed low-iron (ultra-clear / super white), not standard float glass.
+     This is a significant quality differentiator for the Iraqi market.
+   - WACKER (German brand) silicone sealant is used — a premium, food-safe adhesive
+     widely regarded as aquarium-safe. This is a strong selling point.
+   - Product is manufactured by Weifang Yipin Pet Products Co., Ltd., Shandong, China
+     — a major aquarium OEM with 6 factories, 400+ employees, 10,000+ SKUs.
+
+10. AQUAVO RECOMMENDATION:
+    SALE: Position as a premium entry-level bare tank. Ideal for customers who want to
+    build a custom aquascape or betta setup. Highlight the ultra-clear glass vs. standard
+    green-tint tanks commonly found in local Iraqi markets. The WACKER sealant and
+    low-iron glass should be featured prominently in the product description and social
+    content. Photograph against a dark background (#0a1628) to show the clarity advantage.
+    Suggest pairing with a YEE filter and LED light for upsell opportunity.
+    Recommended social hook (Baghdad dialect):
+    "هذا الحوض مو زجاج عادي — شوف الفرق بنفسك، الزجاج سوبر وايت يعطيك وضوح 4K."
+
+================================================
+SOURCES USED IN THIS RESEARCH:
+- https://yeeaquarium.com/product/small-glass-fish-tank/
+- https://ultimateaquasg.com/products/yee-fish-tank-crystal-tank-with-5mm-thick-glass
+- https://fishyhub.com/product-detail/yee-fish-tank-crystal-tank-with-5mm-thick-glass-transparent-fish-tank-20728
+- https://www.cloningaquapets.com/products/aquarium-tank-size-l-w-h-50-26-30-cm-ultra-clear-fish-tank-5mm
+- https://yeeaquarium.en.alibaba.com/productgrouplist-907800376/Small_Fish_Tanks.html
+================================================

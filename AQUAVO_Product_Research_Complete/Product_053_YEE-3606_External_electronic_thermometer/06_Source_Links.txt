@@ -1,0 +1,6 @@
+﻿Product ID: AQUAVO-Research-053
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_053_YEE-3606_External_electronic_thermometer\01_Original_Alibaba_Image\Product_053_Original_054_total_B78_image54.jpeg
+YEE official - Digital Aquarium Thermometer family: https://yeeaquarium.com/product/digital-aquarium-thermometer/ (family)

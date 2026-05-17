@@ -1,0 +1,7 @@
+﻿Product ID: AQUAVO-Research-018
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_018_LED-318_Yee_three-color_adjustable_3.5W_double-row_w\01_Original_Alibaba_Image\Product_018_Original_019_total_B30_image19.png
+YEE official possible family - mini USB aquarium clamp light: https://yeeaquarium.com/product/mini-usb-aquarium-clamp-light/ (possible)
+YEE official possible family - aquarium LED light: https://yeeaquarium.com/product/wholesale-aquarium-led-light/ (possible)

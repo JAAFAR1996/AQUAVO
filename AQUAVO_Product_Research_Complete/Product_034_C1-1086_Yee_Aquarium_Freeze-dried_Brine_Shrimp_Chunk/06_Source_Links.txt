@@ -1,0 +1,7 @@
+﻿Product ID: AQUAVO-Research-034
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_034_C1-1086_Yee_Aquarium_Freeze-dried_Brine_Shrimp_Chunk\01_Original_Alibaba_Image\Product_034_Original_035_total_B55_image35.jpeg
+Official YEE family source: https://yeeaquarium.com/product/brine-shrimp-fish-food/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/01/fish-food-2.webp

@@ -1,0 +1,132 @@
+﻿================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+1. Product ID داخلي:
+   AQUAVO-Research-003
+
+2. اسم المنتج من Alibaba / ملف الطلب:
+   YEE Black Warrior Heater 100W
+   Chinese name from order: YEE黑武士加热棒 100W
+   Internal item code: C4-1103-4
+   Product/model code: C4-1103
+   Order quantity: 5
+
+3. الاسم المقترح لـ AQUAVO:
+   - بالعربي: سخان حوض أسماك YEE C4-1103
+   - بالإنجليزي: YEE Black Warrior Heater 100W
+
+4. حالة التطابق:
+   تطابق قوي جدًا
+   لم يتم العثور على تطابق مؤكد 100%.
+
+5. سبب التقييم:
+   تم العثور على صفحة رسمية لعائلة المنتج من YEE، لكن الكود/النسخة الدقيقة غير ظاهرة في الصفحة.
+   Official source status: Official company page for product family; exact code/variant not visible. Official title: Metal Aquarium Heater.
+   الصور الأصلية من ملف Excel/Alibaba محفوظة في 01_Original_Alibaba_Image. الصور المشابهة غير المؤكدة وُضعت منفصلة في Possible_Matches_Not_Confirmed.
+
+6. كل المواصفات الموجودة:
+   - Brand: YEE
+   - Model: C4-1103; item code: C4-1103-4
+   - Size: غير مؤكد من المصادر المتاحة
+   - Color: أسود حسب اسم الطلب/الصورة
+   - Material: غير مؤكد من المصادر المتاحة
+   - Power / Watt: 100W
+   - Voltage: غير مؤكد من المصادر المتاحة
+   - Capacity: غير مؤكد من المصادر المتاحة
+   - Dimensions: غير مؤكد من المصادر المتاحة
+   - Weight: غير مؤكد من المصادر المتاحة
+   - Package contents: غير مؤكد من المصادر المتاحة
+   - Usage: تسخين ماء حوض الأسماك
+   - Compatibility: أحواض أسماك؛ نوع الماء غير مؤكد إلا إذا ذكر المصدر
+   - تفاصيل أخرى من ملف الطلب: السعر=3.52112676056338، الكمية=5، الإجمالي=17.6056338028169.
+
+7. صور المنتج:
+   - Original: Product_003_Original_003_total_B14_image3.jpeg
+   - Original: Product_003_Original_005_total_D14_image5.jpeg
+   - Matched: 02_Matched_Product_Images\Product_003_01_main_family.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_02_closeup.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_03_award.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_04_auto_cutoff.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_05_saving.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_06_power_recommendation.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_07_certificate.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_08_quartz_compare.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_09_black_warrior_intro.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_10_four_advantages.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_11_heating_wire.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_12_temperature_chip.jpg
+   - Matched: 05_Usage_Images\Product_003_13_in_aquarium_100w.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_14_ip68_100w.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_15_material_100w.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_16_details.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_17_watts_calculation.jpg
+   - Matched: 02_Matched_Product_Images\Product_003_18_safety.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_01_company_fac.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_02_ptc_heater_.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_03_titanium_he.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_04_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_05_mini_turtle.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Possible_Alibaba_Official_Weifang_Yipin_YEE_Heaters_06_stainless_h.jpg
+   - Possible, not confirmed: Possible_Matches_Not_Confirmed\Product_003_Official_Family_YEE.jpg
+
+8. روابط المصادر:
+   - YEE official family: https://yeeaquarium.com/product/metal-aquarium-heater/
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Aa8946374dfa9497eba01c285fac527f1k.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Acbba99fbf91b447097a883b12781bea2O.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H05cec0eeb4e54da18d093930c7a560e90.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/H2cda630aacf646c482bd8e946a976bb66.png_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://www.accio.com/supplier/oem-aquarium-water-heater
+     Image: https://s.alicdn.com/@sc04/kf/Hce32a2fc7250479f8c4a795cd1df033aO.jpg_720x720q50.jpg
+   - Alibaba official supplier page / Accio mirror: https://yeeaquarium.m.en.alibaba.com/tr_TR/company_profile.html
+     Image: https://s.alicdn.com/@sc04/kf/Hb88b5579df764c5d95a3bd458892f02cY.jpg_720x720q50.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/O1CN01c5WBWD1DesiQRjzAB_!!6000000000242-0-yinhe.jpg_540x540q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i1/1911536242/O1CN01XA0fuA1vyt87ZKi92_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i1/1911536242/O1CN01yZyclt1vytKclpwqW_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i1/1911536242/O1CN01yiAw9t1vyt8LGN5zr_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i2/1911536242/O1CN01E5mZZ11vyt8FuEjL2_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i2/1911536242/O1CN01Xl92Kt1vytKcg9k2e_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i2/1911536242/O1CN01Y1ftwe1vyt8DMbq22_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01I1UVYK1vytKdS428k_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01J6H5fO1vyt8I4y4rC_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01O0tW1L1vytKcg7SeU_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01PSp1kP1vytKd9gnTc_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01ZWR9up1vytKcgAgFy_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i3/1911536242/O1CN01aax9x61vytKbjUizB_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i4/1911536242/O1CN0139kMBT1vytKclqPxt_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i4/1911536242/O1CN01AHvo3L1vytKdnSmoN_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i4/1911536242/O1CN01FSz5MK1vytKcg98c6_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i4/1911536242/O1CN01KeNmfp1vytKbjVC6G_!!1911536242.jpg_q90.jpg
+   - eBuy7: https://www.ebuy7.com/yee-stainless-steel-heating-rod-explosion-proof-automatic-constant-temperature-turtle-tank-aquarium-heater-fish-tank-heating-rod-small-7.html
+     Image: https://gw.alicdn.com/imgextra/i4/1911536242/O1CN01mcbhod1vytKcbgPxM_!!1911536242.jpg_q90.jpg
+
+9. ملاحظات مهمة:
+   - هل المنتج Generic أم Brand؟ Brand product (YEE) على الأغلب.
+   - هل يوجد أكثر من موديل مشابه؟ نعم، في أغلب منتجات YEE توجد Variants؛ لا تدمج مواصفات الأحجام/الأوزان بين variants.
+   - هل الصورة من نفس المورد؟ الصورة الأصلية مصدرها ملف طلب AQUAVO/Alibaba المحلي؛ أما الصور الخارجية فمصادرها مذكورة في 06_Source_Links.txt.
+   - مخاطر الوصف: لا تنشر أي قدرة كهربائية أو فولطية أو وزن أو عدد قطع غير مدعوم بمصدر واضح. إذا وجدت اختلافات فهي مذكورة في سبب التقييم أو المواصفات.
+   - معلومات يجب تجنبها في موقع AQUAVO: أي claims طبية أو علاجية قوية لمنتجات المعالجة المائية، وأي مواصفات كهربائية غير مؤكدة على الملصق.
+
+10. توصية استخدام لـ AQUAVO:
+   صالح مبدئيًا للإدراج مع وصف محافظ. يفضل تصوير المنتج محليًا أو طلب صور المورد لتأكيد الموديل/التغليف، خصوصًا عند وجود أكثر من variant.
+================================================

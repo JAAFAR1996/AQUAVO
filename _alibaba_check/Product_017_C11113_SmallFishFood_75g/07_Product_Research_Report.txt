@@ -1,0 +1,110 @@
+================================================
+AQUAVO PRODUCT RESEARCH REPORT
+================================================
+Product ID: AQUAVO-Research-017
+Date: 2026-05-13
+
+1. PRODUCT ID: AQUAVO-Research-017
+2. ALIBABA NAME: Yee Small Fish Feed All-in-One 0.6mm 75g
+3. AQUAVO SUGGESTED NAME:
+   - Arabic: علف السمك الصغير YEE كل شيء في واحد 0.6mm - 75g
+   - English: YEE All-in-One Small Fish Food 0.6mm 75g
+4. MATCH STATUS: Strong Match
+5. MATCH REASON: Multiple third-party retailers (UltimateAquaSG, CleanCatSG, FishyHub Singapore,
+   FishmanCart) consistently list this product under the YEE brand as 0.6mm small fish food with
+   identical described features (anti-turbid, spirulina, no chemical adhesives). The product code
+   C1-1113 appears in the Alibaba wholesale listing. The 75g packaging is the standard smaller-bag
+   size for this product family, with 150g being the larger variant ("TIDDLER" market name used by
+   some SG retailers). The official YEE page for this product family is confirmed live at
+   yeeaquarium.com/product/micro-pellets-small-fish-food/. Core specs (0.6mm particle size,
+   ALL-IN-ONE formula) match all listed sources.
+
+6. SPECIFICATIONS FOUND:
+   - Brand: YEE (乐宠) by Weifang Yipin Pet Products Co., Ltd.
+   - Product Code: C1-1113 (variant: C1-1113-2 unconfirmed; family code confirmed)
+   - Market Name: "TIDDLER" (used by Singapore retailers for 0.6mm size)
+   - Particle Size: 0.6mm (also available in 0.2mm and 1.0mm in same family)
+   - Weight: 75g (also sold in 150g)
+   - Protein Content: Crude Protein >= 30% (confirmed from UltimateAquaSG listing)
+   - Crude Fat: >= 4%
+   - Crude Fiber: <= 4%
+   - Lysine: >= 1.8%
+   - Moisture: <= 10%
+   - Sinking/Floating: Sinking (slowly; designed for small community fish)
+   - Target Fish: Small tropical fish - guppies (孔雀鱼), neon tetras (红绿灯), bettas
+     (斗鱼), mollies, platies, small barbs, small goldfish
+   - Main Ingredients (confirmed from multiple SG retailers):
+     White fish meal, shrimp powder, high quality yeast, wheat flour, defatted soybean,
+     wheat germ, red shrimp, krill, spirulina, vitamins (multi), minerals (multi)
+   - Special Features:
+     * ALL-IN-ONE formula (color enhancement + growth + immunity in one feed)
+     * Anti-turbid water technology (water stays clear after feeding)
+     * No chemical adhesives (no artificial binders)
+     * Pellet remains intact after soaking (does not dissolve quickly)
+     * Spirulina and astaxanthin added for color enhancement
+     * No added pigments, no sprayed oil
+   - Package: Bag (resealable pouch)
+
+7. IMAGE SOURCES:
+   - https://ultimateaquasg.com/products/yee-aquarium-fish-food-for-small-fish-goldfish
+   - https://fishyhub.com/product-detail/yee-fish-food-for-small-fish-aquarium-food-with-small-particles-rich-in-spirulina-and-nutrition-no-chemical-adhesives-16555
+   - https://www.cleancatsg.com/products/yee-aquarium-small-fish-food-feed-for-small-fishes-guppies-bettas-tetras-nutrients-rich-colour-enhancement-1
+   - https://fishmancart.com/product/yee-tiddler-06mm-small-fish-food-150gm-06mm-oE6ntw
+   - https://www.alibaba.com/product-detail/Yee-Aquarium-Small-Fish-Feed-Full_1600552024921.html
+
+8. ALL SOURCE LINKS:
+   [1] YEE Official Product Page (Family):
+       https://yeeaquarium.com/product/micro-pellets-small-fish-food/
+       -- Official listing; product family confirmed, specific C1-1113-75g variant unconfirmed
+   [2] YEE Alibaba Store - Fish Food Category:
+       https://yeeaquarium.en.alibaba.com/productgrouplist-907661305/Fish_food.html
+       -- Official wholesale store; product code visible
+   [3] YEE Alibaba - Small Fish Feed Full Nutrition:
+       https://www.alibaba.com/product-detail/Yee-Aquarium-Small-Fish-Feed-Full_1600552024921.html
+       -- Wholesale listing with specifications and MOQ
+   [4] UltimateAquaSG - YEE Small Fish Food (PRIMARY SPEC SOURCE):
+       https://ultimateaquasg.com/products/yee-aquarium-fish-food-for-small-fish-goldfish
+       -- Confirms: 0.2mm and 0.6mm sizes; Crude Protein >= 30%; full ingredient list
+   [5] FishyHub Singapore - YEE Small Fish Food:
+       https://fishyhub.com/product-detail/yee-fish-food-for-small-fish-aquarium-food-with-small-particles-rich-in-spirulina-and-nutrition-no-chemical-adhesives-16555
+       -- No chemical adhesives; spirulina; anti-turbid confirmed
+   [6] CleanCatSG - YEE Small Fish Food (pellets):
+       https://www.cleancatsg.com/products/yee-aquarium-small-fish-food-feed-for-small-fishes-guppies-bettas-tetras-nutrients-rich-colour-enhancement-1
+       -- Target species confirmed: guppies, bettas, tetras
+   [7] CleanCatSG - YEE Crushed Small Fish Food (spirulina):
+       https://www.cleancatsg.com/products/yee-aquarium-crushed-fish-food-feed-for-small-fishes
+       -- Crushed/powder variant of same product family
+   [8] FishmanCart - YEE Tiddler 0.6mm 150g:
+       https://fishmancart.com/product/yee-tiddler-06mm-small-fish-food-150gm-06mm-oE6ntw
+       -- Confirms "TIDDLER" market name for 0.6mm product line
+   [9] Made-in-China - YEE Small Fish Feed:
+       https://chinaaquarium.en.made-in-china.com/product/HnUptPSxjukG/China-Yee-Special-Feed-for-Small-Fish-Barreled-Fish-Feed-High-Protein-Top-Quality-Best-Nutritious-Fish-Food.html
+       -- B2B factory listing
+   [10] Made-in-China - YEE Fish Nutrition Color Food:
+        https://chinaaquarium.en.made-in-china.com/product/vOSTDfioZHkA/China-Yee-Fish-Nutrition-Food-Beauty-Body-Color-Small-Fish-Food-Fish-Feed.html
+        -- Color enhancement variant reference
+
+9. NOTES:
+   - The "ALL-IN-ONE" branding used in the Alibaba listing (AQUAVO supplier) refers to the combined
+     function (color, growth, immunity) in a single formula. This is the C1-1113 product line.
+   - C1-1113 has at least 3 weight variants: 75g, 150g (confirmed), possibly 500g.
+   - The 0.2mm variant (for fry/nano fish) is a separate SKU from the 0.6mm.
+   - Protein content of >= 30% is on the lower end for carnivorous small fish; acceptable for
+     omnivorous community fish (guppies, mollies, tetras). This is a general/economy formula.
+   - "No chemical adhesives" is a key marketing claim -- aligns with clean ingredient positioning.
+   - Product is NOT listed on major US/EU aquarium retailers -- primarily Asian market.
+   - Artificial colors: NOT confirmed present. No mention in any source.
+   - The "anti-turbid" technology is a core YEE brand claim used across multiple product lines.
+
+10. AQUAVO RECOMMENDATION:
+    - SELL: Yes, ideal entry-level/everyday fish food for guppy and tetra owners.
+    - PRICE POSITIONING: Budget-to-mid range. 75g bag at accessible price point.
+    - DESCRIPTION FOCUS: Emphasize anti-turbid formula (no cloudy water), spirulina for color,
+      suitable for common Iraqi aquarium fish (guppies/حمراء الذيل, tetras/نيون).
+    - SOCIAL CONTENT: Show before/after tank clarity comparison. Feature guppy color enhancement.
+    - PHOTO NOTES: Product is a small pouch bag; photograph with guppies or tetras in background.
+    - ARABIC NAME SUGGESTION: "علف السمك الصغير YEE كل شيء في واحد" emphasizes the ALL-IN-ONE
+      value proposition which is strong for Iraqi hobbyists who prefer single-product solutions.
+    - CAUTION: Protein at 30% is adequate for omnivores; advise customers with carnivorous
+      small fish (bettas kept with community fish) to supplement with higher-protein food.
+================================================

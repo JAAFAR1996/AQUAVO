@@ -1,0 +1,7 @@
+﻿Product ID: AQUAVO-Research-023
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_023_C1-1113_Yee_Small_Fish_Feed_All-in-One_0.6mm_75g\01_Original_Alibaba_Image\Product_023_Original_024_total_B44_image24.png
+Official YEE family source: https://yeeaquarium.com/product/micro-pellets-small-fish-food/
+Official YEE family image: https://yeeaquarium.com/wp-content/uploads/2025/07/小型鱼配合饲料-1.jpg

@@ -1,0 +1,5 @@
+﻿Product ID: AQUAVO-Research-028
+Local Excel manifest: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\manifest.csv
+Original image source folder: C:\Users\jaafa\Desktop\upload\FishWebClean\صور_الاكسل_الصحيحة\images
+
+Original Alibaba/Excel image copy: C:\Users\jaafa\Desktop\upload\FishWebClean\AQUAVO_Product_Research_Complete\Product_028_C1-1066_40_High_Protein_Special_Food_for_Ornamental_\01_Original_Alibaba_Image\Product_028_Original_029_total_B49_image29.png
