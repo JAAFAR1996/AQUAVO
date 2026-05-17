@@ -191,7 +191,7 @@ export default function CheckoutPage() {
       );
       // Meta Pixel
       metaTrackPurchase({
-        orderId: orderData.id || "unknown",
+        orderId: orderData.orderNumber || orderData.id || "unknown",
         totalIQD: Number(orderData.total ?? grandTotal),
         productIds: cartItems.map((i) => i.productId),
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),

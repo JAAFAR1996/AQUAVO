@@ -290,7 +290,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       } catch (_) { /* pixel error — ignore */ }
       try {
         metaTrackPurchase({
-          orderId: orderData.id || 'unknown',
+          orderId: orderData.orderNumber || orderData.id || 'unknown',
           totalIQD: serverTotal,
           productIds: cartItems.map(i => i.productId),
           numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),

@@ -35,7 +35,8 @@ export function initMetaPixel() {
   document.head.appendChild(script);
 
   window.fbq("init", PIXEL_ID);
-  window.fbq("track", "PageView");
+  // PageView is handled by useMetaPageView hook on every route change (including mount).
+  // Do not fire here — would cause a double PageView on first load.
 }
 
 // ─── Track PageView (on route change) ───────────────────────────────────────
