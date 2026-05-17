@@ -55,6 +55,7 @@ const InvestPage = lazy(() => import("@/pages/invest"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
+const FinancePage = lazy(() => import("@/pages/admin/finance"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
@@ -530,6 +531,19 @@ function Router() {
 
       <Route path="/admin/login">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><AdminLogin /></Suspense></ErrorBoundary>)}
+      </Route>
+
+      {/* Admin: Finance Center */}
+      <Route path="/admin/finance">
+        {() => (
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<div style={{ background: "#010611", minHeight: "100vh" }} />}>
+                <FinancePage />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
+        )}
       </Route>
 
       {/* Lazy loaded admin dashboard */}
