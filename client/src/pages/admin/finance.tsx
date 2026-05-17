@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Redirect } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/contexts/auth-context";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -13,10 +11,7 @@ const PERIODS: { value: Period; label: string }[] = [
 ];
 
 export default function FinancePage() {
-  const { user } = useAuth();
   const [period, setPeriod] = useState<Period>("month");
-
-  if (!user || user.role !== "admin") return <Redirect to="/admin/login" />;
 
   return (
     <div dir="rtl" style={{ minHeight: "100vh", background: "#010611", padding: "20px 16px" }}>

@@ -538,7 +538,7 @@ function Router() {
         {() => (
           <ErrorBoundary>
             <RequireAdmin>
-              <Suspense fallback={<div style={{ background: "#010611", minHeight: "100vh" }} />}>
+              <Suspense fallback={<PageLoader />}>
                 <FinancePage />
               </Suspense>
             </RequireAdmin>
