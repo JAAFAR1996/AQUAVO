@@ -1,6 +1,29 @@
 import "./suppress.js";
 import "./env.js";
 
+import * as Sentry from "@sentry/node";
+
+// Initialize Sentry before any Express setup so instrumentation is complete
+Sentry.init({
+  dsn: process.env.VITE_SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? "development",
+  // 10% of transactions sampled — enough for production insight without volume cost
+  tracesSampleRate: 0.1,
+  beforeSend(event, hint) {
+    const err = hint?.originalException;
+    const msg = err instanceof Error ? err.message : String(err ?? "");
+    // Suppress expected Neon idle-connection noise so it doesn't pollute Sentry
+    if (msg.includes("terminating connection due to administrator command")) {
+      return null;
+    }
+    // Never forward raw DB connection strings or secrets in extra context
+    if (event.extra) {
+      delete (event.extra as Record<string, unknown>)["DATABASE_URL"];
+    }
+    return event;
+  },
+});
+
 import dotenv from 'dotenv';
 import http from "http";
 import express, { Request, Response, NextFunction } from "express";
@@ -20,19 +43,23 @@ import { initializeScheduledJobs } from "./cron/scheduled-jobs.js";
 // Global error handlers to prevent silent crashes
 process.on('uncaughtException', (error) => {
   console.error('[FATAL] Uncaught Exception:', error);
-  
+
   // Ignore Neon idle connection timeout errors which are thrown globally by the driver
   if (error instanceof Error && error.message.includes('terminating connection due to administrator command')) {
     console.warn('[WARN] Ignoring Neon WebSocket connection termination');
     return;
   }
 
-  // Give time for logs to flush
+  Sentry.captureException(error, { tags: { type: "uncaughtException" } });
+  // Give time for Sentry flush + logs
   setTimeout(() => process.exit(1), 1000);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled Rejection:', reason);
+  Sentry.captureException(reason instanceof Error ? reason : new Error(String(reason)), {
+    tags: { type: "unhandledRejection" },
+  });
   // Don't exit immediately - just log
 });
 
@@ -294,6 +321,10 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 (async () => {
   await registerRoutes(httpServer, app);
+
+  // Sentry Express error handler must come BEFORE the custom error handler
+  // so it can capture unhandled exceptions thrown inside route handlers
+  Sentry.setupExpressErrorHandler(app);
 
   // Use professional error handler from middleware
   app.use(errorHandler);

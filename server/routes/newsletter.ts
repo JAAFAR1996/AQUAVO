@@ -6,6 +6,7 @@ import { z } from "zod";
 import { sendWelcomeEmail, sendProductDiscountEmail } from "../utils/email.js";
 import { requireAdmin } from "../middleware/auth.js";
 import rateLimit from "express-rate-limit";
+import * as Sentry from "@sentry/node";
 
 const newsletterLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
@@ -47,6 +48,12 @@ export async function broadcastDiscountForProduct(storage: IStorage, productId: 
 
 export function createNewsletterRouter(storage: IStorage): RouterType {
     const router = Router();
+
+    // Tag all newsletter requests so errors surface under the "newsletter" flow in Sentry
+    router.use((_req, _res, next) => {
+        Sentry.setTag("flow", "newsletter");
+        next();
+    });
 
     router.post("/subscribe", newsletterLimiter, async (req: Request, res: Response): Promise<void> => {
         try {

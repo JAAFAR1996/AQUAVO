@@ -2,6 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
+import * as Sentry from "@sentry/node";
 import { orderLimiter } from "../middleware/rate-limit.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
@@ -39,6 +40,12 @@ const createOrderSchema = z.object({
 
 export function createOrderRouter(): RouterType {
     const router = Router();
+
+    // Tag all order requests so errors surface under the "order" flow in Sentry
+    router.use((_req, _res, next) => {
+        Sentry.setTag("flow", "order");
+        next();
+    });
 
     // Create Order (rate-limited: 10/hour per IP)
     router.post("/", orderLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -1,216 +1,146 @@
-// Sentry Error Tracking Integration
-// To use: Add VITE_SENTRY_DSN to your .env file
+import * as Sentry from "@sentry/react";
+import { browserTracingIntegration } from "@sentry/react";
 
-const SENTRY_DSN = import.meta.env.VITE_SENTRY_DSN;
-const ENV = import.meta.env.MODE;
+const DSN = import.meta.env.VITE_SENTRY_DSN as string | undefined;
 
-// Simple Sentry-like error tracking
-// Note: For full Sentry features, install @sentry/react package
+// Known third-party noise that is not AQUAVO code
+const IGNORED_MESSAGES = [
+  "ResizeObserver loop",
+  "ResizeObserver loop limit exceeded",
+  "ResizeObserver loop completed with undelivered notifications",
+  "Non-Error promise rejection captured",
+  "fbq is not defined",
+  "ttq is not defined",
+  "ReactDOM.render is no longer supported",
+  "cancelled",
+  "Load failed",
+];
 
-interface ErrorContext {
-  tags?: Record<string, string>;
-  extra?: Record<string, unknown>;
-  user?: {
-    id?: string;
-    email?: string;
-    username?: string;
-  };
+const IGNORED_URL_PATTERNS = [
+  /chrome-extension:\/\//,
+  /moz-extension:\/\//,
+  /safari-web-extension:\/\//,
+  /connect\.facebook\.net/,
+  /analytics\.tiktok\.com/,
+  /static\.ads-twitter\.com/,
+  /googletagmanager\.com/,
+  /doubleclick\.net/,
+];
+
+function isThirdPartyUrl(url: string): boolean {
+  return IGNORED_URL_PATTERNS.some((re) => re.test(url));
 }
 
-interface Breadcrumb {
-  message: string;
-  category?: string;
-  level?: 'info' | 'warning' | 'error';
-  data?: Record<string, unknown>;
-  timestamp?: string;
-}
+export function initSentry(): void {
+  if (!DSN) return;
 
-interface ErrorReport {
-  message: string;
-  stack?: string;
-  context?: ErrorContext;
-  breadcrumbs?: Breadcrumb[];
-  user?: ErrorContext['user'] | null;
-  environment?: string;
-  timestamp?: string;
-  url?: string;
-  userAgent?: string;
-  level?: 'info' | 'warning' | 'error';
-}
+  Sentry.init({
+    dsn: DSN,
+    environment: import.meta.env.MODE,
+    integrations: [browserTracingIntegration()],
 
-class ErrorTracker {
-  private isInitialized = false;
-  private breadcrumbs: Breadcrumb[] = [];
-  private user: ErrorContext['user'] | null = null;
+    // 10% of transactions — enough for production insight without volume cost
+    tracesSampleRate: 0.1,
 
-  init() {
-    if (this.isInitialized || !SENTRY_DSN) return;
+    // Session replay disabled — costs quota and not configured yet
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0,
 
-    this.isInitialized = true;
+    beforeSend(event, hint) {
+      const error = hint?.originalException;
 
-    // Setup global error handlers
-    window.addEventListener('error', this.handleError.bind(this));
-    window.addEventListener('unhandledrejection', this.handleRejection.bind(this));
-
-    if (import.meta.env.DEV) {
-      console.log('🔍 Error tracking initialized');
-    }
-  }
-
-  private handleError(event: ErrorEvent) {
-    this.captureException(event.error, {
-      tags: { type: 'error_event' },
-      extra: {
-        message: event.message,
-        filename: event.filename,
-        lineno: event.lineno,
-        colno: event.colno,
-      },
-    });
-  }
-
-  private handleRejection(event: PromiseRejectionEvent) {
-    this.captureException(event.reason, {
-      tags: { type: 'unhandled_rejection' },
-      extra: {
-        promise: event.promise,
-      },
-    });
-  }
-
-  captureException(error: Error | string, context?: ErrorContext) {
-    if (!this.isInitialized) return;
-
-    const errorMessage = typeof error === 'string' ? error : error.message;
-    const errorStack = typeof error === 'string' ? undefined : error.stack;
-
-    // Log to console in development
-    if (ENV === 'development') {
-      console.error('🚨 Error captured:', {
-        message: errorMessage,
-        stack: errorStack,
-        context,
-        breadcrumbs: this.breadcrumbs,
-        user: this.user,
-      });
-    }
-
-    // Send to backend or external service
-    this.sendErrorReport({
-      message: errorMessage,
-      stack: errorStack,
-      context,
-      breadcrumbs: this.breadcrumbs.slice(-10), // Last 10 breadcrumbs
-      user: this.user,
-      environment: ENV,
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-    });
-  }
-
-  captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info') {
-    if (!this.isInitialized) return;
-
-    if (import.meta.env.DEV) {
-      console.log(`📝 [${level}] ${message}`);
-    }
-
-    this.sendErrorReport({
-      message,
-      level,
-      environment: ENV,
-      timestamp: new Date().toISOString(),
-      url: window.location.href,
-    });
-  }
-
-  addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'>) {
-    this.breadcrumbs.push({
-      ...breadcrumb,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Keep only last 50 breadcrumbs
-    if (this.breadcrumbs.length > 50) {
-      this.breadcrumbs.shift();
-    }
-  }
-
-  setUser(user: ErrorContext['user']) {
-    this.user = user;
-  }
-
-  clearUser() {
-    this.user = null;
-  }
-
-  private async sendErrorReport(report: ErrorReport) {
-    // Filter out non-critical errors
-    if (this.shouldIgnoreError(report.message)) {
-      return;
-    }
-
-    try {
-      // Send to your backend
-      await fetch('/api/errors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(report),
-      }).catch(() => {
-        // Fail silently - don't want error reporting to break the app
-      });
-
-      // Or send directly to Sentry if you have DSN
-      if (SENTRY_DSN) {
-        // Implement Sentry DSN sending here
-        // This is a simplified version - use @sentry/react for full features
+      // Drop errors from known third-party scripts
+      const frames = event.exception?.values?.[0]?.stacktrace?.frames ?? [];
+      if (
+        frames.length > 0 &&
+        frames.every((f) => f.filename && isThirdPartyUrl(f.filename))
+      ) {
+        return null;
       }
-    } catch (err) {
-      // Fail silently
-    }
-  }
 
-  private shouldIgnoreError(message: string): boolean {
-    const ignoredPatterns = [
-      'ResizeObserver loop',
-      'Non-Error promise rejection',
-      'cancelled',
-      'Network request failed',
-    ];
+      // Drop by message pattern
+      const message =
+        event.exception?.values?.[0]?.value ??
+        (error instanceof Error ? error.message : String(error ?? ""));
 
-    return ignoredPatterns.some((pattern) =>
-      message.toLowerCase().includes(pattern.toLowerCase())
-    );
-  }
+      if (
+        IGNORED_MESSAGES.some((pattern) =>
+          message.toLowerCase().includes(pattern.toLowerCase())
+        )
+      ) {
+        return null;
+      }
+
+      return event;
+    },
+
+    beforeSendTransaction(event) {
+      // Drop transactions from third-party iframes / extensions
+      const url = event.request?.url ?? "";
+      if (isThirdPartyUrl(url)) return null;
+      return event;
+    },
+  });
 }
 
-// Export singleton instance
-export const errorTracker = new ErrorTracker();
+// ── User context ─────────────────────────────────────────────────────────────
 
-// Convenience functions
-export function captureException(error: Error | string, context?: ErrorContext) {
-  errorTracker.captureException(error, context);
+export function setSentryUser(user: {
+  id: string | number;
+  username?: string;
+  email?: string;
+}) {
+  Sentry.setUser({ id: String(user.id), username: user.username, email: user.email });
+}
+
+export function clearSentryUser() {
+  Sentry.setUser(null);
+}
+
+// ── Flow tagging ──────────────────────────────────────────────────────────────
+
+export type AquavoFlow =
+  | "cart"
+  | "checkout"
+  | "order"
+  | "search"
+  | "newsletter"
+  | "product";
+
+export function setSentryFlow(flow: AquavoFlow) {
+  Sentry.setTag("flow", flow);
+}
+
+// ── Capture helpers ───────────────────────────────────────────────────────────
+
+export function captureException(
+  error: unknown,
+  context?: Record<string, unknown>
+) {
+  if (context) {
+    Sentry.withScope((scope) => {
+      scope.setExtras(context);
+      Sentry.captureException(error);
+    });
+  } else {
+    Sentry.captureException(error);
+  }
 }
 
 export function captureMessage(
   message: string,
-  level: 'info' | 'warning' | 'error' = 'info'
+  level: Sentry.SeverityLevel = "info"
 ) {
-  errorTracker.captureMessage(message, level);
+  Sentry.captureMessage(message, level);
 }
 
-export function addBreadcrumb(breadcrumb: Omit<Breadcrumb, 'timestamp'>) {
-  errorTracker.addBreadcrumb(breadcrumb);
+export function addBreadcrumb(breadcrumb: Sentry.Breadcrumb) {
+  Sentry.addBreadcrumb(breadcrumb);
 }
 
-export function setUser(user: ErrorContext['user']) {
-  errorTracker.setUser(user);
-}
+// Backwards-compatible aliases (used by existing code/tests)
+export const setUser = setSentryUser;
+export const clearUser = clearSentryUser;
 
-export function clearUser() {
-  errorTracker.clearUser();
-}
-
-// Initialize on import
-errorTracker.init();
+// Re-export ErrorBoundary for use in JSX
+export { Sentry };

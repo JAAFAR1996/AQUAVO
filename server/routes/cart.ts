@@ -3,9 +3,16 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
+import * as Sentry from "@sentry/node";
 
 export function createCartRouter(): RouterType {
     const router = Router();
+
+    // Tag all cart requests so errors surface under the "cart" flow in Sentry
+    router.use((_req, _res, next) => {
+        Sentry.setTag("flow", "cart");
+        next();
+    });
 
     const getSessionUserId = (req: Request): string | undefined => {
         return (req as any).session?.userId;

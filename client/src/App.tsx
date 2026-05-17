@@ -138,7 +138,8 @@ function IdleMount({ children, timeout = 5000 }: { children: ReactNode; timeout?
 
 function DeferredSentryInit() {
   useEffect(() => {
-    const load = () => import("@/lib/sentry");
+    const load = () =>
+      import("@/lib/sentry").then(({ initSentry }) => initSentry());
     let idleId: number | undefined;
     const timer = window.setTimeout(() => {
       idleId = (window as any).requestIdleCallback?.(load, { timeout: 2000 });

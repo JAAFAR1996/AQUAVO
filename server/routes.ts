@@ -145,6 +145,7 @@ export async function registerRoutes(
   app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/invoice", createInvoiceRouter());
 
+
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error("API Error:", err);

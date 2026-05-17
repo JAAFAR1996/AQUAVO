@@ -6,6 +6,7 @@ import { recommendationEngine } from "../services/recommendation-engine.js";
 import { predictiveAnalytics } from "../services/predictive-analytics.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { analyticsTracker } from "../services/analytics-tracker.js";
+import * as Sentry from "@sentry/node";
 
 // ─── Server-side in-memory cache ──────────────────────────────
 // Prevents repeated DB round-trips for the same product query.
@@ -274,6 +275,7 @@ export function createProductRouter(): RouterType {
 
     // Semantic search using embeddings (AI-powered)
     router.get("/smart-search", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        Sentry.setTag("flow", "search");
         try {
             const query = req.query.q as string;
             if (!query || query.trim().length < 2) {

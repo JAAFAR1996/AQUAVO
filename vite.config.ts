@@ -107,6 +107,9 @@ export default defineConfig({
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
     chunkSizeWarningLimit: 500,
+    // "hidden" generates .map files but does NOT serve them publicly.
+    // Sentry reads them during upload (if configured later); browsers never get them.
+    sourcemap: isProduction ? "hidden" : true,
     // Disable automatic modulepreload hints — they force browser to fetch
     // ALL chunks (including vendor-charts 110KB, vendor-animation 44KB) on every page.
     // Chunks will still load on-demand when their importing code executes.
