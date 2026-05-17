@@ -130,3 +130,48 @@ export type AccountingOrderProfit = z.infer<typeof accountingOrderProfitSchema>;
 export type AccountingCodSummary = z.infer<typeof accountingCodSummarySchema>;
 export type AccountingCostHistoryEntry = z.infer<typeof accountingCostHistoryEntrySchema>;
 export type AccountingCouponUsage = z.infer<typeof accountingCouponUsageSchema>;
+
+export const EXPENSE_CATEGORIES = [
+  "rent",
+  "salary",
+  "marketing",
+  "shipping_cost",
+  "utilities",
+  "other",
+] as const;
+
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number];
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, string> = {
+  rent: "إيجار",
+  salary: "رواتب",
+  marketing: "تسويق",
+  shipping_cost: "تكلفة توصيل",
+  utilities: "فواتير خدمات",
+  other: "أخرى",
+};
+
+export const expenseInputSchema = z.object({
+  category: z.enum(EXPENSE_CATEGORIES),
+  amount: z.coerce.number().positive(),
+  description: z.string().trim().optional(),
+  expenseDate: z.string().min(1),
+  isRecurring: z.boolean().default(false),
+  recurringPeriod: z.enum(["monthly", "weekly", "yearly"]).optional(),
+});
+
+export const expenseResponseSchema = z.object({
+  id: z.string(),
+  category: z.enum(EXPENSE_CATEGORIES),
+  amount: z.number(),
+  description: z.string().nullable(),
+  expenseDate: z.string(),
+  isRecurring: z.boolean(),
+  recurringPeriod: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+export const expensesListResponseSchema = z.array(expenseResponseSchema);
+
+export type ExpenseInput = z.infer<typeof expenseInputSchema>;
+export type ExpenseResponse = z.infer<typeof expenseResponseSchema>;

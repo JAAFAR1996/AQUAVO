@@ -179,6 +179,25 @@ export const productCostHistory = pgTable("product_cost_history", {
   effectiveFromIdx: index("pch_effective_from_idx").on(table.effectiveFrom),
 }));
 
+export const expenses = pgTable("expenses", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull(),
+  // valid: rent, salary, marketing, shipping_cost, utilities, other
+  amount: numeric("amount").notNull(),
+  description: text("description"),
+  expenseDate: timestamp("expense_date").notNull(),
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  recurringPeriod: text("recurring_period"),
+  // valid: monthly, weekly, yearly — only when isRecurring = true
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  categoryIdx: index("expenses_category_idx").on(table.category),
+  expenseDateIdx: index("expenses_expense_date_idx").on(table.expenseDate),
+}));
+
+export const insertExpenseSchema = createInsertSchema(expenses);
+
 export const reviews = pgTable("reviews", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: text("product_id").references(() => products.id).notNull(),
