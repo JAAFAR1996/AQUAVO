@@ -71,6 +71,12 @@ const emptyForm = (): FormState => ({
   recurringPeriod: "",
 });
 
+const RECURRING_LABELS: Record<"monthly" | "weekly" | "yearly", string> = {
+  monthly: "شهري",
+  weekly: "أسبوعي",
+  yearly: "سنوي",
+};
+
 // ── Styles ────────────────────────────────────────────────────────────────────
 
 const S = {
@@ -255,8 +261,11 @@ export function FinanceExpenses({ period }: { period: Period }) {
 
   function openEdit(expense: ExpenseResponse) {
     setEditingId(expense.id);
+    const safeCategory = (EXPENSE_CATEGORIES as readonly string[]).includes(expense.category)
+      ? (expense.category as ExpenseInput["category"])
+      : "other";
     setForm({
-      category: expense.category as ExpenseInput["category"],
+      category: safeCategory,
       amount: String(expense.amount),
       expenseDate: expense.expenseDate.slice(0, 10),
       description: expense.description ?? "",
@@ -305,14 +314,6 @@ export function FinanceExpenses({ period }: { period: Period }) {
     if (!window.confirm("هل تريد حذف هذا المصروف؟")) return;
     deleteMutation.mutate(expense.id);
   }
-
-  // ── Recurring period label ─────────────────────────────────────────────────
-
-  const RECURRING_LABELS: Record<string, string> = {
-    monthly: "شهري",
-    weekly: "أسبوعي",
-    yearly: "سنوي",
-  };
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -364,108 +365,109 @@ export function FinanceExpenses({ period }: { period: Period }) {
             {editingId ? "تعديل المصروف" : "إضافة مصروف جديد"}
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
-            {/* Category */}
-            <div>
-              <label style={S.label}>الفئة</label>
-              <select
-                style={S.select}
-                value={form.category}
-                onChange={e => setForm(f => ({ ...f, category: e.target.value as ExpenseInput["category"] }))}
+          <form onSubmit={e => { e.preventDefault(); handleSubmit(); }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
+              {/* Category */}
+              <div>
+                <label style={S.label}>الفئة</label>
+                <select
+                  style={S.select}
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value as ExpenseInput["category"] }))}
+                >
+                  {EXPENSE_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>
+                      {EXPENSE_CATEGORY_LABELS[cat]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Amount */}
+              <div>
+                <label style={S.label}>المبلغ (د.ع)</label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  style={S.input}
+                  value={form.amount}
+                  onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
+                  placeholder="0"
+                />
+                {errors.amount && <div style={S.errorText}>{errors.amount}</div>}
+              </div>
+
+              {/* Date */}
+              <div>
+                <label style={S.label}>التاريخ</label>
+                <input
+                  type="date"
+                  style={S.input}
+                  value={form.expenseDate}
+                  onChange={e => setForm(f => ({ ...f, expenseDate: e.target.value }))}
+                />
+                {errors.expenseDate && <div style={S.errorText}>{errors.expenseDate}</div>}
+              </div>
+
+              {/* Description */}
+              <div>
+                <label style={S.label}>الوصف (اختياري)</label>
+                <input
+                  type="text"
+                  style={S.input}
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            {/* Is Recurring */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
+              <input
+                type="checkbox"
+                id="isRecurring"
+                checked={form.isRecurring}
+                onChange={e => setForm(f => ({ ...f, isRecurring: e.target.checked, recurringPeriod: e.target.checked ? f.recurringPeriod : "" }))}
+                style={{ accentColor: "#199bb8", width: 14, height: 14 }}
+              />
+              <label htmlFor="isRecurring" style={{ color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
+                مصروف متكرر
+              </label>
+            </div>
+
+            {/* Recurring period */}
+            {form.isRecurring && (
+              <div style={{ marginTop: 12, maxWidth: 220 }}>
+                <label style={S.label}>دورية التكرار</label>
+                <select
+                  style={S.select}
+                  value={form.recurringPeriod}
+                  onChange={e => setForm(f => ({ ...f, recurringPeriod: e.target.value as FormState["recurringPeriod"] }))}
+                >
+                  <option value="">-- اختر --</option>
+                  <option value="weekly">أسبوعي</option>
+                  <option value="monthly">شهري</option>
+                  <option value="yearly">سنوي</option>
+                </select>
+                {errors.recurringPeriod && <div style={S.errorText}>{errors.recurringPeriod}</div>}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
+              <button
+                type="submit"
+                style={S.btnPrimary}
+                disabled={addMutation.isPending || editMutation.isPending}
               >
-                {EXPENSE_CATEGORIES.map(cat => (
-                  <option key={cat} value={cat}>
-                    {EXPENSE_CATEGORY_LABELS[cat]}
-                  </option>
-                ))}
-              </select>
+                {addMutation.isPending || editMutation.isPending ? "جاري الحفظ..." : "حفظ"}
+              </button>
+              <button type="button" style={S.btnSecondary} onClick={closeForm}>
+                إلغاء
+              </button>
             </div>
-
-            {/* Amount */}
-            <div>
-              <label style={S.label}>المبلغ (د.ع)</label>
-              <input
-                type="number"
-                min={1}
-                step={1}
-                style={S.input}
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                placeholder="0"
-              />
-              {errors.amount && <div style={S.errorText}>{errors.amount}</div>}
-            </div>
-
-            {/* Date */}
-            <div>
-              <label style={S.label}>التاريخ</label>
-              <input
-                type="date"
-                style={S.input}
-                value={form.expenseDate}
-                onChange={e => setForm(f => ({ ...f, expenseDate: e.target.value }))}
-              />
-              {errors.expenseDate && <div style={S.errorText}>{errors.expenseDate}</div>}
-            </div>
-
-            {/* Description */}
-            <div>
-              <label style={S.label}>الوصف (اختياري)</label>
-              <input
-                type="text"
-                style={S.input}
-                value={form.description}
-                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                placeholder=""
-              />
-            </div>
-          </div>
-
-          {/* Is Recurring */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14 }}>
-            <input
-              type="checkbox"
-              id="isRecurring"
-              checked={form.isRecurring}
-              onChange={e => setForm(f => ({ ...f, isRecurring: e.target.checked, recurringPeriod: e.target.checked ? f.recurringPeriod : "" }))}
-              style={{ accentColor: "#199bb8", width: 14, height: 14 }}
-            />
-            <label htmlFor="isRecurring" style={{ color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
-              مصروف متكرر
-            </label>
-          </div>
-
-          {/* Recurring period */}
-          {form.isRecurring && (
-            <div style={{ marginTop: 12, maxWidth: 220 }}>
-              <label style={S.label}>دورية التكرار</label>
-              <select
-                style={S.select}
-                value={form.recurringPeriod}
-                onChange={e => setForm(f => ({ ...f, recurringPeriod: e.target.value as FormState["recurringPeriod"] }))}
-              >
-                <option value="">-- اختر --</option>
-                <option value="weekly">أسبوعي</option>
-                <option value="monthly">شهري</option>
-                <option value="yearly">سنوي</option>
-              </select>
-              {errors.recurringPeriod && <div style={S.errorText}>{errors.recurringPeriod}</div>}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div style={{ display: "flex", gap: 8, marginTop: 18 }}>
-            <button
-              style={S.btnPrimary}
-              onClick={handleSubmit}
-              disabled={addMutation.isPending || editMutation.isPending}
-            >
-              {addMutation.isPending || editMutation.isPending ? "جاري الحفظ..." : "حفظ"}
-            </button>
-            <button style={S.btnSecondary} onClick={closeForm}>
-              إلغاء
-            </button>
-          </div>
+          </form>
         </div>
       )}
 
