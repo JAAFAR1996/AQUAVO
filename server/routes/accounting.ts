@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { orders, products, shippingSettlements, productCostHistory } from "../../shared/schema.js";
-import { and, gte, lte, inArray, eq, desc } from "drizzle-orm";
+import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
   accountingCostInputSchema,
@@ -839,6 +839,76 @@ router.patch("/orders/:orderId/box-cost", async (req: Request, res: Response, ne
     }
 
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/inventory", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const activeProducts = await db
+      .select({
+        id: products.id,
+        price: products.price,
+        costPrice: products.costPrice,
+        stock: products.stock,
+        lowStockThreshold: products.lowStockThreshold,
+      })
+      .from(products)
+      .where(isNull(products.deletedAt));
+
+    let inventoryValueAtCost = 0;
+    let inventoryValueAtRetail = 0;
+    let productsWithCost = 0;
+    let productsWithoutCost = 0;
+    let comingSoonProducts = 0;
+    let lowStockProducts = 0;
+    let outOfStockProducts = 0;
+
+    for (const p of activeProducts) {
+      const price = toNumber(p.price);
+      const costPrice = toNumber(p.costPrice);
+      const stock = Number(p.stock ?? 0);
+      const threshold = Number(p.lowStockThreshold ?? 10);
+
+      // Coming Soon: price <= 0 — excluded from inventory metrics
+      if (price <= 0) {
+        comingSoonProducts++;
+        continue;
+      }
+
+      if (stock === 0) {
+        outOfStockProducts++;
+      } else if (stock <= threshold) {
+        lowStockProducts++;
+      }
+
+      if (costPrice > 0) {
+        productsWithCost++;
+        inventoryValueAtCost += costPrice * stock;
+      } else {
+        productsWithoutCost++;
+      }
+
+      inventoryValueAtRetail += price * stock;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        inventoryValueAtCost,
+        inventoryValueAtRetail,
+        totalProducts: activeProducts.length,
+        productsWithCost,
+        productsWithoutCost,
+        comingSoonProducts,
+        lowStockProducts,
+        outOfStockProducts,
+      },
+    });
   } catch (err) {
     next(err);
   }

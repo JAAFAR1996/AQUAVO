@@ -177,3 +177,16 @@ export const expensesListResponseSchema = z.array(expenseResponseSchema);
 
 export type ExpenseInput = z.infer<typeof expenseInputSchema>;
 export type ExpenseResponse = z.infer<typeof expenseResponseSchema>;
+
+export const accountingInventorySchema = z.object({
+  inventoryValueAtCost: z.number(),
+  inventoryValueAtRetail: z.number(),
+  totalProducts: z.number(),
+  productsWithCost: z.number(),
+  productsWithoutCost: z.number(),
+  comingSoonProducts: z.number(),
+  lowStockProducts: z.number(),
+  outOfStockProducts: z.number(),
+});
+
+export type AccountingInventory = z.infer<typeof accountingInventorySchema>;
