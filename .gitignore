@@ -78,5 +78,13 @@ TOOLS/gmail-creator/
 # Playwright MCP session files (temp screenshots/logs)
 .playwright-mcp/
 
+# Audit/QA screenshots (root-level only)
+/audit-*.png
+/audit-*.jpeg
+/qa-*.png
+/qa-*.jpeg
+/cro-*.png
+/cro-*.jpeg
+
 # Superpowers plugin cache
 .superpowers/
