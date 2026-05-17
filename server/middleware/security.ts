@@ -66,11 +66,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://connect.facebook.net; " +
+      "script-src 'self' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://connect.facebook.net https://analytics.tiktok.com; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://o4509516012191744.ingest.de.sentry.io; " +
+      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://analytics.tiktok.com; " +
       "frame-src https://www.facebook.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +

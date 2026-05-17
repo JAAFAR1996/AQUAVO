@@ -52,6 +52,10 @@
   <!-- Removed: unsplash (unused), fist-live-server (same-origin), plausible/tiktok (deferred 3.5s) -->
   <meta name="robots" content="index, follow, max-image-preview:large">
 
+  <!-- Preconnect for Google Fonts (DNS + TLS resolved before fonts load) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
   <!-- Hero image preload only when on home page (handled by React) -->
 
   <!-- Fonts: defer brand webfonts so first paint uses system fallback instead of blocking LCP -->

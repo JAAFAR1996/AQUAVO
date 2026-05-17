@@ -189,8 +189,8 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   const triggerDone = useCallback(onDone, [onDone]);
 
   useEffect(() => {
-    const fadeTimer = window.setTimeout(() => setFading(true), 1700);
-    const doneTimer = window.setTimeout(() => triggerDone(), 2100);
+    const fadeTimer = window.setTimeout(() => setFading(true), 300);
+    const doneTimer = window.setTimeout(() => triggerDone(), 500);
     return () => {
       window.clearTimeout(fadeTimer);
       window.clearTimeout(doneTimer);
