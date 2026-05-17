@@ -68,10 +68,13 @@ function LazyHeroVideo({ poster }: { poster: string }) {
       muted
       playsInline
       preload="none"
+      width={960}
+      height={540}
       className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105 z-[1]"
       style={{ objectFit: 'cover', objectPosition: 'center' }}
       poster={poster}
     >
+      <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.webm" type="video/webm" />
       <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.mp4" type="video/mp4" />
     </video>
   );
