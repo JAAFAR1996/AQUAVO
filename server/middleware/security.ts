@@ -54,7 +54,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net; " +
+      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net https://us.i.posthog.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
@@ -69,7 +69,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net; " +
+      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://us.i.posthog.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
