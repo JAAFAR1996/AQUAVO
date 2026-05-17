@@ -122,6 +122,15 @@ async function buildApp() {
       `)
     ).then(() => console.log("[Migration] expenses table: ready"))
       .catch(err => console.warn("[Migration] expenses table creation failed:", err.message));
+
+    // Effective-date accounting: add audit columns to product_cost_history.
+    // Safe to re-run — ADD COLUMN IF NOT EXISTS is idempotent.
+    db.execute(sql`
+      ALTER TABLE product_cost_history
+        ADD COLUMN IF NOT EXISTS note        TEXT,
+        ADD COLUMN IF NOT EXISTS changed_by  TEXT
+    `).then(() => console.log("[Migration] product_cost_history: note+changed_by ready"))
+      .catch(err => console.warn("[Migration] product_cost_history columns:", err.message));
   }
 
   return app;

@@ -173,6 +173,8 @@ export const productCostHistory = pgTable("product_cost_history", {
   packagingCost: numeric("packaging_cost").notNull().default("0"),
   insertCost: numeric("insert_cost").notNull().default("0"),
   effectiveFrom: timestamp("effective_from").notNull(),
+  note: text("note"),
+  changedBy: text("changed_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 }, (table) => ({
   productIdIdx: index("pch_product_id_idx").on(table.productId),

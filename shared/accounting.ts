@@ -9,8 +9,15 @@ export const accountingCostInputSchema = z.object({
   insertCost: z.coerce.number().min(0),
 });
 
+// Used by POST /costs/:productId — effectiveFrom and note are optional, default to today / null
+export const accountingCostUpdateSchema = accountingCostInputSchema.extend({
+  effectiveFrom: z.string().min(1).optional(),
+  note: z.string().max(200).trim().optional(),
+});
+
 export const accountingCostHistoryInputSchema = accountingCostInputSchema.extend({
   effectiveFrom: z.string().min(1),
+  note: z.string().max(200).trim().optional(),
 });
 
 export const accountingSettlementInputSchema = z.object({
@@ -109,6 +116,8 @@ export const accountingCostHistoryEntrySchema = z.object({
   packagingCost: z.coerce.number(),
   insertCost: z.coerce.number(),
   effectiveFrom: z.string(),
+  note: z.string().nullable(),
+  changedBy: z.string().nullable(),
   createdAt: z.string(),
 });
 
@@ -130,6 +139,7 @@ export type AccountingOrderProfit = z.infer<typeof accountingOrderProfitSchema>;
 export type AccountingCodSummary = z.infer<typeof accountingCodSummarySchema>;
 export type AccountingCostHistoryEntry = z.infer<typeof accountingCostHistoryEntrySchema>;
 export type AccountingCouponUsage = z.infer<typeof accountingCouponUsageSchema>;
+export type AccountingCostUpdate = z.infer<typeof accountingCostUpdateSchema>;
 
 export const EXPENSE_CATEGORIES = [
   "rent",

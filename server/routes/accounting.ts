@@ -7,6 +7,7 @@ import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
   accountingCostInputSchema,
+  accountingCostUpdateSchema,
   accountingPeriodSchema,
   accountingSettlementInputSchema,
   type AccountingInventory,
@@ -358,6 +359,8 @@ function serializeCostHistory(history: CostHistoryRow) {
     packagingCost: toNumber(history.packagingCost),
     insertCost: toNumber(history.insertCost),
     effectiveFrom: toDate(history.effectiveFrom).toISOString(),
+    note: history.note ?? null,
+    changedBy: history.changedBy ?? null,
     createdAt: toDate(history.createdAt).toISOString(),
   };
 }
@@ -647,31 +650,50 @@ router.post("/costs/:productId", async (req: Request, res: Response, next: NextF
     if (!db) return;
 
     const { productId } = req.params as { productId: string };
-    const parsed = accountingCostInputSchema.safeParse(req.body);
+    const parsed = accountingCostUpdateSchema.safeParse(req.body);
     if (!parsed.success) {
       res.status(400).json({ success: false, message: "بيانات الكلفة غير صالحة", errors: parsed.error.flatten() });
       return;
     }
 
-    const { costPrice, packagingCost, insertCost } = parsed.data;
-    const [updated] = await db
-      .update(products)
-      .set({
+    const { costPrice, packagingCost, insertCost, note } = parsed.data;
+    const effectiveFrom = parsed.data.effectiveFrom ? new Date(parsed.data.effectiveFrom) : new Date();
+    const changedBy = (req as any).user?.id ?? null;
+
+    // Atomic: product update + history insert. If either fails, both roll back.
+    await db.transaction(async (tx) => {
+      const [updated] = await tx
+        .update(products)
+        .set({
+          costPrice: String(costPrice),
+          packagingCost: String(packagingCost),
+          insertCost: String(insertCost),
+          updatedAt: new Date(),
+        })
+        .where(eq(products.id, productId))
+        .returning({ id: products.id });
+
+      if (!updated) {
+        throw Object.assign(new Error("المنتج غير موجود"), { statusCode: 404 });
+      }
+
+      await tx.insert(productCostHistory).values({
+        productId,
         costPrice: String(costPrice),
         packagingCost: String(packagingCost),
         insertCost: String(insertCost),
-        updatedAt: new Date(),
-      })
-      .where(eq(products.id, productId))
-      .returning();
+        effectiveFrom,
+        note: note?.trim() ?? null,
+        changedBy,
+      });
+    });
 
-    if (!updated) {
-      res.status(404).json({ success: false, message: "المنتج غير موجود" });
+    res.json({ success: true, data: { costPrice, packagingCost, insertCost, effectiveFrom: effectiveFrom.toISOString() } });
+  } catch (err: any) {
+    if (err?.statusCode === 404) {
+      res.status(404).json({ success: false, message: err.message });
       return;
     }
-
-    res.json({ success: true, data: { costPrice, packagingCost, insertCost } });
-  } catch (err) {
     next(err);
   }
 });
@@ -765,7 +787,8 @@ router.post("/cost-history/:productId", async (req: Request, res: Response, next
       return;
     }
 
-    const { costPrice, packagingCost, insertCost, effectiveFrom } = parsed.data;
+    const { costPrice, packagingCost, insertCost, effectiveFrom, note } = parsed.data;
+    const changedBy = (req as any).user?.id ?? null;
     const [entry] = await db
       .insert(productCostHistory)
       .values({
@@ -774,6 +797,8 @@ router.post("/cost-history/:productId", async (req: Request, res: Response, next
         packagingCost: String(packagingCost),
         insertCost: String(insertCost),
         effectiveFrom: new Date(effectiveFrom),
+        note: note?.trim() ?? null,
+        changedBy,
       })
       .returning();
 
