@@ -9,7 +9,7 @@ export function initPostHog(): void {
   if (initialized || !KEY || typeof window === "undefined") return;
   initialized = true;
   posthog.init(KEY, {
-    api_host: HOST ?? "https://us.posthog.com",
+    api_host: HOST ?? "https://us.i.posthog.com",
     person_profiles: "identified_only",
     autocapture: false,
     capture_pageview: false,
