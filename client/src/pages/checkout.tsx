@@ -10,7 +10,7 @@ import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/t
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
-import { ArrowRight, ShoppingCart } from "lucide-react";
+import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -327,7 +327,7 @@ export default function CheckoutPage() {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 container mx-auto px-4 py-6 max-w-lg">
+      <main className="flex-1 container mx-auto px-4 pt-6 pb-0 max-w-lg">
         {step === "info" ? (
           <div className="space-y-5">
             <CustomerInfoForm
@@ -353,6 +353,7 @@ export default function CheckoutPage() {
             )}
 
             <OrderSummary
+              cartItems={cartItems}
               cartTotal={cartTotal}
               deliveryFee={deliveryFee}
               discount={discount}
@@ -365,7 +366,7 @@ export default function CheckoutPage() {
             />
 
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
-              متابعة للتأكيد
+              الدفع عند الاستلام — تأكيد طلبي
             </Button>
           </div>
         ) : (
@@ -388,6 +389,36 @@ export default function CheckoutPage() {
           />
         )}
       </main>
+      {/* Mini footer — trust strip */}
+      <footer className="container mx-auto px-4 max-w-lg py-6 mt-6 border-t border-border/40 text-center" dir="rtl">
+        <p className="text-sm font-semibold text-foreground mb-1">AQUAVO</p>
+        <p className="text-xs text-muted-foreground mb-3">معدات أحواض أصلية لكل العراق — بغداد، العراق</p>
+        <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-3">
+          <span>الدفع عند الاستلام</span>
+          <span className="opacity-40">·</span>
+          <span>التوصيل 5,000 د.ع لكل العراق</span>
+        </div>
+        <div className="flex items-center justify-center gap-4">
+          <a
+            href={WHATSAPP_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-green-500 transition-colors"
+          >
+            <MessageCircle className="w-3.5 h-3.5" />
+            واتساب
+          </a>
+          <a
+            href="https://www.instagram.com/aquavo_iq"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+          >
+            <Instagram className="w-3.5 h-3.5" />
+            Instagram
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }

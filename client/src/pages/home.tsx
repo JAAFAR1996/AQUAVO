@@ -206,6 +206,9 @@ export default function Home() {
                 معدات <span className="text-primary text-stroke-sm">أحواض</span> <br />
                 أصلية <span className="text-accent">لكل العراق</span>.
               </h1>
+              <p className="text-white/60 text-sm md:text-base font-medium mb-1 drop-shadow tracking-wide">
+                فلاتر ـ سخانات ـ أغذية ـ أحواض ـ معالجات مياه
+              </p>
               <p className="text-white/80 text-base md:text-xl font-medium mb-2 drop-shadow">
                 الدفع عند الاستلام — توصيل لكل العراق خلال 24 ساعة — توصيل ثابت 5,000 د.ع
               </p>

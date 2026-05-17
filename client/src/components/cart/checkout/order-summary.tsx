@@ -1,6 +1,7 @@
 import { Separator } from "@/components/ui/separator";
 import { formatIQD } from "@/lib/utils";
 import { Truck, Info } from "lucide-react";
+import { CartItem } from "@/contexts/cart-context";
 
 interface OrderSummaryProps {
     cartTotal: number;
@@ -12,9 +13,10 @@ interface OrderSummaryProps {
     loyaltyDiscount?: number;
     cashbackEarned?: number;
     isLoggedIn?: boolean;
+    cartItems?: CartItem[];
 }
 
-export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned, isLoggedIn = false }: OrderSummaryProps) {
+export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isFreeShipping, getDeliveryEstimate, loyaltyDiscount, cashbackEarned, isLoggedIn = false, cartItems = [] }: OrderSummaryProps) {
     // حساب التقريب للعرض
     const rawTotal = Math.max(0, grandTotal);
     const roundedTotal = Math.ceil(rawTotal / 250) * 250;
@@ -29,7 +31,29 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
     return (
         <div className="rounded-lg border border-border/60 p-4 space-y-3">
             <h3 className="text-sm font-semibold text-foreground">ملخص الطلب</h3>
-            
+
+            {cartItems.length > 0 && (
+                <>
+                    <div className="space-y-2">
+                        {cartItems.map((item) => (
+                            <div key={item.id} className="flex items-start justify-between gap-2 text-sm">
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-foreground truncate">{item.name}</p>
+                                    {item.variantLabel && (
+                                        <p className="text-xs text-muted-foreground">{item.variantLabel}</p>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        {formatIQD(item.price)} × {item.quantity}
+                                    </p>
+                                </div>
+                                <span className="shrink-0 font-medium">{formatIQD(item.price * item.quantity)}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <Separator />
+                </>
+            )}
+
             <div className="space-y-2">
                 {/* المجموع الفرعي */}
                 <div className="flex justify-between text-sm">
