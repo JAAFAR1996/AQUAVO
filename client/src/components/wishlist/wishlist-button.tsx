@@ -1,12 +1,17 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useToast } from "@/hooks/use-toast";
 import { Product } from "@/types";
 import { cn } from "@/lib/utils";
-import { HeartFloatAnimation } from "./heart-float-animation";
 import { HeartBeat } from "@/components/ui/micro-animations";
+
+// Lazy-load framer-motion animation — only imported on first wishlist-add click,
+// not when product cards first render. Keeps framer-motion out of the scroll-triggered bundle.
+const HeartFloatAnimation = lazy(() =>
+  import("./heart-float-animation").then((m) => ({ default: m.HeartFloatAnimation }))
+);
 
 interface WishlistButtonProps {
   product: Product;
@@ -27,6 +32,9 @@ export function WishlistButton({
   const { toast } = useToast();
   const inWishlist = isInWishlist(product.id);
   const [triggerAnimation, setTriggerAnimation] = useState(false);
+  // animationMounted stays true after first add-to-wishlist click so subsequent
+  // clicks find the component already mounted and respond immediately.
+  const [animationMounted, setAnimationMounted] = useState(false);
 
   const handleToggleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -40,6 +48,7 @@ export function WishlistButton({
       });
     } else {
       addItem(product);
+      setAnimationMounted(true);
       setTriggerAnimation(true);
       toast({
         title: "انضاف للمفضلة",
@@ -51,7 +60,11 @@ export function WishlistButton({
   if (variant === "default") {
     return (
       <>
-        <HeartFloatAnimation trigger={triggerAnimation} onComplete={() => setTriggerAnimation(false)} />
+        {animationMounted && (
+          <Suspense fallback={null}>
+            <HeartFloatAnimation trigger={triggerAnimation} onComplete={() => setTriggerAnimation(false)} />
+          </Suspense>
+        )}
         <Button
           variant={inWishlist ? "default" : "secondary"}
           size={size}
@@ -77,7 +90,11 @@ export function WishlistButton({
 
   return (
     <>
-      <HeartFloatAnimation trigger={triggerAnimation} onComplete={() => setTriggerAnimation(false)} />
+      {animationMounted && (
+        <Suspense fallback={null}>
+          <HeartFloatAnimation trigger={triggerAnimation} onComplete={() => setTriggerAnimation(false)} />
+        </Suspense>
+      )}
       <Button
         size={size}
         variant="secondary"
