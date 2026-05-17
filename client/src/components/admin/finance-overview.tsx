@@ -4,12 +4,13 @@ import {
   accountingSummarySchema,
   accountingCodSummarySchema,
   accountingInventorySchema,
+  type AccountingPeriod,
   type AccountingSummary,
   type AccountingCodSummary,
   type AccountingInventory,
 } from "@shared/accounting";
 
-type Period = "day" | "week" | "month" | "year";
+type Period = Extract<AccountingPeriod, "day" | "week" | "month" | "year">;
 
 const fmt = (n: number) =>
   new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(n) + " د.ع";
@@ -30,11 +31,13 @@ function KpiCard({
   value,
   sub,
   color = "#199bb8",
+  badge,
 }: {
   label: string;
   value: string;
   sub?: string;
   color?: string;
+  badge?: string;
 }) {
   return (
     <div
@@ -45,7 +48,22 @@ function KpiCard({
         padding: "14px 18px",
       }}
     >
-      <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6 }}>{label}</div>
+      <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
+        {label}
+        {badge && (
+          <span style={{
+            background: "#ef444420",
+            color: "#fca5a5",
+            fontSize: 9,
+            fontWeight: 600,
+            padding: "1px 5px",
+            borderRadius: 4,
+            border: "1px solid #ef444440",
+          }}>
+            {badge}
+          </span>
+        )}
+      </div>
       <div style={{ color, fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{value}</div>
       {sub && (
         <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{sub}</div>
@@ -189,11 +207,8 @@ export function FinanceOverview({ period }: { period: Period }) {
       {summary && (
         <KpiGrid>
           <KpiCard
-            label={
-              summary.costsComplete
-                ? "الإيراد الصافي"
-                : "الإيراد الصافي — غير مكتمل"
-            }
+            label="الإيراد الصافي"
+            badge={!summary.costsComplete ? "غير مكتمل" : undefined}
             value={fmt(summary.totalRevenue)}
           />
           <KpiCard label="الطلبيات" value={String(summary.totalOrders)} />
@@ -208,7 +223,6 @@ export function FinanceOverview({ period }: { period: Period }) {
 
       {/* Row 2 — Profit */}
       <SectionHeader title="الربحية" />
-      {loadingSummary && <LoadingSkeleton />}
       {summary && (
         <KpiGrid>
           <KpiCard
