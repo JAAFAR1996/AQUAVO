@@ -39,14 +39,23 @@ router.get("/status", (_req: Request, res: Response) => {
 
 // ─── POST /api/capi/event ─────────────────────────────────────────────────────
 router.post("/event", async (req: Request, res: Response) => {
+  // [1] Request arrived
+  console.log("[CAPI] request received — Content-Type:", req.headers["content-type"] ?? "none");
+
   // Skip if CAPI is not configured
   if (!PIXEL_ID || !ACCESS_TOKEN) {
-    console.warn("[CAPI] META_PIXEL_ID or META_CAPI_TOKEN not configured — skipping");
-    return res.json({ ok: true, skipped: true });
+    console.warn("[CAPI] skipping — META_PIXEL_ID or META_CAPI_TOKEN not set");
+    return res.json({ ok: true, skipped: true, reason: "env_vars_missing" });
   }
 
   try {
     // sendBeacon may not set Content-Type on some browsers → body could be undefined
+    const rawBody = (req.body ?? {}) as Record<string, unknown>;
+
+    // [2] Body parse check
+    const bodyKeys = Object.keys(rawBody);
+    console.log("[CAPI] body keys received:", bodyKeys.length ? bodyKeys.join(", ") : "EMPTY — body not parsed");
+
     const {
       event_name,
       event_id,
@@ -57,12 +66,16 @@ router.post("/event", async (req: Request, res: Response) => {
       fbp,
       phone,
       custom_data,
-    } = (req.body ?? {}) as Record<string, unknown>;
+    } = rawBody;
 
     // Validate required fields
     if (!event_name || !event_id) {
+      console.warn("[CAPI] missing event_name or event_id — event_name:", event_name, "event_id:", event_id);
       return res.status(400).json({ ok: false, error: "event_name and event_id are required" });
     }
+
+    // [3] Event identity
+    console.log(`[CAPI] event="${event_name}" eventID="${event_id}" testCode="${TEST_CODE ?? "NOT SET"}" pixelID="${PIXEL_ID}"`);
 
     // Build user_data
     const user_data: Record<string, string> = {};
@@ -98,35 +111,39 @@ router.post("/event", async (req: Request, res: Response) => {
     // Send to Meta Graph API
     const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events`;
 
-    const body: Record<string, unknown> = {
+    const graphBody: Record<string, unknown> = {
       data: [event],
       access_token: ACCESS_TOKEN,
     };
 
     // Test Event Code — only in test/staging environments
-    if (TEST_CODE) body.test_event_code = TEST_CODE;
+    if (TEST_CODE) graphBody.test_event_code = TEST_CODE;
+
+    // [4] Graph API call
+    console.log(`[CAPI] calling Graph API — url: ${url.replace(PIXEL_ID, "***")} — test_event_code: ${TEST_CODE ?? "none"}`);
 
     const metaRes = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(graphBody),
     });
 
-    const metaData = await metaRes.json();
+    const metaData = await metaRes.json() as Record<string, unknown>;
+
+    // [5] Graph API response
+    console.log(`[CAPI] Graph API status: ${metaRes.status} — body:`, JSON.stringify(metaData));
 
     if (!metaRes.ok) {
-      console.error("[CAPI] Meta error:", metaData);
-      // Return 200 OK to the client so analytics failures don't cause frontend errors or 500 alerts,
-      // but still provide the error info in the JSON response
-      return res.status(200).json({ ok: false, error: metaData });
+      console.error("[CAPI] Meta API returned error — status:", metaRes.status, "body:", JSON.stringify(metaData));
+      return res.status(200).json({ ok: false, meta_status: metaRes.status, error: metaData });
     }
 
-    console.log(`[CAPI] ${event_name} sent — eventID: ${event_id}`);
-    return res.json({ ok: true, events_received: metaData.events_received });
+    console.log(`[CAPI] success — event="${event_name}" eventID="${event_id}" events_received=${metaData.events_received}`);
+    return res.json({ ok: true, meta_status: metaRes.status, events_received: metaData.events_received });
 
   } catch (err) {
     console.error("[CAPI] Unexpected error:", err);
-    return res.status(500).json({ ok: false });
+    return res.status(500).json({ ok: false, error: String(err) });
   }
 });
 
