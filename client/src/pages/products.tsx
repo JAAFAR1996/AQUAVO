@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect, lazy, Suspense } from "react";
+import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
@@ -244,6 +245,7 @@ export default function Products() {
         ? prev.categories.filter(c => c !== category)
         : [...prev.categories, category],
     }));
+    phTrackCategoryClick(category);
   };
 
   return (

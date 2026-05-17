@@ -35,6 +35,7 @@ import { ProductCard } from "@/components/products/product-card";
 import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
 import { trackViewItem, trackAddToCart } from "@/lib/analytics";
+import { phTrackViewContent, phTrackAddToCart, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function ProductDetails() {
@@ -115,6 +116,14 @@ export default function ProductDetails() {
       price: Number(displayPrice),
       category: product.category,
     });
+    phTrackViewContent({
+      id: product.id,
+      name: product.name,
+      category: product.category,
+      brand: product.brand,
+      price: Number(displayPrice),
+      available: (product.stock ?? 0) > 0,
+    });
   }, [product?.id, displayPrice, hasEmbeddedVariants, selectedVariant?.id]);
 
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
@@ -172,6 +181,13 @@ export default function ProductDetails() {
           name: productToAdd.name,
           price: trackPrice,
           quantity,
+        });
+        phTrackAddToCart({
+          id: productToAdd.id,
+          name: productToAdd.name,
+          price: trackPrice,
+          quantity,
+          category: product.category,
         });
       }
       setIsAddedToCart(true);
@@ -543,6 +559,7 @@ export default function ProductDetails() {
                       className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 text-sm font-medium transition-colors"
                       onClick={() => {
                         import("@/lib/analytics").then(m => m.trackWhatsAppClick("product", product.name));
+                        phTrackWhatsAppClick({ sourcePage: "product", productName: product.name });
                       }}
                     >
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.624-1.467A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.57-5.913-1.652l-.424-.252-2.744.871.876-2.67-.276-.44A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>

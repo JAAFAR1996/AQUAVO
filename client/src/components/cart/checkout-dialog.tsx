@@ -10,6 +10,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
+import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
 import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 // Sub-components
@@ -123,6 +124,10 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
           })),
           cartTotal
         );
+        phTrackInitiateCheckout({
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
+          totalValue: cartTotal,
+        });
       } catch (_) { /* pixel error — never block checkout */ }
     }
   }, [open]);
@@ -302,6 +307,11 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
             price: item.price,
             quantity: item.quantity,
           })),
+        });
+        phTrackPurchase({
+          orderId: orderData.id || 'unknown',
+          totalValue: cartTotal,
+          numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         });
       } catch (_) { /* pixel error — ignore */ }
     } catch (error: unknown) {

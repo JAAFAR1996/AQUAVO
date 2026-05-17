@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { phTrackSearch } from "@/lib/posthog";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -97,6 +98,13 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 400);
     return () => clearTimeout(timer);
   }, [query]);
+
+  const firedSearchRef = useRef<string>("");
+  useEffect(() => {
+    if (!debouncedQuery || firedSearchRef.current === debouncedQuery) return;
+    firedSearchRef.current = debouncedQuery;
+    phTrackSearch({ queryLength: debouncedQuery.length });
+  }, [debouncedQuery]);
 
   const { data: smartData } = useQuery({
     queryKey: ["smart-search", debouncedQuery],

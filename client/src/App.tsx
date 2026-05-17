@@ -16,6 +16,7 @@ const Analytics = lazy(() => import("@vercel/analytics/react").then(m => ({ defa
 const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m => ({ default: m.SpeedInsights })));
 
 import { initGA, trackPageView } from "@/lib/analytics";
+import { initPostHog, phTrackPageView } from "@/lib/posthog";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
 
@@ -661,11 +662,11 @@ function AppShell() {
   const shouldLoadHostedAnalytics = isHostedAnalyticsOrigin();
 
   useEffect(() => {
-    // Defer GA init to after first idle to reduce TBT
+    // Defer GA + PostHog init to after first idle to reduce TBT
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => initGA(), { timeout: 4000 });
+      requestIdleCallback(() => { initGA(); initPostHog(); }, { timeout: 4000 });
     } else {
-      setTimeout(() => initGA(), 3000);
+      setTimeout(() => { initGA(); initPostHog(); }, 3000);
     }
   }, []);
 
@@ -820,6 +821,7 @@ function PageViewTracker() {
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
     }, 100);
     trackPageView(location);
+    phTrackPageView(location);
 
     // ── Start new page view tracking ──────────────────────────
     startTimeRef.current = Date.now();
