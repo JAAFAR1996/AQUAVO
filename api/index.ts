@@ -89,10 +89,10 @@ async function buildApp() {
   await registerRoutes(httpServer, app);
   console.log("✅ All routes registered successfully");
 
-  // One-time: rename yff-049 to remove banned "نباتات مائية" (CLAUDE.md §CRITICAL rules)
-  // Idempotent — only fires when the old name is still in the DB.
   const db = getDb();
   if (db) {
+    // One-time: rename yff-049 to remove banned "نباتات مائية" (CLAUDE.md §CRITICAL rules)
+    // Idempotent — only fires when the old name is still in the DB.
     db.execute(sql`
       UPDATE products
       SET name = 'تربة حوض مخصّبة — تغذية بيولوجية'
@@ -100,6 +100,28 @@ async function buildApp() {
         AND name LIKE '%نباتات%'
     `).then(() => console.log("[Migration] yff-049 name fix: applied (no-op if already clean)"))
       .catch(err => console.warn("[Migration] yff-049 name fix failed:", err.message));
+
+    // Smart Finance Center: create expenses table if it doesn't exist yet.
+    // Safe to re-run — IF NOT EXISTS makes it idempotent.
+    db.execute(sql`
+      CREATE TABLE IF NOT EXISTS expenses (
+        id          TEXT        PRIMARY KEY DEFAULT gen_random_uuid(),
+        category    TEXT        NOT NULL,
+        amount      NUMERIC     NOT NULL,
+        description TEXT,
+        expense_date TIMESTAMP  NOT NULL,
+        is_recurring BOOLEAN    NOT NULL DEFAULT FALSE,
+        recurring_period TEXT,
+        created_at  TIMESTAMP   NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMP   NOT NULL DEFAULT NOW()
+      )
+    `).then(() =>
+      db.execute(sql`
+        CREATE INDEX IF NOT EXISTS expenses_category_idx     ON expenses (category);
+        CREATE INDEX IF NOT EXISTS expenses_expense_date_idx ON expenses (expense_date);
+      `)
+    ).then(() => console.log("[Migration] expenses table: ready"))
+      .catch(err => console.warn("[Migration] expenses table creation failed:", err.message));
   }
 
   return app;
