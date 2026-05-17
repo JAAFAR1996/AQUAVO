@@ -79,7 +79,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                 )}
 
                 {/* خصم رصيد الباقي */}
-                {loyaltyDiscount && loyaltyDiscount > 0 && (
+                {!!loyaltyDiscount && loyaltyDiscount > 0 && (
                     <div className="flex justify-between text-sm">
                         <span className="text-green-600 dark:text-green-400">خصم رصيد الباقي</span>
                         <span className="text-green-600 dark:text-green-400">-{formatIQD(loyaltyDiscount)}</span>
@@ -121,7 +121,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
             )}
 
             {/* نقاط مكتسبة — للمسجلين فقط */}
-            {isLoggedIn && cashbackEarned && cashbackEarned > 0 && (
+            {isLoggedIn && !!cashbackEarned && cashbackEarned > 0 && (
                 <p className="text-xs text-muted-foreground text-center">
                     ستحصل على +{cashbackEarned} نقطة باقي تقريب
                 </p>
