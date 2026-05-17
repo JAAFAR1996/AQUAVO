@@ -28,6 +28,15 @@ function normalizeIraqiPhone(phone: string): string {
   return digits;
 }
 
+// ─── GET /api/capi/status — safe env var presence check (no values exposed) ──
+router.get("/status", (_req: Request, res: Response) => {
+  res.json({
+    pixelIdSet: !!PIXEL_ID,
+    tokenSet: !!ACCESS_TOKEN,
+    testCodeSet: !!TEST_CODE,
+  });
+});
+
 // ─── POST /api/capi/event ─────────────────────────────────────────────────────
 router.post("/event", async (req: Request, res: Response) => {
   // Skip if CAPI is not configured
@@ -37,6 +46,7 @@ router.post("/event", async (req: Request, res: Response) => {
   }
 
   try {
+    // sendBeacon may not set Content-Type on some browsers → body could be undefined
     const {
       event_name,
       event_id,
@@ -47,7 +57,7 @@ router.post("/event", async (req: Request, res: Response) => {
       fbp,
       phone,
       custom_data,
-    } = req.body;
+    } = (req.body ?? {}) as Record<string, unknown>;
 
     // Validate required fields
     if (!event_name || !event_id) {
@@ -57,13 +67,13 @@ router.post("/event", async (req: Request, res: Response) => {
     // Build user_data
     const user_data: Record<string, string> = {};
 
-    if (fbc) user_data.fbc = fbc;
-    if (fbp) user_data.fbp = fbp;
-    if (user_agent) user_data.client_user_agent = user_agent;
+    if (fbc) user_data.fbc = String(fbc);
+    if (fbp) user_data.fbp = String(fbp);
+    if (user_agent) user_data.client_user_agent = String(user_agent);
 
     // Hash sensitive data (PII)
     if (phone) {
-      user_data.ph = hash(normalizeIraqiPhone(phone));
+      user_data.ph = hash(normalizeIraqiPhone(String(phone)));
     }
 
     // IP from the request (required for Event Match Quality)
@@ -86,7 +96,7 @@ router.post("/event", async (req: Request, res: Response) => {
     if (custom_data) event.custom_data = custom_data;
 
     // Send to Meta Graph API
-    const url = `https://graph.facebook.com/v19.0/${PIXEL_ID}/events`;
+    const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events`;
 
     const body: Record<string, unknown> = {
       data: [event],
