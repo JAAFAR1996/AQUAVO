@@ -8,6 +8,8 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { registerRoutes } from "../server/routes.js";
 import { buildSessionSecret, createSessionStore } from "../server/session-config.js";
 import { corsConfig, sanitizeBody, securityHeaders } from "../server/middleware/security.js";
+import { getDb } from "../server/db.js";
+import { sql } from "drizzle-orm";
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
@@ -86,6 +88,20 @@ async function buildApp() {
   console.log("📝 Registering routes...");
   await registerRoutes(httpServer, app);
   console.log("✅ All routes registered successfully");
+
+  // One-time: rename yff-049 to remove banned "نباتات مائية" (CLAUDE.md §CRITICAL rules)
+  // Idempotent — only fires when the old name is still in the DB.
+  const db = getDb();
+  if (db) {
+    db.execute(sql`
+      UPDATE products
+      SET name = 'تربة حوض مخصّبة — تغذية بيولوجية'
+      WHERE slug = 'yff-049'
+        AND name LIKE '%نباتات%'
+    `).then(() => console.log("[Migration] yff-049 name fix: applied (no-op if already clean)"))
+      .catch(err => console.warn("[Migration] yff-049 name fix failed:", err.message));
+  }
+
   return app;
 }
 
