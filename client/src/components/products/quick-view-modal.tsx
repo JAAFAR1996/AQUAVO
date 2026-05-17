@@ -30,11 +30,13 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
     if (!product) return null;
 
     const images = product.images?.length ? product.images : [product.thumbnail];
+    const hasPrice = (product.price ?? 0) > 0;
 
     const handleAddToCart = () => {
+        if (!hasPrice) return;
         addItem(product);
         toast({
-            title: "تمت الإضافة للسلة ✓",
+            title: "تمت الإضافة للسلة",
             description: `تم إضافة ${product.name} إلى سلة المشتريات`,
         });
     };
@@ -123,9 +125,20 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
 
                         {/* Price */}
                         <div className="flex items-baseline gap-3 justify-end mb-4">
-                            <span className="text-3xl font-bold text-purple-500">
-                                قريباً جداً
-                            </span>
+                            {hasPrice ? (
+                                <>
+                                    <span className="text-3xl font-bold text-primary">
+                                        {formatNumber(product.price)} د.ع
+                                    </span>
+                                    {product.originalPrice && product.originalPrice > product.price && (
+                                        <span className="text-lg text-muted-foreground line-through">
+                                            {formatNumber(product.originalPrice)} د.ع
+                                        </span>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="text-xl font-bold text-muted-foreground">قريباً جداً</span>
+                            )}
                         </div>
 
                         <Separator className="my-4" />
@@ -151,10 +164,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                 size="lg"
                                 className="w-full gap-2 text-lg h-14"
                                 onClick={handleAddToCart}
-                                disabled={!product.stock || product.stock <= 0}
+                                disabled={!hasPrice || !product.stock || product.stock <= 0}
                             >
                                 <ShoppingCart className="h-5 w-5" />
-                                أضف للسلة
+                                {!hasPrice ? "قريباً جداً" : "أضف للسلة"}
                             </Button>
 
                             <div className="flex gap-3">

@@ -238,7 +238,7 @@ class CombinedStorage implements IStorage {
                 // Get product details in batch (single query)
                 const productIds = trending.map((t: any) => t.productId);
                 const products = await this.productStorage.getProductsByIds(productIds);
-                return products.filter(p => (p.stock ?? 0) > 0);
+                return products.filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0);
             }
 
             // Fallback: Get highly-rated products with stock
@@ -249,7 +249,7 @@ class CombinedStorage implements IStorage {
             });
 
             return products
-                .filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.rating)) >= 4.0)
+                .filter(p => (p.stock ?? 0) > 0 && parseFloat(String(p.price ?? 0)) > 0 && parseFloat(String(p.rating)) >= 4.0)
                 .slice(0, 8);
         } catch (error) {
             console.error('Error getting trending products:', error);

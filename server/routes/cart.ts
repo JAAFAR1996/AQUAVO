@@ -58,6 +58,16 @@ export function createCartRouter(): RouterType {
             }
 
             const data = addItemSchema.parse(req.body);
+
+            // Block Coming Soon products (price=0) unless a positive variantPrice is supplied
+            if (!data.variantPrice || data.variantPrice <= 0) {
+                const product = await storage.getProduct(data.productId);
+                if (!product || parseFloat(String(product.price ?? 0)) <= 0) {
+                    res.status(400).json({ message: "هذا المنتج غير متاح حالياً للشراء" });
+                    return;
+                }
+            }
+
             const item = await storage.addToCart(
                 userId,
                 data.productId,

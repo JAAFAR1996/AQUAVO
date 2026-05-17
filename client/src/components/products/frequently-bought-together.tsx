@@ -36,8 +36,11 @@ export function FrequentlyBoughtTogether({
     const { addItem } = useCart();
     const { toast } = useToast();
 
-    // Get first 3 related products
-    const products = [currentProduct, ...relatedProducts.slice(0, 2)];
+    // Get first 3 related products — exclude Coming Soon (price=0) from bundle
+    const products = [
+        currentProduct,
+        ...relatedProducts.filter(p => p.price > 0).slice(0, 2),
+    ];
 
     const toggleProduct = (productId: string) => {
         // Don't allow deselecting the current product
@@ -61,7 +64,7 @@ export function FrequentlyBoughtTogether({
     const savings = totalOriginalPrice - totalPrice;
 
     const handleAddAllToCart = () => {
-        selectedProducts.forEach(product => {
+        selectedProducts.filter(p => p.price > 0).forEach(product => {
             // Cast to full Product type for cart compatibility
             addItem(product as import("@/types").Product);
         });
@@ -193,7 +196,7 @@ export function FrequentlyBoughtTogether({
                         size="lg"
                         className="gap-2 min-w-[200px]"
                         onClick={handleAddAllToCart}
-                        disabled={selectedProducts.length === 0}
+                        disabled={selectedProducts.filter(p => p.price > 0).length === 0}
                     >
                         <ShoppingCart className="w-5 h-5" />
                         إضافة الكل للسلة
