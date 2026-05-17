@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinanceOverview } from "@/components/admin/finance-overview";
+import { FinanceExpenses } from "@/components/admin/finance-expenses";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -67,9 +68,7 @@ export default function FinancePage() {
         </TabsContent>
 
         <TabsContent value="expenses">
-          <div style={{ color: "#94a3b8", fontSize: 13, padding: 24, textAlign: "center" }}>
-            المصاريف — قيد البناء
-          </div>
+          <FinanceExpenses period={period} />
         </TabsContent>
 
         <TabsContent value="reports">
