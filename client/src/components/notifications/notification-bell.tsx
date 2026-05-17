@@ -102,8 +102,8 @@ export function NotificationBell() {
       return res.json();
     },
     enabled: !!user,
-    staleTime: 60_000,
-    refetchInterval: 2 * 60_000,
+    staleTime: 2 * 60_000,
+    refetchInterval: 5 * 60_000,
   });
 
   const unreadCount = notifications.filter((n) => !n.readAt).length;

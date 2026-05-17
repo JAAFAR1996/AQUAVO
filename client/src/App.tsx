@@ -859,13 +859,15 @@ function PageViewTracker() {
     const presencePayload = JSON.stringify({ sessionId: sid, pagePath: location });
     const leavePayload    = JSON.stringify({ sessionId: sid });
 
-    // Enter: tell server we're on this page NOW
-    fetch("/api/analytics/presence", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: presencePayload,
-    }).catch(() => {});
+    // Enter: debounced 300ms to absorb rapid SPA navigation
+    const presenceTimer = window.setTimeout(() => {
+      fetch("/api/analytics/presence", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: presencePayload,
+      }).catch(() => {});
+    }, 300);
 
     // Heartbeat: refresh TTL every 20s (safety net for tabs closed without navigation)
     const heartbeatTimer = window.setInterval(() => {
@@ -896,6 +898,7 @@ function PageViewTracker() {
     return () => {
       clearTimeout(timer);
       window.clearTimeout(visitTimer);
+      window.clearTimeout(presenceTimer);
       window.clearInterval(heartbeatTimer);
       document.removeEventListener("visibilitychange", handleHide);
       window.removeEventListener("pagehide", handlePageHide);

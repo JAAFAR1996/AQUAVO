@@ -84,6 +84,7 @@ export function createProductRouter(): RouterType {
     router.get("/top-selling", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const result = await storage.getTopSellingProducts();
+            res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
             res.json(result);
         } catch (err) {
             next(err);
@@ -94,6 +95,7 @@ export function createProductRouter(): RouterType {
     router.get("/info/trending", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const products = await storage.getTrendingProducts();
+            res.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=1800');
             res.json(products);
         } catch (err) {
             next(err);

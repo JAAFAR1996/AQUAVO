@@ -79,8 +79,8 @@ export function useLoyaltyBalance(enabled = true) {
       return data.data;
     },
     enabled,
-    staleTime: 30_000, // Cache for 30s
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
   });
 }
 
