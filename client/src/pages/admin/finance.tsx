@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FinanceOverview } from "@/components/admin/finance-overview";
 import { FinanceExpenses } from "@/components/admin/finance-expenses";
 import { FinanceCostChanges } from "@/components/admin/finance-cost-changes";
+import { FinanceScenarioCalculator } from "@/components/admin/finance-scenario-calculator";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -63,6 +64,7 @@ export default function FinancePage() {
           <TabsTrigger value="products">ربحية المنتجات</TabsTrigger>
           <TabsTrigger value="recommendations">توصيات</TabsTrigger>
           <TabsTrigger value="cost-changes">تغييرات الكلف</TabsTrigger>
+          <TabsTrigger value="simulator">حاسبة السيناريوهات</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -93,6 +95,10 @@ export default function FinancePage() {
 
         <TabsContent value="cost-changes">
           <FinanceCostChanges />
+        </TabsContent>
+
+        <TabsContent value="simulator">
+          <FinanceScenarioCalculator />
         </TabsContent>
       </Tabs>
     </div>
