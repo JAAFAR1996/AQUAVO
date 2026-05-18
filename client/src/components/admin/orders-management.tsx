@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Eye, AlertTriangle, Trash2 } from "lucide-react";
+import { Package, Search, Eye, AlertTriangle, Trash2, ReceiptText } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { addCsrfHeader } from "@/lib/csrf";
+import { OrderReturnAdjustmentModal } from "@/components/admin/order-return-adjustment-modal";
 
 interface OrderItem {
   productId: string;
@@ -60,6 +61,7 @@ interface Order {
   trackingNumber?: string;
   orderNumber?: string;
   shippingCost?: number;
+  boxCost?: number;
   discountTotal?: number;
   couponId?: string;
   pointsUsed?: number;
@@ -108,9 +110,23 @@ export function OrdersManagement() {
   const [rejectStep, setRejectStep] = useState(0);
   const [deleteOrderId, setDeleteOrderId] = useState<string | null>(null);
 
+  // Return adjustment modal state
+  const [returnAdjustOrder, setReturnAdjustOrder] = useState<Order | null>(null);
+
+  // Return event count for the currently-viewed order detail
+  const [detailReturnCount, setDetailReturnCount] = useState(0);
+
   useEffect(() => {
     fetchOrders();
   }, []);
+
+  useEffect(() => {
+    if (!selectedOrder || !isDetailOpen) { setDetailReturnCount(0); return; }
+    fetch(`/api/admin/accounting/return-events?orderId=${selectedOrder.id}`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : { events: [] })
+      .then((d: { events: unknown[] }) => setDetailReturnCount(d.events?.length ?? 0))
+      .catch(() => setDetailReturnCount(0));
+  }, [selectedOrder?.id, isDetailOpen]);
 
   const fetchOrders = async () => {
     try {
@@ -309,6 +325,15 @@ export function OrdersManagement() {
                           <Eye className="h-4 w-4" />
                         </Button>
                         <Button
+                          size="sm"
+                          variant="outline"
+                          className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                          title="تعديل الفاتورة / راجع"
+                          onClick={() => setReturnAdjustOrder(order)}
+                        >
+                          <ReceiptText className="h-4 w-4" />
+                        </Button>
+                        <Button
                           variant="ghost"
                           size="sm"
                           className="text-red-400 hover:text-red-300 hover:bg-red-900/30"
@@ -405,6 +430,15 @@ export function OrdersManagement() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Return Adjustment Modal */}
+      {returnAdjustOrder && (
+        <OrderReturnAdjustmentModal
+          order={returnAdjustOrder}
+          open={!!returnAdjustOrder}
+          onClose={() => setReturnAdjustOrder(null)}
+        />
+      )}
+
       {/* Order Detail Dialog */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
@@ -412,11 +446,29 @@ export function OrdersManagement() {
             <div className="flex justify-between items-start">
               <div>
                 <DialogTitle className="text-2xl">فاتورة الطلب</DialogTitle>
-                <DialogDescription>
-                  رقم الطلب: <span className="text-primary font-mono font-bold">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span>
+                <DialogDescription className="flex items-center gap-2 flex-wrap">
+                  <span>رقم الطلب: <span className="text-primary font-mono font-bold">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span></span>
+                  {detailReturnCount > 0 && (
+                    <span className="text-orange-500 font-semibold text-xs border border-orange-300 rounded px-2 py-0.5">
+                      ⚠️ يوجد {detailReturnCount} تعديل/راجع على هذه الفاتورة
+                    </span>
+                  )}
                 </DialogDescription>
               </div>
-              <Button variant="outline" size="sm" onClick={() => window.print()} className="print:hidden">🖨️ طباعة</Button>
+              <div className="flex gap-2 print:hidden">
+                {selectedOrder && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-orange-500 border-orange-300 hover:bg-orange-50 dark:hover:bg-orange-950/30"
+                    onClick={() => { setIsDetailOpen(false); setReturnAdjustOrder(selectedOrder); }}
+                  >
+                    <ReceiptText className="h-4 w-4 ml-1" />
+                    تعديل / راجع
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => window.print()}>🖨️ طباعة</Button>
+              </div>
             </div>
           </DialogHeader>
           {selectedOrder && (
