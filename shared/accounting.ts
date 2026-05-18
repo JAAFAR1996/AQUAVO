@@ -265,6 +265,109 @@ export const accountingCostAuditEntrySchema = z.object({
 export const accountingCostAuditResponseSchema = z.array(accountingCostAuditEntrySchema);
 export type AccountingCostAuditEntry = z.infer<typeof accountingCostAuditEntrySchema>;
 
+// ── Finance Report ─────────────────────────────────────────────────────────
+
+const reportProductEntrySchema = z.object({
+  productId: z.string(),
+  name: z.string(),
+  unitsSold: z.number(),
+  revenue: z.number(),
+  grossProfit: z.number(),
+  grossMargin: z.number(),
+  netProfit: z.number(),
+  margin: z.number(),
+});
+
+export const accountingReportSchema = z.object({
+  summary: z.object({
+    period: z.string(),
+    revenue: z.number(),
+    deliveredOrders: z.number(),
+    unitsSold: z.number(),
+    totalCogs: z.number(),
+    totalPackaging: z.number(),
+    grossProfit: z.number(),
+    grossMargin: z.number(),
+    expensesTotal: z.number(),
+    returnLossVerified: z.number(),
+    netProfitBeforeReturns: z.number(),
+    netProfitAfterReturns: z.number(),
+    finalNetProfit: z.number(),
+    marginAfterReturns: z.number(),
+    marginAfterExpenses: z.number(),
+    averageOrderValue: z.number(),
+    costsComplete: z.boolean(),
+    missingCostLines: z.number(),
+  }),
+  returns: z.object({
+    verifiedReturnEvents: z.number(),
+    recordedReturnEvents: z.number(),
+    refundAmount: z.number(),
+    deliveryCostLoss: z.number(),
+    returnShippingCost: z.number(),
+    packagingLoss: z.number(),
+    productWriteOffAmount: z.number(),
+    cogsLoss: z.number(),
+    totalReturnFinancialImpact: z.number(),
+    events: z.array(z.object({
+      id: z.string(),
+      orderId: z.string(),
+      orderNumber: z.string().nullable(),
+      type: z.string(),
+      refundAmount: z.number(),
+      deliveryCostLoss: z.number(),
+      returnShippingCost: z.number(),
+      packagingLoss: z.number(),
+      productWriteOffAmount: z.number(),
+      cogsLoss: z.number(),
+      totalImpact: z.number(),
+      reason: z.string().nullable(),
+      note: z.string().nullable(),
+      status: z.string(),
+      createdAt: z.string(),
+    })),
+  }),
+  expenses: z.object({
+    total: z.number(),
+    byCategory: z.array(z.object({ category: z.string(), total: z.number() })),
+  }),
+  topProducts: z.object({
+    topByRevenue: z.array(reportProductEntrySchema),
+    topByGrossProfit: z.array(reportProductEntrySchema),
+    weakMarginProducts: z.array(reportProductEntrySchema),
+    returnedProducts: z.array(z.object({
+      productId: z.string(),
+      name: z.string(),
+      returnedQty: z.number(),
+      returnFinancialImpact: z.number(),
+      unitsSold: z.number(),
+      returnRate: z.number(),
+    })),
+    lowStockProducts: z.array(z.object({
+      productId: z.string(),
+      name: z.string(),
+      stock: z.number(),
+      salePrice: z.number(),
+      status: z.string(),
+    })),
+  }),
+  inventory: z.object({
+    inventoryValueAtCost: z.number(),
+    potentialRevenueFromStock: z.number(),
+    potentialGrossProfitFromStock: z.number(),
+    lowStockCount: z.number(),
+    outOfStockCount: z.number(),
+    comingSoonCount: z.number(),
+  }),
+  notes: z.array(z.object({
+    type: z.enum(["warning", "info"]),
+    message: z.string(),
+  })),
+  generatedAt: z.string(),
+});
+
+export type AccountingReport = z.infer<typeof accountingReportSchema>;
+
 // ── Return Events ──────────────────────────────────────────────────────────
 
 export const ORDER_RETURN_EVENT_TYPES = [

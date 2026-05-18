@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -1497,6 +1497,282 @@ router.post("/return-events", async (req: Request, res: Response, next: NextFunc
         updatedAt: toDate(entry.updatedAt).toISOString(),
         restockedAt: entry.restockedAt ? toDate(entry.restockedAt).toISOString() : null,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/report", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+
+    // ── 1. Delivered orders + per-product profit ───────────────────────
+    const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
+    const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+
+    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, missingCostLines = 0;
+    const profitByProduct: Record<string, {
+      name: string; unitsSold: number; revenue: number; cogs: number; packaging: number; netProfit: number;
+    }> = {};
+
+    for (const order of realizedOrders) {
+      const profit = calcOrderProfit(order, costs);
+      totalRevenue += profit.revenue;
+      totalCogs += profit.cogs;
+      totalPackaging += profit.packaging;
+      missingCostLines += profit.missingCostLines;
+
+      const items = getOrderItems(order);
+      const subtotal = orderSubtotal(items);
+      const createdAt = toDate(order.createdAt);
+      const orderRevenue = orderCollectedAmount(order) - toNumber(order.shippingCost);
+      const revenueRatio = subtotal > 0 ? orderRevenue / subtotal : 1;
+      const boxCost = toNumber(order.boxCost);
+
+      for (const item of items) {
+        const productId = item.productId;
+        if (!productId) continue;
+        const qty = lineQuantity(item);
+        const price = toNumber(item.priceAtPurchase);
+        const lineGross = price * qty;
+        const lineRevenue = lineGross * revenueRatio;
+        const lineDeduct = subtotal > 0 ? boxCost * (lineGross / subtotal) : 0;
+        const effectiveCost = costs.getEffective(productId, createdAt);
+        const currentCost = costs.getCurrent(productId);
+        if (!currentCost || !effectiveCost) continue;
+        const lineCogs = effectiveCost.costPrice * qty;
+        const linePack = (effectiveCost.packagingCost + effectiveCost.insertCost) * qty;
+        const lineProfit = lineRevenue - lineCogs - linePack - lineDeduct;
+        if (!profitByProduct[productId]) {
+          profitByProduct[productId] = { name: currentCost.name, unitsSold: 0, revenue: 0, cogs: 0, packaging: 0, netProfit: 0 };
+        }
+        profitByProduct[productId].unitsSold += qty;
+        profitByProduct[productId].revenue += lineRevenue;
+        profitByProduct[productId].cogs += lineCogs;
+        profitByProduct[productId].packaging += linePack;
+        profitByProduct[productId].netProfit += lineProfit;
+      }
+    }
+
+    const grossProfit = totalRevenue - totalCogs;
+    const grossMargin = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
+    const netProfitRaw = totalRevenue - totalCogs - totalPackaging;
+    const costsComplete = missingCostLines === 0;
+    const deliveredOrders = realizedOrders.length;
+    const unitsSold = Object.values(profitByProduct).reduce((s, p) => s + p.unitsSold, 0);
+    const averageOrderValue = deliveredOrders > 0 ? Math.round(totalRevenue / deliveredOrders) : 0;
+
+    // ── 2. Expenses ────────────────────────────────────────────────────
+    const expenseRows = await db
+      .select()
+      .from(expenses)
+      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end)));
+
+    const expensesTotal = expenseRows.reduce((sum, e) => sum + toNumber(e.amount), 0);
+    const expenseCategoryMap: Record<string, number> = {};
+    for (const e of expenseRows) {
+      expenseCategoryMap[e.category] = (expenseCategoryMap[e.category] ?? 0) + toNumber(e.amount);
+    }
+    const expensesByCategory = Object.entries(expenseCategoryMap)
+      .map(([category, total]) => ({ category, total }))
+      .sort((a, b) => b.total - a.total);
+
+    // ── 3. Return events ───────────────────────────────────────────────
+    const returnEventsInPeriod = await db
+      .select()
+      .from(orderReturnEvents)
+      .where(and(gte(orderReturnEvents.createdAt, start), lte(orderReturnEvents.createdAt, end)));
+
+    const verifiedReturnRows = returnEventsInPeriod.filter((e) => e.status === "verified");
+    const recordedReturnRows = returnEventsInPeriod.filter((e) => e.status === "recorded");
+
+    const sumRet = (key: keyof typeof verifiedReturnRows[0]) =>
+      verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
+
+    const totalReturnFinancialImpact =
+      sumRet("refundAmount") + sumRet("deliveryCostLoss") + sumRet("returnShippingCost") +
+      sumRet("packagingLoss") + sumRet("productWriteOffAmount") + sumRet("cogsLoss");
+
+    const netProfitBeforeReturns = netProfitRaw;
+    const netProfitAfterReturns = netProfitRaw - totalReturnFinancialImpact;
+    const finalNetProfit = netProfitAfterReturns - expensesTotal;
+    const marginAfterReturns = totalRevenue > 0 ? Math.round((netProfitAfterReturns / totalRevenue) * 100) : 0;
+    const marginAfterExpenses = totalRevenue > 0 ? Math.round((finalNetProfit / totalRevenue) * 100) : 0;
+
+    // Enrich verified events with order numbers
+    const retOrderIds = [...new Set(verifiedReturnRows.map((e) => e.orderId))];
+    const retOrderRows = retOrderIds.length > 0
+      ? await db.select({ id: orders.id, orderNumber: orders.orderNumber })
+          .from(orders).where(inArray(orders.id, retOrderIds))
+      : [];
+    const retOrderMap = new Map(retOrderRows.map((o) => [o.id, o.orderNumber ?? null]));
+
+    // ── 4. Top products ────────────────────────────────────────────────
+    const productEntries = Object.entries(profitByProduct).map(([productId, p]) => {
+      const rev = Math.round(p.revenue);
+      const gp = Math.round(p.revenue - p.cogs);
+      return {
+        productId,
+        name: p.name,
+        unitsSold: p.unitsSold,
+        revenue: rev,
+        grossProfit: gp,
+        grossMargin: rev > 0 ? Math.round((gp / rev) * 100) : 0,
+        netProfit: Math.round(p.netProfit),
+        margin: rev > 0 ? Math.round((p.netProfit / rev) * 100) : 0,
+      };
+    });
+
+    const topByRevenue = [...productEntries].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+    const topByGrossProfit = [...productEntries].sort((a, b) => b.grossProfit - a.grossProfit).slice(0, 5);
+    const weakMarginProducts = [...productEntries]
+      .filter((p) => p.revenue > 0)
+      .sort((a, b) => a.grossMargin - b.grossMargin)
+      .slice(0, 5);
+
+    // Returned products (from affectedItems JSONB)
+    const returnedProductMap: Record<string, { name: string; returnedQty: number; returnFinancialImpact: number; unitsSold: number }> = {};
+    for (const evt of verifiedReturnRows) {
+      const items = Array.isArray(evt.affectedItems)
+        ? (evt.affectedItems as Array<{ productId: string; qty: number; priceAtPurchase: number; cogsAtTime: number }>)
+        : [];
+      for (const item of items) {
+        const sold = profitByProduct[item.productId];
+        if (!returnedProductMap[item.productId]) {
+          returnedProductMap[item.productId] = { name: sold?.name ?? item.productId, returnedQty: 0, returnFinancialImpact: 0, unitsSold: sold?.unitsSold ?? 0 };
+        }
+        returnedProductMap[item.productId].returnedQty += item.qty;
+        returnedProductMap[item.productId].returnFinancialImpact += item.qty * (item.priceAtPurchase + item.cogsAtTime);
+      }
+    }
+    const returnedProducts = Object.entries(returnedProductMap).map(([productId, p]) => ({
+      productId,
+      name: p.name,
+      returnedQty: p.returnedQty,
+      returnFinancialImpact: Math.round(p.returnFinancialImpact),
+      unitsSold: p.unitsSold,
+      returnRate: p.unitsSold > 0 ? Math.round((p.returnedQty / p.unitsSold) * 100) : 0,
+    }));
+
+    // ── 5. Inventory + Low stock ────────────────────────────────────────
+    const activeProducts = await db.select().from(products).where(isNull(products.deletedAt));
+
+    let inventoryValueAtCost = 0, potentialRevenueFromStock = 0, potentialGrossProfitFromStock = 0;
+    let lowStockCount = 0, outOfStockCount = 0, comingSoonCount = 0;
+    const lowStockList: Array<{ productId: string; name: string; stock: number; salePrice: number; status: string }> = [];
+
+    for (const p of activeProducts) {
+      const salePrice = toNumber(p.price);
+      const costPrice = toNumber(p.costPrice);
+      const stock = Number(p.stock ?? 0);
+      const threshold = Number(p.lowStockThreshold ?? 10);
+      if (salePrice <= 0) { comingSoonCount++; continue; }
+      if (stock === 0) {
+        outOfStockCount++;
+        lowStockList.push({ productId: p.id, name: p.name, stock, salePrice, status: "نفد" });
+      } else if (stock <= threshold) {
+        lowStockCount++;
+        lowStockList.push({ productId: p.id, name: p.name, stock, salePrice, status: "منخفض" });
+      }
+      if (costPrice > 0) inventoryValueAtCost += costPrice * stock;
+      potentialRevenueFromStock += salePrice * stock;
+      if (costPrice > 0) potentialGrossProfitFromStock += (salePrice - costPrice) * stock;
+    }
+
+    const lowStockProducts = lowStockList.sort((a, b) => a.stock - b.stock).slice(0, 10);
+
+    // ── 6. Warnings ────────────────────────────────────────────────────
+    const notes: Array<{ type: "warning" | "info"; message: string }> = [];
+    if (!costsComplete) {
+      notes.push({ type: "warning", message: `${missingCostLines} سطر منتج بدون كلفة — أرقام الربح غير دقيقة` });
+    }
+    if (recordedReturnRows.length > 0) {
+      notes.push({ type: "warning", message: `${recordedReturnRows.length} راجع مسجّل غير معتمد — لا يدخل في الأرقام` });
+    }
+    if (expenseRows.length === 0) {
+      notes.push({ type: "warning", message: "لا مصاريف مسجّلة لهذه الفترة — صافي الربح النهائي قد يبدو أعلى مما هو فعلياً" });
+    }
+
+    res.json({
+      success: true,
+      data: JSON.parse(JSON.stringify({
+        summary: {
+          period,
+          revenue: Math.round(totalRevenue),
+          deliveredOrders,
+          unitsSold,
+          totalCogs: Math.round(totalCogs),
+          totalPackaging: Math.round(totalPackaging),
+          grossProfit: Math.round(grossProfit),
+          grossMargin,
+          expensesTotal: Math.round(expensesTotal),
+          returnLossVerified: Math.round(totalReturnFinancialImpact),
+          netProfitBeforeReturns: Math.round(netProfitBeforeReturns),
+          netProfitAfterReturns: Math.round(netProfitAfterReturns),
+          finalNetProfit: Math.round(finalNetProfit),
+          marginAfterReturns,
+          marginAfterExpenses,
+          averageOrderValue,
+          costsComplete,
+          missingCostLines,
+        },
+        returns: {
+          verifiedReturnEvents: verifiedReturnRows.length,
+          recordedReturnEvents: recordedReturnRows.length,
+          refundAmount: Math.round(sumRet("refundAmount")),
+          deliveryCostLoss: Math.round(sumRet("deliveryCostLoss")),
+          returnShippingCost: Math.round(sumRet("returnShippingCost")),
+          packagingLoss: Math.round(sumRet("packagingLoss")),
+          productWriteOffAmount: Math.round(sumRet("productWriteOffAmount")),
+          cogsLoss: Math.round(sumRet("cogsLoss")),
+          totalReturnFinancialImpact: Math.round(totalReturnFinancialImpact),
+          events: verifiedReturnRows.map((e) => ({
+            id: e.id,
+            orderId: e.orderId,
+            orderNumber: retOrderMap.get(e.orderId) ?? null,
+            type: e.type,
+            refundAmount: toNumber(e.refundAmount),
+            deliveryCostLoss: toNumber(e.deliveryCostLoss),
+            returnShippingCost: toNumber(e.returnShippingCost),
+            packagingLoss: toNumber(e.packagingLoss),
+            productWriteOffAmount: toNumber(e.productWriteOffAmount),
+            cogsLoss: toNumber(e.cogsLoss),
+            totalImpact:
+              toNumber(e.refundAmount) + toNumber(e.deliveryCostLoss) + toNumber(e.returnShippingCost) +
+              toNumber(e.packagingLoss) + toNumber(e.productWriteOffAmount) + toNumber(e.cogsLoss),
+            reason: e.reason ?? null,
+            note: e.note ?? null,
+            status: e.status,
+            createdAt: toDate(e.createdAt).toISOString(),
+          })),
+        },
+        expenses: {
+          total: Math.round(expensesTotal),
+          byCategory: expensesByCategory,
+        },
+        topProducts: {
+          topByRevenue,
+          topByGrossProfit,
+          weakMarginProducts,
+          returnedProducts,
+          lowStockProducts,
+        },
+        inventory: {
+          inventoryValueAtCost: Math.round(inventoryValueAtCost),
+          potentialRevenueFromStock: Math.round(potentialRevenueFromStock),
+          potentialGrossProfitFromStock: Math.round(potentialGrossProfitFromStock),
+          lowStockCount,
+          outOfStockCount,
+          comingSoonCount,
+        },
+        notes,
+        generatedAt: new Date().toISOString(),
+      }, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
     });
   } catch (err) {
     next(err);
