@@ -549,14 +549,14 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
 
         let recommendationLabel: string;
         if (comingSoon) {
-          recommendationLabel = "قريباً";
+          recommendationLabel = "قريباً جداً";
         } else if (costPrice <= 0) {
           recommendationLabel = "كلفة ناقصة";
         } else if (totalCostPerUnit > salePrice) {
-          recommendationLabel = "كلفة تتجاوز السعر";
+          recommendationLabel = "لا يصلح للإعلان وحده";
         } else if (stock === 0) {
           recommendationLabel = "نفد المخزون";
-        } else if (stock <= threshold) {
+        } else if (stock > 0 && stock <= 3) {
           recommendationLabel = "مخزون منخفض";
         } else if (grossMargin < 20 && revenue > 0) {
           recommendationLabel = "هامش ضعيف";
