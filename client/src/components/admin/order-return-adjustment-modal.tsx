@@ -100,7 +100,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
     queryKey: ["return-events-for-order", order.id],
     queryFn: async () => {
       const r = await fetch(
-        `/api/admin/accounting/return-events?orderId=${order.id}`,
+        `/api/admin/accounting/return-events?orderId=${order.id}&period=year`,
         { credentials: "include" }
       );
       if (!r.ok) throw new Error("فشل تحميل الراجعات");

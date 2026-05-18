@@ -122,7 +122,7 @@ export function OrdersManagement() {
 
   useEffect(() => {
     if (!selectedOrder || !isDetailOpen) { setDetailReturnCount(0); return; }
-    fetch(`/api/admin/accounting/return-events?orderId=${selectedOrder.id}`, { credentials: "include" })
+    fetch(`/api/admin/accounting/return-events?orderId=${selectedOrder.id}&period=year`, { credentials: "include" })
       .then((r) => r.ok ? r.json() : { data: [] })
       .then((d: { data: unknown[] }) => setDetailReturnCount(d.data?.length ?? 0))
       .catch(() => setDetailReturnCount(0));
