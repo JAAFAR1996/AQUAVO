@@ -317,7 +317,8 @@ function calcOrderProfit(order: OrderRow, costs: CostResolver): OrderProfit {
     }
     if (!cost.costsComplete) missingCostLines++;
 
-    cogs += cost.costPrice * qty;
+    // Full per-unit product cost: purchase price + per-unit packaging + inserts
+    cogs += (cost.costPrice + cost.packagingCost + cost.insertCost) * qty;
     resolvedItems.push({ productId: item.productId, name: cost.name, qty, priceAtPurchase: price });
   }
 
