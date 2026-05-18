@@ -449,8 +449,9 @@ export function OrdersManagement() {
                 <DialogDescription className="flex items-center gap-2 flex-wrap">
                   <span>رقم الطلب: <span className="text-primary font-mono font-bold">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span></span>
                   {detailReturnCount > 0 && (
-                    <span className="text-orange-500 font-semibold text-xs border border-orange-300 rounded px-2 py-0.5">
-                      ⚠️ يوجد {detailReturnCount} تعديل/راجع على هذه الفاتورة
+                    <span className="text-orange-500 font-semibold text-xs border border-orange-300 rounded px-2 py-0.5 inline-flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3 inline" />
+                      يوجد {detailReturnCount} تعديل/راجع على هذه الفاتورة
                     </span>
                   )}
                 </DialogDescription>

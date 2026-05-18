@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import {
@@ -43,15 +44,15 @@ interface Props {
   onClose: () => void;
 }
 
-const SCENARIO_META: Record<OrderReturnEventType, { label: string; icon: string; deliveryCostLost: boolean; suggestRestocked: boolean }> = {
-  rejected_delivery:       { label: "رفض الاستلام من العميل",          icon: "❌", deliveryCostLost: true,  suggestRestocked: true  },
-  failed_delivery:         { label: "فشل التوصيل (غياب / عدم رد)",    icon: "📵", deliveryCostLost: true,  suggestRestocked: true  },
-  customer_return:         { label: "استرجاع من العميل بعد التسليم",   icon: "↩️", deliveryCostLost: false, suggestRestocked: true  },
-  cancelled_before_shipping: { label: "إلغاء قبل الشحن",              icon: "🚫", deliveryCostLost: false, suggestRestocked: true  },
-  cancelled_after_shipping:  { label: "إلغاء بعد إرسال الشحن",        icon: "🛑", deliveryCostLost: true,  suggestRestocked: true  },
-  damaged_return:          { label: "راجع تالف أو مكسور",              icon: "🔨", deliveryCostLost: false, suggestRestocked: false },
-  partial_return:          { label: "استرجاع جزئي",                    icon: "📦", deliveryCostLost: false, suggestRestocked: true  },
-  lost_package:            { label: "طرد مفقود",                       icon: "❓", deliveryCostLost: true,  suggestRestocked: false },
+const SCENARIO_META: Record<OrderReturnEventType, { label: string; deliveryCostLost: boolean; suggestRestocked: boolean }> = {
+  rejected_delivery:         { label: "رفض الاستلام من العميل",          deliveryCostLost: true,  suggestRestocked: true  },
+  failed_delivery:           { label: "فشل التوصيل (غياب / عدم رد)",    deliveryCostLost: true,  suggestRestocked: true  },
+  customer_return:           { label: "استرجاع من العميل بعد التسليم",   deliveryCostLost: false, suggestRestocked: true  },
+  cancelled_before_shipping: { label: "إلغاء قبل الشحن",                 deliveryCostLost: false, suggestRestocked: true  },
+  cancelled_after_shipping:  { label: "إلغاء بعد إرسال الشحن",           deliveryCostLost: true,  suggestRestocked: true  },
+  damaged_return:            { label: "راجع تالف أو مكسور",              deliveryCostLost: false, suggestRestocked: false },
+  partial_return:            { label: "استرجاع جزئي",                    deliveryCostLost: false, suggestRestocked: true  },
+  lost_package:              { label: "طرد مفقود",                       deliveryCostLost: true,  suggestRestocked: false },
 };
 
 const fmt = (n: number) =>
@@ -293,7 +294,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                         : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                   >
-                    {sc.icon} {sc.label}
+                    {sc.label}
                   </button>
                 );
               })}
@@ -454,7 +455,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">نوع الراجع:</span>
                 <span className="font-semibold">
-                  {SCENARIO_META[type].icon} {SCENARIO_META[type].label}
+                  {SCENARIO_META[type].label}
                 </span>
               </div>
 
@@ -512,7 +513,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">إعادة مخزون:</span>
-                <span>{restocked ? "✅ نعم (للمراجعة)" : "❌ لا"}</span>
+                <span>{restocked ? "نعم (للمراجعة)" : "لا"}</span>
               </div>
 
               {note.trim() && (
@@ -522,9 +523,12 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                 </div>
               )}
 
-              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded p-2 text-xs text-yellow-700 dark:text-yellow-400 mt-2">
-                ⚠️ الحالة: <strong>قيد المراجعة (recorded)</strong> — لن يؤثر على تقارير
-                الأرباح حتى يتم التحقق منه يدوياً من تبويب "الراجعات والخسائر".
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded p-2 text-xs text-yellow-700 dark:text-yellow-400 mt-2 flex items-start gap-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                <span>
+                  الحالة: <strong>قيد المراجعة (recorded)</strong> — لن يؤثر على تقارير
+                  الأرباح حتى يتم التحقق منه يدوياً من تبويب "الراجعات والخسائر".
+                </span>
               </div>
             </div>
 
@@ -535,7 +539,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                 disabled={createMutation.isPending}
                 className="bg-primary hover:bg-primary/90 text-white"
               >
-                {createMutation.isPending ? "جاري الحفظ..." : "✓ تأكيد وحفظ التعديل"}
+                {createMutation.isPending ? "جاري الحفظ..." : "تأكيد وحفظ التعديل"}
               </Button>
             </div>
           </div>
