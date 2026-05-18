@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Package, Search, Eye, AlertTriangle, Trash2, ReceiptText } from "lucide-react";
+import { Package, Search, Eye, AlertTriangle, Trash2, ReceiptText, RotateCcw } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +37,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { addCsrfHeader } from "@/lib/csrf";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OrderReturnAdjustmentModal } from "@/components/admin/order-return-adjustment-modal";
 
 interface OrderItem {
@@ -113,19 +114,81 @@ export function OrdersManagement() {
   // Return adjustment modal state
   const [returnAdjustOrder, setReturnAdjustOrder] = useState<Order | null>(null);
 
-  // Return event count for the currently-viewed order detail
-  const [detailReturnCount, setDetailReturnCount] = useState(0);
+  // Return events for the currently-viewed order detail
+  interface ReturnEventSummary {
+    id: string;
+    type: string;
+    status: string;
+    note: string | null;
+    refundAmount: number;
+    deliveryCostLoss: number;
+    returnShippingCost: number;
+    packagingLoss: number;
+    productWriteOffAmount: number;
+    cogsLoss: number;
+    createdAt: string;
+  }
+
+  const EVENT_TYPE_LABELS: Record<string, string> = {
+    rejected_delivery: "رفض الاستلام",
+    partial_return: "راجع جزئي",
+    customer_return: "استرجاع كامل",
+    damaged_return: "منتج تالف",
+    cancelled_before_shipping: "إلغاء قبل الشحن",
+    failed_delivery: "فشل التوصيل",
+    cancelled_after_shipping: "إلغاء بعد الشحن",
+    lost_package: "طرد مفقود",
+  };
+
+  const EVENT_STATUS_LABELS: Record<string, string> = {
+    recorded: "قيد المراجعة",
+    verified: "معتمدة",
+    disputed: "مستبعدة",
+  };
+
+  const [detailReturnEvents, setDetailReturnEvents] = useState<ReturnEventSummary[]>([]);
+  const [voidDetailConfirm, setVoidDetailConfirm] = useState<{ id: string; fromStatus: string; note: string } | null>(null);
+
+  const detailReturnCount = detailReturnEvents.length;
+
+  const qc = useQueryClient();
+
+  const refreshDetailEvents = (orderId: string) => {
+    fetch(`/api/admin/accounting/return-events?orderId=${orderId}&period=year`, { credentials: "include" })
+      .then((r) => r.ok ? r.json() : { data: [] })
+      .then((d: { data: ReturnEventSummary[] }) => setDetailReturnEvents(d.data ?? []))
+      .catch(() => {});
+  };
+
+  const voidDetailMutation = useMutation({
+    mutationFn: async ({ id, note }: { id: string; note?: string }) => {
+      const r = await fetch(`/api/admin/accounting/return-events/${id}/status`, {
+        method: "PATCH",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+        body: JSON.stringify({ status: "disputed", note: note || "تم مسح التعديل من الأدمن" }),
+      });
+      if (!r.ok) throw new Error("فشل");
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: "تم مسح التعديل", description: "التعديل أصبح مستبعداً ولن يدخل في الحسابات" });
+      qc.invalidateQueries({ queryKey: ["return-events"] });
+      setVoidDetailConfirm(null);
+      if (selectedOrder) refreshDetailEvents(selectedOrder.id);
+    },
+    onError: () => {
+      toast({ title: "خطأ", description: "فشل مسح التعديل", variant: "destructive" });
+    },
+  });
 
   useEffect(() => {
     fetchOrders();
   }, []);
 
   useEffect(() => {
-    if (!selectedOrder || !isDetailOpen) { setDetailReturnCount(0); return; }
-    fetch(`/api/admin/accounting/return-events?orderId=${selectedOrder.id}&period=year`, { credentials: "include" })
-      .then((r) => r.ok ? r.json() : { data: [] })
-      .then((d: { data: unknown[] }) => setDetailReturnCount(d.data?.length ?? 0))
-      .catch(() => setDetailReturnCount(0));
+    if (!selectedOrder || !isDetailOpen) { setDetailReturnEvents([]); return; }
+    refreshDetailEvents(selectedOrder.id);
   }, [selectedOrder?.id, isDetailOpen]);
 
   const fetchOrders = async () => {
@@ -613,6 +676,67 @@ export function OrdersManagement() {
                   <p className="text-sm text-yellow-700">{selectedOrder.notes}</p>
                 </div>
               )}
+
+              {/* Return events section */}
+              {detailReturnEvents.length > 0 && (
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-orange-50 dark:bg-orange-950/20 border-b border-orange-200 dark:border-orange-800 px-3 py-2 flex justify-between items-center">
+                    <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">
+                      تعديلات الفاتورة / الراجعات ({detailReturnEvents.length})
+                    </p>
+                  </div>
+                  <div className="divide-y print:hidden">
+                    {detailReturnEvents.map((ev) => {
+                      const evTotal = ev.refundAmount + ev.deliveryCostLoss + ev.returnShippingCost +
+                        ev.packagingLoss + ev.productWriteOffAmount + ev.cogsLoss;
+                      const canVoid = ev.status !== "disputed";
+                      return (
+                        <div key={ev.id} className="p-3 flex justify-between items-start gap-2 text-sm">
+                          <div className="space-y-0.5 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium">{EVENT_TYPE_LABELS[ev.type] ?? ev.type}</span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                ev.status === "verified"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : ev.status === "disputed"
+                                  ? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              }`}>
+                                {EVENT_STATUS_LABELS[ev.status] ?? ev.status}
+                              </span>
+                            </div>
+                            {evTotal > 0 && (
+                              <p className="text-xs text-red-500">
+                                الأثر: -{new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(evTotal)} د.ع
+                              </p>
+                            )}
+                            {ev.note && (
+                              <p className="text-xs text-muted-foreground truncate max-w-xs">{ev.note}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {new Date(ev.createdAt).toLocaleDateString("ar-IQ")}
+                            </p>
+                          </div>
+                          {canVoid ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="shrink-0 text-xs h-7 text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30"
+                              onClick={() => setVoidDetailConfirm({ id: ev.id, fromStatus: ev.status, note: "" })}
+                            >
+                              <RotateCcw className="h-3 w-3 ml-1" />
+                              مسح التعديل
+                            </Button>
+                          ) : (
+                            <span className="shrink-0 text-xs text-muted-foreground px-2">مستبعد</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               <div className="text-center text-xs text-muted-foreground border-t pt-4">
                 <p>شكراً لتسوقكم من AQUAVO</p>
                 <p>📞 +964 774 788 0673</p>
@@ -621,6 +745,50 @@ export function OrdersManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Void confirmation for order detail */}
+      {voidDetailConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[200]">
+          <div className="bg-background border rounded-xl p-6 w-96 max-w-[90vw] space-y-4" dir="rtl">
+            {voidDetailConfirm.fromStatus === "verified" ? (
+              <div className="space-y-2">
+                <h3 className="font-bold text-sm text-orange-500">تحذير: تعديل معتمد</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  هذا تعديل معتمد وداخل بالحسابات. سيتم استبعاده من الحسابات بدل حذفه.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <h3 className="font-bold text-sm">مسح التعديل</h3>
+                <p className="text-sm text-muted-foreground">
+                  سيتم تغيير حالة التعديل إلى "مستبعد" ولن يدخل في الحسابات.
+                </p>
+              </div>
+            )}
+            <div>
+              <label className="text-xs text-muted-foreground block mb-1">ملاحظة (اختياري)</label>
+              <input
+                type="text"
+                value={voidDetailConfirm.note}
+                onChange={(e) => setVoidDetailConfirm((p) => p ? { ...p, note: e.target.value } : null)}
+                placeholder="سبب المسح..."
+                className="w-full border rounded p-2 bg-background text-sm"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setVoidDetailConfirm(null)}>إلغاء</Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                disabled={voidDetailMutation.isPending}
+                onClick={() => voidDetailMutation.mutate({ id: voidDetailConfirm.id, note: voidDetailConfirm.note || undefined })}
+              >
+                {voidDetailMutation.isPending ? "جاري..." : "تأكيد المسح"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

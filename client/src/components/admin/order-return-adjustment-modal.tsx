@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import {
@@ -44,15 +44,57 @@ interface Props {
   onClose: () => void;
 }
 
+interface ItemState {
+  qty: number;
+  restocked: boolean;
+  damaged: boolean;
+  reason: string;
+}
+
+interface ExistingEvent {
+  id: string;
+  type: OrderReturnEventType;
+  status: string;
+  note: string | null;
+  reason: string | null;
+  refundAmount: number;
+  deliveryCostLoss: number;
+  returnShippingCost: number;
+  packagingLoss: number;
+  productWriteOffAmount: number;
+  cogsLoss: number;
+  createdAt: string;
+}
+
 const SCENARIO_META: Record<OrderReturnEventType, { label: string; deliveryCostLost: boolean; suggestRestocked: boolean }> = {
-  rejected_delivery:         { label: "رفض الاستلام من العميل",          deliveryCostLost: true,  suggestRestocked: true  },
-  failed_delivery:           { label: "فشل التوصيل (غياب / عدم رد)",    deliveryCostLost: true,  suggestRestocked: true  },
-  customer_return:           { label: "استرجاع من العميل بعد التسليم",   deliveryCostLost: false, suggestRestocked: true  },
-  cancelled_before_shipping: { label: "إلغاء قبل الشحن",                 deliveryCostLost: false, suggestRestocked: true  },
-  cancelled_after_shipping:  { label: "إلغاء بعد إرسال الشحن",           deliveryCostLost: true,  suggestRestocked: true  },
-  damaged_return:            { label: "راجع تالف أو مكسور",              deliveryCostLost: false, suggestRestocked: false },
-  partial_return:            { label: "استرجاع جزئي",                    deliveryCostLost: false, suggestRestocked: true  },
-  lost_package:              { label: "طرد مفقود",                       deliveryCostLost: true,  suggestRestocked: false },
+  rejected_delivery:         { label: "رفض الاستلام",              deliveryCostLost: true,  suggestRestocked: true  },
+  partial_return:            { label: "راجع جزئي",                 deliveryCostLost: false, suggestRestocked: true  },
+  customer_return:           { label: "استرجاع كامل",              deliveryCostLost: false, suggestRestocked: true  },
+  damaged_return:            { label: "منتج تالف",                 deliveryCostLost: false, suggestRestocked: false },
+  cancelled_before_shipping: { label: "إلغاء قبل الشحن",           deliveryCostLost: false, suggestRestocked: true  },
+  failed_delivery:           { label: "فشل التوصيل",              deliveryCostLost: true,  suggestRestocked: true  },
+  cancelled_after_shipping:  { label: "إلغاء بعد إرسال الشحن",    deliveryCostLost: true,  suggestRestocked: true  },
+  lost_package:              { label: "طرد مفقود",                 deliveryCostLost: true,  suggestRestocked: false },
+};
+
+const PRIMARY_TYPES: OrderReturnEventType[] = [
+  "rejected_delivery",
+  "partial_return",
+  "customer_return",
+  "damaged_return",
+  "cancelled_before_shipping",
+];
+
+const ADVANCED_TYPES: OrderReturnEventType[] = [
+  "failed_delivery",
+  "cancelled_after_shipping",
+  "lost_package",
+];
+
+const STATUS_LABELS: Record<string, string> = {
+  recorded: "قيد المراجعة",
+  verified: "معتمدة",
+  disputed: "مستبعدة",
 };
 
 const fmt = (n: number) =>
@@ -67,35 +109,36 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [type, setType] = useState<OrderReturnEventType>("rejected_delivery");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [reason, setReason] = useState("");
-  const [selectedItems, setSelectedItems] = useState<Record<string, number>>({});
+  const [itemStates, setItemStates] = useState<Record<string, ItemState>>({});
   const [refundAmount, setRefundAmount] = useState(0);
   const [deliveryCostLoss, setDeliveryCostLoss] = useState(0);
   const [returnShippingCost, setReturnShippingCost] = useState(0);
   const [packagingLoss, setPackagingLoss] = useState(0);
   const [productWriteOffAmount, setProductWriteOffAmount] = useState(0);
   const [cogsLoss, setCogsLoss] = useState(0);
-  const [restocked, setRestocked] = useState(false);
   const [note, setNote] = useState("");
+  const [voidConfirm, setVoidConfirm] = useState<{ id: string; fromStatus: string; note: string } | null>(null);
 
   useEffect(() => {
     if (open) {
       setStep(1);
       setType("rejected_delivery");
+      setShowAdvanced(false);
       setReason("");
-      setSelectedItems({});
+      setItemStates({});
       setRefundAmount(0);
       setDeliveryCostLoss(0);
       setReturnShippingCost(0);
       setPackagingLoss(0);
       setProductWriteOffAmount(0);
       setCogsLoss(0);
-      setRestocked(false);
       setNote("");
+      setVoidConfirm(null);
     }
   }, [open]);
 
-  // Existing return events for this order
   const { data: existingData } = useQuery({
     queryKey: ["return-events-for-order", order.id],
     queryFn: async () => {
@@ -104,13 +147,12 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
         { credentials: "include" }
       );
       if (!r.ok) throw new Error("فشل تحميل الراجعات");
-      return r.json() as Promise<{ data: unknown[]; summary: unknown }>;
+      return r.json() as Promise<{ data: ExistingEvent[]; summary: unknown }>;
     },
     enabled: open,
   });
-  const existingCount = existingData?.data?.length ?? 0;
+  const existingEvents = existingData?.data ?? [];
 
-  // Cost history for all order items (batch)
   const productIds = order.items.map((i) => i.productId);
   const { data: costMap = {} } = useQuery({
     queryKey: ["cost-history-batch", productIds.join(",")],
@@ -139,14 +181,15 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   });
 
   const computeSuggestions = (
-    items: Record<string, number>,
+    states: Record<string, ItemState>,
     eventType: OrderReturnEventType
   ) => {
     const scenario = SCENARIO_META[eventType];
-    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0;
+    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, totalWriteOff = 0;
 
     order.items.forEach((item) => {
-      const qty = items[item.productId] ?? 0;
+      const s = states[item.productId];
+      const qty = s?.qty ?? 0;
       if (qty > 0) {
         totalRevenue += qty * item.price;
         const cost = costMap[item.productId];
@@ -154,25 +197,68 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
           totalCogs += qty * (cost.costPrice + cost.insertCost);
           totalPackaging += qty * cost.packagingCost;
         }
+        if (s?.damaged) totalWriteOff += qty * item.price;
       }
     });
 
     setRefundAmount(Math.round(totalRevenue));
     setCogsLoss(Math.round(totalCogs));
     setPackagingLoss(Math.round(totalPackaging));
+    setProductWriteOffAmount(Math.round(totalWriteOff));
     setDeliveryCostLoss(scenario.deliveryCostLost ? (order.shippingCost ?? 5000) : 0);
-    setRestocked(scenario.suggestRestocked);
-    setProductWriteOffAmount(0);
     setReturnShippingCost(0);
   };
 
   const goToStep2 = () => {
-    const allSelected: Record<string, number> = {};
-    order.items.forEach((i) => { allSelected[i.productId] = i.quantity; });
-    setSelectedItems(allSelected);
-    computeSuggestions(allSelected, type);
+    const initStates: Record<string, ItemState> = {};
+    order.items.forEach((i) => {
+      initStates[i.productId] = {
+        qty: i.quantity,
+        restocked: SCENARIO_META[type].suggestRestocked,
+        damaged: type === "damaged_return",
+        reason: "",
+      };
+    });
+    setItemStates(initStates);
+    computeSuggestions(initStates, type);
     setStep(2);
   };
+
+  const updateItemState = (productId: string, patch: Partial<ItemState>) => {
+    setItemStates((prev) => ({ ...prev, [productId]: { ...prev[productId], ...patch } }));
+  };
+
+  const resetItem = (productId: string) => {
+    setItemStates((prev) => ({
+      ...prev,
+      [productId]: { qty: 0, restocked: false, damaged: false, reason: "" },
+    }));
+  };
+
+  const voidMutation = useMutation({
+    mutationFn: async ({ id, note: voidNote }: { id: string; note?: string }) => {
+      const r = await fetch(`/api/admin/accounting/return-events/${id}/status`, {
+        method: "PATCH",
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        credentials: "include",
+        body: JSON.stringify({ status: "disputed", note: voidNote || "تم مسح التعديل من الأدمن" }),
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({})) as { message?: string };
+        throw new Error(e.message ?? "فشل");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: "تم مسح التعديل", description: "التعديل أصبح مستبعداً ولن يدخل في الحسابات" });
+      qc.invalidateQueries({ queryKey: ["return-events"] });
+      qc.invalidateQueries({ queryKey: ["return-events-for-order", order.id] });
+      setVoidConfirm(null);
+    },
+    onError: (e) => {
+      toast({ title: "خطأ", description: errMsg(e), variant: "destructive" });
+    },
+  });
 
   const createMutation = useMutation({
     mutationFn: async (payload: OrderReturnEventInput) => {
@@ -201,18 +287,28 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
   const handleConfirm = () => {
     const affectedItems = order.items
-      .filter((item) => (selectedItems[item.productId] ?? 0) > 0)
+      .filter((item) => (itemStates[item.productId]?.qty ?? 0) > 0)
       .map((item) => {
+        const s = itemStates[item.productId];
         const cost = costMap[item.productId];
         return {
           productId: item.productId,
-          qty: selectedItems[item.productId],
+          qty: s.qty,
           priceAtPurchase: item.price,
-          cogsAtTime: cost
-            ? cost.costPrice + cost.packagingCost + cost.insertCost
-            : 0,
+          cogsAtTime: cost ? cost.costPrice + cost.packagingCost + cost.insertCost : 0,
         };
       });
+
+    const anyRestocked = Object.values(itemStates).some(
+      (s) => s.restocked && (s.qty ?? 0) > 0
+    );
+
+    const itemReasons = order.items
+      .filter((item) => itemStates[item.productId]?.reason?.trim() && (itemStates[item.productId]?.qty ?? 0) > 0)
+      .map((item) => `${item.productName}: ${itemStates[item.productId].reason.trim()}`)
+      .join(" | ");
+
+    const finalNote = [note.trim(), itemReasons].filter(Boolean).join(" — ") || undefined;
 
     createMutation.mutate({
       orderId: order.id,
@@ -224,9 +320,9 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
       packagingLoss,
       productWriteOffAmount,
       cogsLoss,
-      restocked,
+      restocked: anyRestocked,
       affectedItems: affectedItems.length > 0 ? affectedItems : undefined,
-      note: note.trim() || undefined,
+      note: finalNote,
     });
   };
 
@@ -234,25 +330,40 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
     refundAmount + deliveryCostLoss + returnShippingCost +
     packagingLoss + productWriteOffAmount + cogsLoss;
 
+  const orderTotal = Number(order.roundedTotal ?? order.totalAmount ?? order.total);
+
   const STEP_LABELS = ["السيناريو", "التفاصيل", "مراجعة"];
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle>تعديل الفاتورة / راجع</DialogTitle>
           <DialogDescription>
-            طلب:{" "}
-            <span className="font-mono text-primary font-bold">
-              {order.orderNumber || order.id.slice(0, 8)}
-            </span>
-            {existingCount > 0 && (
-              <span className="mr-2 text-orange-500 font-semibold">
-                — يوجد {existingCount} تعديل سابق على هذا الطلب
-              </span>
-            )}
+            {order.orderNumber || order.id.slice(0, 8)}
+            {existingEvents.length > 0 && ` — يوجد ${existingEvents.length} تعديل سابق`}
           </DialogDescription>
         </DialogHeader>
+
+        {/* Order info bar */}
+        <div className="grid grid-cols-2 gap-2 text-sm bg-muted/30 rounded-lg p-3 border mb-1">
+          <div>
+            <span className="text-muted-foreground text-xs block">رقم الطلب</span>
+            <span className="font-mono font-bold text-primary">{order.orderNumber || order.id.slice(0, 8)}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground text-xs block">العميل</span>
+            <span className="font-medium">{order.customerName || "—"}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground text-xs block">المبلغ الأصلي</span>
+            <span className="font-bold">{fmt(orderTotal)}</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground text-xs block">الحالة</span>
+            <span>{order.status}</span>
+          </div>
+        </div>
 
         {/* Step indicator */}
         <div className="flex items-center gap-3 text-xs mb-4">
@@ -262,9 +373,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
               <span key={s} className="flex items-center gap-1">
                 <span
                   className={`w-5 h-5 rounded-full text-center leading-5 text-xs font-bold ${
-                    step >= s
-                      ? "bg-primary text-white"
-                      : "bg-muted text-muted-foreground"
+                    step >= s ? "bg-primary text-white" : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {s}
@@ -282,10 +391,34 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
         {step === 1 && (
           <div className="space-y-4">
             <p className="text-sm font-semibold">اختر نوع الراجع / التعديل:</p>
+
             <div className="grid grid-cols-1 gap-2">
-              {ORDER_RETURN_EVENT_TYPES.map((t) => {
-                const sc = SCENARIO_META[t];
-                return (
+              {PRIMARY_TYPES.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => setType(t)}
+                  className={`text-right px-4 py-3 rounded-lg border text-sm font-medium transition-colors ${
+                    type === t
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border hover:border-primary/50 hover:bg-muted/50"
+                  }`}
+                >
+                  {SCENARIO_META[t].label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setShowAdvanced((v) => !v)}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {showAdvanced ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+              خيارات متقدمة
+            </button>
+
+            {showAdvanced && (
+              <div className="grid grid-cols-1 gap-2">
+                {ADVANCED_TYPES.map((t) => (
                   <button
                     key={t}
                     onClick={() => setType(t)}
@@ -295,11 +428,11 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                         : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                   >
-                    {sc.label}
+                    {SCENARIO_META[t].label}
                   </button>
-                );
-              })}
-            </div>
+                ))}
+              </div>
+            )}
 
             <div>
               <label className="text-sm font-medium">سبب تفصيلي (اختياري)</label>
@@ -311,6 +444,66 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
               />
             </div>
 
+            {/* Existing events section */}
+            {existingEvents.length > 0 && (
+              <div className="border rounded-lg overflow-hidden">
+                <div className="bg-orange-50 dark:bg-orange-950/20 border-b border-orange-200 dark:border-orange-800 px-3 py-2">
+                  <p className="text-xs font-semibold text-orange-700 dark:text-orange-400">
+                    التعديلات السابقة على هذا الطلب
+                  </p>
+                </div>
+                <div className="divide-y">
+                  {existingEvents.map((ev) => {
+                    const evTotal = ev.refundAmount + ev.deliveryCostLoss + ev.returnShippingCost +
+                      ev.packagingLoss + ev.productWriteOffAmount + ev.cogsLoss;
+                    const canVoid = ev.status !== "disputed";
+                    return (
+                      <div key={ev.id} className="p-3 flex justify-between items-start gap-2 text-sm">
+                        <div className="space-y-0.5 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-medium">{SCENARIO_META[ev.type]?.label ?? ev.type}</span>
+                            <span
+                              className={`text-xs px-1.5 py-0.5 rounded ${
+                                ev.status === "verified"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : ev.status === "disputed"
+                                  ? "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                              }`}
+                            >
+                              {STATUS_LABELS[ev.status] ?? ev.status}
+                            </span>
+                          </div>
+                          {evTotal > 0 && (
+                            <p className="text-xs text-red-500">الأثر: -{fmt(evTotal)}</p>
+                          )}
+                          {ev.note && (
+                            <p className="text-xs text-muted-foreground truncate max-w-xs">{ev.note}</p>
+                          )}
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(ev.createdAt).toLocaleDateString("ar-IQ")}
+                          </p>
+                        </div>
+                        {canVoid ? (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="shrink-0 text-xs h-7 text-red-500 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30"
+                            onClick={() => setVoidConfirm({ id: ev.id, fromStatus: ev.status, note: "" })}
+                          >
+                            <RotateCcw className="h-3 w-3 ml-1" />
+                            مسح التعديل
+                          </Button>
+                        ) : (
+                          <span className="shrink-0 text-xs text-muted-foreground px-2">مستبعد</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end gap-2 pt-2">
               <Button variant="outline" onClick={onClose}>إلغاء</Button>
               <Button onClick={goToStep2}>التالي ←</Button>
@@ -321,7 +514,6 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
         {/* ── STEP 2: Items + Financial ── */}
         {step === 2 && (
           <div className="space-y-5">
-            {/* Items selector */}
             <div>
               <div className="flex justify-between items-center mb-2">
                 <p className="text-sm font-semibold">المنتجات المتأثرة:</p>
@@ -329,27 +521,30 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                   variant="ghost"
                   size="sm"
                   className="text-xs h-7"
-                  onClick={() => computeSuggestions(selectedItems, type)}
+                  onClick={() => computeSuggestions(itemStates, type)}
                 >
                   إعادة حساب المقترح
                 </Button>
               </div>
-              <div className="border rounded-lg overflow-hidden">
-                <table className="w-full text-sm">
+              <div className="border rounded-lg overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
                   <thead className="bg-muted/50">
                     <tr>
                       <th className="text-right p-2 font-medium">المنتج</th>
-                      <th className="text-center p-2 font-medium">الكمية الكلية</th>
-                      <th className="text-center p-2 font-medium">كمية الراجع</th>
-                      <th className="text-left p-2 font-medium text-xs text-muted-foreground">COGS/وحدة</th>
+                      <th className="text-center p-2 font-medium w-14">الكمية</th>
+                      <th className="text-center p-2 font-medium w-20">كمية الراجع</th>
+                      <th className="text-center p-2 font-medium w-24">السعر</th>
+                      <th className="text-center p-2 font-medium w-24">الاسترداد</th>
+                      <th className="text-center p-2 font-medium w-14">للمخزن</th>
+                      <th className="text-center p-2 font-medium w-14">تالف</th>
+                      <th className="text-right p-2 font-medium">السبب</th>
+                      <th className="p-2 w-8"></th>
                     </tr>
                   </thead>
                   <tbody>
                     {order.items.map((item) => {
-                      const cost = costMap[item.productId];
-                      const cogsUnit = cost
-                        ? cost.costPrice + cost.packagingCost + cost.insertCost
-                        : null;
+                      const s = itemStates[item.productId] ?? { qty: 0, restocked: false, damaged: false, reason: "" };
+                      const refund = s.qty * item.price;
                       return (
                         <tr key={item.productId} className="border-t">
                           <td className="p-2 font-medium">{item.productName}</td>
@@ -359,19 +554,55 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                               type="number"
                               min={0}
                               max={item.quantity}
-                              value={selectedItems[item.productId] ?? 0}
+                              value={s.qty}
                               onChange={(e) => {
-                                const v = Math.min(
-                                  item.quantity,
-                                  Math.max(0, parseInt(e.target.value) || 0)
-                                );
-                                setSelectedItems((prev) => ({ ...prev, [item.productId]: v }));
+                                const v = Math.min(item.quantity, Math.max(0, parseInt(e.target.value) || 0));
+                                updateItemState(item.productId, { qty: v });
                               }}
                               className="w-16 text-center border rounded p-1 bg-background text-sm"
                             />
                           </td>
-                          <td className="p-2 text-left text-muted-foreground text-xs">
-                            {cogsUnit !== null ? fmt(cogsUnit) : "—"}
+                          <td className="text-center p-2 text-muted-foreground text-xs">{fmt(item.price)}</td>
+                          <td className="text-center p-2 text-xs font-medium">
+                            {s.qty > 0 ? (
+                              <span className="text-red-500">-{fmt(refund)}</span>
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
+                          </td>
+                          <td className="text-center p-2">
+                            <input
+                              type="checkbox"
+                              checked={s.restocked}
+                              onChange={(e) => updateItemState(item.productId, { restocked: e.target.checked })}
+                              className="w-4 h-4 cursor-pointer"
+                            />
+                          </td>
+                          <td className="text-center p-2">
+                            <input
+                              type="checkbox"
+                              checked={s.damaged}
+                              onChange={(e) => updateItemState(item.productId, { damaged: e.target.checked })}
+                              className="w-4 h-4 cursor-pointer"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <input
+                              type="text"
+                              value={s.reason}
+                              onChange={(e) => updateItemState(item.productId, { reason: e.target.value })}
+                              placeholder="اختياري..."
+                              className="w-full border rounded p-1 bg-background text-xs"
+                            />
+                          </td>
+                          <td className="p-2">
+                            <button
+                              onClick={() => resetItem(item.productId)}
+                              title="مسح التعديل لهذا المنتج"
+                              className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </button>
                           </td>
                         </tr>
                       );
@@ -379,9 +610,11 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                   </tbody>
                 </table>
               </div>
+              <p className="text-xs text-muted-foreground mt-1.5">
+                ملاحظة: التغييرات هنا لا تُحدّث المخزون تلقائياً — للتسجيل فقط
+              </p>
             </div>
 
-            {/* Financial fields */}
             <div>
               <p className="text-sm font-semibold mb-3">الأثر المالي (مقترح — قابل للتعديل):</p>
               <div className="grid grid-cols-2 gap-3">
@@ -390,8 +623,8 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                     { label: "مبلغ الاسترداد للعميل", value: refundAmount, set: setRefundAmount, hint: "مجموع المنتجات المُرجعة" },
                     { label: "خسارة تكلفة التوصيل", value: deliveryCostLoss, set: setDeliveryCostLoss, hint: "رسوم الشحن المدفوعة" },
                     { label: "تكلفة إعادة الشحن", value: returnShippingCost, set: setReturnShippingCost, hint: "إذا وجدت" },
-                    { label: "خسارة التغليف", value: packagingLoss, set: setPackagingLoss, hint: "كلفة علب ومواد التغليف" },
-                    { label: "شطب المنتج (تلف)", value: productWriteOffAmount, set: setProductWriteOffAmount, hint: "للمنتجات التالفة فقط" },
+                    { label: "خسارة التغليف", value: packagingLoss, set: setPackagingLoss, hint: "كلفة مواد التغليف" },
+                    { label: "شطب المنتج (تالف)", value: productWriteOffAmount, set: setProductWriteOffAmount, hint: "للمنتجات التالفة فقط" },
                     { label: "خسارة COGS", value: cogsLoss, set: setCogsLoss, hint: "تكلفة البضاعة المباعة" },
                   ] as Array<{ label: string; value: number; set: (v: number) => void; hint: string }>
                 ).map(({ label, value, set, hint }) => (
@@ -410,34 +643,14 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm font-medium">إعادة المخزون؟</label>
-                <div className="flex items-center gap-2 mt-2">
-                  <input
-                    type="checkbox"
-                    id="restocked-chk"
-                    checked={restocked}
-                    onChange={(e) => setRestocked(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <label htmlFor="restocked-chk" className="text-sm cursor-pointer">
-                    نعم، أُعيد المنتج للمخزون
-                  </label>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ملاحظة: لن يُحدَّث المخزون تلقائياً — يُسجَّل للمراجعة فقط
-                </p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">ملاحظة داخلية (اختياري)</label>
-                <Input
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  placeholder="ملاحظة للمراجع..."
-                  className="mt-1"
-                />
-              </div>
+            <div>
+              <label className="text-sm font-medium">ملاحظة داخلية (اختياري)</label>
+              <Input
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="ملاحظة للمراجع..."
+                className="mt-1"
+              />
             </div>
 
             <div className="flex justify-between items-center pt-2">
@@ -455,14 +668,12 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
               <div className="flex justify-between text-sm bg-muted/40 rounded px-2 py-1">
                 <span className="text-muted-foreground font-medium">مجموع الفاتورة الأصلي:</span>
-                <span className="font-bold">{fmt(Number(order.roundedTotal ?? order.totalAmount ?? order.total))}</span>
+                <span className="font-bold">{fmt(orderTotal)}</span>
               </div>
 
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">نوع الراجع:</span>
-                <span className="font-semibold">
-                  {SCENARIO_META[type].label}
-                </span>
+                <span className="font-semibold">{SCENARIO_META[type].label}</span>
               </div>
 
               {reason.trim() && (
@@ -474,19 +685,24 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
               <div className="border-t pt-2 space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground mb-1">المنتجات:</p>
-                {order.items.filter((i) => (selectedItems[i.productId] ?? 0) > 0).length === 0 ? (
+                {order.items.filter((i) => (itemStates[i.productId]?.qty ?? 0) > 0).length === 0 ? (
                   <p className="text-sm text-muted-foreground">لا توجد منتجات محددة</p>
                 ) : (
                   order.items
-                    .filter((i) => (selectedItems[i.productId] ?? 0) > 0)
-                    .map((item) => (
-                      <div key={item.productId} className="flex justify-between text-sm">
-                        <span>
-                          {item.productName} × {selectedItems[item.productId]}
-                        </span>
-                        <span>{fmt(item.price * selectedItems[item.productId])}</span>
-                      </div>
-                    ))
+                    .filter((i) => (itemStates[i.productId]?.qty ?? 0) > 0)
+                    .map((item) => {
+                      const s = itemStates[item.productId];
+                      return (
+                        <div key={item.productId} className="flex justify-between text-sm">
+                          <span>
+                            {item.productName} × {s.qty}
+                            {s.damaged && <span className="text-red-400 mr-1 text-xs">(تالف)</span>}
+                            {s.restocked && <span className="text-green-500 mr-1 text-xs">(للمخزن)</span>}
+                          </span>
+                          <span>{fmt(item.price * s.qty)}</span>
+                        </div>
+                      );
+                    })
                 )}
               </div>
 
@@ -517,11 +733,6 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                 </div>
               </div>
 
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">إعادة مخزون:</span>
-                <span>{restocked ? "نعم (للمراجعة)" : "لا"}</span>
-              </div>
-
               {note.trim() && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">ملاحظة:</span>
@@ -547,6 +758,62 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
               >
                 {createMutation.isPending ? "جاري الحفظ..." : "تأكيد وحفظ التعديل"}
               </Button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Void Confirmation Overlay ── */}
+        {voidConfirm && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-[2000]">
+            <div
+              className="bg-background border rounded-xl p-6 w-96 max-w-[90vw] space-y-4"
+              dir="rtl"
+            >
+              {voidConfirm.fromStatus === "verified" ? (
+                <div className="space-y-2">
+                  <h3 className="font-bold text-sm text-orange-500">تحذير: تعديل معتمد</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    هذا تعديل معتمد وداخل بالحسابات. سيتم استبعاده من الحسابات بدل حذفه.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <h3 className="font-bold text-sm">مسح التعديل</h3>
+                  <p className="text-sm text-muted-foreground">
+                    سيتم تغيير حالة التعديل إلى "مستبعد" ولن يدخل في الحسابات.
+                  </p>
+                </div>
+              )}
+              <div>
+                <label className="text-xs text-muted-foreground block mb-1">ملاحظة (اختياري)</label>
+                <input
+                  type="text"
+                  value={voidConfirm.note}
+                  onChange={(e) =>
+                    setVoidConfirm((p) => (p ? { ...p, note: e.target.value } : null))
+                  }
+                  placeholder="سبب المسح..."
+                  className="w-full border rounded p-2 bg-background text-sm"
+                />
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button variant="outline" size="sm" onClick={() => setVoidConfirm(null)}>
+                  إلغاء
+                </Button>
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  disabled={voidMutation.isPending}
+                  onClick={() =>
+                    voidMutation.mutate({
+                      id: voidConfirm.id,
+                      note: voidConfirm.note || undefined,
+                    })
+                  }
+                >
+                  {voidMutation.isPending ? "جاري..." : "تأكيد المسح"}
+                </Button>
+              </div>
             </div>
           </div>
         )}

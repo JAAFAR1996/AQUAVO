@@ -749,15 +749,18 @@ export function FinanceReturnEvents() {
 
             {/* orderId */}
             <div style={{ marginBottom: 12 }}>
-              <label style={S.label}>معرّف الطلب (Order ID) *</label>
+              <label style={S.label}>رقم الطلب أو معرّفه *</label>
               <input
                 type="text"
                 value={createForm.orderId}
                 onChange={(e) => handleCreateFieldChange("orderId", e.target.value)}
-                placeholder="UUID الطلب..."
+                placeholder="مثال: FH-260512-0001 أو UUID..."
                 style={createErrors.orderId ? S.inputErr : { ...S.input, width: "100%" }}
               />
               {createErrors.orderId && <div style={S.errText}>{createErrors.orderId}</div>}
+              <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>
+                اكتب رقم الطلب مثل FH-260512-0001 أو اختر الطلب من صفحة الطلبات
+              </div>
             </div>
 
             {/* type */}

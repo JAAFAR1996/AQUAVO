@@ -1334,10 +1334,16 @@ router.post("/return-events", async (req: Request, res: Response, next: NextFunc
       restocked, affectedItems, note,
     } = parsed.data;
 
-    const [orderRow] = await db.select({ id: orders.id }).from(orders).where(eq(orders.id, orderId));
-    if (!orderRow) {
-      res.status(404).json({ success: false, message: "الطلب غير موجود" });
-      return;
+    // Accept either internal UUID or human-readable orderNumber (e.g. FH-260512-0001)
+    let resolvedId: string = orderId;
+    const [byUuid] = await db.select({ id: orders.id }).from(orders).where(eq(orders.id, orderId));
+    if (!byUuid) {
+      const [byNum] = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderNumber, orderId));
+      if (!byNum) {
+        res.status(404).json({ success: false, message: "الطلب غير موجود — تأكد من رقم الطلب" });
+        return;
+      }
+      resolvedId = byNum.id;
     }
 
     const createdBy = (req as Request & { user?: { id: string } }).user?.id ?? null;
@@ -1345,7 +1351,7 @@ router.post("/return-events", async (req: Request, res: Response, next: NextFunc
     const [entry] = await db
       .insert(orderReturnEvents)
       .values({
-        orderId,
+        orderId: resolvedId,
         type,
         reason: reason ?? null,
         refundAmount: String(refundAmount ?? 0),
