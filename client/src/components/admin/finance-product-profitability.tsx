@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AccountingProductProfitFull } from "../../../../shared/accounting.js";
 
@@ -100,9 +100,9 @@ export function FinanceProductProfitability({ period }: Props) {
     return result;
   }, [rows, filter, search, sort]);
 
-  const toggleSort = useCallback((key: SortKey) => {
+  function toggleSort(key: SortKey) {
     setSort((prev) => prev.key === key ? { key, dir: prev.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
-  }, []);
+  }
 
   function sortIcon(key: SortKey) {
     if (sort.key !== key) return " ↕";
@@ -261,7 +261,7 @@ export function FinanceProductProfitability({ period }: Props) {
       </div>
 
       <div style={{ marginTop: 10, color: "#64748b", fontSize: 11, textAlign: "left" }}>
-        {filtered.length} منتج من {rows.length}
+        {filtered.length} نتيجة من {rows.length} منتج
       </div>
     </div>
   );
