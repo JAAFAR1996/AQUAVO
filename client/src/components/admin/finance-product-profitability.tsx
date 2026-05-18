@@ -19,7 +19,7 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: "weak", label: "هامش ضعيف" },
   { key: "missing_cost", label: "كلفة ناقصة" },
   { key: "low_stock", label: "مخزون منخفض" },
-  { key: "coming_soon", label: "قريباً" },
+  { key: "coming_soon", label: "قريباً جداً" },
   { key: "no_sales", label: "لا مبيعات" },
 ];
 
