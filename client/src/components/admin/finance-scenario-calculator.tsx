@@ -204,7 +204,8 @@ function calculate(f: SimFields, stock: number): SimResult {
   const effectiveQty = expectedQty * (1 - returnRate);
 
   const grossRevenue = salePrice * expectedQty;
-  const deliveryCollected = deliveryFee * expectedQty;
+  // COD model: delivery fee is only collected on successfully delivered orders
+  const deliveryCollected = deliveryFee * effectiveQty;
 
   const productCostTotal = costPrice * expectedQty;
   const packagingTotal = packagingCost * expectedQty;
@@ -309,18 +310,20 @@ function getDecisionLabels(
   }
   if (costPrice <= 0) {
     labels.push({ text: "الكلفة ناقصة — القرار غير دقيق", type: "warn" });
-  }
-  if (result.estimatedNetProfit > 0 && result.netMargin >= 20) {
-    labels.push({ text: "مربح", type: "success" });
-  } else if (result.estimatedNetProfit > 0 && result.netMargin < 20) {
-    labels.push({ text: "هامشه ضعيف", type: "warn" });
-  } else if (result.estimatedNetProfit <= 0) {
-    labels.push({ text: "خسارة — راجع الكلف", type: "error" });
-  }
-  if (adCost > 0 && result.maxSafeAdCost <= 0) {
-    labels.push({ text: "لا يصلح للإعلان وحده", type: "error" });
-  } else if (adCost > 0 && result.netMargin >= 15) {
-    labels.push({ text: "مناسب للترويج", type: "success" });
+    // Don't show confident profit labels when cost is unknown
+  } else {
+    if (result.estimatedNetProfit > 0 && result.netMargin >= 20) {
+      labels.push({ text: "مربح", type: "success" });
+    } else if (result.estimatedNetProfit > 0 && result.netMargin < 20) {
+      labels.push({ text: "هامشه ضعيف", type: "warn" });
+    } else if (result.estimatedNetProfit <= 0) {
+      labels.push({ text: "خسارة — راجع الكلف", type: "error" });
+    }
+    if (adCost > 0 && result.maxSafeAdCost <= 0) {
+      labels.push({ text: "لا يصلح للإعلان وحده", type: "error" });
+    } else if (adCost > 0 && result.netMargin >= 15) {
+      labels.push({ text: "مناسب للترويج", type: "success" });
+    }
   }
   if (actualDelivery > salePrice) {
     labels.push({ text: "التوصيل أعلى من قيمة المنتج", type: "error" });
