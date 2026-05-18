@@ -8,6 +8,7 @@ import { FinanceProductProfitability } from "@/components/admin/finance-product-
 import { FinanceCostAudit } from "@/components/admin/finance-cost-audit";
 import { FinanceReturnEvents } from "@/components/admin/finance-return-events";
 import { FinanceReport } from "@/components/admin/finance-report";
+import { FinanceRecommendations } from "@/components/admin/finance-recommendations";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -90,9 +91,7 @@ export default function FinancePage() {
         </TabsContent>
 
         <TabsContent value="recommendations">
-          <div style={{ color: "#94a3b8", fontSize: 13, padding: 24, textAlign: "center" }}>
-            التوصيات — قيد البناء
-          </div>
+          <FinanceRecommendations period={period} />
         </TabsContent>
 
         <TabsContent value="cost-changes">
