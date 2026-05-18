@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AccountingProductProfitFull } from "../../../../shared/accounting.js";
 
@@ -100,9 +100,9 @@ export function FinanceProductProfitability({ period }: Props) {
     return result;
   }, [rows, filter, search, sort]);
 
-  function toggleSort(key: SortKey) {
+  const toggleSort = useCallback((key: SortKey) => {
     setSort((prev) => prev.key === key ? { key, dir: prev.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" });
-  }
+  }, []);
 
   function sortIcon(key: SortKey) {
     if (sort.key !== key) return " ↕";
