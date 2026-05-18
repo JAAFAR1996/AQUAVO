@@ -131,6 +131,39 @@ async function buildApp() {
         ADD COLUMN IF NOT EXISTS changed_by  TEXT
     `).then(() => console.log("[Migration] product_cost_history: note+changed_by ready"))
       .catch(err => console.warn("[Migration] product_cost_history columns:", err.message));
+
+    // Finance Returns: create order_return_events table if it doesn't exist yet.
+    // Safe to re-run — IF NOT EXISTS makes it idempotent.
+    db.execute(sql`
+      CREATE TABLE IF NOT EXISTS order_return_events (
+        id                      TEXT        PRIMARY KEY DEFAULT gen_random_uuid(),
+        order_id                TEXT        NOT NULL REFERENCES orders(id),
+        type                    TEXT        NOT NULL,
+        reason                  TEXT,
+        refund_amount           NUMERIC     NOT NULL DEFAULT 0,
+        delivery_cost_loss      NUMERIC     NOT NULL DEFAULT 0,
+        return_shipping_cost    NUMERIC     NOT NULL DEFAULT 0,
+        packaging_loss          NUMERIC     NOT NULL DEFAULT 0,
+        product_write_off_amount NUMERIC    NOT NULL DEFAULT 0,
+        cogs_loss               NUMERIC     NOT NULL DEFAULT 0,
+        restocked               BOOLEAN     NOT NULL DEFAULT FALSE,
+        restocked_at            TIMESTAMP,
+        affected_items          JSONB,
+        status                  TEXT        NOT NULL DEFAULT 'recorded',
+        note                    TEXT,
+        created_by              TEXT        REFERENCES users(id),
+        created_at              TIMESTAMP   NOT NULL DEFAULT NOW(),
+        updated_at              TIMESTAMP   NOT NULL DEFAULT NOW()
+      )
+    `).then(() =>
+      db.execute(sql`
+        CREATE INDEX IF NOT EXISTS order_return_events_order_idx      ON order_return_events (order_id);
+        CREATE INDEX IF NOT EXISTS order_return_events_type_idx       ON order_return_events (type);
+        CREATE INDEX IF NOT EXISTS order_return_events_status_idx     ON order_return_events (status);
+        CREATE INDEX IF NOT EXISTS order_return_events_created_at_idx ON order_return_events (created_at);
+      `)
+    ).then(() => console.log("[Migration] order_return_events table: ready"))
+      .catch(err => console.warn("[Migration] order_return_events table creation failed:", err.message));
   }
 
   return app;

@@ -240,3 +240,68 @@ export const accountingCostAuditEntrySchema = z.object({
 
 export const accountingCostAuditResponseSchema = z.array(accountingCostAuditEntrySchema);
 export type AccountingCostAuditEntry = z.infer<typeof accountingCostAuditEntrySchema>;
+
+// ── Return Events ──────────────────────────────────────────────────────────
+
+export const ORDER_RETURN_EVENT_TYPES = [
+  "rejected_delivery",
+  "failed_delivery",
+  "customer_return",
+  "cancelled_before_shipping",
+  "cancelled_after_shipping",
+  "damaged_return",
+  "partial_return",
+  "lost_package",
+] as const;
+export type OrderReturnEventType = (typeof ORDER_RETURN_EVENT_TYPES)[number];
+
+export const ORDER_RETURN_EVENT_STATUSES = ["recorded", "verified", "disputed"] as const;
+export type OrderReturnEventStatus = (typeof ORDER_RETURN_EVENT_STATUSES)[number];
+
+const affectedItemSchema = z.object({
+  productId: z.string().min(1),
+  qty: z.number().int().positive(),
+  priceAtPurchase: z.number().min(0),
+  cogsAtTime: z.number().min(0),
+});
+
+export const orderReturnEventInputSchema = z.object({
+  orderId: z.string().min(1),
+  type: z.enum(ORDER_RETURN_EVENT_TYPES),
+  reason: z.string().trim().max(500).optional(),
+  refundAmount: z.coerce.number().min(0).default(0),
+  deliveryCostLoss: z.coerce.number().min(0).default(0),
+  returnShippingCost: z.coerce.number().min(0).default(0),
+  packagingLoss: z.coerce.number().min(0).default(0),
+  productWriteOffAmount: z.coerce.number().min(0).default(0),
+  cogsLoss: z.coerce.number().min(0).default(0),
+  restocked: z.boolean().default(false),
+  affectedItems: z.array(affectedItemSchema).optional(),
+  note: z.string().trim().max(500).optional(),
+});
+
+export const orderReturnEventResponseSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  type: z.enum(ORDER_RETURN_EVENT_TYPES),
+  reason: z.string().nullable(),
+  refundAmount: z.coerce.number(),
+  deliveryCostLoss: z.coerce.number(),
+  returnShippingCost: z.coerce.number(),
+  packagingLoss: z.coerce.number(),
+  productWriteOffAmount: z.coerce.number(),
+  cogsLoss: z.coerce.number(),
+  restocked: z.boolean(),
+  restockedAt: z.string().nullable(),
+  affectedItems: z.array(affectedItemSchema).nullable(),
+  status: z.enum(ORDER_RETURN_EVENT_STATUSES),
+  note: z.string().nullable(),
+  createdBy: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const orderReturnEventsListSchema = z.array(orderReturnEventResponseSchema);
+
+export type OrderReturnEventInput = z.infer<typeof orderReturnEventInputSchema>;
+export type OrderReturnEventResponse = z.infer<typeof orderReturnEventResponseSchema>;

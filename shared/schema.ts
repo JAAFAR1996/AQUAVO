@@ -2502,3 +2502,43 @@ export const insertManualInvoiceSchema = z.object({
 
 export type ManualInvoice = typeof manualInvoices.$inferSelect;
 export type InsertManualInvoice = z.infer<typeof insertManualInvoiceSchema>;
+
+// ==================== Finance: Return Events ====================
+
+export const orderReturnEvents = pgTable("order_return_events", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  type: text("type").notNull(),
+  // rejected_delivery | failed_delivery | customer_return
+  // cancelled_before_shipping | cancelled_after_shipping
+  // damaged_return | partial_return | lost_package
+  reason: text("reason"),
+  refundAmount: numeric("refund_amount").default("0"),
+  deliveryCostLoss: numeric("delivery_cost_loss").default("0"),
+  returnShippingCost: numeric("return_shipping_cost").default("0"),
+  packagingLoss: numeric("packaging_loss").default("0"),
+  productWriteOffAmount: numeric("product_write_off_amount").default("0"),
+  cogsLoss: numeric("cogs_loss").default("0"),
+  restocked: boolean("restocked").default(false),
+  restockedAt: timestamp("restocked_at"),
+  affectedItems: jsonb("affected_items").$type<{
+    productId: string;
+    qty: number;
+    priceAtPurchase: number;
+    cogsAtTime: number;
+  }[]>(),
+  status: text("status").default("recorded"),
+  // recorded | verified | disputed
+  note: text("note"),
+  createdBy: text("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+}, (table) => ({
+  orderIdx: index("order_return_events_order_idx").on(table.orderId),
+  typeIdx: index("order_return_events_type_idx").on(table.type),
+  statusIdx: index("order_return_events_status_idx").on(table.status),
+  createdAtIdx: index("order_return_events_created_at_idx").on(table.createdAt),
+}));
+
+export type OrderReturnEvent = typeof orderReturnEvents.$inferSelect;
+export type InsertOrderReturnEvent = typeof orderReturnEvents.$inferInsert;
