@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -1127,6 +1127,137 @@ router.get("/cost-history-audit", async (_req: Request, res: Response, next: Nex
     res.json({
       success: true,
       data: JSON.parse(JSON.stringify(result, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ── Return Events (read-only) ──────────────────────────────────────────────
+
+router.get("/return-events", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    // ── filters ──────────────────────────────────────────────────────────
+    const { period, from, to } = getPeriodQuery(req);
+    const typeFilter = typeof req.query.type === "string" ? req.query.type : undefined;
+    const statusFilter = typeof req.query.status === "string" ? req.query.status : undefined;
+    const orderIdFilter = typeof req.query.orderId === "string" ? req.query.orderId : undefined;
+    const searchFilter = typeof req.query.search === "string" ? req.query.search.trim().toLowerCase() : undefined;
+
+    // ── fetch return events ────────────────────────────────────────────
+    const conditions = [];
+    if (period !== "custom" || (from && to)) {
+      // Only apply date filter when a real period is requested
+      // For "all" period we skip — periodRange would need a default
+      if (period !== ("all" as AccountingPeriod)) {
+        const { start, end } = periodRange(period, from, to);
+        conditions.push(gte(orderReturnEvents.createdAt, start));
+        conditions.push(lte(orderReturnEvents.createdAt, end));
+      }
+    }
+    if (typeFilter) conditions.push(eq(orderReturnEvents.type, typeFilter));
+    if (statusFilter) conditions.push(eq(orderReturnEvents.status, statusFilter));
+    if (orderIdFilter) conditions.push(eq(orderReturnEvents.orderId, orderIdFilter));
+
+    const events = await db
+      .select()
+      .from(orderReturnEvents)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(orderReturnEvents.createdAt));
+
+    // ── enrich with order info ─────────────────────────────────────────
+    const orderIds = [...new Set(events.map((e) => e.orderId))];
+    const orderRows =
+      orderIds.length > 0
+        ? await db
+            .select({
+              id: orders.id,
+              orderNumber: orders.orderNumber,
+              status: orders.status,
+              createdAt: orders.createdAt,
+              roundedTotal: orders.roundedTotal,
+              shippingCost: orders.shippingCost,
+              boxCost: orders.boxCost,
+            })
+            .from(orders)
+            .where(inArray(orders.id, orderIds))
+        : [];
+
+    const orderMap = new Map(orderRows.map((o) => [o.id, o]));
+
+    // ── apply search (by order number) ─────────────────────────────────
+    let enriched = events.map((e) => {
+      const order = orderMap.get(e.orderId);
+      return {
+        id: e.id,
+        orderId: e.orderId,
+        orderNumber: order?.orderNumber ?? null,
+        orderStatus: order?.status ?? null,
+        orderCreatedAt: order?.createdAt ? toDate(order.createdAt).toISOString() : null,
+        orderRoundedTotal: order?.roundedTotal != null ? toNumber(order.roundedTotal) : null,
+        orderShippingCost: order?.shippingCost != null ? toNumber(order.shippingCost) : null,
+        orderBoxCost: order?.boxCost != null ? toNumber(order.boxCost) : null,
+        type: e.type,
+        reason: e.reason,
+        refundAmount: toNumber(e.refundAmount),
+        deliveryCostLoss: toNumber(e.deliveryCostLoss),
+        returnShippingCost: toNumber(e.returnShippingCost),
+        packagingLoss: toNumber(e.packagingLoss),
+        productWriteOffAmount: toNumber(e.productWriteOffAmount),
+        cogsLoss: toNumber(e.cogsLoss),
+        restocked: e.restocked ?? false,
+        restockedAt: e.restockedAt ? toDate(e.restockedAt).toISOString() : null,
+        affectedItems: e.affectedItems ?? null,
+        status: e.status,
+        note: e.note,
+        createdBy: e.createdBy,
+        createdAt: toDate(e.createdAt).toISOString(),
+        updatedAt: toDate(e.updatedAt).toISOString(),
+      };
+    });
+
+    if (searchFilter) {
+      enriched = enriched.filter(
+        (e) =>
+          e.orderNumber?.toLowerCase().includes(searchFilter) ||
+          e.orderId.toLowerCase().includes(searchFilter),
+      );
+    }
+
+    // ── summary ────────────────────────────────────────────────────────
+    const sum = (key: keyof (typeof enriched)[0]) =>
+      enriched.reduce((acc, e) => acc + (typeof e[key] === "number" ? (e[key] as number) : 0), 0);
+
+    const totalRefundAmount = sum("refundAmount");
+    const totalDeliveryCostLoss = sum("deliveryCostLoss");
+    const totalReturnShippingCost = sum("returnShippingCost");
+    const totalPackagingLoss = sum("packagingLoss");
+    const totalProductWriteOffAmount = sum("productWriteOffAmount");
+    const totalCogsLoss = sum("cogsLoss");
+    const totalFinancialImpact =
+      totalRefundAmount +
+      totalDeliveryCostLoss +
+      totalReturnShippingCost +
+      totalPackagingLoss +
+      totalProductWriteOffAmount +
+      totalCogsLoss;
+
+    res.json({
+      success: true,
+      data: enriched,
+      summary: {
+        totalEvents: enriched.length,
+        totalRefundAmount,
+        totalDeliveryCostLoss,
+        totalReturnShippingCost,
+        totalPackagingLoss,
+        totalProductWriteOffAmount,
+        totalCogsLoss,
+        totalFinancialImpact,
+      },
     });
   } catch (err) {
     next(err);
