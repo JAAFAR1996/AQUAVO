@@ -445,17 +445,26 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
 
     const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
+
+    const activeProducts = await db
+      .select()
+      .from(products)
+      .where(isNull(products.deletedAt));
+
     const allOrders = await getRealizedOrdersForPeriod(db, start, end);
-    const costs = await buildCostResolver(db, collectProductIds(allOrders));
+
+    const allProductIds = new Set<string>([
+      ...collectProductIds(allOrders),
+      ...activeProducts.map((p) => p.id),
+    ]);
+    const costs = await buildCostResolver(db, allProductIds);
     const profitMap: Record<string, ProductProfit> = {};
 
     for (const order of allOrders) {
       const items = getOrderItems(order);
       const subtotal = orderSubtotal(items);
       const createdAt = toDate(order.createdAt);
-      // الإيراد الفعلي للطلب = المحصّل - الشحن
       const orderRevenue = orderCollectedAmount(order) - toNumber(order.shippingCost);
-      // نسبة توزيع الإيراد الفعلي على المنتجات (تعكس الخصومات والتقريب)
       const revenueRatio = subtotal > 0 ? orderRevenue / subtotal : 1;
       const boxCost = toNumber(order.boxCost);
 
@@ -464,9 +473,7 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
         const qty = lineQuantity(item);
         const price = toNumber(item.priceAtPurchase);
         const lineGross = price * qty;
-        // الإيراد الحقيقي لهذا المنتج بعد الخصم والتقريب
         const lineRevenue = lineGross * revenueRatio;
-        // توزيع كلفة الكارتونة نسبياً
         const lineDeduct = subtotal > 0 ? boxCost * (lineGross / subtotal) : 0;
 
         if (!productId) continue;
@@ -510,14 +517,89 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       }
     }
 
-    const result = Object.values(profitMap)
-      .map((product) => ({
-        ...product,
-        margin: product.revenue > 0 ? Math.round((product.netProfit / product.revenue) * 100) : 0,
-      }))
-      .sort((a, b) => b.netProfit - a.netProfit);
+    const result = activeProducts
+      .map((product) => {
+        const salePrice = toNumber(product.price);
+        const costPrice = toNumber(product.costPrice);
+        const packagingCost = toNumber(product.packagingCost);
+        const insertCost = toNumber(product.insertCost);
+        const stock = Number(product.stock ?? 0);
+        const threshold = Number(product.lowStockThreshold ?? 10);
+        const comingSoon = salePrice <= 0;
 
-    res.json({ success: true, data: result });
+        const profit = profitMap[product.id];
+        const unitsSold = profit?.unitsSold ?? 0;
+        const revenue = profit?.revenue ?? 0;
+        const cogs = profit?.cogs ?? 0;
+        const packaging = profit?.packaging ?? 0;
+        const netProfit = profit?.netProfit ?? 0;
+        const missingCostLines = profit?.missingCostLines ?? 0;
+        const missingProductLines = profit?.missingProductLines ?? 0;
+        const costsComplete = profit ? profit.costsComplete : costPrice > 0;
+
+        const margin = revenue > 0 ? Math.round((netProfit / revenue) * 100) : 0;
+        const grossProfit = revenue - cogs;
+        const grossMargin = revenue > 0 ? Math.round((grossProfit / revenue) * 100) : 0;
+
+        const totalCostPerUnit = costPrice + packagingCost + insertCost;
+        const inventoryValueAtCost = costPrice > 0 ? costPrice * stock : 0;
+        const potentialRevenueFromStock = comingSoon ? 0 : salePrice * stock;
+        const potentialGrossProfitFromStock =
+          costPrice > 0 && !comingSoon ? (salePrice - totalCostPerUnit) * stock : 0;
+
+        let recommendationLabel: string;
+        if (comingSoon) {
+          recommendationLabel = "قريباً";
+        } else if (costPrice <= 0) {
+          recommendationLabel = "كلفة ناقصة";
+        } else if (totalCostPerUnit > salePrice) {
+          recommendationLabel = "كلفة تتجاوز السعر";
+        } else if (stock === 0) {
+          recommendationLabel = "نفد المخزون";
+        } else if (stock <= threshold) {
+          recommendationLabel = "مخزون منخفض";
+        } else if (grossMargin < 20 && revenue > 0) {
+          recommendationLabel = "هامش ضعيف";
+        } else if (revenue > 0) {
+          recommendationLabel = "جيد";
+        } else {
+          recommendationLabel = "لا مبيعات";
+        }
+
+        return {
+          productId: product.id,
+          slug: product.slug,
+          name: product.name,
+          category: product.category,
+          salePrice,
+          costPrice,
+          packagingCost,
+          insertCost,
+          stock,
+          unitsSold,
+          revenue,
+          cogs,
+          packaging,
+          netProfit,
+          margin,
+          grossProfit,
+          grossMargin,
+          inventoryValueAtCost,
+          potentialRevenueFromStock,
+          potentialGrossProfitFromStock,
+          comingSoon,
+          recommendationLabel,
+          costsComplete,
+          missingCostLines,
+          missingProductLines,
+        };
+      })
+      .sort((a, b) => b.grossProfit - a.grossProfit);
+
+    res.json({
+      success: true,
+      data: JSON.parse(JSON.stringify(result, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
+    });
   } catch (err) {
     next(err);
   }

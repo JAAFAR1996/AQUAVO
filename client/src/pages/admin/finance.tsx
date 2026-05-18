@@ -4,6 +4,7 @@ import { FinanceOverview } from "@/components/admin/finance-overview";
 import { FinanceExpenses } from "@/components/admin/finance-expenses";
 import { FinanceCostChanges } from "@/components/admin/finance-cost-changes";
 import { FinanceScenarioCalculator } from "@/components/admin/finance-scenario-calculator";
+import { FinanceProductProfitability } from "@/components/admin/finance-product-profitability";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -82,9 +83,7 @@ export default function FinancePage() {
         </TabsContent>
 
         <TabsContent value="products">
-          <div style={{ color: "#94a3b8", fontSize: 13, padding: 24, textAlign: "center" }}>
-            ربحية المنتجات — قيد البناء
-          </div>
+          <FinanceProductProfitability period={period} />
         </TabsContent>
 
         <TabsContent value="recommendations">

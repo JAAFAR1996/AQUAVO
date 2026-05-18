@@ -66,6 +66,25 @@ export const accountingProductProfitSchema = accountingCompletenessSchema.extend
   insertCost: z.number(),
 });
 
+// Extended schema used by the product profitability tab — includes all products,
+// not just those with sales in the period.
+export const accountingProductProfitFullSchema = accountingProductProfitSchema.extend({
+  slug: z.string(),
+  category: z.string(),
+  salePrice: z.number(),
+  stock: z.number(),
+  grossProfit: z.number(),
+  grossMargin: z.number(),
+  inventoryValueAtCost: z.number(),
+  potentialRevenueFromStock: z.number(),
+  potentialGrossProfitFromStock: z.number(),
+  comingSoon: z.boolean(),
+  recommendationLabel: z.string(),
+});
+
+export const accountingProductProfitFullResponseSchema = z.array(accountingProductProfitFullSchema);
+export type AccountingProductProfitFull = z.infer<typeof accountingProductProfitFullSchema>;
+
 export const accountingOrderItemSchema = z.object({
   productId: z.string(),
   name: z.string(),
