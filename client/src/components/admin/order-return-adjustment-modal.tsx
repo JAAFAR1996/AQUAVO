@@ -104,11 +104,11 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
         { credentials: "include" }
       );
       if (!r.ok) throw new Error("فشل تحميل الراجعات");
-      return r.json() as Promise<{ events: unknown[] }>;
+      return r.json() as Promise<{ data: unknown[]; summary: unknown }>;
     },
     enabled: open,
   });
-  const existingCount = existingData?.events?.length ?? 0;
+  const existingCount = existingData?.data?.length ?? 0;
 
   // Cost history for all order items (batch)
   const productIds = order.items.map((i) => i.productId);
@@ -121,12 +121,13 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
           try {
             const r = await fetch(`/api/admin/accounting/cost-history/${pid}`, { credentials: "include" });
             if (!r.ok) return;
-            const data = await r.json() as Array<{ costPrice: number; packagingCost: number; insertCost: number }>;
-            if (data.length > 0) {
+            const json = await r.json() as { data: Array<{ costPrice: number; packagingCost: number; insertCost: number }> };
+            const rows = json.data ?? [];
+            if (rows.length > 0) {
               results[pid] = {
-                costPrice: Number(data[0].costPrice),
-                packagingCost: Number(data[0].packagingCost),
-                insertCost: Number(data[0].insertCost),
+                costPrice: Number(rows[0].costPrice),
+                packagingCost: Number(rows[0].packagingCost),
+                insertCost: Number(rows[0].insertCost),
               };
             }
           } catch { /* ignore per-product failures */ }
