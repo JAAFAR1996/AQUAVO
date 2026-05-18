@@ -10,6 +10,7 @@ import {
   accountingCostUpdateSchema,
   accountingPeriodSchema,
   accountingSettlementInputSchema,
+  orderReturnEventInputSchema,
   type AccountingInventory,
   type AccountingPeriod,
   type CostAuditRiskStatus,
@@ -1257,6 +1258,72 @@ router.get("/return-events", async (req: Request, res: Response, next: NextFunct
         totalProductWriteOffAmount,
         totalCogsLoss,
         totalFinancialImpact,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post("/return-events", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const parsed = orderReturnEventInputSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات غير صالحة", errors: parsed.error.flatten() });
+      return;
+    }
+
+    const {
+      orderId, type, reason,
+      refundAmount, deliveryCostLoss, returnShippingCost,
+      packagingLoss, productWriteOffAmount, cogsLoss,
+      restocked, affectedItems, note,
+    } = parsed.data;
+
+    const [orderRow] = await db.select({ id: orders.id }).from(orders).where(eq(orders.id, orderId));
+    if (!orderRow) {
+      res.status(404).json({ success: false, message: "الطلب غير موجود" });
+      return;
+    }
+
+    const createdBy = (req as Request & { user?: { id: string } }).user?.id ?? null;
+
+    const [entry] = await db
+      .insert(orderReturnEvents)
+      .values({
+        orderId,
+        type,
+        reason: reason ?? null,
+        refundAmount: String(refundAmount ?? 0),
+        deliveryCostLoss: String(deliveryCostLoss ?? 0),
+        returnShippingCost: String(returnShippingCost ?? 0),
+        packagingLoss: String(packagingLoss ?? 0),
+        productWriteOffAmount: String(productWriteOffAmount ?? 0),
+        cogsLoss: String(cogsLoss ?? 0),
+        restocked: restocked ?? false,
+        affectedItems: affectedItems ?? null,
+        status: "recorded",
+        note: note ?? null,
+        createdBy,
+      })
+      .returning();
+
+    res.status(201).json({
+      success: true,
+      data: {
+        ...entry,
+        refundAmount: toNumber(entry.refundAmount),
+        deliveryCostLoss: toNumber(entry.deliveryCostLoss),
+        returnShippingCost: toNumber(entry.returnShippingCost),
+        packagingLoss: toNumber(entry.packagingLoss),
+        productWriteOffAmount: toNumber(entry.productWriteOffAmount),
+        cogsLoss: toNumber(entry.cogsLoss),
+        createdAt: toDate(entry.createdAt).toISOString(),
+        updatedAt: toDate(entry.updatedAt).toISOString(),
+        restockedAt: entry.restockedAt ? toDate(entry.restockedAt).toISOString() : null,
       },
     });
   } catch (err) {
