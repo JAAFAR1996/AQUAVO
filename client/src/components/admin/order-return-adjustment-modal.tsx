@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { AlertTriangle, ChevronDown, ChevronUp, RotateCcw, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import {
@@ -260,6 +260,29 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const r = await fetch(`/api/admin/accounting/return-events/${id}`, {
+        method: "DELETE",
+        headers: addCsrfHeader({}),
+        credentials: "include",
+      });
+      if (!r.ok) {
+        const e = await r.json().catch(() => ({})) as { message?: string };
+        throw new Error(e.message ?? "فشل الحذف");
+      }
+      return r.json();
+    },
+    onSuccess: () => {
+      toast({ title: "تم الحذف", description: "تم حذف التعديل نهائياً" });
+      qc.invalidateQueries({ queryKey: ["return-events"] });
+      qc.invalidateQueries({ queryKey: ["return-events-for-order", order.id] });
+    },
+    onError: (e) => {
+      toast({ title: "خطأ", description: errMsg(e), variant: "destructive" });
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async (payload: OrderReturnEventInput) => {
       const r = await fetch("/api/admin/accounting/return-events", {
@@ -495,7 +518,16 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                             مسح التعديل
                           </Button>
                         ) : (
-                          <span className="shrink-0 text-xs text-muted-foreground px-2">مستبعد</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="shrink-0 text-xs h-7 text-muted-foreground hover:text-red-500"
+                            onClick={() => deleteMutation.mutate(ev.id)}
+                            disabled={deleteMutation.isPending}
+                            title="حذف نهائي (مستبعد فقط)"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
                         )}
                       </div>
                     );

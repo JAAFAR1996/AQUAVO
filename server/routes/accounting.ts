@@ -1316,6 +1316,31 @@ router.patch("/return-events/:id/status", async (req: Request, res: Response, ne
   }
 });
 
+router.delete("/return-events/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { id } = req.params as { id: string };
+    const [existing] = await db.select({ id: orderReturnEvents.id, status: orderReturnEvents.status })
+      .from(orderReturnEvents).where(eq(orderReturnEvents.id, id));
+
+    if (!existing) {
+      res.status(404).json({ success: false, message: "حدث الإرجاع غير موجود" });
+      return;
+    }
+    if (existing.status !== "disputed") {
+      res.status(400).json({ success: false, message: "لا يمكن حذف التعديل إلا إذا كان مستبعداً — استخدم مسح التعديل أولاً" });
+      return;
+    }
+
+    await db.delete(orderReturnEvents).where(eq(orderReturnEvents.id, id));
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/return-events", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const db = getAccountingDb(res);
