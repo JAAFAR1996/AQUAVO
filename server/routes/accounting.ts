@@ -12,6 +12,7 @@ import {
   accountingSettlementInputSchema,
   type AccountingInventory,
   type AccountingPeriod,
+  type CostAuditRiskStatus,
 } from "../../shared/accounting.js";
 
 const router = Router();
@@ -1015,6 +1016,117 @@ router.get("/inventory", async (_req: Request, res: Response, next: NextFunction
         lowStockProducts,
         outOfStockProducts,
       } satisfies AccountingInventory,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get("/cost-history-audit", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    // Fetch all active products
+    const activeProducts = await db
+      .select()
+      .from(products)
+      .where(isNull(products.deletedAt));
+
+    // Fetch ALL delivered orders (all time — no date filter)
+    const deliveredOrders = await db
+      .select()
+      .from(orders)
+      .where(inArray(orders.status, [...REALIZED_STATUSES]));
+
+    // Build per-product delivered-order metrics
+    const orderStats: Record<string, { count: number; earliest: Date }> = {};
+    for (const order of deliveredOrders) {
+      const items = getOrderItems(order);
+      const orderDate = toDate(order.createdAt);
+      for (const item of items) {
+        if (!item.productId) continue;
+        const existing = orderStats[item.productId];
+        if (!existing) {
+          orderStats[item.productId] = { count: 1, earliest: orderDate };
+        } else {
+          existing.count++;
+          if (orderDate < existing.earliest) existing.earliest = orderDate;
+        }
+      }
+    }
+
+    // Fetch ALL cost history rows
+    const allHistory = await db
+      .select()
+      .from(productCostHistory)
+      .orderBy(productCostHistory.effectiveFrom);
+
+    // Build per-product history map (earliest effectiveFrom)
+    const historyMap: Record<string, Date> = {};
+    for (const row of allHistory) {
+      const d = toDate(row.effectiveFrom);
+      const existing = historyMap[row.productId];
+      if (!existing || d < existing) historyMap[row.productId] = d;
+    }
+
+    const result = activeProducts.map((product) => {
+      const salePrice = toNumber(product.price);
+      const costPrice = toNumber(product.costPrice);
+      const packagingCost = toNumber(product.packagingCost);
+      const insertCost = toNumber(product.insertCost);
+
+      const stats = orderStats[product.id];
+      const deliveredOrderCount = stats?.count ?? 0;
+      const firstDeliveredOrderDate = stats ? stats.earliest.toISOString() : null;
+
+      const earliestHistory = historyMap[product.id];
+      const hasCostHistory = earliestHistory !== undefined;
+      const earliestEffectiveFrom = earliestHistory ? earliestHistory.toISOString() : null;
+
+      let riskStatus: CostAuditRiskStatus;
+      if (deliveredOrderCount === 0) {
+        riskStatus = "No sales yet";
+      } else if (costPrice <= 0) {
+        riskStatus = "Missing cost";
+      } else if (!hasCostHistory) {
+        riskStatus = "Needs baseline";
+      } else if (stats && earliestHistory > stats.earliest) {
+        // History exists but doesn't reach back to the first order
+        riskStatus = "Needs baseline";
+      } else {
+        riskStatus = "OK";
+      }
+
+      return {
+        productId: product.id,
+        slug: product.slug,
+        name: product.name,
+        category: product.category,
+        costPrice,
+        packagingCost,
+        insertCost,
+        firstDeliveredOrderDate,
+        deliveredOrderCount,
+        hasCostHistory,
+        earliestEffectiveFrom,
+        riskStatus,
+        salePrice,
+      };
+    });
+
+    // Sort: Needs baseline → Missing cost → OK → No sales yet
+    const ORDER: Record<CostAuditRiskStatus, number> = {
+      "Needs baseline": 0,
+      "Missing cost": 1,
+      "OK": 2,
+      "No sales yet": 3,
+    };
+    result.sort((a, b) => ORDER[a.riskStatus] - ORDER[b.riskStatus]);
+
+    res.json({
+      success: true,
+      data: JSON.parse(JSON.stringify(result, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
     });
   } catch (err) {
     next(err);

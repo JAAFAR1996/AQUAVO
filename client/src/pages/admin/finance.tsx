@@ -5,6 +5,7 @@ import { FinanceExpenses } from "@/components/admin/finance-expenses";
 import { FinanceCostChanges } from "@/components/admin/finance-cost-changes";
 import { FinanceScenarioCalculator } from "@/components/admin/finance-scenario-calculator";
 import { FinanceProductProfitability } from "@/components/admin/finance-product-profitability";
+import { FinanceCostAudit } from "@/components/admin/finance-cost-audit";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -66,6 +67,7 @@ export default function FinancePage() {
           <TabsTrigger value="recommendations">توصيات</TabsTrigger>
           <TabsTrigger value="cost-changes">تغييرات الكلف</TabsTrigger>
           <TabsTrigger value="simulator">حاسبة السيناريوهات</TabsTrigger>
+          <TabsTrigger value="cost-audit">تدقيق سجل الكلف</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -98,6 +100,10 @@ export default function FinancePage() {
 
         <TabsContent value="simulator">
           <FinanceScenarioCalculator />
+        </TabsContent>
+
+        <TabsContent value="cost-audit">
+          <FinanceCostAudit />
         </TabsContent>
       </Tabs>
     </div>

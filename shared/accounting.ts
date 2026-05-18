@@ -219,3 +219,24 @@ export const accountingInventorySchema = z.object({
 });
 
 export type AccountingInventory = z.infer<typeof accountingInventorySchema>;
+
+export const COST_AUDIT_RISK_STATUSES = ["OK", "Needs baseline", "Missing cost", "No sales yet"] as const;
+export type CostAuditRiskStatus = (typeof COST_AUDIT_RISK_STATUSES)[number];
+
+export const accountingCostAuditEntrySchema = z.object({
+  productId: z.string(),
+  slug: z.string(),
+  name: z.string(),
+  category: z.string(),
+  costPrice: z.number(),
+  packagingCost: z.number(),
+  insertCost: z.number(),
+  firstDeliveredOrderDate: z.string().nullable(),
+  deliveredOrderCount: z.number(),
+  hasCostHistory: z.boolean(),
+  earliestEffectiveFrom: z.string().nullable(),
+  riskStatus: z.enum(COST_AUDIT_RISK_STATUSES),
+});
+
+export const accountingCostAuditResponseSchema = z.array(accountingCostAuditEntrySchema);
+export type AccountingCostAuditEntry = z.infer<typeof accountingCostAuditEntrySchema>;
