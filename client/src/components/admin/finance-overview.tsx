@@ -239,7 +239,50 @@ export function FinanceOverview({ period }: { period: Period }) {
         </KpiGrid>
       )}
 
-      {/* Row 3 — COD */}
+      {/* Row 3 — Returns */}
+      <SectionHeader title="الراجعات المعتمدة" />
+      {summary && (
+        <>
+          <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
+            تُحسب فقط الراجعات بحالة verified — {summary.verifiedReturnEvents} راجع معتمد
+          </div>
+          <KpiGrid>
+            <KpiCard
+              label="الربح قبل الراجعات"
+              value={summary.costsComplete ? fmt(summary.netProfitBeforeReturns) : "غير مكتمل"}
+              color={summary.costsComplete ? "#199bb8" : "#94a3b8"}
+            />
+            <KpiCard
+              label="خسائر الراجعات المعتمدة"
+              value={fmt(summary.totalReturnFinancialImpact)}
+              color={summary.totalReturnFinancialImpact > 0 ? "#ef4444" : "#64748b"}
+              sub={summary.verifiedReturnEvents > 0 ? `${summary.verifiedReturnEvents} راجع` : undefined}
+            />
+            <KpiCard
+              label="الربح بعد الراجعات"
+              value={summary.costsComplete ? fmt(summary.netProfitAfterReturns) : "غير مكتمل"}
+              color={
+                !summary.costsComplete ? "#94a3b8"
+                  : summary.netProfitAfterReturns > 0 ? "#22c55e"
+                  : summary.netProfitAfterReturns < 0 ? "#ef4444"
+                  : "#64748b"
+              }
+            />
+            <KpiCard
+              label="الهامش بعد الراجعات"
+              value={summary.costsComplete ? `${summary.marginAfterReturns}%` : "غير مكتمل"}
+              color={
+                !summary.costsComplete ? "#94a3b8"
+                  : summary.marginAfterReturns >= 20 ? "#22c55e"
+                  : summary.marginAfterReturns > 0 ? "#f59e0b"
+                  : "#ef4444"
+              }
+            />
+          </KpiGrid>
+        </>
+      )}
+
+      {/* Row 4 — COD */}
       <SectionHeader title="الكاش عند التسليم (COD)" />
       {loadingCod && <LoadingSkeleton />}
       {errorCod && <ErrorBanner message={errMsg(errorCod)} />}

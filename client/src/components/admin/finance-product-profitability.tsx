@@ -8,7 +8,7 @@ interface Props {
   period: Period;
 }
 
-type SortKey = "name" | "unitsSold" | "revenue" | "grossProfit" | "grossMargin" | "netProfit" | "margin" | "stock" | "inventoryValueAtCost" | "potentialGrossProfitFromStock";
+type SortKey = "name" | "unitsSold" | "revenue" | "grossProfit" | "grossMargin" | "netProfit" | "margin" | "stock" | "inventoryValueAtCost" | "potentialGrossProfitFromStock" | "returnedQty" | "returnFinancialImpact" | "adjustedNetProfit" | "returnRate";
 type SortDir = "asc" | "desc";
 
 type FilterKey = "all" | "profitable" | "weak" | "missing_cost" | "low_stock" | "coming_soon" | "no_sales";
@@ -202,19 +202,23 @@ export function FinanceProductProfitability({ period }: Props) {
               <th style={th} onClick={() => toggleSort("stock")}>المخزون{sortIcon("stock")}</th>
               <th style={th} onClick={() => toggleSort("inventoryValueAtCost")}>قيمة المخزون{sortIcon("inventoryValueAtCost")}</th>
               <th style={th} onClick={() => toggleSort("potentialGrossProfitFromStock")}>ربح مخزون محتمل{sortIcon("potentialGrossProfitFromStock")}</th>
+              <th style={{ ...th, borderRight: "1px solid #1e3a5f" }} onClick={() => toggleSort("returnedQty")}>الكمية الراجعة{sortIcon("returnedQty")}</th>
+              <th style={th} onClick={() => toggleSort("returnFinancialImpact")}>خسارة الراجع{sortIcon("returnFinancialImpact")}</th>
+              <th style={th} onClick={() => toggleSort("adjustedNetProfit")}>الربح بعد الراجع{sortIcon("adjustedNetProfit")}</th>
+              <th style={th} onClick={() => toggleSort("returnRate")}>معدل الراجع{sortIcon("returnRate")}</th>
               <th style={th}>الحالة</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={12} style={{ ...td, textAlign: "center", color: "#64748b", padding: 32 }}>
+                <td colSpan={16} style={{ ...td, textAlign: "center", color: "#64748b", padding: 32 }}>
                   لا توجد نتائج
                 </td>
               </tr>
             ) : (
               filtered.map((p) => (
-                <tr key={p.productId} style={{ background: p.comingSoon ? "rgba(99,102,241,0.05)" : undefined }}>
+                <tr key={p.productId} style={{ background: p.comingSoon ? "rgba(99,102,241,0.05)" : p.returnedQty > 0 ? "rgba(239,68,68,0.03)" : undefined }}>
                   <td style={{ ...td, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }} title={p.name}>
                     {p.name}
                     {!p.costsComplete && (
@@ -242,6 +246,18 @@ export function FinanceProductProfitability({ period }: Props) {
                   <td style={td}>{p.inventoryValueAtCost > 0 ? fmt(Math.round(p.inventoryValueAtCost)) : "—"}</td>
                   <td style={{ ...td, color: p.potentialGrossProfitFromStock > 0 ? "#6366f1" : "#64748b" }}>
                     {p.potentialGrossProfitFromStock > 0 ? fmt(Math.round(p.potentialGrossProfitFromStock)) : "—"}
+                  </td>
+                  <td style={{ ...td, borderRight: "1px solid #1e3a5f", color: p.returnedQty > 0 ? "#ef4444" : "#64748b" }}>
+                    {p.returnedQty > 0 ? p.returnedQty.toLocaleString("ar-IQ") : "—"}
+                  </td>
+                  <td style={{ ...td, color: p.returnFinancialImpact > 0 ? "#ef4444" : "#64748b" }}>
+                    {p.returnFinancialImpact > 0 ? fmt(Math.round(p.returnFinancialImpact)) : "—"}
+                  </td>
+                  <td style={{ ...td, color: p.returnedQty > 0 ? (p.adjustedNetProfit >= 0 ? "#f59e0b" : "#ef4444") : "#64748b" }}>
+                    {p.returnedQty > 0 ? fmt(Math.round(p.adjustedNetProfit)) : "—"}
+                  </td>
+                  <td style={{ ...td, color: p.returnRate > 0 ? "#f59e0b" : "#64748b" }}>
+                    {p.returnRate > 0 ? `${p.returnRate}%` : "—"}
                   </td>
                   <td style={td}>
                     <span style={{

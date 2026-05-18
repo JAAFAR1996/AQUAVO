@@ -412,6 +412,32 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const netProfit = totalRevenue - totalCosts;
     const margin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
 
+    // ── Verified return events for period ──────────────────────────────
+    const returnEventsInPeriod = await db
+      .select()
+      .from(orderReturnEvents)
+      .where(and(gte(orderReturnEvents.createdAt, start), lte(orderReturnEvents.createdAt, end)));
+
+    const verifiedReturnRows = returnEventsInPeriod.filter((e) => e.status === "verified");
+
+    const sumReturn = (key: keyof typeof verifiedReturnRows[0]) =>
+      verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
+
+    const totalRefundAmount = sumReturn("refundAmount");
+    const totalDeliveryCostLoss = sumReturn("deliveryCostLoss");
+    const totalReturnShippingCost = sumReturn("returnShippingCost");
+    const totalPackagingLoss = sumReturn("packagingLoss");
+    const totalProductWriteOffAmount = sumReturn("productWriteOffAmount");
+    const totalCogsLoss = sumReturn("cogsLoss");
+    const totalReturnFinancialImpact =
+      totalRefundAmount + totalDeliveryCostLoss + totalReturnShippingCost +
+      totalPackagingLoss + totalProductWriteOffAmount + totalCogsLoss;
+
+    const netProfitBeforeReturns = netProfit;
+    const netProfitAfterReturns = netProfit - totalReturnFinancialImpact;
+    const marginBeforeReturns = margin;
+    const marginAfterReturns = totalRevenue > 0 ? Math.round((netProfitAfterReturns / totalRevenue) * 100) : 0;
+
     res.json({
       success: true,
       data: {
@@ -434,6 +460,19 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
         costsComplete: missingCostLines === 0 && missingProductLines === 0,
         missingCostLines,
         missingProductLines,
+        totalReturnEvents: returnEventsInPeriod.length,
+        verifiedReturnEvents: verifiedReturnRows.length,
+        totalRefundAmount,
+        totalDeliveryCostLoss,
+        totalReturnShippingCost,
+        totalPackagingLoss,
+        totalProductWriteOffAmount,
+        totalCogsLoss,
+        totalReturnFinancialImpact,
+        netProfitBeforeReturns,
+        netProfitAfterReturns,
+        marginBeforeReturns,
+        marginAfterReturns,
       },
     });
   } catch (err) {
@@ -520,6 +559,37 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
       }
     }
 
+    // ── Verified return events — per-product allocation via affectedItems ──
+    interface ProductReturnAccum {
+      returnedQty: number;
+      returnRefundAmount: number;
+      returnCogsLoss: number;
+    }
+    const productReturnMap = new Map<string, ProductReturnAccum>();
+
+    const verifiedReturnEventsForProducts = await db
+      .select()
+      .from(orderReturnEvents)
+      .where(and(
+        eq(orderReturnEvents.status, "verified"),
+        gte(orderReturnEvents.createdAt, start),
+        lte(orderReturnEvents.createdAt, end),
+      ));
+
+    for (const evt of verifiedReturnEventsForProducts) {
+      const items = Array.isArray(evt.affectedItems)
+        ? (evt.affectedItems as Array<{ productId: string; qty: number; priceAtPurchase: number; cogsAtTime: number }>)
+        : [];
+      for (const item of items) {
+        const existing = productReturnMap.get(item.productId) ??
+          { returnedQty: 0, returnRefundAmount: 0, returnCogsLoss: 0 };
+        existing.returnedQty += item.qty;
+        existing.returnRefundAmount += item.qty * item.priceAtPurchase;
+        existing.returnCogsLoss += item.qty * item.cogsAtTime;
+        productReturnMap.set(item.productId, existing);
+      }
+    }
+
     const result = activeProducts
       .map((product) => {
         const salePrice = toNumber(product.price);
@@ -569,6 +639,17 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
           recommendationLabel = "لا مبيعات";
         }
 
+        const ret = productReturnMap.get(product.id);
+        const returnedQty = ret?.returnedQty ?? 0;
+        const returnRefundAmount = ret?.returnRefundAmount ?? 0;
+        const returnCogsLoss = ret?.returnCogsLoss ?? 0;
+        const returnWriteOffAmount = 0; // event-level only — cannot split per product
+        const returnFinancialImpact = returnRefundAmount + returnCogsLoss + returnWriteOffAmount;
+        const adjustedGrossProfit = grossProfit - returnFinancialImpact;
+        const adjustedNetProfit = netProfit - returnFinancialImpact;
+        const adjustedMargin = revenue > 0 ? Math.round((adjustedNetProfit / revenue) * 100) : 0;
+        const returnRate = unitsSold > 0 ? Math.round((returnedQty / unitsSold) * 100) : 0;
+
         return {
           productId: product.id,
           slug: product.slug,
@@ -595,6 +676,15 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
           costsComplete,
           missingCostLines,
           missingProductLines,
+          returnedQty,
+          returnRefundAmount,
+          returnCogsLoss,
+          returnWriteOffAmount,
+          returnFinancialImpact,
+          adjustedGrossProfit,
+          adjustedNetProfit,
+          adjustedMargin,
+          returnRate,
         };
       })
       .sort((a, b) => b.grossProfit - a.grossProfit);

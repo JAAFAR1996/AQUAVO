@@ -50,6 +50,20 @@ export const accountingSummarySchema = accountingCompletenessSchema.extend({
   totalCosts: z.number(),
   netProfit: z.number(),
   margin: z.number(),
+  // Return event integration — verified only
+  totalReturnEvents: z.number(),
+  verifiedReturnEvents: z.number(),
+  totalRefundAmount: z.number(),
+  totalDeliveryCostLoss: z.number(),
+  totalReturnShippingCost: z.number(),
+  totalPackagingLoss: z.number(),
+  totalProductWriteOffAmount: z.number(),
+  totalCogsLoss: z.number(),
+  totalReturnFinancialImpact: z.number(),
+  netProfitBeforeReturns: z.number(),
+  netProfitAfterReturns: z.number(),
+  marginBeforeReturns: z.number(),
+  marginAfterReturns: z.number(),
 });
 
 export const accountingProductProfitSchema = accountingCompletenessSchema.extend({
@@ -80,6 +94,16 @@ export const accountingProductProfitFullSchema = accountingProductProfitSchema.e
   potentialGrossProfitFromStock: z.number(),
   comingSoon: z.boolean(),
   recommendationLabel: z.string(),
+  // Return event integration — verified only, from affectedItems
+  returnedQty: z.number(),
+  returnRefundAmount: z.number(),
+  returnCogsLoss: z.number(),
+  returnWriteOffAmount: z.number(),
+  returnFinancialImpact: z.number(),
+  adjustedGrossProfit: z.number(),
+  adjustedNetProfit: z.number(),
+  adjustedMargin: z.number(),
+  returnRate: z.number(),
 });
 
 export const accountingProductProfitFullResponseSchema = z.array(accountingProductProfitFullSchema);
