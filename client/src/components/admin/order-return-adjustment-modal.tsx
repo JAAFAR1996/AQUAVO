@@ -452,6 +452,11 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
             <div className="bg-muted/30 rounded-lg p-4 space-y-3 border">
               <h3 className="font-bold text-sm border-b pb-2">ملخص التعديل</h3>
 
+              <div className="flex justify-between text-sm bg-muted/40 rounded px-2 py-1">
+                <span className="text-muted-foreground font-medium">مجموع الفاتورة الأصلي:</span>
+                <span className="font-bold">{fmt(Number(order.roundedTotal ?? order.totalAmount ?? order.total))}</span>
+              </div>
+
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">نوع الراجع:</span>
                 <span className="font-semibold">
