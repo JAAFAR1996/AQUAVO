@@ -97,7 +97,7 @@ function buildRecommendations(
         type: "بيانات ناقصة",
         label: "البيانات غير مكتملة",
         subject: p.name,
-        reason: `كلفة هذا المنتج غير مدخلة (${p.missingCostLines} سطر ناقص). أي ربح يظهر عليه غير موثوق.`,
+        reason: `كلفة هذا المنتج غير مدخلة (سعر الشراء = ${fmt(p.costPrice)}). أي ربح يظهر عليه غير موثوق.`,
         action: "أدخل تكلفة الشراء والتغليف والإدراج لهذا المنتج من تبويب تدقيق الكلف.",
       });
     }
@@ -136,7 +136,7 @@ function buildRecommendations(
           ? "أعِد الطلب فوراً — المنتج يبيع وتضيع فرص."
           : "قيّم إذا كان هذا المنتج يستحق إعادة الطلب بناءً على الطلب التاريخي.",
       });
-      continue;
+      // Do NOT continue — out-of-stock products may still have verified return events
     }
 
     // ── 5. Low stock warning ─────────────────────────────────────────────────
@@ -163,10 +163,13 @@ function buildRecommendations(
         type: "خطر راجعات",
         label: "راجع يحتاج متابعة",
         subject: p.name,
-        reason: `رُجعت ${p.returnedQty} وحدة بخسارة مالية ${fmt(p.returnFinancialImpact)}. معدل الإرجاع ${pct(p.returnRate * 100)} من المبيعات. الربح الصافي المعدّل: ${fmt(p.adjustedNetProfit)}.`,
+        reason: `رُجعت ${p.returnedQty} وحدة بخسارة مالية ${fmt(p.returnFinancialImpact)}. معدل الإرجاع ${pct(p.returnRate)} من المبيعات. الربح الصافي المعدّل: ${fmt(p.adjustedNetProfit)}.`,
         action: "راجع سبب الإرجاع. إذا تكرر، راجع جودة التغليف أو وصف المنتج.",
       });
     }
+
+    // Skip stock/margin/ads checks for out-of-stock products
+    if (p.stock === 0) continue;
 
     // ── 3. Weak margin ───────────────────────────────────────────────────────
     if (
