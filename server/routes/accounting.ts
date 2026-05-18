@@ -11,6 +11,7 @@ import {
   accountingPeriodSchema,
   accountingSettlementInputSchema,
   orderReturnEventInputSchema,
+  orderReturnEventStatusUpdateSchema,
   type AccountingInventory,
   type AccountingPeriod,
   type CostAuditRiskStatus,
@@ -1229,35 +1230,85 @@ router.get("/return-events", async (req: Request, res: Response, next: NextFunct
     }
 
     // ── summary ────────────────────────────────────────────────────────
-    const sum = (key: keyof (typeof enriched)[0]) =>
-      enriched.reduce((acc, e) => acc + (typeof e[key] === "number" ? (e[key] as number) : 0), 0);
+    // Only verified return events should affect accounting reports.
+    const sumOf = (rows: typeof enriched, key: keyof (typeof enriched)[0]) =>
+      rows.reduce((acc, e) => acc + (typeof e[key] === "number" ? (e[key] as number) : 0), 0);
 
-    const totalRefundAmount = sum("refundAmount");
-    const totalDeliveryCostLoss = sum("deliveryCostLoss");
-    const totalReturnShippingCost = sum("returnShippingCost");
-    const totalPackagingLoss = sum("packagingLoss");
-    const totalProductWriteOffAmount = sum("productWriteOffAmount");
-    const totalCogsLoss = sum("cogsLoss");
-    const totalFinancialImpact =
-      totalRefundAmount +
-      totalDeliveryCostLoss +
-      totalReturnShippingCost +
-      totalPackagingLoss +
-      totalProductWriteOffAmount +
-      totalCogsLoss;
+    const financialImpactOf = (rows: typeof enriched) =>
+      sumOf(rows, "refundAmount") +
+      sumOf(rows, "deliveryCostLoss") +
+      sumOf(rows, "returnShippingCost") +
+      sumOf(rows, "packagingLoss") +
+      sumOf(rows, "productWriteOffAmount") +
+      sumOf(rows, "cogsLoss");
+
+    const recordedEvents = enriched.filter((e) => e.status === "recorded");
+    const verifiedEvents = enriched.filter((e) => e.status === "verified");
+    const disputedEvents = enriched.filter((e) => e.status === "disputed");
 
     res.json({
       success: true,
       data: enriched,
       summary: {
         totalEvents: enriched.length,
-        totalRefundAmount,
-        totalDeliveryCostLoss,
-        totalReturnShippingCost,
-        totalPackagingLoss,
-        totalProductWriteOffAmount,
-        totalCogsLoss,
-        totalFinancialImpact,
+        recordedEvents: recordedEvents.length,
+        verifiedEvents: verifiedEvents.length,
+        disputedEvents: disputedEvents.length,
+        totalRefundAmount: sumOf(enriched, "refundAmount"),
+        totalDeliveryCostLoss: sumOf(enriched, "deliveryCostLoss"),
+        totalReturnShippingCost: sumOf(enriched, "returnShippingCost"),
+        totalPackagingLoss: sumOf(enriched, "packagingLoss"),
+        totalProductWriteOffAmount: sumOf(enriched, "productWriteOffAmount"),
+        totalCogsLoss: sumOf(enriched, "cogsLoss"),
+        totalFinancialImpactAll: financialImpactOf(enriched),
+        totalFinancialImpactVerified: financialImpactOf(verifiedEvents),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.patch("/return-events/:id/status", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { id } = req.params as { id: string };
+    const parsed = orderReturnEventStatusUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "حالة غير صالحة", errors: parsed.error.flatten() });
+      return;
+    }
+
+    const { status, note } = parsed.data;
+    const updateValues: Record<string, unknown> = { status, updatedAt: new Date() };
+    if (note !== undefined) updateValues.note = note;
+
+    const [updated] = await db
+      .update(orderReturnEvents)
+      .set(updateValues)
+      .where(eq(orderReturnEvents.id, id))
+      .returning();
+
+    if (!updated) {
+      res.status(404).json({ success: false, message: "حدث الإرجاع غير موجود" });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        ...updated,
+        refundAmount: toNumber(updated.refundAmount),
+        deliveryCostLoss: toNumber(updated.deliveryCostLoss),
+        returnShippingCost: toNumber(updated.returnShippingCost),
+        packagingLoss: toNumber(updated.packagingLoss),
+        productWriteOffAmount: toNumber(updated.productWriteOffAmount),
+        cogsLoss: toNumber(updated.cogsLoss),
+        createdAt: toDate(updated.createdAt).toISOString(),
+        updatedAt: toDate(updated.updatedAt).toISOString(),
+        restockedAt: updated.restockedAt ? toDate(updated.restockedAt).toISOString() : null,
       },
     });
   } catch (err) {

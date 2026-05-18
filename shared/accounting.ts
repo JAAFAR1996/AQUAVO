@@ -258,6 +258,14 @@ export type OrderReturnEventType = (typeof ORDER_RETURN_EVENT_TYPES)[number];
 export const ORDER_RETURN_EVENT_STATUSES = ["recorded", "verified", "disputed"] as const;
 export type OrderReturnEventStatus = (typeof ORDER_RETURN_EVENT_STATUSES)[number];
 
+export const orderReturnEventStatusSchema = z.enum(ORDER_RETURN_EVENT_STATUSES);
+
+export const orderReturnEventStatusUpdateSchema = z.object({
+  status: orderReturnEventStatusSchema,
+  note: z.string().trim().max(500).optional(),
+});
+export type OrderReturnEventStatusUpdate = z.infer<typeof orderReturnEventStatusUpdateSchema>;
+
 const affectedItemSchema = z.object({
   productId: z.string().min(1),
   qty: z.number().int().positive(),
