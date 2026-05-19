@@ -306,7 +306,7 @@ export class SmartNotifications {
           payload: {
             title: content.title,
             body: content.body,
-            url: "/products",
+            url: "/products?recommended=1&source=notification",
             type: "churn_prevention",
             metadata: { churnScore: Number(user.churnScore), aiGenerated: true },
           },

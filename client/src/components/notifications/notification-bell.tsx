@@ -17,6 +17,8 @@ import {
   Package,
   TrendingDown,
   Sparkles,
+  Star,
+  Heart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -24,6 +26,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
+import { phTrackNotificationClicked } from "@/lib/posthog";
 
 interface Notification {
   id: string;
@@ -39,11 +42,24 @@ interface Notification {
 
 const TYPE_CONFIG: Record<string, { icon: React.ComponentType<{ className?: string }>; color: string }> = {
   replenishment: { icon: RefreshCw, color: "text-blue-500" },
-  churn_prevention: { icon: TrendingDown, color: "text-red-500" },
+  churn_prevention: { icon: Sparkles, color: "text-primary" },
+  we_missed_you: { icon: Sparkles, color: "text-primary" },
+  personalized_recommendations: { icon: Sparkles, color: "text-primary" },
+  recommendation_bundle: { icon: Sparkles, color: "text-primary" },
   welcome: { icon: UserPlus, color: "text-green-500" },
   cart_abandonment: { icon: ShoppingCart, color: "text-orange-500" },
   new_product: { icon: Package, color: "text-purple-500" },
+  product_back_in_stock: { icon: Package, color: "text-blue-500" },
+  product_recommendation_single: { icon: Package, color: "text-purple-500" },
   seasonal_tip: { icon: Leaf, color: "text-emerald-500" },
+  order_delivered: { icon: Package, color: "text-green-500" },
+  order_shipped: { icon: Package, color: "text-blue-500" },
+  order_status: { icon: Package, color: "text-orange-500" },
+  loyalty_points_earned: { icon: Star, color: "text-yellow-500" },
+  loyalty_tier_upgrade: { icon: Star, color: "text-yellow-600" },
+  loyalty_milestone: { icon: Star, color: "text-yellow-500" },
+  wishlist_price_change: { icon: Heart, color: "text-red-400" },
+  wishlist_back_in_stock: { icon: Heart, color: "text-red-500" },
 };
 
 function timeAgo(dateStr: string): string {
@@ -60,30 +76,80 @@ function timeAgo(dateStr: string): string {
 
 /** Resolve the best destination URL for a notification */
 function resolveNotifUrl(notif: Notification): string | null {
-  // Explicit URL always wins
-  if (notif.url) return notif.url;
-
   const meta = notif.metadata || {};
 
-  switch (notif.type) {
-    case "cart_abandonment":
-      return "/cart";
-    case "replenishment":
-      return meta.productSlug ? `/products/${meta.productSlug}` : "/products";
-    case "new_product":
-      return meta.productSlug ? `/products/${meta.productSlug}` : "/products";
-    case "churn_prevention":
-      return meta.couponCode ? `/products?coupon=${meta.couponCode}` : "/products";
-    case "welcome":
-      return "/";
-    case "seasonal_tip":
-      return meta.blogSlug ? `/blog/${meta.blogSlug}` : "/blog";
-    case "discount":
-    case "offer":
-      return "/products?sort=discount";
-    default:
-      return null; // Will show a modal instead
+  // Derive entity-aware URL from type, then fall back to stored url, then type default
+  const entityUrl = (() => {
+    switch (notif.type) {
+      // Order notifications
+      case "order_delivered":
+      case "order_shipped":
+      case "order_status":
+        return meta.orderId ? `/profile?tab=orders` : "/profile?tab=orders";
+
+      // Single product — go straight to product page
+      case "replenishment":
+      case "new_product":
+      case "product_back_in_stock":
+      case "product_recommendation_single":
+        return meta.productSlug
+          ? `/products/${meta.productSlug}`
+          : (meta.productId ? `/products/${meta.productId}` : null);
+
+      // Cart abandonment — go to cart
+      case "cart_abandonment":
+        return "/cart";
+
+      // Re-engagement / recommendation bundles — curated products view
+      case "churn_prevention":
+      case "we_missed_you":
+      case "personalized_recommendations":
+      case "recommendation_bundle":
+        return "/products?recommended=1&source=notification";
+
+      // Wishlist notifications — product page if we have slug, else wishlist
+      case "wishlist_price_change":
+      case "wishlist_back_in_stock":
+        return meta.productSlug
+          ? `/products/${meta.productSlug}`
+          : "/wishlist";
+
+      // Loyalty — profile loyalty tab
+      case "loyalty_points_earned":
+      case "loyalty_tier_upgrade":
+      case "loyalty_milestone":
+        return "/profile?tab=loyalty";
+
+      // Welcome — homepage
+      case "welcome":
+        return "/";
+
+      // Seasonal content — blog
+      case "seasonal_tip":
+        return meta.blogSlug ? `/blog/${meta.blogSlug}` : "/blog";
+
+      case "discount":
+      case "offer":
+        return "/products?sort=discount";
+
+      default:
+        return null;
+    }
+  })();
+
+  // Priority: entity-aware URL > stored url > fallback from type
+  if (entityUrl) return entityUrl;
+  if (notif.url && notif.url !== "/products") return notif.url;
+  // Legacy notifications that only have "/products" — upgrade churn/reengagement by body text
+  if (notif.url === "/products") {
+    const isReengagement =
+      notif.type === "churn_prevention" ||
+      notif.body?.includes("افتقدنا") ||
+      notif.body?.includes("جهزنالك");
+    if (isReengagement) return "/products?recommended=1&source=notification";
+    return notif.url;
   }
+  return null; // show modal
 }
 
 export function NotificationBell() {
@@ -122,23 +188,33 @@ export function NotificationBell() {
   // Smart click handler — navigate based on type or show modal
   const handleClickNotification = useCallback(
     async (notif: Notification) => {
-      // Mark as read
-      if (!notif.readAt || !notif.metadata?.clicked) {
-        fetch(`/api/notifications/track-click/${notif.id}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-        }).then(() => queryClient.invalidateQueries({ queryKey: ["my-notifications"] }));
-      }
-
       const dest = resolveNotifUrl(notif);
+
+      // Track click (fire-and-forget), also marks as read
+      fetch(`/api/notifications/track-click/${notif.id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      }).then(() => queryClient.invalidateQueries({ queryKey: ["my-notifications"] }));
+
+      phTrackNotificationClicked({
+        type: notif.type,
+        hasTargetUrl: !!dest,
+        entityType: notif.metadata?.entityType as string | undefined,
+        source: "notification_center",
+      });
+
       setPopoverOpen(false);
       if (dest) {
         // Delay navigation until popover close animation finishes
         // Without this, Radix Popover steals focus and blocks wouter's navigate
         setTimeout(() => {
-          // Force navigation even if already on the same route
-          if (window.location.pathname === dest) {
+          const [destPath, destQuery] = dest.split("?");
+          const currentPath = window.location.pathname;
+          const currentQuery = window.location.search.slice(1);
+          const sameDestination = currentPath === destPath && currentQuery === (destQuery ?? "");
+          if (sameDestination) {
+            // Same URL — force reload so the recommended banner appears
             window.location.href = dest;
           } else {
             navigate(dest);

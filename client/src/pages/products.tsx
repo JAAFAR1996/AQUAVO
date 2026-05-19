@@ -35,6 +35,7 @@ export default function Products() {
   const initialCategory = searchParams.get("category");
   const initialSearch = searchParams.get("search");
   const initialSort = searchParams.get("sort");
+  const isRecommendedView = searchParams.get("recommended") === "1";
 
   // Fetch dynamic attributes (categories, brands, price range)
   const { data: attributes, isLoading: isAttributesLoading } = useQuery({
@@ -58,7 +59,7 @@ export default function Products() {
   });
 
   const [sortBy, setSortBy] = useState<SortOption>(
-    initialSort === 'best-selling' ? "rating-desc" : (user ? "smart" : "default")
+    initialSort === 'best-selling' ? "rating-desc" : (isRecommendedView && user ? "smart" : user ? "smart" : "default")
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -263,6 +264,17 @@ export default function Products() {
           <h1 className="text-2xl sm:text-4xl font-bold text-foreground">معدات أحواض أصلية لكل العراق</h1>
           <p className="text-sm sm:text-base text-muted-foreground">اختار القسم المناسب لحوضك، وشوف المنتجات المتوفرة مباشرة.</p>
         </div>
+
+        {/* Recommended banner — shown when arriving from a notification */}
+        {isRecommendedView && (
+          <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 flex items-start gap-3" dir="rtl">
+            <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">منتجات مناسبة إلك</p>
+              <p className="text-xs text-muted-foreground mt-0.5">اختيارات تساعدك تكمل تجهيز حوضك — متوفرة هسه وبسعر واضح.</p>
+            </div>
+          </div>
+        )}
 
         {/* Category Selector — primary navigation */}
         <div className="mb-5 rounded-xl border border-border/50 overflow-hidden shadow-sm">

@@ -141,3 +141,17 @@ export function phTrackWhatsAppClick(data: {
     product_name: data.productName,
   });
 }
+
+export function phTrackNotificationClicked(data: {
+  type: string;
+  hasTargetUrl: boolean;
+  entityType?: string;
+  source?: string;
+}): void {
+  capture("NotificationClicked", {
+    notification_type: data.type,
+    has_target_url: data.hasTargetUrl,
+    entity_type: data.entityType,
+    source: data.source ?? "notification_center",
+  });
+}
