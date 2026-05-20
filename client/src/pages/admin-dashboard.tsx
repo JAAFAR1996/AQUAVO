@@ -83,6 +83,7 @@ import {
   Tag,
   Shield,
   Settings,
+  Calculator,
 } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -626,6 +627,14 @@ export default function AdminDashboard() {
               {user?.email}
             </p>
           </div>
+          <Button
+            variant="outline"
+            className="gap-2 border-green-300 text-green-700 hover:bg-green-50"
+            onClick={() => window.location.href = '/admin/finance'}
+          >
+            <Calculator className="w-4 h-4" />
+            الدخول إلى المحاسب
+          </Button>
           <Button variant="outline" onClick={logout} className="gap-2">
             <LogOut className="w-4 h-4" />
             تسجيل الخروج
