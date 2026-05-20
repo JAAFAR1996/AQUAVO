@@ -763,6 +763,208 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
   }
 });
 
+// معدلات الإرجاع — طلبات وعناصر، بدون فلتر الفترة
+router.get("/return-metrics", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+
+    const [allOrdersAllTime, allOrdersInPeriod, allReturnEvents] = await Promise.all([
+      db.select().from(orders),
+      getOrdersForPeriod(db, start, end),
+      db.select().from(orderReturnEvents),
+    ]);
+
+    // ── معدل إرجاع الطلبات (period-filtered, order-level) ──────────────
+    const RETURN_ORDER_STATUSES = ["cancelled", "rejected", "rejected_returned", "rejected_carrier", "returned", "refunded"] as const;
+    const periodReturnedOrders = allOrdersInPeriod.filter((o) =>
+      (RETURN_ORDER_STATUSES as readonly string[]).includes(o.status ?? "")
+    );
+    const orderReturnRate = allOrdersInPeriod.length > 0
+      ? Math.round((periodReturnedOrders.length / allOrdersInPeriod.length) * 100)
+      : 0;
+
+    // ── معدل إرجاع المنتجات (all-time, item-level) ─────────────────────
+
+    // المصدر 1: عناصر من أحداث الإرجاع المعتمدة (all-time)
+    const verifiedEvents = allReturnEvents.filter((e) => e.status === "verified");
+    let returnedItemsFromEvents = 0;
+    for (const ev of verifiedEvents) {
+      if (Array.isArray(ev.affectedItems)) {
+        for (const item of ev.affectedItems as { qty?: number }[]) {
+          returnedItemsFromEvents += toNumber(item.qty ?? 1);
+        }
+      }
+    }
+
+    // المصدر 2: طلبات حالتها returned/refunded/rejected_returned بدون حدث إرجاع معتمد مسجّل لها
+    const ordersWithVerifiedEvent = new Set(verifiedEvents.map((e) => e.orderId));
+    const ITEM_RETURN_STATUSES = ["returned", "refunded", "rejected_returned"];
+    let returnedItemsFromOrders = 0;
+    for (const o of allOrdersAllTime) {
+      if (!ITEM_RETURN_STATUSES.includes(o.status ?? "")) continue;
+      if (ordersWithVerifiedEvent.has(o.id)) continue; // already counted via events
+      const items = getOrderItems(o);
+      returnedItemsFromOrders += items.reduce((sum, item) => sum + lineQuantity(item), 0);
+    }
+
+    const returnedItemsAllTime = returnedItemsFromEvents + returnedItemsFromOrders;
+
+    // الإجمالي المُباع (all-time, delivered)
+    let totalSoldItemsAllTime = 0;
+    for (const o of allOrdersAllTime) {
+      if (o.status !== "delivered") continue;
+      const items = getOrderItems(o);
+      totalSoldItemsAllTime += items.reduce((sum, item) => sum + lineQuantity(item), 0);
+    }
+
+    const productReturnRate = totalSoldItemsAllTime > 0
+      ? Math.round((returnedItemsAllTime / totalSoldItemsAllTime) * 100 * 10) / 10
+      : 0;
+
+    // ── all-time order-level counts for display ─────────────────────────
+    const allTimeReturnedOrders = allOrdersAllTime.filter((o) =>
+      (RETURN_ORDER_STATUSES as readonly string[]).includes(o.status ?? "")
+    );
+
+    res.json({
+      success: true,
+      data: {
+        // معدل إرجاع الطلبات (period)
+        orderReturnRate,
+        periodReturnedOrdersCount: periodReturnedOrders.length,
+        periodTotalOrdersCount: allOrdersInPeriod.length,
+        // معدل إرجاع المنتجات (all-time)
+        productReturnRate,
+        returnedItemsAllTime,
+        returnedItemsFromEvents,
+        returnedItemsFromOrders,
+        totalSoldItemsAllTime,
+        // all-time order counts
+        allTimeReturnedOrdersCount: allTimeReturnedOrders.length,
+        allTimeTotalOrdersCount: allOrdersAllTime.length,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// تفاصيل الطلبيات المسلّمة — للكشف عن 10,000 د.ع بانتظار التسوية
+router.get("/cod-details", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const [allOrders, settlements] = await Promise.all([
+      db.select().from(orders),
+      db.select().from(shippingSettlements),
+    ]);
+
+    const deliveredOrders = allOrders.filter((o) => o.status === "delivered");
+    const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
+
+    const orderNetAmount = (order: OrderRow) =>
+      orderCollectedAmount(order) - toNumber(order.shippingCost);
+
+    const totalDelivered = deliveredOrders.reduce((sum, o) => sum + orderNetAmount(o), 0);
+    const totalPending = Math.max(0, totalDelivered - totalReceived);
+
+    const result = deliveredOrders
+      .sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime())
+      .map((o) => ({
+        orderId: o.id,
+        orderNumber: o.orderNumber ?? null,
+        customerName: o.customerName ?? null,
+        customerPhone: o.customerPhone ?? null,
+        orderTotal: toNumber(o.total),
+        shippingCost: toNumber(o.shippingCost),
+        collectedAmount: orderCollectedAmount(o),
+        netAmount: orderNetAmount(o),
+        paymentStatus: o.paymentStatus ?? null,
+        orderStatus: o.status ?? "delivered",
+        carrier: o.carrier ?? null,
+        createdAt: toDate(o.createdAt).toISOString(),
+      }));
+
+    res.json({
+      success: true,
+      data: {
+        deliveredOrders: result,
+        totalDelivered,
+        totalReceived,
+        totalPending,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// طلبيات مُرجَعة — للعرض في قسم المرتجعات
+router.get("/returned-orders", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const RETURN_STATUSES = ["returned", "refunded", "rejected_returned"];
+
+    const [allOrders, returnEvents] = await Promise.all([
+      db.select().from(orders),
+      db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
+    ]);
+
+    const returnedOrders = allOrders.filter((o) =>
+      RETURN_STATUSES.includes(o.status ?? "")
+    );
+
+    const verifiedEventsByOrder = new Map<string, typeof returnEvents[0][]>();
+    for (const ev of returnEvents) {
+      const list = verifiedEventsByOrder.get(ev.orderId) ?? [];
+      list.push(ev);
+      verifiedEventsByOrder.set(ev.orderId, list);
+    }
+
+    const totalRefundAmount = returnEvents.reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
+
+    const result = returnedOrders
+      .sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime())
+      .map((o) => {
+        const events = verifiedEventsByOrder.get(o.id) ?? [];
+        const refund = events.reduce((s, e) => s + toNumber(e.refundAmount), 0);
+        return {
+          orderId: o.id,
+          orderNumber: o.orderNumber ?? null,
+          customerName: o.customerName ?? null,
+          customerPhone: o.customerPhone ?? null,
+          orderTotal: toNumber(o.total),
+          shippingCost: toNumber(o.shippingCost),
+          orderStatus: o.status ?? "returned",
+          paymentStatus: o.paymentStatus ?? null,
+          carrier: o.carrier ?? null,
+          createdAt: toDate(o.createdAt).toISOString(),
+          returnedAt: o.updatedAt ? toDate(o.updatedAt).toISOString() : null,
+          hasVerifiedReturnEvent: events.length > 0,
+          refundAmount: refund,
+        };
+      });
+
+    res.json({
+      success: true,
+      data: {
+        orders: result,
+        totalCount: result.length,
+        totalRefundAmount,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post("/settlements", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const db = getAccountingDb(res);

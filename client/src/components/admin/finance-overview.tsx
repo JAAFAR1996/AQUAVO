@@ -1,12 +1,19 @@
 import type { ZodType } from "zod";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   accountingSummarySchema,
   accountingCodSummarySchema,
+  accountingCodDetailsSchema,
+  accountingReturnedOrdersSchema,
+  accountingReturnMetricsSchema,
   accountingInventorySchema,
   type AccountingPeriod,
   type AccountingSummary,
   type AccountingCodSummary,
+  type AccountingCodDetails,
+  type AccountingReturnedOrders,
+  type AccountingReturnMetrics,
   type AccountingInventory,
 } from "@shared/accounting";
 
@@ -32,20 +39,24 @@ function KpiCard({
   sub,
   color = "#199bb8",
   badge,
+  onClick,
 }: {
   label: string;
   value: string;
   sub?: string;
   color?: string;
   badge?: string;
+  onClick?: () => void;
 }) {
   return (
     <div
+      onClick={onClick}
       style={{
         background: "#0d1f3c",
         border: "1px solid #199bb820",
         borderRadius: 12,
         padding: "14px 18px",
+        cursor: onClick ? "pointer" : undefined,
       }}
     >
       <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
@@ -148,6 +159,9 @@ function ErrorBanner({ message }: { message: string }) {
 }
 
 export function FinanceOverview({ period }: { period: Period }) {
+  const [showCodDetails, setShowCodDetails] = useState(false);
+  const [showReturns, setShowReturns] = useState(false);
+
   const {
     data: summary,
     isLoading: loadingSummary,
@@ -169,6 +183,35 @@ export function FinanceOverview({ period }: { period: Period }) {
     queryKey: ["accounting-cod-summary"],
     queryFn: () =>
       fetchAccounting("/api/admin/accounting/cod-summary", accountingCodSummarySchema),
+  });
+
+  const {
+    data: returnMetrics,
+    isLoading: loadingReturnMetrics,
+  } = useQuery<AccountingReturnMetrics>({
+    queryKey: ["accounting-return-metrics", period],
+    queryFn: () =>
+      fetchAccounting(`/api/admin/accounting/return-metrics?period=${period}`, accountingReturnMetricsSchema),
+  });
+
+  const {
+    data: codDetails,
+    isLoading: loadingCodDetails,
+  } = useQuery<AccountingCodDetails>({
+    queryKey: ["accounting-cod-details"],
+    queryFn: () =>
+      fetchAccounting("/api/admin/accounting/cod-details", accountingCodDetailsSchema),
+    enabled: showCodDetails,
+  });
+
+  const {
+    data: returnedOrders,
+    isLoading: loadingReturns,
+  } = useQuery<AccountingReturnedOrders>({
+    queryKey: ["accounting-returned-orders"],
+    queryFn: () =>
+      fetchAccounting("/api/admin/accounting/returned-orders", accountingReturnedOrdersSchema),
+    enabled: showReturns,
   });
 
   const {
@@ -204,21 +247,50 @@ export function FinanceOverview({ period }: { period: Period }) {
       <SectionHeader title="الإيراد والطلبيات" />
       {loadingSummary && <LoadingSkeleton />}
       {errorSummary && <ErrorBanner message={errMsg(errorSummary)} />}
+      {(loadingSummary || loadingReturnMetrics) && !summary && <LoadingSkeleton />}
       {summary && (
-        <KpiGrid>
-          <KpiCard
-            label="الإيراد الصافي"
-            badge={!summary.costsComplete ? "غير مكتمل" : undefined}
-            value={fmt(summary.totalRevenue)}
-          />
-          <KpiCard label="الطلبيات" value={String(summary.totalOrders)} />
-          <KpiCard label="الطلبيات الموصّلة" value={String(summary.deliveredCount)} />
-          <KpiCard
-            label="معدل الإرجاع (RTO)"
-            value={`${summary.rtoRate}%`}
-            color={summary.rtoRate > 20 ? "#ef4444" : "#199bb8"}
-          />
-        </KpiGrid>
+        <>
+          {/* Tooltip explanation */}
+          <div style={{
+            background: "#0d1f3c",
+            border: "1px solid #199bb820",
+            borderRadius: 8,
+            padding: "8px 14px",
+            fontSize: 10,
+            color: "#64748b",
+            marginBottom: 10,
+            lineHeight: 1.6,
+          }}>
+            معدل إرجاع الطلبات يحسب الطلبات الراجعة بالكامل خلال الفترة المحددة. معدل إرجاع المنتجات يحسب المنتجات الراجعة فعلياً (كل الوقت) حتى لو الطلب رجع جزئياً.
+          </div>
+          <KpiGrid>
+            <KpiCard
+              label="الإيراد الصافي"
+              badge={!summary.costsComplete ? "غير مكتمل" : undefined}
+              value={fmt(summary.totalRevenue)}
+            />
+            <KpiCard label="الطلبيات" value={String(summary.totalOrders)} />
+            <KpiCard label="الطلبيات الموصّلة" value={String(summary.deliveredCount)} />
+            <KpiCard
+              label="معدل إرجاع الطلبات"
+              value={returnMetrics ? `${returnMetrics.orderReturnRate}%` : `${summary.rtoRate}%`}
+              sub={returnMetrics ? `${returnMetrics.periodReturnedOrdersCount} من ${returnMetrics.periodTotalOrdersCount} طلبية (الفترة)` : undefined}
+              color={(returnMetrics?.orderReturnRate ?? summary.rtoRate) > 20 ? "#ef4444" : "#199bb8"}
+            />
+            <KpiCard
+              label="معدل إرجاع المنتجات"
+              value={returnMetrics
+                ? returnMetrics.productReturnRate > 0
+                  ? `${returnMetrics.productReturnRate}%`
+                  : "0%"
+                : "—"}
+              sub={returnMetrics
+                ? `${returnMetrics.returnedItemsAllTime} منتج مُرجَع / ${returnMetrics.totalSoldItemsAllTime} مُباع (كل الوقت)`
+                : loadingReturnMetrics ? "جاري الحساب…" : undefined}
+              color={returnMetrics && returnMetrics.productReturnRate > 0 ? "#f97316" : "#199bb8"}
+            />
+          </KpiGrid>
+        </>
       )}
 
       {/* Row 2 — Profit */}
@@ -287,22 +359,158 @@ export function FinanceOverview({ period }: { period: Period }) {
       {loadingCod && <LoadingSkeleton />}
       {errorCod && <ErrorBanner message={errMsg(errorCod)} />}
       {codData && (
-        <KpiGrid>
-          <KpiCard label="كاش بالطريق" value={fmt(codData.totalInTransit)} />
-          <KpiCard
-            label="كاش محصّل — لم يُستلم"
-            value={fmt(codData.totalPending)}
-            color={codData.totalPending > 0 ? "#f97316" : "#199bb8"}
-          />
-          <KpiCard
-            label="إجمالي الكاش المستلم"
-            value={fmt(codData.totalReceived)}
-            color="#22c55e"
-          />
-        </KpiGrid>
+        <>
+          <KpiGrid>
+            <KpiCard label="كاش بالطريق" value={fmt(codData.totalInTransit)} />
+            <KpiCard
+              label="مبالغ بانتظار التسوية"
+              value={codData.totalPending > 0 ? fmt(codData.totalPending) : "لا توجد مبالغ بانتظار التسوية"}
+              color={codData.totalPending > 0 ? "#f97316" : "#64748b"}
+              sub="اضغط لعرض التفاصيل"
+              onClick={() => setShowCodDetails((v) => !v)}
+            />
+            <KpiCard
+              label="إجمالي الكاش المستلم"
+              value={fmt(codData.totalReceived)}
+              color="#22c55e"
+            />
+          </KpiGrid>
+
+          {/* COD Drilldown */}
+          {showCodDetails && (
+            <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
+                تفاصيل الطلبيات المسلّمة — مجموع صافي الإيراد المستحق: {fmt(codData.totalDelivered)}
+              </div>
+              <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
+                المستلم من شركات الشحن: {fmt(codData.totalReceived)} | الفرق: {fmt(codData.totalPending)}
+              </div>
+              {loadingCodDetails && (
+                <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>
+              )}
+              {codDetails && codDetails.deliveredOrders.length === 0 && (
+                <div style={{ color: "#64748b", fontSize: 11 }}>لا توجد طلبيات مسلّمة</div>
+              )}
+              {codDetails && codDetails.deliveredOrders.length > 0 && (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ color: "#64748b", borderBottom: "1px solid #1e3a5f" }}>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>رقم الطلب</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>الزبون</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>المجموع</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>التوصيل</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>المحصّل</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>الصافي</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>حالة الدفع</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>الشركة</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>التاريخ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {codDetails.deliveredOrders.map((o) => (
+                        <tr key={o.orderId} style={{ borderBottom: "1px solid #1e3a5f10", color: "#cbd5e1" }}>
+                          <td style={{ padding: "5px 8px" }}>{o.orderNumber ?? o.orderId.slice(0, 8)}</td>
+                          <td style={{ padding: "5px 8px" }}>{o.customerName ?? "—"}</td>
+                          <td style={{ padding: "5px 8px" }}>{fmt(o.orderTotal)}</td>
+                          <td style={{ padding: "5px 8px" }}>{fmt(o.shippingCost)}</td>
+                          <td style={{ padding: "5px 8px" }}>{fmt(o.collectedAmount)}</td>
+                          <td style={{ padding: "5px 8px", color: "#f97316", fontWeight: 600 }}>{fmt(o.netAmount)}</td>
+                          <td style={{ padding: "5px 8px" }}>{o.paymentStatus ?? "—"}</td>
+                          <td style={{ padding: "5px 8px" }}>{o.carrier ?? "—"}</td>
+                          <td style={{ padding: "5px 8px" }}>{new Date(o.createdAt).toLocaleDateString("ar-IQ")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
-      {/* Row 4 — Inventory */}
+      {/* Row 5 — Returned Orders */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>المرتجعات</div>
+        <button
+          onClick={() => setShowReturns((v) => !v)}
+          style={{
+            background: "#0d1f3c",
+            border: "1px solid #199bb830",
+            borderRadius: 6,
+            color: "#94a3b8",
+            fontSize: 11,
+            padding: "3px 10px",
+            cursor: "pointer",
+          }}
+        >
+          {showReturns ? "إخفاء" : "عرض"}
+        </button>
+      </div>
+      {showReturns && (
+        <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+          {loadingReturns && <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>}
+          {returnedOrders && returnedOrders.totalCount === 0 && (
+            <div style={{ color: "#64748b", fontSize: 12 }}>لا توجد مرتجعات مسجلة</div>
+          )}
+          {returnedOrders && returnedOrders.totalCount > 0 && (
+            <>
+              <div style={{ color: "#ef4444", fontSize: 11, marginBottom: 10 }}>
+                {returnedOrders.totalCount} طلبية مُرجَعة
+                {returnedOrders.totalRefundAmount > 0 && ` | إجمالي المبالغ المستردة: ${fmt(returnedOrders.totalRefundAmount)}`}
+              </div>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                  <thead>
+                    <tr style={{ color: "#64748b", borderBottom: "1px solid #1e3a5f" }}>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>رقم الطلب</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>الزبون</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>المجموع</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>الحالة</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>حدث مرتجع معتمد</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>المبلغ المسترد</th>
+                      <th style={{ textAlign: "right", padding: "6px 8px" }}>التاريخ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {returnedOrders.orders.map((o) => (
+                      <tr key={o.orderId} style={{ borderBottom: "1px solid #1e3a5f10", color: "#cbd5e1" }}>
+                        <td style={{ padding: "5px 8px" }}>{o.orderNumber ?? o.orderId.slice(0, 8)}</td>
+                        <td style={{ padding: "5px 8px" }}>{o.customerName ?? "—"}</td>
+                        <td style={{ padding: "5px 8px" }}>{fmt(o.orderTotal)}</td>
+                        <td style={{ padding: "5px 8px" }}>
+                          <span style={{
+                            background: "#ef444420",
+                            color: "#fca5a5",
+                            padding: "1px 6px",
+                            borderRadius: 4,
+                            fontSize: 10,
+                          }}>
+                            {o.orderStatus}
+                          </span>
+                        </td>
+                        <td style={{ padding: "5px 8px", color: o.hasVerifiedReturnEvent ? "#22c55e" : "#f59e0b" }}>
+                          {o.hasVerifiedReturnEvent ? "✓ نعم" : "⚠ لا — سجّل حدث إرجاع"}
+                        </td>
+                        <td style={{ padding: "5px 8px", color: o.refundAmount > 0 ? "#ef4444" : "#64748b" }}>
+                          {o.refundAmount > 0 ? fmt(o.refundAmount) : "—"}
+                        </td>
+                        <td style={{ padding: "5px 8px" }}>{new Date(o.createdAt).toLocaleDateString("ar-IQ")}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div style={{ color: "#64748b", fontSize: 10, marginTop: 10 }}>
+                  * الطلبيات بدون حدث إرجاع معتمد لا تؤثر في حسابات الأرباح ومعدل الإرجاع. أضف حدث إرجاع من تبويب "return-events" لتسجيل التأثير المالي.
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Row 6 — Inventory */}
       <SectionHeader title="المخزون" />
       {loadingInv && <LoadingSkeleton />}
       {errorInv && <ErrorBanner message={errMsg(errorInv)} />}

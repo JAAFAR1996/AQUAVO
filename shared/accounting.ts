@@ -152,6 +152,63 @@ export const accountingCodSummarySchema = z.object({
   settlements: z.array(accountingShippingSettlementSchema),
 });
 
+export const accountingReturnMetricsSchema = z.object({
+  orderReturnRate: z.number(),
+  periodReturnedOrdersCount: z.number(),
+  periodTotalOrdersCount: z.number(),
+  productReturnRate: z.number(),
+  returnedItemsAllTime: z.number(),
+  returnedItemsFromEvents: z.number(),
+  returnedItemsFromOrders: z.number(),
+  totalSoldItemsAllTime: z.number(),
+  allTimeReturnedOrdersCount: z.number(),
+  allTimeTotalOrdersCount: z.number(),
+});
+
+export const accountingCodOrderSchema = z.object({
+  orderId: z.string(),
+  orderNumber: z.string().nullable(),
+  customerName: z.string().nullable(),
+  customerPhone: z.string().nullable(),
+  orderTotal: z.number(),
+  shippingCost: z.number(),
+  collectedAmount: z.number(),
+  netAmount: z.number(),
+  paymentStatus: z.string().nullable(),
+  orderStatus: z.string(),
+  carrier: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+export const accountingCodDetailsSchema = z.object({
+  deliveredOrders: z.array(accountingCodOrderSchema),
+  totalDelivered: z.number(),
+  totalReceived: z.number(),
+  totalPending: z.number(),
+});
+
+export const accountingReturnedOrderSchema = z.object({
+  orderId: z.string(),
+  orderNumber: z.string().nullable(),
+  customerName: z.string().nullable(),
+  customerPhone: z.string().nullable(),
+  orderTotal: z.number(),
+  shippingCost: z.number(),
+  orderStatus: z.string(),
+  paymentStatus: z.string().nullable(),
+  carrier: z.string().nullable(),
+  createdAt: z.string(),
+  returnedAt: z.string().nullable(),
+  hasVerifiedReturnEvent: z.boolean(),
+  refundAmount: z.number(),
+});
+
+export const accountingReturnedOrdersSchema = z.object({
+  orders: z.array(accountingReturnedOrderSchema),
+  totalCount: z.number(),
+  totalRefundAmount: z.number(),
+});
+
 export const accountingCostHistoryEntrySchema = z.object({
   id: z.string(),
   productId: z.string(),
@@ -180,6 +237,11 @@ export type AccountingSummary = z.infer<typeof accountingSummarySchema>;
 export type AccountingProductProfit = z.infer<typeof accountingProductProfitSchema>;
 export type AccountingOrderProfit = z.infer<typeof accountingOrderProfitSchema>;
 export type AccountingCodSummary = z.infer<typeof accountingCodSummarySchema>;
+export type AccountingReturnMetrics = z.infer<typeof accountingReturnMetricsSchema>;
+export type AccountingCodOrder = z.infer<typeof accountingCodOrderSchema>;
+export type AccountingCodDetails = z.infer<typeof accountingCodDetailsSchema>;
+export type AccountingReturnedOrder = z.infer<typeof accountingReturnedOrderSchema>;
+export type AccountingReturnedOrders = z.infer<typeof accountingReturnedOrdersSchema>;
 export type AccountingCostHistoryEntry = z.infer<typeof accountingCostHistoryEntrySchema>;
 export type AccountingCouponUsage = z.infer<typeof accountingCouponUsageSchema>;
 export type AccountingCostUpdate = z.infer<typeof accountingCostUpdateSchema>;
