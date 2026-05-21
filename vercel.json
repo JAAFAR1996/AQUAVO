@@ -30,7 +30,7 @@
     },
     {
       "path": "/api/cron/finance-audit",
-      "schedule": "0 3,15 * * *"
+      "schedule": "0 3 * * *"
     }
   ],
   "headers": [
