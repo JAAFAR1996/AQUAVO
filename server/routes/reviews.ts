@@ -13,14 +13,20 @@ export function createReviewsRouter(): RouterType {
             const { productId } = req.params as { productId: string };
             const reviews = await storage.getReviews(productId);
 
+            // Only show approved reviews to the public
+            const approvedReviews = reviews.filter(r => r.status === "approved");
+
             // Transform reviews to include author info + tier
-            const reviewsWithAuthor = await Promise.all(reviews.map(async (review) => {
+            const reviewsWithAuthor = await Promise.all(approvedReviews.map(async (review) => {
                 let authorName = "زائر";
-                let authorTier = "bronze";
+                let authorTier = "guest";
                 if (review.userId) {
                     const user = await storage.getUser(review.userId);
                     authorName = user?.fullName || user?.email?.split('@')[0] || "عميل";
                     authorTier = (user as any)?.loyaltyTier || "bronze";
+                } else if ((review as any).guestName) {
+                    // Guest reviewer — use the name they provided
+                    authorName = (review as any).guestName;
                 }
                 return {
                     ...review,
@@ -35,18 +41,13 @@ export function createReviewsRouter(): RouterType {
         }
     });
 
-    // Create a review
-    router.post("/reviews", reviewLimiter, localRequireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // Create a review — open to guests AND logged-in users
+    router.post("/reviews", reviewLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            const userId = sess?.userId;
+            const userId = sess?.userId || null;          // null for guests
 
-            if (!userId) {
-                res.status(401).json({ message: "يجب تسجيل الدخول لإضافة مراجعة" });
-                return;
-            }
-
-            const { productId, rating, title, comment, images } = req.body;
+            const { productId, rating, title, comment, images, guestName } = req.body;
 
             if (!productId) {
                 res.status(400).json({ message: "معرف المنتج مطلوب" });
@@ -58,33 +59,63 @@ export function createReviewsRouter(): RouterType {
                 return;
             }
 
+            // Guests must provide a name (1–60 chars, trimmed)
+            if (!userId) {
+                const name = (guestName || "").trim();
+                if (!name || name.length < 2 || name.length > 60) {
+                    res.status(400).json({ message: "يرجى كتابة اسمك (بين 2 و 60 حرفاً)" });
+                    return;
+                }
+            }
+
             const ipAddress = String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '');
 
             const existingReviews = await storage.getReviews(productId);
-            const alreadyReviewed = existingReviews.some(r => r.userId === userId);
-            if (alreadyReviewed) {
-                res.status(400).json({ message: "لقد قمت بمراجعة هذا المنتج مسبقاً" });
-                return;
+
+            // Prevent duplicate: logged-in by userId, guests by IP
+            if (userId) {
+                const alreadyReviewed = existingReviews.some(r => r.userId === userId);
+                if (alreadyReviewed) {
+                    res.status(400).json({ message: "لقد قمت بمراجعة هذا المنتج مسبقاً" });
+                    return;
+                }
+            } else {
+                const guestAlreadyReviewed = existingReviews.some(
+                    r => !r.userId && r.ipAddress === ipAddress
+                );
+                if (guestAlreadyReviewed) {
+                    res.status(400).json({ message: "لقد أضفت تقييماً لهذا المنتج من هذا الجهاز مسبقاً" });
+                    return;
+                }
             }
 
-            // Check verified purchase
-            const userOrders = await storage.getOrders(userId);
-            const verifiedPurchase = userOrders.some(order =>
-                order.items.some((item: any) => item.id === productId)
-            );
+            // Verified purchase — only possible for logged-in users
+            let verifiedPurchase = false;
+            if (userId) {
+                const userOrders = await storage.getOrders(userId);
+                verifiedPurchase = userOrders.some(order =>
+                    order.items.some((item: any) => item.id === productId)
+                );
+            }
 
             const review = await storage.createReview({
                 productId,
-                userId,
+                userId,                              // null for guests
                 rating,
                 title,
                 comment,
                 images: images || [],
                 ipAddress,
                 verifiedPurchase,
+                status: "pending",                  // must be approved by admin first
+                // Store guest name in the review's author-like field if available
+                ...((!userId && guestName) ? { guestName: (guestName as string).trim() } : {}),
             });
 
-            res.status(201).json(review);
+            res.status(201).json({
+                ...review,
+                pending: true, // hint to frontend: review is awaiting moderation
+            });
         } catch (err) {
             next(err);
         }

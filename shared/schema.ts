@@ -2542,3 +2542,54 @@ export const orderReturnEvents = pgTable("order_return_events", {
 
 export type OrderReturnEvent = typeof orderReturnEvents.$inferSelect;
 export type InsertOrderReturnEvent = typeof orderReturnEvents.$inferInsert;
+
+// ==================== Finance: Groq Audit Runs ====================
+// Persists every scheduled or manual AI audit run for history and monitoring.
+// Findings are stored in a separate child table (financeAuditFindings).
+
+export const financeAuditRuns = pgTable("finance_audit_runs", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  overallStatus: text("overall_status").notNull(),
+  // ok | warning | critical | failed
+  model: text("model").notNull(),
+  summary: text("summary"),
+  snapshot: jsonb("snapshot").notNull().$type<Record<string, unknown>>(),
+  invariantChecks: jsonb("invariant_checks").notNull().$type<Record<string, unknown>[]>(),
+  startedAt: timestamp("started_at").notNull(),
+  completedAt: timestamp("completed_at").notNull(),
+  errorMessage: text("error_message"),
+  triggeredBy: text("triggered_by").notNull().default("scheduled"),
+  // "scheduled" | "manual" | userId of admin who clicked
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  overallStatusIdx: index("far_overall_status_idx").on(table.overallStatus),
+  startedAtIdx: index("far_started_at_idx").on(table.startedAt),
+}));
+
+export const financeAuditFindings = pgTable("finance_audit_findings", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  runId: text("run_id").references(() => financeAuditRuns.id).notNull(),
+  severity: text("severity").notNull(),
+  // low | medium | high | critical
+  category: text("category").notNull(),
+  title: text("title").notNull(),
+  explanation: text("explanation").notNull(),
+  affectedOrders: jsonb("affected_orders").$type<string[]>(),
+  expectedValue: numeric("expected_value"),
+  actualValue: numeric("actual_value"),
+  difference: numeric("difference"),
+  suggestedFix: text("suggested_fix").notNull(),
+  requiresHumanApproval: boolean("requires_human_approval").notNull().default(true),
+  status: text("status").notNull().default("open"),
+  // open | ignored | resolved
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  runIdIdx: index("faf_run_id_idx").on(table.runId),
+  severityIdx: index("faf_severity_idx").on(table.severity),
+  statusIdx: index("faf_status_idx").on(table.status),
+}));
+
+export type FinanceAuditRun = typeof financeAuditRuns.$inferSelect;
+export type InsertFinanceAuditRun = typeof financeAuditRuns.$inferInsert;
+export type FinanceAuditFinding = typeof financeAuditFindings.$inferSelect;
+export type InsertFinanceAuditFinding = typeof financeAuditFindings.$inferInsert;

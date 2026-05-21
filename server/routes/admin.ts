@@ -635,21 +635,31 @@ export function createAdminRouter(): RouterType {
 
     // ============ REVIEWS MANAGEMENT ============
 
-    // Get all reviews for admin
+    // Get all reviews for admin (all statuses)
     router.get("/reviews", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const reviews = await storage.getAllReviews();
 
-            // Enrich with product and user info
+            // Enrich with product + user info + loyalty tier
             const enrichedReviews = await Promise.all(reviews.map(async (review) => {
                 const product = await storage.getProduct(review.productId);
                 const user = review.userId ? await storage.getUser(review.userId) : null;
+                const guestNameField = (review as any).guestName;
                 return {
                     ...review,
                     productName: product?.name || "منتج محذوف",
-                    userName: user?.fullName || user?.email?.split('@')[0] || "زائر",
+                    userName: user?.fullName || user?.email?.split('@')[0] || guestNameField || "زائر",
+                    userTier: user ? ((user as any).loyaltyTier || "bronze") : "guest",
+                    isGuest: !review.userId,
                 };
             }));
+
+            // Sort: pending first, then by date desc
+            enrichedReviews.sort((a, b) => {
+                if (a.status === "pending" && b.status !== "pending") return -1;
+                if (a.status !== "pending" && b.status === "pending") return 1;
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+            });
 
             res.json(enrichedReviews);
         } catch (err) { next(err); }
@@ -677,6 +687,55 @@ export function createAdminRouter(): RouterType {
             });
 
             res.json({ message: "تم حذف المراجعة بنجاح" });
+        } catch (err) { next(err); }
+    });
+
+    // Approve a review (admin)
+    router.post("/reviews/:id/approve", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const review = await storage.getReview(id);
+            if (!review) {
+                res.status(404).json({ message: "المراجعة غير موجودة" });
+                return;
+            }
+            const updated = await storage.updateReview(id, { status: "approved" });
+
+            // Recalculate product rating now that this review is approved
+            await storage.updateProductRating(review.productId);
+
+            await storage.createAuditLog({
+                userId: getSession(req)?.userId || "admin",
+                action: "update",
+                entityType: "review",
+                entityId: id,
+                changes: { status: "approved" }
+            });
+
+            res.json(updated);
+        } catch (err) { next(err); }
+    });
+
+    // Reject a review (admin) — deletes it
+    router.post("/reviews/:id/reject", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const { id } = req.params as { id: string };
+            const review = await storage.getReview(id);
+            if (!review) {
+                res.status(404).json({ message: "المراجعة غير موجودة" });
+                return;
+            }
+            await storage.deleteReview(id);
+
+            await storage.createAuditLog({
+                userId: getSession(req)?.userId || "admin",
+                action: "delete",
+                entityType: "review",
+                entityId: id,
+                changes: { status: "rejected", comment: review.comment?.substring(0, 50) }
+            });
+
+            res.json({ message: "تم رفض المراجعة" });
         } catch (err) { next(err); }
     });
 

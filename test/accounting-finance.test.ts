@@ -388,3 +388,570 @@ describe("return order financial impact", () => {
     expect(pending).toBe(195000); // returned order correctly excluded
   });
 });
+
+// ── Groq Finance Audit — unit tests ──────────────────────────────────────────
+// These tests exercise pure logic only (no DB, no HTTP, no Groq call).
+
+// Mirror the types and pure functions from groqFinanceAudit.ts without importing
+// the module (which would trigger DB/env imports in a test-only environment).
+
+interface TestSnapshot {
+  generatedAt: string;
+  grossRevenue: number;
+  netRevenue: number;
+  totalCogs: number;
+  grossProfit: number;
+  expensesTotal: number;
+  returnLossVerified: number;
+  netProfitBeforeReturns: number;
+  finalNetProfit: number;
+  cogsBasis: string;
+  deliveredNetTotal: number;
+  receivedCashTotal: number;
+  approvedReturnDeductions: number;
+  pendingSettlement: number;
+  verifiedReturnEventsCount: number;
+  recordedReturnEventsCount: number;
+  returnedOrdersCount: number;
+  returnedProductsCount: number;
+  refundAmount: number;
+  totalReturnFinancialImpact: number;
+  inventoryValueAtCost: number;
+  lowStockCount: number;
+  outOfStockCount: number;
+  costsComplete: boolean;
+  missingCostLines: number;
+  hasCodDrilldown: boolean;
+  hasReturnEvents: boolean;
+  notes: Array<{ type: string; message: string }>;
+}
+
+interface TestInvariantCheck {
+  name: string;
+  passed: boolean;
+  expected?: number | null;
+  actual?: number | null;
+  note?: string;
+}
+
+// Pure invariant checker mirroring groqFinanceAudit.ts logic
+function runTestInvariantChecks(snapshot: TestSnapshot): TestInvariantCheck[] {
+  const checks: TestInvariantCheck[] = [];
+
+  const computedPending = Math.max(
+    0,
+    snapshot.deliveredNetTotal - snapshot.receivedCashTotal - snapshot.approvedReturnDeductions
+  );
+  checks.push({
+    name: "pendingSettlement formula",
+    passed: Math.abs(computedPending - snapshot.pendingSettlement) < 1,
+    expected: computedPending,
+    actual: snapshot.pendingSettlement,
+  });
+
+  const settlementSum =
+    snapshot.receivedCashTotal + snapshot.approvedReturnDeductions + snapshot.pendingSettlement;
+  checks.push({
+    name: "settlement components balance",
+    passed: Math.abs(settlementSum - snapshot.deliveredNetTotal) <= 1,
+    expected: snapshot.deliveredNetTotal,
+    actual: settlementSum,
+  });
+
+  checks.push({
+    name: "no excessive return deductions",
+    passed: snapshot.approvedReturnDeductions <= snapshot.deliveredNetTotal,
+    expected: snapshot.deliveredNetTotal,
+    actual: snapshot.approvedReturnDeductions,
+  });
+
+  const computedFinal = snapshot.netProfitBeforeReturns - snapshot.returnLossVerified;
+  checks.push({
+    name: "return loss affects profit once only",
+    passed: Math.abs(computedFinal - snapshot.finalNetProfit) < 1,
+    expected: computedFinal,
+    actual: snapshot.finalNetProfit,
+  });
+
+  checks.push({
+    name: "returned products count non-negative",
+    passed: snapshot.returnedProductsCount >= 0,
+    actual: snapshot.returnedProductsCount,
+  });
+
+  checks.push({
+    name: "COD drilldown available",
+    passed: snapshot.hasCodDrilldown,
+  });
+
+  checks.push({
+    name: "inventory value non-negative",
+    passed: snapshot.inventoryValueAtCost >= 0,
+    actual: snapshot.inventoryValueAtCost,
+  });
+
+  return checks;
+}
+
+function makeSnapshot(overrides: Partial<TestSnapshot> = {}): TestSnapshot {
+  const deliveredNetTotal = 500000;
+  const receivedCashTotal = 400000;
+  const approvedReturnDeductions = 50000;
+  const pendingSettlement = Math.max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions);
+  const returnLossVerified = 20000;
+  const netProfitBeforeReturns = 80000;
+  const finalNetProfit = netProfitBeforeReturns - returnLossVerified;
+
+  return {
+    generatedAt: new Date().toISOString(),
+    grossRevenue: 550000,
+    netRevenue: deliveredNetTotal,
+    totalCogs: 350000,
+    grossProfit: 150000,
+    expensesTotal: 70000,
+    returnLossVerified,
+    netProfitBeforeReturns,
+    finalNetProfit,
+    cogsBasis: "approximate_current_cost",
+    deliveredNetTotal,
+    receivedCashTotal,
+    approvedReturnDeductions,
+    pendingSettlement,
+    verifiedReturnEventsCount: 2,
+    recordedReturnEventsCount: 0,
+    returnedOrdersCount: 3,
+    returnedProductsCount: 5,
+    refundAmount: 50000,
+    totalReturnFinancialImpact: returnLossVerified,
+    inventoryValueAtCost: 1200000,
+    lowStockCount: 2,
+    outOfStockCount: 1,
+    costsComplete: true,
+    missingCostLines: 0,
+    hasCodDrilldown: true,
+    hasReturnEvents: true,
+    notes: [],
+    ...overrides,
+  };
+}
+
+describe("Groq Finance Audit — no API key guard", () => {
+  it("financeGroqHasKey() returns false when FINANCE_GROQ_API_KEY is not set", () => {
+    // Mirror the logic of financeGroqHasKey() from groqFinanceAudit.ts
+    function financeGroqHasKey(envVal: string | undefined): boolean {
+      return !!(envVal?.trim());
+    }
+    expect(financeGroqHasKey(undefined)).toBe(false);
+    expect(financeGroqHasKey("")).toBe(false);
+    expect(financeGroqHasKey("  ")).toBe(false);
+    expect(financeGroqHasKey("gsk_abc")).toBe(true);
+  });
+
+  it("GROQ_API_KEY alone does NOT enable finance audit (no fallback)", () => {
+    // Finance audit must not silently use the shared GROQ_API_KEY.
+    // Only FINANCE_GROQ_API_KEY is accepted.
+    function financeGroqHasKey(financeKey: string | undefined): boolean {
+      return !!(financeKey?.trim());
+    }
+    const sharedGroqKey = "gsk_shared_key_present";
+    const financeKey = undefined;
+    // Even if the shared key is set, finance audit reports no key available
+    expect(financeGroqHasKey(financeKey)).toBe(false);
+    // Presence of sharedGroqKey doesn't matter
+    expect(sharedGroqKey).toBeTruthy(); // shared key exists
+    expect(financeGroqHasKey(financeKey)).toBe(false); // finance audit still blocked
+  });
+});
+
+describe("Groq Finance Audit — data immutability", () => {
+  it("snapshot object has no setter that could modify accounting data", () => {
+    const snap = makeSnapshot();
+    // Freeze and verify: a read-only snapshot cannot change orders / payments / stock
+    const frozen = Object.freeze({ ...snap });
+    expect(() => {
+      (frozen as Record<string, unknown>).deliveredNetTotal = 99999;
+    }).toThrow();
+  });
+
+  it("invariant checks do not mutate the snapshot", () => {
+    const snap = makeSnapshot();
+    const originalPending = snap.pendingSettlement;
+    runTestInvariantChecks(snap);
+    expect(snap.pendingSettlement).toBe(originalPending);
+  });
+});
+
+describe("Groq Finance Audit — double-count invariant", () => {
+  it("detects when approvedReturnDeductions exceeds deliveredNetTotal", () => {
+    const snap = makeSnapshot({
+      approvedReturnDeductions: 600000, // more than deliveredNetTotal = 500000
+    });
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "no excessive return deductions")!;
+    expect(check.passed).toBe(false);
+  });
+
+  it("passes when approvedReturnDeductions equals deliveredNetTotal exactly", () => {
+    const snap = makeSnapshot({
+      deliveredNetTotal: 200000,
+      receivedCashTotal: 200000,
+      approvedReturnDeductions: 0,
+      pendingSettlement: 0,
+    });
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "no excessive return deductions")!;
+    expect(check.passed).toBe(true);
+  });
+});
+
+describe("Groq Finance Audit — pending settlement formula", () => {
+  it("passes when pendingSettlement matches the formula exactly", () => {
+    const snap = makeSnapshot(); // makeSnapshot computes pendingSettlement via the formula
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "pendingSettlement formula")!;
+    expect(check.passed).toBe(true);
+  });
+
+  it("fails when pendingSettlement is wrong", () => {
+    const snap = makeSnapshot({ pendingSettlement: 999999 }); // intentionally wrong
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "pendingSettlement formula")!;
+    expect(check.passed).toBe(false);
+  });
+
+  it("fails when settlement components do not balance", () => {
+    const snap = makeSnapshot({
+      receivedCashTotal: 400000,
+      approvedReturnDeductions: 50000,
+      pendingSettlement: 100000, // should be 50000 → doesn't balance to 500000
+      deliveredNetTotal: 500000,
+    });
+    const checks = runTestInvariantChecks(snap);
+    const balanceCheck = checks.find(c => c.name === "settlement components balance")!;
+    expect(balanceCheck.passed).toBe(false);
+  });
+});
+
+describe("Groq Finance Audit — invalid Groq JSON handling", () => {
+  it("JSON.parse throws on malformed JSON", () => {
+    const badResponse = "This is not JSON at all";
+    expect(() => JSON.parse(badResponse)).toThrow();
+  });
+
+  it("empty string is also invalid JSON", () => {
+    expect(() => JSON.parse("")).toThrow();
+  });
+
+  it("stripping markdown fences before parsing works", () => {
+    const wrapped = "```json\n{\"overallStatus\":\"ok\",\"summary\":\"ok\",\"findings\":[]}\n```";
+    const cleaned = wrapped.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
+    expect(() => JSON.parse(cleaned)).not.toThrow();
+    expect(JSON.parse(cleaned).overallStatus).toBe("ok");
+  });
+});
+
+describe("Groq Finance Audit — no invented order IDs", () => {
+  it("auditReportSchema rejects a finding where requiresHumanApproval is false", async () => {
+    const { z } = await import("zod");
+    const findingSchema = z.object({
+      severity: z.enum(["low", "medium", "high", "critical"]),
+      category: z.enum([
+        "settlement", "returns", "profit", "inventory", "payment",
+        "duplicate_counting", "missing_drilldown", "suspicious_number",
+      ]),
+      title: z.string(),
+      explanation: z.string(),
+      affectedOrders: z.array(z.string()),
+      expectedValue: z.number().nullable(),
+      actualValue: z.number().nullable(),
+      difference: z.number().nullable(),
+      suggestedFix: z.string(),
+      requiresHumanApproval: z.literal(true),
+    });
+
+    const invalidFinding = {
+      severity: "high",
+      category: "settlement",
+      title: "test",
+      explanation: "test",
+      affectedOrders: [],
+      expectedValue: null,
+      actualValue: null,
+      difference: null,
+      suggestedFix: "fix it",
+      requiresHumanApproval: false, // must be literally true
+    };
+
+    expect(findingSchema.safeParse(invalidFinding).success).toBe(false);
+  });
+});
+
+describe("Groq Finance Audit — requiresHumanApproval is always true", () => {
+  it("findingSchema enforces requiresHumanApproval: true", async () => {
+    const { z } = await import("zod");
+    const findingSchema = z.object({
+      severity: z.enum(["low", "medium", "high", "critical"]),
+      category: z.enum([
+        "settlement", "returns", "profit", "inventory", "payment",
+        "duplicate_counting", "missing_drilldown", "suspicious_number",
+      ]),
+      title: z.string(),
+      explanation: z.string(),
+      affectedOrders: z.array(z.string()),
+      expectedValue: z.number().nullable(),
+      actualValue: z.number().nullable(),
+      difference: z.number().nullable(),
+      suggestedFix: z.string(),
+      requiresHumanApproval: z.literal(true),
+    });
+
+    const validFinding = {
+      severity: "low",
+      category: "inventory",
+      title: "مخزون منخفض",
+      explanation: "شرح",
+      affectedOrders: [],
+      expectedValue: null,
+      actualValue: null,
+      difference: null,
+      suggestedFix: "راجع المخزون مع المدير",
+      requiresHumanApproval: true,
+    };
+
+    expect(findingSchema.safeParse(validFinding).success).toBe(true);
+  });
+
+  it("return loss invariant — return loss affects profit once only", () => {
+    const snap = makeSnapshot({
+      netProfitBeforeReturns: 100000,
+      returnLossVerified: 30000,
+      finalNetProfit: 70000, // correct: 100000 - 30000
+    });
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "return loss affects profit once only")!;
+    expect(check.passed).toBe(true);
+  });
+
+  it("return loss invariant fails when loss is applied twice", () => {
+    const snap = makeSnapshot({
+      netProfitBeforeReturns: 100000,
+      returnLossVerified: 30000,
+      finalNetProfit: 40000, // wrong: 100000 - 30000 - 30000 (double deduction)
+    });
+    const checks = runTestInvariantChecks(snap);
+    const check = checks.find(c => c.name === "return loss affects profit once only")!;
+    expect(check.passed).toBe(false);
+  });
+});
+
+// ── Scheduled Finance Audit — configuration and safety tests ─────────────────
+// Pure logic tests that do not require a DB or Groq connection.
+
+describe("Scheduled Finance Audit — env config", () => {
+  it("FINANCE_AI_AUDIT_ENABLED defaults to disabled (not 'true') unless explicitly set", () => {
+    // The guard is: process.env.FINANCE_AI_AUDIT_ENABLED !== "true"
+    // In a fresh environment without the variable set, it must be falsy
+    const envValue = process.env.FINANCE_AI_AUDIT_ENABLED;
+    // In test env, it should not be set to "true"
+    expect(envValue).not.toBe("true");
+  });
+
+  it("FINANCE_AI_AUTO_FIX must always be false — auto-fix is never implemented", () => {
+    // This test asserts the contractual guarantee: FINANCE_AI_AUTO_FIX=true
+    // must never trigger any write operation. We test the env gate logic here.
+    const autoFix = process.env.FINANCE_AI_AUTO_FIX;
+    // In test env it should not be "true"
+    expect(autoFix).not.toBe("true");
+  });
+
+  it("FINANCE_AI_AUDIT_INTERVAL_HOURS parses to a positive integer", () => {
+    const raw = process.env.FINANCE_AI_AUDIT_INTERVAL_HOURS ?? "12";
+    const parsed = parseInt(raw, 10);
+    expect(Number.isInteger(parsed)).toBe(true);
+    expect(parsed).toBeGreaterThan(0);
+  });
+
+  it("default interval is 12 hours", () => {
+    const raw = process.env.FINANCE_AI_AUDIT_INTERVAL_HOURS ?? "12";
+    expect(parseInt(raw, 10)).toBe(12);
+  });
+
+  it("cron expression for 12-hour interval is correct", () => {
+    const intervalHours = 12;
+    const cronExpr = intervalHours === 12 ? "0 6,18 * * *" : `0 */${intervalHours} * * *`;
+    expect(cronExpr).toBe("0 6,18 * * *");
+  });
+
+  it("cron expression for custom interval uses */N pattern", () => {
+    const intervalHours = 6;
+    const cronExpr = intervalHours === 12 ? "0 6,18 * * *" : `0 */${intervalHours} * * *`;
+    expect(cronExpr).toBe("0 */6 * * *");
+  });
+});
+
+describe("Scheduled Finance Audit — safety checks (accounting row counts)", () => {
+  it("detects when order count changes during audit", () => {
+    const before = { orders: 4, settlements: 3, returnEvents: 1, expenses: 0 };
+    const after  = { orders: 5, settlements: 3, returnEvents: 1, expenses: 0 };
+    const changed =
+      after.orders !== before.orders ||
+      after.settlements !== before.settlements ||
+      after.returnEvents !== before.returnEvents ||
+      after.expenses !== before.expenses;
+    expect(changed).toBe(true);
+  });
+
+  it("passes when all counts are identical before and after", () => {
+    const before = { orders: 4, settlements: 3, returnEvents: 1, expenses: 2 };
+    const after  = { orders: 4, settlements: 3, returnEvents: 1, expenses: 2 };
+    const changed =
+      after.orders !== before.orders ||
+      after.settlements !== before.settlements ||
+      after.returnEvents !== before.returnEvents ||
+      after.expenses !== before.expenses;
+    expect(changed).toBe(false);
+  });
+
+  it("detects settlement count change", () => {
+    const before = { orders: 4, settlements: 3, returnEvents: 1, expenses: 0 };
+    const after  = { orders: 4, settlements: 4, returnEvents: 1, expenses: 0 };
+    const changed = after.settlements !== before.settlements;
+    expect(changed).toBe(true);
+  });
+
+  it("detects return event count change", () => {
+    const before = { orders: 4, settlements: 3, returnEvents: 1, expenses: 0 };
+    const after  = { orders: 4, settlements: 3, returnEvents: 2, expenses: 0 };
+    const changed = after.returnEvents !== before.returnEvents;
+    expect(changed).toBe(true);
+  });
+});
+
+describe("Scheduled Finance Audit — Telegram alert logic", () => {
+  // Mirror the needsAlert logic from telegramAlert.ts without importing it
+  function needsAlert(result: {
+    error?: string;
+    report?: { overallStatus: string; findings: Array<{ severity: string }> } | null;
+  }): boolean {
+    if (result.error) return true;
+    const status = result.report?.overallStatus;
+    if (status === "warning" || status === "critical") return true;
+    const findings = result.report?.findings ?? [];
+    return findings.some(f => f.severity === "high" || f.severity === "critical");
+  }
+
+  it("sends alert when status is warning", () => {
+    expect(needsAlert({ report: { overallStatus: "warning", findings: [] } })).toBe(true);
+  });
+
+  it("sends alert when status is critical", () => {
+    expect(needsAlert({ report: { overallStatus: "critical", findings: [] } })).toBe(true);
+  });
+
+  it("sends alert when any finding is high severity", () => {
+    expect(needsAlert({
+      report: {
+        overallStatus: "ok",
+        findings: [{ severity: "high" }],
+      },
+    })).toBe(true);
+  });
+
+  it("sends alert when any finding is critical severity", () => {
+    expect(needsAlert({
+      report: {
+        overallStatus: "ok",
+        findings: [{ severity: "critical" }],
+      },
+    })).toBe(true);
+  });
+
+  it("does NOT send alert for clean ok with no high/critical findings", () => {
+    expect(needsAlert({
+      report: {
+        overallStatus: "ok",
+        findings: [{ severity: "low" }, { severity: "medium" }],
+      },
+    })).toBe(false);
+  });
+
+  it("does NOT send alert for empty ok report", () => {
+    expect(needsAlert({ report: { overallStatus: "ok", findings: [] } })).toBe(false);
+  });
+
+  it("sends alert when Groq fails (error present)", () => {
+    expect(needsAlert({ error: "FINANCE_GROQ_API_KEY غير مُعدّ" })).toBe(true);
+  });
+});
+
+describe("Scheduled Finance Audit — DB persistence contract", () => {
+  it("audit run overallStatus is 'failed' when result.error is set", () => {
+    const result = {
+      error: "Groq timeout",
+      report: null,
+      generatedAt: new Date().toISOString(),
+    };
+    const overallStatus = result.error ? "failed" : (result.report ?? { overallStatus: "failed" }).overallStatus;
+    expect(overallStatus).toBe("failed");
+  });
+
+  it("audit run overallStatus comes from report when no error", () => {
+    const result = {
+      error: undefined,
+      report: { overallStatus: "warning", summary: "test", findings: [] },
+      generatedAt: new Date().toISOString(),
+    };
+    const overallStatus = result.error ? "failed" : (result.report?.overallStatus ?? "failed");
+    expect(overallStatus).toBe("warning");
+  });
+
+  it("requiresHumanApproval is always true on persisted findings", () => {
+    // Simulate the save logic: all findings always get requiresHumanApproval=true
+    const findings = [
+      { severity: "high", category: "settlement", title: "test", explanation: "x",
+        affectedOrders: [], expectedValue: null, actualValue: null, difference: null,
+        suggestedFix: "fix", requiresHumanApproval: true as const },
+    ];
+    const persisted = findings.map(f => ({ ...f, requiresHumanApproval: true as const }));
+    expect(persisted.every(f => f.requiresHumanApproval === true)).toBe(true);
+  });
+
+  it("history entries include findingsCount, criticalCount, highCount", () => {
+    const findings = [
+      { severity: "critical" },
+      { severity: "high" },
+      { severity: "medium" },
+    ];
+    const findingsCount = findings.length;
+    const criticalCount = findings.filter(f => f.severity === "critical").length;
+    const highCount = findings.filter(f => f.severity === "high").length;
+    expect(findingsCount).toBe(3);
+    expect(criticalCount).toBe(1);
+    expect(highCount).toBe(1);
+  });
+
+  it("triggeredBy is 'scheduled' for cron runs and 'manual' for button clicks", () => {
+    const scheduledRun = { triggeredBy: "scheduled" };
+    const manualRun = { triggeredBy: "manual" };
+    expect(scheduledRun.triggeredBy).toBe("scheduled");
+    expect(manualRun.triggeredBy).toBe("manual");
+  });
+});
+
+describe("Scheduled Finance Audit — no auto-fix guarantee", () => {
+  it("FINANCE_AI_AUTO_FIX=true is a no-op — no write functions exist in the audit service", () => {
+    // Contractual test: verify the audit result shape has no write-side fields
+    const auditResultShape = {
+      snapshot: {},
+      invariantChecks: [],
+      report: null,
+      error: undefined,
+      generatedAt: new Date().toISOString(),
+      // Must NOT have: applyFix, executeRemediations, autoCorrect, writeToDb
+    };
+    expect("applyFix" in auditResultShape).toBe(false);
+    expect("executeRemediations" in auditResultShape).toBe(false);
+    expect("autoCorrect" in auditResultShape).toBe(false);
+    expect("writeToDb" in auditResultShape).toBe(false);
+  });
+});

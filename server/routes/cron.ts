@@ -169,6 +169,44 @@ router.get("/email-campaigns", async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/cron/finance-audit
+ *
+ * Called by Vercel Cron every 12 hours.
+ * Runs the Groq finance audit, persists result, sends Telegram alert if needed.
+ * Skips silently when FINANCE_AI_AUDIT_ENABLED !== "true".
+ */
+router.get("/finance-audit", async (req: Request, res: Response) => {
+    const authHeader = req.headers["authorization"];
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
+        return res.status(200).json({ skipped: true, reason: "FINANCE_AI_AUDIT_ENABLED is not set" });
+    }
+
+    const startTime = Date.now();
+    try {
+        const result = await triggerJob("finance_audit");
+        const duration = Date.now() - startTime;
+        aiMonitor.log({
+            event: "cron_job",
+            level: "info",
+            success: result.success,
+            responseTimeMs: duration,
+            details: { job: "finance_audit", status: result.success ? "completed" : "failed", source: "vercel_cron" },
+        });
+        res.status(200).json({ success: result.success, message: result.message, duration });
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        console.error(`[Cron] Finance audit failed: ${msg}`);
+        res.status(500).json({ success: false, error: msg });
+    }
+});
+
+/**
  * GET /api/cron/db-warmup
  * 
  * Called by Vercel Cron every 4 minutes to keep NEON DB warm.

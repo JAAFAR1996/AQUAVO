@@ -7,6 +7,8 @@ import { smartNotifications } from "../services/smart-notifications.js";
 import { aiMonitor } from "../services/ai-monitor.js";
 import { emailCampaignAI } from "../services/email-campaign-ai.js";
 import { sendEmail } from "../utils/email.js";
+import { runFinanceAudit, getAccountingRowCounts } from "../services/groqFinanceAudit.js";
+import { sendAuditAlert, needsAlert } from "../services/telegramAlert.js";
 
 /**
  * Scheduled Jobs Service
@@ -23,6 +25,7 @@ const jobStatus = {
     embeddingsRunning: false,
     smartRemindersRunning: false,
     emailCampaignsRunning: false,
+    financeAuditRunning: false,
 };
 
 /**
@@ -158,6 +161,76 @@ export function initializeScheduledJobs(): void {
         } finally { jobStatus.emailCampaignsRunning = false; }
     }, { timezone: "Asia/Baghdad" });
 
+    // ==================== Finance Audit every 12 hours ====================
+    // Runs at 6 AM and 6 PM Baghdad time (0 6,18 * * *)
+    // Skipped silently if FINANCE_AI_AUDIT_ENABLED !== "true"
+    const intervalHours = parseInt(process.env.FINANCE_AI_AUDIT_INTERVAL_HOURS ?? "12", 10);
+    const auditCronExpr = intervalHours === 12 ? "0 6,18 * * *" : `0 */${intervalHours} * * *`;
+
+    cron.schedule(auditCronExpr, async () => {
+        if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") return;
+        if (process.env.FINANCE_AI_AUTO_FIX === "true") {
+            console.warn("[ScheduledJobs] FINANCE_AI_AUTO_FIX=true is set but auto-fix is not implemented. Proceeding as read-only.");
+        }
+        if (jobStatus.financeAuditRunning) return;
+        jobStatus.financeAuditRunning = true;
+        const t = Date.now();
+
+        // Safety: snapshot accounting row counts before audit
+        let countsBefore: Awaited<ReturnType<typeof getAccountingRowCounts>> | null = null;
+        try {
+            countsBefore = await getAccountingRowCounts();
+        } catch {
+            // Non-critical — proceed with audit even if pre-count fails
+        }
+
+        let result: Awaited<ReturnType<typeof runFinanceAudit>> | null = null;
+        try {
+            result = await runFinanceAudit("scheduled");
+            console.log(`[ScheduledJobs] Finance Audit: ${result.report?.overallStatus ?? "failed"}, ${result.report?.findings?.length ?? 0} findings (${Date.now() - t}ms)`);
+            aiMonitor.log({ event: "cron_job", level: "info", success: !result.error, responseTimeMs: Date.now() - t, details: { job: "finance_audit", status: result.report?.overallStatus ?? "failed" } });
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            console.error("[ScheduledJobs] Finance Audit failed:", msg);
+            aiMonitor.logError(`Cron finance_audit failed: ${msg}`, {}, { event: "cron_job", responseTimeMs: Date.now() - t, details: { job: "finance_audit", status: "failed" } } as any);
+        } finally {
+            jobStatus.financeAuditRunning = false;
+        }
+
+        // Safety: verify accounting row counts did not change
+        if (countsBefore && result) {
+            try {
+                const countsAfter = await getAccountingRowCounts();
+                const changed = (
+                    countsAfter.orders !== countsBefore.orders ||
+                    countsAfter.settlements !== countsBefore.settlements ||
+                    countsAfter.returnEvents !== countsBefore.returnEvents ||
+                    countsAfter.expenses !== countsBefore.expenses
+                );
+                if (changed) {
+                    const details = `before=${JSON.stringify(countsBefore)} after=${JSON.stringify(countsAfter)}`;
+                    console.error(`[FinanceAudit] CRITICAL: accounting row counts changed during audit! ${details}`);
+                    aiMonitor.logError(`Finance audit modified accounting data! ${details}`, {}, { event: "cron_job", details: { job: "finance_audit", status: "data_mutation_detected" } } as any);
+                    // Send an emergency alert regardless of normal alert settings
+                    await sendAuditAlert({
+                        snapshot: result.snapshot,
+                        invariantChecks: result.invariantChecks,
+                        report: { overallStatus: "critical", summary: `تغيّرت أعداد صفوف جداول المحاسبة أثناء التدقيق: ${details}`, findings: [] },
+                        error: `Accounting row counts changed during audit: ${details}`,
+                        generatedAt: result.generatedAt,
+                    });
+                }
+            } catch {
+                // Non-critical — don't crash the job if post-count fails
+            }
+        }
+
+        // Send Telegram alert if warranted
+        if (result && (needsAlert(result) || process.env.FINANCE_AUDIT_ALERT_ON_OK === "true")) {
+            await sendAuditAlert(result);
+        }
+    }, { timezone: "Asia/Baghdad" });
+
     console.log("[ScheduledJobs] Cron jobs initialized successfully");
     console.log("  - 🧠 Missing Embeddings: 1:30 AM (Asia/Baghdad)");
     console.log("  - Daily Predictions: 2:00 AM (Asia/Baghdad)");
@@ -166,6 +239,11 @@ export function initializeScheduledJobs(): void {
     console.log("  - 🧠 AI Notification Engine: 4:30 AM (Asia/Baghdad)");
     console.log("  - 📝 Weekly Auto-Blog: Sunday 5:00 AM (Asia/Baghdad)");
     console.log("  - 📧 Weekly Email Campaign: Monday 10:00 AM (Asia/Baghdad)");
+    if (process.env.FINANCE_AI_AUDIT_ENABLED === "true") {
+        console.log(`  - 📊 Finance Audit: every ${intervalHours}h (${auditCronExpr}) (Asia/Baghdad)`);
+    } else {
+        console.log("  - 📊 Finance Audit: DISABLED (set FINANCE_AI_AUDIT_ENABLED=true to enable)");
+    }
 }
 
 /**
@@ -179,7 +257,7 @@ export function getJobStatus(): typeof jobStatus {
  * Manually trigger a job (for testing/admin)
  */
 export async function triggerJob(
-    jobName: "predictions" | "churn" | "conversions" | "autoblog" | "embeddings" | "smart_reminders" | "pricing" | "email_campaigns"
+    jobName: "predictions" | "churn" | "conversions" | "autoblog" | "embeddings" | "smart_reminders" | "pricing" | "email_campaigns" | "finance_audit"
 ): Promise<{ success: boolean; message: string; result?: unknown }> {
     try {
         switch (jobName) {
@@ -252,6 +330,26 @@ export async function triggerJob(
                     result: emailResult,
                 };
 
+            case "finance_audit": {
+                if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
+                    return { success: false, message: "Finance audit is disabled (FINANCE_AI_AUDIT_ENABLED !== true)" };
+                }
+                if (jobStatus.financeAuditRunning) {
+                    return { success: false, message: "Finance audit already running" };
+                }
+                jobStatus.financeAuditRunning = true;
+                try {
+                    const auditResult = await runFinanceAudit("manual");
+                    return {
+                        success: !auditResult.error,
+                        message: auditResult.error ?? `تدقيق مكتمل — الحالة: ${auditResult.report?.overallStatus ?? "failed"}`,
+                        result: { status: auditResult.report?.overallStatus, findingsCount: auditResult.report?.findings?.length ?? 0 },
+                    };
+                } finally {
+                    jobStatus.financeAuditRunning = false;
+                }
+            }
+
             default:
                 return { success: false, message: `Unknown job: ${jobName}` };
         }
@@ -262,6 +360,7 @@ export async function triggerJob(
         jobStatus.embeddingsRunning = false;
         jobStatus.smartRemindersRunning = false;
         jobStatus.emailCampaignsRunning = false;
+        jobStatus.financeAuditRunning = false;
         return {
             success: false,
             message: error instanceof Error ? error.message : "Job failed",

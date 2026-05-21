@@ -68,6 +68,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
   const [comment, setComment] = useState("");
+  const [guestName, setGuestName] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [filterRating, setFilterRating] = useState<number | null>(null);
@@ -110,10 +111,11 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
+    // Guests must provide a name
+    if (!user && guestName.trim().length < 2) {
       toast({
-        title: "يجب تسجيل الدخول",
-        description: "يرجى تسجيل الدخول لإضافة تقييم",
+        title: "أدخل اسمك",
+        description: "يرجى كتابة اسمك لإضافة تقييم",
         variant: "destructive",
       });
       return;
@@ -142,19 +144,22 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
           rating,
           title: title.trim() || undefined,
           comment: comment.trim() || undefined,
+          // Include guestName only for non-logged-in users
+          ...(!user && guestName.trim() ? { guestName: guestName.trim() } : {}),
         }),
       });
 
       if (response.ok) {
         toast({
-          title: "تم إضافة التقييم",
-          description: "شكراً لك على تقييمك!",
+          title: "تم إرسال تقييمك ✅",
+          description: "شكراً لك! سيظهر تقييمك بعد مراجعته من قِبل الفريق.",
         });
 
         // Reset form
         setRating(0);
         setTitle("");
         setComment("");
+        setGuestName("");
 
         // Refresh reviews
         fetchReviews();
@@ -414,66 +419,86 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
         </CardContent>
       </Card>
 
-      {/* Add Review Form */}
-      {user && (
-        <Card className="border-primary/20">
-          <CardHeader>
-            <CardTitle className="text-lg">أضف تقييمك</CardTitle>
-            <CardDescription>شارك تجربتك مع {productName}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmitReview} className="space-y-4">
-              {/* Rating */}
-              <div className="space-y-2">
-                <Label>التقييم *</Label>
-                <div className="flex gap-1" dir="ltr">
-                  {renderStars(rating, true, "lg")}
-                </div>
-              </div>
+      {/* Add Review Form — open to ALL users (guests enter their name) */}
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle className="text-lg">أضف تقييمك</CardTitle>
+          <CardDescription>شارك تجربتك مع {productName}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmitReview} className="space-y-4">
 
-              {/* Title */}
+            {/* Guest name field — only shown to visitors */}
+            {!user && (
               <div className="space-y-2">
-                <Label htmlFor="review-title">عنوان المراجعة (اختياري)</Label>
+                <Label htmlFor="guest-name">اسمك *</Label>
                 <Input
-                  id="review-title"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="منتج رائع!"
+                  id="guest-name"
+                  value={guestName}
+                  onChange={(e) => setGuestName(e.target.value)}
+                  placeholder="مثال: أحمد علي"
                   className="text-right"
                   dir="rtl"
-                  maxLength={100}
+                  maxLength={60}
+                  required
                 />
               </div>
+            )}
 
-              {/* Comment */}
-              <div className="space-y-2">
-                <Label htmlFor="review-comment">تفاصيل المراجعة (اختياري)</Label>
-                <Textarea
-                  id="review-comment"
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  placeholder="شارك تجربتك مع هذا المنتج..."
-                  rows={4}
-                  className="resize-none text-right"
-                  dir="rtl"
-                  maxLength={2000}
-                />
+            {/* Rating */}
+            <div className="space-y-2">
+              <Label>التقييم *</Label>
+              <div className="flex gap-1" dir="ltr">
+                {renderStars(rating, true, "lg")}
               </div>
+            </div>
 
-              <Button type="submit" disabled={submitting || rating === 0} className="gap-2">
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    جاري الإرسال...
-                  </>
-                ) : (
-                  "إرسال التقييم"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+            {/* Title */}
+            <div className="space-y-2">
+              <Label htmlFor="review-title">عنوان المراجعة (اختياري)</Label>
+              <Input
+                id="review-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="منتج رائع!"
+                className="text-right"
+                dir="rtl"
+                maxLength={100}
+              />
+            </div>
+
+            {/* Comment */}
+            <div className="space-y-2">
+              <Label htmlFor="review-comment">تفاصيل المراجعة (اختياري)</Label>
+              <Textarea
+                id="review-comment"
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="شارك تجربتك مع هذا المنتج..."
+                rows={4}
+                className="resize-none text-right"
+                dir="rtl"
+                maxLength={2000}
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={submitting || rating === 0 || (!user && guestName.trim().length < 2)}
+              className="gap-2"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  جاري الإرسال...
+                </>
+              ) : (
+                "إرسال التقييم"
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
 
       {/* Reviews List */}
       {reviews.length > 0 && (
@@ -530,6 +555,28 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                               <p className="font-semibold text-sm">
                                 {review.author || review.userEmail?.split("@")[0] || "مستخدم"}
                               </p>
+                              {/* Loyalty tier badge */}
+                              {(review as any).authorTier && (
+                                <span
+                                  className={[
+                                    "inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
+                                    (review as any).authorTier === "platinum" && "bg-sky-100 text-sky-700 border-sky-300 dark:bg-sky-900/30 dark:text-sky-300",
+                                    (review as any).authorTier === "gold"     && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300",
+                                    (review as any).authorTier === "silver"   && "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700/30 dark:text-slate-300",
+                                    (review as any).authorTier === "bronze"   && "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/20 dark:text-orange-300",
+                                    (review as any).authorTier === "guest"    && "bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-800/30 dark:text-gray-400",
+                                  ].filter(Boolean).join(" ")}
+                                >
+                                  {(review as any).authorTier === "guest" ? "👤" : "👑"}&nbsp;
+                                  {{
+                                    platinum: "بلاتيني",
+                                    gold: "ذهبي",
+                                    silver: "فضي",
+                                    bronze: "برونزي",
+                                    guest: "زائر",
+                                  }[(review as any).authorTier as string] ?? (review as any).authorTier}
+                                </span>
+                              )}
                               {review.verifiedPurchase && (
                                 <Badge
                                   variant="secondary"

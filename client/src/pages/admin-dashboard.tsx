@@ -1100,15 +1100,7 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="reviews">
-          <Card>
-            <CardHeader>
-              <CardTitle>إدارة المراجعات</CardTitle>
-              <CardDescription>مراجعة تقييمات وتعليقات العملاء</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ReviewsManagement />
-            </CardContent>
-          </Card>
+          <ReviewsManagement />
         </TabsContent>
 
         <TabsContent value="settings">
