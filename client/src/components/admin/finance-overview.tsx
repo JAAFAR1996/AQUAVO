@@ -379,11 +379,31 @@ export function FinanceOverview({ period }: { period: Period }) {
           {/* COD Drilldown */}
           {showCodDetails && (
             <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 12 }}>
-                تفاصيل الطلبيات المسلّمة — مجموع صافي الإيراد المستحق: {fmt(codData.totalDelivered)}
+              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
+                تفاصيل الطلبيات المسلّمة
               </div>
-              <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
-                المستلم من شركات الشحن: {fmt(codData.totalReceived)} | الفرق: {fmt(codData.totalPending)}
+              {/* 4-line settlement breakdown */}
+              <div style={{ fontSize: 11, marginBottom: 14, lineHeight: 2, borderBottom: "1px solid #1e3a5f", paddingBottom: 10 }}>
+                <div style={{ color: "#94a3b8" }}>
+                  صافي الطلبات المسلّمة:{" "}
+                  <span style={{ color: "#cbd5e1", fontWeight: 600 }}>{fmt(codData.totalDelivered)}</span>
+                </div>
+                <div style={{ color: "#94a3b8" }}>
+                  الكاش المستلم:{" "}
+                  <span style={{ color: "#22c55e", fontWeight: 600 }}>− {fmt(codData.totalReceived)}</span>
+                </div>
+                {codData.approvedReturnDeductions > 0 && (
+                  <div style={{ color: "#94a3b8" }}>
+                    خصومات الراجعات المعتمدة:{" "}
+                    <span style={{ color: "#ef4444", fontWeight: 600 }}>− {fmt(codData.approvedReturnDeductions)}</span>
+                  </div>
+                )}
+                <div style={{ color: "#94a3b8", borderTop: "1px solid #1e3a5f", paddingTop: 4, marginTop: 2 }}>
+                  المتبقي بانتظار التسوية:{" "}
+                  <span style={{ color: codData.totalPending > 0 ? "#f97316" : "#22c55e", fontWeight: 700 }}>
+                    {codData.totalPending > 0 ? fmt(codData.totalPending) : "صفر — تمت التسوية الكاملة ✓"}
+                  </span>
+                </div>
               </div>
               {loadingCodDetails && (
                 <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>
@@ -402,6 +422,9 @@ export function FinanceOverview({ period }: { period: Period }) {
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>التوصيل</th>
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>المحصّل</th>
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>الصافي</th>
+                        {codDetails.approvedReturnDeductions > 0 && (
+                          <th style={{ textAlign: "right", padding: "6px 8px" }}>خصم إرجاع</th>
+                        )}
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>حالة الدفع</th>
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>الشركة</th>
                         <th style={{ textAlign: "right", padding: "6px 8px" }}>التاريخ</th>
@@ -416,6 +439,11 @@ export function FinanceOverview({ period }: { period: Period }) {
                           <td style={{ padding: "5px 8px" }}>{fmt(o.shippingCost)}</td>
                           <td style={{ padding: "5px 8px" }}>{fmt(o.collectedAmount)}</td>
                           <td style={{ padding: "5px 8px", color: "#f97316", fontWeight: 600 }}>{fmt(o.netAmount)}</td>
+                          {codDetails.approvedReturnDeductions > 0 && (
+                            <td style={{ padding: "5px 8px", color: o.returnDeduction > 0 ? "#ef4444" : "#64748b" }}>
+                              {o.returnDeduction > 0 ? `− ${fmt(o.returnDeduction)}` : "—"}
+                            </td>
+                          )}
                           <td style={{ padding: "5px 8px" }}>{o.paymentStatus ?? "—"}</td>
                           <td style={{ padding: "5px 8px" }}>{o.carrier ?? "—"}</td>
                           <td style={{ padding: "5px 8px" }}>{new Date(o.createdAt).toLocaleDateString("ar-IQ")}</td>

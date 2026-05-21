@@ -148,6 +148,7 @@ export const accountingCodSummarySchema = z.object({
   totalDelivered: z.number(),
   totalInTransit: z.number(),
   totalReceived: z.number(),
+  approvedReturnDeductions: z.number(),
   totalPending: z.number(),
   settlements: z.array(accountingShippingSettlementSchema),
 });
@@ -174,6 +175,7 @@ export const accountingCodOrderSchema = z.object({
   shippingCost: z.number(),
   collectedAmount: z.number(),
   netAmount: z.number(),
+  returnDeduction: z.number(),
   paymentStatus: z.string().nullable(),
   orderStatus: z.string(),
   carrier: z.string().nullable(),
@@ -184,6 +186,7 @@ export const accountingCodDetailsSchema = z.object({
   deliveredOrders: z.array(accountingCodOrderSchema),
   totalDelivered: z.number(),
   totalReceived: z.number(),
+  approvedReturnDeductions: z.number(),
   totalPending: z.number(),
 });
 

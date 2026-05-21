@@ -723,9 +723,10 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const [allCodOrders, settlements] = await Promise.all([
+    const [allCodOrders, settlements, verifiedReturnEvents] = await Promise.all([
       db.select().from(orders),
       db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt)),
+      db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
     ]);
 
     const deliveredOrders = allCodOrders.filter((order) => order.status === "delivered");
@@ -739,7 +740,12 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const totalCod = totalDelivered;
     // المبلغ المستلم = مجموع كل الدفعات المسجّلة من شركات الشحن
     const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
-    const totalPending = Math.max(0, totalDelivered - totalReceived);
+    // خصومات الراجعات المعتمدة — مبالغ مُستردة مرتبطة بطلبيات مسلّمة فقط
+    const deliveredOrderIds = new Set(deliveredOrders.map((o) => o.id));
+    const approvedReturnDeductions = verifiedReturnEvents
+      .filter((e) => deliveredOrderIds.has(e.orderId))
+      .reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
+    const totalPending = Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
 
     res.json({
       success: true,
@@ -748,6 +754,7 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
         totalDelivered,
         totalInTransit,
         totalReceived,
+        approvedReturnDeductions,
         totalPending,
         settlements: settlements.map((settlement) => ({
           id: settlement.id,
@@ -859,9 +866,10 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const [allOrders, settlements] = await Promise.all([
+    const [allOrders, settlements, verifiedReturnEvents] = await Promise.all([
       db.select().from(orders),
       db.select().from(shippingSettlements),
+      db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
     ]);
 
     const deliveredOrders = allOrders.filter((o) => o.status === "delivered");
@@ -871,7 +879,16 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
       orderCollectedAmount(order) - toNumber(order.shippingCost);
 
     const totalDelivered = deliveredOrders.reduce((sum, o) => sum + orderNetAmount(o), 0);
-    const totalPending = Math.max(0, totalDelivered - totalReceived);
+
+    // خصومات الراجعات المعتمدة لكل طلبية مسلّمة
+    const deductionByOrder = new Map<string, number>();
+    const deliveredOrderIds = new Set(deliveredOrders.map((o) => o.id));
+    for (const e of verifiedReturnEvents) {
+      if (!deliveredOrderIds.has(e.orderId)) continue;
+      deductionByOrder.set(e.orderId, (deductionByOrder.get(e.orderId) ?? 0) + toNumber(e.refundAmount));
+    }
+    const approvedReturnDeductions = [...deductionByOrder.values()].reduce((s, v) => s + v, 0);
+    const totalPending = Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
 
     const result = deliveredOrders
       .sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime())
@@ -884,6 +901,7 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
         shippingCost: toNumber(o.shippingCost),
         collectedAmount: orderCollectedAmount(o),
         netAmount: orderNetAmount(o),
+        returnDeduction: deductionByOrder.get(o.id) ?? 0,
         paymentStatus: o.paymentStatus ?? null,
         orderStatus: o.status ?? "delivered",
         carrier: o.carrier ?? null,
@@ -896,6 +914,7 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
         deliveredOrders: result,
         totalDelivered,
         totalReceived,
+        approvedReturnDeductions,
         totalPending,
       },
     });

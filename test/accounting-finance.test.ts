@@ -258,6 +258,101 @@ describe("product return rate — /return-metrics", () => {
   });
 });
 
+// ── COD settlement — return deduction logic ───────────────────────────────
+
+interface ReturnEventDeduction { orderId: string; refundAmount: number | string; status: string }
+
+function calcApprovedReturnDeductions(
+  deliveredOrders: Array<{ id: string }>,
+  returnEvents: ReturnEventDeduction[],
+): number {
+  const deliveredIds = new Set(deliveredOrders.map((o) => o.id));
+  return returnEvents
+    .filter((e) => e.status === "verified" && deliveredIds.has(e.orderId))
+    .reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
+}
+
+function calcAdjustedPending(
+  deliveredOrders: Array<{ roundedTotal?: number | string | null; total: number | string; shippingCost: number | string; id: string }>,
+  settlements: Array<{ amount: number | string }>,
+  returnEvents: ReturnEventDeduction[],
+): number {
+  const totalDelivered = deliveredOrders.reduce((sum, o) => sum + orderNetAmount(o), 0);
+  const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
+  const approvedReturnDeductions = calcApprovedReturnDeductions(deliveredOrders, returnEvents);
+  return Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
+}
+
+describe("COD settlement — return deduction (double-counting fix)", () => {
+  it("approvedReturnDeductions is 0 when there are no return events", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    expect(calcApprovedReturnDeductions(delivered, [])).toBe(0);
+  });
+
+  it("approvedReturnDeductions sums refundAmount of verified events linked to delivered orders", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    const events: ReturnEventDeduction[] = [{ orderId: "o1", refundAmount: "10000", status: "verified" }];
+    expect(calcApprovedReturnDeductions(delivered, events)).toBe(10000);
+  });
+
+  it("adjustedPending = 0 when deductions cover the gap — fixes the 10,000 IQD double-count", () => {
+    const delivered = [
+      { id: "o1", total: "150000", roundedTotal: "152500", shippingCost: "5000" },
+    ];
+    const settlements = [{ amount: "142500" }];
+    const events: ReturnEventDeduction[] = [{ orderId: "o1", refundAmount: "10000", status: "verified" }];
+    // net = 152500-5000 = 147500; received = 142500; deductions = 10000
+    // adjusted = max(0, 147500 - 142500 - 10000) = 0 (clamped)
+    expect(calcAdjustedPending(delivered, settlements, events)).toBe(0);
+  });
+
+  it("adjustedPending never goes negative when deductions exceed the gap", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    const settlements = [{ amount: "95000" }];
+    const events: ReturnEventDeduction[] = [{ orderId: "o1", refundAmount: "50000", status: "verified" }];
+    expect(calcAdjustedPending(delivered, settlements, events)).toBe(0);
+  });
+
+  it("unverified return events do NOT count as deductions", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    const events: ReturnEventDeduction[] = [
+      { orderId: "o1", refundAmount: "10000", status: "recorded" },
+      { orderId: "o1", refundAmount: "5000", status: "disputed" },
+    ];
+    expect(calcApprovedReturnDeductions(delivered, events)).toBe(0);
+  });
+
+  it("return events for non-delivered orders do NOT count as deductions", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    const events: ReturnEventDeduction[] = [
+      { orderId: "o2", refundAmount: "10000", status: "verified" }, // o2 is not delivered
+    ];
+    expect(calcApprovedReturnDeductions(delivered, events)).toBe(0);
+  });
+
+  it("multiple verified events for the same delivered order are summed correctly", () => {
+    const delivered = [{ id: "o1", total: "100000", roundedTotal: "100000", shippingCost: "5000" }];
+    const events: ReturnEventDeduction[] = [
+      { orderId: "o1", refundAmount: "6000", status: "verified" },
+      { orderId: "o1", refundAmount: "4000", status: "verified" },
+    ];
+    expect(calcApprovedReturnDeductions(delivered, events)).toBe(10000);
+  });
+
+  it("only verified events linked to delivered orders count — mixed scenario", () => {
+    const delivered = [
+      { id: "d1", total: "200000", roundedTotal: "200000", shippingCost: "5000" },
+      { id: "d2", total: "100000", roundedTotal: "100000", shippingCost: "5000" },
+    ];
+    const events: ReturnEventDeduction[] = [
+      { orderId: "d1", refundAmount: "15000", status: "verified" },   // counts
+      { orderId: "d2", refundAmount: "8000", status: "recorded" },    // ignored — not verified
+      { orderId: "r1", refundAmount: "20000", status: "verified" },   // ignored — not delivered
+    ];
+    expect(calcApprovedReturnDeductions(delivered, events)).toBe(15000);
+  });
+});
+
 describe("return order financial impact", () => {
   it("order with status=returned but no verified event shows hasVerifiedReturnEvent=false", () => {
     const verifiedEvents: Array<{ orderId: string; refundAmount: string }> = [];
