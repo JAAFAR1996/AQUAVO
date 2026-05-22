@@ -1,56 +1,67 @@
 import { Download, ExternalLink } from "lucide-react";
 
-export default function Guide5Mistakes() {
-  const pdfUrl = "/assets/guides/aquavo-guide-5-mistakes.pdf";
+const PDF_URL = "/assets/guides/aquavo-guide-5-mistakes.pdf";
 
+const pages = [
+  "/assets/guides/5-mistakes/page-01.jpg",
+  "/assets/guides/5-mistakes/page-02.jpg",
+  "/assets/guides/5-mistakes/page-03.jpg",
+  "/assets/guides/5-mistakes/page-04.jpg",
+  "/assets/guides/5-mistakes/page-05.jpg",
+  "/assets/guides/5-mistakes/page-06.jpg",
+  "/assets/guides/5-mistakes/page-07.jpg",
+  "/assets/guides/5-mistakes/page-08.jpg",
+  "/assets/guides/5-mistakes/page-09.jpg",
+];
+
+export default function Guide5Mistakes() {
   return (
-    <div className="flex flex-col min-h-screen bg-[#010611] text-white" dir="rtl">
-      {/* Top Bar */}
-      <header className="flex-shrink-0 h-16 bg-[#010611]/96 border-b border-[#199BB8]/35 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20">
-        <div className="text-[#199BB8] font-bold tracking-[4px] text-xl">
+    <div className="min-h-screen bg-[#010611] text-white" dir="rtl">
+      {/* Sticky top bar */}
+      <header
+        style={{ backdropFilter: "blur(8px)" }}
+        className="sticky top-0 z-50 h-16 bg-[#010611]/96 border-b border-[#199BB8]/35 flex items-center justify-between px-4"
+      >
+        <a href="/" className="text-[#199BB8] font-bold tracking-[4px] text-lg">
           AQUAVO
-        </div>
-        
-        <div className="flex items-center gap-3">
+        </a>
+
+        <div className="flex items-center gap-2">
           <a
-            href={pdfUrl}
+            href={PDF_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center bg-transparent text-[#E8EDF2] border border-[#199BB8]/45 hover:bg-[#199BB8]/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 rounded-full font-bold transition-colors"
+            className="flex items-center gap-1.5 text-[#E8EDF2] border border-[#199BB8]/45 hover:bg-[#199BB8]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
           >
-            <span className="hidden md:inline ml-2">فتح بصفحة كاملة</span>
-            <span className="inline md:hidden ml-2">فتح</span>
+            <span className="hidden sm:inline">فتح PDF</span>
             <ExternalLink className="w-4 h-4" />
           </a>
 
           <a
-            href={pdfUrl}
-            download
-            className="flex items-center justify-center bg-[#199BB8] text-[#010611] hover:bg-[#199BB8]/90 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 rounded-full font-bold transition-colors"
+            href={PDF_URL}
+            download="aquavo-guide-5-mistakes.pdf"
+            className="flex items-center gap-1.5 bg-[#199BB8] text-[#010611] hover:bg-[#199BB8]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
           >
-            <span className="ml-2">تحميل PDF</span>
+            <span>تحميل PDF</span>
             <Download className="w-4 h-4" />
           </a>
         </div>
       </header>
 
-      {/* PDF Viewer */}
-      <main className="flex-1 w-full bg-[#010611] relative">
-        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-neutral-400 -z-10">
-          <p>إذا ما ظهر الدليل داخل الصفحة، اضغط تحميل PDF.</p>
-        </div>
-        
-        <object
-          data={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-          type="application/pdf"
-          className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611] z-10 relative"
-        >
-          <iframe
-            src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-            title="دليل الأخطاء الخمسة الشائعة بالأحواض"
-            className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611]"
+      {/* Page images */}
+      <main className="w-full max-w-[720px] mx-auto px-2.5 py-4 pb-12">
+        {pages.map((src, index) => (
+          <img
+            key={src}
+            src={src}
+            alt={`صفحة ${index + 1} من دليل الأخطاء الخمسة`}
+            loading={index === 0 ? "eager" : "lazy"}
+            decoding="async"
+            width={720}
+            height={1018}
+            className="block w-full h-auto mb-4 last:mb-0 rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.45)] bg-[#0A1628]"
           />
-        </object>
+        ))}
       </main>
     </div>
   );
