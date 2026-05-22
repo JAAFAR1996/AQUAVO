@@ -40,11 +40,17 @@ export default function Guide5Mistakes() {
           <p>إذا ما ظهر الدليل داخل الصفحة، اضغط تحميل PDF.</p>
         </div>
         
-        <iframe
-          src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-          title="دليل الأخطاء الخمسة الشائعة بالأحواض"
-          className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611]"
-        />
+        <object
+          data={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+          type="application/pdf"
+          className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611] z-10 relative"
+        >
+          <iframe
+            src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+            title="دليل الأخطاء الخمسة الشائعة بالأحواض"
+            className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611]"
+          />
+        </object>
       </main>
     </div>
   );
