@@ -153,20 +153,6 @@ export async function registerRoutes(
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
 
-
-  // Proxy PDF under canonical filename — static file CDN path is poisoned
-  app.get("/assets/guides/aquavo-5-mistakes-guide-final.pdf", async (_req, res) => {
-    try {
-      const upstream = await fetch("https://www.aquavoiq.com/assets/guides/aquavo-guide-5-mistakes.pdf");
-      if (!upstream.ok) { res.status(502).end(); return; }
-      const data = await upstream.arrayBuffer();
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Disposition", 'inline; filename="aquavo-5-mistakes-guide-final.pdf"');
-      res.setHeader("Cache-Control", "public, max-age=86400");
-      res.end(Buffer.from(data));
-    } catch { res.status(500).end(); }
-  });
-
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error("API Error:", err);
