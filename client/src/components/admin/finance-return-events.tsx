@@ -478,12 +478,28 @@ export function FinanceReturnEvents() {
         borderRadius: 10,
         fontSize: 12,
         lineHeight: 1.7,
-        marginBottom: 16,
+        marginBottom: 8,
       }}>
         <strong>تنبيه:</strong> هذا التبويب يسجّل الأثر المالي للراجعات والرفض.
         لا يغيّر الطلبات ولا المخزون تلقائياً.
         <br />
         <strong>مهم:</strong> فقط الأحداث بحالة <span style={{ color: "#22c55e", fontWeight: 700 }}>معتمدة (verified)</span> تدخل في الحسابات المالية المعتمدة.
+      </div>
+
+      {/* ── Stock update warning (persistent) ── */}
+      <div style={{
+        background: "#0a0a1a",
+        border: "1px solid #3b82f660",
+        color: "#93c5fd",
+        padding: "9px 14px",
+        borderRadius: 8,
+        fontSize: 11,
+        lineHeight: 1.7,
+        marginBottom: 16,
+      }}>
+        <strong>تذكير المخزون:</strong> تسجيل الراجع <strong>لا يحدّث المخزون تلقائياً</strong>.
+        إذا رجعت البضاعة صالحة للبيع، يجب تحديث كمية المخزون يدوياً من صفحة المنتجات.
+        الأحداث التي عمود "للمخزن" فيها <span style={{ color: "#64748b", fontWeight: 700 }}>لا</span> تحتاج مراجعة يدوية.
       </div>
 
       {/* ── Summary cards ── */}
@@ -696,7 +712,17 @@ export function FinanceReturnEvents() {
                       {e.restocked ? (
                         <span style={{ color: "#22c55e" }}>نعم</span>
                       ) : (
-                        <span style={{ color: "#64748b" }}>لا</span>
+                        <span style={{
+                          color: "#f59e0b",
+                          fontWeight: 700,
+                          fontSize: 10,
+                          background: "#f59e0b18",
+                          border: "1px solid #f59e0b40",
+                          padding: "1px 6px",
+                          borderRadius: 4,
+                        }}>
+                          لا — راجع يدوياً
+                        </span>
                       )}
                     </td>
                     <td style={S.td}>{fmtDate(e.createdAt)}</td>

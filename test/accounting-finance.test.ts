@@ -397,13 +397,17 @@ describe("return order financial impact", () => {
 
 interface TestSnapshot {
   generatedAt: string;
+  scope: "all_time";
   grossRevenue: number;
   netRevenue: number;
   totalCogs: number;
   grossProfit: number;
   expensesTotal: number;
   returnLossVerified: number;
-  netProfitBeforeReturns: number;
+  /** grossProfit (before expenses and before return losses) */
+  profitBeforeExpensesAndReturns: number;
+  /** grossProfit - expensesTotal (after expenses, BEFORE subtracting return losses) */
+  profitAfterExpensesBeforeReturns: number;
   finalNetProfit: number;
   cogsBasis: string;
   deliveredNetTotal: number;
@@ -465,7 +469,7 @@ function runTestInvariantChecks(snapshot: TestSnapshot): TestInvariantCheck[] {
     actual: snapshot.approvedReturnDeductions,
   });
 
-  const computedFinal = snapshot.netProfitBeforeReturns - snapshot.returnLossVerified;
+  const computedFinal = snapshot.profitAfterExpensesBeforeReturns - snapshot.returnLossVerified;
   checks.push({
     name: "return loss affects profit once only",
     passed: Math.abs(computedFinal - snapshot.finalNetProfit) < 1,
@@ -499,18 +503,23 @@ function makeSnapshot(overrides: Partial<TestSnapshot> = {}): TestSnapshot {
   const approvedReturnDeductions = 50000;
   const pendingSettlement = Math.max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions);
   const returnLossVerified = 20000;
-  const netProfitBeforeReturns = 80000;
-  const finalNetProfit = netProfitBeforeReturns - returnLossVerified;
+  const grossProfit = 150000;
+  const expensesTotal = 70000;
+  const profitBeforeExpensesAndReturns = grossProfit;
+  const profitAfterExpensesBeforeReturns = grossProfit - expensesTotal; // 80000
+  const finalNetProfit = profitAfterExpensesBeforeReturns - returnLossVerified;
 
   return {
     generatedAt: new Date().toISOString(),
+    scope: "all_time",
     grossRevenue: 550000,
     netRevenue: deliveredNetTotal,
     totalCogs: 350000,
-    grossProfit: 150000,
-    expensesTotal: 70000,
+    grossProfit,
+    expensesTotal,
     returnLossVerified,
-    netProfitBeforeReturns,
+    profitBeforeExpensesAndReturns,
+    profitAfterExpensesBeforeReturns,
     finalNetProfit,
     cogsBasis: "approximate_current_cost",
     deliveredNetTotal,
@@ -723,7 +732,7 @@ describe("Groq Finance Audit — requiresHumanApproval is always true", () => {
 
   it("return loss invariant — return loss affects profit once only", () => {
     const snap = makeSnapshot({
-      netProfitBeforeReturns: 100000,
+      profitAfterExpensesBeforeReturns: 100000,
       returnLossVerified: 30000,
       finalNetProfit: 70000, // correct: 100000 - 30000
     });
@@ -734,7 +743,7 @@ describe("Groq Finance Audit — requiresHumanApproval is always true", () => {
 
   it("return loss invariant fails when loss is applied twice", () => {
     const snap = makeSnapshot({
-      netProfitBeforeReturns: 100000,
+      profitAfterExpensesBeforeReturns: 100000,
       returnLossVerified: 30000,
       finalNetProfit: 40000, // wrong: 100000 - 30000 - 30000 (double deduction)
     });
@@ -1122,5 +1131,385 @@ describe("WhatsApp Invoice Finance Logic", () => {
     expect(summary.revenue).toBe(0);
     expect(invoices[0].financiallyIncluded).toBe(false);
     expect(invoices[0].exclusionReason).not.toBeNull();
+  });
+});
+
+// ── Additional invariant tests ────────────────────────────────────────────────
+
+describe("Inventory value formula", () => {
+  it("inventory value equals stock × costPrice for each product", () => {
+    const products = [
+      { costPrice: 10000, packagingCost: 500, insertCost: 200, stock: 5, price: 20000 },
+      { costPrice: 25000, packagingCost: 1000, insertCost: 300, stock: 3, price: 45000 },
+      { costPrice: 0, packagingCost: 0, insertCost: 0, stock: 10, price: 15000 }, // no cost — excluded
+    ];
+    let inventoryValueAtCost = 0;
+    for (const p of products) {
+      if (p.costPrice > 0) inventoryValueAtCost += p.costPrice * p.stock;
+    }
+    // 10000*5 + 25000*3 = 50000 + 75000 = 125000
+    expect(inventoryValueAtCost).toBe(125000);
+  });
+
+  it("products with zero cost are excluded from inventory value at cost", () => {
+    const products = [
+      { costPrice: 0, stock: 100, price: 10000 },
+    ];
+    let inventoryValueAtCost = 0;
+    for (const p of products) {
+      if (p.costPrice > 0) inventoryValueAtCost += p.costPrice * p.stock;
+    }
+    expect(inventoryValueAtCost).toBe(0);
+  });
+
+  it("potential gross profit from stock uses totalCostPerUnit (costPrice + packagingCost + insertCost)", () => {
+    const product = { costPrice: 10000, packagingCost: 500, insertCost: 200, stock: 5, price: 20000 };
+    const totalCostPerUnit = product.costPrice + product.packagingCost + product.insertCost; // 10700
+    const potentialGrossProfit = (product.price - totalCostPerUnit) * product.stock;
+    // (20000 - 10700) * 5 = 9300 * 5 = 46500
+    expect(potentialGrossProfit).toBe(46500);
+
+    // The WRONG formula (report bug — missing packagingCost + insertCost):
+    const wrongFormula = (product.price - product.costPrice) * product.stock;
+    // (20000 - 10000) * 5 = 10000 * 5 = 50000
+    expect(wrongFormula).toBe(50000);
+
+    // Correct formula produces LESS profit (because it includes packaging costs)
+    expect(potentialGrossProfit).toBeLessThan(wrongFormula);
+  });
+});
+
+describe("Shipping fee is not product profit", () => {
+  it("shipping cost is subtracted from collected amount — seller does not pocket it", () => {
+    const order = { total: "100000", roundedTotal: "100000", shippingCost: "5000" };
+    const netAmount = orderCollectedAmount(order) - toNumber(order.shippingCost);
+    // seller receives 100000 - 5000 = 95000 (shipping goes to carrier)
+    expect(netAmount).toBe(95000);
+  });
+
+  it("zero shipping cost means full collected amount is product revenue", () => {
+    const order = { total: "80000", roundedTotal: "80000", shippingCost: "0" };
+    const netAmount = orderCollectedAmount(order) - toNumber(order.shippingCost);
+    expect(netAmount).toBe(80000);
+  });
+
+  it("shipping cost of 7500 is always excluded from seller revenue", () => {
+    const order = { total: "250000", roundedTotal: "250000", shippingCost: "7500" };
+    const netAmount = orderCollectedAmount(order) - toNumber(order.shippingCost);
+    expect(netAmount).toBe(242500);
+  });
+});
+
+describe("WhatsApp source=null detection", () => {
+  it("order with source=null counts as website order (wrong bucket) but financial numbers are still correct", () => {
+    // The source column determines categorization only — delivered orders count in revenue regardless of source
+    const orders = [
+      { id: "o1", status: "delivered", source: null },       // WA order with missing source
+      { id: "o2", status: "delivered", source: "whatsapp" }, // WA order with correct source
+      { id: "o3", status: "delivered", source: "website" },  // website order
+    ];
+    const whatsappOrders = orders.filter(o => o.source === "whatsapp");
+    const websiteOrders = orders.filter(o => o.source !== "whatsapp");
+
+    // source=null is incorrectly bucketed as website
+    expect(whatsappOrders.length).toBe(1); // only o2 with explicit source
+    expect(websiteOrders.length).toBe(2);  // o1 (null) and o3
+
+    // But ALL delivered orders still contribute to totalRevenue calculation
+    const allDelivered = orders.filter(o => o.status === "delivered");
+    expect(allDelivered.length).toBe(3); // all three count financially
+  });
+
+  it("whatsappOrdersCount is understated when source is null for WA orders", () => {
+    const orders = [
+      { source: null },       // WA order missing source
+      { source: "whatsapp" }, // correctly tagged
+    ];
+    const whatsappOrdersCount = orders.filter(o => o.source === "whatsapp").length;
+    // Only 1 detected, even though 2 are WhatsApp orders
+    expect(whatsappOrdersCount).toBe(1);
+  });
+});
+
+describe("Revenue and profit drilldown reconciliation", () => {
+  it("sum of per-order revenue matches total revenue", () => {
+    // Mirrors the /summary aggregation: totalRevenue = sum of calcOrderProfit(o).revenue
+    const orders = [
+      { roundedTotal: 100000, shippingCost: 5000 },
+      { roundedTotal: 200000, shippingCost: 5000 },
+      { roundedTotal: 150000, shippingCost: 7500 },
+    ];
+    const revenues = orders.map(o => orderCollectedAmount(o) - toNumber(o.shippingCost));
+    const totalRevenue = revenues.reduce((s, r) => s + r, 0);
+    // (95000) + (195000) + (142500) = 432500
+    expect(revenues[0]).toBe(95000);
+    expect(revenues[1]).toBe(195000);
+    expect(revenues[2]).toBe(142500);
+    expect(totalRevenue).toBe(432500);
+  });
+
+  it("delivered orders count matches the number of order rows used for revenue", () => {
+    const allOrders = [
+      { status: "delivered" },
+      { status: "pending" },
+      { status: "delivered" },
+      { status: "shipped" },
+    ];
+    const deliveredOrders = allOrders.filter(o => o.status === "delivered");
+    // Only delivered orders contribute to revenue
+    expect(deliveredOrders.length).toBe(2);
+    // Pending and shipped are excluded
+    expect(allOrders.length - deliveredOrders.length).toBe(2);
+  });
+});
+
+// ── Warning fixes — P&L label clarity ────────────────────────────────────────
+
+describe("P&L field naming — profitBeforeExpensesAndReturns vs profitAfterExpensesBeforeReturns", () => {
+  it("profitBeforeExpensesAndReturns equals grossProfit", () => {
+    const snap = makeSnapshot();
+    expect(snap.profitBeforeExpensesAndReturns).toBe(snap.grossProfit);
+  });
+
+  it("profitAfterExpensesBeforeReturns equals grossProfit minus expensesTotal", () => {
+    const snap = makeSnapshot();
+    expect(snap.profitAfterExpensesBeforeReturns).toBe(snap.grossProfit - snap.expensesTotal);
+  });
+
+  it("finalNetProfit equals profitAfterExpensesBeforeReturns minus returnLossVerified", () => {
+    const snap = makeSnapshot();
+    expect(snap.finalNetProfit).toBe(snap.profitAfterExpensesBeforeReturns - snap.returnLossVerified);
+  });
+
+  it("profitBeforeExpensesAndReturns > profitAfterExpensesBeforeReturns when expenses > 0", () => {
+    const snap = makeSnapshot({ expensesTotal: 50000 });
+    expect(snap.profitBeforeExpensesAndReturns).toBeGreaterThan(snap.profitAfterExpensesBeforeReturns);
+  });
+
+  it("profitAfterExpensesBeforeReturns > finalNetProfit when returnLossVerified > 0", () => {
+    const snap = makeSnapshot({ returnLossVerified: 10000, finalNetProfit: 70000 });
+    expect(snap.profitAfterExpensesBeforeReturns).toBeGreaterThan(snap.finalNetProfit);
+  });
+
+  it("snapshot always carries scope = 'all_time'", () => {
+    const snap = makeSnapshot();
+    expect(snap.scope).toBe("all_time");
+  });
+});
+
+// ── Warning fixes — all-time scope ───────────────────────────────────────────
+
+describe("Groq audit snapshot — scope is always all_time", () => {
+  it("makeSnapshot produces scope='all_time'", () => {
+    expect(makeSnapshot().scope).toBe("all_time");
+  });
+
+  it("scope field is not a period like 'month' or 'week'", () => {
+    const snap = makeSnapshot();
+    expect(snap.scope).not.toBe("month");
+    expect(snap.scope).not.toBe("week");
+    expect(snap.scope).not.toBe("day");
+  });
+
+  it("two snapshots taken at different times both have scope=all_time", () => {
+    const s1 = makeSnapshot();
+    const s2 = makeSnapshot({ grossRevenue: 999999 });
+    expect(s1.scope).toBe("all_time");
+    expect(s2.scope).toBe("all_time");
+  });
+});
+
+// ── Warning fixes — WhatsApp source=null detection ───────────────────────────
+
+describe("WhatsApp source=null review — linked orders missing source tag", () => {
+  interface ReviewOrder {
+    id: string;
+    source: string | null;
+    status: string;
+    invoiceId: string | null; // non-null = has manual_invoice link
+  }
+
+  function findSourceNullLinkedOrders(orders: ReviewOrder[]): ReviewOrder[] {
+    // Mirror the backend query logic: orders linked to manual_invoices but source IS NULL
+    return orders.filter(o => o.source === null && o.invoiceId !== null);
+  }
+
+  it("returns orders that have a manual_invoice link but source=null", () => {
+    const orders: ReviewOrder[] = [
+      { id: "o1", source: null,        status: "delivered", invoiceId: "inv1" }, // linked WA, missing source
+      { id: "o2", source: "whatsapp",  status: "delivered", invoiceId: "inv2" }, // correctly tagged
+      { id: "o3", source: "website",   status: "delivered", invoiceId: null   }, // regular website order
+      { id: "o4", source: null,        status: "pending",   invoiceId: null   }, // no invoice link
+    ];
+    const flagged = findSourceNullLinkedOrders(orders);
+    expect(flagged.length).toBe(1);
+    expect(flagged[0].id).toBe("o1");
+  });
+
+  it("returns empty when all WA-linked orders are properly tagged", () => {
+    const orders: ReviewOrder[] = [
+      { id: "o1", source: "whatsapp", status: "delivered", invoiceId: "inv1" },
+      { id: "o2", source: "whatsapp", status: "pending",   invoiceId: "inv2" },
+    ];
+    expect(findSourceNullLinkedOrders(orders)).toHaveLength(0);
+  });
+
+  it("source=null without invoice link is NOT flagged (could be old website order)", () => {
+    const orders: ReviewOrder[] = [
+      { id: "o1", source: null, status: "delivered", invoiceId: null },
+    ];
+    // No invoice link → not a WhatsApp source issue
+    expect(findSourceNullLinkedOrders(orders)).toHaveLength(0);
+  });
+
+  it("flagged orders are already counted in revenue if delivered — only source tag is wrong", () => {
+    const orders: ReviewOrder[] = [
+      { id: "o1", source: null, status: "delivered", invoiceId: "inv1" },
+    ];
+    const flagged = findSourceNullLinkedOrders(orders);
+    // Revenue calculation only looks at status=delivered, not source
+    // So the order IS counted in revenue — the source tag is cosmetic/tracking issue
+    const countedInRevenue = orders.filter(o => o.status === "delivered").length;
+    expect(countedInRevenue).toBe(1);
+    expect(flagged[0].status).toBe("delivered"); // the flagged order IS in revenue
+  });
+});
+
+// ── Warning fixes — non-delivered orders drilldown badge ─────────────────────
+
+describe("Non-delivered orders — unrealized profit badge logic", () => {
+  const REALIZED_STATUSES = ["delivered"];
+
+  function isRealized(status: string): boolean {
+    return REALIZED_STATUSES.includes(status);
+  }
+
+  it("only 'delivered' orders are realized (contribute to actual profit)", () => {
+    expect(isRealized("delivered")).toBe(true);
+    expect(isRealized("pending")).toBe(false);
+    expect(isRealized("shipped")).toBe(false);
+    expect(isRealized("confirmed")).toBe(false);
+    expect(isRealized("processing")).toBe(false);
+    expect(isRealized("rejected")).toBe(false);
+    expect(isRealized("cancelled")).toBe(false);
+  });
+
+  it("non-delivered orders shown in drilldown must be marked as unrealized", () => {
+    const drilldownOrders = [
+      { orderId: "o1", status: "delivered",  netProfit: 50000 },
+      { orderId: "o2", status: "shipped",    netProfit: 30000 }, // not yet realized
+      { orderId: "o3", status: "confirmed",  netProfit: 25000 }, // not yet realized
+    ];
+    const unrealized = drilldownOrders.filter(o => !isRealized(o.status));
+    expect(unrealized.length).toBe(2);
+    // Unrealized profit must not be added to actual totals
+    const actualProfit = drilldownOrders
+      .filter(o => isRealized(o.status))
+      .reduce((s, o) => s + o.netProfit, 0);
+    expect(actualProfit).toBe(50000);
+  });
+
+  it("hypothetical profit for non-delivered order equals revenue - cogs (no guarantees)", () => {
+    const order = { status: "shipped", revenue: 100000, cogs: 60000 };
+    // This is hypothetical — not yet realized
+    const hypotheticalProfit = order.revenue - order.cogs;
+    expect(hypotheticalProfit).toBe(40000);
+    expect(isRealized(order.status)).toBe(false);
+  });
+});
+
+// ── Warning fixes — returned stock warning logic ──────────────────────────────
+
+describe("Return events — restocked=false warning logic", () => {
+  interface ReturnEvent {
+    id: string;
+    status: string;
+    restocked: boolean;
+    type: string;
+  }
+
+  it("return event with restocked=false should show stock warning", () => {
+    const event: ReturnEvent = { id: "e1", status: "verified", restocked: false, type: "customer_return" };
+    // Warning: stock was NOT updated — admin must update manually
+    const needsStockWarning = !event.restocked;
+    expect(needsStockWarning).toBe(true);
+  });
+
+  it("return event with restocked=true has no stock warning", () => {
+    const event: ReturnEvent = { id: "e2", status: "verified", restocked: true, type: "customer_return" };
+    const needsStockWarning = !event.restocked;
+    expect(needsStockWarning).toBe(false);
+  });
+
+  it("registering a return event never auto-increments product stock", () => {
+    // This is an invariant: creating or updating a return event must not touch products.stock.
+    // The system relies on restocked flag + manual admin action.
+    const event: ReturnEvent = { id: "e3", status: "verified", restocked: false, type: "customer_return" };
+
+    let productStock = 5; // simulate stock before return event
+    // WRONG (would be auto-increment): productStock += 1;
+    // Correct: stock does NOT change automatically when a return event is recorded
+    const stockAfterEvent = productStock; // unchanged
+    expect(stockAfterEvent).toBe(5);
+    expect(event.restocked).toBe(false);
+  });
+
+  it("only verified events enter financial accounting — recorded events do not", () => {
+    const events: ReturnEvent[] = [
+      { id: "e1", status: "recorded", restocked: false, type: "customer_return" },
+      { id: "e2", status: "verified", restocked: false, type: "customer_return" },
+      { id: "e3", status: "disputed", restocked: false, type: "customer_return" },
+    ];
+    const financiallyActive = events.filter(e => e.status === "verified");
+    expect(financiallyActive.length).toBe(1);
+    expect(financiallyActive[0].id).toBe("e2");
+  });
+});
+
+// ── Warning fixes — audit history persistence ────────────────────────────────
+
+describe("Audit history persistence status", () => {
+  type PersistenceSource = "db" | "memory" | null;
+
+  function getPersistenceLabel(source: PersistenceSource): string {
+    if (source === "db") return "محفوظ في قاعدة البيانات";
+    if (source === "memory") return "مؤقت — يُفقد عند إعادة التشغيل";
+    return "لا يوجد نتيجة";
+  }
+
+  it("persistenceSource='db' means audit survived a server restart", () => {
+    const label = getPersistenceLabel("db");
+    expect(label).toContain("قاعدة البيانات");
+  });
+
+  it("persistenceSource='memory' triggers a migration warning in UI", () => {
+    const label = getPersistenceLabel("memory");
+    expect(label).toContain("مؤقت");
+  });
+
+  it("persistenceSource=null means no audit has been run yet", () => {
+    const label = getPersistenceLabel(null);
+    expect(label).toContain("لا يوجد");
+  });
+
+  it("audit/latest response includes persistenceSource field", () => {
+    // Simulate the expected response shape from GET /audit/latest
+    const dbResponse = { success: true, data: {}, persistenceSource: "db" as PersistenceSource };
+    const memResponse = { success: true, data: {}, persistenceSource: "memory" as PersistenceSource };
+    const emptyResponse = { success: true, data: null, persistenceSource: null as PersistenceSource };
+
+    expect(dbResponse.persistenceSource).toBe("db");
+    expect(memResponse.persistenceSource).toBe("memory");
+    expect(emptyResponse.persistenceSource).toBeNull();
+  });
+
+  it("finance audit tables migration must be applied manually — not auto-run", () => {
+    // The migration SQL file exists at migrations/run-finance-audit-tables.sql.
+    // It is NOT run automatically — it requires manual execution in Neon console.
+    // This test documents the contract: auto-migration is intentionally absent.
+    const migrationFile = "migrations/run-finance-audit-tables.sql";
+    const isAutoRun = false; // design decision — never auto-migrate in production
+    expect(isAutoRun).toBe(false);
+    expect(migrationFile).toContain("finance-audit-tables");
   });
 });

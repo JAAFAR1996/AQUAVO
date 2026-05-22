@@ -2060,6 +2060,8 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     for (const p of activeProducts) {
       const salePrice = toNumber(p.price);
       const costPrice = toNumber(p.costPrice);
+      const packagingCost = toNumber(p.packagingCost);
+      const insertCost = toNumber(p.insertCost);
       const stock = Number(p.stock ?? 0);
       const threshold = Number(p.lowStockThreshold ?? 10);
       if (salePrice <= 0) { comingSoonCount++; continue; }
@@ -2072,7 +2074,7 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
       }
       if (costPrice > 0) inventoryValueAtCost += costPrice * stock;
       potentialRevenueFromStock += salePrice * stock;
-      if (costPrice > 0) potentialGrossProfitFromStock += (salePrice - costPrice) * stock;
+      if (costPrice > 0) potentialGrossProfitFromStock += (salePrice - costPrice - packagingCost - insertCost) * stock;
     }
 
     const lowStockProducts = lowStockList.sort((a, b) => a.stock - b.stock).slice(0, 10);
@@ -2196,6 +2198,44 @@ router.get("/whatsapp-invoices", async (req: Request, res: Response, next: NextF
     const breakdown = await buildWhatsappInvoiceBreakdown(db, start, end, waCosts);
 
     res.json({ success: true, data: breakdown });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/admin/accounting/whatsapp-source-review
+// Read-only: lists orders that are linked via manual_invoices.order_id
+// but have source IS NULL (were not tagged 'whatsapp' at creation time).
+// These orders are already counted correctly in revenue once delivered,
+// but the missing source tag means they won't appear in WhatsApp drilldowns.
+router.get("/whatsapp-source-review", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getDb();
+    if (!db) { res.status(503).json({ success: false, message: "DB unavailable" }); return; }
+
+    // Find manual_invoices rows that have an order_id AND the linked order has source != 'whatsapp'
+    const rows = await db
+      .select({
+        invoiceId:    manualInvoices.id,
+        invoiceNo:    manualInvoices.invoiceNo,
+        invoiceStatus: manualInvoices.status,
+        orderId:      orders.id,
+        orderNumber:  orders.orderNumber,
+        orderStatus:  orders.status,
+        orderSource:  orders.source,
+        orderCreatedAt: orders.createdAt,
+        orderTotal:   orders.total,
+      })
+      .from(manualInvoices)
+      .innerJoin(orders, eq(orders.id, manualInvoices.orderId))
+      .where(isNull(orders.source));
+
+    res.json({
+      success: true,
+      count: rows.length,
+      data: JSON.parse(JSON.stringify(rows, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
+      note: "هذه الطلبيات مرتبطة بفواتير واتساب لكن source=null بدلاً من 'whatsapp'. الإيراد محسوب صح إذا وصلت، لكنها مخفية من تقارير واتساب.",
+    });
   } catch (err) {
     next(err);
   }

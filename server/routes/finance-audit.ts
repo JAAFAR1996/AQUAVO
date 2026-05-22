@@ -55,7 +55,7 @@ router.get(
       try {
         const dbResult = await financeAuditStorage.getLatestRun();
         if (dbResult) {
-          res.json({ success: true, data: sanitize(dbResult) });
+          res.json({ success: true, data: sanitize(dbResult), persistenceSource: "db" });
           return;
         }
       } catch {
@@ -64,7 +64,11 @@ router.get(
 
       // Fallback: in-memory cache from this process lifetime
       const memResult = getLastAuditResult();
-      res.json({ success: true, data: memResult ? sanitize(memResult) : null });
+      res.json({
+        success: true,
+        data: memResult ? sanitize(memResult) : null,
+        persistenceSource: memResult ? "memory" : null,
+      });
     } catch (err) {
       next(err);
     }

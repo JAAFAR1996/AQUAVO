@@ -25,6 +25,7 @@ import { z } from "zod";
 
 export interface FinanceSnapshot {
   generatedAt: string;
+  scope: "all_time";            // snapshot always covers full history, not a period
   // Revenue
   grossRevenue: number;         // sum(collectedAmount) for delivered orders
   netRevenue: number;           // sum(collectedAmount - shippingCost) for delivered
@@ -33,7 +34,10 @@ export interface FinanceSnapshot {
   grossProfit: number;
   expensesTotal: number;
   returnLossVerified: number;
-  netProfitBeforeReturns: number;
+  /** grossProfit (before expenses and before return losses) */
+  profitBeforeExpensesAndReturns: number;
+  /** grossProfit - expensesTotal (after expenses, BEFORE subtracting return losses) */
+  profitAfterExpensesBeforeReturns: number;
   finalNetProfit: number;
   cogsBasis: "approximate_current_cost" | "unavailable";
   // COD settlement
@@ -235,8 +239,9 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   // P&L
   const grossProfit = netRevenue - totalCogs;
   const expensesTotal = Math.round(expenseRows.reduce((s, e) => s + toNum(e.amount), 0));
-  const netProfitBeforeReturns = grossProfit - expensesTotal;
-  const finalNetProfit = netProfitBeforeReturns - totalReturnFinancialImpact;
+  const profitBeforeExpensesAndReturns = grossProfit;
+  const profitAfterExpensesBeforeReturns = grossProfit - expensesTotal;
+  const finalNetProfit = profitAfterExpensesBeforeReturns - totalReturnFinancialImpact;
 
   // Inventory
   let inventoryValueAtCost = 0;
@@ -276,13 +281,15 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
 
   return {
     generatedAt: new Date().toISOString(),
+    scope: "all_time" as const,
     grossRevenue,
     netRevenue,
     totalCogs,
     grossProfit,
     expensesTotal,
     returnLossVerified: totalReturnFinancialImpact,
-    netProfitBeforeReturns,
+    profitBeforeExpensesAndReturns,
+    profitAfterExpensesBeforeReturns,
     finalNetProfit,
     cogsBasis,
     deliveredNetTotal,
@@ -344,14 +351,14 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
     note: "approvedReturnDeductions must not exceed deliveredNetTotal",
   });
 
-  // 4. Return loss applied once — finalNetProfit = netProfitBeforeReturns - returnLossVerified
-  const computedFinal = snapshot.netProfitBeforeReturns - snapshot.returnLossVerified;
+  // 4. Return loss applied once — finalNetProfit = profitAfterExpensesBeforeReturns - returnLossVerified
+  const computedFinal = snapshot.profitAfterExpensesBeforeReturns - snapshot.returnLossVerified;
   checks.push({
     name: "return loss affects profit once only",
     passed: Math.abs(computedFinal - snapshot.finalNetProfit) < 1,
     expected: computedFinal,
     actual: snapshot.finalNetProfit,
-    note: "finalNetProfit = netProfitBeforeReturns - returnLossVerified",
+    note: "finalNetProfit = profitAfterExpensesBeforeReturns - returnLossVerified",
   });
 
   // 5. Returned product count is non-negative
@@ -423,17 +430,19 @@ export async function runGroqAudit(
 
   const failedChecks = invariantChecks.filter(c => !c.passed);
   const userMessage = `لقطة مالية من نظام AQUAVO — التاريخ: ${snapshot.generatedAt}
+ملاحظة مهمة: هذه اللقطة تشمل جميع البيانات منذ بداية المتجر (غير مقيدة بفترة زمنية — scope: all_time).
 
 == أرقام الإيرادات والربح ==
 إجمالي الإيرادات (المبلغ المحصّل من العملاء): ${snapshot.grossRevenue.toLocaleString("en-US")} د.ع
 صافي الإيراد (بعد خصم رسوم الشحن للشركة): ${snapshot.netRevenue.toLocaleString("en-US")} د.ع
 تكلفة البضاعة المباعة (COGS - تقريبي): ${snapshot.totalCogs.toLocaleString("en-US")} د.ع
 أساس حساب الكلفة: ${snapshot.cogsBasis === "approximate_current_cost" ? "كلفة حالية (ليست تاريخية)" : "غير متوفر — بيانات كلفة ناقصة"}
-إجمالي الربح: ${snapshot.grossProfit.toLocaleString("en-US")} د.ع
+إجمالي الربح الأولي (grossProfit = netRevenue - COGS): ${snapshot.grossProfit.toLocaleString("en-US")} د.ع
+الربح قبل المصاريف وقبل الراجعات (profitBeforeExpensesAndReturns): ${snapshot.profitBeforeExpensesAndReturns.toLocaleString("en-US")} د.ع
 إجمالي المصاريف: ${snapshot.expensesTotal.toLocaleString("en-US")} د.ع
+الربح بعد المصاريف وقبل الراجعات (profitAfterExpensesBeforeReturns): ${snapshot.profitAfterExpensesBeforeReturns.toLocaleString("en-US")} د.ع
 خسائر الراجعات (معتمدة فقط): ${snapshot.returnLossVerified.toLocaleString("en-US")} د.ع
-صافي الربح قبل الراجعات: ${snapshot.netProfitBeforeReturns.toLocaleString("en-US")} د.ع
-صافي الربح النهائي: ${snapshot.finalNetProfit.toLocaleString("en-US")} د.ع
+صافي الربح النهائي (finalNetProfit = profitAfterExpensesBeforeReturns - returnLoss): ${snapshot.finalNetProfit.toLocaleString("en-US")} د.ع
 
 == تسوية COD ==
 إجمالي ما يستحقه البائع (مسلّمات - رسوم شحن): ${snapshot.deliveredNetTotal.toLocaleString("en-US")} د.ع

@@ -1,0 +1,253 @@
+
+> aquavo@1.0.0 build
+> npx tsx script/build.ts
+
+building client...
+[36mvite v8.0.13 [32mbuilding client environment for production...[36m[39m
+[2K
+transforming...✓ 3880 modules transformed.
+rendering chunks...
+[meta-images] no deployment domain found, skipping meta tag updates
+[meta-images] OpenGraph image not found, skipping meta tag updates
+computing gzip size...
+dist/public/index.html                                     7.94 kB │ gzip:   2.69 kB
+dist/public/assets/index-U4P3q3Du.css                    380.44 kB │ gzip:  45.48 kB
+dist/public/chunks/sentry-gixJHLLE.js                      0.03 kB │ gzip:   0.05 kB │ map:     4.44 kB
+dist/public/chunks/aquarium-wizard-D9J0hv-b.js             0.26 kB │ gzip:   0.21 kB │ map:     0.70 kB
+dist/public/chunks/typeof-ClaU7mXj.js                      0.27 kB │ gzip:   0.16 kB │ map:     0.84 kB
+dist/public/chunks/csrf-CK0jOn-c.js                        0.32 kB │ gzip:   0.24 kB │ map:     2.23 kB
+dist/public/chunks/image-utils-Du_VVZrI.js                 0.54 kB │ gzip:   0.34 kB │ map:     3.69 kB
+dist/public/chunks/textarea-C_ERrzLB.js                    0.56 kB │ gzip:   0.38 kB │ map:     0.97 kB
+dist/public/chunks/input-CO9kH3QB.js                       0.67 kB │ gzip:   0.41 kB │ map:     1.09 kB
+dist/public/chunks/label-DzY_X0Fw.js                       0.71 kB │ gzip:   0.45 kB │ map:     2.27 kB
+dist/public/chunks/utils-BdmKjF91.js                       0.81 kB │ gzip:   0.41 kB │ map:     2.57 kB
+dist/public/chunks/rolldown-runtime-D05jH6dF.js            0.82 kB │ gzip:   0.47 kB
+dist/public/chunks/badge-B2jQWV4t.js                       0.87 kB │ gzip:   0.47 kB │ map:     1.69 kB
+dist/public/chunks/scroll-progress-DATklC3B.js             0.90 kB │ gzip:   0.56 kB │ map:     2.07 kB
+dist/public/chunks/floating-action-button-ElxWITH4.js      0.90 kB │ gzip:   0.55 kB │ map:     1.93 kB
+dist/public/chunks/third-party-analytics-DixTprR0.js       1.03 kB │ gzip:   0.62 kB │ map:     3.62 kB
+dist/public/chunks/alert-Cdqp2PF2.js                       1.07 kB │ gzip:   0.55 kB │ map:     2.40 kB
+dist/public/chunks/accordion-BJEevgFA.js                   1.16 kB │ gzip:   0.58 kB │ map:     2.85 kB
+dist/public/chunks/tabs-DT8D3Vct.js                        1.31 kB │ gzip:   0.54 kB │ map:     2.64 kB
+dist/public/chunks/use-toast-CO9MAJNp.js                   1.41 kB │ gzip:   0.78 kB │ map:     6.59 kB
+dist/public/chunks/progress-Czm6JByP.js                    1.52 kB │ gzip:   0.80 kB │ map:     6.57 kB
+dist/public/chunks/heart-float-animation-D5Q7PmIQ.js       1.68 kB │ gzip:   0.78 kB │ map:     4.82 kB
+dist/public/chunks/table-DCm-DrDN.js                       1.70 kB │ gzip:   0.61 kB │ map:     4.40 kB
+dist/public/chunks/react-hB2i3GNU.js                       1.88 kB │ gzip:   0.87 kB │ map:     6.56 kB
+dist/public/chunks/react-D4vO2LFv.js                       1.91 kB │ gzip:   0.89 kB │ map:     7.59 kB
+dist/public/chunks/guides-5-mistakes-D2Ndrr-y.js           2.01 kB │ gzip:   0.91 kB │ map:     3.30 kB
+dist/public/chunks/compare-PE3hY_dP.js                     2.27 kB │ gzip:   1.06 kB │ map:     5.47 kB
+dist/public/chunks/use-loyalty-CqVn6X2C.js                 2.57 kB │ gzip:   0.68 kB │ map:    10.47 kB
+dist/public/chunks/switch-BAUoHGHW.js                      2.62 kB │ gzip:   1.29 kB │ map:     8.77 kB
+dist/public/chunks/dual-range-slider-DgE-SK5B.js           3.03 kB │ gzip:   1.00 kB │ map:     7.49 kB
+dist/public/chunks/testimonials-7BvxZz4a.js                3.21 kB │ gzip:   0.97 kB │ map:     4.96 kB
+dist/public/chunks/select-K3nuKPkV.js                      3.29 kB │ gzip:   1.21 kB │ map:     7.78 kB
+dist/public/chunks/admin-login-B_z_DQ_5.js                 3.69 kB │ gzip:   1.68 kB │ map:     8.60 kB
+dist/public/chunks/button-CAErw81n.js                      3.73 kB │ gzip:   1.67 kB │ map:    13.41 kB
+dist/public/chunks/personalized-section-DWUeyQ0W.js        3.92 kB │ gzip:   1.53 kB │ map:     9.65 kB
+dist/public/chunks/checkbox-wV_KwQoC.js                    4.00 kB │ gzip:   1.74 kB │ map:    14.17 kB
+dist/public/chunks/404-BZFTr25p.js                         4.48 kB │ gzip:   1.80 kB │ map:     8.93 kB
+dist/public/chunks/quick-view-modal-ZABgng6c.js            4.54 kB │ gzip:   1.83 kB │ map:    13.03 kB
+dist/public/chunks/pwa-components-CuO45CaA.js              4.58 kB │ gzip:   1.82 kB │ map:    15.48 kB
+dist/public/chunks/contact-CW4xSh2c.js                     4.70 kB │ gzip:   1.35 kB │ map:     8.90 kB
+dist/public/chunks/forgot-password-BefxyaAl.js             4.73 kB │ gzip:   1.95 kB │ map:    13.49 kB
+dist/public/chunks/alert-dialog-BVyHqqyE.js                4.89 kB │ gzip:   1.78 kB │ map:    16.89 kB
+dist/public/chunks/filter-modal-CaP2onkB.js                5.21 kB │ gzip:   2.05 kB │ map:    16.76 kB
+dist/public/chunks/blog-post-BuDNm_mT.js                   6.10 kB │ gzip:   2.17 kB │ map:    14.35 kB
+dist/public/chunks/login-BkPx5oHV.js                       6.14 kB │ gzip:   2.39 kB │ map:    17.49 kB
+dist/public/chunks/wishlist-BQlAiK3w.js                    6.22 kB │ gzip:   2.33 kB │ map:    14.29 kB
+dist/public/chunks/checkout-dialog-PJuqkLmt.js             6.57 kB │ gzip:   2.93 kB │ map:    24.10 kB
+dist/public/chunks/auth-context-QCuuZCdG.js                6.78 kB │ gzip:   2.37 kB │ map:    29.78 kB
+dist/public/chunks/product-comparison-gWjZUopd.js          7.40 kB │ gzip:   2.51 kB │ map:    22.66 kB
+dist/public/chunks/dist-aZoJELsy.js                        7.54 kB │ gzip:   3.01 kB │ map:    30.97 kB
+dist/public/chunks/accounting-CPtIwUVx.js                  8.10 kB │ gzip:   2.39 kB │ map:    28.31 kB
+dist/public/chunks/aquascape-styles-MMeCZCzu.js            8.18 kB │ gzip:   3.06 kB │ map:    16.90 kB
+dist/public/chunks/ai-tools-Bqr83e7s.js                    8.32 kB │ gzip:   2.86 kB │ map:    20.92 kB
+dist/public/chunks/why-aquavo-BOCl8XSE.js                  8.47 kB │ gzip:   2.71 kB │ map:    14.12 kB
+dist/public/chunks/blog-vzejY-uM.js                        8.60 kB │ gzip:   2.93 kB │ map:    22.45 kB
+dist/public/chunks/checkout-BVJvrigW.js                    9.01 kB │ gzip:   3.57 kB │ map:    24.90 kB
+dist/public/chunks/verify-certificate-BM7cu62-.js          9.57 kB │ gzip:   2.97 kB │ map:    17.46 kB
+dist/public/chunks/global-search-6uL5q3D2.js               9.79 kB │ gzip:   3.42 kB │ map:    28.53 kB
+dist/public/chunks/shipping-B_aL28C-.js                   10.27 kB │ gzip:   2.97 kB │ map:    25.59 kB
+dist/public/chunks/search-results-BCdJJzAC.js             10.39 kB │ gzip:   3.71 kB │ map:    29.39 kB
+dist/public/chunks/confetti.module-vJPnIrl4.js            10.47 kB │ gzip:   4.15 kB │ map:    39.04 kB
+dist/public/chunks/links-Cucullhv.js                      10.64 kB │ gzip:   4.31 kB │ map:    22.72 kB
+dist/public/chunks/cultural-twin-BYF5I5gT.js              10.92 kB │ gzip:   3.58 kB │ map:    23.55 kB
+dist/public/chunks/merge-products-jMODHcWi.js             10.95 kB │ gzip:   3.18 kB │ map:    35.75 kB
+dist/public/chunks/about-BgyQSZN0.js                      11.04 kB │ gzip:   3.50 kB │ map:    18.28 kB
+dist/public/chunks/invoice-view-BS8V2wA1.js               11.08 kB │ gzip:   3.55 kB │ map:    26.07 kB
+dist/public/chunks/order-confirmation-BS4aPiHu.js         11.53 kB │ gzip:   3.32 kB │ map:    32.61 kB
+dist/public/chunks/fish-compatibility-Bj3K49Xt.js         11.76 kB │ gzip:   3.75 kB │ map:    36.83 kB
+dist/public/chunks/register-BkfMjSi3.js                   12.21 kB │ gzip:   3.92 kB │ map:    36.49 kB
+dist/public/chunks/order-tracking-DJrFrFH7.js             12.41 kB │ gzip:   3.74 kB │ map:    28.45 kB
+dist/public/chunks/scroll-area-DxMon2p-.js                12.47 kB │ gzip:   3.90 kB │ map:    46.82 kB
+dist/public/chunks/privacy-policy-DpRYmSs8.js             12.62 kB │ gzip:   3.07 kB │ map:    24.32 kB
+dist/public/chunks/sustainability-CNQ9YHVg.js             12.65 kB │ gzip:   3.97 kB │ map:    22.32 kB
+dist/public/chunks/return-policy-DRuR641U.js              12.91 kB │ gzip:   2.94 kB │ map:    25.52 kB
+dist/public/chunks/product-card-6DIDGtfL.js               13.50 kB │ gzip:   4.95 kB │ map:    37.49 kB
+dist/public/chunks/admin-ai-CYtyMqEW.js                   13.55 kB │ gzip:   3.84 kB │ map:    42.92 kB
+dist/public/chunks/community-gallery---88pWT8.js          13.74 kB │ gzip:   4.30 kB │ map:    33.11 kB
+dist/public/chunks/invest-D_h5Zqr1.js                     13.79 kB │ gzip:   3.06 kB │ map:    29.39 kB
+dist/public/chunks/terms-BbTbSY4e.js                      14.34 kB │ gzip:   3.82 kB │ map:    25.94 kB
+dist/public/chunks/social-analytics-CcfUz_aO.js           14.69 kB │ gzip:   4.37 kB │ map:    46.90 kB
+dist/public/chunks/temperature-guide-BvKutX1g.js          15.09 kB │ gzip:   4.69 kB │ map:    32.69 kB
+dist/public/chunks/ai-chat-bot-mhzyu0c2.js                15.12 kB │ gzip:   5.17 kB │ map:    53.59 kB
+dist/public/chunks/guides-eco-friendly-CGTd0bIV.js        16.44 kB │ gzip:   4.15 kB │ map:    29.89 kB
+dist/public/chunks/faq-DLw7d9qB.js                        17.05 kB │ gzip:   5.38 kB │ map:    30.97 kB
+dist/public/chunks/fish-patients-soBK7Rhq.js              17.70 kB │ gzip:   4.66 kB │ map:    41.79 kB
+dist/public/chunks/footer-CtynLbro.js                     17.74 kB │ gzip:   4.62 kB │ map:    32.51 kB
+dist/public/chunks/invoice-dialog-3Kd75wHJ.js             18.75 kB │ gzip:   5.07 kB │ map:    37.82 kB
+dist/public/chunks/loyalty-section-Ctdtw7Hn.js            19.53 kB │ gzip:   4.81 kB │ map:    51.99 kB
+dist/public/chunks/purify.es-CCh_KNWw.js                  20.84 kB │ gzip:   8.39 kB │ map:    83.32 kB
+dist/public/chunks/fish-encyclopedia-3zn-qfSJ.js          21.64 kB │ gzip:   5.82 kB │ map:    61.36 kB
+dist/public/chunks/products-BC0K7VfY.js                   22.41 kB │ gzip:   7.25 kB │ map:    64.31 kB
+dist/public/chunks/use-fish-data-C7xBslSM.js              22.62 kB │ gzip:   5.08 kB │ map:    46.62 kB
+dist/public/chunks/beginner-guide-DezDJ--d.js             23.69 kB │ gzip:   7.15 kB │ map:    58.27 kB
+dist/public/chunks/calculators-Cg3pMRbf.js                39.10 kB │ gzip:   8.71 kB │ map:   100.04 kB
+dist/public/chunks/vendor-icons-DxSvbOiF.js               39.49 kB │ gzip:  13.18 kB │ map:   174.76 kB
+dist/public/chunks/fish-health-diagnosis-DZHo5oJJ.js      53.63 kB │ gzip:  12.29 kB │ map:   129.55 kB
+dist/public/chunks/profile-DNbuLCvH.js                    56.45 kB │ gzip:  12.92 kB │ map:   163.66 kB
+dist/public/chunks/product-details-viut5Y2d.js            60.31 kB │ gzip:  16.27 kB │ map:   176.16 kB
+dist/public/chunks/fish-breeding-calculator-BdXMhMOu.js   64.26 kB │ gzip:  14.86 kB │ map:   165.53 kB
+dist/public/chunks/onboarding-tour-bFGazZLW.js            82.76 kB │ gzip:  27.43 kB │ map:   345.24 kB
+dist/public/chunks/journey-BpU6DSa_.js                   102.46 kB │ gzip:  23.30 kB │ map:   276.97 kB
+dist/public/chunks/vendor-ui-B17Y1fse.js                 117.60 kB │ gzip:  36.12 kB │ map:   556.72 kB
+dist/public/chunks/vendor-animation-Za3xPGQA.js          130.74 kB │ gzip:  43.54 kB │ map:   690.43 kB
+dist/public/chunks/vendor-utils-D1zEpPJ-.js              135.53 kB │ gzip:  37.23 kB │ map:   627.22 kB
+dist/public/chunks/finance-BwGXObzb.js                   147.44 kB │ gzip:  30.52 kB │ map:   402.02 kB
+dist/public/chunks/index.es-DIbSYURm.js                  150.98 kB │ gzip:  48.73 kB │ map:   566.30 kB
+dist/public/entries/index-CtmlUTny.js                    157.18 kB │ gzip:  45.41 kB │ map:   504.76 kB
+dist/public/chunks/vendor-react-BBQxtnVz.js              181.60 kB │ gzip:  57.08 kB │ map:   812.10 kB
+dist/public/chunks/html2canvas-BwHpzWIV.js               199.57 kB │ gzip:  46.79 kB │ map:   597.30 kB
+dist/public/chunks/admin-dashboard-D7F2AoUU.js           294.74 kB │ gzip:  63.38 kB │ map:   810.07 kB
+dist/public/chunks/vendor-charts-Bz3l3nl8.js             407.56 kB │ gzip: 105.97 kB │ map: 1,662.22 kB
+dist/public/chunks/pdf-generator-b7hpXtbC.js             412.21 kB │ gzip: 134.46 kB │ map: 1,297.16 kB
+
+[PLUGIN_TIMINGS] Your build spent significant time in plugins. Here is a breakdown:
+  - visualizer (27%)
+  - vite:terser (15%)
+  - rolldown:vite-resolve (11%)
+  - vite:css-post (10%)
+  - vite:asset (9%)
+See https://rolldown.rs/options/checks#plugintimings for more details.
+
+[32m✓ built in 21.54s[39m
+✨ [vite-plugin-compression]:algorithm=gzip - compressed file successfully: 
+public/chunks/accordion-BJEevgFA.js.gz                  1.14kb / gzip: 0.57kb
+public/chunks/404-BZFTr25p.js.gz                        4.38kb / gzip: 1.77kb
+public/chunks/accounting-CPtIwUVx.js.gz                 7.91kb / gzip: 2.34kb
+public/chunks/about-BgyQSZN0.js.gz                      10.79kb / gzip: 3.41kb
+public/chunks/admin-ai-CYtyMqEW.js.gz                   13.23kb / gzip: 3.74kb
+public/chunks/admin-login-B_z_DQ_5.js.gz                3.61kb / gzip: 1.64kb
+public/chunks/alert-Cdqp2PF2.js.gz                      1.05kb / gzip: 0.54kb
+public/chunks/ai-tools-Bqr83e7s.js.gz                   8.13kb / gzip: 2.78kb
+public/chunks/alert-dialog-BVyHqqyE.js.gz               4.78kb / gzip: 1.74kb
+public/chunks/auth-context-QCuuZCdG.js.gz               6.62kb / gzip: 2.31kb
+public/chunks/ai-chat-bot-mhzyu0c2.js.gz                14.77kb / gzip: 5.04kb
+public/chunks/aquascape-styles-MMeCZCzu.js.gz           8.00kb / gzip: 2.98kb
+public/chunks/blog-vzejY-uM.js.gz                       8.40kb / gzip: 2.86kb
+public/chunks/button-CAErw81n.js.gz                     3.64kb / gzip: 1.63kb
+public/chunks/blog-post-BuDNm_mT.js.gz                  5.96kb / gzip: 2.13kb
+public/chunks/beginner-guide-DezDJ--d.js.gz             23.14kb / gzip: 6.95kb
+public/chunks/checkbox-wV_KwQoC.js.gz                   3.91kb / gzip: 1.70kb
+public/chunks/calculators-Cg3pMRbf.js.gz                38.19kb / gzip: 8.47kb
+public/chunks/checkout-dialog-PJuqkLmt.js.gz            6.42kb / gzip: 2.86kb
+public/AQUAVO_Investor_Pitch.html.gz                    32.82kb / gzip: 5.37kb
+public/chunks/community-gallery---88pWT8.js.gz          13.42kb / gzip: 4.19kb
+public/chunks/checkout-BVJvrigW.js.gz                   8.80kb / gzip: 3.48kb
+public/chunks/confetti.module-vJPnIrl4.js.gz            10.23kb / gzip: 4.04kb
+public/chunks/compare-PE3hY_dP.js.gz                    2.22kb / gzip: 1.04kb
+public/chunks/contact-CW4xSh2c.js.gz                    4.59kb / gzip: 1.32kb
+public/chunks/dual-range-slider-DgE-SK5B.js.gz          2.96kb / gzip: 0.98kb
+public/chunks/dist-aZoJELsy.js.gz                       7.37kb / gzip: 2.94kb
+public/chunks/cultural-twin-BYF5I5gT.js.gz              10.67kb / gzip: 3.48kb
+public/chunks/filter-modal-CaP2onkB.js.gz               5.09kb / gzip: 2.00kb
+public/chunks/faq-DLw7d9qB.js.gz                        16.66kb / gzip: 5.25kb
+public/chunks/fish-compatibility-Bj3K49Xt.js.gz         11.49kb / gzip: 3.65kb
+public/chunks/fish-encyclopedia-3zn-qfSJ.js.gz          21.14kb / gzip: 5.66kb
+public/chunks/footer-CtynLbro.js.gz                     17.33kb / gzip: 4.50kb
+public/.well-known/acp.json.gz                          1.35kb / gzip: 0.58kb
+public/chunks/fish-breeding-calculator-BdXMhMOu.js.gz   62.76kb / gzip: 14.48kb
+public/chunks/forgot-password-BefxyaAl.js.gz            4.62kb / gzip: 1.90kb
+public/chunks/global-search-6uL5q3D2.js.gz              9.56kb / gzip: 3.34kb
+public/chunks/guides-5-mistakes-D2Ndrr-y.js.gz          1.96kb / gzip: 0.89kb
+public/chunks/guides-eco-friendly-CGTd0bIV.js.gz        16.06kb / gzip: 4.02kb
+public/chunks/fish-health-diagnosis-DZHo5oJJ.js.gz      52.38kb / gzip: 11.94kb
+public/chunks/invest-D_h5Zqr1.js.gz                     13.47kb / gzip: 2.99kb
+public/chunks/fish-patients-soBK7Rhq.js.gz              17.29kb / gzip: 4.53kb
+public/chunks/heart-float-animation-D5Q7PmIQ.js.gz      1.64kb / gzip: 0.77kb
+public/chunks/links-Cucullhv.js.gz                      10.39kb / gzip: 4.20kb
+public/chunks/invoice-dialog-3Kd75wHJ.js.gz             18.32kb / gzip: 4.95kb
+public/chunks/invoice-view-BS8V2wA1.js.gz               10.83kb / gzip: 3.45kb
+public/chunks/merge-products-jMODHcWi.js.gz             10.70kb / gzip: 3.10kb
+public/chunks/login-BkPx5oHV.js.gz                      6.00kb / gzip: 2.33kb
+public/chunks/order-confirmation-BS4aPiHu.js.gz         11.26kb / gzip: 3.25kb
+public/chunks/personalized-section-DWUeyQ0W.js.gz       3.83kb / gzip: 1.50kb
+public/chunks/order-tracking-DJrFrFH7.js.gz             12.13kb / gzip: 3.65kb
+public/chunks/loyalty-section-Ctdtw7Hn.js.gz            19.08kb / gzip: 4.68kb
+public/chunks/privacy-policy-DpRYmSs8.js.gz             12.33kb / gzip: 3.00kb
+public/chunks/product-card-6DIDGtfL.js.gz               13.19kb / gzip: 4.82kb
+public/chunks/progress-Czm6JByP.js.gz                   1.48kb / gzip: 0.79kb
+public/chunks/product-comparison-gWjZUopd.js.gz         7.23kb / gzip: 2.45kb
+public/chunks/purify.es-CCh_KNWw.js.gz                  20.35kb / gzip: 8.16kb
+public/chunks/products-BC0K7VfY.js.gz                   21.89kb / gzip: 7.06kb
+public/chunks/quick-view-modal-ZABgng6c.js.gz           4.44kb / gzip: 1.79kb
+public/chunks/react-D4vO2LFv.js.gz                      1.87kb / gzip: 0.88kb
+public/chunks/pwa-components-CuO45CaA.js.gz             4.48kb / gzip: 1.79kb
+public/chunks/react-hB2i3GNU.js.gz                      1.84kb / gzip: 0.85kb
+public/chunks/return-policy-DRuR641U.js.gz              12.61kb / gzip: 2.87kb
+public/chunks/register-BkfMjSi3.js.gz                   11.92kb / gzip: 3.83kb
+public/chunks/select-K3nuKPkV.js.gz                     3.21kb / gzip: 1.18kb
+public/chunks/scroll-area-DxMon2p-.js.gz                12.18kb / gzip: 3.79kb
+public/chunks/sustainability-CNQ9YHVg.js.gz             12.35kb / gzip: 3.89kb
+public/chunks/product-details-viut5Y2d.js.gz            58.91kb / gzip: 15.78kb
+public/chunks/social-analytics-CcfUz_aO.js.gz           14.35kb / gzip: 4.26kb
+public/chunks/switch-BAUoHGHW.js.gz                     2.56kb / gzip: 1.26kb
+public/chunks/temperature-guide-BvKutX1g.js.gz          14.74kb / gzip: 4.57kb
+public/chunks/tabs-DT8D3Vct.js.gz                       1.29kb / gzip: 0.53kb
+public/chunks/table-DCm-DrDN.js.gz                      1.67kb / gzip: 0.60kb
+public/chunks/testimonials-7BvxZz4a.js.gz               3.14kb / gzip: 0.95kb
+public/chunks/third-party-analytics-DixTprR0.js.gz      1.01kb / gzip: 0.61kb
+public/chunks/use-fish-data-C7xBslSM.js.gz              22.09kb / gzip: 4.94kb
+public/chunks/use-loyalty-CqVn6X2C.js.gz                2.52kb / gzip: 0.67kb
+public/chunks/terms-BbTbSY4e.js.gz                      14.01kb / gzip: 3.71kb
+public/chunks/profile-DNbuLCvH.js.gz                    55.13kb / gzip: 12.54kb
+public/chunks/use-toast-CO9MAJNp.js.gz                  1.38kb / gzip: 0.76kb
+public/chunks/wishlist-BQlAiK3w.js.gz                   6.08kb / gzip: 2.27kb
+public/chunks/vendor-icons-DxSvbOiF.js.gz               38.57kb / gzip: 12.54kb
+public/chunks/why-aquavo-BOCl8XSE.js.gz                 8.28kb / gzip: 2.66kb
+public/.well-known/agent-skills/index.json.gz           1.10kb / gzip: 0.47kb
+public/index.html.gz                                    7.76kb / gzip: 2.63kb
+public/manifest.json.gz                                 1.64kb / gzip: 0.57kb
+public/offline.html.gz                                  4.75kb / gzip: 1.68kb
+public/sw-push.js.gz                                    2.05kb / gzip: 0.80kb
+public/chunks/search-results-BCdJJzAC.js.gz             10.15kb / gzip: 3.62kb
+public/qr-generator.html.gz                             25.62kb / gzip: 7.31kb
+public/chunks/shipping-B_aL28C-.js.gz                   10.03kb / gzip: 2.90kb
+public/chunks/verify-certificate-BM7cu62-.js.gz         9.35kb / gzip: 2.89kb
+public/chunks/finance-BwGXObzb.js.gz                    143.99kb / gzip: 29.73kb
+public/chunks/journey-BpU6DSa_.js.gz                    100.06kb / gzip: 22.60kb
+public/chunks/onboarding-tour-bFGazZLW.js.gz            80.83kb / gzip: 26.56kb
+public/chunks/index.es-DIbSYURm.js.gz                   147.45kb / gzip: 47.10kb
+public/assets/index-U4P3q3Du.css.gz                     371.52kb / gzip: 43.28kb
+public/chunks/vendor-ui-B17Y1fse.js.gz                  114.85kb / gzip: 34.96kb
+public/chunks/vendor-utils-D1zEpPJ-.js.gz               132.36kb / gzip: 35.99kb
+public/chunks/html2canvas-BwHpzWIV.js.gz                194.90kb / gzip: 45.26kb
+public/entries/index-CtmlUTny.js.gz                     153.50kb / gzip: 44.04kb
+public/chunks/vendor-animation-Za3xPGQA.js.gz           127.68kb / gzip: 42.05kb
+public/chunks/vendor-react-BBQxtnVz.js.gz               177.35kb / gzip: 55.01kb
+public/chunks/admin-dashboard-D7F2AoUU.js.gz            287.84kb / gzip: 61.43kb
+public/chunks/vendor-charts-Bz3l3nl8.js.gz              398.01kb / gzip: 102.42kb
+public/chunks/pdf-generator-b7hpXtbC.js.gz              402.56kb / gzip: 130.00kb
+
+
+
+✨ [vite-plugin-compression]:algorithm=brotliCompress - compressed file successfully: 
+
+
+building server...
+generating SSR template...
+
+  dist\index.js  2.7mb ⚠️
+
+⚡ Done in 630ms

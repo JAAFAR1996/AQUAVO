@@ -497,6 +497,17 @@ export default function AccountingPanel() {
                         }}>
                           {STATUS_LABELS[row.status]?.label ?? row.status}
                         </span>
+                        {row.status !== "delivered" && (
+                          <div style={{
+                            marginTop: 3,
+                            fontSize: 9,
+                            color: "#f59e0b",
+                            fontWeight: 600,
+                            letterSpacing: 0.3,
+                          }}>
+                            غير محقق
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: "10px 14px", textAlign: "center", color: "#22c55e", fontSize: 12 }}>{fmt(row.revenue)}</td>
                       <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 12 }}>{fmt(row.cogs)}</td>
@@ -529,8 +540,14 @@ export default function AccountingPanel() {
                       <td style={{ padding: "10px 14px", textAlign: "center", color: "#f59e0b", fontSize: 12 }}>
                         {(row.couponDiscount + row.loyaltyDiscount) > 0 ? fmt(row.couponDiscount + row.loyaltyDiscount) : "—"}
                       </td>
-                      <td style={{ padding: "10px 14px", textAlign: "center", fontWeight: 700, fontSize: 12, color: row.netProfit >= 0 ? "#199bb8" : "#ef4444" }}>
+                      <td style={{ padding: "10px 14px", textAlign: "center", fontWeight: 700, fontSize: 12,
+                        color: row.status !== "delivered" ? "#475569" : row.netProfit >= 0 ? "#199bb8" : "#ef4444" }}>
                         {fmt(row.netProfit)}
+                        {row.status !== "delivered" && (
+                          <div style={{ fontSize: 9, color: "#475569", fontWeight: 400, marginTop: 1 }}>
+                            تقديري
+                          </div>
+                        )}
                       </td>
                       <td style={{ padding: "10px 14px", textAlign: "center" }}>
                         <span style={{

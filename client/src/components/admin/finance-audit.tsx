@@ -4,13 +4,17 @@ import { useState, useEffect, useCallback } from "react";
 
 interface FinanceSnapshot {
   generatedAt: string;
+  scope: "all_time";
   grossRevenue: number;
   netRevenue: number;
   totalCogs: number;
   grossProfit: number;
   expensesTotal: number;
   returnLossVerified: number;
-  netProfitBeforeReturns: number;
+  /** grossProfit (before expenses and before return losses) */
+  profitBeforeExpensesAndReturns: number;
+  /** grossProfit - expensesTotal (after expenses, BEFORE subtracting return losses) */
+  profitAfterExpensesBeforeReturns: number;
   finalNetProfit: number;
   cogsBasis: "approximate_current_cost" | "unavailable";
   deliveredNetTotal: number;
@@ -331,6 +335,7 @@ export function FinanceAudit() {
   const [latestResult, setLatestResult] = useState<FinanceAuditResult | AuditRunFull | null>(null);
   const [history, setHistory] = useState<AuditRunSummary[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [persistenceSource, setPersistenceSource] = useState<"db" | "memory" | null>(null);
 
   const schedulerEnabled = true; // always configured — disabled at env level
   const intervalHours = 12;
@@ -339,7 +344,10 @@ export function FinanceAudit() {
     try {
       const res = await fetch("/api/admin/finance/audit/latest", { credentials: "include" });
       const json = await res.json().catch(() => null);
-      if (json?.success && json.data) setLatestResult(json.data);
+      if (json?.success && json.data) {
+        setLatestResult(json.data);
+        setPersistenceSource(json.persistenceSource ?? null);
+      }
     } catch {
       // Non-critical — just leave latestResult as null
     }
@@ -532,9 +540,41 @@ export function FinanceAudit() {
           {/* KPI snapshot */}
           {snapshot && (
             <div>
-              <div style={{ color: "#64748b", fontSize: 11, fontWeight: 600, marginBottom: 10 }}>
+              <div style={{ color: "#64748b", fontSize: 11, fontWeight: 600, marginBottom: 8 }}>
                 اللقطة المالية المُستخدمة
               </div>
+
+              {/* All-time scope warning */}
+              <div style={{
+                background: "#1a1500",
+                border: "1px solid #f59e0b50",
+                borderRadius: 8,
+                padding: "8px 14px",
+                color: "#fcd34d",
+                fontSize: 11,
+                lineHeight: 1.6,
+                marginBottom: 10,
+              }}>
+                <strong>نطاق:</strong> هذه اللقطة تشمل <strong>جميع البيانات منذ بداية المتجر</strong> وليست مقيدة بفترة زمنية محددة.
+                أرقام الإيرادات والمخزون هنا هي أرقام إجمالية كاملة — لا علاقة لها بفلتر الفترة في صفحة المحاسب.
+              </div>
+
+              {/* Persistence source indicator */}
+              {persistenceSource === "memory" && (
+                <div style={{
+                  background: "#1a0d0d",
+                  border: "1px solid #ef444440",
+                  borderRadius: 8,
+                  padding: "7px 14px",
+                  color: "#fca5a5",
+                  fontSize: 11,
+                  marginBottom: 10,
+                }}>
+                  تنبيه: سجل التدقيق محفوظ في الذاكرة المؤقتة فقط (جداول DB غير مفعّلة بعد) — سيُفقد عند إعادة تشغيل الخادم.
+                  لتفعيل الحفظ الدائم: شغّل <code style={{ fontFamily: "monospace", color: "#f87171" }}>migrations/run-finance-audit-tables.sql</code> في Neon.
+                </div>
+              )}
+
               <div style={{ display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
                 {[
