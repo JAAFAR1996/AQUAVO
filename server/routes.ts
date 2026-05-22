@@ -1,5 +1,4 @@
 import type { Server } from "http";
-import https from "https";
 import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
@@ -156,14 +155,16 @@ export async function registerRoutes(
 
 
   // Proxy PDF under canonical filename — static file CDN path is poisoned
-  app.get("/assets/guides/aquavo-5-mistakes-guide-final.pdf", (_req, res) => {
-    https.get("https://www.aquavoiq.com/assets/guides/aquavo-guide-5-mistakes.pdf", (upstream) => {
-      if (upstream.statusCode !== 200) { res.status(502).end(); return; }
+  app.get("/assets/guides/aquavo-5-mistakes-guide-final.pdf", async (_req, res) => {
+    try {
+      const upstream = await fetch("https://www.aquavoiq.com/assets/guides/aquavo-guide-5-mistakes.pdf");
+      if (!upstream.ok) { res.status(502).end(); return; }
+      const data = await upstream.arrayBuffer();
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", 'inline; filename="aquavo-5-mistakes-guide-final.pdf"');
       res.setHeader("Cache-Control", "public, max-age=86400");
-      upstream.pipe(res);
-    }).on("error", () => res.status(500).end());
+      res.end(Buffer.from(data));
+    } catch { res.status(500).end(); }
   });
 
   // Error handling middleware
