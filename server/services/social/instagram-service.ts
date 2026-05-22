@@ -392,3 +392,56 @@ export async function validateToken(accessToken: string): Promise<boolean> {
         return false;
     }
 }
+
+// --- Auto Responder APIs ---
+
+export async function fetchInstagramComments(mediaId: string, accessToken: string) {
+    let allComments: any[] = [];
+    let nextUrl: string | null = `${GRAPH_API_BASE}/${mediaId}/comments?fields=id,text,username,timestamp&limit=100&access_token=${accessToken}`;
+    
+    while (nextUrl) {
+        const response = await fetch(nextUrl);
+        if (!response.ok) {
+            console.error('Failed to fetch IG comments:', await response.text());
+            break;
+        }
+        const data = await response.json();
+        if (data.data) {
+            allComments = allComments.concat(data.data.map((c: any) => ({
+                id: c.id,
+                text: c.text,
+                username: c.username || 'unknown',
+                timestamp: c.timestamp
+            })));
+        }
+        nextUrl = data.paging?.next || null;
+    }
+    return allComments;
+}
+
+export async function replyToInstagramComment(commentId: string, message: string, accessToken: string) {
+    const response = await fetch(`${GRAPH_API_BASE}/${commentId}/replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, access_token: accessToken })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to post public reply: ' + await response.text());
+    }
+    return response.json();
+}
+
+export async function sendInstagramPrivateReply(commentId: string, message: string, accessToken: string) {
+    // Note: Instagram uses Graph API /vX.X/{comment_id}/private_replies just like FB 
+    // or via Instagram Messaging API depending on token scopes. The standard approach for comment reply via DM is private_replies.
+    const response = await fetch(`${GRAPH_API_BASE}/${commentId}/private_replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, access_token: accessToken })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to send private reply: ' + await response.text());
+    }
+    return response.json();
+}
+

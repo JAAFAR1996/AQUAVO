@@ -122,6 +122,43 @@ function toDate(value: unknown): Date {
   return value instanceof Date ? value : new Date(String(value));
 }
 
+// ─── Return-loss helpers ─────────────────────────────────────────────────────
+// Business rule: a product returned sellable (restocked=true) means COGS is
+// recovered to inventory — it must NOT be counted as P&L loss.
+// refundAmount is a revenue reversal / COD settlement deduction — separate from
+// operational loss.
+
+type ReturnEventLike = {
+  refundAmount: string | number | null;
+  deliveryCostLoss: string | number | null;
+  returnShippingCost: string | number | null;
+  packagingLoss: string | number | null;
+  productWriteOffAmount: string | number | null;
+  cogsLoss: string | number | null;
+  restocked: boolean | null;
+};
+
+/** refundAmount: revenue reversal — affects COD settlement AND reduces net revenue */
+function eventSalesReturnDeduction(e: ReturnEventLike): number {
+  return toNumber(e.refundAmount);
+}
+
+/**
+ * Actual unrecoverable P&L loss (does NOT include refundAmount).
+ *
+ * productWriteOffAmount: always real (explicit write-off, even partial).
+ * cogsLoss: counted only when restocked=false (product NOT back in stock).
+ */
+function eventActualReturnLoss(e: ReturnEventLike): number {
+  const opLoss =
+    toNumber(e.deliveryCostLoss) +
+    toNumber(e.returnShippingCost) +
+    toNumber(e.packagingLoss);
+  const writeOff = toNumber(e.productWriteOffAmount);
+  const productCost = e.restocked !== true ? toNumber(e.cogsLoss) : 0;
+  return opLoss + writeOff + productCost;
+}
+
 // الطلبات المحققة (delivered فقط) — الإيراد الفعلي
 const REALIZED_STATUSES = ["delivered"] as const;
 // الطلبات الملغاة/المرفوضة
@@ -590,18 +627,14 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const sumReturn = (key: keyof typeof verifiedReturnRows[0]) =>
       verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
 
-    const totalRefundAmount = sumReturn("refundAmount");
-    const totalDeliveryCostLoss = sumReturn("deliveryCostLoss");
-    const totalReturnShippingCost = sumReturn("returnShippingCost");
-    const totalPackagingLoss = sumReturn("packagingLoss");
-    const totalProductWriteOffAmount = sumReturn("productWriteOffAmount");
-    const totalCogsLoss = sumReturn("cogsLoss");
-    const totalReturnFinancialImpact =
-      totalRefundAmount + totalDeliveryCostLoss + totalReturnShippingCost +
-      totalPackagingLoss + totalProductWriteOffAmount + totalCogsLoss;
+    const totalSalesReturnDeduction = verifiedReturnRows.reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
+    const totalActualReturnLoss = verifiedReturnRows.reduce((s, e) => s + eventActualReturnLoss(e), 0);
+    const sellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked === true).length;
+    const nonSellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked !== true).length;
 
     const netProfitBeforeReturns = netProfit;
-    const netProfitAfterReturns = netProfit - totalReturnFinancialImpact;
+    // netProfitAfterReturns = netProfit - salesReturnDeduction(revenue reversal) - actualReturnLoss(operational)
+    const netProfitAfterReturns = netProfit - totalSalesReturnDeduction - totalActualReturnLoss;
     const marginBeforeReturns = margin;
     const marginAfterReturns = totalRevenue > 0 ? Math.round((netProfitAfterReturns / totalRevenue) * 100) : 0;
 
@@ -632,13 +665,12 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
         missingProductLines,
         totalReturnEvents: returnEventsInPeriod.length,
         verifiedReturnEvents: verifiedReturnRows.length,
-        totalRefundAmount,
-        totalDeliveryCostLoss,
-        totalReturnShippingCost,
-        totalPackagingLoss,
-        totalProductWriteOffAmount,
-        totalCogsLoss,
-        totalReturnFinancialImpact,
+        // ── Return breakdown (split model) ──
+        salesReturnDeduction: totalSalesReturnDeduction,  // revenue reversal
+        actualReturnLoss: totalActualReturnLoss,           // operational + non-recoverable only
+        totalReturnFinancialImpact: totalSalesReturnDeduction + totalActualReturnLoss,
+        sellableReturnedCount,
+        nonSellableReturnedCount,
         netProfitBeforeReturns,
         netProfitAfterReturns,
         marginBeforeReturns,
@@ -1985,12 +2017,13 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     const sumRet = (key: keyof typeof verifiedReturnRows[0]) =>
       verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
 
-    const totalReturnFinancialImpact =
-      sumRet("refundAmount") + sumRet("deliveryCostLoss") + sumRet("returnShippingCost") +
-      sumRet("packagingLoss") + sumRet("productWriteOffAmount") + sumRet("cogsLoss");
+    const totalSalesReturnDeduction = verifiedReturnRows.reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
+    const totalActualReturnLoss = verifiedReturnRows.reduce((s, e) => s + eventActualReturnLoss(e), 0);
+    const sellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked === true).length;
+    const nonSellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked !== true).length;
 
     const netProfitBeforeReturns = netProfitRaw;
-    const netProfitAfterReturns = netProfitRaw - totalReturnFinancialImpact;
+    const netProfitAfterReturns = netProfitRaw - totalSalesReturnDeduction - totalActualReturnLoss;
     const finalNetProfit = netProfitAfterReturns - expensesTotal;
     const marginAfterReturns = totalRevenue > 0 ? Math.round((netProfitAfterReturns / totalRevenue) * 100) : 0;
     const marginAfterExpenses = totalRevenue > 0 ? Math.round((finalNetProfit / totalRevenue) * 100) : 0;
@@ -2104,7 +2137,12 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
           grossProfit: Math.round(grossProfit),
           grossMargin,
           expensesTotal: Math.round(expensesTotal),
-          returnLossVerified: Math.round(totalReturnFinancialImpact),
+          // ── Return breakdown (split model) ──
+          salesReturnDeduction: Math.round(totalSalesReturnDeduction),  // revenue reversal
+          actualReturnLoss: Math.round(totalActualReturnLoss),           // operational losses only
+          returnLossVerified: Math.round(totalActualReturnLoss),         // kept for Groq audit compat
+          sellableReturnedCount,
+          nonSellableReturnedCount,
           netProfitBeforeReturns: Math.round(netProfitBeforeReturns),
           netProfitAfterReturns: Math.round(netProfitAfterReturns),
           finalNetProfit: Math.round(finalNetProfit),
@@ -2117,32 +2155,58 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
         returns: {
           verifiedReturnEvents: verifiedReturnRows.length,
           recordedReturnEvents: recordedReturnRows.length,
-          refundAmount: Math.round(sumRet("refundAmount")),
+          salesReturnDeduction: Math.round(totalSalesReturnDeduction),
+          actualReturnLoss: Math.round(totalActualReturnLoss),
+          sellableReturnedCount,
+          nonSellableReturnedCount,
+          refundAmount: Math.round(totalSalesReturnDeduction),
           deliveryCostLoss: Math.round(sumRet("deliveryCostLoss")),
           returnShippingCost: Math.round(sumRet("returnShippingCost")),
           packagingLoss: Math.round(sumRet("packagingLoss")),
           productWriteOffAmount: Math.round(sumRet("productWriteOffAmount")),
           cogsLoss: Math.round(sumRet("cogsLoss")),
-          totalReturnFinancialImpact: Math.round(totalReturnFinancialImpact),
-          events: verifiedReturnRows.map((e) => ({
-            id: e.id,
-            orderId: e.orderId,
-            orderNumber: retOrderMap.get(e.orderId) ?? null,
-            type: e.type,
-            refundAmount: toNumber(e.refundAmount),
-            deliveryCostLoss: toNumber(e.deliveryCostLoss),
-            returnShippingCost: toNumber(e.returnShippingCost),
-            packagingLoss: toNumber(e.packagingLoss),
-            productWriteOffAmount: toNumber(e.productWriteOffAmount),
-            cogsLoss: toNumber(e.cogsLoss),
-            totalImpact:
-              toNumber(e.refundAmount) + toNumber(e.deliveryCostLoss) + toNumber(e.returnShippingCost) +
-              toNumber(e.packagingLoss) + toNumber(e.productWriteOffAmount) + toNumber(e.cogsLoss),
-            reason: e.reason ?? null,
-            note: e.note ?? null,
-            status: e.status,
-            createdAt: toDate(e.createdAt).toISOString(),
-          })),
+          events: verifiedReturnRows.map((e) => {
+            const isSellable = e.restocked === true;
+            const hasIgnoredCogs = isSellable && toNumber(e.cogsLoss) > 0;
+            const evtActualLoss = eventActualReturnLoss(e);
+            const evtDeduction = eventSalesReturnDeduction(e);
+            const productCost = isSellable ? 0 : toNumber(e.cogsLoss);
+            const warnings: string[] = [];
+            if (hasIgnoredCogs) {
+              warnings.push("تم تجاهل كلفة المنتج كخسارة لأن المنتج راجع قابل للبيع.");
+            }
+            if (evtDeduction > 0 && isSellable) {
+              warnings.push("هذا خصم تسوية وليس خسارة منتج، لأن المنتج راجع قابل للبيع.");
+            }
+            if (!isSellable && toNumber(e.cogsLoss) > 0) {
+              warnings.push("تم احتساب كلفة المنتج كخسارة لأنه غير قابل للبيع / تالف.");
+            }
+            if (e.restocked === false && e.type !== "damaged_return" && toNumber(e.productWriteOffAmount) === 0 && toNumber(e.cogsLoss) === 0) {
+              warnings.push("المنتج راجع لكن لم يتم تأكيد رجوعه للمخزون.");
+            }
+            return {
+              id: e.id,
+              orderId: e.orderId,
+              orderNumber: retOrderMap.get(e.orderId) ?? null,
+              type: e.type,
+              restocked: e.restocked ?? false,
+              isProductLoss: !isSellable,
+              refundAmount: evtDeduction,
+              settlementDeduction: evtDeduction,
+              deliveryCostLoss: toNumber(e.deliveryCostLoss),
+              returnShippingCost: toNumber(e.returnShippingCost),
+              packagingLoss: toNumber(e.packagingLoss),
+              productWriteOffAmount: toNumber(e.productWriteOffAmount),
+              cogsLoss: toNumber(e.cogsLoss),
+              productCostCounted: productCost,
+              actualReturnLoss: evtActualLoss,
+              reason: e.reason ?? null,
+              note: e.note ?? null,
+              status: e.status,
+              createdAt: toDate(e.createdAt).toISOString(),
+              warnings,
+            };
+          }),
         },
         expenses: {
           total: Math.round(expensesTotal),

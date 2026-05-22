@@ -2596,3 +2596,23 @@ export type FinanceAuditRun = typeof financeAuditRuns.$inferSelect;
 export type InsertFinanceAuditRun = typeof financeAuditRuns.$inferInsert;
 export type FinanceAuditFinding = typeof financeAuditFindings.$inferSelect;
 export type InsertFinanceAuditFinding = typeof financeAuditFindings.$inferInsert;
+
+// Social Interactions Tracking for Auto-Responses
+export const socialInteractions = pgTable('social_interactions', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  platform: text('platform').notNull(), // instagram, facebook
+  mediaId: text('media_id').notNull(),
+  commentId: text('comment_id').notNull().unique(),
+  username: text('username').notNull(),
+  keywordMatched: text('keyword_matched').notNull(),
+  dmSent: boolean('dm_sent').default(false),
+  replySent: boolean('reply_sent').default(false),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  commentIdIdx: uniqueIndex('social_interactions_comment_id_idx').on(table.commentId),
+  mediaIdIdx: index('social_interactions_media_id_idx').on(table.mediaId),
+}));
+
+export const insertSocialInteractionSchema = createInsertSchema(socialInteractions);
+export type SocialInteraction = typeof socialInteractions.$inferSelect;
+

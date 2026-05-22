@@ -393,3 +393,54 @@ export async function validateToken(accessToken: string): Promise<boolean> {
         return false;
     }
 }
+
+// --- Auto Responder APIs ---
+
+export async function fetchFacebookComments(postId: string, pageAccessToken: string) {
+    let allComments: any[] = [];
+    let nextUrl: string | null = `${GRAPH_API_BASE}/${postId}/comments?fields=id,message,from,created_time&limit=100&access_token=${pageAccessToken}`;
+    
+    while (nextUrl) {
+        const response = await fetch(nextUrl);
+        if (!response.ok) {
+            console.error('Failed to fetch FB comments:', await response.text());
+            break;
+        }
+        const data = await response.json();
+        if (data.data) {
+            allComments = allComments.concat(data.data.map((c: any) => ({
+                id: c.id,
+                text: c.message,
+                username: c.from?.name || 'unknown',
+                timestamp: c.created_time
+            })));
+        }
+        nextUrl = data.paging?.next || null;
+    }
+    return allComments;
+}
+
+export async function replyToFacebookComment(commentId: string, message: string, pageAccessToken: string) {
+    const response = await fetch(`${GRAPH_API_BASE}/${commentId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, access_token: pageAccessToken })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to post public reply: ' + await response.text());
+    }
+    return response.json();
+}
+
+export async function sendFacebookPrivateReply(commentId: string, message: string, pageAccessToken: string) {
+    const response = await fetch(`${GRAPH_API_BASE}/${commentId}/private_replies`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, access_token: pageAccessToken })
+    });
+    if (!response.ok) {
+        throw new Error('Failed to send private reply: ' + await response.text());
+    }
+    return response.json();
+}
+

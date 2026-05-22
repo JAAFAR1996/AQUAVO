@@ -454,10 +454,16 @@ export function FinanceOverview({ period }: { period: Period }) {
               color={summary.costsComplete ? "#199bb8" : "#94a3b8"}
             />
             <KpiCard
-              label="خسائر الراجعات المعتمدة"
-              value={fmt(summary.totalReturnFinancialImpact)}
-              color={summary.totalReturnFinancialImpact > 0 ? "#ef4444" : "#64748b"}
-              sub={summary.verifiedReturnEvents > 0 ? `${summary.verifiedReturnEvents} راجع` : undefined}
+              label="خصم تسوية راجعات"
+              value={fmt(summary.salesReturnDeduction)}
+              color={summary.salesReturnDeduction > 0 ? "#f97316" : "#64748b"}
+              sub="عكس إيراد — ليس خسارة منتج"
+            />
+            <KpiCard
+              label="خسائر راجعات فعلية"
+              value={fmt(summary.actualReturnLoss)}
+              color={summary.actualReturnLoss > 0 ? "#ef4444" : "#64748b"}
+              sub={summary.nonSellableReturnedCount > 0 ? `${summary.nonSellableReturnedCount} غير قابل للبيع` : undefined}
             />
             <KpiCard
               label="الربح بعد الراجعات"

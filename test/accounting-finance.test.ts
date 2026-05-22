@@ -1513,3 +1513,143 @@ describe("Audit history persistence status", () => {
     expect(migrationFile).toContain("finance-audit-tables");
   });
 });
+
+// ─── Return-loss split model ─────────────────────────────────────────────────
+//
+// Business rule:
+//   salesReturnDeduction  = refundAmount  (revenue reversal, affects P&L, NOT a product loss)
+//   actualReturnLoss      = opLoss + writeOff + (restocked ? 0 : cogsLoss)
+//   netProfitAfterReturns = netProfit - salesReturnDeduction - actualReturnLoss
+
+type ReturnEventLike = {
+  refundAmount: number;
+  deliveryCostLoss: number;
+  returnShippingCost: number;
+  packagingLoss: number;
+  productWriteOffAmount: number;
+  cogsLoss: number;
+  restocked: boolean | null;
+};
+
+function eventSalesReturnDeduction(e: ReturnEventLike): number {
+  return e.refundAmount;
+}
+
+function eventActualReturnLoss(e: ReturnEventLike): number {
+  const opLoss = e.deliveryCostLoss + e.returnShippingCost + e.packagingLoss;
+  const writeOff = e.productWriteOffAmount;
+  const productCost = e.restocked !== true ? e.cogsLoss : 0;
+  return opLoss + writeOff + productCost;
+}
+
+describe("return-loss split model", () => {
+  it("sellable return: actualReturnLoss excludes cogsLoss (restocked=true)", () => {
+    const event: ReturnEventLike = {
+      refundAmount: 50000,
+      deliveryCostLoss: 5000,
+      returnShippingCost: 3000,
+      packagingLoss: 1000,
+      productWriteOffAmount: 0,
+      cogsLoss: 30000,
+      restocked: true,
+    };
+    // cogsLoss is excluded because the product came back to stock
+    expect(eventActualReturnLoss(event)).toBe(5000 + 3000 + 1000); // 9000
+  });
+
+  it("sellable return: salesReturnDeduction equals refundAmount (revenue reversal only)", () => {
+    const event: ReturnEventLike = {
+      refundAmount: 50000,
+      deliveryCostLoss: 5000,
+      returnShippingCost: 3000,
+      packagingLoss: 1000,
+      productWriteOffAmount: 0,
+      cogsLoss: 30000,
+      restocked: true,
+    };
+    expect(eventSalesReturnDeduction(event)).toBe(50000);
+  });
+
+  it("damaged return: actualReturnLoss includes cogsLoss (restocked=false)", () => {
+    const event: ReturnEventLike = {
+      refundAmount: 40000,
+      deliveryCostLoss: 5000,
+      returnShippingCost: 3000,
+      packagingLoss: 2000,
+      productWriteOffAmount: 10000,
+      cogsLoss: 25000,
+      restocked: false,
+    };
+    // All losses apply: op + writeOff + cogs
+    expect(eventActualReturnLoss(event)).toBe(5000 + 3000 + 2000 + 10000 + 25000); // 45000
+  });
+
+  it("restocked=null is treated as non-sellable (cogsLoss counted as loss)", () => {
+    const event: ReturnEventLike = {
+      refundAmount: 30000,
+      deliveryCostLoss: 2000,
+      returnShippingCost: 1000,
+      packagingLoss: 0,
+      productWriteOffAmount: 0,
+      cogsLoss: 20000,
+      restocked: null,
+    };
+    // null restocked → cogsLoss included
+    expect(eventActualReturnLoss(event)).toBe(2000 + 1000 + 20000); // 23000
+  });
+
+  it("refundAmount does NOT appear in actualReturnLoss for any return type", () => {
+    const sellable: ReturnEventLike = {
+      refundAmount: 60000, deliveryCostLoss: 0, returnShippingCost: 0,
+      packagingLoss: 0, productWriteOffAmount: 0, cogsLoss: 0, restocked: true,
+    };
+    const damaged: ReturnEventLike = {
+      refundAmount: 60000, deliveryCostLoss: 0, returnShippingCost: 0,
+      packagingLoss: 0, productWriteOffAmount: 0, cogsLoss: 0, restocked: false,
+    };
+    expect(eventActualReturnLoss(sellable)).toBe(0);
+    expect(eventActualReturnLoss(damaged)).toBe(0);
+  });
+
+  it("COD settlement deduction equals refundAmount (settlement ≠ product loss)", () => {
+    // The COD formula: pendingSettlement = max(0, deliveredNetTotal - received - approvedReturnDeductions)
+    // approvedReturnDeductions = sum(refundAmount) for verified events on delivered orders
+    const deliveredNetTotal = 500000;
+    const receivedCash = 400000;
+    const refundAmount = 30000; // settlement deduction
+    const pending = Math.max(0, deliveredNetTotal - receivedCash - refundAmount);
+    expect(pending).toBe(70000);
+    // The refundAmount (30000) reduces settlement — it is NOT an additional product loss
+  });
+
+  it("netProfitAfterReturns uses both salesReturnDeduction and actualReturnLoss", () => {
+    const netProfitBeforeReturns = 300000;
+    const event: ReturnEventLike = {
+      refundAmount: 50000,
+      deliveryCostLoss: 5000,
+      returnShippingCost: 3000,
+      packagingLoss: 1000,
+      productWriteOffAmount: 0,
+      cogsLoss: 30000,
+      restocked: true,  // sellable → cogsLoss excluded from actualReturnLoss
+    };
+    const deduction = eventSalesReturnDeduction(event); // 50000
+    const loss = eventActualReturnLoss(event);           // 9000 (no cogs)
+    const netProfitAfterReturns = netProfitBeforeReturns - deduction - loss;
+    expect(netProfitAfterReturns).toBe(241000); // 300000 - 50000 - 9000
+  });
+
+  it("write-off event always counts productWriteOffAmount regardless of restocked status", () => {
+    const event: ReturnEventLike = {
+      refundAmount: 0,
+      deliveryCostLoss: 0,
+      returnShippingCost: 0,
+      packagingLoss: 0,
+      productWriteOffAmount: 15000,
+      cogsLoss: 20000,
+      restocked: true, // even if restocked, writeOff is always a real loss
+    };
+    // writeOff is included; cogsLoss excluded because restocked=true
+    expect(eventActualReturnLoss(event)).toBe(15000);
+  });
+});

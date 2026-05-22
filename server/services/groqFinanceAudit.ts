@@ -38,6 +38,7 @@ export interface FinanceSnapshot {
   profitBeforeExpensesAndReturns: number;
   /** grossProfit - expensesTotal (after expenses, BEFORE subtracting return losses) */
   profitAfterExpensesBeforeReturns: number;
+  /** finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss */
   finalNetProfit: number;
   cogsBasis: "approximate_current_cost" | "unavailable";
   // COD settlement
@@ -51,6 +52,10 @@ export interface FinanceSnapshot {
   returnedOrdersCount: number;
   returnedProductsCount: number;
   refundAmount: number;
+  /** Revenue reversal: sum(refundAmount) for verified events — reduces netProfitAfterReturns but is NOT a product loss */
+  salesReturnDeduction: number;
+  /** Operational + non-recoverable product costs for verified events — restocked products do not contribute cogsLoss here */
+  actualReturnLoss: number;
   totalReturnFinancialImpact: number;
   // Inventory
   inventoryValueAtCost: number;
@@ -183,18 +188,24 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   );
   const pendingSettlement = Math.max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions);
 
-  // Return losses (verified only)
-  const sumRet = (field: string) =>
-    verifiedEvents.reduce((s, e) => s + toNum((e as Record<string, unknown>)[field]), 0);
-  const refundAmount = Math.round(sumRet("refundAmount"));
-  const totalReturnFinancialImpact = Math.round(
-    sumRet("refundAmount") +
-    sumRet("deliveryCostLoss") +
-    sumRet("returnShippingCost") +
-    sumRet("packagingLoss") +
-    sumRet("productWriteOffAmount") +
-    sumRet("cogsLoss")
-  );
+  // Return losses (verified only) — split: revenue reversal vs actual loss
+  type ReturnEventRow = typeof returnEvents[number];
+
+  function evtSalesReturnDeduction(e: ReturnEventRow): number {
+    return toNum(e.refundAmount);
+  }
+
+  function evtActualReturnLoss(e: ReturnEventRow): number {
+    const opLoss = toNum(e.deliveryCostLoss) + toNum(e.returnShippingCost) + toNum(e.packagingLoss);
+    const writeOff = toNum(e.productWriteOffAmount);
+    const productCost = e.restocked !== true ? toNum(e.cogsLoss) : 0;
+    return opLoss + writeOff + productCost;
+  }
+
+  const salesReturnDeduction = Math.round(verifiedEvents.reduce((s, e) => s + evtSalesReturnDeduction(e), 0));
+  const actualReturnLoss = Math.round(verifiedEvents.reduce((s, e) => s + evtActualReturnLoss(e), 0));
+  const totalReturnFinancialImpact = salesReturnDeduction + actualReturnLoss;
+  const refundAmount = salesReturnDeduction;
 
   // Return counts
   const RETURN_STATUSES = [
@@ -241,7 +252,7 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   const expensesTotal = Math.round(expenseRows.reduce((s, e) => s + toNum(e.amount), 0));
   const profitBeforeExpensesAndReturns = grossProfit;
   const profitAfterExpensesBeforeReturns = grossProfit - expensesTotal;
-  const finalNetProfit = profitAfterExpensesBeforeReturns - totalReturnFinancialImpact;
+  const finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss;
 
   // Inventory
   let inventoryValueAtCost = 0;
@@ -301,6 +312,8 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
     returnedOrdersCount,
     returnedProductsCount,
     refundAmount,
+    salesReturnDeduction,
+    actualReturnLoss,
     totalReturnFinancialImpact,
     inventoryValueAtCost: Math.round(inventoryValueAtCost),
     lowStockCount,
@@ -351,14 +364,15 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
     note: "approvedReturnDeductions must not exceed deliveredNetTotal",
   });
 
-  // 4. Return loss applied once — finalNetProfit = profitAfterExpensesBeforeReturns - returnLossVerified
-  const computedFinal = snapshot.profitAfterExpensesBeforeReturns - snapshot.returnLossVerified;
+  // 4. Return loss applied once — finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss
+  const computedFinal =
+    snapshot.profitAfterExpensesBeforeReturns - snapshot.salesReturnDeduction - snapshot.actualReturnLoss;
   checks.push({
     name: "return loss affects profit once only",
     passed: Math.abs(computedFinal - snapshot.finalNetProfit) < 1,
     expected: computedFinal,
     actual: snapshot.finalNetProfit,
-    note: "finalNetProfit = profitAfterExpensesBeforeReturns - returnLossVerified",
+    note: "finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss",
   });
 
   // 5. Returned product count is non-negative
@@ -382,6 +396,42 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
     passed: snapshot.inventoryValueAtCost >= 0,
     actual: snapshot.inventoryValueAtCost,
     note: "inventoryValueAtCost must be >= 0",
+  });
+
+  // 8. salesReturnDeduction == refundAmount (refundAmount is revenue reversal only, not product loss)
+  checks.push({
+    name: "salesReturnDeduction equals refundAmount",
+    passed: Math.abs(snapshot.salesReturnDeduction - snapshot.refundAmount) < 1,
+    expected: snapshot.refundAmount,
+    actual: snapshot.salesReturnDeduction,
+    note: "refundAmount is a revenue reversal (not product loss) and must equal salesReturnDeduction",
+  });
+
+  // 9. Return deduction split is complete and consistent
+  const splitSum = snapshot.salesReturnDeduction + snapshot.actualReturnLoss;
+  checks.push({
+    name: "return deduction split is consistent",
+    passed: Math.abs(splitSum - snapshot.totalReturnFinancialImpact) < 1,
+    expected: snapshot.totalReturnFinancialImpact,
+    actual: splitSum,
+    note: "salesReturnDeduction + actualReturnLoss must equal totalReturnFinancialImpact",
+  });
+
+  // 10. actualReturnLoss is non-negative (sellable returns must not create negative losses)
+  checks.push({
+    name: "actualReturnLoss non-negative",
+    passed: snapshot.actualReturnLoss >= 0,
+    actual: snapshot.actualReturnLoss,
+    note: "actualReturnLoss (operational + non-recoverable product costs) must be >= 0",
+  });
+
+  // 11. salesReturnDeduction does not exceed deliveredNetTotal (can't refund more than was billed)
+  checks.push({
+    name: "salesReturnDeduction within delivered net total",
+    passed: snapshot.salesReturnDeduction <= snapshot.deliveredNetTotal + 1,
+    expected: snapshot.deliveredNetTotal,
+    actual: snapshot.salesReturnDeduction,
+    note: "salesReturnDeduction (total refunds) must not exceed deliveredNetTotal",
   });
 
   return checks;
@@ -441,8 +491,10 @@ export async function runGroqAudit(
 الربح قبل المصاريف وقبل الراجعات (profitBeforeExpensesAndReturns): ${snapshot.profitBeforeExpensesAndReturns.toLocaleString("en-US")} د.ع
 إجمالي المصاريف: ${snapshot.expensesTotal.toLocaleString("en-US")} د.ع
 الربح بعد المصاريف وقبل الراجعات (profitAfterExpensesBeforeReturns): ${snapshot.profitAfterExpensesBeforeReturns.toLocaleString("en-US")} د.ع
-خسائر الراجعات (معتمدة فقط): ${snapshot.returnLossVerified.toLocaleString("en-US")} د.ع
-صافي الربح النهائي (finalNetProfit = profitAfterExpensesBeforeReturns - returnLoss): ${snapshot.finalNetProfit.toLocaleString("en-US")} د.ع
+خصم تسوية الراجعات / عكس إيراد (salesReturnDeduction = refundAmount): ${snapshot.salesReturnDeduction.toLocaleString("en-US")} د.ع
+خسائر الراجعات الفعلية — تشغيلية + منتجات غير قابلة للبيع (actualReturnLoss): ${snapshot.actualReturnLoss.toLocaleString("en-US")} د.ع
+ملاحظة: المنتجات الراجعة القابلة للبيع (restocked=true) لا تُحسب كلفتها ضمن actualReturnLoss
+صافي الربح النهائي (finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss): ${snapshot.finalNetProfit.toLocaleString("en-US")} د.ع
 
 == تسوية COD ==
 إجمالي ما يستحقه البائع (مسلّمات - رسوم شحن): ${snapshot.deliveredNetTotal.toLocaleString("en-US")} د.ع
@@ -455,8 +507,10 @@ export async function runGroqAudit(
 أحداث إرجاع مسجّلة (غير معتمدة): ${snapshot.recordedReturnEventsCount}
 طلبيات راجعة/ملغاة: ${snapshot.returnedOrdersCount}
 منتجات راجعة (وحدات): ${snapshot.returnedProductsCount}
-مبالغ مردودة (refund): ${snapshot.refundAmount.toLocaleString("en-US")} د.ع
-إجمالي التأثير المالي للراجعات: ${snapshot.totalReturnFinancialImpact.toLocaleString("en-US")} د.ع
+مبالغ مردودة (refundAmount / salesReturnDeduction): ${snapshot.refundAmount.toLocaleString("en-US")} د.ع
+خصم تسوية COD (salesReturnDeduction — عكس إيراد، ليس خسارة منتج): ${snapshot.salesReturnDeduction.toLocaleString("en-US")} د.ع
+خسائر فعلية للراجعات (actualReturnLoss — تشغيلية + غير قابلة للبيع): ${snapshot.actualReturnLoss.toLocaleString("en-US")} د.ع
+إجمالي التأثير المالي للراجعات (salesReturnDeduction + actualReturnLoss): ${snapshot.totalReturnFinancialImpact.toLocaleString("en-US")} د.ع
 
 == المخزون ==
 قيمة المخزون بالكلفة: ${snapshot.inventoryValueAtCost.toLocaleString("en-US")} د.ع

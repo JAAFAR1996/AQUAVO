@@ -106,15 +106,11 @@ function fmtDate(iso: string | null): string {
   });
 }
 
-function eventTotalImpact(e: ReturnEventEnriched): number {
-  return (
-    e.refundAmount +
-    e.deliveryCostLoss +
-    e.returnShippingCost +
-    e.packagingLoss +
-    e.productWriteOffAmount +
-    e.cogsLoss
-  );
+function eventActualReturnLoss(e: ReturnEventEnriched): number {
+  const opLoss = e.deliveryCostLoss + e.returnShippingCost + e.packagingLoss;
+  const writeOff = e.productWriteOffAmount;
+  const productCost = e.restocked !== true ? e.cogsLoss : 0;
+  return opLoss + writeOff + productCost;
 }
 
 function errMsg(e: unknown): string {
@@ -662,7 +658,8 @@ export function FinanceReturnEvents() {
                 <th style={S.th}>خسارة تغليف</th>
                 <th style={S.th}>شطب منتج</th>
                 <th style={S.th}>COGS</th>
-                <th style={{ ...S.th, color: "#ef4444" }}>إجمالي التأثير</th>
+                <th style={{ ...S.th, color: "#f97316" }}>خصم تسوية COD</th>
+                <th style={{ ...S.th, color: "#ef4444" }}>خسارة فعلية</th>
                 <th style={S.th}>للمخزن</th>
                 <th style={S.th}>تاريخ التسجيل</th>
                 <th style={S.th}>ملاحظة</th>
@@ -671,7 +668,7 @@ export function FinanceReturnEvents() {
             </thead>
             <tbody>
               {events.map((e) => {
-                const total = eventTotalImpact(e);
+                const actualLoss = eventActualReturnLoss(e);
                 return (
                   <tr key={e.id} style={{ background: e.status === "disputed" ? "#0d0d0d" : undefined }}>
                     <td style={S.td}>
@@ -699,14 +696,22 @@ export function FinanceReturnEvents() {
                     <td style={{ ...S.td, maxWidth: 180, whiteSpace: "normal", color: "#94a3b8" }}>
                       {e.reason ?? "—"}
                     </td>
-                    <td style={S.td}>{e.refundAmount > 0 ? fmtIqd(e.refundAmount) : "—"}</td>
                     <td style={S.td}>{e.deliveryCostLoss > 0 ? fmtIqd(e.deliveryCostLoss) : "—"}</td>
                     <td style={S.td}>{e.returnShippingCost > 0 ? fmtIqd(e.returnShippingCost) : "—"}</td>
                     <td style={S.td}>{e.packagingLoss > 0 ? fmtIqd(e.packagingLoss) : "—"}</td>
                     <td style={S.td}>{e.productWriteOffAmount > 0 ? fmtIqd(e.productWriteOffAmount) : "—"}</td>
-                    <td style={S.td}>{e.cogsLoss > 0 ? fmtIqd(e.cogsLoss) : "—"}</td>
-                    <td style={{ ...S.td, color: total > 0 ? "#ef4444" : "#64748b", fontWeight: 700 }}>
-                      {total > 0 ? fmtIqd(total) : "—"}
+                    <td style={S.td}>
+                      {e.cogsLoss > 0 ? (
+                        <span style={{ color: e.restocked ? "#64748b" : "#ef4444" }}>
+                          {fmtIqd(e.cogsLoss)}{e.restocked ? " (متجاهل)" : ""}
+                        </span>
+                      ) : "—"}
+                    </td>
+                    <td style={{ ...S.td, color: e.refundAmount > 0 ? "#f97316" : "#64748b", fontWeight: 700 }}>
+                      {e.refundAmount > 0 ? fmtIqd(e.refundAmount) : "—"}
+                    </td>
+                    <td style={{ ...S.td, color: actualLoss > 0 ? "#ef4444" : "#64748b", fontWeight: 700 }}>
+                      {actualLoss > 0 ? fmtIqd(actualLoss) : "—"}
                     </td>
                     <td style={S.td}>
                       {e.restocked ? (

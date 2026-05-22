@@ -120,7 +120,8 @@ function exportCSV(report: AccountingReport, period: Period) {
     ["التغليف", s.totalPackaging],
     ["الربح الإجمالي", s.grossProfit],
     ["هامش الربح الإجمالي", pct(s.grossMargin)],
-    ["خسائر الراجعات المعتمدة", s.returnLossVerified],
+    ["خصم تسوية راجعات (عكس إيراد)", s.salesReturnDeduction],
+    ["خسائر راجعات فعلية (تشغيلية)", s.actualReturnLoss],
     ["الربح بعد الراجعات", s.netProfitAfterReturns],
     ["المصاريف", s.expensesTotal],
     ["صافي الربح النهائي", s.finalNetProfit],
@@ -216,7 +217,8 @@ export function FinanceReport({ period }: { period: Period }) {
         <Card label="الإيرادات" value={fmt(s.revenue)} />
         <Card label="الربح الإجمالي" value={fmt(s.grossProfit)} sub={pct(s.grossMargin)} />
         <Card label="الربح قبل الراجعات" value={s.costsComplete ? fmt(s.netProfitBeforeReturns) : "غير مكتمل"} color={s.costsComplete ? "#199bb8" : "#94a3b8"} />
-        <Card label="خسائر الراجعات" value={fmt(s.returnLossVerified)} color={s.returnLossVerified > 0 ? "#ef4444" : "#64748b"} sub={`${report.returns.verifiedReturnEvents} راجع معتمد`} />
+        <Card label="خصم تسوية راجعات" value={fmt(s.salesReturnDeduction)} color={s.salesReturnDeduction > 0 ? "#f97316" : "#64748b"} sub="عكس إيراد — ليس خسارة منتج" />
+        <Card label="خسائر راجعات فعلية" value={fmt(s.actualReturnLoss)} color={s.actualReturnLoss > 0 ? "#ef4444" : "#64748b"} sub={`${s.nonSellableReturnedCount} غير قابل للبيع`} />
         <Card label="الربح بعد الراجعات" value={s.costsComplete ? fmt(s.netProfitAfterReturns) : "غير مكتمل"} color={s.costsComplete ? profitColor(s.netProfitAfterReturns) : "#94a3b8"} sub={s.costsComplete ? pct(s.marginAfterReturns) : undefined} />
         <Card label="المصاريف" value={fmt(s.expensesTotal)} color={s.expensesTotal > 0 ? "#f97316" : "#64748b"} />
         <Card label="صافي الربح النهائي" value={s.costsComplete ? fmt(s.finalNetProfit) : "غير مكتمل"} color={s.costsComplete ? profitColor(s.finalNetProfit) : "#94a3b8"} sub={s.costsComplete ? pct(s.marginAfterExpenses) : undefined} />
@@ -231,7 +233,8 @@ export function FinanceReport({ period }: { period: Period }) {
           { label: "كلفة البضاعة", value: -s.totalCogs, type: "sub", color: "#ef4444" },
           { label: "التغليف والكارتون", value: -s.totalPackaging, type: "sub", color: "#ef4444" },
           { label: "= الربح الإجمالي", value: s.grossProfit, type: "result", color: profitColor(s.grossProfit), badge: pct(s.grossMargin) },
-          { label: "خسائر الراجعات المعتمدة", value: -s.returnLossVerified, type: "sub", color: s.returnLossVerified > 0 ? "#ef4444" : "#64748b" },
+          { label: "خصم تسوية راجعات (عكس إيراد)", value: -s.salesReturnDeduction, type: "sub", color: s.salesReturnDeduction > 0 ? "#f97316" : "#64748b" },
+          { label: "خسائر راجعات فعلية (تشغيلية + غير قابلة للبيع)", value: -s.actualReturnLoss, type: "sub", color: s.actualReturnLoss > 0 ? "#ef4444" : "#64748b" },
           { label: "= الربح بعد الراجعات", value: s.netProfitAfterReturns, type: "result", color: profitColor(s.netProfitAfterReturns), badge: s.costsComplete ? pct(s.marginAfterReturns) : undefined },
           { label: "المصاريف", value: -s.expensesTotal, type: "sub", color: s.expensesTotal > 0 ? "#f97316" : "#64748b" },
           { label: "= صافي الربح النهائي", value: s.finalNetProfit, type: "result", color: profitColor(s.finalNetProfit), badge: s.costsComplete ? pct(s.marginAfterExpenses) : undefined },
@@ -421,7 +424,9 @@ export function FinanceReport({ period }: { period: Period }) {
               <tr>
                 <TH>رقم الطلب</TH>
                 <TH>نوع الراجع</TH>
-                <TH>إجمالي الخسارة</TH>
+                <TH>قابل للبيع</TH>
+                <TH>خصم تسوية COD</TH>
+                <TH>خسارة فعلية</TH>
                 <TH>السبب</TH>
                 <TH>الحالة</TH>
                 <TH>التاريخ</TH>
@@ -432,7 +437,9 @@ export function FinanceReport({ period }: { period: Period }) {
                 <tr key={e.id}>
                   <TD color="#199bb8">{e.orderNumber ?? e.orderId.slice(0, 8) + "…"}</TD>
                   <TD>{RETURN_TYPE_LABELS[e.type] ?? e.type}</TD>
-                  <TD color="#ef4444">{fmt(e.totalImpact)}</TD>
+                  <TD color={e.restocked ? "#22c55e" : "#f59e0b"}>{e.restocked ? "نعم" : "لا"}</TD>
+                  <TD color="#f97316">{e.settlementDeduction > 0 ? fmt(e.settlementDeduction) : "—"}</TD>
+                  <TD color={e.actualReturnLoss > 0 ? "#ef4444" : "#64748b"}>{e.actualReturnLoss > 0 ? fmt(e.actualReturnLoss) : "—"}</TD>
                   <TD color="#94a3b8">{e.reason ?? e.note ?? "—"}</TD>
                   <TD color="#22c55e">{e.status === "verified" ? "معتمد" : e.status}</TD>
                   <TD color="#475569">{new Date(e.createdAt).toLocaleDateString("ar-IQ")}</TD>
