@@ -88,3 +88,9 @@ TOOLS/gmail-creator/
 
 # Superpowers plugin cache
 .superpowers/
+
+build-output.txt
+test-output.txt
+*.log
+.cache/
+.vercel/cache/
