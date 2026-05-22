@@ -1,37 +1,51 @@
-import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, ExternalLink } from "lucide-react";
 
 export default function Guide5Mistakes() {
-  return (
-    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6" dir="rtl">
-      <div className="max-w-2xl w-full text-center space-y-8">
-        <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-          دليل الأخطاء الخمسة الشائعة بالأحواض
-        </h1>
-        
-        <p className="text-lg md:text-xl text-neutral-400">
-          اكتشف الأخطاء التي تدمر حوضك وتعلم كيفية تجنبها بخطوات عملية بسيطة.
-        </p>
+  const pdfUrl = "/assets/guides/aquavo-5-mistakes-guide-final.pdf";
 
-        <div className="pt-8">
-          <Button 
-            asChild
-            size="lg"
-            className="w-full sm:w-auto text-lg h-14 px-8 bg-blue-600 hover:bg-blue-700 text-white font-medium border-0"
-          >
-            <a 
-              href="/assets/guides/aquavo-5-mistakes-guide-final.pdf" 
-              download
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 justify-center"
-            >
-              <Download className="w-6 h-6" />
-              <span>تحميل PDF</span>
-            </a>
-          </Button>
+  return (
+    <div className="flex flex-col min-h-screen bg-[#010611] text-white" dir="rtl">
+      {/* Top Bar */}
+      <header className="flex-shrink-0 h-16 bg-[#010611]/96 border-b border-[#199BB8]/35 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20">
+        <div className="text-[#199BB8] font-bold tracking-[4px] text-xl">
+          AQUAVO
         </div>
-      </div>
+        
+        <div className="flex items-center gap-3">
+          <a
+            href={pdfUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center bg-transparent text-[#E8EDF2] border border-[#199BB8]/45 hover:bg-[#199BB8]/10 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 rounded-full font-bold transition-colors"
+          >
+            <span className="hidden md:inline ml-2">فتح بصفحة كاملة</span>
+            <span className="inline md:hidden ml-2">فتح</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+
+          <a
+            href={pdfUrl}
+            download
+            className="flex items-center justify-center bg-[#199BB8] text-[#010611] hover:bg-[#199BB8]/90 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4 rounded-full font-bold transition-colors"
+          >
+            <span className="ml-2">تحميل PDF</span>
+            <Download className="w-4 h-4" />
+          </a>
+        </div>
+      </header>
+
+      {/* PDF Viewer */}
+      <main className="flex-1 w-full bg-[#010611] relative">
+        <div className="absolute inset-0 flex items-center justify-center p-6 text-center text-neutral-400 -z-10">
+          <p>إذا ما ظهر الدليل داخل الصفحة، اضغط تحميل PDF.</p>
+        </div>
+        
+        <iframe
+          src={`${pdfUrl}#toolbar=1&navpanes=0&scrollbar=1`}
+          title="دليل الأخطاء الخمسة الشائعة بالأحواض"
+          className="w-full h-full min-h-[calc(100vh-64px)] border-0 block bg-[#010611]"
+        />
+      </main>
     </div>
   );
 }
