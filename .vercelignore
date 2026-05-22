@@ -3,3 +3,5 @@ node_modules
 !.env.example
 *.test.ts
 __tests__
+.playwright-mcp/
+Launch_Ideas/
