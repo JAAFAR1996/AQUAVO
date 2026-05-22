@@ -210,20 +210,15 @@ export class InvoiceStorage {
     const { orders, orderItems } = await import("../../shared/schema.js");
     const orderId = randomUUID();
 
-    // Create order
+    // Create order (only columns that exist in the Drizzle schema)
     await db.insert(orders).values({
       id: orderId,
       userId: null,
       status: "pending",
       total: invoice.total,
-      subtotal: invoice.subtotal,
-      discount: invoice.discount,
       shippingCost: invoice.delivery,
       customerName: invoice.customerName,
       customerPhone: invoice.customerPhone,
-      customerCity: invoice.customerCity ?? "",
-      customerAddress: invoice.customerAddress ?? "",
-      notes: `طلب واتساب — فاتورة ${invoice.invoiceNo}`,
       source: "whatsapp",
       items: (invoice.items as any[]).map((i) => ({
         productId: i.productId,
@@ -234,7 +229,7 @@ export class InvoiceStorage {
       })),
       createdAt: new Date(),
       updatedAt: new Date(),
-    } as any);
+    });
 
     // Create order items + deduct stock
     const { products } = await import("../../shared/schema.js");

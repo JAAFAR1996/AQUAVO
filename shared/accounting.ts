@@ -33,9 +33,46 @@ export const accountingCompletenessSchema = z.object({
   missingProductLines: z.number(),
 });
 
+export const whatsappInvoiceSummarySchema = z.object({
+  total: z.number(),           // all manual_invoices in period
+  accepted: z.number(),        // status: confirmed | completed
+  pendingDelivery: z.number(), // accepted but linked order not yet delivered
+  delivered: z.number(),       // linked order delivered → financially realised
+  revenue: z.number(),         // revenue from delivered WhatsApp orders
+  profit: z.number(),          // profit from delivered WhatsApp orders (0 if cost data missing)
+  costsComplete: z.boolean(),  // false if any delivered invoice has products with missing cost
+});
+
+export const whatsappInvoiceDrilldownItemSchema = z.object({
+  invoiceId: z.string(),
+  invoiceNo: z.string(),
+  customerName: z.string(),
+  invoiceStatus: z.string(),
+  orderStatus: z.string().nullable(), // null if no linked order
+  paymentStatus: z.string().nullable(),
+  total: z.number(),
+  deliveryFee: z.number(),
+  subtotal: z.number(),
+  cost: z.number(),
+  profit: z.number(),
+  costsComplete: z.boolean(),
+  financiallyIncluded: z.boolean(),
+  exclusionReason: z.string().nullable(),
+  orderId: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+export const whatsappInvoiceDrilldownSchema = z.object({
+  summary: whatsappInvoiceSummarySchema,
+  invoices: z.array(whatsappInvoiceDrilldownItemSchema),
+});
+
 export const accountingSummarySchema = accountingCompletenessSchema.extend({
   period: z.string(),
   totalOrders: z.number(),
+  websiteOrdersCount: z.number(),    // totalOrders minus WhatsApp-sourced orders
+  whatsappOrdersCount: z.number(),   // orders with source='whatsapp'
+  whatsappInvoices: whatsappInvoiceSummarySchema,
   deliveredCount: z.number(),
   cancelledCount: z.number(),
   rejectedCount: z.number(),
@@ -237,6 +274,9 @@ export const accountingCostHistoryResponseSchema = z.array(accountingCostHistory
 export const accountingCouponsResponseSchema = z.array(accountingCouponUsageSchema);
 
 export type AccountingSummary = z.infer<typeof accountingSummarySchema>;
+export type WhatsappInvoiceSummary = z.infer<typeof whatsappInvoiceSummarySchema>;
+export type WhatsappInvoiceDrilldownItem = z.infer<typeof whatsappInvoiceDrilldownItemSchema>;
+export type WhatsappInvoiceDrilldown = z.infer<typeof whatsappInvoiceDrilldownSchema>;
 export type AccountingProductProfit = z.infer<typeof accountingProductProfitSchema>;
 export type AccountingOrderProfit = z.infer<typeof accountingOrderProfitSchema>;
 export type AccountingCodSummary = z.infer<typeof accountingCodSummarySchema>;

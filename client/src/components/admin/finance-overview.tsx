@@ -8,6 +8,7 @@ import {
   accountingReturnedOrdersSchema,
   accountingReturnMetricsSchema,
   accountingInventorySchema,
+  whatsappInvoiceDrilldownSchema,
   type AccountingPeriod,
   type AccountingSummary,
   type AccountingCodSummary,
@@ -15,6 +16,7 @@ import {
   type AccountingReturnedOrders,
   type AccountingReturnMetrics,
   type AccountingInventory,
+  type WhatsappInvoiceDrilldown,
 } from "@shared/accounting";
 
 type Period = Extract<AccountingPeriod, "day" | "week" | "month" | "year">;
@@ -161,6 +163,7 @@ function ErrorBanner({ message }: { message: string }) {
 export function FinanceOverview({ period }: { period: Period }) {
   const [showCodDetails, setShowCodDetails] = useState(false);
   const [showReturns, setShowReturns] = useState(false);
+  const [showWaDetails, setShowWaDetails] = useState(false);
 
   const {
     data: summary,
@@ -222,6 +225,19 @@ export function FinanceOverview({ period }: { period: Period }) {
     queryKey: ["accounting-inventory"],
     queryFn: () =>
       fetchAccounting("/api/admin/accounting/inventory", accountingInventorySchema),
+  });
+
+  const {
+    data: waInvoices,
+    isLoading: loadingWa,
+  } = useQuery<WhatsappInvoiceDrilldown>({
+    queryKey: ["accounting-whatsapp-invoices", period],
+    queryFn: () =>
+      fetchAccounting(
+        `/api/admin/accounting/whatsapp-invoices?period=${period}`,
+        whatsappInvoiceDrilldownSchema,
+      ),
+    enabled: showWaDetails,
   });
 
   return (
@@ -309,6 +325,119 @@ export function FinanceOverview({ period }: { period: Period }) {
           />
           <KpiCard label="متوسط قيمة الطلبية (AOV)" value={fmt(summary.aov)} />
         </KpiGrid>
+      )}
+
+      {/* Row 2b — WhatsApp Invoices */}
+      {summary && summary.whatsappInvoices.total > 0 && (
+        <>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>فواتير واتساب</div>
+            <button
+              onClick={() => setShowWaDetails((v) => !v)}
+              style={{
+                background: "#0d1f3c",
+                border: "1px solid #199bb830",
+                borderRadius: 6,
+                color: "#94a3b8",
+                fontSize: 11,
+                padding: "3px 10px",
+                cursor: "pointer",
+              }}
+            >
+              {showWaDetails ? "إخفاء" : "عرض التفاصيل"}
+            </button>
+          </div>
+          <KpiGrid>
+            <KpiCard
+              label="فواتير واتساب مقبولة"
+              value={String(summary.whatsappInvoices.accepted)}
+              sub={`من أصل ${summary.whatsappInvoices.total} فاتورة`}
+              color="#199bb8"
+            />
+            <KpiCard
+              label="فواتير واتساب بانتظار التسليم"
+              value={String(summary.whatsappInvoices.pendingDelivery)}
+              color={summary.whatsappInvoices.pendingDelivery > 0 ? "#f59e0b" : "#64748b"}
+            />
+            <KpiCard
+              label="فواتير واتساب محسوبة مالياً"
+              value={String(summary.whatsappInvoices.delivered)}
+              sub={summary.whatsappInvoices.delivered > 0 ? fmt(summary.whatsappInvoices.revenue) : undefined}
+              color={summary.whatsappInvoices.delivered > 0 ? "#22c55e" : "#64748b"}
+            />
+            {summary.whatsappInvoices.delivered > 0 && (
+              <KpiCard
+                label="ربح فواتير واتساب"
+                value={summary.whatsappInvoices.costsComplete ? fmt(summary.whatsappInvoices.profit) : "كلفة ناقصة"}
+                badge={!summary.whatsappInvoices.costsComplete ? "غير مكتمل" : undefined}
+                color={summary.whatsappInvoices.costsComplete ? "#199bb8" : "#94a3b8"}
+              />
+            )}
+          </KpiGrid>
+
+          {/* WhatsApp Drilldown */}
+          {showWaDetails && (
+            <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
+                تفاصيل فواتير واتساب
+              </div>
+              {loadingWa && <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>}
+              {waInvoices && waInvoices.invoices.length === 0 && (
+                <div style={{ color: "#64748b", fontSize: 12 }}>لا توجد فواتير في هذه الفترة</div>
+              )}
+              {waInvoices && waInvoices.invoices.length > 0 && (
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ color: "#64748b", borderBottom: "1px solid #1e3a5f" }}>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>رقم الفاتورة</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>الزبون</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>حالة الفاتورة</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>حالة الطلبية</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>المجموع</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>الربح</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>مدرجة مالياً</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>السبب</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px" }}>التاريخ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {waInvoices.invoices.map((inv) => (
+                        <tr key={inv.invoiceId} style={{ borderBottom: "1px solid #1e3a5f10", color: "#cbd5e1" }}>
+                          <td style={{ padding: "5px 8px" }}>{inv.invoiceNo}</td>
+                          <td style={{ padding: "5px 8px" }}>{inv.customerName}</td>
+                          <td style={{ padding: "5px 8px" }}>
+                            <span style={{
+                              background: inv.invoiceStatus === "confirmed" || inv.invoiceStatus === "completed"
+                                ? "#22c55e20" : "#ef444420",
+                              color: inv.invoiceStatus === "confirmed" || inv.invoiceStatus === "completed"
+                                ? "#86efac" : "#fca5a5",
+                              padding: "1px 6px", borderRadius: 4, fontSize: 10,
+                            }}>
+                              {inv.invoiceStatus}
+                            </span>
+                          </td>
+                          <td style={{ padding: "5px 8px", color: "#94a3b8" }}>{inv.orderStatus ?? "—"}</td>
+                          <td style={{ padding: "5px 8px" }}>{fmt(inv.total)}</td>
+                          <td style={{ padding: "5px 8px", color: inv.costsComplete ? "#199bb8" : "#94a3b8" }}>
+                            {inv.costsComplete ? fmt(inv.profit) : "كلفة ناقصة"}
+                          </td>
+                          <td style={{ padding: "5px 8px", color: inv.financiallyIncluded ? "#22c55e" : "#64748b" }}>
+                            {inv.financiallyIncluded ? "✓ نعم" : "لا"}
+                          </td>
+                          <td style={{ padding: "5px 8px", color: "#64748b", fontSize: 10 }}>
+                            {inv.exclusionReason ?? "—"}
+                          </td>
+                          <td style={{ padding: "5px 8px" }}>{new Date(inv.createdAt).toLocaleDateString("ar-IQ")}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Row 3 — Returns */}

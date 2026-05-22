@@ -150,12 +150,15 @@ export const orders = pgTable("orders", {
   carrier: text("carrier"),
   codReceived: boolean("cod_received").default(false),
   boxCost: numeric("box_cost").default("0"),
+  // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
+  source: text("source").default("website"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
   userIdIdx: index("orders_user_id_idx").on(table.userId),
   createdAtIdx: index("orders_created_at_idx").on(table.createdAt),
   statusIdx: index("orders_status_idx").on(table.status),
+  sourceIdx: index("orders_source_idx").on(table.source),
 }));
 
 export const shippingSettlements = pgTable("shipping_settlements", {

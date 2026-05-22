@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -277,6 +277,154 @@ async function getOrdersForPeriod(db: Db, start: Date, end: Date): Promise<Order
     .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
 }
 
+interface WhatsappInvoiceFinanceRow {
+  invoiceId: string;
+  invoiceNo: string;
+  customerName: string;
+  invoiceStatus: string;
+  orderStatus: string | null;
+  paymentStatus: string | null;
+  total: number;
+  deliveryFee: number;
+  subtotal: number;
+  cost: number;
+  profit: number;
+  costsComplete: boolean;
+  financiallyIncluded: boolean;
+  exclusionReason: string | null;
+  orderId: string | null;
+  createdAt: string;
+}
+
+async function buildWhatsappInvoiceBreakdown(
+  db: Db,
+  start: Date,
+  end: Date,
+  costs: CostResolver
+): Promise<{
+  summary: {
+    total: number;
+    accepted: number;
+    pendingDelivery: number;
+    delivered: number;
+    revenue: number;
+    profit: number;
+    costsComplete: boolean;
+  };
+  invoices: WhatsappInvoiceFinanceRow[];
+}> {
+  const invoiceRows = await db
+    .select()
+    .from(manualInvoices)
+    .where(and(gte(manualInvoices.createdAt, start), lte(manualInvoices.createdAt, end)));
+
+  // Fetch linked orders for all invoices that have an orderId
+  const orderIds = invoiceRows.map((i) => i.orderId).filter(Boolean) as string[];
+  const linkedOrders =
+    orderIds.length > 0
+      ? await db.select().from(orders).where(inArray(orders.id, orderIds))
+      : [];
+  const orderMap = new Map(linkedOrders.map((o) => [o.id, o]));
+
+  const ACCEPTED_STATUSES = ["confirmed", "completed"] as const;
+
+  let accepted = 0;
+  let pendingDelivery = 0;
+  let delivered = 0;
+  let revenue = 0;
+  let profit = 0;
+  let anyMissingCost = false;
+
+  const invoiceList: WhatsappInvoiceFinanceRow[] = [];
+
+  for (const inv of invoiceRows) {
+    const linkedOrder = inv.orderId ? orderMap.get(inv.orderId) : undefined;
+    const orderStatus = linkedOrder?.status ?? null;
+    const paymentStatus = linkedOrder?.paymentStatus ?? null;
+    const invTotal = toNumber(inv.total);
+    const invDelivery = toNumber(inv.delivery);
+    const invSubtotal = toNumber(inv.subtotal);
+    const isAccepted = (ACCEPTED_STATUSES as readonly string[]).includes(inv.status);
+    const isDelivered = orderStatus === "delivered";
+
+    if (isAccepted) accepted++;
+    if (isAccepted && !isDelivered) pendingDelivery++;
+    if (isDelivered) delivered++;
+
+    // Calculate per-invoice cost using current product costs
+    let invCost = 0;
+    let invCostsComplete = true;
+    const items = Array.isArray(inv.items)
+      ? (inv.items as Array<{ productId?: string; quantity?: number }>)
+      : [];
+    for (const item of items) {
+      const qty = toNumber(item.quantity ?? 1);
+      const cost = item.productId ? costs.getCurrent(item.productId) : undefined;
+      if (!cost || !cost.costsComplete) {
+        invCostsComplete = false;
+      } else {
+        invCost += (cost.costPrice + cost.packagingCost + cost.insertCost) * qty;
+      }
+    }
+    if (!invCostsComplete) anyMissingCost = true;
+
+    // WhatsApp invoice revenue = collected_from_customer - delivery_fee
+    // (same formula as website orders: net amount seller actually receives)
+    const invRevenue = invSubtotal - toNumber(inv.discount ?? 0);
+    const invProfit = invCostsComplete ? invRevenue - invCost : 0;
+
+    let financiallyIncluded = false;
+    let exclusionReason: string | null = null;
+
+    if (!isAccepted) {
+      exclusionReason = `حالة الفاتورة: ${inv.status} — لم يتم القبول`;
+    } else if (!isDelivered) {
+      exclusionReason = `بانتظار التسليم — حالة الطلبية: ${orderStatus ?? "لا يوجد طلب"}`;
+    } else {
+      financiallyIncluded = true;
+    }
+
+    if (isDelivered) {
+      revenue += invRevenue;
+      profit += invProfit;
+    }
+
+    invoiceList.push({
+      invoiceId: inv.id,
+      invoiceNo: inv.invoiceNo,
+      customerName: inv.customerName,
+      invoiceStatus: inv.status,
+      orderStatus,
+      paymentStatus,
+      total: invTotal,
+      deliveryFee: invDelivery,
+      subtotal: invSubtotal,
+      cost: Math.round(invCost),
+      profit: Math.round(invProfit),
+      costsComplete: invCostsComplete,
+      financiallyIncluded,
+      exclusionReason,
+      orderId: inv.orderId ?? null,
+      createdAt: toDate(inv.createdAt).toISOString(),
+    });
+  }
+
+  return {
+    summary: {
+      total: invoiceRows.length,
+      accepted,
+      pendingDelivery,
+      delivered,
+      revenue: Math.round(revenue),
+      profit: Math.round(profit),
+      costsComplete: !anyMissingCost,
+    },
+    invoices: invoiceList.sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    ),
+  };
+}
+
 // للربح الفعلي فقط: طلبات موصّلة
 async function getRealizedOrdersForPeriod(db: Db, start: Date, end: Date): Promise<OrderRow[]> {
   return await db
@@ -378,7 +526,19 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const { start, end } = periodRange(period, from, to);
     const allOrders = await getOrdersForPeriod(db, start, end);
     const realizedOrders = allOrders.filter((o) => REALIZED_STATUSES.includes(o.status as (typeof REALIZED_STATUSES)[number]));
-    const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+
+    // Collect product IDs from WhatsApp invoices too so one resolver covers all
+    const waItemsForCost = await db
+      .select({ items: manualInvoices.items })
+      .from(manualInvoices)
+      .where(and(gte(manualInvoices.createdAt, start), lte(manualInvoices.createdAt, end)));
+    const mergedProductIds = collectProductIds(realizedOrders);
+    for (const inv of waItemsForCost) {
+      for (const item of (Array.isArray(inv.items) ? (inv.items as Array<{ productId?: string }>) : [])) {
+        if (item.productId) mergedProductIds.add(item.productId);
+      }
+    }
+    const costs = await buildCostResolver(db, mergedProductIds);
 
     let totalRevenue = 0;
     let totalCogs = 0;
@@ -407,6 +567,12 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const rtoCount = allOrders.filter((o) => [...CANCELLED_STATUSES].includes(o.status as (typeof CANCELLED_STATUSES)[number])).length;
     const rtoRate = allOrders.length > 0 ? Math.round((rtoCount / allOrders.length) * 100) : 0;
     const aov = deliveredCount > 0 ? Math.round(totalRevenue / deliveredCount) : 0;
+
+    // ── WhatsApp invoice breakdown ──────────────────────────────────────
+    const whatsappOrders = allOrders.filter((o) => o.source === "whatsapp");
+    const whatsappOrdersCount = whatsappOrders.length;
+    const websiteOrdersCount = allOrders.length - whatsappOrdersCount;
+    const waBreakdown = await buildWhatsappInvoiceBreakdown(db, start, end, costs);
 
     // التكاليف = بضاعة + كارتونات فقط (الكوبونات مدموجة في الإيراد)
     const totalCosts = totalCogs + totalPackaging;
@@ -444,6 +610,9 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       data: {
         period,
         totalOrders: allOrders.length,
+        websiteOrdersCount,
+        whatsappOrdersCount,
+        whatsappInvoices: waBreakdown.summary,
         deliveredCount,
         cancelledCount,
         rejectedCount,
@@ -1996,6 +2165,37 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
         generatedAt: new Date().toISOString(),
       }, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// فواتير واتساب — تفاصيل كاملة مع سبب الإدراج/الاستبعاد
+router.get("/whatsapp-invoices", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+
+    // Build cost resolver scoped to WhatsApp invoice products
+    const waItemRows = await db
+      .select({ items: manualInvoices.items })
+      .from(manualInvoices)
+      .where(and(gte(manualInvoices.createdAt, start), lte(manualInvoices.createdAt, end)));
+
+    const waProductIds = new Set<string>();
+    for (const inv of waItemRows) {
+      for (const item of (Array.isArray(inv.items) ? (inv.items as Array<{ productId?: string }>) : [])) {
+        if (item.productId) waProductIds.add(item.productId);
+      }
+    }
+
+    const waCosts = await buildCostResolver(db, waProductIds);
+    const breakdown = await buildWhatsappInvoiceBreakdown(db, start, end, waCosts);
+
+    res.json({ success: true, data: breakdown });
   } catch (err) {
     next(err);
   }

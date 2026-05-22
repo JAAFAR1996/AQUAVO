@@ -955,3 +955,172 @@ describe("Scheduled Finance Audit — no auto-fix guarantee", () => {
     expect("writeToDb" in auditResultShape).toBe(false);
   });
 });
+
+// ── WhatsApp Invoice Finance Logic ────────────────────────────────────────────
+
+// Mirrors buildWhatsappInvoiceBreakdown() pure logic (no DB) for unit testing
+
+interface WaInvoice {
+  id: string;
+  status: string; // draft | sent | confirmed | rejected | completed | cancelled
+  orderId?: string | null;
+  total: number;
+  delivery: number;
+  subtotal: number;
+  discount: number;
+  items: Array<{ productId: string; quantity: number }>;
+}
+
+interface WaLinkedOrder {
+  id: string;
+  status: string; // pending | confirmed | processing | shipped | delivered | etc.
+}
+
+interface WaCostMap {
+  [productId: string]: { costPrice: number; packagingCost: number; insertCost: number } | undefined;
+}
+
+function calcWaInvoiceBreakdown(
+  invoices: WaInvoice[],
+  orders: WaLinkedOrder[],
+  costMap: WaCostMap,
+) {
+  const ACCEPTED = new Set(["confirmed", "completed"]);
+  const orderMap = new Map(orders.map((o) => [o.id, o]));
+
+  let accepted = 0, pendingDelivery = 0, delivered = 0;
+  let revenue = 0, profit = 0;
+  let anyMissingCost = false;
+
+  const result = invoices.map((inv) => {
+    const linkedOrder = inv.orderId ? orderMap.get(inv.orderId) : undefined;
+    const orderStatus = linkedOrder?.status ?? null;
+    const isAccepted = ACCEPTED.has(inv.status);
+    const isDelivered = orderStatus === "delivered";
+
+    if (isAccepted) accepted++;
+    if (isAccepted && !isDelivered) pendingDelivery++;
+    if (isDelivered) delivered++;
+
+    let invCost = 0;
+    let costsComplete = true;
+    for (const item of inv.items) {
+      const qty = item.quantity;
+      const c = costMap[item.productId];
+      if (!c || c.costPrice <= 0) {
+        costsComplete = false;
+      } else {
+        invCost += (c.costPrice + c.packagingCost + c.insertCost) * qty;
+      }
+    }
+    if (!costsComplete) anyMissingCost = true;
+
+    const invRevenue = inv.subtotal - inv.discount;
+    const invProfit = costsComplete ? invRevenue - invCost : 0;
+
+    let financiallyIncluded = false;
+    let exclusionReason: string | null = null;
+
+    if (!isAccepted) {
+      exclusionReason = `حالة الفاتورة: ${inv.status} — لم يتم القبول`;
+    } else if (!isDelivered) {
+      exclusionReason = `بانتظار التسليم — حالة الطلبية: ${orderStatus ?? "لا يوجد طلب"}`;
+    } else {
+      financiallyIncluded = true;
+    }
+
+    if (isDelivered) {
+      revenue += invRevenue;
+      profit += invProfit;
+    }
+
+    return { invoiceId: inv.id, financiallyIncluded, exclusionReason, costsComplete, profit: invProfit };
+  });
+
+  return {
+    summary: { total: invoices.length, accepted, pendingDelivery, delivered, revenue, profit, costsComplete: !anyMissingCost },
+    invoices: result,
+  };
+}
+
+describe("WhatsApp Invoice Finance Logic", () => {
+  it("draft invoice does not affect finance — not accepted, revenue=0", () => {
+    const inv: WaInvoice = { id: "i1", status: "draft", orderId: null, total: 50000, delivery: 5000, subtotal: 45000, discount: 0, items: [] };
+    const { summary } = calcWaInvoiceBreakdown([inv], [], {});
+    expect(summary.accepted).toBe(0);
+    expect(summary.revenue).toBe(0);
+    expect(summary.profit).toBe(0);
+  });
+
+  it("accepted (confirmed) but not yet delivered does NOT contribute to revenue", () => {
+    const inv: WaInvoice = { id: "i2", status: "confirmed", orderId: "o1", total: 50000, delivery: 5000, subtotal: 45000, discount: 0, items: [] };
+    const order: WaLinkedOrder = { id: "o1", status: "shipped" }; // still in transit
+    const { summary, invoices } = calcWaInvoiceBreakdown([inv], [order], {});
+    expect(summary.accepted).toBe(1);
+    expect(summary.pendingDelivery).toBe(1);
+    expect(summary.delivered).toBe(0);
+    expect(summary.revenue).toBe(0);
+    expect(invoices[0].financiallyIncluded).toBe(false);
+    expect(invoices[0].exclusionReason).toMatch(/بانتظار التسليم/);
+  });
+
+  it("delivered WhatsApp invoice is financially included and adds revenue", () => {
+    const inv: WaInvoice = { id: "i3", status: "confirmed", orderId: "o2", total: 50000, delivery: 5000, subtotal: 45000, discount: 0, items: [{ productId: "p1", quantity: 2 }] };
+    const order: WaLinkedOrder = { id: "o2", status: "delivered" };
+    const costMap: WaCostMap = { p1: { costPrice: 10000, packagingCost: 1000, insertCost: 500 } };
+    const { summary, invoices } = calcWaInvoiceBreakdown([inv], [order], costMap);
+    expect(summary.delivered).toBe(1);
+    expect(summary.revenue).toBe(45000); // subtotal - discount
+    expect(invoices[0].financiallyIncluded).toBe(true);
+    expect(invoices[0].exclusionReason).toBeNull();
+  });
+
+  it("delivered WhatsApp invoice profit = revenue minus per-unit cost × qty", () => {
+    const inv: WaInvoice = { id: "i4", status: "completed", orderId: "o3", total: 100000, delivery: 5000, subtotal: 95000, discount: 5000, items: [{ productId: "p2", quantity: 3 }] };
+    const order: WaLinkedOrder = { id: "o3", status: "delivered" };
+    // revenue = 95000 - 5000 = 90000
+    // cost per unit = 20000 + 2000 + 1000 = 23000 × 3 = 69000
+    const costMap: WaCostMap = { p2: { costPrice: 20000, packagingCost: 2000, insertCost: 1000 } };
+    const { summary, invoices } = calcWaInvoiceBreakdown([inv], [order], costMap);
+    expect(invoices[0].profit).toBe(90000 - 69000); // 21000
+    expect(summary.profit).toBe(21000);
+  });
+
+  it("WhatsApp invoice without product cost is flagged costsComplete=false and profit=0", () => {
+    const inv: WaInvoice = { id: "i5", status: "confirmed", orderId: "o4", total: 60000, delivery: 5000, subtotal: 55000, discount: 0, items: [{ productId: "p_unknown", quantity: 1 }] };
+    const order: WaLinkedOrder = { id: "o4", status: "delivered" };
+    const { summary, invoices } = calcWaInvoiceBreakdown([inv], [order], {}); // no cost data
+    expect(invoices[0].costsComplete).toBe(false);
+    expect(invoices[0].profit).toBe(0); // not silently counted as full profit
+    expect(summary.costsComplete).toBe(false);
+  });
+
+  it("finance order count: pending WhatsApp orders (not delivered) must not inflate delivered count", () => {
+    const invDelivered: WaInvoice = { id: "i6", status: "confirmed", orderId: "o5", total: 50000, delivery: 5000, subtotal: 45000, discount: 0, items: [] };
+    const invPending: WaInvoice = { id: "i7", status: "confirmed", orderId: "o6", total: 60000, delivery: 5000, subtotal: 55000, discount: 0, items: [] };
+    const orders = [
+      { id: "o5", status: "delivered" },
+      { id: "o6", status: "pending" }, // not yet delivered
+    ];
+    const { summary } = calcWaInvoiceBreakdown([invDelivered, invPending], orders, {});
+    expect(summary.delivered).toBe(1);   // only the first is financially realized
+    expect(summary.pendingDelivery).toBe(1);
+    expect(summary.revenue).toBe(45000); // only delivered invoice counted
+  });
+
+  it("drilldown explains why a non-accepted invoice is excluded", () => {
+    const inv: WaInvoice = { id: "i8", status: "rejected", orderId: null, total: 40000, delivery: 5000, subtotal: 35000, discount: 0, items: [] };
+    const { invoices } = calcWaInvoiceBreakdown([inv], [], {});
+    expect(invoices[0].financiallyIncluded).toBe(false);
+    expect(invoices[0].exclusionReason).toContain("لم يتم القبول");
+  });
+
+  it("cancelled WhatsApp invoice is treated same as rejected — excluded with reason", () => {
+    const inv: WaInvoice = { id: "i9", status: "cancelled", orderId: null, total: 30000, delivery: 5000, subtotal: 25000, discount: 0, items: [] };
+    const { summary, invoices } = calcWaInvoiceBreakdown([inv], [], {});
+    expect(summary.accepted).toBe(0);
+    expect(summary.revenue).toBe(0);
+    expect(invoices[0].financiallyIncluded).toBe(false);
+    expect(invoices[0].exclusionReason).not.toBeNull();
+  });
+});
