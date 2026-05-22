@@ -1,4 +1,5 @@
 import type { Server } from "http";
+import https from "https";
 import express from "express";
 import { createProductRouter } from "./routes/products.js";
 import { createOrderRouter } from "./routes/orders.js";
@@ -26,6 +27,7 @@ import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
 import socialAnalyticsRoutes from "./routes/social-analytics.js";
+import socialAutomationRoutes from "./routes/social-automation.js";
 import blogRouter from "./routes/blog.js";
 import aiMonitorRouter from "./routes/ai-monitor.js";
 import aiLearningsRouter from "./routes/ai-learnings.js";
@@ -123,6 +125,9 @@ export async function registerRoutes(
 
   // Social Media Analytics routes (TikTok, Facebook, Instagram)
   app.use("/api/social-analytics", socialAnalyticsRoutes);
+  
+  // Social Media Automation (Replay and Monitor modes)
+  app.use("/api/social-automation", socialAutomationRoutes);
 
   // Cron job routes (Vercel Cron calls these endpoints)
   app.use("/api/cron", cronRouter);
@@ -149,6 +154,17 @@ export async function registerRoutes(
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
 
+
+  // Proxy PDF under canonical filename — static file CDN path is poisoned
+  app.get("/assets/guides/aquavo-5-mistakes-guide-final.pdf", (_req, res) => {
+    https.get("https://www.aquavoiq.com/assets/guides/aquavo-guide-5-mistakes.pdf", (upstream) => {
+      if (upstream.statusCode !== 200) { res.status(502).end(); return; }
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", 'inline; filename="aquavo-5-mistakes-guide-final.pdf"');
+      res.setHeader("Cache-Control", "public, max-age=86400");
+      upstream.pipe(res);
+    }).on("error", () => res.status(500).end());
+  });
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
