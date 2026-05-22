@@ -119,6 +119,10 @@
   ],
   "rewrites": [
     {
+      "source": "/assets/guides/aquavo-5-mistakes-guide-final.pdf",
+      "destination": "/assets/guides/aquavo-guide-5-mistakes.pdf"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index"
     },
