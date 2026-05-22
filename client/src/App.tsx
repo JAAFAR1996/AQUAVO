@@ -60,6 +60,7 @@ const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
 const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
+const Guide5Mistakes = lazy(() => import("@/pages/guides-5-mistakes"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -238,6 +239,16 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><EcoFriendlyGuide /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/5-mistakes">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><Guide5Mistakes /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
