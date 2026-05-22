@@ -26,7 +26,6 @@ import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
 import socialAnalyticsRoutes from "./routes/social-analytics.js";
-import socialAutomationRoutes from "./routes/social-automation.js";
 import blogRouter from "./routes/blog.js";
 import aiMonitorRouter from "./routes/ai-monitor.js";
 import aiLearningsRouter from "./routes/ai-learnings.js";
@@ -125,8 +124,6 @@ export async function registerRoutes(
   // Social Media Analytics routes (TikTok, Facebook, Instagram)
   app.use("/api/social-analytics", socialAnalyticsRoutes);
   
-  // Social Media Automation (Replay and Monitor modes)
-  app.use("/api/social-automation", socialAutomationRoutes);
 
   // Cron job routes (Vercel Cron calls these endpoints)
   app.use("/api/cron", cronRouter);
