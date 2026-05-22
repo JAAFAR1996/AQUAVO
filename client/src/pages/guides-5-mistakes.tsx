@@ -1,7 +1,7 @@
 import { Download, ExternalLink } from "lucide-react";
 
 export default function Guide5Mistakes() {
-  const pdfUrl = "/assets/guides/aquavo-5-mistakes-guide-final.pdf";
+  const pdfUrl = "/assets/guides/aquavo-guide-5-mistakes.pdf";
 
   return (
     <div className="flex flex-col min-h-screen bg-[#010611] text-white" dir="rtl">
