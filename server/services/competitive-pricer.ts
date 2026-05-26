@@ -212,6 +212,12 @@ export class CompetitivePricer {
         productsUpdated: number;
         errors: number;
     }> {
+        // GUARD: تغيير سعر البيع يحتاج موافقة صريحة من المدير عبر POST /api/pricing/apply
+        // هذه الدالة محظورة من الاستدعاء التلقائي أو من الـ AI
+        throw new Error(
+            "[CompetitivePricer] applyPricingRules() is disabled. " +
+            "Sale price changes must go through POST /api/pricing/apply with adminConfirm token."
+        );
         console.log("[CompetitivePricer] Applying pricing rules...");
 
         try {

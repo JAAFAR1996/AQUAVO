@@ -152,6 +152,8 @@ export const orders = pgTable("orders", {
   boxCost: numeric("box_cost").default("0"),
   // Order origin: 'website' (default) | 'whatsapp' (created from a manual WhatsApp invoice)
   source: text("source").default("website"),
+  // Manual financial inclusion override: null=auto (use status), true=force include, false=force exclude
+  financiallyCounted: boolean("financially_counted"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -2468,6 +2470,9 @@ export const manualInvoices = pgTable("manual_invoices", {
   createdBy: text("created_by"),
   orderId:   text("order_id"),
 
+  // Manual financial inclusion override: null=auto, true=force include, false=force exclude
+  financiallyCounted: boolean("financially_counted"),
+
   // التوقيتات
   createdAt:   timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt:   timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -2596,6 +2601,66 @@ export type FinanceAuditRun = typeof financeAuditRuns.$inferSelect;
 export type InsertFinanceAuditRun = typeof financeAuditRuns.$inferInsert;
 export type FinanceAuditFinding = typeof financeAuditFindings.$inferSelect;
 export type InsertFinanceAuditFinding = typeof financeAuditFindings.$inferInsert;
+
+// ==================== Finance: Manual Accounting Adjustments ====================
+// Every manual override of a calculated or stored financial value.
+// AI/automated processes may only create pending entries — humans must approve.
+
+export const accountingManualAdjustments = pgTable("accounting_manual_adjustments", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(),
+  // product | order | order_item | invoice | return_event | settlement | expense | inventory | product_variant | finance_card
+  entityId: text("entity_id").notNull(),
+  fieldName: text("field_name").notNull(),
+  oldValueJson: jsonb("old_value_json"),
+  newValueJson: jsonb("new_value_json").notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"),
+  // pending | approved | rejected | applied
+  createdBy: text("created_by").references(() => users.id).notNull(),
+  approvedBy: text("approved_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  approvedAt: timestamp("approved_at"),
+  appliedAt: timestamp("applied_at"),
+  note: text("note"),
+}, (table) => ({
+  entityIdx: index("ama_entity_idx").on(table.entityType, table.entityId),
+  statusIdx: index("ama_status_idx").on(table.status),
+  createdAtIdx: index("ama_created_at_idx").on(table.createdAt),
+}));
+
+export type AccountingManualAdjustment = typeof accountingManualAdjustments.$inferSelect;
+export type InsertAccountingManualAdjustment = typeof accountingManualAdjustments.$inferInsert;
+
+// ==================== Finance: Review Flags ====================
+// System-detected anomalies queued for human review — never auto-applied.
+
+export const accountingReviewFlags = pgTable("accounting_review_flags", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  category: text("category").notNull(),
+  // product_cost | stock | source | whatsapp | delivery | return | variant | settlement | pricing
+  severity: text("severity").notNull().default("medium"),
+  // low | medium | high | critical
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  detectedValueJson: jsonb("detected_value_json"),
+  suggestedValueJson: jsonb("suggested_value_json"),
+  status: text("status").notNull().default("open"),
+  // open | resolved | ignored
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  resolvedAt: timestamp("resolved_at"),
+  resolvedBy: text("resolved_by").references(() => users.id),
+}, (table) => ({
+  entityIdx: index("arf_entity_idx").on(table.entityType, table.entityId),
+  statusIdx: index("arf_status_idx").on(table.status),
+  severityIdx: index("arf_severity_idx").on(table.severity),
+  createdAtIdx: index("arf_created_at_idx").on(table.createdAt),
+}));
+
+export type AccountingReviewFlag = typeof accountingReviewFlags.$inferSelect;
+export type InsertAccountingReviewFlag = typeof accountingReviewFlags.$inferInsert;
 
 // Social Interactions Tracking for Auto-Responses
 export const socialInteractions = pgTable('social_interactions', {

@@ -36,6 +36,20 @@
       "when": 1778718130008,
       "tag": "0004_slim_red_shift",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779692170826,
+      "tag": "0005_add_manual_adjustments_and_review_flags",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779694969050,
+      "tag": "0006_add_financially_counted",
+      "breakpoints": true
     }
   ]
 }

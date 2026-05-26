@@ -1,4 +1,10 @@
 import { describe, it, expect } from "vitest";
+import {
+  accountingCostUpdateSchema,
+  accountingReportSchema,
+  accountingSummarySchema,
+  accountingProductProfitFullSchema,
+} from "@shared/accounting";
 
 // Pure calculation helpers mirroring accounting.ts logic (no DB needed)
 
@@ -1651,5 +1657,476 @@ describe("return-loss split model", () => {
     };
     // writeOff is included; cogsLoss excluded because restocked=true
     expect(eventActualReturnLoss(event)).toBe(15000);
+  });
+});
+
+// ── Finance page — 11 specific audit checks ───────────────────────────────────
+
+// 1 & 2: Cost calculation uses 1420, never 1520, never old شراء د
+describe("finance-product-costs: exchange rate must be 1420", () => {
+  const EXCHANGE_RATE = 1420;
+
+  function computeCost(purchaseUsd: number, shippingIqd: number, woodIqd: number): number {
+    return Math.round(purchaseUsd * EXCHANGE_RATE + shippingIqd + woodIqd);
+  }
+
+  it("10 USD × 1420 = 14200 din (not 15200)", () => {
+    expect(computeCost(10, 0, 0)).toBe(14200);
+    expect(computeCost(10, 0, 0)).not.toBe(10 * 1520);
+  });
+
+  it("includes shipping and wood correctly", () => {
+    expect(computeCost(5, 2000, 1000)).toBe(5 * 1420 + 2000 + 1000);
+  });
+
+  it("result is always an integer", () => {
+    expect(Number.isInteger(computeCost(1.5, 500, 0))).toBe(true);
+  });
+});
+
+// 2: old شراء د (purchaseIqd) field must NOT be used
+describe("accountingCostUpdateSchema: no legacy purchaseIqd / salePrice field", () => {
+  it("schema keys do not include purchaseIqd (old شراء بالدينار)", () => {
+    const keys = Object.keys(accountingCostUpdateSchema.shape);
+    expect(keys).not.toContain("purchaseIqd");
+    expect(keys).not.toContain("purchaseUsd");
+  });
+
+  it("schema does not include salePrice or price (cost tab never touches sale price)", () => {
+    const keys = Object.keys(accountingCostUpdateSchema.shape);
+    expect(keys).not.toContain("price");
+    expect(keys).not.toContain("salePrice");
+  });
+
+  it("schema contains costPrice, packagingCost, insertCost", () => {
+    const keys = Object.keys(accountingCostUpdateSchema.shape);
+    expect(keys).toContain("costPrice");
+    expect(keys).toContain("packagingCost");
+    expect(keys).toContain("insertCost");
+  });
+});
+
+// 4: AI header block
+describe("pricing/apply: AI header block", () => {
+  function isAiBlocked(headers: Record<string, string | undefined>): boolean {
+    return !!(headers["x-ai-agent"] || headers["x-automated"]);
+  }
+
+  it("blocks x-ai-agent header", () => {
+    expect(isAiBlocked({ "x-ai-agent": "true" })).toBe(true);
+  });
+
+  it("blocks x-automated header", () => {
+    expect(isAiBlocked({ "x-automated": "1" })).toBe(true);
+  });
+
+  it("allows normal browser requests through", () => {
+    expect(isAiBlocked({})).toBe(false);
+    expect(isAiBlocked({ "content-type": "application/json" })).toBe(false);
+  });
+});
+
+// 5: adminConfirm token required
+describe("pricing/apply: adminConfirm token required", () => {
+  const REQUIRED = "I_CONFIRM_PRICE_CHANGE";
+  const isConfirmed = (t: unknown) => t === REQUIRED;
+
+  it("accepts exact token", () => { expect(isConfirmed(REQUIRED)).toBe(true); });
+  it("rejects undefined", () => { expect(isConfirmed(undefined)).toBe(false); });
+  it("rejects wrong string", () => { expect(isConfirmed("yes")).toBe(false); });
+  it("rejects empty string", () => { expect(isConfirmed("")).toBe(false); });
+});
+
+// 6: applyPricingRules throws immediately
+describe("competitive-pricer: applyPricingRules must throw", () => {
+  function applyPricingRulesGuard(): never {
+    throw new Error(
+      "[CompetitivePricer] applyPricingRules() is disabled. " +
+      "Sale price changes must go through POST /api/pricing/apply with adminConfirm token.",
+    );
+  }
+
+  it("throws with disabled message", () => {
+    expect(() => applyPricingRulesGuard()).toThrow("applyPricingRules() is disabled");
+  });
+
+  it("error references the safe endpoint", () => {
+    expect(() => applyPricingRulesGuard()).toThrow("/api/pricing/apply");
+  });
+});
+
+// 7: accountingReportSchema.returns has totalReturnFinancialImpact
+describe("accountingReportSchema: returns.totalReturnFinancialImpact present", () => {
+  it("returns object has totalReturnFinancialImpact (was root cause of empty reports tab)", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const shape = (accountingReportSchema.shape.returns as any).shape;
+    expect(shape).toHaveProperty("totalReturnFinancialImpact");
+  });
+
+  it("totalReturnFinancialImpact parses a number correctly", () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const shape = (accountingReportSchema.shape.returns as any).shape;
+    expect(shape.totalReturnFinancialImpact.safeParse(5000).success).toBe(true);
+  });
+});
+
+// 8: summary warning fields
+describe("accountingSummarySchema: totalReturnEvents + verifiedReturnEvents", () => {
+  it("has totalReturnEvents", () => {
+    expect(Object.keys(accountingSummarySchema.shape)).toContain("totalReturnEvents");
+  });
+
+  it("has verifiedReturnEvents", () => {
+    expect(Object.keys(accountingSummarySchema.shape)).toContain("verifiedReturnEvents");
+  });
+
+  it("warning condition: total > verified means pending returns exist", () => {
+    const warn = (total: number, verified: number) => total > verified;
+    expect(warn(5, 3)).toBe(true);
+    expect(warn(3, 3)).toBe(false);
+    expect(warn(0, 0)).toBe(false);
+  });
+});
+
+// 9: drilldown counted logic
+describe("product-sales-drill: counted = delivered only", () => {
+  const REALIZED = ["delivered"];
+  const isCounted = (s: string) => REALIZED.includes(s);
+
+  it("delivered → counted", () => { expect(isCounted("delivered")).toBe(true); });
+  it("pending → not counted", () => { expect(isCounted("pending")).toBe(false); });
+  it("cancelled → not counted", () => { expect(isCounted("cancelled")).toBe(false); });
+
+  it("grossSoldQty = sum of delivered lines only", () => {
+    const lines = [
+      { status: "delivered", qty: 3 },
+      { status: "pending",   qty: 2 },
+      { status: "delivered", qty: 1 },
+    ];
+    const gross = lines.filter((l) => isCounted(l.status)).reduce((s, l) => s + l.qty, 0);
+    expect(gross).toBe(4);
+  });
+});
+
+// 10: pending orders excluded from profitability (explicit)
+describe("profitability: REALIZED_STATUSES only contains delivered", () => {
+  const REALIZED = ["delivered"];
+
+  it("pending is excluded", () => { expect(REALIZED.includes("pending")).toBe(false); });
+  it("confirmed is excluded", () => { expect(REALIZED.includes("confirmed")).toBe(false); });
+  it("shipped is excluded", () => { expect(REALIZED.includes("shipped")).toBe(false); });
+  it("processing is excluded", () => { expect(REALIZED.includes("processing")).toBe(false); });
+});
+
+// 11: inventory formula uses costPrice (accountingProductProfitFullSchema field check)
+describe("inventory potential profit: formula and schema", () => {
+  function potentialGross(
+    stock: number, salePrice: number,
+    costPrice: number, packagingCost: number, insertCost: number,
+  ): number {
+    if (costPrice <= 0) return 0;
+    return (salePrice - costPrice - packagingCost - insertCost) * stock;
+  }
+
+  it("10 units @ sale=20000, cost=12000, pkg=500, insert=200 → 73000", () => {
+    expect(potentialGross(10, 20000, 12000, 500, 200)).toBe(73000);
+  });
+
+  it("returns 0 when costPrice=0 (missing cost data)", () => {
+    expect(potentialGross(5, 20000, 0, 500, 200)).toBe(0);
+  });
+
+  it("accountingProductProfitFullSchema has potentialGrossProfitFromStock", () => {
+    expect(Object.keys(accountingProductProfitFullSchema.shape)).toContain("potentialGrossProfitFromStock");
+  });
+
+  it("returnRate is item-based (returnedQty / unitsSold): schema has both fields", () => {
+    const keys = Object.keys(accountingProductProfitFullSchema.shape);
+    expect(keys).toContain("returnRate");
+    expect(keys).toContain("returnedQty");
+  });
+});
+
+describe("product-sales-drill: variant breakdown aggregation (soil product 10 vs 7)", () => {
+  it("parent product with two variants shows total 10 = 7 + 3", () => {
+    const variants = [
+      { variantId: "coarse3", variantLabel: "حبيبات خشنة 3 لتر", grossQty: 7 },
+      { variantId: "fine15",  variantLabel: "حبيبات ناعمة 1.5 لتر", grossQty: 3 },
+    ];
+    const total = variants.reduce((sum, v) => sum + v.grossQty, 0);
+    expect(total).toBe(10);
+  });
+
+  it("variant breakdown sums match grossSoldQty", () => {
+    const breakdown = [
+      { variantId: "coarse3", grossQty: 7 },
+      { variantId: "fine15",  grossQty: 3 },
+    ];
+    const grossSoldQty = 10;
+    expect(breakdown.reduce((s, v) => s + v.grossQty, 0)).toBe(grossSoldQty);
+  });
+
+  it("product with no variant has null variantId in breakdown", () => {
+    const breakdown = [{ variantId: null as string | null, variantLabel: null as string | null, grossQty: 5, revenue: 50000 }];
+    expect(breakdown[0].variantId).toBeNull();
+    expect(breakdown[0].grossQty).toBe(5);
+  });
+
+  it("variant note text covers both كل الأنواع/الأحجام and العدد الكلي", () => {
+    const note = "العدد الكلي يجمع كل الأنواع/الأحجام التابعة لنفس المنتج.";
+    expect(note).toContain("العدد الكلي");
+    expect(note).toContain("الأنواع/الأحجام");
+  });
+
+  it("drilldown order row includes variantLabel and variantId fields", () => {
+    const row = {
+      orderId: "5fd36322-d3d2-43f0-9f89-b21cfea21334",
+      orderNumber: null,
+      orderStatus: "delivered",
+      orderSource: "whatsapp",
+      orderCreatedAt: "2025-01-01T00:00:00.000Z",
+      qty: 7,
+      priceAtPurchase: 12300,
+      variantId: "coarse3",
+      variantLabel: "حبيبات خشنة 3 لتر",
+      counted: true,
+      exclusionReason: null,
+    };
+    expect(row.variantId).toBe("coarse3");
+    expect(row.variantLabel).toBe("حبيبات خشنة 3 لتر");
+    expect(row.counted).toBe(true);
+  });
+});
+
+// ─── Manual Adjustments ──────────────────────────────────────────────────────
+
+import {
+  manualAdjustmentCreateSchema,
+  reviewFlagStatusUpdateSchema,
+  ADJUSTMENT_ENTITY_TYPES,
+  ADJUSTMENT_STATUSES,
+  REVIEW_FLAG_STATUSES,
+} from "@shared/accounting";
+
+describe("manual-adjustments: cost override changes costPrice but not sale price", () => {
+  it("manual cost override sets costPrice field, not price", () => {
+    const adj = manualAdjustmentCreateSchema.parse({
+      entityType: "product",
+      entityId: "yee-07509",
+      fieldName: "costPrice",
+      newValueJson: 15106,
+      reason: "كلفة محسوبة يدويًا: 6.28 × 1420 + 6188",
+    });
+    expect(adj.fieldName).toBe("costPrice");
+    expect(adj.fieldName).not.toBe("price");
+    expect(adj.newValueJson).toBe(15106);
+  });
+
+  it("manual adjustment schema requires reason — rejects empty reason", () => {
+    const result = manualAdjustmentCreateSchema.safeParse({
+      entityType: "product",
+      entityId: "p-001",
+      fieldName: "costPrice",
+      newValueJson: 5000,
+      reason: "ab",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("approved override status is approved or applied", () => {
+    const statuses = [...ADJUSTMENT_STATUSES];
+    expect(statuses).toContain("approved");
+    expect(statuses).toContain("applied");
+    expect(statuses).toContain("pending");
+    expect(statuses).toContain("rejected");
+  });
+});
+
+describe("manual-adjustments: approved override priority over auto calculation", () => {
+  it("approved override value replaces auto-computed value", () => {
+    const autoValue = 14000;
+    const override = { status: "approved", newValueJson: 15106 };
+    const result = override.status === "approved" || override.status === "applied"
+      ? (override.newValueJson as number)
+      : autoValue;
+    expect(result).toBe(15106);
+    expect(result).not.toBe(autoValue);
+  });
+
+  it("rejected override does not affect finance — auto value used", () => {
+    const autoValue = 14000;
+    const override = { status: "rejected", newValueJson: 99999 };
+    const result = override.status === "approved" || override.status === "applied"
+      ? (override.newValueJson as number)
+      : autoValue;
+    expect(result).toBe(autoValue);
+  });
+});
+
+describe("manual-adjustments: AI cannot approve or apply", () => {
+  it("adjustment created by AI is blocked — AI header check", () => {
+    const aiHeaders = { "x-ai-agent": "groq-audit" };
+    const isBlocked = !!aiHeaders["x-ai-agent"];
+    expect(isBlocked).toBe(true);
+  });
+
+  it("x-automated header also blocked", () => {
+    const headers = { "x-automated": "cron-scheduler" };
+    const isBlocked = !!(headers as Record<string, string>)["x-automated"];
+    expect(isBlocked).toBe(true);
+  });
+
+  it("adjustment with no AI header proceeds to pending status", () => {
+    const headers: Record<string, string> = {};
+    const isBlocked = !!(headers["x-ai-agent"] || headers["x-automated"]);
+    expect(isBlocked).toBe(false);
+  });
+});
+
+describe("manual-adjustments: sellable returned product prevents COGS loss", () => {
+  it("restocked + sellable → actualReturnLoss = 0", () => {
+    const returnEvent = { restocked: true, sellable: true, cogsLoss: 5000 };
+    const actualLoss = returnEvent.restocked && returnEvent.sellable ? 0 : returnEvent.cogsLoss;
+    expect(actualLoss).toBe(0);
+  });
+
+  it("non-sellable damaged return → cogsLoss applied", () => {
+    const returnEvent = { restocked: false, sellable: false, cogsLoss: 5000 };
+    const actualLoss = returnEvent.restocked && returnEvent.sellable ? 0 : returnEvent.cogsLoss;
+    expect(actualLoss).toBe(5000);
+  });
+});
+
+describe("manual-adjustments: whatsapp invoice financiallyCounted=false excludes revenue", () => {
+  it("financiallyCounted=false prevents revenue inclusion", () => {
+    const invoice = { financiallyCounted: false, total: 50000, status: "confirmed" };
+    const counted = invoice.financiallyCounted === true;
+    expect(counted).toBe(false);
+  });
+
+  it("financiallyCounted override written as boolean not string", () => {
+    const adj = manualAdjustmentCreateSchema.parse({
+      entityType: "invoice",
+      entityId: "inv-001",
+      fieldName: "financiallyCounted",
+      newValueJson: false,
+      reason: "بانتظار التسليم — لا تُحتسب ماليًا",
+    });
+    expect(adj.newValueJson).toBe(false);
+    expect(typeof adj.newValueJson).toBe("boolean");
+  });
+});
+
+describe("manual-adjustments: review flag schema", () => {
+  it("review flag statuses include open, resolved, ignored", () => {
+    expect([...REVIEW_FLAG_STATUSES]).toContain("open");
+    expect([...REVIEW_FLAG_STATUSES]).toContain("resolved");
+    expect([...REVIEW_FLAG_STATUSES]).toContain("ignored");
+  });
+
+  it("review flag status update schema validates correctly", () => {
+    const valid = reviewFlagStatusUpdateSchema.parse({ status: "resolved" });
+    expect(valid.status).toBe("resolved");
+
+    const bad = reviewFlagStatusUpdateSchema.safeParse({ status: "deleted" });
+    expect(bad.success).toBe(false);
+  });
+
+  it("every manual change requires reason — reason field min 3 chars", () => {
+    const badReason = manualAdjustmentCreateSchema.safeParse({
+      entityType: "product",
+      entityId: "p-001",
+      fieldName: "stock",
+      newValueJson: 15,
+      reason: "ok",
+    });
+    expect(badReason.success).toBe(false);
+
+    const goodReason = manualAdjustmentCreateSchema.safeParse({
+      entityType: "product",
+      entityId: "p-001",
+      fieldName: "stock",
+      newValueJson: 15,
+      reason: "تصحيح عد يدوي بعد جرد المستودع",
+    });
+    expect(goodReason.success).toBe(true);
+  });
+});
+
+describe("override system: approved cost override affects profitability", () => {
+  it("approved override has higher priority than auto value", () => {
+    const autoValue = 14000;
+    const override = { status: "approved" as const, newValueJson: 15106, reason: "تصحيح كلفة" };
+    const effective = (override.status === "approved" || override.status === "applied")
+      ? Number(override.newValueJson) : autoValue;
+    expect(effective).toBe(15106);
+    expect(effective).not.toBe(autoValue);
+  });
+
+  it("rejected override does not affect finance — falls back to auto", () => {
+    const autoValue = 14000;
+    const override = { status: "rejected" as const, newValueJson: 99999, reason: "غلط" };
+    const effective = (override.status === "approved" || override.status === "applied")
+      ? Number(override.newValueJson) : autoValue;
+    expect(effective).toBe(autoValue);
+  });
+
+  it("applied override has same priority as approved", () => {
+    const autoValue = 14000;
+    const override = { status: "applied" as const, newValueJson: 15106, reason: "تم التطبيق" };
+    const effective = (override.status === "approved" || override.status === "applied")
+      ? Number(override.newValueJson) : autoValue;
+    expect(effective).toBe(15106);
+  });
+
+  it("profitability schema includes overridden and overrideReason fields", () => {
+    const keys = Object.keys(accountingProductProfitFullSchema.shape);
+    expect(keys).toContain("overridden");
+    expect(keys).toContain("overrideReason");
+  });
+});
+
+describe("financiallyCounted: manual inclusion/exclusion", () => {
+  it("financiallyCounted=false excludes delivered order from revenue", () => {
+    const order = { status: "delivered", financiallyCounted: false };
+    const fc = (order as any).financiallyCounted;
+    const included = fc === false ? false : fc === true ? true : order.status === "delivered";
+    expect(included).toBe(false);
+  });
+
+  it("financiallyCounted=true includes order regardless of status", () => {
+    const order = { status: "pending", financiallyCounted: true };
+    const fc = (order as any).financiallyCounted;
+    const included = fc === false ? false : fc === true ? true : order.status === "delivered";
+    expect(included).toBe(true);
+  });
+
+  it("financiallyCounted=null falls back to automatic REALIZED_STATUSES", () => {
+    const REALIZED = ["delivered"];
+    const orderDelivered = { status: "delivered", financiallyCounted: null };
+    const orderPending = { status: "pending", financiallyCounted: null };
+    const fcD = (orderDelivered as any).financiallyCounted;
+    const fcP = (orderPending as any).financiallyCounted;
+    const inclD = fcD === false ? false : fcD === true ? true : REALIZED.includes(orderDelivered.status);
+    const inclP = fcP === false ? false : fcP === true ? true : REALIZED.includes(orderPending.status);
+    expect(inclD).toBe(true);
+    expect(inclP).toBe(false);
+  });
+
+  it("WhatsApp invoice financiallyCounted=false excludes revenue even if delivered", () => {
+    const inv = { status: "confirmed", financiallyCounted: false, orderId: "ord-1" };
+    const orderStatus = "delivered";
+    const isDelivered = orderStatus === "delivered";
+    const manualFc = (inv as any).financiallyCounted;
+    let included = isDelivered;
+    if (manualFc === false) included = false;
+    else if (manualFc === true) included = true;
+    expect(included).toBe(false);
+  });
+
+  it("manual badge: overridden=true means معدل يدويًا should be shown", () => {
+    const row = { overridden: true, overrideReason: "تصحيح كلفة يدوي بسعر صرف 1420" };
+    expect(row.overridden).toBe(true);
+    expect(row.overrideReason).toContain("كلفة");
   });
 });

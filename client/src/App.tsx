@@ -61,6 +61,9 @@ const SearchResults = lazy(() => import("@/pages/search-results"));
 const Sustainability = lazy(() => import("@/pages/sustainability"));
 const EcoFriendlyGuide = lazy(() => import("@/pages/guides-eco-friendly"));
 const Guide5Mistakes = lazy(() => import("@/pages/guides-5-mistakes"));
+const GuideFishHiding = lazy(() => import("@/pages/guides-fish-hiding"));
+const GuideWaterMyths = lazy(() => import("@/pages/guides-water-myths"));
+const GuideEssentialTools = lazy(() => import("@/pages/guides-essential-tools"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -249,6 +252,36 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><Guide5Mistakes /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/fish-hiding">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideFishHiding /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/water-myths">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideWaterMyths /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/essential-tools">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideEssentialTools /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}

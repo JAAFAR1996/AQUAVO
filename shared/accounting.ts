@@ -145,6 +145,9 @@ export const accountingProductProfitFullSchema = accountingProductProfitSchema.e
   adjustedNetProfit: z.number(),
   adjustedMargin: z.number(),
   returnRate: z.number(),
+  // Manual cost override metadata
+  overridden: z.boolean().default(false),
+  overrideReason: z.string().nullable().default(null),
 });
 
 export const accountingProductProfitFullResponseSchema = z.array(accountingProductProfitFullSchema);
@@ -563,3 +566,75 @@ export const orderReturnEventsListSchema = z.array(orderReturnEventResponseSchem
 
 export type OrderReturnEventInput = z.infer<typeof orderReturnEventInputSchema>;
 export type OrderReturnEventResponse = z.infer<typeof orderReturnEventResponseSchema>;
+
+// ==================== Manual Adjustments ====================
+
+export const ADJUSTMENT_ENTITY_TYPES = [
+  "product", "order", "order_item", "invoice", "return_event",
+  "settlement", "expense", "inventory", "product_variant", "finance_card",
+] as const;
+
+export const ADJUSTMENT_STATUSES = ["pending", "approved", "rejected", "applied"] as const;
+
+export const manualAdjustmentCreateSchema = z.object({
+  entityType: z.enum(ADJUSTMENT_ENTITY_TYPES),
+  entityId: z.string().min(1),
+  fieldName: z.string().min(1),
+  oldValueJson: z.unknown().optional(),
+  newValueJson: z.unknown(),
+  reason: z.string().min(3, "السبب مطلوب — لا يمكن التعديل بدون سبب"),
+  note: z.string().max(500).optional(),
+});
+
+export const manualAdjustmentResponseSchema = z.object({
+  id: z.string(),
+  entityType: z.string(),
+  entityId: z.string(),
+  fieldName: z.string(),
+  oldValueJson: z.unknown().nullable(),
+  newValueJson: z.unknown(),
+  reason: z.string(),
+  status: z.enum(ADJUSTMENT_STATUSES),
+  createdBy: z.string(),
+  approvedBy: z.string().nullable(),
+  createdAt: z.string(),
+  approvedAt: z.string().nullable(),
+  appliedAt: z.string().nullable(),
+  note: z.string().nullable(),
+});
+
+export type ManualAdjustmentCreate = z.infer<typeof manualAdjustmentCreateSchema>;
+export type ManualAdjustmentResponse = z.infer<typeof manualAdjustmentResponseSchema>;
+
+// ==================== Review Flags ====================
+
+export const REVIEW_FLAG_CATEGORIES = [
+  "product_cost", "stock", "source", "whatsapp", "delivery",
+  "return", "variant", "settlement", "pricing",
+] as const;
+
+export const REVIEW_FLAG_SEVERITIES = ["low", "medium", "high", "critical"] as const;
+export const REVIEW_FLAG_STATUSES = ["open", "resolved", "ignored"] as const;
+
+export const reviewFlagStatusUpdateSchema = z.object({
+  status: z.enum(REVIEW_FLAG_STATUSES),
+});
+
+export const reviewFlagResponseSchema = z.object({
+  id: z.string(),
+  category: z.string(),
+  severity: z.string(),
+  entityType: z.string(),
+  entityId: z.string(),
+  title: z.string(),
+  description: z.string(),
+  detectedValueJson: z.unknown().nullable(),
+  suggestedValueJson: z.unknown().nullable(),
+  status: z.enum(REVIEW_FLAG_STATUSES),
+  createdAt: z.string(),
+  resolvedAt: z.string().nullable(),
+  resolvedBy: z.string().nullable(),
+});
+
+export type ReviewFlagResponse = z.infer<typeof reviewFlagResponseSchema>;
+

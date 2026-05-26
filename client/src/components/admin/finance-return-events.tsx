@@ -353,6 +353,20 @@ export function FinanceReturnEvents() {
   const events = data?.data ?? [];
   const summary = data?.summary;
 
+  // All-time count — used only to improve empty-state message when a period filter is active
+  const { data: allTimeData } = useQuery<ReturnEventsApiResponse>({
+    queryKey: ["return-events-alltime"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/accounting/return-events", { credentials: "include" });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) throw new Error(json?.message ?? `خطأ ${res.status}`);
+      return json as ReturnEventsApiResponse;
+    },
+    staleTime: 60_000,
+    enabled: period !== "all",
+  });
+  const allTimeTotal = allTimeData?.summary?.totalEvents ?? 0;
+
   // ── Create mutation ─────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
@@ -630,15 +644,26 @@ export function FinanceReturnEvents() {
 
       {!isLoading && !error && events.length === 0 && (
         <div style={{
-          color: "#64748b",
-          fontSize: 13,
-          padding: "32px 0",
+          padding: "32px 24px",
           textAlign: "center",
           background: "#0d1f3c",
           borderRadius: 10,
           border: "1px solid #1e3a5f",
         }}>
-          لا توجد أحداث إرجاع / خسائر مسجّلة
+          {period !== "all" && allTimeTotal > 0 ? (
+            <>
+              <div style={{ color: "#f59e0b", fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                لا توجد مرتجعات ضمن الفترة الحالية
+              </div>
+              <div style={{ color: "#94a3b8", fontSize: 12 }}>
+                لكن توجد {allTimeTotal} حدث مسجّل كل الوقت — غيّر الفترة إلى "الكل" لعرضها
+              </div>
+            </>
+          ) : (
+            <div style={{ color: "#64748b", fontSize: 13 }}>
+              لا توجد أحداث إرجاع / خسائر مسجّلة
+            </div>
+          )}
         </div>
       )}
 

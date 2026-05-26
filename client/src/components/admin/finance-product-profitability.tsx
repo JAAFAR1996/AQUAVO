@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { AccountingProductProfitFull } from "../../../../shared/accounting.js";
 
@@ -53,10 +53,55 @@ function matchesFilter(p: AccountingProductProfitFull, filter: FilterKey): boole
   return true;
 }
 
+interface VariantBreakdownRow {
+  variantId: string | null;
+  variantLabel: string | null;
+  grossQty: number;
+  revenue: number;
+}
+
+interface DrillResult {
+  productId: string;
+  period: string;
+  grossSoldQty: number;
+  verifiedReturnedQty: number;
+  netSoldQty: number;
+  totalLinesInPeriod: number;
+  variantBreakdown: VariantBreakdownRow[];
+  orders: Array<{
+    orderId: string;
+    orderNumber: string | null;
+    orderStatus: string | null;
+    orderSource: string | null;
+    orderCreatedAt: string;
+    qty: number;
+    priceAtPurchase: number;
+    variantId: string | null;
+    variantLabel: string | null;
+    counted: boolean;
+    exclusionReason: string | null;
+  }>;
+}
+
 export function FinanceProductProfitability({ period }: Props) {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({ key: "grossProfit", dir: "desc" });
   const [filter, setFilter] = useState<FilterKey>("all");
   const [search, setSearch] = useState("");
+  const [drillProductId, setDrillProductId] = useState<string | null>(null);
+  const [drillData, setDrillData] = useState<DrillResult | null>(null);
+  const [drillLoading, setDrillLoading] = useState(false);
+
+  async function openDrill(productId: string) {
+    if (drillProductId === productId) { setDrillProductId(null); setDrillData(null); return; }
+    setDrillProductId(productId);
+    setDrillLoading(true);
+    try {
+      const res = await fetch(`/api/admin/accounting/product-sales-drill/${productId}?period=${period}`, { credentials: "include" });
+      const json = await res.json();
+      setDrillData(json.data ?? null);
+    } catch { setDrillData(null); }
+    setDrillLoading(false);
+  }
 
   const { data, isLoading, error } = useQuery<{ success: boolean; data: AccountingProductProfitFull[] }>({
     queryKey: ["/api/admin/accounting/products", period],
@@ -144,7 +189,7 @@ export function FinanceProductProfitability({ period }: Props) {
           { label: "إجمالي الربح الخام", value: fmt(kpis.totalGrossProfit), color: "#22c55e" },
           { label: "متوسط الهامش الخام", value: pct(kpis.avgGrossMargin), color: "#22c55e" },
           { label: "قيمة المخزون بالكلفة", value: fmt(kpis.totalInventoryAtCost), color: "#6366f1" },
-          { label: "الربح المحتمل من المخزون", value: fmt(kpis.totalPotentialGross), color: "#f59e0b" },
+          { label: "الربح الإجمالي المحتمل من المخزون (تقديري)", value: fmt(kpis.totalPotentialGross), color: "#f59e0b" },
           { label: "منتجات بدون كلفة", value: kpis.missingCost.toString(), color: "#ef4444" },
           { label: "مخزون منخفض", value: kpis.lowStock.toString(), color: "#f59e0b" },
           { label: "نفد المخزون", value: kpis.outOfStock.toString(), color: "#94a3b8" },
@@ -154,6 +199,11 @@ export function FinanceProductProfitability({ period }: Props) {
             <div style={{ color: k.color, fontSize: 18, fontWeight: 700 }}>{k.value}</div>
           </div>
         ))}
+      </div>
+
+      {/* Inventory estimate note */}
+      <div style={{ background: "#0f1f0f", border: "1px solid #22c55e30", color: "#86efac", padding: "8px 14px", borderRadius: 8, fontSize: 11, marginBottom: 14, lineHeight: 1.7 }}>
+        <strong>ملاحظة — الربح الإجمالي المحتمل من المخزون:</strong> هذا رقم تقديري إذا تم بيع المخزون الحالي بالسعر المسجل بالكامل. لا يشمل المصاريف التشغيلية أو الراجعات المستقبلية. الفورمولا: مخزون × (سعر بيع − كلفة − تغليف − insert).
       </div>
 
       {/* Filters + Search */}
@@ -197,11 +247,11 @@ export function FinanceProductProfitability({ period }: Props) {
               <th style={th} onClick={() => toggleSort("revenue")}>الإيراد{sortIcon("revenue")}</th>
               <th style={th} onClick={() => toggleSort("grossProfit")}>ربح خام{sortIcon("grossProfit")}</th>
               <th style={th} onClick={() => toggleSort("grossMargin")}>هامش خام{sortIcon("grossMargin")}</th>
-              <th style={th} onClick={() => toggleSort("netProfit")}>صافي الربح{sortIcon("netProfit")}</th>
-              <th style={th} onClick={() => toggleSort("margin")}>هامش صافي{sortIcon("margin")}</th>
+              <th style={th} onClick={() => toggleSort("netProfit")}>ربح إجمالي{sortIcon("netProfit")}</th>
+              <th style={th} onClick={() => toggleSort("margin")}>هامش إجمالي{sortIcon("margin")}</th>
               <th style={th} onClick={() => toggleSort("stock")}>المخزون{sortIcon("stock")}</th>
               <th style={th} onClick={() => toggleSort("inventoryValueAtCost")}>قيمة المخزون{sortIcon("inventoryValueAtCost")}</th>
-              <th style={th} onClick={() => toggleSort("potentialGrossProfitFromStock")}>ربح مخزون محتمل{sortIcon("potentialGrossProfitFromStock")}</th>
+              <th style={th} onClick={() => toggleSort("potentialGrossProfitFromStock")} title="تقديري: المخزون × (سعر البيع − كلفة الوحدة − تغليف − insert). لا يشمل المصاريف أو الراجعات المستقبلية.">ربح مخزون (تقديري){sortIcon("potentialGrossProfitFromStock")}</th>
               <th style={{ ...th, borderRight: "1px solid #1e3a5f" }} onClick={() => toggleSort("returnedQty")}>الكمية الراجعة{sortIcon("returnedQty")}</th>
               <th style={th} onClick={() => toggleSort("returnFinancialImpact")}>خسارة الراجع{sortIcon("returnFinancialImpact")}</th>
               <th style={th} onClick={() => toggleSort("adjustedNetProfit")}>الربح بعد الراجع{sortIcon("adjustedNetProfit")}</th>
@@ -218,7 +268,8 @@ export function FinanceProductProfitability({ period }: Props) {
               </tr>
             ) : (
               filtered.map((p) => (
-                <tr key={p.productId} style={{ background: p.comingSoon ? "rgba(99,102,241,0.05)" : p.returnedQty > 0 ? "rgba(239,68,68,0.03)" : undefined }}>
+                <React.Fragment key={p.productId}>
+                <tr style={{ background: p.comingSoon ? "rgba(99,102,241,0.05)" : p.returnedQty > 0 ? "rgba(239,68,68,0.03)" : undefined }}>
                   <td style={{ ...td, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }} title={p.name}>
                     {p.name}
                     {!p.costsComplete && (
@@ -226,7 +277,28 @@ export function FinanceProductProfitability({ period }: Props) {
                     )}
                   </td>
                   <td style={{ ...td, color: "#94a3b8" }}>{p.category}</td>
-                  <td style={td}>{p.unitsSold.toLocaleString("ar-IQ")}</td>
+                  <td style={td}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      {p.unitsSold.toLocaleString("ar-IQ")}
+                      {p.unitsSold > 0 && (
+                        <button
+                          onClick={() => openDrill(p.productId)}
+                          title="تدقيق — اعرف أي طلبات ساهمت في هذا الرقم"
+                          style={{
+                            background: drillProductId === p.productId ? "#199bb840" : "#0d1f3c",
+                            border: "1px solid #1e3a5f",
+                            color: "#64748b",
+                            borderRadius: 4,
+                            padding: "1px 6px",
+                            fontSize: 10,
+                            cursor: "pointer",
+                          }}
+                        >
+                          تدقيق
+                        </button>
+                      )}
+                    </span>
+                  </td>
                   <td style={{ ...td, color: "#199bb8" }}>{p.revenue > 0 ? fmt(Math.round(p.revenue)) : "—"}</td>
                   <td style={{ ...td, color: p.grossProfit > 0 ? "#22c55e" : p.grossProfit < 0 ? "#ef4444" : "#64748b" }}>
                     {p.revenue > 0 ? fmt(Math.round(p.grossProfit)) : "—"}
@@ -270,6 +342,95 @@ export function FinanceProductProfitability({ period }: Props) {
                     </span>
                   </td>
                 </tr>
+                {drillProductId === p.productId && (
+                  <tr key={p.productId + "-drill"}>
+                    <td colSpan={14} style={{ padding: "0 0 12px 0", background: "#010f22" }}>
+                      <div style={{
+                        margin: "0 12px",
+                        background: "#0a1628",
+                        border: "1px solid #199bb840",
+                        borderRadius: 8,
+                        padding: "12px 16px",
+                      }}>
+                        <div style={{ color: "#199bb8", fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+                          تدقيق مبيعات {p.name} — {p.unitsSold} وحدة
+                          {drillLoading && <span style={{ color: "#64748b", fontWeight: 400, marginRight: 8 }}>(جاري التحميل...)</span>}
+                        </div>
+                        {/* Variant breakdown — shown when more than one variant exists */}
+                        {!drillLoading && drillData && drillData.variantBreakdown.length > 1 && (
+                          <div style={{ marginBottom: 12 }}>
+                            <div style={{ background: "#0d1f3c", border: "1px solid #6366f140", borderRadius: 6, padding: "8px 12px", marginBottom: 6, fontSize: 11, color: "#a5b4fc" }}>
+                              العدد الكلي يجمع كل الأنواع/الأحجام التابعة لنفس المنتج.
+                            </div>
+                            <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse", marginBottom: 4 }}>
+                              <thead>
+                                <tr style={{ color: "#64748b", borderBottom: "1px solid #1e3a5f" }}>
+                                  <th style={{ textAlign: "right", padding: "3px 8px" }}>النوع / المقاس</th>
+                                  <th style={{ textAlign: "right", padding: "3px 8px" }}>الكمية المبيعة</th>
+                                  <th style={{ textAlign: "right", padding: "3px 8px" }}>الإيراد</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {drillData.variantBreakdown.map((v, i) => (
+                                  <tr key={i} style={{ borderBottom: "1px solid #1e3a5f20" }}>
+                                    <td style={{ padding: "3px 8px", color: "#c4b5fd" }}>{v.variantLabel ?? v.variantId ?? "—"}</td>
+                                    <td style={{ padding: "3px 8px", color: "#e2e8f0", fontWeight: 700 }}>{v.grossQty}</td>
+                                    <td style={{ padding: "3px 8px", color: "#94a3b8" }}>{v.revenue.toLocaleString("ar-IQ")} د.ع</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                        {/* Single variant or no variant — show note inline */}
+                        {!drillLoading && drillData && drillData.variantBreakdown.length === 1 && drillData.variantBreakdown[0].variantLabel && (
+                          <div style={{ fontSize: 11, color: "#a5b4fc", marginBottom: 8 }}>
+                            النوع: {drillData.variantBreakdown[0].variantLabel}
+                          </div>
+                        )}
+                        {!drillLoading && drillData && drillData.orders.length === 0 && (
+                          <div style={{ color: "#64748b", fontSize: 11 }}>لا طلبات محددة في هذه الفترة</div>
+                        )}
+                        {!drillLoading && drillData && drillData.orders.length > 0 && (
+                          <table style={{ width: "100%", fontSize: 11, borderCollapse: "collapse" }}>
+                            <thead>
+                              <tr style={{ color: "#64748b", borderBottom: "1px solid #1e3a5f" }}>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>رقم الطلب</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>الحالة</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>النوع/المقاس</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>الكمية</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>سعر البيع</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>المصدر</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>محتسب؟</th>
+                                <th style={{ textAlign: "right", padding: "4px 8px" }}>التاريخ</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {drillData.orders.map((o, i) => (
+                                <tr key={i} style={{ borderBottom: "1px solid #1e3a5f20", opacity: o.counted ? 1 : 0.5 }}>
+                                  <td style={{ padding: "4px 8px", color: "#199bb8" }}>{o.orderNumber ?? o.orderId.slice(0, 8) + "…"}</td>
+                                  <td style={{ padding: "4px 8px", color: "#94a3b8" }}>{o.orderStatus}</td>
+                                  <td style={{ padding: "4px 8px", color: "#c4b5fd" }}>{o.variantLabel ?? o.variantId ?? "—"}</td>
+                                  <td style={{ padding: "4px 8px", color: "#e2e8f0", fontWeight: 700 }}>{o.qty}</td>
+                                  <td style={{ padding: "4px 8px", color: "#94a3b8" }}>{o.priceAtPurchase.toLocaleString("ar-IQ")} د.ع</td>
+                                  <td style={{ padding: "4px 8px", color: "#64748b" }}>{o.orderSource ?? "—"}</td>
+                                  <td style={{ padding: "4px 8px" }}>
+                                    {o.counted
+                                      ? <span style={{ color: "#22c55e" }}>✓ محتسب</span>
+                                      : <span style={{ color: "#f59e0b", fontSize: 10 }} title={o.exclusionReason ?? ""}>✗ مستبعد</span>
+                                    }
+                                  </td>
+                                  <td style={{ padding: "4px 8px", color: "#64748b" }}>{new Date(o.orderCreatedAt).toLocaleDateString("ar-IQ")}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )}
+                </React.Fragment>
               ))
             )}
           </tbody>

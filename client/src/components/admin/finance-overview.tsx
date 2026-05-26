@@ -444,6 +444,19 @@ export function FinanceOverview({ period }: { period: Period }) {
       <SectionHeader title="الراجعات المعتمدة" />
       {summary && (
         <>
+          {summary.totalReturnEvents > summary.verifiedReturnEvents && (
+            <div style={{
+              background: "#1a1500",
+              border: "1px solid #f59e0b60",
+              color: "#fcd34d",
+              padding: "10px 16px",
+              borderRadius: 8,
+              fontSize: 12,
+              marginBottom: 10,
+            }}>
+              تنبيه: {summary.totalReturnEvents - summary.verifiedReturnEvents} راجع مسجّل بانتظار التعميد — لا تدخل في الأرقام المالية حتى تكون بحالة "verified". اذهب لتاب "الراجعات والخسائر" لتعميدها.
+            </div>
+          )}
           <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
             تُحسب فقط الراجعات بحالة verified — {summary.verifiedReturnEvents} راجع معتمد
           </div>

@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -12,10 +12,20 @@ import {
   accountingSettlementInputSchema,
   orderReturnEventInputSchema,
   orderReturnEventStatusUpdateSchema,
+  manualAdjustmentCreateSchema,
+  reviewFlagStatusUpdateSchema,
   type AccountingInventory,
   type AccountingPeriod,
   type CostAuditRiskStatus,
 } from "../../shared/accounting.js";
+import {
+  createAdjustment,
+  approveAdjustment,
+  rejectAdjustment,
+  listAdjustments,
+  listReviewFlags,
+  updateReviewFlagStatus,
+} from "../services/accountingManualOverrides.js";
 
 const router = Router();
 router.use(requireAdmin);
@@ -29,6 +39,8 @@ interface OrderLineItem {
   productId?: string;
   quantity?: number | string;
   priceAtPurchase?: number | string;
+  variantId?: string;
+  variantLabel?: string;
 }
 
 interface ProductCost {
@@ -39,6 +51,9 @@ interface ProductCost {
   packagingCost: number;
   insertCost: number;
   costsComplete: boolean;
+  overridden?: boolean;
+  overrideReason?: string;
+  overrideField?: string;
 }
 
 interface CostResolver {
@@ -277,10 +292,60 @@ async function buildCostResolver(db: Db, productIds: Set<string>): Promise<CostR
     }
   }
 
+  // Load approved cost overrides for these products
+  const costOverrideRows = productIds.size > 0
+    ? await db
+        .select()
+        .from(accountingManualAdjustments)
+        .where(
+          and(
+            eq(accountingManualAdjustments.entityType, "product"),
+            inArray(accountingManualAdjustments.entityId, [...productIds]),
+          )
+        )
+        .orderBy(desc(accountingManualAdjustments.createdAt))
+    : [];
+
+  // Build map: productId → { fieldName → { value, reason } }
+  const overrideMap = new Map<string, Map<string, { value: unknown; reason: string }>>();
+  for (const row of costOverrideRows) {
+    if (row.status !== "approved" && row.status !== "applied") continue;
+    if (!["costPrice", "packagingCost", "insertCost"].includes(row.fieldName)) continue;
+    if (!overrideMap.has(row.entityId)) overrideMap.set(row.entityId, new Map());
+    // Use most recent entry per field (already sorted by DESC createdAt from DB)
+    const fieldMap = overrideMap.get(row.entityId)!;
+    if (!fieldMap.has(row.fieldName)) {
+      fieldMap.set(row.fieldName, { value: row.newValueJson, reason: row.reason });
+    }
+  }
+
+  function applyOverrides(cost: ProductCost, productId: string): ProductCost {
+    const fields = overrideMap.get(productId);
+    if (!fields || fields.size === 0) return cost;
+    const result = { ...cost };
+    let overridden = false;
+    const reasons: string[] = [];
+    for (const [field, { value, reason }] of fields) {
+      const num = Number(value);
+      if (Number.isFinite(num)) {
+        (result as any)[field] = num;
+        overridden = true;
+        reasons.push(`${field}: ${reason}`);
+      }
+    }
+    if (overridden) {
+      result.overridden = true;
+      result.overrideReason = reasons.join(" | ");
+      result.costsComplete = result.costPrice > 0;
+    }
+    return result;
+  }
+
   return {
     getCurrent(productId: string) {
       const product = productMap.get(productId);
-      return product ? productCostFromProduct(product) : undefined;
+      if (!product) return undefined;
+      return applyOverrides(productCostFromProduct(product), productId);
     },
     getEffective(productId: string, at: Date) {
       const product = productMap.get(productId);
@@ -290,9 +355,10 @@ async function buildCostResolver(db: Db, productIds: Set<string>): Promise<CostR
         .get(productId)
         ?.find((history) => toDate(history.effectiveFrom).getTime() <= at.getTime());
 
-      return effectiveHistory
+      const base = effectiveHistory
         ? productCostFromHistory(product, effectiveHistory)
         : productCostFromProduct(product);
+      return applyOverrides(base, productId);
     },
   };
 }
@@ -421,6 +487,16 @@ async function buildWhatsappInvoiceBreakdown(
       financiallyIncluded = true;
     }
 
+    // Check manual financiallyCounted override on invoice
+    const manualFc = (inv as any).financiallyCounted;
+    if (manualFc === false) {
+      financiallyIncluded = false;
+      exclusionReason = `مستبعد يدويًا من الحسابات${(inv as any).note ? ': ' + (inv as any).note : ''}`;
+    } else if (manualFc === true && isAccepted) {
+      financiallyIncluded = true;
+      exclusionReason = null;
+    }
+
     if (isDelivered) {
       revenue += invRevenue;
       profit += invProfit;
@@ -463,17 +539,18 @@ async function buildWhatsappInvoiceBreakdown(
 }
 
 // للربح الفعلي فقط: طلبات موصّلة
+// financiallyCounted=true forces include, false forces exclude, null=auto (use status)
 async function getRealizedOrdersForPeriod(db: Db, start: Date, end: Date): Promise<OrderRow[]> {
-  return await db
+  const all = await db
     .select()
     .from(orders)
-    .where(
-      and(
-        gte(orders.createdAt, start),
-        lte(orders.createdAt, end),
-        inArray(orders.status, [...REALIZED_STATUSES])
-      )
-    );
+    .where(and(gte(orders.createdAt, start), lte(orders.createdAt, end)));
+  return all.filter((o) => {
+    const fc = (o as any).financiallyCounted;
+    if (fc === false) return false;
+    if (fc === true) return true;
+    return REALIZED_STATUSES.includes(o.status as (typeof REALIZED_STATUSES)[number]);
+  });
 }
 
 function calcOrderProfit(order: OrderRow, costs: CostResolver): OrderProfit {
@@ -562,7 +639,12 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const { period, from, to } = getPeriodQuery(req);
     const { start, end } = periodRange(period, from, to);
     const allOrders = await getOrdersForPeriod(db, start, end);
-    const realizedOrders = allOrders.filter((o) => REALIZED_STATUSES.includes(o.status as (typeof REALIZED_STATUSES)[number]));
+    const realizedOrders = allOrders.filter((o) => {
+      const fc = (o as any).financiallyCounted;
+      if (fc === false) return false;
+      if (fc === true) return true;
+      return REALIZED_STATUSES.includes(o.status as (typeof REALIZED_STATUSES)[number]);
+    });
 
     // Collect product IDs from WhatsApp invoices too so one resolver covers all
     const waItemsForCost = await db
@@ -795,9 +877,10 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
     const result = activeProducts
       .map((product) => {
         const salePrice = toNumber(product.price);
-        const costPrice = toNumber(product.costPrice);
-        const packagingCost = toNumber(product.packagingCost);
-        const insertCost = toNumber(product.insertCost);
+        const currentCostResolved = costs.getCurrent(product.id);
+        const costPrice = currentCostResolved?.costPrice ?? toNumber(product.costPrice);
+        const packagingCost = currentCostResolved?.packagingCost ?? toNumber(product.packagingCost);
+        const insertCost = currentCostResolved?.insertCost ?? toNumber(product.insertCost);
         const stock = Number(product.stock ?? 0);
         const threshold = Number(product.lowStockThreshold ?? 10);
         const comingSoon = salePrice <= 0;
@@ -887,6 +970,8 @@ router.get("/products", async (req: Request, res: Response, next: NextFunction):
           adjustedNetProfit,
           adjustedMargin,
           returnRate,
+          overridden: currentCostResolved?.overridden ?? false,
+          overrideReason: currentCostResolved?.overrideReason ?? null,
         };
       })
       .sort((a, b) => b.grossProfit - a.grossProfit);
@@ -971,6 +1056,126 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
   }
 });
 
+// تدقيق مبيعات منتج — يبيّن كل طلب، سبب الاحتساب/الاستبعاد، grossQty و netQty بعد الراجعات
+router.get("/product-sales-drill/:productId", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { productId } = req.params as { productId: string };
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+
+    // جلب جميع الطلبات بالفترة (بدون فلتر الحالة) لعرض المستبعدة أيضاً
+    const allOrdersInPeriod = await getOrdersForPeriod(db, start, end);
+
+    // الطلبات الراجعة (verified) لهذا المنتج
+    const verifiedReturnsForProduct = await db
+      .select()
+      .from(orderReturnEvents)
+      .where(and(eq(orderReturnEvents.status, "verified")));
+
+    let returnedNetQty = 0;
+    for (const evt of verifiedReturnsForProduct) {
+      const items = Array.isArray(evt.affectedItems)
+        ? (evt.affectedItems as Array<{ productId: string; qty: number }>)
+        : [];
+      for (const item of items) {
+        if (item.productId === productId) returnedNetQty += item.qty;
+      }
+    }
+
+    type OrderLine = {
+      orderId: string;
+      orderNumber: string | null;
+      orderStatus: string | null;
+      orderSource: string | null;
+      orderCreatedAt: string;
+      qty: number;
+      priceAtPurchase: number;
+      variantId: string | null;
+      variantLabel: string | null;
+      counted: boolean;
+      exclusionReason: string | null;
+    };
+
+    const lines: OrderLine[] = [];
+    let grossQty = 0;
+
+    for (const order of allOrdersInPeriod) {
+      const items = getOrderItems(order);
+      for (const item of items) {
+        if (item.productId !== productId) continue;
+        const qty = lineQuantity(item);
+        if (qty <= 0) continue;
+
+        const isDelivered = REALIZED_STATUSES.includes(order.status as (typeof REALIZED_STATUSES)[number]);
+        const isWhatsapp = (order as any).source === "whatsapp";
+
+        let counted = isDelivered;
+        let exclusionReason: string | null = null;
+
+        if (!isDelivered) {
+          if (["pending", "processing", "shipped", "in_transit"].includes(order.status ?? "")) {
+            exclusionReason = "الطلب لم يُسلَّم بعد — لا يُحتسب حتى يصبح delivered";
+          } else if (isWhatsapp && !isDelivered) {
+            exclusionReason = "فاتورة واتساب غير موصلة — لا تُحتسب مالياً";
+          } else {
+            exclusionReason = `حالة "${order.status}" لا تُحتسب — فقط delivered`;
+          }
+        }
+
+        if (counted) grossQty += qty;
+
+        lines.push({
+          orderId: order.id,
+          orderNumber: (order as any).orderNumber ?? null,
+          orderStatus: order.status,
+          orderSource: (order as any).source ?? null,
+          orderCreatedAt: toDate(order.createdAt).toISOString(),
+          qty,
+          priceAtPurchase: toNumber(item.priceAtPurchase),
+          variantId: item.variantId ?? null,
+          variantLabel: item.variantLabel ?? null,
+          counted,
+          exclusionReason,
+        });
+      }
+    }
+
+    const netQty = Math.max(0, grossQty - returnedNetQty);
+
+    // تجميع حسب الـ variant لعرض تفصيل الأنواع/الأحجام
+    const variantMap: Record<string, { variantId: string | null; variantLabel: string | null; grossQty: number; revenue: number }> = {};
+    for (const line of lines) {
+      if (!line.counted) continue;
+      const key = line.variantId ?? "__none__";
+      if (!variantMap[key]) {
+        variantMap[key] = { variantId: line.variantId, variantLabel: line.variantLabel, grossQty: 0, revenue: 0 };
+      }
+      variantMap[key].grossQty += line.qty;
+      variantMap[key].revenue += line.qty * line.priceAtPurchase;
+    }
+    const variantBreakdown = Object.values(variantMap).sort((a, b) => b.grossQty - a.grossQty);
+
+    res.json({
+      success: true,
+      data: {
+        productId,
+        period,
+        grossSoldQty: grossQty,
+        verifiedReturnedQty: returnedNetQty,
+        netSoldQty: netQty,
+        totalLinesInPeriod: lines.length,
+        variantBreakdown,
+        orders: lines.sort((a, b) => (b.counted ? 1 : 0) - (a.counted ? 1 : 0)),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // معدلات الإرجاع — طلبات وعناصر، بدون فلتر الفترة
 router.get("/return-metrics", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -1008,9 +1213,10 @@ router.get("/return-metrics", async (req: Request, res: Response, next: NextFunc
       }
     }
 
-    // المصدر 2: طلبات حالتها returned/refunded/rejected_returned بدون حدث إرجاع معتمد مسجّل لها
+    // المصدر 2: طلبات رجعت فعلياً بدون حدث إرجاع معتمد مسجّل لها
+    // rejected/rejected_carrier = رُفض عند التسليم أو من الناقل — المنتج رجع فعلياً
     const ordersWithVerifiedEvent = new Set(verifiedEvents.map((e) => e.orderId));
-    const ITEM_RETURN_STATUSES = ["returned", "refunded", "rejected_returned"];
+    const ITEM_RETURN_STATUSES = ["returned", "refunded", "rejected_returned", "rejected", "rejected_carrier"];
     let returnedItemsFromOrders = 0;
     for (const o of allOrdersAllTime) {
       if (!ITEM_RETURN_STATUSES.includes(o.status ?? "")) continue;
@@ -2157,6 +2363,7 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
           recordedReturnEvents: recordedReturnRows.length,
           salesReturnDeduction: Math.round(totalSalesReturnDeduction),
           actualReturnLoss: Math.round(totalActualReturnLoss),
+          totalReturnFinancialImpact: Math.round(totalSalesReturnDeduction + totalActualReturnLoss),
           sellableReturnedCount,
           nonSellableReturnedCount,
           refundAmount: Math.round(totalSalesReturnDeduction),
@@ -2303,6 +2510,90 @@ router.get("/whatsapp-source-review", async (req: Request, res: Response, next: 
   } catch (err) {
     next(err);
   }
+});
+
+// ==================== Manual Adjustments ====================
+
+// GET /manual-adjustments — list all, optional ?status=&entityType= filters
+router.get("/manual-adjustments", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const entityType = typeof req.query.entityType === "string" ? req.query.entityType : undefined;
+    const rows = await listAdjustments({ status, entityType });
+    res.json({ success: true, count: rows.length, data: JSON.parse(JSON.stringify(rows)) });
+  } catch (err) { next(err); }
+});
+
+// POST /manual-adjustments — create a pending adjustment
+// AI/automated callers are blocked: if x-ai-agent or x-automated header present → 403
+router.post("/manual-adjustments", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    if (req.headers["x-ai-agent"] || req.headers["x-automated"]) {
+      res.status(403).json({ success: false, message: "AI لا يمكنه إنشاء تعديلات مالية — يجب أن يتم ذلك من المدير مباشرة." });
+      return;
+    }
+    const parsed = manualAdjustmentCreateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "بيانات غير صحيحة", errors: parsed.error.issues });
+      return;
+    }
+    // Prevent editing products.price from this endpoint
+    if (parsed.data.entityType === "product" && parsed.data.fieldName === "price") {
+      res.status(403).json({ success: false, message: "سعر البيع محمي — استخدم /api/pricing/apply مع adminConfirm." });
+      return;
+    }
+    const user = (req as any).user;
+    const createdBy: string = user?.id ?? "unknown";
+    const row = await createAdjustment(parsed.data, createdBy);
+    res.status(201).json({ success: true, data: JSON.parse(JSON.stringify(row)) });
+  } catch (err) { next(err); }
+});
+
+// PATCH /manual-adjustments/:id/approve
+router.patch("/manual-adjustments/:id/approve", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+    const user = (req as any).user;
+    await approveAdjustment(id, user?.id ?? "unknown");
+    res.json({ success: true, message: "تم اعتماد التعديل." });
+  } catch (err) { next(err); }
+});
+
+// PATCH /manual-adjustments/:id/reject
+router.patch("/manual-adjustments/:id/reject", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+    const user = (req as any).user;
+    await rejectAdjustment(id, user?.id ?? "unknown");
+    res.json({ success: true, message: "تم رفض التعديل." });
+  } catch (err) { next(err); }
+});
+
+// ==================== Review Flags ====================
+
+// GET /review-flags — list all, optional ?status=&severity= filters
+router.get("/review-flags", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const status = typeof req.query.status === "string" ? req.query.status : undefined;
+    const severity = typeof req.query.severity === "string" ? req.query.severity : undefined;
+    const rows = await listReviewFlags({ status, severity });
+    res.json({ success: true, count: rows.length, data: JSON.parse(JSON.stringify(rows)) });
+  } catch (err) { next(err); }
+});
+
+// PATCH /review-flags/:id/status
+router.patch("/review-flags/:id/status", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { id } = req.params as { id: string };
+    const parsed = reviewFlagStatusUpdateSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "status يجب أن يكون open | resolved | ignored" });
+      return;
+    }
+    const user = (req as any).user;
+    await updateReviewFlagStatus(id, parsed.data.status, user?.id);
+    res.json({ success: true, message: "تم تحديث حالة الـ flag." });
+  } catch (err) { next(err); }
 });
 
 export function createAccountingRouter() {
