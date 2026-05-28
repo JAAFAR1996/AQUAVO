@@ -177,6 +177,70 @@ export default function GuideTemperatureGuide() {
           </div>
         </section>
 
+        {/* ── مشكلة الصيف العراقي ── */}
+        <section className="tmp-section">
+          <h2 className="tmp-title">مشكلة الصيف العراقي — أهم قسم في هذا الدليل</h2>
+          <p className="tmp-body">
+            درجة حرارة الغرفة بالصيف تتجاوز ٣٥–٤٢°C بشكل طبيعي. يعني الحوض بدون تبريد يوصل لـ ٣٢–٣٦°C.
+            عند هذه الدرجات الأكسجين ينخفض، الأمراض تتسارع، والسمچ يبدأ يتعرض لإجهاد حراري حقيقي.
+          </p>
+          <div className="tmp-iraq-grid">
+            <div className="tmp-iraq-box tmp-iraq-warn">
+              <div className="tmp-iraq-label">علامات الحوض الساخن جداً:</div>
+              <ul className="tmp-iraq-ul">
+                <li>السمچ يلهث قرب السطح</li>
+                <li>تنفس سريع وخياشيم تتحرك بشكل ملحوظ</li>
+                <li>خمول وقلة الأكل</li>
+                <li>أمراض تنتشر فجأة بعد موجة حر</li>
+              </ul>
+            </div>
+            <div className="tmp-iraq-box tmp-iraq-safe">
+              <div className="tmp-iraq-label">الهدف العملي بالعراق:</div>
+              <ul className="tmp-iraq-ul">
+                <li>أبقِ الحوض تحت ٣٠°C قدر المستطاع</li>
+                <li>الثبات أهم من مطاردة ٢٦°C</li>
+                <li>٢٨–٣٠°C ثابتة أفضل من ٢٦°C متقلبة</li>
+                <li>راقب مرتين يومياً — صباح ومساء — يكفي</li>
+              </ul>
+            </div>
+          </div>
+          <div className="tmp-cooling-list">
+            <div className="tmp-cooling-title">كيف تخفض حرارة الحوض بأمان:</div>
+            <div className="tmp-cooling-item">
+              <span className="tmp-cooling-num">١</span>
+              <div>
+                <strong>مروحة فوق الحوض</strong>
+                <p>مروحة صغيرة تنفخ على سطح الماء تخفض الحرارة ٢–٤°C بالتبخر. الأفضل عملياً ومو تسبب صدمة.</p>
+              </div>
+            </div>
+            <div className="tmp-cooling-item">
+              <span className="tmp-cooling-num">٢</span>
+              <div>
+                <strong>تغيير جزء من المي بماء أبرد بـ ٢–٣°C</strong>
+                <p>١٥–٢٠٪ فقط. لا تستخدم ماء الثلاجة مباشرة — الفرق الكبير يصدم السمچ. الإضافة التدريجية أهم من الكمية.</p>
+              </div>
+            </div>
+            <div className="tmp-cooling-item">
+              <span className="tmp-cooling-num">٣</span>
+              <div>
+                <strong>زجاجة ماء مجمد مغلقة داخل الحوض</strong>
+                <p>تخفض الحرارة ببطء تدريجي. راقب كل ٣٠ دقيقة.</p>
+                <div className="tmp-cooling-warn">⚠ لا تضع ثلج مباشرة في الحوض — يصدم السمچ بتغيير مفاجئ. زجاجة مغلقة فقط.</div>
+              </div>
+            </div>
+            <div className="tmp-cooling-item">
+              <span className="tmp-cooling-num">٤</span>
+              <div>
+                <strong>تكييف الغرفة</strong>
+                <p>الحل الجذري على المدى البعيد. إذا الغرفة على ٢٦–٢٨°C، الحوض يثبت معها تلقائياً.</p>
+              </div>
+            </div>
+          </div>
+          <div className="tmp-iraq-note">
+            نصيحة عملية: بأشد أيام الصيف، قلل كمية الأكل للنصف. المي الدافئة تحلل الأكل الزائد أسرع وترفع الأمونيا.
+          </div>
+        </section>
+
         {/* ── CTA ── */}
         <section className="tmp-cta-section">
           <div className="tmp-cta-box">
@@ -333,6 +397,27 @@ export default function GuideTemperatureGuide() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .tmp-cta-btn:hover { opacity: 0.88; }
+
+        /* Iraq summer section */
+        .tmp-iraq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 1.25rem; }
+        @media (max-width: 500px) { .tmp-iraq-grid { grid-template-columns: 1fr; } }
+        .tmp-iraq-box { border-radius: 10px; padding: 1rem; }
+        .tmp-iraq-warn { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.18); }
+        .tmp-iraq-safe { background: rgba(34,197,94,0.04); border: 1px solid rgba(34,197,94,0.15); }
+        .tmp-iraq-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0.6rem; }
+        .tmp-iraq-warn .tmp-iraq-label { color: #F87171; }
+        .tmp-iraq-safe .tmp-iraq-label { color: #86EFAC; }
+        .tmp-iraq-ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+        .tmp-iraq-ul li { font-size: 0.82rem; color: #94A3B8; padding-right: 0.75rem; position: relative; line-height: 1.5; }
+        .tmp-iraq-ul li::before { content: '–'; position: absolute; right: 0; color: rgba(255,255,255,0.2); }
+        .tmp-cooling-list { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1rem; }
+        .tmp-cooling-title { font-size: 0.8rem; font-weight: 700; color: #CBD5E1; margin-bottom: 0.5rem; letter-spacing: 0.3px; }
+        .tmp-cooling-item { display: flex; gap: 0.9rem; align-items: flex-start; padding: 0.9rem; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; }
+        .tmp-cooling-num { min-width: 28px; height: 28px; border-radius: 50%; background: rgba(251,146,60,0.12); border: 1px solid rgba(251,146,60,0.28); color: #FB923C; display: flex; align-items: center; justify-content: center; font-size: 0.82rem; font-weight: 800; flex-shrink: 0; }
+        .tmp-cooling-item strong { display: block; font-size: 0.9rem; color: #E2E8F0; margin-bottom: 0.2rem; }
+        .tmp-cooling-item p { font-size: 0.82rem; color: #64748B; margin: 0 0 0.35rem; line-height: 1.6; }
+        .tmp-cooling-warn { font-size: 0.78rem; color: #FDE68A; background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.15); border-radius: 6px; padding: 0.4rem 0.65rem; line-height: 1.5; }
+        .tmp-iraq-note { background: rgba(251,146,60,0.06); border-right: 3px solid rgba(251,146,60,0.4); border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; font-size: 0.83rem; color: #FDBA74; line-height: 1.6; }
       `}</style>
 
     </div>

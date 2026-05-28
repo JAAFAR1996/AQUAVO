@@ -128,6 +128,45 @@ export default function GuideQuarantine() {
           </div>
         </section>
 
+        {/* ── إذا ظهر مرض خلال العزل ── */}
+        <section className="qrn-section">
+          <h2 className="qrn-title">إذا ظهر مرض خلال العزل — شنو تسوي؟</h2>
+          <p className="qrn-body">
+            ظهور مرض خلال العزل لا يعني فشل. يعني النظام نجح — اكتشفت المشكلة في المكان الصح
+            قبل ما تنتقل للحوض الرئيسي.
+          </p>
+          <div className="qrn-disease-steps">
+            <div className="qrn-ds-item">
+              <div className="qrn-ds-num">١</div>
+              <div className="qrn-ds-body">
+                <strong>حدد نوع العرض بدقة</strong>
+                <p>بقع بيضاء صغيرة؟ تآكل الزعانف؟ انتفاخ؟ لون باهت؟ كل عرض له علاج مختلف. لا تضيف دواء قبل التشخيص.</p>
+              </div>
+            </div>
+            <div className="qrn-ds-item">
+              <div className="qrn-ds-num">٢</div>
+              <div className="qrn-ds-body">
+                <strong>راجع دليل العلاج الأساسي</strong>
+                <p>الخطوة الثانية المباشرة هي <a href="/guides/treatment-basics" className="qrn-link">دليل العلاج الأساسي</a> — يساعدك تحدد الدواء المناسب حسب الأعراض وكيف تستخدمه صح.</p>
+              </div>
+            </div>
+            <div className="qrn-ds-item">
+              <div className="qrn-ds-num">٣</div>
+              <div className="qrn-ds-body">
+                <strong>عالج بحوض العزل — مو بالرئيسي</strong>
+                <p>هذا بالضبط سبب العزل. الدواء في الحوض الرئيسي يضر الفلتر البيولوجي — الحوض الرئيسي يبقى سليم.</p>
+              </div>
+            </div>
+            <div className="qrn-ds-item">
+              <div className="qrn-ds-num">٤</div>
+              <div className="qrn-ds-body">
+                <strong>مدّد فترة العزل بعد التعافي</strong>
+                <p>بعد انتهاء العلاج، انتظر أسبوع إضافي على الأقل. لا تنقل السمچة للحوض الرئيسي وهي "تبدو أحسن" — انتظر حتى تأكل بشكل طبيعي وما في أعراض.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ── CTA ── */}
         <section className="qrn-cta-section">
           <div className="qrn-cta-box">
@@ -300,6 +339,24 @@ export default function GuideQuarantine() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .qrn-cta-btn:hover { opacity: 0.88; }
+
+        /* Disease during quarantine section */
+        .qrn-body { font-size: 0.92rem; color: #94A3B8; line-height: 1.75; margin: 0 0 1rem; }
+        .qrn-disease-steps { display: flex; flex-direction: column; gap: 0; }
+        .qrn-ds-item {
+          display: flex; gap: 0.9rem; align-items: flex-start;
+          padding: 1rem 0; border-bottom: 1px solid rgba(56,189,248,0.08);
+        }
+        .qrn-ds-item:last-child { border-bottom: none; }
+        .qrn-ds-num {
+          min-width: 28px; height: 28px; border-radius: 50%;
+          background: rgba(56,189,248,0.1); border: 1px solid rgba(56,189,248,0.25);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.8rem; font-weight: 800; color: #38BDF8; flex-shrink: 0;
+        }
+        .qrn-ds-body strong { display: block; font-size: 0.92rem; color: #E2E8F0; margin-bottom: 0.25rem; }
+        .qrn-ds-body p { font-size: 0.83rem; color: #64748B; margin: 0; line-height: 1.65; }
+        .qrn-link { color: #38BDF8; text-decoration: underline; text-underline-offset: 2px; }
       `}</style>
 
     </div>

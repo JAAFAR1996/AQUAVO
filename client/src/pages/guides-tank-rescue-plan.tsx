@@ -173,6 +173,47 @@ export default function GuideTankRescuePlan() {
           </div>
         </section>
 
+        {/* ── إذا الخطة ما نجحت ── */}
+        <section className="rsc-section">
+          <h2 className="rsc-title">إذا الخطة ما نجحت — شنو تسوي؟</h2>
+          <p className="rsc-body">
+            نفذت الخطوات بالتسلسل، وصلت اليوم ٣٠، والسمچ ما تحسن بشكل واضح — هذا مو فشل. يعني في متغير ما اكتشفناه بعد.
+          </p>
+          <div className="rsc-escalation">
+            <div className="rsc-esc-step">
+              <div className="rsc-esc-badge">A</div>
+              <div className="rsc-esc-content">
+                <strong>أعد فحص المي — كل المؤشرات</strong>
+                <p>أمونيا، نتريت، نترات، pH. أحياناً المشكلة بالـ pH أو النترات المتراكمة — مو بالأمونيا فقط. فحص واحد في اليوم الصفر مو كافي.</p>
+              </div>
+            </div>
+            <div className="rsc-esc-step">
+              <div className="rsc-esc-badge">B</div>
+              <div className="rsc-esc-content">
+                <strong>تحقق من الفلتر بالتفصيل</strong>
+                <p>الفلتر يبدو يشتغل بس ممكن التدفق ضعيف أو الوسط البيولوجي تضرر. نظف الوسط الميكانيكي فقط — لا تلمس البيولوجي بعد.</p>
+              </div>
+            </div>
+            <div className="rsc-esc-step">
+              <div className="rsc-esc-badge">C</div>
+              <div className="rsc-esc-content">
+                <strong>راجع دليل العلاج إذا السمچ فيها أعراض</strong>
+                <p>إذا في سمچ عليها بقع أو علامات مرض، الخطة التالية هي <a href="/guides/treatment-basics" className="rsc-link">دليل العلاج الأساسي</a> — يحدد الدواء الصح حسب الأعراض.</p>
+              </div>
+            </div>
+            <div className="rsc-esc-step">
+              <div className="rsc-esc-badge">D</div>
+              <div className="rsc-esc-content">
+                <strong>إذا السمچ تواصل تموت — أرسل صورة لـ AQUAVO</strong>
+                <p>الموت المتسارع (أكثر من سمچة بيوم) يعني إما تسمم حاد أو مرض معدٍ. أرسل صورة الحوض ونتائج الفحص — التشخيص من صورة واضحة أسرع وأدق من أي خطوة ثانية.</p>
+              </div>
+            </div>
+          </div>
+          <div className="rsc-warn-note">
+            لا تبدأ خطة إنقاذ ثانية قبل ما تعرف ليش الأولى ما نجحت. كل خطوة عشوائية تضيف ضغط على الحوض — مو حل.
+          </div>
+        </section>
+
         {/* ── CTA ── */}
         <section className="rsc-cta-section">
           <div className="rsc-cta-box">
@@ -368,6 +409,28 @@ export default function GuideTankRescuePlan() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .rsc-cta-btn:hover { opacity: 0.88; }
+
+        /* Escalation section */
+        .rsc-escalation { display: flex; flex-direction: column; gap: 0; margin-bottom: 1rem; }
+        .rsc-esc-step {
+          display: flex; gap: 1rem; align-items: flex-start;
+          padding: 1rem 0; border-bottom: 1px solid rgba(14,165,233,0.08);
+        }
+        .rsc-esc-step:last-child { border-bottom: none; }
+        .rsc-esc-badge {
+          min-width: 28px; height: 28px; border-radius: 50%;
+          background: rgba(14,165,233,0.12); border: 1px solid rgba(14,165,233,0.3);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 0.75rem; font-weight: 800; color: #0EA5E9; flex-shrink: 0;
+        }
+        .rsc-esc-content strong { display: block; color: #E2E8F0; font-size: 0.92rem; margin-bottom: 0.25rem; }
+        .rsc-esc-content p { font-size: 0.83rem; color: #64748B; margin: 0; line-height: 1.65; }
+        .rsc-link { color: #0EA5E9; text-decoration: underline; text-underline-offset: 2px; }
+        .rsc-warn-note {
+          background: rgba(245,158,11,0.05); border: 1px solid rgba(245,158,11,0.18);
+          border-radius: 10px; padding: 0.85rem 1rem;
+          font-size: 0.84rem; color: #FDE68A; line-height: 1.6;
+        }
       `}</style>
 
     </div>

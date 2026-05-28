@@ -119,6 +119,38 @@ export default function GuideFilterMedia() {
           </div>
         </section>
 
+        {/* ── لا تبدل كل شيء مرة ── */}
+        <section className="fmd-section">
+          <h2 className="fmd-title">القاعدة الأهم: لا تبدّل كل الوسائط مرة وحدة</h2>
+          <p className="fmd-body">
+            هذا الخطأ يهدم النظام البيولوجي كله دفعة وحدة — حتى لو الحوض عمره سنوات.
+            الشخص يظن يصون الفلتر والواقع يحذف البكتيريا النافعة كلها بيوم واحد.
+          </p>
+          <div className="fmd-rule-grid">
+            <div className="fmd-rule-bad">
+              <div className="fmd-rule-tag fmd-tag-bad">✕ الخطأ الشائع</div>
+              <ul className="fmd-rule-ul">
+                <li>تبديل الإسفنج والسيراميك والكربون كلهم نفس اليوم</li>
+                <li>غسيل كل شيء بمي الصنبور</li>
+                <li>تنظيف الفلتر كامل كل شهر بطريقة عميقة</li>
+              </ul>
+              <div className="fmd-rule-result">النتيجة: أمونيا ترتفع خلال ٢٤–٤٨ ساعة. الدورة تبدأ من صفر.</div>
+            </div>
+            <div className="fmd-rule-good">
+              <div className="fmd-rule-tag fmd-tag-good">✓ الطريقة الصحيحة</div>
+              <ul className="fmd-rule-ul">
+                <li>نظّف أو بدّل وسيطة وحدة كل مرة</li>
+                <li>انتظر ٢–٤ أسابيع قبل الوسيطة الثانية</li>
+                <li>نظّف دائماً بمي الحوض — مو مي الصنبور</li>
+                <li>إذا لازم تبدل سيراميك قديم، أضف الجديد بجانبه أسبوعين أول</li>
+              </ul>
+            </div>
+          </div>
+          <div className="fmd-stagger-note">
+            السبب: البكتيريا النافعة تحتاج وقت لتتكاثر وتستقر على الوسائط الجديدة. إزالة كل الوسائط القديمة دفعة وحدة = لا بكتيريا = لا حماية للسمچ.
+          </div>
+        </section>
+
         {/* ── علامات التحذير ── */}
         <section className="fmd-section">
           <h2 className="fmd-title">متى تعرف أن الوسط مشبع؟</h2>
@@ -324,6 +356,21 @@ export default function GuideFilterMedia() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .fmd-cta-btn:hover { opacity: 0.88; }
+
+        /* Staggered maintenance rule */
+        .fmd-rule-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 0.9rem; }
+        @media (max-width: 500px) { .fmd-rule-grid { grid-template-columns: 1fr; } }
+        .fmd-rule-bad  { background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.18); border-radius: 10px; padding: 1rem; }
+        .fmd-rule-good { background: rgba(52,211,153,0.04); border: 1px solid rgba(52,211,153,0.18); border-radius: 10px; padding: 1rem; }
+        .fmd-rule-tag { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0.65rem; }
+        .fmd-tag-bad  { color: #F87171; }
+        .fmd-tag-good { color: #6EE7B7; }
+        .fmd-rule-ul { list-style: none; padding: 0; margin: 0 0 0.65rem; display: flex; flex-direction: column; gap: 0.3rem; }
+        .fmd-rule-ul li { font-size: 0.82rem; color: #94A3B8; padding-right: 0.7rem; position: relative; line-height: 1.5; }
+        .fmd-rule-bad .fmd-rule-ul li::before  { content: '–'; position: absolute; right: 0; color: rgba(239,68,68,0.4); }
+        .fmd-rule-good .fmd-rule-ul li::before { content: '–'; position: absolute; right: 0; color: rgba(52,211,153,0.4); }
+        .fmd-rule-result { font-size: 0.78rem; color: #F87171; background: rgba(239,68,68,0.06); border-radius: 6px; padding: 0.4rem 0.65rem; line-height: 1.5; }
+        .fmd-stagger-note { background: rgba(52,211,153,0.05); border-right: 3px solid rgba(52,211,153,0.35); border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; font-size: 0.83rem; color: #6EE7B7; line-height: 1.6; }
       `}</style>
 
     </div>

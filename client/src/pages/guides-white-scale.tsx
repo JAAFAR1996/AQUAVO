@@ -72,9 +72,17 @@ export default function GuideWhiteScale() {
               <h3>الخل الأبيض</h3>
               <p>
                 بلّل قطعة قماش بخل أبيض طبيعي. اتركها على المنطقة المتراكمة ٥–١٠ دقائق.
-                امسح بلطف. اشطف الزجاج بمي قبل ما تلمس الحوض.
+                امسح بلطف.
               </p>
-              <div className="whl-method-note">✓ آمن على الأسماك إذا لم يدخل للحوض</div>
+              <div className="whl-rinse-box">
+                <div className="whl-rinse-label">خطوة لازم تسويها قبل أي تلامس مع الماء:</div>
+                <p className="whl-rinse-text">
+                  بعد الانتهاء من الخل، امسح المنطقة بقطعة قماش مبللة بماء عادي نظيف —
+                  أو اشطف الزجاج من الخارج قبل إعادة الماء أو السمچ. الخل الحمضي يغيّر
+                  الـ pH لما يدخل الحوض حتى بكميات صغيرة.
+                </p>
+              </div>
+              <div className="whl-method-note">✓ آمن على الأسماك بعد الشطف الجيد</div>
             </div>
             <div className="whl-method whl-m-mid">
               <div className="whl-method-tag">للطبقات السميكة</div>
@@ -269,6 +277,14 @@ export default function GuideWhiteScale() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .whl-cta-btn:hover { opacity: 0.88; }
+
+        /* Rinse step highlight */
+        .whl-rinse-box {
+          background: rgba(56,189,248,0.06); border: 1px solid rgba(56,189,248,0.22);
+          border-radius: 8px; padding: 0.75rem 0.9rem; margin: 0.6rem 0;
+        }
+        .whl-rinse-label { font-size: 0.72rem; font-weight: 700; color: #38BDF8; letter-spacing: 0.4px; margin-bottom: 0.35rem; }
+        .whl-rinse-text { font-size: 0.82rem; color: #94A3B8; margin: 0; line-height: 1.65; }
       `}</style>
 
     </div>

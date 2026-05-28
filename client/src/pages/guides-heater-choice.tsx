@@ -38,6 +38,39 @@ export default function GuideHeaterChoice() {
           </div>
         </section>
 
+        {/* ── تحذير: هيتر بدون ثرموستات ── */}
+        <section className="htr-section">
+          <h2 className="htr-title">تحذير مهم: الهيترات بدون ثرموستات</h2>
+          <div className="htr-thermo-warn">
+            <div className="htr-thermo-badge">⚠ خطر حقيقي</div>
+            <p className="htr-thermo-text">
+              الهيتر بدون ثرموستات يسخن بدون توقف — لا يوقف نفسه حين تصل الحرارة للدرجة المطلوبة.
+              الحوض يصل لـ ٤٠°C ويقتل السمچ خلال ساعات.
+              الهيترات الرخيصة جداً (أقل من ألف دينار) غالباً بدون ثرموستات أو بثرموستات لا يعمل.
+            </p>
+          </div>
+          <div className="htr-thermo-compare">
+            <div className="htr-tc-bad">
+              <div className="htr-tc-label htr-tc-label-bad">بدون ثرموستات — لا تشتريه</div>
+              <ul className="htr-tc-ul">
+                <li>يسخن باستمرار بدون إيقاف تلقائي</li>
+                <li>الحرارة ترتفع حتى تطبخ السمچ</li>
+                <li>يحتاج مراقبة يدوية مستمرة</li>
+                <li>رخيص الثمن — غالي الثمن على السمچ</li>
+              </ul>
+            </div>
+            <div className="htr-tc-good">
+              <div className="htr-tc-label htr-tc-label-good">بثرموستات — الاختيار الصحيح</div>
+              <ul className="htr-tc-ul">
+                <li>يوقف التسخين تلقائياً عند الدرجة المضبوطة</li>
+                <li>يحافظ على حرارة ثابتة طول اليوم</li>
+                <li>آمن بدون مراقبة مستمرة</li>
+                <li>موجود بكل الأسعار — مو رفاهية</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
         {/* ── حساب الواط ── */}
         <section className="htr-section">
           <h2 className="htr-title">حساب واط الهيتر المناسب</h2>
@@ -302,6 +335,25 @@ export default function GuideHeaterChoice() {
           border-radius: 8px; text-decoration: none; transition: opacity 0.2s;
         }
         .htr-cta-btn:hover { opacity: 0.88; }
+
+        /* Thermostat warning section */
+        .htr-thermo-warn {
+          background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.25);
+          border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1rem;
+        }
+        .htr-thermo-badge { font-size: 0.72rem; font-weight: 700; color: #F87171; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+        .htr-thermo-text { font-size: 0.86rem; color: #CBD5E1; line-height: 1.7; margin: 0; }
+        .htr-thermo-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin-bottom: 0.5rem; }
+        @media (max-width: 500px) { .htr-thermo-compare { grid-template-columns: 1fr; } }
+        .htr-tc-bad  { background: rgba(239,68,68,0.04); border: 1px solid rgba(239,68,68,0.18); border-radius: 10px; padding: 1rem; }
+        .htr-tc-good { background: rgba(34,197,94,0.04); border: 1px solid rgba(34,197,94,0.18); border-radius: 10px; padding: 1rem; }
+        .htr-tc-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 0.6rem; }
+        .htr-tc-label-bad  { color: #F87171; }
+        .htr-tc-label-good { color: #86EFAC; }
+        .htr-tc-ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+        .htr-tc-ul li { font-size: 0.82rem; color: #94A3B8; padding-right: 0.7rem; position: relative; line-height: 1.5; }
+        .htr-tc-bad .htr-tc-ul li::before  { content: '–'; position: absolute; right: 0; color: rgba(239,68,68,0.4); }
+        .htr-tc-good .htr-tc-ul li::before { content: '–'; position: absolute; right: 0; color: rgba(34,197,94,0.4); }
       `}</style>
 
     </div>
