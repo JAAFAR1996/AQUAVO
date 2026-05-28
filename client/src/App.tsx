@@ -64,6 +64,7 @@ const Guide5Mistakes = lazy(() => import("@/pages/guides-5-mistakes"));
 const GuideFishHiding = lazy(() => import("@/pages/guides-fish-hiding"));
 const GuideWaterMyths = lazy(() => import("@/pages/guides-water-myths"));
 const GuideEssentialTools = lazy(() => import("@/pages/guides-essential-tools"));
+const GuideWaterChangeSchedule = lazy(() => import("@/pages/guides-water-change-schedule"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -282,6 +283,16 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><GuideEssentialTools /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/water-change-schedule">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideWaterChangeSchedule /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
