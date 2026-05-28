@@ -65,6 +65,18 @@ const GuideFishHiding = lazy(() => import("@/pages/guides-fish-hiding"));
 const GuideWaterMyths = lazy(() => import("@/pages/guides-water-myths"));
 const GuideEssentialTools = lazy(() => import("@/pages/guides-essential-tools"));
 const GuideWaterChangeSchedule = lazy(() => import("@/pages/guides-water-change-schedule"));
+const GuideTankRescuePlan = lazy(() => import("@/pages/guides-tank-rescue-plan"));
+const GuideFeedingTable = lazy(() => import("@/pages/guides-feeding-table"));
+const GuideFilterChoice = lazy(() => import("@/pages/guides-filter-choice"));
+const GuideTemperatureGuide = lazy(() => import("@/pages/guides-temperature-guide"));
+const GuideHappyFishSigns = lazy(() => import("@/pages/guides-happy-fish-signs"));
+const GuideAquariumSalt = lazy(() => import("@/pages/guides-aquarium-salt"));
+const GuideFilterMedia = lazy(() => import("@/pages/guides-filter-media"));
+const GuideAlgaeControl = lazy(() => import("@/pages/guides-algae-control"));
+const GuideWhiteScale = lazy(() => import("@/pages/guides-white-scale"));
+const GuideQuarantine = lazy(() => import("@/pages/guides-quarantine"));
+const GuideHeaterChoice = lazy(() => import("@/pages/guides-heater-choice"));
+const GuideTreatmentBasics = lazy(() => import("@/pages/guides-treatment-basics"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -293,6 +305,126 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><GuideWaterChangeSchedule /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/tank-rescue-plan">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideTankRescuePlan /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/feeding-table">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideFeedingTable /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/filter-choice">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideFilterChoice /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/temperature-guide">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideTemperatureGuide /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/happy-fish-signs">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideHappyFishSigns /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/aquarium-salt">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideAquariumSalt /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/filter-media">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideFilterMedia /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/algae-control">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideAlgaeControl /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/white-scale">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideWhiteScale /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/quarantine">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideQuarantine /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/heater-choice">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideHeaterChoice /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/treatment-basics">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideTreatmentBasics /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}
