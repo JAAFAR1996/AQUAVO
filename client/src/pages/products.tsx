@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, lazy, Suspense } from "react";
+import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
 import { useLocation } from "wouter";
@@ -63,7 +63,17 @@ export default function Products() {
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
-  const [displayCount, setDisplayCount] = useState(24);
+  const [displayCount, setDisplayCount] = useState(() => {
+    // Restore displayCount if coming back from a product detail page
+    try {
+      const saved = sessionStorage.getItem('aq_products_display_count');
+      if (saved) return Math.max(24, parseInt(saved, 10));
+    } catch { /* ignore */ }
+    return 24;
+  });
+
+  // Ref to track whether we've already done the initial scroll restoration
+  const scrollRestored = useRef(false);
 
   // Comparison - user-initiated
   const { compareIds, addToCompare, removeFromCompare } = useComparison();
@@ -192,6 +202,61 @@ export default function Products() {
   }, [finalProducts, displayCount]);
 
   const hasMore = displayCount < finalProducts.length;
+
+  // Restore scroll position when coming back from product detail page
+  useEffect(() => {
+    if (scrollRestored.current) return;
+    scrollRestored.current = true;
+
+    const savedScroll = sessionStorage.getItem('aq_products_scroll');
+    if (!savedScroll) return;
+
+    // Clear stored scroll so it doesn't trigger on fresh visits
+    try { sessionStorage.removeItem('aq_products_scroll'); } catch { /* ignore */ }
+
+    const targetY = parseInt(savedScroll, 10);
+    if (!targetY || targetY < 10) return;
+
+    // Wait for products to render then scroll
+    const attempt = (retries: number) => {
+      if (window.scrollY >= targetY - 50) return; // already there
+      window.scrollTo({ top: targetY, behavior: 'instant' as ScrollBehavior });
+      if (retries > 0 && window.scrollY < targetY - 50) {
+        requestAnimationFrame(() => attempt(retries - 1));
+      }
+    };
+
+    // Give React time to render the restored products, then scroll
+    const t = setTimeout(() => attempt(10), 120);
+    return () => clearTimeout(t);
+  }, []); // run once on mount
+
+  // Save displayCount whenever it changes (for scroll restoration)
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('aq_products_display_count', String(displayCount));
+    } catch { /* ignore */ }
+  }, [displayCount]);
+
+  // Clear saved state when user navigates away via fresh link (not back button)
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest('a[href]');
+      if (!target) return;
+      const href = (target as HTMLAnchorElement).href;
+      // If they're clicking a product card link, keep the scroll state
+      // If they're clicking something else (category, home, etc.), clear it
+      if (!href.includes('/products/') && !href.includes('/product/')) {
+        try {
+          sessionStorage.removeItem('aq_products_scroll');
+          sessionStorage.removeItem('aq_products_display_count');
+        } catch { /* ignore */ }
+      }
+    };
+    document.addEventListener('click', handleClick);
+    return () => document.removeEventListener('click', handleClick);
+  }, []);
+
 
   const loadMore = () => {
     setDisplayCount(prev => prev + 24);

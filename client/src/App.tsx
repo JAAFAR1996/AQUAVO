@@ -1010,17 +1010,37 @@ function PageViewTracker() {
 
   useEffect(() => {
     // Send duration for the PREVIOUS page before tracking the new one
-    if (locationRef.current !== location) {
+    const prevLocation = locationRef.current;
+    if (prevLocation !== location) {
       sendDuration();
+
+      // Save scroll position when leaving /products so we can restore it on Back
+      if (prevLocation === '/products' || prevLocation.startsWith('/products?')) {
+        try {
+          sessionStorage.setItem('aq_products_scroll', String(window.scrollY));
+        } catch { /* ignore */ }
+      }
     }
     locationRef.current = location;
 
-    // Immediate scroll
-    window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-    // Delayed scroll to handle lazy-loaded content
-    const timer = setTimeout(() => {
+    // Skip scroll-to-top when navigating back to /products from a product detail page.
+    // The products page will restore scroll position itself.
+    const isBackToProducts =
+      (location === '/products' || location.startsWith('/products?')) &&
+      (prevLocation.startsWith('/products/') || prevLocation.startsWith('/product/'));
+
+    let timer: ReturnType<typeof setTimeout>;
+    if (isBackToProducts) {
+      // Don't scroll to top — products.tsx will restore the saved scroll position
+      timer = setTimeout(() => { /* intentionally empty */ }, 100);
+    } else {
+      // Normal forward navigation: scroll to top immediately
       window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
-    }, 100);
+      timer = setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior });
+      }, 100);
+    }
+
     trackPageView(location);
     phTrackPageView(location);
 
