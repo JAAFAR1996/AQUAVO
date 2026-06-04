@@ -205,6 +205,8 @@ export default function Products() {
 
   // Restore scroll position when coming back from product detail page
   useEffect(() => {
+    // Only attempt to restore if we actually have products rendered
+    if (finalProducts.length === 0) return;
     if (scrollRestored.current) return;
     scrollRestored.current = true;
 
@@ -217,7 +219,7 @@ export default function Products() {
     const targetY = parseInt(savedScroll, 10);
     if (!targetY || targetY < 10) return;
 
-    // Wait for products to render then scroll
+    // Wait a tiny bit for the DOM layout to settle, then scroll
     const attempt = (retries: number) => {
       if (window.scrollY >= targetY - 50) return; // already there
       window.scrollTo({ top: targetY, behavior: 'instant' as ScrollBehavior });
@@ -226,10 +228,9 @@ export default function Products() {
       }
     };
 
-    // Give React time to render the restored products, then scroll
-    const t = setTimeout(() => attempt(10), 120);
+    const t = setTimeout(() => attempt(15), 50);
     return () => clearTimeout(t);
-  }, []); // run once on mount
+  }, [finalProducts.length]); // run when products are loaded
 
   // Save displayCount whenever it changes (for scroll restoration)
   useEffect(() => {
