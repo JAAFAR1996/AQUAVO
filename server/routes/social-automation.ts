@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { processCommentsForMedia, startMonitorMode, stopMonitorMode } from "../services/social/auto-responder";
+import { processCommentsForMedia, startMonitorMode, stopMonitorMode } from "../services/social/auto-responder.js";
 
 const router = Router();
 

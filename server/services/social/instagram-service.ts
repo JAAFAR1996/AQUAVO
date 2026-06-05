@@ -10,7 +10,7 @@ import type {
     Demographics,
     PostingTimeRecommendation,
     OAuthTokenResponse,
-} from '../../../shared/social-analytics-types';
+} from '../../../shared/social-analytics-types.js';
 
 // Instagram Graph API base URL (same as Facebook)
 const GRAPH_API_BASE = 'https://graph.facebook.com/v21.0';

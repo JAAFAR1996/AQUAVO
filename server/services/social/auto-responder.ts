@@ -1,8 +1,8 @@
-import { db } from "../../db";
-import { socialInteractions } from "../../../shared/schema";
+import { db } from "../../db.js";
+import { socialInteractions } from "../../../shared/schema.js";
 import { inArray } from "drizzle-orm";
-import { fetchInstagramComments, replyToInstagramComment, sendInstagramPrivateReply } from "./instagram-service";
-import { fetchFacebookComments, replyToFacebookComment, sendFacebookPrivateReply } from "./facebook-service";
+import { fetchInstagramComments, replyToInstagramComment, sendInstagramPrivateReply } from "./instagram-service.js";
+import { fetchFacebookComments, replyToFacebookComment, sendFacebookPrivateReply } from "./facebook-service.js";
 
 // ─────────────────────────────────────────────
 // CAMPAIGN DEFINITIONS
