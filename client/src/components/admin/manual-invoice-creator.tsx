@@ -1,7 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, Trash2, Send, Save, X, Package, Copy, ExternalLink, CheckCircle2, Loader2 } from "lucide-react";
+import { Search, Plus, Trash2, Send, Save, X, Package, Copy, ExternalLink, CheckCircle2, Loader2, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useDebounce } from "@/hooks/use-debounce";
 
 interface Product {
   id: string;
@@ -48,6 +51,8 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
+  const [openCombobox, setOpenCombobox] = useState(false);
+  const debouncedQuery = useDebounce(searchQuery, 300);
 
   // الأسعار
   const [discount, setDiscount] = useState(0);
@@ -75,9 +80,12 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => searchProducts(searchQuery), 300);
-    return () => clearTimeout(t);
-  }, [searchQuery, searchProducts]);
+    if (debouncedQuery.length >= 2) {
+      searchProducts(debouncedQuery);
+    } else {
+      setSearchResults([]);
+    }
+  }, [debouncedQuery, searchProducts]);
 
   const addItem = (product: Product, variantId?: string, variantLabel?: string, variantPrice?: number) => {
     const unitPrice = variantPrice ?? Number(product.price);
@@ -95,6 +103,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     }
     setSearchQuery("");
     setSearchResults([]);
+    setOpenCombobox(false);
   };
 
   const updateQuantity = (idx: number, qty: number) => {
@@ -270,55 +279,90 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               📦 المنتجات
             </div>
 
-            {/* بحث */}
+            {/* بحث (Combobox) */}
             <div style={{ position: "relative", marginBottom: 16 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <Search size={16} color="#199bb8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)" }} />
-                <input
-                  style={{ ...s.input, paddingRight: 36 }}
-                  placeholder="ابحث عن منتج..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                />
-              </div>
-              {(searching || searchResults.length > 0) && (
-                <div style={s.searchDrop}>
-                  {searching && <div style={{ padding: 12, color: "#64748b", textAlign: "center" }}>جاري البحث...</div>}
-                  {searchResults.map(p => (
-                    <div key={p.id}>
-                      {p.hasVariants && p.variants && p.variants.length > 0 ? (
-                        <div style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                          <div style={{ padding: "8px 14px", color: "#94a3b8", fontSize: 13, fontWeight: 700 }}>{p.name}</div>
-                          {p.variants.map(v => (
-                            <div key={v.id}
-                              style={{ padding: "8px 24px", cursor: "pointer", display: "flex", justifyContent: "space-between", fontSize: 13 }}
-                              onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.1)")}
-                              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                              onClick={() => addItem(p, v.id, v.label, v.price)}
-                            >
-                              <span>{v.label}</span>
-                              <span style={{ color: "#199bb8" }}>{v.price.toLocaleString("en-US")} د.ع</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div
-                          style={{ padding: "10px 14px", cursor: "pointer", display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.05)" }}
-                          onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.1)")}
-                          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
-                          onClick={() => addItem(p)}
-                        >
-                          <span style={{ fontSize: 14 }}>{p.name}</span>
-                          <span style={{ color: "#199bb8", fontWeight: 700 }}>{Number(p.price).toLocaleString("en-US")} د.ع</span>
+              <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
+                <PopoverTrigger asChild>
+                  <button
+                    role="combobox"
+                    aria-expanded={openCombobox}
+                    style={{ ...s.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "text", height: "42px" }}
+                    onClick={() => setOpenCombobox(true)}
+                  >
+                    <span style={{ color: searchQuery ? "#e2e8f0" : "#64748b" }}>
+                      {searchQuery ? (searchResults.length === 0 && !searching && searchQuery.length >= 2 ? "لا توجد نتائج" : searchQuery) : "ابحث عن منتج..."}
+                    </span>
+                    <ChevronsUpDown size={16} color="#64748b" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  style={{ 
+                    width: "var(--radix-popover-trigger-width)", 
+                    padding: 0, 
+                    background: "#112240", 
+                    borderColor: "rgba(25,155,184,0.3)",
+                    fontFamily: "'Cairo','Changa',sans-serif",
+                    direction: "rtl",
+                    zIndex: 2000
+                  }} 
+                  align="start"
+                >
+                  <Command shouldFilter={false} style={{ background: "transparent" }}>
+                    <CommandInput 
+                      placeholder="اكتب اسم المنتج أو الماركة للبحث..." 
+                      value={searchQuery}
+                      onValueChange={setSearchQuery}
+                      style={{ color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.05)", direction: "rtl" }}
+                    />
+                    <CommandList style={{ maxHeight: 300 }}>
+                      {searching && (
+                        <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
+                          <Loader2 size={18} className="animate-spin text-[#199bb8]" />
                         </div>
                       )}
-                    </div>
-                  ))}
-                  {!searching && searchResults.length === 0 && searchQuery.length >= 2 && (
-                    <div style={{ padding: 12, color: "#64748b", textAlign: "center" }}>لا توجد نتائج</div>
-                  )}
-                </div>
-              )}
+                      {!searching && searchResults.length === 0 && searchQuery.length >= 2 && (
+                        <CommandEmpty style={{ color: "#94a3b8", padding: "16px", textAlign: "center", fontSize: 14 }}>
+                          لم يتم العثور على نتائج متطابقة
+                        </CommandEmpty>
+                      )}
+                      <CommandGroup>
+                        {!searching && searchResults.map(p => (
+                          <div key={p.id}>
+                            {p.hasVariants && p.variants && p.variants.length > 0 ? (
+                              <div style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 4, marginBottom: 4 }}>
+                                <div style={{ padding: "6px 12px", color: "#94a3b8", fontSize: 12, fontWeight: 700 }}>{p.name}</div>
+                                {p.variants.map(v => (
+                                  <CommandItem
+                                    key={`${p.id}-${v.id}`}
+                                    value={`${p.id}-${v.id}`}
+                                    onSelect={() => addItem(p, v.id, v.label, v.price)}
+                                    style={{ padding: "8px 16px", cursor: "pointer", display: "flex", justifyContent: "space-between", borderRadius: 6, margin: "2px 8px" }}
+                                    className="data-[selected=true]:bg-[#199bb8]/20 data-[selected=true]:text-white transition-colors"
+                                  >
+                                    <span style={{ fontSize: 13, paddingRight: 8, borderRight: "2px solid #199bb8" }}>{v.label}</span>
+                                    <span style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>{v.price.toLocaleString("en-US")} د.ع</span>
+                                  </CommandItem>
+                                ))}
+                              </div>
+                            ) : (
+                              <CommandItem
+                                key={p.id}
+                                value={p.id}
+                                onSelect={() => addItem(p)}
+                                style={{ padding: "10px 12px", cursor: "pointer", display: "flex", justifyContent: "space-between", borderRadius: 6, margin: "2px 8px", borderBottom: "1px solid rgba(255,255,255,0.02)" }}
+                                className="data-[selected=true]:bg-[#199bb8]/20 data-[selected=true]:text-white transition-colors"
+                              >
+                                <span style={{ fontSize: 14 }}>{p.name}</span>
+                                <span style={{ color: "#199bb8", fontWeight: 700, fontSize: 14 }}>{Number(p.price).toLocaleString("en-US")} د.ع</span>
+                              </CommandItem>
+                            )}
+                          </div>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             {/* قائمة المضاف */}
