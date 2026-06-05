@@ -392,7 +392,7 @@ export function FinanceRecommendations({ period }: { period: Period }) {
     data: report,
     isLoading: loadingReport,
     error: errorReport,
-  } = useQuery<AccountingReport>({
+  } = useQuery({
     queryKey: ["accounting-report", period],
     queryFn: () =>
       fetchAccounting(`/api/admin/accounting/report?period=${period}`, accountingReportSchema),
@@ -402,13 +402,19 @@ export function FinanceRecommendations({ period }: { period: Period }) {
     data: products,
     isLoading: loadingProducts,
     error: errorProducts,
-  } = useQuery<AccountingProductProfitFull[]>({
+  } = useQuery({
     queryKey: ["accounting-products-full", period],
     queryFn: () =>
       fetchAccounting(
         `/api/admin/accounting/products?period=${period}`,
         accountingProductProfitFullResponseSchema,
       ),
+    select: (data): AccountingProductProfitFull[] =>
+      data.map((p) => ({
+        ...p,
+        overridden: p.overridden ?? false,
+        overrideReason: p.overrideReason ?? null,
+      })),
   });
 
   const recommendations = useMemo(() => {

@@ -1,10 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, Trash2, Send, Save, X, Package, Copy, ExternalLink, CheckCircle2, Loader2, ChevronsUpDown } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Search, Plus, Trash2, Send, Save, X, Package, Copy, ExternalLink, CheckCircle2, Loader2, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useDebounce } from "@/hooks/use-debounce";
 
 interface Product {
   id: string;
@@ -12,6 +9,8 @@ interface Product {
   price: string;
   thumbnail?: string;
   images?: string[];
+  category?: string;
+  brand?: string;
   hasVariants?: boolean;
   variants?: Array<{ id: string; label: string; price: number }>;
 }
@@ -34,9 +33,15 @@ interface ManualInvoiceCreatorProps {
 
 const CITIES = ["بغداد", "البصرة", "أربيل", "الموصل", "النجف", "كربلاء", "كركوك", "الأنبار", "ديالى", "ذي قار", "المثنى", "ميسان", "القادسية", "بابل", "واسط", "صلاح الدين", "نينوى", "دهوك", "السليمانية", "حلبجة"];
 
+const CATEGORY_LABELS: Record<string, string> = {
+  filters: "فلاتر", lighting: "إضاءة", pumps: "مضخات",
+  "air-pumps": "هواء", heating: "تدفئة", accessories: "ملحقات",
+  food: "أعلاف", plants: "نباتات", fish: "أسماك",
+  substrate: "تربة", wood: "أخشاب", decor: "ديكور",
+};
+
 export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoiceCreatorProps) {
   const { toast } = useToast();
-  const [step, setStep] = useState<1 | 2>(1); // 1: بيانات، 2: معاينة
   const [saving, setSaving] = useState(false);
 
   // بيانات العميل
@@ -51,8 +56,13 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [searching, setSearching] = useState(false);
-  const [openCombobox, setOpenCombobox] = useState(false);
-  const debouncedQuery = useDebounce(searchQuery, 300);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [highlightedIdx, setHighlightedIdx] = useState(-1);
+  const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+
+  // Refs
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // الأسعار
   const [discount, setDiscount] = useState(0);
@@ -63,37 +73,125 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
 
   const subtotal = items.reduce((s, i) => s + i.total, 0);
   const rawTotal = Math.max(0, subtotal - discount + delivery);
-  // التقريب لأقرب 250 دينار عراقي تصاعدياً
   const total = Math.ceil(rawTotal / 250) * 250;
   const roundingDifference = total - rawTotal;
 
-  // بحث المنتجات
+  // ── Smart AI Search (uses embedding semantic search with text fallback) ──────
   const searchProducts = useCallback(async (q: string) => {
-    if (!q.trim() || q.length < 2) { setSearchResults([]); return; }
+    const trimmed = q.trim();
+    if (trimmed.length === 0) {
+      setSearchResults([]);
+      setDropdownOpen(false);
+      return;
+    }
     setSearching(true);
+    setDropdownOpen(true);
     try {
-      const r = await fetch(`/api/products?search=${encodeURIComponent(q)}&limit=8`, { credentials: "include" });
+      // Try smart semantic search first
+      const r = await fetch(`/api/products/smart-search?q=${encodeURIComponent(trimmed)}`, {
+        credentials: "include",
+      });
       const d = await r.json();
-      setSearchResults(d.products || []);
-    } catch { /* silent */ }
-    finally { setSearching(false); }
+      const products: Product[] = d.products || [];
+
+      // If < 3 results from smart search, supplement with regular search
+      if (products.length < 3) {
+        const r2 = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
+          credentials: "include",
+        });
+        const d2 = await r2.json();
+        const extra: Product[] = (d2.products || []).filter(
+          (p: Product) => !products.find((sp) => sp.id === p.id)
+        );
+        setSearchResults([...products, ...extra].slice(0, 15));
+      } else {
+        setSearchResults(products.slice(0, 15));
+      }
+    } catch {
+      // Fallback to plain search
+      try {
+        const r = await fetch(`/api/products?search=${encodeURIComponent(trimmed)}&limit=15`, {
+          credentials: "include",
+        });
+        const d = await r.json();
+        setSearchResults(d.products || []);
+      } catch { /* silent */ }
+    } finally {
+      setSearching(false);
+      setHighlightedIdx(-1);
+    }
   }, []);
 
+  // Debounce — 200ms (faster feel than 300ms)
   useEffect(() => {
-    if (debouncedQuery.length >= 2) {
-      searchProducts(debouncedQuery);
-    } else {
-      setSearchResults([]);
+    const t = setTimeout(() => searchProducts(searchQuery), 200);
+    return () => clearTimeout(t);
+  }, [searchQuery, searchProducts]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(e.target as Node)
+      ) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // ── Flat list of all selectable items (for keyboard nav) ──────────────────
+  type FlatItem = { product: Product; variant: { id: string; label: string; price: number } | null };
+  const flatItems: FlatItem[] = searchResults.flatMap((p): FlatItem[] => {
+    if (p.hasVariants && p.variants && p.variants.length > 0) {
+      return p.variants.map((v): FlatItem => ({ product: p, variant: v }));
     }
-  }, [debouncedQuery, searchProducts]);
+    return [{ product: p, variant: null }];
+  });
+
+  // ── Keyboard navigation ───────────────────────────────────────────────────
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!dropdownOpen) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.min(i + 1, flatItems.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIdx((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter" && highlightedIdx >= 0) {
+      e.preventDefault();
+      const sel = flatItems[highlightedIdx];
+      if (sel) {
+        if (sel.variant) {
+          addItem(sel.product, sel.variant.id, sel.variant.label, sel.variant.price);
+        } else {
+          addItem(sel.product);
+        }
+      }
+    } else if (e.key === "Escape") {
+      setDropdownOpen(false);
+    }
+  };
+
+  // Scroll highlighted item into view
+  useEffect(() => {
+    if (highlightedIdx >= 0 && dropdownRef.current) {
+      const el = dropdownRef.current.querySelector(`[data-idx="${highlightedIdx}"]`);
+      el?.scrollIntoView({ block: "nearest" });
+    }
+  }, [highlightedIdx]);
 
   const addItem = (product: Product, variantId?: string, variantLabel?: string, variantPrice?: number) => {
     const unitPrice = variantPrice ?? Number(product.price);
     const name = variantLabel ? `${product.name} — ${variantLabel}` : product.name;
     const imageUrl = product.thumbnail || product.images?.[0];
-    const existing = items.find(i => i.productId === product.id && i.variantId === variantId);
+    const existing = items.find((i) => i.productId === product.id && i.variantId === variantId);
     if (existing) {
-      setItems(items.map(i =>
+      setItems(items.map((i) =>
         i.productId === product.id && i.variantId === variantId
           ? { ...i, quantity: i.quantity + 1, total: (i.quantity + 1) * i.unitPrice }
           : i
@@ -103,7 +201,9 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     }
     setSearchQuery("");
     setSearchResults([]);
-    setOpenCombobox(false);
+    setDropdownOpen(false);
+    setHighlightedIdx(-1);
+    searchInputRef.current?.focus();
   };
 
   const updateQuantity = (idx: number, qty: number) => {
@@ -143,7 +243,6 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     if (!validate()) return;
     setSaving(true);
     try {
-      // Create first
       const r1 = await fetch("/api/admin/invoices", {
         method: "POST",
         headers: addCsrfHeader({ "Content-Type": "application/json" }),
@@ -153,7 +252,6 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
       const d1 = await r1.json();
       if (!d1.success) throw new Error(d1.message);
 
-      // Send
       const r2 = await fetch(`/api/admin/invoices/${d1.data.id}/send`, {
         method: "POST",
         headers: addCsrfHeader(),
@@ -171,7 +269,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const s = {
-    overlay: { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.8)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto" as const, padding: "24px 16px" },
+    overlay: { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto" as const, padding: "24px 16px" },
     modal:   { width: "100%", maxWidth: 720, background: "#0d1b2a", border: "1px solid rgba(25,155,184,0.2)", borderRadius: 20, overflow: "hidden", fontFamily: "'Cairo','Changa',sans-serif", direction: "rtl" as const, color: "#e2e8f0" },
     header:  { background: "linear-gradient(135deg, #0a1628, #112240)", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(25,155,184,0.2)" },
     body:    { padding: "24px" },
@@ -185,7 +283,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     btnPrimary: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #199bb8, #0d7d96)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnSecondary: { padding: "12px 24px", borderRadius: 12, background: "rgba(255,255,255,0.05)", color: "#94a3b8", fontSize: 15, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnGreen: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
-    searchDrop: { position: "absolute" as const, top: "100%", right: 0, left: 0, background: "#112240", border: "1px solid rgba(25,155,184,0.3)", borderRadius: 10, zIndex: 50, maxHeight: 300, overflowY: "auto" as const, marginTop: 4 },
+    searchDrop: { position: "absolute" as const, top: "calc(100% + 4px)", right: 0, left: 0, background: "#0d1e33", border: "1px solid rgba(25,155,184,0.35)", borderRadius: 12, zIndex: 50, maxHeight: 380, overflowY: "auto" as const, boxShadow: "0 20px 60px rgba(0,0,0,0.6)" },
     total:   { background: "rgba(25,155,184,0.06)", borderRadius: 12, padding: "16px", border: "1px solid rgba(25,155,184,0.15)" },
   };
 
@@ -224,6 +322,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     );
   }
 
+  // ── Main Form ────────────────────────────────────────────────────────────────
   return (
     <div style={s.overlay}>
       <div style={s.modal}>
@@ -279,90 +378,161 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               📦 المنتجات
             </div>
 
-            {/* بحث (Combobox) */}
+            {/* ── Smart Search Box ── */}
             <div style={{ position: "relative", marginBottom: 16 }}>
-              <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                <PopoverTrigger asChild>
-                  <button
-                    role="combobox"
-                    aria-expanded={openCombobox}
-                    style={{ ...s.input, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "text", height: "42px" }}
-                    onClick={() => setOpenCombobox(true)}
-                  >
-                    <span style={{ color: searchQuery ? "#e2e8f0" : "#64748b" }}>
-                      {searchQuery ? (searchResults.length === 0 && !searching && searchQuery.length >= 2 ? "لا توجد نتائج" : searchQuery) : "ابحث عن منتج..."}
-                    </span>
-                    <ChevronsUpDown size={16} color="#64748b" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  style={{ 
-                    width: "var(--radix-popover-trigger-width)", 
-                    padding: 0, 
-                    background: "#112240", 
-                    borderColor: "rgba(25,155,184,0.3)",
-                    fontFamily: "'Cairo','Changa',sans-serif",
-                    direction: "rtl",
-                    zIndex: 2000
-                  }} 
-                  align="start"
-                >
-                  <Command shouldFilter={false} style={{ background: "transparent" }}>
-                    <CommandInput 
-                      placeholder="اكتب اسم المنتج أو الماركة للبحث..." 
-                      value={searchQuery}
-                      onValueChange={setSearchQuery}
-                      style={{ color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.05)", direction: "rtl" }}
-                    />
-                    <CommandList style={{ maxHeight: 300 }}>
-                      {searching && (
-                        <div style={{ padding: 16, display: "flex", justifyContent: "center" }}>
-                          <Loader2 size={18} className="animate-spin text-[#199bb8]" />
-                        </div>
-                      )}
-                      {!searching && searchResults.length === 0 && searchQuery.length >= 2 && (
-                        <CommandEmpty style={{ color: "#94a3b8", padding: "16px", textAlign: "center", fontSize: 14 }}>
-                          لم يتم العثور على نتائج متطابقة
-                        </CommandEmpty>
-                      )}
-                      <CommandGroup>
-                        {!searching && searchResults.map(p => (
-                          <div key={p.id}>
-                            {p.hasVariants && p.variants && p.variants.length > 0 ? (
-                              <div style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: 4, marginBottom: 4 }}>
-                                <div style={{ padding: "6px 12px", color: "#94a3b8", fontSize: 12, fontWeight: 700 }}>{p.name}</div>
-                                {p.variants.map(v => (
-                                  <CommandItem
-                                    key={`${p.id}-${v.id}`}
-                                    value={`${p.id}-${v.id}`}
-                                    onSelect={() => addItem(p, v.id, v.label, v.price)}
-                                    style={{ padding: "8px 16px", cursor: "pointer", display: "flex", justifyContent: "space-between", borderRadius: 6, margin: "2px 8px" }}
-                                    className="data-[selected=true]:bg-[#199bb8]/20 data-[selected=true]:text-white transition-colors"
-                                  >
-                                    <span style={{ fontSize: 13, paddingRight: 8, borderRight: "2px solid #199bb8" }}>{v.label}</span>
-                                    <span style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>{v.price.toLocaleString("en-US")} د.ع</span>
-                                  </CommandItem>
-                                ))}
+              <div style={{ position: "relative" }}>
+                {/* Search icon */}
+                {searching
+                  ? <Loader2 size={16} color="#199bb8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", animation: "spin 1s linear infinite" }} />
+                  : <Search size={16} color={dropdownOpen ? "#199bb8" : "#475569"} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
+                }
+                <input
+                  ref={searchInputRef}
+                  style={{
+                    ...s.input,
+                    paddingRight: 38,
+                    border: dropdownOpen ? "1px solid rgba(25,155,184,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: dropdownOpen ? "0 0 0 3px rgba(25,155,184,0.1)" : "none",
+                    transition: "border-color 0.2s, box-shadow 0.2s",
+                    borderRadius: dropdownOpen && (searchResults.length > 0 || searching) ? "10px 10px 0 0" : 10,
+                  }}
+                  placeholder="ابحث باسم المنتج، الفئة، أو الماركة..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  onFocus={() => { if (searchQuery.trim()) setDropdownOpen(true); }}
+                  onKeyDown={handleKeyDown}
+                  autoComplete="off"
+                  spellCheck={false}
+                />
+              </div>
+
+              {/* ── Dropdown ── */}
+              {dropdownOpen && (searching || searchResults.length > 0) && (
+                <div style={s.searchDrop} ref={dropdownRef}>
+                  {/* Loading */}
+                  {searching && searchResults.length === 0 && (
+                    <div style={{ padding: "16px", display: "flex", alignItems: "center", gap: 10, color: "#64748b", fontSize: 13 }}>
+                      <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} />
+                      جاري البحث...
+                    </div>
+                  )}
+
+                  {/* Results */}
+                  {searchResults.map((product) => {
+                    const catLabel = CATEGORY_LABELS[product.category || ""] || product.category || "";
+                    const thumb = product.thumbnail || product.images?.[0];
+
+                    if (product.hasVariants && product.variants && product.variants.length > 0) {
+                      // Product with variants: show header + collapsed variants
+                      const isExpanded = expandedProduct === product.id;
+                      return (
+                        <div key={product.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                          {/* Parent row — click to expand */}
+                          <div
+                            style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+                            onClick={() => setExpandedProduct(isExpanded ? null : product.id)}
+                            onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.07)")}
+                            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                          >
+                            {/* Thumbnail */}
+                            {thumb
+                              ? <img src={thumb} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
+                              : <div style={{ width: 36, height: 36, borderRadius: 6, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#199bb8" /></div>
+                            }
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
+                                {catLabel && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(25,155,184,0.15)", color: "#199bb8" }}>{catLabel}</span>}
+                                <span style={{ fontSize: 11, color: "#64748b" }}>{product.variants.length} خيار</span>
                               </div>
-                            ) : (
-                              <CommandItem
-                                key={p.id}
-                                value={p.id}
-                                onSelect={() => addItem(p)}
-                                style={{ padding: "10px 12px", cursor: "pointer", display: "flex", justifyContent: "space-between", borderRadius: 6, margin: "2px 8px", borderBottom: "1px solid rgba(255,255,255,0.02)" }}
-                                className="data-[selected=true]:bg-[#199bb8]/20 data-[selected=true]:text-white transition-colors"
-                              >
-                                <span style={{ fontSize: 14 }}>{p.name}</span>
-                                <span style={{ color: "#199bb8", fontWeight: 700, fontSize: 14 }}>{Number(p.price).toLocaleString("en-US")} د.ع</span>
-                              </CommandItem>
-                            )}
+                            </div>
+                            <ChevronDown size={14} color="#64748b" style={{ transform: isExpanded ? "rotate(180deg)" : "none", transition: "transform 0.2s", flexShrink: 0 }} />
                           </div>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+
+                          {/* Variant rows */}
+                          {isExpanded && product.variants.map((v, vi) => {
+                            const globalIdx = flatItems.findIndex((fi: FlatItem) => fi.product.id === product.id && fi.variant?.id === v.id);
+                            const isHighlighted = globalIdx === highlightedIdx;
+                            return (
+                              <div
+                                key={v.id}
+                                data-idx={globalIdx}
+                                style={{
+                                  padding: "9px 14px 9px 14px",
+                                  paddingRight: 62,
+                                  cursor: "pointer",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  fontSize: 13,
+                                  background: isHighlighted ? "rgba(25,155,184,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
+                                  borderTop: "1px solid rgba(255,255,255,0.03)",
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "rgba(25,155,184,0.12)"; setHighlightedIdx(globalIdx); }}
+                                onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(25,155,184,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"; }}
+                                onClick={() => addItem(product, v.id, v.label, v.price)}
+                              >
+                                <span style={{ color: "#c8d8e8" }}>↳ {v.label}</span>
+                                <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 13 }}>{v.price.toLocaleString("en-US")} د.ع</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    }
+
+                    // Simple product
+                    const globalIdx = flatItems.findIndex((fi: FlatItem) => fi.product.id === product.id && fi.variant === null);
+                    const isHighlighted = globalIdx === highlightedIdx;
+                    return (
+                      <div
+                        key={product.id}
+                        data-idx={globalIdx}
+                        style={{
+                          padding: "10px 14px",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                          background: isHighlighted ? "rgba(25,155,184,0.15)" : "transparent",
+                          transition: "background 0.1s",
+                        }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(25,155,184,0.12)"; setHighlightedIdx(globalIdx); }}
+                        onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(25,155,184,0.15)" : "transparent"; }}
+                        onClick={() => addItem(product)}
+                      >
+                        {/* Thumbnail */}
+                        {thumb
+                          ? <img src={thumb} alt="" style={{ width: 38, height: 38, borderRadius: 7, objectFit: "cover", flexShrink: 0 }} />
+                          : <div style={{ width: 38, height: 38, borderRadius: 7, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#199bb8" /></div>
+                        }
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
+                          {catLabel && (
+                            <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(25,155,184,0.15)", color: "#199bb8", marginTop: 2, display: "inline-block" }}>{catLabel}</span>
+                          )}
+                        </div>
+                        <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{Number(product.price).toLocaleString("en-US")} د.ع</span>
+                      </div>
+                    );
+                  })}
+
+                  {/* No results */}
+                  {!searching && searchResults.length === 0 && searchQuery.length >= 1 && (
+                    <div style={{ padding: "18px", color: "#64748b", textAlign: "center", fontSize: 13 }}>
+                      لا توجد نتائج لـ "{searchQuery}"
+                    </div>
+                  )}
+
+                  {/* Hint */}
+                  {searchResults.length > 0 && (
+                    <div style={{ padding: "8px 14px", fontSize: 11, color: "#334155", textAlign: "center", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                      ↑↓ للتنقل · Enter للاختيار · Esc للإغلاق
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* قائمة المضاف */}
@@ -370,6 +540,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               <div style={{ textAlign: "center", padding: "24px", color: "#475569", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 10 }}>
                 <Package size={32} style={{ margin: "0 auto 8px" }} />
                 <div>ابحث عن منتج وأضفه للفاتورة</div>
+                <div style={{ fontSize: 12, marginTop: 4, color: "#334155" }}>يمكنك البحث بالاسم العربي أو الإنجليزي أو الفئة</div>
               </div>
             ) : (
               <>
