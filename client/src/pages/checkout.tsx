@@ -162,8 +162,9 @@ export default function CheckoutPage() {
             address: `${GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label} - ${customerInfo.address}`,
           },
           items: cartItems.map((item) => ({
-            ...item,
             productId: item.productId,
+            quantity: item.quantity,
+            ...(item.variantId ? { variantId: item.variantId } : {}),
           })),
           total: cartTotal,
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,

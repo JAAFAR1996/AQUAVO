@@ -1,6 +1,21 @@
-import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
+import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, gte, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
+
+interface CreateOrderLineInput {
+    productId: string;
+    quantity: number;
+    variantId?: string;
+}
+
+interface LockedProductRow {
+    id: string;
+    name: string;
+    price: string | number;
+    stock: number | null;
+    variants: ProductVariant[] | null;
+    hasVariants?: boolean;
+}
 
 export class OrderStorage {
     private db = getDb();
@@ -10,6 +25,25 @@ export class OrderStorage {
             throw new Error('Database not connected. Please configure DATABASE_URL in your .env file.');
         }
         return this.db;
+    }
+
+    private async lockProductForUpdate(tx: any, productId: string): Promise<LockedProductRow | undefined> {
+        const result = await tx.execute(sql`
+            SELECT id, name, price, stock, variants, has_variants AS "hasVariants"
+            FROM products
+            WHERE id = ${productId}
+            FOR UPDATE
+        `);
+        const rows = Array.isArray(result) ? result : (result?.rows ?? []);
+        return rows[0] as LockedProductRow | undefined;
+    }
+
+    private parsePositivePrice(value: unknown, label: string): number {
+        const price = Number(value);
+        if (!Number.isFinite(price) || price <= 0) {
+            throw new Error(`${label} is not available for purchase`);
+        }
+        return price;
     }
 
     async getOrders(userId?: string, options?: { limit?: number; offset?: number }): Promise<Order[]> {
@@ -101,38 +135,90 @@ export class OrderStorage {
         return `${datePrefix}-${sequence}`;
     }
 
-    async createOrderSecure(userId: string | null, items: any[], customerInfo: any, couponCode?: string): Promise<Order> {
+    async createOrderSecure(userId: string | null, items: CreateOrderLineInput[], customerInfo: any, couponCode?: string): Promise<Order> {
         const db = this.ensureDb();
         return await db.transaction(async (tx) => {
             // 1. Calculate totals and validate stock
             let subtotal = 0;
-            const orderItemsData = [];
+            const orderItemsData: OrderLineItem[] = [];
 
-            // Fetch products to verify stock and price (avoid client-side trust)
+            // Lock each product row before price/stock validation so concurrent orders cannot oversell.
             for (const item of items) {
-                const [product] = await tx.select().from(products).where(eq(products.id, item.productId));
+                const product = await this.lockProductForUpdate(tx, item.productId);
                 if (!product) throw new Error(`Product ${item.productId} not found`);
-                if ((product.stock || 0) < item.quantity) throw new Error(`Insufficient stock for ${product.name}`);
 
-                // Use DB price, not client price
-                const price = Number(product.price);
-                subtotal += price * item.quantity;
+                const quantity = Number(item.quantity);
+                if (!Number.isInteger(quantity) || quantity <= 0) {
+                    throw new Error(`Invalid quantity for ${product.name}`);
+                }
+
+                let price: number;
+                let variantLabel: string | undefined;
+
+                if (item.variantId) {
+                    const variants = Array.isArray(product.variants) ? product.variants : [];
+                    const selectedVariant = variants.find((variant) => variant.id === item.variantId);
+                    if (!selectedVariant) {
+                        throw new Error(`Invalid variant ${item.variantId} for ${product.name}`);
+                    }
+
+                    const variantStock = Number(selectedVariant.stock ?? 0);
+                    if (variantStock < quantity) {
+                        throw new Error(`Insufficient stock for ${product.name} (${selectedVariant.label})`);
+                    }
+
+                    price = this.parsePositivePrice(selectedVariant.price, `Variant ${selectedVariant.label}`);
+                    variantLabel = selectedVariant.label;
+
+                    const updatedVariants = variants.map((variant) =>
+                        variant.id === selectedVariant.id
+                            ? { ...variant, stock: variantStock - quantity }
+                            : variant
+                    );
+                    const currentBaseStock = Number(product.stock ?? 0);
+                    const nextBaseStock = currentBaseStock > 0
+                        ? Math.max(0, currentBaseStock - quantity)
+                        : currentBaseStock;
+
+                    await tx.update(products)
+                        .set({
+                            variants: updatedVariants,
+                            stock: nextBaseStock,
+                            updatedAt: new Date(),
+                        } as any)
+                        .where(eq(products.id, product.id));
+                } else {
+                    const currentStock = Number(product.stock ?? 0);
+                    if (currentStock < quantity) {
+                        throw new Error(`Insufficient stock for ${product.name}`);
+                    }
+
+                    price = this.parsePositivePrice(product.price, `Product ${product.name}`);
+
+                    await tx.update(products)
+                        .set({
+                            stock: currentStock - quantity,
+                            updatedAt: new Date(),
+                        } as any)
+                        .where(eq(products.id, product.id));
+                }
+
+                const lineTotal = price * quantity;
+                subtotal += lineTotal;
 
                 orderItemsData.push({
                     productId: product.id,
-                    productName: product.name, // Arabic product name from DB
-                    quantity: item.quantity,
-                    priceAtPurchase: price.toString(),
+                    productName: product.name,
+                    quantity,
+                    ...(item.variantId ? { variantId: item.variantId } : {}),
+                    ...(variantLabel ? { variantLabel } : {}),
+                    priceAtPurchase: price,
+                    lineTotal,
                 });
-
-                // Decrease stock
-                await tx.update(products)
-                    .set({ stock: (product.stock || 0) - item.quantity } as any)
-                    .where(eq(products.id, product.id));
             }
 
             // 2. Calculate Delivery Fee — reads from settings DB (fallback 5000)
-            const shippingRow = await db.select().from(settings).where(eq(settings.key, "shipping_fee")).limit(1);
+            const shippingRow = await tx.select().from(settings).where(eq(settings.key, "shipping_fee")).limit(1);
             const configuredFee = Number(shippingRow[0]?.value ?? 5000);
             let deliveryFee = subtotal >= 100000 ? 0 : configuredFee;
 
@@ -186,7 +272,7 @@ export class OrderStorage {
             const [newOrder] = await tx.insert(orders).values({
                 orderNumber: orderNumber,
                 userId: userId ? userId : undefined,
-                items: orderItemsData, // Enriched: productId + productName + quantity + priceAtPurchase
+                items: orderItemsData,
                 total: finalTotal.toString(),
                 roundedTotal: roundedTotal.toString(),
                 roundingCashback: roundingCashback,

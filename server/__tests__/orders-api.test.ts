@@ -3,6 +3,79 @@
  * Tests for order creation, status updates, and listing
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { products, orders, settings } from '../../shared/schema.js';
+import { getDb } from '../db.js';
+import { OrderStorage } from '../storage/order-storage.js';
+
+vi.mock('../db.js', () => ({
+    getDb: vi.fn(),
+    db: null,
+}));
+
+function makeAwaitableRows(rows: any[]) {
+    const promise = Promise.resolve(rows);
+    return {
+        where: vi.fn(() => ({
+            limit: vi.fn(async () => rows),
+            then: promise.then.bind(promise),
+        })),
+        limit: vi.fn(async () => rows),
+        then: promise.then.bind(promise),
+    };
+}
+
+function createOrderStorageHarness(productRow: any, options: { shippingFee?: string; todayCount?: number } = {}) {
+    const productUpdates: any[] = [];
+    const insertedOrders: any[] = [];
+
+    const tx = {
+        execute: vi.fn(async () => ({ rows: productRow ? [productRow] : [] })),
+        select: vi.fn(() => ({
+            from: vi.fn((table) => {
+                if (table === orders) return makeAwaitableRows([{ count: options.todayCount ?? 0 }]);
+                if (table === settings) return makeAwaitableRows([{ value: options.shippingFee ?? '5000' }]);
+                return makeAwaitableRows([]);
+            }),
+        })),
+        update: vi.fn((table) => ({
+            set: vi.fn((payload) => ({
+                where: vi.fn(async () => {
+                    if (table === products) productUpdates.push(payload);
+                    return [];
+                }),
+            })),
+        })),
+        insert: vi.fn((table) => ({
+            values: vi.fn((payload) => ({
+                returning: vi.fn(async () => {
+                    if (table === orders) {
+                        insertedOrders.push(payload);
+                        return [{
+                            id: 'order-1',
+                            createdAt: new Date('2026-06-07T00:00:00Z'),
+                            updatedAt: new Date('2026-06-07T00:00:00Z'),
+                            ...payload,
+                        }];
+                    }
+                    return [{ id: 'row-1', ...payload }];
+                }),
+            })),
+        })),
+    };
+
+    const db = {
+        transaction: vi.fn(async (callback) => callback(tx)),
+    };
+
+    vi.mocked(getDb).mockReturnValue(db as any);
+
+    return {
+        storage: new OrderStorage(),
+        productUpdates,
+        insertedOrders,
+        tx,
+    };
+}
 
 describe('Orders API', () => {
     beforeEach(() => {
@@ -177,5 +250,139 @@ describe('Orders API', () => {
                 expect(order.userId).toBe(userId);
             });
         });
+    });
+});
+
+describe('OrderStorage.createOrderSecure', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('creates a base product order using the database price', async () => {
+        const { storage, productUpdates } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        });
+
+        const order = await storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 2 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        });
+
+        expect(order.total).toBe('25000');
+        expect(order.items).toEqual([
+            {
+                productId: 'base-1',
+                productName: 'Base Filter',
+                quantity: 2,
+                priceAtPurchase: 10000,
+                lineTotal: 20000,
+            },
+        ]);
+        expect(productUpdates[0].stock).toBe(3);
+    });
+
+    it('creates a variant order using the database variant price and metadata', async () => {
+        const { storage, productUpdates } = createOrderStorageHarness({
+            id: 'variant-1',
+            name: 'Variant Pump',
+            price: '10000',
+            stock: 3,
+            hasVariants: true,
+            variants: [
+                { id: 'small', label: 'Small', price: 22000, stock: 3 },
+                { id: 'large', label: 'Large', price: 35000, stock: 2 },
+            ],
+        });
+
+        const order = await storage.createOrderSecure(null, [
+            { productId: 'variant-1', quantity: 2, variantId: 'small' },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        });
+
+        expect(order.total).toBe('49000');
+        expect(order.items).toEqual([
+            {
+                productId: 'variant-1',
+                productName: 'Variant Pump',
+                quantity: 2,
+                variantId: 'small',
+                variantLabel: 'Small',
+                priceAtPurchase: 22000,
+                lineTotal: 44000,
+            },
+        ]);
+        expect(productUpdates[0].variants[0].stock).toBe(1);
+        expect(productUpdates[0].variants[1].stock).toBe(2);
+    });
+
+    it('rejects an invalid variantId clearly', async () => {
+        const { storage, insertedOrders } = createOrderStorageHarness({
+            id: 'variant-1',
+            name: 'Variant Pump',
+            price: '10000',
+            stock: 3,
+            hasVariants: true,
+            variants: [{ id: 'small', label: 'Small', price: 22000, stock: 3 }],
+        });
+
+        await expect(storage.createOrderSecure(null, [
+            { productId: 'variant-1', quantity: 1, variantId: 'missing' },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        })).rejects.toThrow('Invalid variant missing for Variant Pump');
+        expect(insertedOrders).toHaveLength(0);
+    });
+
+    it('rejects insufficient base product stock', async () => {
+        const { storage, insertedOrders } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 1,
+            variants: null,
+            hasVariants: false,
+        });
+
+        await expect(storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 2 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        })).rejects.toThrow('Insufficient stock for Base Filter');
+        expect(insertedOrders).toHaveLength(0);
+    });
+
+    it('rejects insufficient variant stock', async () => {
+        const { storage, insertedOrders } = createOrderStorageHarness({
+            id: 'variant-1',
+            name: 'Variant Pump',
+            price: '10000',
+            stock: 5,
+            hasVariants: true,
+            variants: [{ id: 'small', label: 'Small', price: 22000, stock: 1 }],
+        });
+
+        await expect(storage.createOrderSecure(null, [
+            { productId: 'variant-1', quantity: 2, variantId: 'small' },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        })).rejects.toThrow('Insufficient stock for Variant Pump (Small)');
+        expect(insertedOrders).toHaveLength(0);
     });
 });

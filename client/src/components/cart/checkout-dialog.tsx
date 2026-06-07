@@ -48,6 +48,9 @@ interface ServerOrderItem {
   productName?: string;
   quantity?: number;
   priceAtPurchase?: string | number;
+  lineTotal?: string | number;
+  variantId?: string;
+  variantLabel?: string;
 }
 
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
@@ -211,8 +214,9 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         body: JSON.stringify({
           customerInfo: submittedCustomerInfo,
           items: cartItems.map(item => ({
-            ...item,
-            productId: item.productId
+            productId: item.productId,
+            quantity: item.quantity,
+            ...(item.variantId ? { variantId: item.variantId } : {}),
           })),
           total: cartTotal,
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,
@@ -247,8 +251,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               quantity: item.quantity || cartItem?.quantity || 1,
               image: cartItem?.image || "",
               slug: cartItem?.slug || "",
-              variantId: cartItem?.variantId,
-              variantLabel: cartItem?.variantLabel,
+              variantId: item.variantId ?? cartItem?.variantId,
+              variantLabel: item.variantLabel ?? cartItem?.variantLabel,
             };
           })
         : cartItems;

@@ -16,6 +16,16 @@ export interface ProductVariant {
   specifications?: Record<string, any>; // Variant-specific specs (tank size, etc.)
 }
 
+export interface OrderLineItem {
+  productId: string;
+  productName?: string;
+  quantity: number;
+  variantId?: string;
+  variantLabel?: string;
+  priceAtPurchase: number;
+  lineTotal?: number;
+}
+
 
 export const users = pgTable("users", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -134,7 +144,7 @@ export const orders = pgTable("orders", {
   pointsEarned: integer("points_earned").default(0), // نقاط الولاء المكتسبة من هذا الطلب
   roundingCashback: integer("rounding_cashback").default(0), // نقاط الباقي من التقريب
   // Stronger Typing for JSONB
-  items: jsonb("items").notNull().$type<{ productId: string; quantity: number; priceAtPurchase: number; }[]>(),
+  items: jsonb("items").notNull().$type<OrderLineItem[]>(),
   shippingAddress: jsonb("shipping_address").$type<{ addressLine1: string; city: string; country: string; }>(),
   // Customer info (for guest orders or quick access)
   customerName: text("customer_name"),

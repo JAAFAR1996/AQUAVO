@@ -17,8 +17,12 @@ const referralStorage = new ReferralStorage();
 // Order validation schema
 const createOrderItemSchema = z.object({
     productId: z.string().min(1, "Product ID is required"),
-    quantity: z.number().int().positive("Quantity must be positive").max(100, "Maximum 100 items per product")
-});
+    quantity: z.number().int().positive("Quantity must be positive").max(100, "Maximum 100 items per product"),
+    variantId: z.preprocess(
+        (value) => typeof value === "string" && value.trim() === "" ? undefined : value,
+        z.string().min(1, "Variant ID cannot be empty").max(100, "Variant ID too long").optional()
+    ),
+}).strict("Order items may only include productId, quantity, and optional variantId");
 
 const createOrderCustomerSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100, "Name too long"),
