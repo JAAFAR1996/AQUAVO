@@ -1,8 +1,50 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { triggerJob } from "../cron/scheduled-jobs.js";
 import { aiMonitor } from "../services/ai-monitor.js";
 
 const router = Router();
+
+function getCronRequestSecret(req: Request): string | undefined {
+    const authHeader = req.get("authorization");
+    if (authHeader?.startsWith("Bearer ")) {
+        return authHeader.slice("Bearer ".length);
+    }
+
+    return req.get("x-cron-secret");
+}
+
+function authorizeCronRequest(req: Request, res: Response): boolean {
+    const cronSecret = process.env.CRON_SECRET;
+
+    if (!cronSecret) {
+        if (process.env.NODE_ENV === "production") {
+            console.warn("[Cron] Unauthorized cron request blocked");
+            res.status(403).json({ error: "Forbidden" });
+            return false;
+        }
+
+        console.warn("[Cron] CRON_SECRET is not set; allowing cron request in non-production");
+        return true;
+    }
+
+    if (getCronRequestSecret(req) !== cronSecret) {
+        console.warn("[Cron] Unauthorized cron request blocked");
+        res.status(401).json({ error: "Unauthorized" });
+        return false;
+    }
+
+    return true;
+}
+
+function requireCronAuth(req: Request, res: Response, next: NextFunction): void {
+    if (!authorizeCronRequest(req, res)) {
+        return;
+    }
+
+    next();
+}
+
+router.use(requireCronAuth);
 
 /**
  * POST /api/cron/nightly
@@ -16,14 +58,6 @@ router.get("/nightly", async (req: Request, res: Response) => {
     // Security: Validate CRON_SECRET
     // Vercel sends Authorization header with Bearer token
     // ═══════════════════════════════════════════════
-    const authHeader = req.headers["authorization"];
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        console.warn("[Cron] Unauthorized cron request blocked");
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
     console.log("[Cron] 🌙 Starting nightly tasks...");
     const startTime = Date.now();
     const results: Record<string, { success: boolean; message: string; duration: number }> = {};
@@ -98,13 +132,6 @@ router.get("/nightly", async (req: Request, res: Response) => {
  */
 router.get("/weekly-blog", async (req: Request, res: Response) => {
     // Security: Validate CRON_SECRET
-    const authHeader = req.headers["authorization"];
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
     console.log("[Cron] 📝 Starting weekly blog generation...");
     const startTime = Date.now();
 
@@ -137,13 +164,6 @@ router.get("/weekly-blog", async (req: Request, res: Response) => {
  */
 router.get("/email-campaigns", async (req: Request, res: Response) => {
     // Security: Validate CRON_SECRET
-    const authHeader = req.headers["authorization"];
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
     console.log("[Cron] 📧 Starting weekly email campaign...");
     const startTime = Date.now();
 
@@ -176,13 +196,6 @@ router.get("/email-campaigns", async (req: Request, res: Response) => {
  * Skips silently when FINANCE_AI_AUDIT_ENABLED !== "true".
  */
 router.get("/finance-audit", async (req: Request, res: Response) => {
-    const authHeader = req.headers["authorization"];
-    const cronSecret = process.env.CRON_SECRET;
-
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-        return res.status(401).json({ error: "Unauthorized" });
-    }
-
     if (process.env.FINANCE_AI_AUDIT_ENABLED !== "true") {
         return res.status(200).json({ skipped: true, reason: "FINANCE_AI_AUDIT_ENABLED is not set" });
     }
