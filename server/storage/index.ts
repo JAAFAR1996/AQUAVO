@@ -50,7 +50,13 @@ export interface IStorage {
 
     createAuditLog(log: Partial<AuditLog>): Promise<AuditLog>;
     getAuditLogs(filters?: { userId?: string; entityType?: string; entityId?: string }): Promise<AuditLog[]>;
-    createOrderSecure(userId: string | null, items: any[], customerInfo: any, couponCode?: string): Promise<Order>;
+    createOrderSecure(
+        userId: string | null,
+        items: any[],
+        customerInfo: any,
+        couponCode?: string,
+        loyaltyOptions?: { useCashback?: boolean; cashbackToUse?: number },
+    ): Promise<Order>;
     seedProductsIfNeeded(): Promise<void>;
     // Sales analytics
     getTopSellingProducts(): Promise<{ productOfWeek: Product | null; bestSellers: Product[]; hasRealSales: boolean }>;

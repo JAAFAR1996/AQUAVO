@@ -166,6 +166,22 @@ export interface PurchasePointsResult {
   tierChanged: boolean;
 }
 
+export interface TransactionalOrderLoyaltyInput {
+  userId: string;
+  orderId: string;
+  orderTotal: number;
+  useCashback?: boolean;
+  cashbackToUse?: number;
+}
+
+export interface TransactionalOrderLoyaltyResult extends PurchasePointsResult {
+  actualCashbackUsed: number;
+  pointsDiscount: number;
+  newCashbackBalance: number;
+  newPendingCashbackBalance: number;
+  newPendingLoyaltyPoints: number;
+}
+
 export interface RedeemResult {
   /** نقاط الولاء المستخدمة - دائماً 0 لأنها لا تُصرف */
   loyaltyPointsUsed: number;
@@ -221,6 +237,11 @@ export class LoyaltyStorage {
     return db;
   }
 
+  private rowsFromExecute(result: unknown): any[] {
+    if (Array.isArray(result)) return result;
+    return (result as { rows?: any[] } | undefined)?.rows ?? [];
+  }
+
   // ----------------------------------------
   // 1. تقريب الأسعار العراقي
   // ----------------------------------------
@@ -273,6 +294,140 @@ export class LoyaltyStorage {
   ): number {
     // نقاط الولاء لا تُصرف أبداً - فقط الباقي
     return cashbackBalance * CASHBACK_POINT_VALUE_IQD;
+  }
+
+  /**
+   * Transaction-owned order loyalty effects.
+   * This helper must only be called from the order creation transaction: ledger
+   * inserts intentionally throw so financial writes roll back together.
+   */
+  async processOrderPointsInTransaction(
+    tx: any,
+    input: TransactionalOrderLoyaltyInput,
+  ): Promise<TransactionalOrderLoyaltyResult> {
+    const duplicateResult = await tx.execute(sql`
+      SELECT id
+      FROM loyalty_transactions
+      WHERE order_id = ${input.orderId}
+        AND type IN ('redeem', 'purchase_earn', 'rounding_earn')
+      LIMIT 1
+    `);
+    if (this.rowsFromExecute(duplicateResult).length > 0) {
+      throw new Error(`Loyalty effects already processed for order ${input.orderId}`);
+    }
+
+    const userResult = await tx.execute(sql`
+      SELECT
+        id,
+        loyalty_points AS "loyaltyPoints",
+        pending_loyalty_points AS "pendingLoyaltyPoints",
+        cashback_balance AS "cashbackBalance",
+        pending_cashback_balance AS "pendingCashbackBalance",
+        total_spent AS "totalSpent",
+        loyalty_tier AS "loyaltyTier"
+      FROM users
+      WHERE id = ${input.userId}
+      FOR UPDATE
+    `);
+    const user = this.rowsFromExecute(userResult)[0];
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const currentLoyalty = Number(user.loyaltyPoints ?? 0);
+    const currentPendingLoyalty = Number(user.pendingLoyaltyPoints ?? 0);
+    const currentCashback = Number(user.cashbackBalance ?? 0);
+    const currentPendingCashback = Number(user.pendingCashbackBalance ?? 0);
+    const currentTier = (user.loyaltyTier as TierName) || "bronze";
+    const orderTotal = Math.max(0, Math.floor(Number(input.orderTotal) || 0));
+    const requestedCashback = input.useCashback
+      ? Math.max(0, Math.floor(Number(input.cashbackToUse ?? 0)))
+      : 0;
+
+    const actualCashbackUsed = Math.min(requestedCashback, currentCashback, orderTotal);
+    const cashbackDiscount = actualCashbackUsed * CASHBACK_POINT_VALUE_IQD;
+    const amountAfterDiscount = Math.max(0, orderTotal - cashbackDiscount);
+    const rounding = this.roundToIraqiDenomination(amountAfterDiscount);
+    const purchasePoints = this.calculatePurchasePoints(amountAfterDiscount, currentTier);
+    const roundingPoints = rounding.remainder;
+
+    const newPendingLoyalty = currentPendingLoyalty + purchasePoints;
+    const newCashbackBalance = currentCashback - actualCashbackUsed;
+    const newPendingCashback = currentPendingCashback + roundingPoints;
+
+    await tx
+      .update(users)
+      .set({
+        loyaltyPoints: currentLoyalty,
+        pendingLoyaltyPoints: newPendingLoyalty,
+        cashbackBalance: newCashbackBalance,
+        pendingCashbackBalance: newPendingCashback,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, input.userId));
+
+    await tx
+      .update(orders)
+      .set({
+        roundedTotal: String(rounding.roundedAmount),
+        pointsUsed: 0,
+        cashbackUsed: actualCashbackUsed,
+        pointsDiscount: String(cashbackDiscount),
+        pointsEarned: purchasePoints,
+        roundingCashback: roundingPoints,
+      })
+      .where(eq(orders.id, input.orderId));
+
+    if (actualCashbackUsed > 0) {
+      await this.insertTransactionInTransaction(tx, input.userId, {
+        type: "redeem",
+        pointsType: "cashback",
+        amount: -actualCashbackUsed,
+        balanceAfter: newCashbackBalance,
+        orderId: input.orderId,
+        description: `استبدال ${actualCashbackUsed} نقطة باقي (خصم ${cashbackDiscount.toLocaleString()} د.ع)`,
+        metadata: { discount: cashbackDiscount },
+      });
+    }
+
+    if (purchasePoints > 0) {
+      await this.insertTransactionInTransaction(tx, input.userId, {
+        type: "purchase_earn",
+        pointsType: "loyalty",
+        status: "pending",
+        amount: purchasePoints,
+        balanceAfter: newPendingLoyalty,
+        orderId: input.orderId,
+        description: `نقاط مجمدة: كسبت ${purchasePoints} نقطة ولاء (للعضوية) من شراء بقيمة ${rounding.roundedAmount.toLocaleString()} د.ع`,
+        metadata: { orderTotal: rounding.roundedAmount, tier: currentTier, multiplier: MEMBERSHIP_TIERS[currentTier].pointMultiplier },
+      });
+    }
+
+    if (roundingPoints > 0) {
+      await this.insertTransactionInTransaction(tx, input.userId, {
+        type: "rounding_earn",
+        pointsType: "cashback",
+        status: "pending",
+        amount: roundingPoints,
+        balanceAfter: newPendingCashback,
+        orderId: input.orderId,
+        description: `باقي تقريب مجمد: ${roundingPoints} نقطة (${rounding.originalAmount.toLocaleString()} -> ${rounding.roundedAmount.toLocaleString()} د.ع)`,
+        metadata: { original: rounding.originalAmount, rounded: rounding.roundedAmount },
+      });
+    }
+
+    return {
+      purchasePoints,
+      roundingPoints,
+      roundedTotal: rounding.roundedAmount,
+      newTier: currentTier,
+      tierChanged: false,
+      actualCashbackUsed,
+      pointsDiscount: cashbackDiscount,
+      newCashbackBalance,
+      newPendingCashbackBalance: newPendingCashback,
+      newPendingLoyaltyPoints: newPendingLoyalty,
+    };
   }
 
   // ----------------------------------------
@@ -1167,6 +1322,16 @@ export class LoyaltyStorage {
       console.error("[Loyalty] Failed to log transaction:", error);
       // لا نرمي خطأ لأن تسجيل الحركة ثانوي
     }
+  }
+  private async insertTransactionInTransaction(
+    tx: any,
+    userId: string,
+    data: Omit<typeof loyaltyTransactions.$inferInsert, "id" | "userId" | "createdAt">,
+  ): Promise<void> {
+    await tx.insert(loyaltyTransactions).values({
+      userId,
+      ...data,
+    }).returning({ id: loyaltyTransactions.id });
   }
 }
 

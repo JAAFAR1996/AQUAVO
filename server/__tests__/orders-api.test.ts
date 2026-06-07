@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { products, orders, settings } from '../../shared/schema.js';
+import { products, orders, settings, users, loyaltyTransactions } from '../../shared/schema.js';
 import { getDb } from '../db.js';
 import { calculateActualCashbackUsed, createOrderSchema } from '../routes/orders.js';
 import { OrderStorage } from '../storage/order-storage.js';
@@ -27,15 +27,46 @@ function makeAwaitableRows(rows: any[]) {
     };
 }
 
-function createOrderStorageHarness(productRow: any, options: { shippingFee?: string; insertErrors?: unknown[] } = {}) {
+function createOrderStorageHarness(productRow: any, options: {
+    shippingFee?: string;
+    insertErrors?: unknown[];
+    userRow?: any;
+    duplicateLoyaltyRows?: any[];
+    loyaltyInsertErrors?: unknown[];
+    userUpdateError?: unknown;
+} = {}) {
     const productUpdates: any[] = [];
+    const userUpdates: any[] = [];
+    const orderUpdates: any[] = [];
     const insertedOrders: any[] = [];
+    const insertedLoyaltyTransactions: any[] = [];
     const selectedTables: unknown[] = [];
     const transactionAttempts: any[] = [];
     const insertErrors = [...(options.insertErrors ?? [])];
+    const loyaltyInsertErrors = [...(options.loyaltyInsertErrors ?? [])];
 
     const createTransaction = () => ({
-        execute: vi.fn(async () => ({ rows: productRow ? [productRow] : [] })),
+        _executeCount: 0,
+        _staged: {
+            productUpdates: [] as any[],
+            userUpdates: [] as any[],
+            orderUpdates: [] as any[],
+            insertedOrders: [] as any[],
+            insertedLoyaltyTransactions: [] as any[],
+        },
+        execute: vi.fn(async function (this: any) {
+            this._executeCount += 1;
+            if (this._executeCount === 1) {
+                return { rows: productRow ? [productRow] : [] };
+            }
+            if (this._executeCount === 2) {
+                return { rows: options.duplicateLoyaltyRows ?? [] };
+            }
+            if (this._executeCount === 3) {
+                return { rows: options.userRow ? [options.userRow] : [] };
+            }
+            return { rows: [] };
+        }),
         select: vi.fn(() => ({
             from: vi.fn((table) => {
                 selectedTables.push(table);
@@ -46,25 +77,37 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
         })),
         update: vi.fn((table) => ({
             set: vi.fn((payload) => ({
-                where: vi.fn(async () => {
-                    if (table === products) productUpdates.push(payload);
+                where: vi.fn(async function (this: any) {
+                    const tx = transactionAttempts[transactionAttempts.length - 1];
+                    if (table === users && options.userUpdateError) throw options.userUpdateError;
+                    if (table === products) tx._staged.productUpdates.push(payload);
+                    if (table === users) tx._staged.userUpdates.push(payload);
+                    if (table === orders) tx._staged.orderUpdates.push(payload);
                     return [];
                 }),
             })),
         })),
         insert: vi.fn((table) => ({
             values: vi.fn((payload) => ({
-                returning: vi.fn(async () => {
+                returning: vi.fn(async function () {
+                    const tx = transactionAttempts[transactionAttempts.length - 1];
                     if (table === orders) {
                         const nextError = insertErrors.shift();
                         if (nextError) throw nextError;
-                        insertedOrders.push(payload);
-                        return [{
+                        const row = {
                             id: 'order-1',
                             createdAt: new Date('2026-06-07T00:00:00Z'),
                             updatedAt: new Date('2026-06-07T00:00:00Z'),
                             ...payload,
-                        }];
+                        };
+                        tx._staged.insertedOrders.push(payload);
+                        return [row];
+                    }
+                    if (table === loyaltyTransactions) {
+                        const nextError = loyaltyInsertErrors.shift();
+                        if (nextError) throw nextError;
+                        tx._staged.insertedLoyaltyTransactions.push(payload);
+                        return [{ id: `loyalty-${tx._staged.insertedLoyaltyTransactions.length}`, ...payload }];
                     }
                     return [{ id: 'row-1', ...payload }];
                 }),
@@ -76,7 +119,13 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
         transaction: vi.fn(async (callback) => {
             const tx = createTransaction();
             transactionAttempts.push(tx);
-            return callback(tx);
+            const result = await callback(tx);
+            productUpdates.push(...tx._staged.productUpdates);
+            userUpdates.push(...tx._staged.userUpdates);
+            orderUpdates.push(...tx._staged.orderUpdates);
+            insertedOrders.push(...tx._staged.insertedOrders);
+            insertedLoyaltyTransactions.push(...tx._staged.insertedLoyaltyTransactions);
+            return result;
         }),
     };
 
@@ -85,7 +134,10 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
     return {
         storage: new OrderStorage(),
         productUpdates,
+        userUpdates,
+        orderUpdates,
         insertedOrders,
+        insertedLoyaltyTransactions,
         selectedTables,
         transactionAttempts,
         db,
@@ -602,5 +654,260 @@ describe('OrderStorage.createOrderSecure', () => {
             address: 'Baghdad',
         })).rejects.toThrow('Insufficient stock for Variant Pump (Small)');
         expect(insertedOrders).toHaveLength(0);
+    });
+
+    it('writes cashback redemption, order loyalty columns, user balance, stock, and ledger rows transactionally', async () => {
+        const { storage, productUpdates, userUpdates, orderUpdates, insertedOrders, insertedLoyaltyTransactions } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 5000,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+        });
+
+        const order = await storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 1200,
+        });
+
+        expect(insertedOrders).toHaveLength(1);
+        expect(productUpdates[0].stock).toBe(4);
+        expect(userUpdates[0]).toMatchObject({
+            cashbackBalance: 3800,
+            pendingLoyaltyPoints: 2,
+            pendingCashbackBalance: 200,
+        });
+        expect(orderUpdates[0]).toMatchObject({
+            cashbackUsed: 1200,
+            pointsDiscount: '1200',
+            pointsEarned: 2,
+            roundingCashback: 200,
+            roundedTotal: '14000',
+        });
+        expect(insertedLoyaltyTransactions.map((tx) => tx.type)).toEqual([
+            'redeem',
+            'purchase_earn',
+            'rounding_earn',
+        ]);
+        expect(insertedLoyaltyTransactions[0]).toMatchObject({
+            pointsType: 'cashback',
+            amount: -1200,
+            balanceAfter: 3800,
+            orderId: 'order-1',
+        });
+        expect((order as any).loyaltyResult.actualCashbackUsed).toBe(1200);
+    });
+
+    it('rolls back order, stock, and user balance when loyalty ledger insert fails', async () => {
+        const ledgerError = new Error('ledger insert failed');
+        const { storage, productUpdates, userUpdates, orderUpdates, insertedOrders, insertedLoyaltyTransactions } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 5000,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+            loyaltyInsertErrors: [ledgerError],
+        });
+
+        await expect(storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 1200,
+        })).rejects.toBe(ledgerError);
+
+        expect(productUpdates).toHaveLength(0);
+        expect(userUpdates).toHaveLength(0);
+        expect(orderUpdates).toHaveLength(0);
+        expect(insertedOrders).toHaveLength(0);
+        expect(insertedLoyaltyTransactions).toHaveLength(0);
+    });
+
+    it('rolls back order and stock when user balance update fails', async () => {
+        const userUpdateError = new Error('user update failed');
+        const { storage, productUpdates, userUpdates, orderUpdates, insertedOrders } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 5000,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+            userUpdateError,
+        });
+
+        await expect(storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 1200,
+        })).rejects.toBe(userUpdateError);
+
+        expect(productUpdates).toHaveLength(0);
+        expect(userUpdates).toHaveLength(0);
+        expect(orderUpdates).toHaveLength(0);
+        expect(insertedOrders).toHaveLength(0);
+    });
+
+    it('caps transactional cashback to available balance', async () => {
+        const { storage, userUpdates, orderUpdates } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 500,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+        });
+
+        await storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 5000,
+        });
+
+        expect(orderUpdates[0].cashbackUsed).toBe(500);
+        expect(userUpdates[0].cashbackBalance).toBe(0);
+    });
+
+    it('caps transactional cashback to order total', async () => {
+        const { storage, userUpdates, orderUpdates } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '1200',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            shippingFee: '0',
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 10000,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+        });
+
+        await storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 5000,
+        });
+
+        expect(orderUpdates[0].cashbackUsed).toBe(1200);
+        expect(userUpdates[0].cashbackBalance).toBe(8800);
+    });
+
+    it('prevents duplicate financial loyalty processing for an order inside the transaction', async () => {
+        const { storage, productUpdates, userUpdates, orderUpdates, insertedOrders, insertedLoyaltyTransactions } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            duplicateLoyaltyRows: [{ id: 'existing-loyalty-row' }],
+            userRow: {
+                id: 'user-1',
+                loyaltyPoints: 0,
+                pendingLoyaltyPoints: 0,
+                cashbackBalance: 5000,
+                pendingCashbackBalance: 0,
+                loyaltyTier: 'bronze',
+            },
+        });
+
+        await expect(storage.createOrderSecure('user-1', [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        }, undefined, {
+            useCashback: true,
+            cashbackToUse: 1200,
+        })).rejects.toThrow('Loyalty effects already processed for order order-1');
+
+        expect(productUpdates).toHaveLength(0);
+        expect(userUpdates).toHaveLength(0);
+        expect(orderUpdates).toHaveLength(0);
+        expect(insertedOrders).toHaveLength(0);
+        expect(insertedLoyaltyTransactions).toHaveLength(0);
+    });
+
+    it('keeps notification and referral effects after transactional order creation', () => {
+        const source = readFileSync(resolve(process.cwd(), 'server/routes/orders.ts'), 'utf8');
+        const createOrderIndex = source.indexOf('await storage.createOrderSecure');
+        const notificationIndex = source.indexOf('sendPostPurchaseNotifications');
+        const referralIndex = source.indexOf('markFirstPurchase');
+
+        expect(createOrderIndex).toBeGreaterThan(-1);
+        expect(notificationIndex).toBeGreaterThan(createOrderIndex);
+        expect(referralIndex).toBeGreaterThan(createOrderIndex);
+        expect(source).toContain(".catch(err => console.error('[AQUAVO Loyalty Notifications] Failed:', err));");
+        expect(source).toContain('catch (refErr)');
     });
 });

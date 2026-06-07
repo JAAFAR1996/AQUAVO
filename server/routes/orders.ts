@@ -113,13 +113,21 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
-            const { items, customerInfo, couponCode, usePoints, useCashback, pointsToUse, cashbackToUse } = validationResult.data;
+            const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
+
+            if (!userId && useCashback && cashbackToUse > 0) {
+                res.status(400).json({
+                    message: "Cashback redemption requires a logged-in customer",
+                });
+                return;
+            }
 
             const order = await storage.createOrderSecure(
                 userId || null,
                 items,
                 customerInfo,
-                couponCode
+                couponCode,
+                { useCashback, cashbackToUse },
             );
 
             // 📝 Store client IP with order for rejection tracking
@@ -165,37 +173,14 @@ export function createOrderRouter(): RouterType {
             }
 
             // === AQUAVO LOYALTY POINTS SYSTEM ===
-            // ⚠️ نقاط الولاء لا تُصرف أبداً - فقط الباقي (cashback)
-            let loyaltyResult = null;
-            let actualCashbackUsed = 0;
-            if (userId) {
+            // Financial loyalty effects are committed inside createOrderSecure; this block is post-commit side effects only.
+            const loyaltyResult = (order as any).loyaltyResult ?? null;
+            const actualCashbackUsed = Number((order as any).actualCashbackUsed ?? (order as any).cashbackUsed ?? 0);
+            if (userId && loyaltyResult) {
                 try {
-                    const orderTotal = parseFloat(String(order.total)) || 0;
-
-                    // ✅ التحقق من رصيد الباقي الفعلي قبل المعالجة
-
-                    if (useCashback && cashbackToUse > 0) {
-                        const balance = await loyaltyStorage.getBalance(userId);
-                        // لا نسمح باستخدام أكثر مما يملك أو أكثر من قيمة الطلب نفسها
-                        actualCashbackUsed = calculateActualCashbackUsed({
-                            useCashback,
-                            requestedCashback: cashbackToUse,
-                            availableCashback: balance.cashbackBalance,
-                            orderTotal,
-                        });
-                    }
-
-                    loyaltyResult = await loyaltyStorage.processOrderPoints(
-                        userId,
-                        order.id,
-                        orderTotal,
-                        0, // نقاط الولاء لا تُصرف أبداً
-                        actualCashbackUsed,
-                    );
 
                     console.log(`[AQUAVO Loyalty] Order ${order.id}: +${loyaltyResult.purchasePoints} points, +${loyaltyResult.roundingPoints} cashback, tier: ${loyaltyResult.newTier}${loyaltyResult.tierChanged ? ' (UPGRADED!)' : ''}`);
 
-                    // إرسال إشعارات الولاء (نقاط، ترقية، كوبونات)
                     loyaltyNotifications.sendPostPurchaseNotifications(
                         userId,
                         order.id,
@@ -205,7 +190,6 @@ export function createOrderRouter(): RouterType {
                     try {
                         const referralResult = await referralStorage.markFirstPurchase(userId, order.id);
                         if (referralResult.referral) {
-                            // منح نقاط إضافية للمُحيل عند أول شراء للصديق
                             await loyaltyStorage.awardReferralPurchaseBonus(
                                 referralResult.referral.referrerUserId,
                                 order.id,
@@ -216,8 +200,7 @@ export function createOrderRouter(): RouterType {
                         console.error("[AQUAVO Referral] markFirstPurchase failed:", refErr);
                     }
                 } catch (loyaltyErr) {
-                    console.error("[AQUAVO Loyalty] Points processing failed:", loyaltyErr);
-                    // لا نوقف الطلب بسبب فشل النقاط
+                    console.error("[AQUAVO Loyalty] Post-commit side effects failed:", loyaltyErr);
                 }
             }
 

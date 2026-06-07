@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
 import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
+import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
 
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
@@ -10,6 +11,16 @@ interface CreateOrderLineInput {
     quantity: number;
     variantId?: string;
 }
+
+interface CreateOrderLoyaltyOptions {
+    useCashback?: boolean;
+    cashbackToUse?: number;
+}
+
+type OrderWithLoyalty = Order & {
+    loyaltyResult?: TransactionalOrderLoyaltyResult;
+    actualCashbackUsed?: number;
+};
 
 interface LockedProductRow {
     id: string;
@@ -145,8 +156,18 @@ export class OrderStorage {
         });
     }
 
-    async createOrderSecure(userId: string | null, items: CreateOrderLineInput[], customerInfo: any, couponCode?: string): Promise<Order> {
+    async createOrderSecure(
+        userId: string | null,
+        items: CreateOrderLineInput[],
+        customerInfo: any,
+        couponCode?: string,
+        loyaltyOptions: CreateOrderLoyaltyOptions = {},
+    ): Promise<OrderWithLoyalty> {
         const db = this.ensureDb();
+        if (!userId && loyaltyOptions.useCashback && Number(loyaltyOptions.cashbackToUse ?? 0) > 0) {
+            throw new Error("Cashback redemption requires an authenticated customer");
+        }
+
         for (let attempt = 1; attempt <= ORDER_NUMBER_MAX_ATTEMPTS; attempt++) {
             try {
                 return await db.transaction(async (tx) => {
@@ -299,7 +320,30 @@ export class OrderStorage {
                 customerPhone: customerInfo.phone,
             } as any).returning();
 
-            return newOrder;
+            if (userId) {
+                const loyaltyResult = await loyaltyStorage.processOrderPointsInTransaction(tx, {
+                    userId,
+                    orderId: newOrder.id,
+                    orderTotal: finalTotal,
+                    useCashback: loyaltyOptions.useCashback,
+                    cashbackToUse: loyaltyOptions.cashbackToUse,
+                });
+
+                Object.assign(newOrder, {
+                    roundedTotal: String(loyaltyResult.roundedTotal),
+                    pointsUsed: 0,
+                    cashbackUsed: loyaltyResult.actualCashbackUsed,
+                    pointsDiscount: String(loyaltyResult.pointsDiscount),
+                    pointsEarned: loyaltyResult.purchasePoints,
+                    roundingCashback: loyaltyResult.roundingPoints,
+                });
+                Object.defineProperties(newOrder, {
+                    loyaltyResult: { value: loyaltyResult, enumerable: false },
+                    actualCashbackUsed: { value: loyaltyResult.actualCashbackUsed, enumerable: false },
+                });
+            }
+
+            return newOrder as OrderWithLoyalty;
                 });
             } catch (error) {
                 if (this.isOrderNumberUniqueViolation(error)) {
