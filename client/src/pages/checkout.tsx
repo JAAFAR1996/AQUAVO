@@ -168,8 +168,10 @@ export default function CheckoutPage() {
           })),
           total: cartTotal,
           couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-          loyaltyPointsUsed: loyaltyData.usePoints ? loyaltyData.pointsToUse : 0,
-          cashbackUsed: loyaltyData.useCashback ? loyaltyData.cashbackToUse : 0,
+          usePoints: loyaltyData.usePoints,
+          useCashback: loyaltyData.useCashback,
+          pointsToUse: loyaltyData.pointsToUse,
+          cashbackToUse: loyaltyData.cashbackToUse,
         }),
       });
 

@@ -31,7 +31,7 @@ const createOrderCustomerSchema = z.object({
     email: z.string().email("Invalid email").optional().or(z.literal(""))
 });
 
-const createOrderSchema = z.object({
+export const createOrderSchema = z.object({
     items: z.array(createOrderItemSchema).min(1, "At least one item required").max(50, "Maximum 50 items per order"),
     customerInfo: createOrderCustomerSchema,
     couponCode: z.string().optional(),
@@ -41,6 +41,26 @@ const createOrderSchema = z.object({
     pointsToUse: z.number().int().min(0).optional().default(0),
     cashbackToUse: z.number().int().min(0).optional().default(0),
 });
+
+export function calculateActualCashbackUsed({
+    useCashback,
+    requestedCashback,
+    availableCashback,
+    orderTotal,
+}: {
+    useCashback: boolean;
+    requestedCashback: number;
+    availableCashback: number;
+    orderTotal: number;
+}): number {
+    if (!useCashback) return 0;
+
+    const requested = Math.max(0, Math.floor(requestedCashback));
+    const available = Math.max(0, Math.floor(availableCashback));
+    const payableTotal = Math.max(0, Math.floor(orderTotal));
+
+    return Math.min(requested, available, payableTotal);
+}
 
 export function createOrderRouter(): RouterType {
     const router = Router();
@@ -156,8 +176,13 @@ export function createOrderRouter(): RouterType {
 
                     if (useCashback && cashbackToUse > 0) {
                         const balance = await loyaltyStorage.getBalance(userId);
-                        // لا نسمح باستخدام أكثر مما يملك
-                        actualCashbackUsed = Math.min(cashbackToUse, balance.cashbackBalance);
+                        // لا نسمح باستخدام أكثر مما يملك أو أكثر من قيمة الطلب نفسها
+                        actualCashbackUsed = calculateActualCashbackUsed({
+                            useCashback,
+                            requestedCashback: cashbackToUse,
+                            availableCashback: balance.cashbackBalance,
+                            orderTotal,
+                        });
                     }
 
                     loyaltyResult = await loyaltyStorage.processOrderPoints(

@@ -2,9 +2,12 @@
  * Orders API Tests
  * Tests for order creation, status updates, and listing
  */
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { products, orders, settings } from '../../shared/schema.js';
 import { getDb } from '../db.js';
+import { calculateActualCashbackUsed, createOrderSchema } from '../routes/orders.js';
 import { OrderStorage } from '../storage/order-storage.js';
 
 vi.mock('../db.js', () => ({
@@ -262,6 +265,79 @@ describe('Orders API', () => {
                 expect(order.userId).toBe(userId);
             });
         });
+    });
+});
+
+describe('Order loyalty checkout contract', () => {
+    const validOrderPayload = {
+        items: [{ productId: 'prod-1', quantity: 1 }],
+        customerInfo: {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad address',
+        },
+    };
+
+    it('checkout page sends useCashback and cashbackToUse instead of legacy cashbackUsed', () => {
+        const source = readFileSync(resolve(process.cwd(), 'client/src/pages/checkout.tsx'), 'utf8');
+
+        expect(source).toContain('useCashback: loyaltyData.useCashback');
+        expect(source).toContain('cashbackToUse: loyaltyData.cashbackToUse');
+        expect(source).not.toContain('loyaltyPointsUsed:');
+        expect(source).not.toContain('cashbackUsed: loyaltyData.useCashback');
+    });
+
+    it('server applies cashback when the current contract fields are provided', () => {
+        const parsed = createOrderSchema.parse({
+            ...validOrderPayload,
+            useCashback: true,
+            cashbackToUse: 2500,
+        });
+
+        const actualCashbackUsed = calculateActualCashbackUsed({
+            useCashback: parsed.useCashback,
+            requestedCashback: parsed.cashbackToUse,
+            availableCashback: 5000,
+            orderTotal: 10000,
+        });
+
+        expect(actualCashbackUsed).toBe(2500);
+    });
+
+    it('server ignores legacy cashbackUsed without current contract fields', () => {
+        const parsed = createOrderSchema.parse({
+            ...validOrderPayload,
+            cashbackUsed: 2500,
+        });
+
+        const actualCashbackUsed = calculateActualCashbackUsed({
+            useCashback: parsed.useCashback,
+            requestedCashback: parsed.cashbackToUse,
+            availableCashback: 5000,
+            orderTotal: 10000,
+        });
+
+        expect(parsed.useCashback).toBe(false);
+        expect(parsed.cashbackToUse).toBe(0);
+        expect(actualCashbackUsed).toBe(0);
+    });
+
+    it('server caps cashback to available balance', () => {
+        expect(calculateActualCashbackUsed({
+            useCashback: true,
+            requestedCashback: 5000,
+            availableCashback: 1200,
+            orderTotal: 10000,
+        })).toBe(1200);
+    });
+
+    it('server caps cashback to payable order total', () => {
+        expect(calculateActualCashbackUsed({
+            useCashback: true,
+            requestedCashback: 5000,
+            availableCashback: 10000,
+            orderTotal: 1200,
+        })).toBe(1200);
     });
 });
 
