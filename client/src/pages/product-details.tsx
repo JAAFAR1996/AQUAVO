@@ -36,7 +36,7 @@ import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
 import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
 import { trackViewItem, trackAddToCart } from "@/lib/analytics";
 import { phTrackViewContent, phTrackAddToCart, phTrackWhatsAppClick } from "@/lib/posthog";
-import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 export default function ProductDetails() {
   const params = useParams();

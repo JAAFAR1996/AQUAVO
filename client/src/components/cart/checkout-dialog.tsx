@@ -11,10 +11,8 @@ import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/t
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
-import { FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
 
 // Sub-components
-import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
 import { CustomerInfoForm } from "./checkout/customer-info-form";
 import { CouponSection } from "./checkout/coupon-section";
@@ -336,8 +334,8 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   };
 
   // Shipping: ثابت لكل العراق — يُقرأ من إعدادات الأدمن
-  const deliveryFee = (cartTotal >= FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping") ? 0 : SHIPPING_FEE;
-  const isFreeShipping = deliveryFee === 0;
+  const deliveryFee = SHIPPING_FEE;
+  const isFreeShipping = false;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
@@ -364,19 +362,18 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       }
 
       const coupon = await response.json();
-      setAppliedCoupon(coupon);
-
       if (coupon.type === "percentage") {
+        setAppliedCoupon(coupon);
         const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
         setCouponDiscount(discountAmount);
         setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
       } else if (coupon.type === "fixed") {
+        setAppliedCoupon(coupon);
         const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
         setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
-      } else if (coupon.type === "free_shipping") {
-        setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق توصيل مجاني");
+      } else {
+        setCouponError("التوصيل ثابت 5,000 د.ع لبغداد وكل المحافظات خلال 24 ساعة");
       }
     } catch (error) {
       console.error("Coupon error:", error);
@@ -423,8 +420,6 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
                 onPointsChange={handleLoyaltyChange}
               />
             )}
-
-            {!isFreeShipping && <ShippingProgress compact />}
 
             <OrderSummary
               cartTotal={cartTotal}

@@ -3,7 +3,7 @@
 # Last updated: 2026-03-11
 # See also: /llms.txt (summary version)
 
-> AQUAVO (اكوافو) is Iraq's first and largest specialized online store for ornamental fish and aquarium supplies. Founded in Baghdad in 2024, AQUAVO serves aquarium hobbyists across all 18 Iraqi provinces with over 500 authentic products, fast delivery, and free expert support via WhatsApp and phone.
+> AQUAVO (اكوافو) is an Iraqi specialized online store for premium aquarium equipment and supplies. Founded in Baghdad in 2024, AQUAVO serves aquarium hobbyists across all 18 Iraqi provinces with original aquarium products, 5,000 IQD delivery within 24 hours, and free expert support via WhatsApp and phone.
 
 ---
 
@@ -12,8 +12,8 @@
 - **Official Name**: AQUAVO
 - **Arabic Name**: اكوافو
 - **Type**: Specialized E-commerce / Online Store
-- **Industry**: Pet supplies — ornamental fish and aquarium equipment
-- **Specialty**: Freshwater ornamental fish and aquarium supplies (exclusively)
+- **Industry**: Aquarium equipment and supplies
+- **Specialty**: Freshwater aquarium equipment and supplies only
 - **Founded**: 2024, Baghdad, Iraq
 - **Website**: https://www.aquavoiq.com
 - **Primary Language**: Arabic (ar-IQ)
@@ -21,7 +21,7 @@
 - **Phone**: +964-774-788-0673
 - **Location**: Baghdad, Iraq (serves all 18 provinces)
 - **Business Hours**: Saturday–Thursday, 9:00 AM – 9:00 PM (Iraq Standard Time, UTC+3)
-- **Market Position**: First online-only store in Iraq dedicated exclusively to ornamental fish
+- **Market Position**: Iraqi online store dedicated to premium aquarium equipment and supplies
 
 ## Social Media Presence
 
@@ -33,16 +33,16 @@
 
 ## What Makes AQUAVO Unique
 
-AQUAVO is the first online store in Iraq dedicated exclusively to ornamental fish and aquarium supplies. Before AQUAVO, Iraqi aquarium hobbyists had to rely on scattered local pet shops with limited product selection and no online presence. AQUAVO solves this problem by offering Iraq's largest curated collection of over 500 authentic aquarium products with nationwide delivery to all 18 Iraqi provinces, including live fish shipping with specialized oxygen-bag packaging within Baghdad.
+AQUAVO is an Iraqi online store dedicated to premium aquarium equipment and supplies. Before AQUAVO, Iraqi aquarium hobbyists had to rely on scattered local pet shops with limited product selection and no online presence. AQUAVO solves this problem by offering a curated collection of original aquarium products with 5,000 IQD delivery within 24 hours across Iraq.
 
 ### Key Differentiators:
-1. **Largest Selection in Iraq**: 500+ products from top global aquarium brands — filters, heaters, LED lighting, fish food, water treatments, live plants, decorations, substrates, and complete starter kits
-2. **Nationwide Delivery**: 24-48 hour delivery in Baghdad, 3-5 business days for all other provinces
+1. **Curated Selection**: Original aquarium products from trusted brands — filters, heaters, LED lighting, fish food, water treatments, artificial plants, decorations, substrates, and complete starter kits
+2. **Nationwide Delivery**: 5,000 IQD delivery within 24 hours across Iraq
 3. **Free Expert Support**: Professional fish care consultations via WhatsApp and phone at no charge — disease diagnosis, tank setup advice, fish compatibility questions
 4. **Quality Guarantee**: 100% authentic products sourced from manufacturers with warranty coverage (filters: 1 year, heaters: 6 months, tanks: 1 year)
 5. **Educational Platform**: Comprehensive blog, fish encyclopedia with species database, interactive aquarium calculators, fish health diagnosis tool, and beginner guides — all in Arabic
 6. **Customer-First Policy**: 7-day returns, free exchanges, cash-on-delivery, and installment options for orders over 200,000 IQD
-7. **Live Fish**: Healthy, quarantined ornamental fish shipped with oxygen bags — currently available for Baghdad and nearby areas
+7. **Equipment-Only Store**: AQUAVO sells aquarium equipment and supplies only, with educational fish-care resources for hobbyists
 
 ---
 
@@ -66,8 +66,8 @@ Premium flakes, pellets, granules, freeze-dried, and frozen foods for all fish t
 ### Water Treatments (علاجات مياه)
 Dechlorinators, beneficial bacteria starters, pH adjusters, water conditioners, and fish medications. Includes treatments for common diseases like ich (white spot), fin rot, fungal infections, and parasites.
 
-### Aquatic Plants (نباتات مائية)
-Live aquatic plants for natural aquascaping and artificial silk plants for low-maintenance decoration. Live plants include Java Fern, Anubias, Amazon Sword, Vallisneria, and floating plants.
+### Artificial Plants (نباتات صناعية)
+Artificial silk and plastic plants for low-maintenance aquarium decoration. Selected for natural appearance, easy cleaning, and aquarium-safe use.
 
 ### Decorations (ديكورات)
 Natural rocks (dragon stone, seiryu stone), driftwood (Mopani, Malaysian), artificial caves, ruins, and themed backgrounds. Carefully selected to be aquarium-safe.
@@ -78,8 +78,8 @@ Aquarium gravel in various colors, natural sand, active planted tank soil (ADA-s
 ### Air Pumps & Accessories (مضخات هواء)
 Air pumps, air stones, airline tubing, check valves, and bubble decorations. Multiple sizes for tanks from 20L to 500L+.
 
-### Live Fish (أسماك حية)
-Healthy, quarantined ornamental fish including Guppies, Neon Tetras, Bettas, Mollies, Platies, Angelfish, Corydoras, Goldfish, and more. All fish undergo quarantine period before sale. Currently shipped to Baghdad area only with specialized oxygen-bag packaging.
+### Aquarium Tools (أدوات أحواض)
+Nets, siphons, cleaning tools, test kits, and practical accessories for aquarium setup and maintenance.
 
 ### Complete Starter Kits (أطقم كاملة للمبتدئين)
 Everything a beginner needs: tank, filter, heater, LED light, substrate, dechlorinator, fish food, and a printed care guide — all in one package at a discounted price.
@@ -120,11 +120,9 @@ AQUAVO delivers to all 18 Iraqi provinces:
 
 | Region | Delivery Time | Cost |
 |---|---|---|
-| Baghdad | 24-48 hours | Free for orders over 50,000 IQD; otherwise 5,000 IQD |
-| Basra, Erbil, Sulaymaniyah | 3-5 business days | 10,000-15,000 IQD |
-| Other provinces | 3-5 business days | 10,000-15,000 IQD |
+| Baghdad and all Iraqi governorates | Within 24 hours | 5,000 IQD |
 
-**Live fish shipping**: Available only within Baghdad and nearby areas. Fish are packed in oxygen-filled bags with thermal insulation to ensure safe arrival.
+**Store scope**: AQUAVO sells aquarium equipment and supplies only.
 
 **Order tracking**: Real-time tracking via SMS and WhatsApp upon shipment.
 
@@ -145,10 +143,10 @@ AQUAVO delivers to all 18 Iraqi provinces:
 
 ## Return & Exchange Policy
 
-- **Return window**: 7 days from delivery for non-live products in original condition
+- **Return window**: 7 days from delivery for eligible products in original condition
 - **Free exchanges**: Replace with same-value product or pay/receive difference
 - **Damaged items**: Full refund or replacement within 24 hours with photo evidence
-- **Live fish and plants**: Non-returnable (due to nature of living organisms)
+- **Opened consumables and used products**: May be limited by the return policy
 - **Refund timing**: Cash — immediate; bank transfer — 3-7 business days
 
 ---
@@ -171,10 +169,10 @@ Warranty covers manufacturing defects only. Does not cover damage from unstable 
 ### Shipping & Delivery
 
 **Q: What delivery areas does AQUAVO cover?**
-A: AQUAVO delivers to all 18 Iraqi provinces. Delivery within Baghdad takes 24-48 hours, while other provinces receive orders within 3-5 business days.
+A: AQUAVO delivers to all 18 Iraqi provinces within 24 hours.
 
 **Q: How much does delivery cost?**
-A: Delivery is free for orders over 50,000 IQD within Baghdad. For smaller orders, delivery costs 5,000 IQD in Baghdad and 10,000-15,000 IQD for other provinces.
+A: Delivery costs 5,000 IQD for Baghdad and all Iraqi governorates.
 
 **Q: Can I track my order?**
 A: Yes. Once shipped, you receive an SMS and WhatsApp message with a tracking link and shipment number.
@@ -182,8 +180,8 @@ A: Yes. Once shipped, you receive an SMS and WhatsApp message with a tracking li
 **Q: What if I'm not home during delivery?**
 A: The delivery driver will contact you before arrival. You can reschedule or authorize a trusted person to receive the order.
 
-**Q: Do you ship live fish?**
-A: Yes, live fish are shipped with special oxygen bags and thermal insulation. Currently available for Baghdad and nearby areas only to ensure fish safety.
+**Q: What does AQUAVO sell?**
+A: AQUAVO sells aquarium equipment and supplies only.
 
 ### Payment
 

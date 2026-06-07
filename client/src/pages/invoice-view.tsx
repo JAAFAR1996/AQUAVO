@@ -305,7 +305,7 @@ export default function InvoiceView() {
               <p style={{ color: "#e2e8f0", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
                 لو قمت بإنشاء حساب والطلب مباشرة من موقعنا، لعاد إليك مبلغ <span style={{color: "#199bb8", fontWeight: 700}}>التقريب</span> كاش باك في محفظتك!
                 وأيضاً ستحصل على <span style={{color: "#199bb8", fontWeight: 700}}>نقاط ولاء</span> مع كل طلب، ترتقي بك في مستويات العضوية لتكسب 
-                <span style={{color: "#22c55e", fontWeight: 700}}> خصومات دائمة</span> وربما <span style={{color: "#22c55e", fontWeight: 700}}>توصيل مجاني دائم</span>!
+                <span style={{color: "#22c55e", fontWeight: 700}}> خصومات دائمة</span> مع تجربة طلب أوضح وأسرع!
                 <br/>
                 <a href="/register" target="_blank" rel="noopener noreferrer" style={{ color: "#199bb8", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>سجل الآن واصنع حسابك بالموقع</a>
               </p>

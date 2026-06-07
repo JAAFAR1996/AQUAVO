@@ -179,10 +179,9 @@ export function createSystemRouter(): RouterType {
             payment: { methods: ["cash_on_delivery"], currency: "IQD" },
             shipping: {
                 zones: [
-                    { name: "Baghdad", delivery_time: "1-2 business days", cost: 5000 },
-                    { name: "Other Governorates", delivery_time: "2-4 business days", cost: 5000 }
-                ],
-                free_shipping_threshold: 100000
+                    { name: "Baghdad", delivery_time: "within 24 hours", cost: 5000 },
+                    { name: "All Iraqi governorates", delivery_time: "within 24 hours", cost: 5000 }
+                ]
             },
             contact: { phone: "+964 774 788 0673", website: "https://www.aquavoiq.com" }
         });

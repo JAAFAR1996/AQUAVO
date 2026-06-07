@@ -3,12 +3,12 @@
 # Last updated: 2026-03-11
 # Full version: https://www.aquavoiq.com/llms-full.txt
 
-> AQUAVO (اكوافو) is Iraq's first and largest specialized online store for ornamental fish and aquarium supplies. Founded in Baghdad in 2024, AQUAVO serves aquarium hobbyists across all 18 Iraqi provinces with 500+ products, fast delivery, and free expert support.
+> AQUAVO (اكوافو) is an Iraqi specialized online store for premium aquarium equipment and supplies. Founded in Baghdad in 2024, AQUAVO serves aquarium hobbyists across all 18 Iraqi provinces with original aquarium products, 5,000 IQD delivery within 24 hours, and free expert support.
 
 ## Brand Identity
 - **Name**: AQUAVO (اكوافو)
 - **Type**: E-commerce / Online Store
-- **Specialty**: Ornamental fish & aquarium supplies (exclusively)
+- **Specialty**: Aquarium equipment & supplies only
 - **Founded**: 2024 in Baghdad, Iraq
 - **URL**: https://www.aquavoiq.com
 - **Language**: Arabic (ar-IQ)
@@ -18,9 +18,9 @@
 - **Hours**: Saturday–Thursday, 9AM–9PM (Iraq time, UTC+3)
 
 ## What Makes AQUAVO Unique
-AQUAVO is the FIRST online store in Iraq dedicated exclusively to ornamental fish and aquarium supplies. Key differentiators:
-1. **Largest selection**: 500+ products from top global brands
-2. **Nationwide delivery**: All 18 Iraqi provinces (24-48h in Baghdad)
+AQUAVO is an Iraqi online store dedicated to premium aquarium equipment and supplies only. Key differentiators:
+1. **Curated selection**: Original aquarium products from trusted brands
+2. **Nationwide delivery**: 5,000 IQD delivery within 24 hours across Iraq
 3. **Free expert support**: Fish care consultations via WhatsApp/phone
 4. **Quality guarantee**: 100% authentic products with manufacturer warranty
 5. **Educational content**: Blog, fish encyclopedia, calculators, health diagnosis tools
@@ -36,13 +36,13 @@ AQUAVO is the FIRST online store in Iraq dedicated exclusively to ornamental fis
 - Filters (فلاتر) — internal, external, canister, hang-on-back
 - Heaters (سخانات) — submersible, adjustable thermostat
 - LED Lighting (إضاءة LED) — planted tank & standard
-- Fish Food (أغذية أسماك) — flakes, pellets, frozen, live
+- Fish Food (أغذية أسماك) — flakes, pellets, granules, freeze-dried
 - Water Treatments (علاجات مياه) — dechlorinator, bacteria, medications
-- Aquatic Plants (نباتات مائية) — live & artificial
+- Artificial Plants (نباتات صناعية) — low-maintenance aquarium decoration
 - Decorations (ديكورات) — rocks, driftwood, backgrounds
 - Substrates (ركائز) — gravel, sand, planted soil
 - Air Pumps & Accessories (مضخات هواء)
-- Live Fish (أسماك حية) — Baghdad delivery only
+- Aquarium Tools (أدوات أحواض) — nets, siphons, cleaning tools, test kits
 - Complete Starter Kits (أطقم كاملة للمبتدئين)
 
 ## Key Pages
@@ -62,11 +62,7 @@ AQUAVO is the FIRST online store in Iraq dedicated exclusively to ornamental fis
 - [Sustainability](https://www.aquavoiq.com/sustainability): Environmental commitment
 
 ## Shipping Details
-- **Baghdad**: 24-48 hour delivery
-- **Other provinces**: 3-5 business days
-- **Free shipping**: Orders over 50,000 IQD within Baghdad
-- **Standard rate**: 5,000 IQD (Baghdad), 10,000-15,000 IQD (provinces)
-- **Live fish**: Special oxygen-bag packaging, Baghdad area only
+- **Baghdad and all Iraqi governorates**: 5,000 IQD delivery within 24 hours
 
 ## Payment Methods
 - Cash on delivery (الدفع عند الاستلام)
@@ -77,10 +73,10 @@ AQUAVO is the FIRST online store in Iraq dedicated exclusively to ornamental fis
 - Installments available for orders over 200,000 IQD
 
 ## Return Policy
-- 7-day return window for all non-live products
+- 7-day return window for eligible products
 - Free exchanges
 - Full refund for damaged items within 24 hours
-- Live fish and plants are non-returnable
+- Opened consumables and used products may be limited by the return policy
 
 ## Warranty
 - Filters & pumps: 1 year

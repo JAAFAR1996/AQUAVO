@@ -7,7 +7,7 @@ import { formatIQD, formatDate, formatShortDate } from "@/lib/utils";
 import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
-import { DELIVERY_FEE, FREE_SHIPPING_THRESHOLD } from "@/lib/constants/shipping";
+import { DELIVERY_FEE } from "@/lib/constants/shipping";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -67,7 +67,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
 
   const discount = orderData?.discount ?? 0;
   const inferredDeliveryFee = Math.max(0, grandTotal - calculatedSubtotal + discount);
-  const fallbackDeliveryFee = calculatedSubtotal >= FREE_SHIPPING_THRESHOLD ? 0 : DELIVERY_FEE;
+  const fallbackDeliveryFee = DELIVERY_FEE;
   const deliveryFee = orderData?.deliveryFee ?? (inferredDeliveryFee > 0 ? inferredDeliveryFee : fallbackDeliveryFee);
 
   // المبلغ اللي يدفعه نقداً = roundedTotal مباشرة (الكاش باك مخصوم قبل التقريب)
@@ -101,7 +101,7 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     if (deliveryFee > 0) {
       totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>🚚 التوصيل:</span><span>${formatIQD(deliveryFee)}</span></div>`;
     } else {
-      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#16a34a;"><span>التوصيل:</span><span>مجاني</span></div>`;
+      totalsHTML += `<div style="display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:#64748b;"><span>التوصيل:</span><span>${formatIQD(0)}</span></div>`;
     }
     // الخصم
     if (discount > 0) {

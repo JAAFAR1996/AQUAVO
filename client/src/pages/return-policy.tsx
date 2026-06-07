@@ -65,13 +65,13 @@ export default function ReturnPolicy() {
       icon: RotateCcw,
       title: "استبدال المنتج",
       description: "نرسل لك منتج بديل سليم",
-      time: "خلال 24-48 ساعة"
+      time: "خلال 24 ساعة"
     },
     {
       icon: CreditCard,
       title: "استرداد المبلغ",
       description: "إذا لم يتوفر بديل، نسترد المبلغ كاملاً",
-      time: "خلال 24-48 ساعة"
+      time: "خلال 24 ساعة"
     }
   ];
 

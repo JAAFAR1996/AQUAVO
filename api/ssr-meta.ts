@@ -259,11 +259,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         inLanguage: "ar",
         mainEntity: [
           // الشحن والتوصيل
-          { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى جميع محافظات العراق. التوصيل داخل بغداد خلال 24-48 ساعة، والمحافظات الأخرى خلال 3-5 أيام عمل." } },
-          { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل 5,000 دينار لكل العراق. التوصيل مجاني للطلبات من 100,000 دينار وأكثر." } },
+          { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى بغداد وكل المحافظات العراقية خلال 24 ساعة." } },
+          { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل 5,000 دينار لبغداد وكل المحافظات العراقية." } },
           { "@type": "Question", name: "هل يمكن تتبع طلبي؟", acceptedAnswer: { "@type": "Answer", text: "نعم! بمجرد شحن طلبك، ستتلقى رسالة نصية ورسالة واتساب تحتوي على رابط التتبع المباشر ورقم الشحنة." } },
           { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
-          { "@type": "Question", name: "هل تشحنون الأسماك الحية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نشحن الأسماك الحية بعناية فائقة باستخدام أكياس أكسجين خاصة وعزل حراري. الشحن متاح فقط داخل بغداد والمناطق القريبة لضمان سلامة الأسماك." } },
+          { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية." } },
           // الدفع والفواتير
           { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نقبل الدفع نقداً عند الاستلام، التحويل البنكي، كي كارد، زين كاش، وآسيا حوالة. جميع طرق الدفع آمنة ومضمونة." } },
           { "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },
@@ -271,7 +271,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي. لا توجد رسوم خفية. رسوم التوصيل (إن وجدت) تظهر بوضوح قبل إتمام الطلب." } },
           { "@type": "Question", name: "هل يمكن الدفع بالتقسيط؟", acceptedAnswer: { "@type": "Answer", text: "نعم، للطلبات فوق 200,000 دينار نوفر خيار التقسيط على دفعتين أو ثلاث دفعات بدون فوائد. تواصل معنا للتفاصيل." } },
           // الإرجاع والاستبدال
-          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "يمكنك إرجاع المنتجات خلال 7 أيام من الاستلام بشرط أن تكون في حالتها الأصلية. الأسماك والنباتات الحية غير قابلة للإرجاع." } },
+          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "يمكنك إرجاع المنتجات خلال 7 أيام من الاستلام بشرط أن تكون في حالتها الأصلية حسب سياسة الإرجاع." } },
           { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب الإرجاع. سنرسل لك تأكيد ويمكننا استلام المنتج من موقعك مجاناً في بغداد." } },
           { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "للدفع النقدي، يتم الاسترداد فوراً عند استلام المنتج. للتحويلات البنكية، خلال 3-7 أيام عمل." } },
           { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الاستبدال متاح ومجاني. يمكنك استبدال المنتج بمنتج آخر بنفس القيمة أو دفع/استرداد الفرق." } },
@@ -285,8 +285,8 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           // المنتجات والجودة
           { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع منتجاتنا أصلية 100% ومستوردة من الشركات المصنعة مباشرة. نوفر ضمان الأصالة على جميع المنتجات." } },
           { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المعدات الإلكترونية (فلاتر، مضخات، سخانات، إضاءة) مغطاة بضمان من 6 أشهر إلى سنتين حسب المنتج." } },
-          { "@type": "Question", name: "من أين مصدر الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "أسماكنا من مزارع محلية موثوقة ومستوردين معتمدين. جميع الأسماك تخضع لفترة حجر صحي قبل البيع لضمان صحتها." } },
-          { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة بكل ما تحتاجه، وأسماك سهلة الرعاية، مع دليل عناية مجاني." } },
+          { "@type": "Question", name: "هل توفرون كائنات حية؟", acceptedAnswer: { "@type": "Answer", text: "لا. المتجر الإلكتروني متخصص بمعدات ومستلزمات الأحواض فقط." } },
+          { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة ومعدات سهلة الاستخدام مع دليل عناية مجاني." } },
           { "@type": "Question", name: "هل يمكن طلب منتج غير متوفر؟", acceptedAnswer: { "@type": "Answer", text: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة." } },
           // الضمان والدعم
           { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الفلاتر والمضخات: سنة واحدة. السخانات والإضاءة LED: 6 أشهر. الأحواض: ضمان ضد التسريب لمدة سنة." } },
@@ -307,9 +307,9 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     ],
   },
   "/shipping": {
-    title: "شحن وتوصيل مستلزمات اسماك الزينة لكل العراق | AQUAVO",
-    description: "خدمة شحن وتوصيل مستلزمات احواض اسماك الزينة لجميع محافظات العراق. بغداد، البصرة، أربيل، النجف، كربلاء والمزيد. أوقات وأسعار التوصيل.",
-    keywords: "توصيل اسماك زينة العراق، شحن مستلزمات احواض بغداد، توصيل البصرة، توصيل اربيل",
+    title: "شحن وتوصيل مستلزمات الأحواض لكل العراق | AQUAVO",
+    description: "خدمة شحن وتوصيل مستلزمات الأحواض لجميع محافظات العراق برسوم ثابتة 5,000 دينار والتوصيل خلال 24 ساعة.",
+    keywords: "توصيل مستلزمات احواض العراق، شحن مستلزمات احواض بغداد، توصيل البصرة، توصيل اربيل",
   },
   "/terms": {
     title: "الشروط والأحكام - AQUAVO متجر اسماك الزينة العراق",
@@ -360,9 +360,9 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     ],
   },
   "/why-aquavo": {
-    title: "لماذا AQUAVO - أفضل متجر أسماك زينة في العراق | مقارنة شاملة",
+    title: "لماذا AQUAVO - متجر مستلزمات أحواض بريميوم في العراق | مقارنة شاملة",
     description: "لماذا AQUAVO هو أفضل خيار لمستلزمات أحواض الزينة في العراق؟ منتجات أصلية مضمونة، توصيل لكل المحافظات، دعم فني مجاني، وأسعار منافسة.",
-    keywords: "لماذا AQUAVO، أفضل متجر أسماك زينة العراق، مقارنة متاجر أسماك بغداد",
+    keywords: "لماذا AQUAVO، متجر مستلزمات احواض العراق، مقارنة متاجر احواض بغداد",
     jsonLd: {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
@@ -386,7 +386,7 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     if (rows.length === 0) return null;
     const p = rows[0];
     const rawDesc = p.description
-      || `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل سريع لكل المحافظات.`;
+      || `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل لكل العراق خلال 24 ساعة.`;
     const desc = rawDesc.length > 158
       ? rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155) || 155) + "..."
       : rawDesc;
@@ -615,7 +615,7 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
 
   if (pathname === "/" || pathname === "") {
     lines.push(`## About AQUAVO\n`);
-    lines.push(`AQUAVO is Iraq's premier online aquarium supplies and fish care e-commerce platform, based in Baghdad.\n`);
+    lines.push(`AQUAVO is Iraq's premier online aquarium equipment and supplies e-commerce platform, based in Baghdad.\n`);
     lines.push(`## Available Services\n`);
     lines.push(`- **Product Catalog**: Browse aquarium products at [/products](${BASE}/products)`);
     lines.push(`- **Fish Encyclopedia**: Comprehensive fish species database at [/fish-encyclopedia](${BASE}/fish-encyclopedia)`);

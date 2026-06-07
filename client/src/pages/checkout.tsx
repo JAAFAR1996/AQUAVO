@@ -9,7 +9,7 @@ import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
 import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
-import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, FREE_SHIPPING_THRESHOLD, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 
@@ -231,8 +231,8 @@ export default function CheckoutPage() {
   };
 
   const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
-  const deliveryFee = cartTotal >= FREE_SHIPPING_THRESHOLD || appliedCoupon?.type === "free_shipping" ? 0 : baseDeliveryFee;
-  const isFreeShipping = deliveryFee === 0;
+  const deliveryFee = baseDeliveryFee;
+  const isFreeShipping = false;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
@@ -256,18 +256,18 @@ export default function CheckoutPage() {
         return;
       }
       const coupon = await response.json();
-      setAppliedCoupon(coupon);
       if (coupon.type === "percentage") {
+        setAppliedCoupon(coupon);
         const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
         setCouponDiscount(discountAmount);
         setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
       } else if (coupon.type === "fixed") {
+        setAppliedCoupon(coupon);
         const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
         setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
-      } else if (coupon.type === "free_shipping") {
-        setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق توصيل مجاني");
+      } else {
+        setCouponError("التوصيل ثابت 5,000 د.ع لبغداد وكل المحافظات خلال 24 ساعة");
       }
     } catch (error) {
       console.error("Coupon error:", error);

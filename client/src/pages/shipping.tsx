@@ -2,7 +2,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 
 import { BackToTop } from "@/components/back-to-top";
-import { DELIVERY_FEE, DELIVERY_DAYS, FREE_SHIPPING_THRESHOLD, WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
