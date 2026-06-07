@@ -372,8 +372,9 @@ export function createOrderRouter(): RouterType {
                 res.status(404).json({ message: "Order not found" });
                 return;
             }
-            // Only allow the order owner or admin to view it
-            if (order.userId && order.userId !== reqUser?.id && reqUser?.role !== "admin") {
+            // Only allow the order owner or admin to view full private order details.
+            // Guest orders must use the safe public tracking response.
+            if (reqUser?.role !== "admin" && order.userId !== reqUser?.id) {
                 res.status(403).json({ message: "Access denied" });
                 return;
             }

@@ -60,17 +60,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         }
       },
       {
-        name: "execute_raw_sql",
-        description: "God Mode: Execute raw SQL directly on the NEON database.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            query: { type: "string", description: "Raw SQL query string" }
-          },
-          required: ["query"]
-        }
-      },
-      {
         name: "get_social_insights_from_analyzer",
         description: "Connects to the local Social Analyzer to fetch Instagram/Facebook data.",
         inputSchema: { type: "object", properties: {} }
@@ -149,14 +138,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         
       return {
         content: [{ type: "text", text: JSON.stringify({ success: true, updated: updated[0] }, null, 2) }]
-      };
-    }
-
-    if (request.params.name === "execute_raw_sql") {
-      const { query } = request.params.arguments as any;
-      const result = await db.execute(sql.raw(query));
-      return {
-        content: [{ type: "text", text: JSON.stringify(result.rows || result, null, 2) }]
       };
     }
 

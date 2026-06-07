@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type Request, type Response } from "express";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -31,6 +31,56 @@ const aiAdvancedLimiter = rateLimit({
     message: { success: false, error: "تم تجاوز الحد المسموح من الطلبات" },
 });
 router.use(aiAdvancedLimiter);
+
+type AuthenticatedUser = {
+  id?: string;
+  role?: string;
+};
+
+function getAuthenticatedUser(req: Request): AuthenticatedUser | undefined {
+  return (req as Request & { user?: AuthenticatedUser }).user;
+}
+
+function isAdmin(req: Request): boolean {
+  return getAuthenticatedUser(req)?.role === "admin";
+}
+
+function canAccessUserId(req: Request, userId: string): boolean {
+  const user = getAuthenticatedUser(req);
+  return user?.id === userId || user?.role === "admin";
+}
+
+function sendForbidden(res: Response) {
+  return res.status(403).json({ success: false, error: "Forbidden" });
+}
+
+function requireUserAccess(req: Request, res: Response, userId: string): boolean {
+  if (canAccessUserId(req, userId)) {
+    return true;
+  }
+
+  sendForbidden(res);
+  return false;
+}
+
+function resolveWritableUserId(req: Request, res: Response, requestedUserId: unknown): string | undefined {
+  const user = getAuthenticatedUser(req);
+  if (!user?.id) {
+    sendForbidden(res);
+    return undefined;
+  }
+
+  if (typeof requestedUserId === "string" && requestedUserId.trim() && requestedUserId !== user.id) {
+    if (user.role === "admin") {
+      return requestedUserId;
+    }
+
+    sendForbidden(res);
+    return undefined;
+  }
+
+  return user.id;
+}
 
 // Configure multer for image uploads (memory storage for Vercel serverless)
 const upload = multer({
@@ -73,11 +123,13 @@ router.post("/visual/analyze-url", requireAuth as any, async (req, res) => {
   try {
     const { imageUrl, analysisType, userId, sessionId } =
       analyzeImageByUrlSchema.parse(req.body);
+    const scopedUserId = resolveWritableUserId(req, res, userId);
+    if (!scopedUserId) return;
 
     const result = await visualAI.analyzeImage(
       imageUrl,
       analysisType,
-      userId,
+      scopedUserId,
       sessionId
     );
 
@@ -145,12 +197,15 @@ router.post(
         nitrate: req.body.waterNitrate || undefined,
       };
 
+      const scopedUserId = resolveWritableUserId(req, res, req.body.userId);
+      if (!scopedUserId) return;
+
       // Use buffer directly (no disk storage needed for Vercel)
       const result = await visualAI.analyzeImageBuffer(
         req.file.buffer,
         req.file.mimetype,
         analysisType,
-        req.body.userId,
+        scopedUserId,
         req.body.sessionId,
         userContext,
         waterParams
@@ -185,7 +240,7 @@ router.get("/visual/history/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId) {
+    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
     const limit = parseInt(req.query.limit as string) || 10;
@@ -214,6 +269,14 @@ router.get("/visual/analysis/:id", requireAuth as any, async (req, res) => {
   try {
     const { id } = req.params;
     const analysis = await visualAI.getAnalysisById(id);
+    const analysisUserId = typeof analysis.userId === "string" ? analysis.userId : undefined;
+    if (!analysisUserId) {
+      if (!isAdmin(req)) {
+        return sendForbidden(res);
+      }
+    } else if (!canAccessUserId(req, analysisUserId)) {
+      return sendForbidden(res);
+    }
 
     res.json({
       success: true,
@@ -344,7 +407,7 @@ router.get("/sentiment/history/:userId", requireAuth as any, async (req, res) =>
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId) {
+    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
     const limit = parseInt(req.query.limit as string) || 20;
@@ -373,7 +436,7 @@ router.get("/sentiment/average/:userId", requireAuth as any, async (req, res) =>
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId) {
+    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
     const days = parseInt(req.query.days as string) || 30;
@@ -431,7 +494,7 @@ router.get("/predictions/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId) {
+    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
     const predictions = await predictiveAnalytics.getPredictionsForUser(userId);
@@ -477,7 +540,7 @@ router.get("/churn/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
     const sessionUserId = (req as any).user?.id;
-    if (sessionUserId !== userId) {
+    if (sessionUserId !== userId && (req as any).user?.role !== "admin") {
       return res.status(403).json({ success: false, error: "غير مصرح" });
     }
     const analysis = await churnDetector.analyzeUser(userId);
@@ -815,6 +878,7 @@ router.post("/inventory/dismiss/:id", requireAdmin as any, async (req, res) => {
 router.get("/auto-orders/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!requireUserAccess(req, res, userId)) return;
     const orders = await autoOrderProcessor.getUserAutoOrders(userId);
 
     res.json({
@@ -838,9 +902,11 @@ router.get("/auto-orders/:userId", requireAuth as any, async (req, res) => {
 router.post("/auto-orders", requireAuth as any, async (req, res) => {
   try {
     const { userId, productId, frequency, quantity } = req.body;
+    const scopedUserId = resolveWritableUserId(req, res, userId);
+    if (!scopedUserId) return;
 
     const result = await autoOrderProcessor.create({
-      userId,
+      userId: scopedUserId,
       productId,
       frequency,
       quantity,
@@ -868,10 +934,12 @@ router.post("/auto-orders", requireAuth as any, async (req, res) => {
 router.post("/returns", requireAuth as any, async (req, res) => {
   try {
     const { orderId, userId, productId, reason, description, photos } = req.body;
+    const scopedUserId = resolveWritableUserId(req, res, userId);
+    if (!scopedUserId) return;
 
     const result = await returnsHandler.createRequest({
       orderId,
-      userId,
+      userId: scopedUserId,
       productId,
       reason,
       description,
@@ -898,6 +966,7 @@ router.post("/returns", requireAuth as any, async (req, res) => {
 router.get("/returns/:userId", requireAuth as any, async (req, res) => {
   try {
     const { userId } = req.params;
+    if (!requireUserAccess(req, res, userId)) return;
     const requests = await returnsHandler.getUserRequests(userId);
 
     res.json({
@@ -923,9 +992,11 @@ router.get("/returns/:userId", requireAuth as any, async (req, res) => {
 router.post("/aquarium/design", requireAuth as any, async (req, res) => {
   try {
     const { userId, name, tankSize, tankType, budget, experience, preferences } = req.body;
+    const scopedUserId = resolveWritableUserId(req, res, userId);
+    if (!scopedUserId) return;
 
     const design = await aquariumAdvisor.createDesign({
-      userId,
+      userId: scopedUserId,
       name,
       tankSize,
       tankType,
