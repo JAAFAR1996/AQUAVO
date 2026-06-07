@@ -1,6 +1,9 @@
+import { randomBytes } from "node:crypto";
 import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, type GallerySubmission, type GalleryPrize, type Payment, type ProductVariant, type OrderLineItem, orders, coupons, auditLogs, cartItems, favorites, gallerySubmissions, galleryVotes, galleryPrizes, payments, products, settings, orderItems, returnRequests, referrals, loyaltyTransactions, loyaltyCoupons, autoOrders } from "../../shared/schema.js";
-import { eq, desc, and, sql, gte, or, isNull } from "drizzle-orm";
+import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
+
+const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
 interface CreateOrderLineInput {
     productId: string;
@@ -104,40 +107,49 @@ export class OrderStorage {
     }
 
     /**
-     * Generate unique order number based on database sequence
-     * Format: FW-YYMMDD-XXXX where XXXX is sequential for the day
+     * Generate a public order number without using daily counts as a uniqueness source.
+     * Format: FH-YYMMDD-XXXXXXXX where suffix is cryptographically random uppercase hex.
      */
-    private async generateOrderNumber(tx: any): Promise<string> {
+    private generateOrderNumber(): string {
         const now = new Date();
         const year = now.getFullYear().toString().slice(-2);
         const month = (now.getMonth() + 1).toString().padStart(2, '0');
         const day = now.getDate().toString().padStart(2, '0');
         const datePrefix = `FH-${year}${month}${day}`;
+        const randomSuffix = randomBytes(4).toString("hex").toUpperCase();
 
-        // Get today's start and end timestamps
-        const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+        return `${datePrefix}-${randomSuffix}`;
+    }
 
-        // Count orders created today
-        const result = await tx
-            .select({ count: sql`COUNT(*)::int` })
-            .from(orders)
-            .where(
-                and(
-                    gte(orders.createdAt, todayStart),
-                    sql`${orders.createdAt} < ${todayEnd}`
-                )
-            );
+    private isOrderNumberUniqueViolation(error: unknown): boolean {
+        const candidates = [error, (error as { cause?: unknown })?.cause];
 
-        const todayCount = result[0]?.count || 0;
-        const sequence = (todayCount + 1).toString().padStart(4, '0');
+        return candidates.some((candidate) => {
+            const dbError = candidate as {
+                code?: unknown;
+                constraint?: unknown;
+                detail?: unknown;
+                message?: unknown;
+            } | undefined;
 
-        return `${datePrefix}-${sequence}`;
+            if (dbError?.code !== "23505") {
+                return false;
+            }
+
+            const text = [dbError.constraint, dbError.detail, dbError.message]
+                .filter((value): value is string => typeof value === "string")
+                .join(" ")
+                .toLowerCase();
+
+            return text.includes("order_number") || text.includes("orders_order_number_unique");
+        });
     }
 
     async createOrderSecure(userId: string | null, items: CreateOrderLineInput[], customerInfo: any, couponCode?: string): Promise<Order> {
         const db = this.ensureDb();
-        return await db.transaction(async (tx) => {
+        for (let attempt = 1; attempt <= ORDER_NUMBER_MAX_ATTEMPTS; attempt++) {
+            try {
+                return await db.transaction(async (tx) => {
             // 1. Calculate totals and validate stock
             let subtotal = 0;
             const orderItemsData: OrderLineItem[] = [];
@@ -265,8 +277,8 @@ export class OrderStorage {
             const roundedTotal = Math.ceil(finalTotal / IRAQI_DENOMINATION) * IRAQI_DENOMINATION;
             const roundingCashback = roundedTotal - finalTotal;
 
-            // 5. Generate Order Number (sequential from database)
-            const orderNumber = await this.generateOrderNumber(tx);
+            // 5. Generate Order Number. DB unique constraint remains the final authority.
+            const orderNumber = this.generateOrderNumber();
 
             // 6. Create Order — store enriched items with product names and prices
             const [newOrder] = await tx.insert(orders).values({
@@ -288,7 +300,20 @@ export class OrderStorage {
             } as any).returning();
 
             return newOrder;
-        });
+                });
+            } catch (error) {
+                if (this.isOrderNumberUniqueViolation(error)) {
+                    if (attempt < ORDER_NUMBER_MAX_ATTEMPTS) {
+                        continue;
+                    }
+                    throw new Error("Order creation failed after repeated order number collisions. Please try again.");
+                }
+
+                throw error;
+            }
+        }
+
+        throw new Error("Order creation failed after repeated order number collisions. Please try again.");
     }
 
     // Payment Methods

@@ -24,15 +24,19 @@ function makeAwaitableRows(rows: any[]) {
     };
 }
 
-function createOrderStorageHarness(productRow: any, options: { shippingFee?: string; todayCount?: number } = {}) {
+function createOrderStorageHarness(productRow: any, options: { shippingFee?: string; insertErrors?: unknown[] } = {}) {
     const productUpdates: any[] = [];
     const insertedOrders: any[] = [];
+    const selectedTables: unknown[] = [];
+    const transactionAttempts: any[] = [];
+    const insertErrors = [...(options.insertErrors ?? [])];
 
-    const tx = {
+    const createTransaction = () => ({
         execute: vi.fn(async () => ({ rows: productRow ? [productRow] : [] })),
         select: vi.fn(() => ({
             from: vi.fn((table) => {
-                if (table === orders) return makeAwaitableRows([{ count: options.todayCount ?? 0 }]);
+                selectedTables.push(table);
+                if (table === orders) return makeAwaitableRows([{ count: 9999 }]);
                 if (table === settings) return makeAwaitableRows([{ value: options.shippingFee ?? '5000' }]);
                 return makeAwaitableRows([]);
             }),
@@ -49,6 +53,8 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
             values: vi.fn((payload) => ({
                 returning: vi.fn(async () => {
                     if (table === orders) {
+                        const nextError = insertErrors.shift();
+                        if (nextError) throw nextError;
                         insertedOrders.push(payload);
                         return [{
                             id: 'order-1',
@@ -61,10 +67,14 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
                 }),
             })),
         })),
-    };
+    });
 
     const db = {
-        transaction: vi.fn(async (callback) => callback(tx)),
+        transaction: vi.fn(async (callback) => {
+            const tx = createTransaction();
+            transactionAttempts.push(tx);
+            return callback(tx);
+        }),
     };
 
     vi.mocked(getDb).mockReturnValue(db as any);
@@ -73,7 +83,9 @@ function createOrderStorageHarness(productRow: any, options: { shippingFee?: str
         storage: new OrderStorage(),
         productUpdates,
         insertedOrders,
-        tx,
+        selectedTables,
+        transactionAttempts,
+        db,
     };
 }
 
@@ -118,11 +130,11 @@ describe('Orders API', () => {
             const year = date.getFullYear().toString().slice(-2);
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
             const day = date.getDate().toString().padStart(2, '0');
-            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            const random = "A1B2C3D4";
 
-            const orderNumber = `FW-${year}${month}${day}-${random}`;
+            const orderNumber = `FH-${year}${month}${day}-${random}`;
 
-            expect(orderNumber).toMatch(/^FW-\d{6}-\d{4}$/);
+            expect(orderNumber).toMatch(/^FH-\d{6}-[A-F0-9]{8}$/);
         });
 
         it('should set initial status to pending', async () => {
@@ -164,7 +176,7 @@ describe('Orders API', () => {
         it('should return order by id', async () => {
             const mockOrder = {
                 id: 'order-1',
-                orderNumber: 'FW-241224-0001',
+                orderNumber: 'FH-241224-A1B2C3D4',
                 status: 'processing',
                 total: 80000,
                 items: [
@@ -179,8 +191,8 @@ describe('Orders API', () => {
         });
 
         it('should return order by orderNumber', async () => {
-            const orderNumber = 'FW-241224-0001';
-            expect(orderNumber).toMatch(/^FW-\d{6}-\d{4}$/);
+            const orderNumber = 'FH-241224-A1B2C3D4';
+            expect(orderNumber).toMatch(/^FH-\d{6}-[A-F0-9]{8}$/);
         });
     });
 
@@ -204,8 +216,8 @@ describe('Orders API', () => {
     describe('GET /api/admin/orders', () => {
         it('should return list of orders', async () => {
             const mockOrders = [
-                { id: 'order-1', orderNumber: 'FW-241224-0001', status: 'pending' },
-                { id: 'order-2', orderNumber: 'FW-241224-0002', status: 'shipped' }
+                { id: 'order-1', orderNumber: 'FH-241224-A1B2C3D4', status: 'pending' },
+                { id: 'order-2', orderNumber: 'FH-241224-E5F6A7B8', status: 'shipped' }
             ];
 
             expect(Array.isArray(mockOrders)).toBe(true);
@@ -256,6 +268,136 @@ describe('Orders API', () => {
 describe('OrderStorage.createOrderSecure', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+    });
+
+    it('generates an FH order number with date and uppercase random suffix', async () => {
+        const { storage } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        });
+
+        const order = await storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        });
+
+        expect(order.orderNumber).toMatch(/^FH-\d{6}-[A-F0-9]{8}$/);
+    });
+
+    it('does not query daily order counts while creating order numbers', async () => {
+        const { storage, selectedTables } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        });
+
+        await storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        });
+
+        expect(selectedTables).not.toContain(orders);
+    });
+
+    it('retries the full transaction when order_number unique collision occurs', async () => {
+        const orderNumberCollision = {
+            code: '23505',
+            constraint: 'orders_order_number_unique',
+            message: 'duplicate key value violates unique constraint "orders_order_number_unique"',
+        };
+        const { storage, db, insertedOrders } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            insertErrors: [orderNumberCollision],
+        });
+
+        const order = await storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        });
+
+        expect(db.transaction).toHaveBeenCalledTimes(2);
+        expect(insertedOrders).toHaveLength(1);
+        expect(order.orderNumber).toMatch(/^FH-\d{6}-[A-F0-9]{8}$/);
+    });
+
+    it('does not retry non-order-number database errors', async () => {
+        const unrelatedUniqueError = {
+            code: '23505',
+            constraint: 'users_email_unique',
+            message: 'duplicate key value violates unique constraint "users_email_unique"',
+        };
+        const { storage, db, insertedOrders } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            insertErrors: [unrelatedUniqueError],
+        });
+
+        await expect(storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        })).rejects.toBe(unrelatedUniqueError);
+
+        expect(db.transaction).toHaveBeenCalledTimes(1);
+        expect(insertedOrders).toHaveLength(0);
+    });
+
+    it('returns a clear failure after repeated order_number collisions', async () => {
+        const collisions = Array.from({ length: 3 }, () => ({
+            code: '23505',
+            detail: 'Key (order_number) already exists.',
+            message: 'duplicate key value violates unique constraint "orders_order_number_unique"',
+        }));
+        const { storage, db, insertedOrders } = createOrderStorageHarness({
+            id: 'base-1',
+            name: 'Base Filter',
+            price: '10000',
+            stock: 5,
+            variants: null,
+            hasVariants: false,
+        }, {
+            insertErrors: collisions,
+        });
+
+        await expect(storage.createOrderSecure(null, [
+            { productId: 'base-1', quantity: 1 },
+        ], {
+            name: 'Customer',
+            phone: '07701234567',
+            address: 'Baghdad',
+        })).rejects.toThrow('Order creation failed after repeated order number collisions. Please try again.');
+
+        expect(db.transaction).toHaveBeenCalledTimes(3);
+        expect(insertedOrders).toHaveLength(0);
     });
 
     it('creates a base product order using the database price', async () => {
