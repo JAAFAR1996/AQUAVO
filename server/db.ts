@@ -52,7 +52,7 @@ type DbClient = NeonDatabase<typeof schema>;
 
 const rawDbUrl = process.env.DATABASE_URL ?? "";
 const databaseUrl = rawDbUrl.replace(/[&?]channel_binding=require/g, "") || undefined;
-if (rawDbUrl) console.log("[DB] Connecting to Neon (channel_binding stripped):", databaseUrl?.slice(0, 60) + "...");
+if (rawDbUrl) console.log("[DB] Connecting to configured database");
 let db: DbClient | null = null;
 
 if (!databaseUrl) {
