@@ -1,7 +1,51 @@
 node_modules
 .env*
 !.env.example
+env.prod
 *.test.ts
 __tests__
 .playwright-mcp/
+playwright-report/
+test-results/
+testsprite_tests/
 Launch_Ideas/
+
+# Local agent/runtime state
+.agent/
+.serena/
+.codex-run/
+.superpowers/
+_handoff_account_switch/
+AGENTS.md
+
+# Local product/source research and bulky source media not needed at runtime
+AQUAVO_Product_Research_Complete/
+knowledge_base_pdfs/
+Houyi/
+HYGGER/
+yee/
+YEE_VISUAL_PROMPTS/
+products_company_official/
+
+# Root-level generated reports, screenshots, and workbooks
+/*.xlsx
+/*.xlsm
+/~$*
+/audit-*.png
+/audit-*.jpeg
+/qa-*.png
+/qa-*.jpeg
+/cro-*.png
+/cro-*.jpeg
+/lh-*.json
+/lighthouse-report.json
+
+# Local experimental 3D/browser QA artifacts
+client/public/images/products/hyper3d/
+client/public/models/
+client/public/test_wood*.glb
+client/src/pages/ai-driftwood-experiment.tsx
+
+# Local one-off product inspection scripts
+script/query-variants.*
+script/update-volcanic-red.ts

@@ -88,9 +88,32 @@ TOOLS/gmail-creator/
 
 # Superpowers plugin cache
 .superpowers/
+.serena/
+.codex-run/
 
 build-output.txt
 test-output.txt
 *.log
 .cache/
 .vercel/cache/
+
+# Local handoff and agent notes
+_handoff_account_switch/
+
+# Root-level local spreadsheets and generated Office locks
+/*.xlsx
+/*.xlsm
+/~$*
+
+# Local experimental 3D/browser QA artifacts
+client/public/images/products/hyper3d/
+client/public/models/
+client/public/test_wood*.glb
+client/src/pages/ai-driftwood-experiment.tsx
+
+# Local one-off product inspection scripts
+script/query-variants.*
+script/update-volcanic-red.ts
+
+# Local production env export files must not be recreated or re-added
+env.prod
