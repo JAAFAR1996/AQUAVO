@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils";
 
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
+  jumpCameraToGoal?: () => void;
+  resetTurntableRotation?: () => void;
 };
 
 interface Product3DViewerProps {
@@ -31,18 +33,78 @@ export function Product3DViewer({
     const viewer = modelRef.current;
     if (!viewer) return;
 
+    let autoRotateTimer: number | undefined;
+    let observer: IntersectionObserver | undefined;
+    let isVisible = false;
+    let hasStartedAutoRotate = false;
+
+    const setProductAngle = () => {
+      viewer.setAttribute("camera-orbit", "145deg 71deg 118%");
+      viewer.jumpCameraToGoal?.();
+    };
+
+    const startAutoRotateFromProductAngle = () => {
+      if (hasStartedAutoRotate) return;
+
+      hasStartedAutoRotate = true;
+      setProductAngle();
+
+      autoRotateTimer = window.setTimeout(() => {
+        viewer.resetTurntableRotation?.();
+        viewer.setAttribute("auto-rotate", "");
+      }, 900);
+    };
+
+    const startWhenVisibleAndLoaded = () => {
+      if (isVisible && viewer.loaded) {
+        startAutoRotateFromProductAngle();
+      }
+    };
+
     const pauseAutoRotate = () => {
+      if (autoRotateTimer !== undefined) {
+        window.clearTimeout(autoRotateTimer);
+      }
       viewer.removeAttribute("auto-rotate");
     };
 
+    viewer.removeAttribute("auto-rotate");
+    setProductAngle();
+
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) {
+            isVisible = true;
+            setProductAngle();
+            startWhenVisibleAndLoaded();
+            observer?.disconnect();
+          }
+        },
+        { threshold: 0.35 }
+      );
+      observer.observe(viewer);
+    } else {
+      isVisible = true;
+      startWhenVisibleAndLoaded();
+    }
+
+    viewer.addEventListener("load", startWhenVisibleAndLoaded);
     viewer.addEventListener("pointerdown", pauseAutoRotate, { once: true });
     viewer.addEventListener("touchstart", pauseAutoRotate, { once: true });
 
+    startWhenVisibleAndLoaded();
+
     return () => {
+      if (autoRotateTimer !== undefined) {
+        window.clearTimeout(autoRotateTimer);
+      }
+      observer?.disconnect();
+      viewer.removeEventListener("load", startWhenVisibleAndLoaded);
       viewer.removeEventListener("pointerdown", pauseAutoRotate);
       viewer.removeEventListener("touchstart", pauseAutoRotate);
     };
-  }, []);
+  }, [src]);
 
   const modelViewer = createElement("model-viewer", {
     ref: modelRef,
@@ -50,13 +112,13 @@ export function Product3DViewer({
     poster,
     alt: `عرض ثلاثي الأبعاد للمنتج ${productName}`,
     "camera-controls": true,
-    "auto-rotate": true,
-    "auto-rotate-delay": "1200",
-    "rotation-per-second": "16deg",
+    "auto-rotate-delay": "2200",
+    "rotation-per-second": "7deg",
     "shadow-intensity": "0.9",
     "shadow-softness": "0.82",
     "environment-image": "neutral",
-    exposure: "0.6",
+    exposure: "0.45",
+    "tone-mapping": "aces",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
