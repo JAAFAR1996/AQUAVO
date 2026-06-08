@@ -66,10 +66,12 @@ describe('Home Page', () => {
         vi.restoreAllMocks();
     });
 
-    it('should render the home page without crashing', () => {
+    it('should render the home page without crashing', async () => {
         render(<Home />, { wrapper: createWrapper() });
         expect(screen.getByTestId('navbar')).toBeInTheDocument();
-        expect(screen.getByTestId('footer')).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId('footer')).toBeInTheDocument();
+        });
     });
 
     it('should have main content section', () => {
@@ -83,9 +85,9 @@ describe('Home Page', () => {
         expect(headings.length).toBeGreaterThan(0);
     });
 
-    it('should render WhatsApp widget', () => {
+    it('should not render a page-level WhatsApp widget', () => {
         render(<Home />, { wrapper: createWrapper() });
-        expect(screen.getByTestId('whatsapp-widget')).toBeInTheDocument();
+        expect(screen.queryByTestId('whatsapp-widget')).not.toBeInTheDocument();
     });
 
     it('should contain navigation links', async () => {

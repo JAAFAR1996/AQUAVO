@@ -84,7 +84,8 @@ vi.mock('@/lib/api', () => ({
         image: '/images/fish-food.jpg',
         images: ['/images/fish-food.jpg'],
     })),
-    fetchProducts: vi.fn(() => Promise.resolve({ products: [], total: 0 }))
+    fetchProducts: vi.fn(() => Promise.resolve({ products: [], total: 0 })),
+    fetchProductVariants: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock('@/lib/recommendations', () => ({
@@ -144,10 +145,10 @@ describe('Product Details Page', () => {
         });
     });
 
-    it('should render WhatsApp widget', async () => {
+    it('should not render a page-level WhatsApp widget', async () => {
         render(<ProductDetails />, { wrapper: createWrapper() });
         await waitFor(() => {
-            expect(screen.getByTestId('whatsapp-widget')).toBeInTheDocument();
+            expect(screen.queryByTestId('whatsapp-widget')).not.toBeInTheDocument();
         });
     });
 });

@@ -59,7 +59,8 @@ vi.mock('@/components/footer', () => ({
 
 vi.mock('@/lib/api', () => ({
   fetchProducts: vi.fn(() => Promise.resolve({ products: [], total: 0 })),
-  fetchProductAttributes: vi.fn(() => Promise.resolve({ categories: [], brands: [], priceRange: { min: 0, max: 100000 } }))
+  fetchProductAttributes: vi.fn(() => Promise.resolve({ categories: [], brands: [], priceRange: { min: 0, max: 100000 } })),
+  fetchPersonalizedOrder: vi.fn(() => Promise.resolve({ boostIds: [] })),
 }));
 
 import Products from '@/pages/products';

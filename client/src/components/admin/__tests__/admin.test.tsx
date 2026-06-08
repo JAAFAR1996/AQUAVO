@@ -40,6 +40,17 @@ vi.mock('@/components/ui/switch', () => ({
     ),
 }));
 
+vi.mock('@/components/ui/alert-dialog', () => ({
+    AlertDialog: ({ children, open }: any) => open ? <div data-testid="alert-dialog">{children}</div> : null,
+    AlertDialogAction: ({ children, onClick }: any) => <button data-testid="alert-dialog-action" onClick={onClick}>{children}</button>,
+    AlertDialogCancel: ({ children }: any) => <button data-testid="alert-dialog-cancel">{children}</button>,
+    AlertDialogContent: ({ children }: any) => <div>{children}</div>,
+    AlertDialogDescription: ({ children }: any) => <p>{children}</p>,
+    AlertDialogFooter: ({ children }: any) => <div>{children}</div>,
+    AlertDialogHeader: ({ children }: any) => <div>{children}</div>,
+    AlertDialogTitle: ({ children }: any) => <h3>{children}</h3>,
+}));
+
 vi.mock('lucide-react', () => ({
     Settings: () => <span data-testid="settings-icon">⚙️</span>,
     Save: () => <span data-testid="save-icon">💾</span>,
@@ -47,6 +58,8 @@ vi.mock('lucide-react', () => ({
     ShieldCheck: () => <span data-testid="shield-icon">🛡️</span>,
     Users: () => <span data-testid="users-icon">👥</span>,
     Package: () => <span data-testid="package-icon">📦</span>,
+    AlertTriangle: () => <span data-testid="alert-triangle-icon">!</span>,
+    Truck: () => <span data-testid="truck-icon">truck</span>,
 }));
 
 vi.mock('@/hooks/use-toast', () => ({
@@ -64,17 +77,21 @@ const mockQueryClient = {
     invalidateQueries: vi.fn(),
 };
 
+const stableSettingsData = {
+    store_name: 'AQUAVO',
+    support_email: 'info@aquavoiq.com',
+    maintenance_mode: 'false',
+    orders_enabled: 'true',
+};
+
+const defaultQueryResult = {
+    data: stableSettingsData,
+    isLoading: false,
+    isError: false,
+};
+
 vi.mock('@tanstack/react-query', () => ({
-    useQuery: vi.fn(() => ({
-        data: {
-            store_name: 'AQUAVO',
-            support_email: 'info@aquavoiq.com',
-            maintenance_mode: 'false',
-            orders_enabled: 'true',
-        },
-        isLoading: false,
-        isError: false,
-    })),
+    useQuery: vi.fn(() => defaultQueryResult),
     useMutation: vi.fn((options) => ({
         mutate: vi.fn((data) => {
             options.onSuccess?.();
@@ -85,6 +102,7 @@ vi.mock('@tanstack/react-query', () => ({
 }));
 
 import SettingsManagement from '../settings-management';
+import { useQuery } from '@tanstack/react-query';
 
 describe('SettingsManagement', () => {
     beforeEach(() => {
@@ -93,7 +111,7 @@ describe('SettingsManagement', () => {
 
     it('should render the settings form', () => {
         render(<SettingsManagement />);
-        expect(screen.getByTestId('card')).toBeInTheDocument();
+        expect(screen.getAllByTestId('card').length).toBeGreaterThan(0);
     });
 
     it('should display store name input', () => {
@@ -134,24 +152,27 @@ describe('SettingsManagement', () => {
         expect(input).toHaveValue('New Store Name');
     });
 
-    it('should toggle maintenance mode switch', async () => {
+    it('should confirm before enabling maintenance mode switch', async () => {
         render(<SettingsManagement />);
         const switchEl = screen.getByTestId('switch-maintenance_mode');
         expect(switchEl).not.toBeChecked();
 
         fireEvent.click(switchEl);
-        expect(switchEl).toBeChecked();
+        await waitFor(() => expect(screen.getByTestId('alert-dialog')).toBeInTheDocument());
+        expect(switchEl).not.toBeChecked();
+
+        fireEvent.click(screen.getByTestId('alert-dialog-action'));
+        await waitFor(() => expect(switchEl).toBeChecked());
     });
 });
 
 describe('SettingsManagement loading state', () => {
     beforeEach(() => {
-        const { useQuery } = require('@tanstack/react-query');
-        useQuery.mockReturnValue({
+        vi.mocked(useQuery).mockReturnValue({
             data: null,
             isLoading: true,
             isError: false,
-        });
+        } as any);
     });
 
     it('should show loading state', () => {
@@ -162,12 +183,11 @@ describe('SettingsManagement loading state', () => {
 
 describe('SettingsManagement error state', () => {
     beforeEach(() => {
-        const { useQuery } = require('@tanstack/react-query');
-        useQuery.mockReturnValue({
+        vi.mocked(useQuery).mockReturnValue({
             data: null,
             isLoading: false,
             isError: true,
-        });
+        } as any);
     });
 
     it('should show error message', () => {

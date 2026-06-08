@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { cn, formatIQD, generateOrderNumber, formatDate, formatShortDate } from '../utils';
 
 describe('Utility Functions', () => {
@@ -96,6 +96,10 @@ describe('Utility Functions', () => {
       vi.useFakeTimers();
     });
 
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should generate order number with FW prefix', () => {
       const orderNumber = generateOrderNumber();
       expect(orderNumber).toMatch(/^FW-/);
@@ -119,9 +123,11 @@ describe('Utility Functions', () => {
 
     it('should generate unique order numbers', () => {
       const orderNumbers = new Set();
+      vi.setSystemTime(new Date('2025-11-29T12:00:00.000Z'));
 
       for (let i = 0; i < 100; i++) {
         orderNumbers.add(generateOrderNumber());
+        vi.advanceTimersByTime(1);
       }
 
       // Most should be unique (allow small collision due to random)
@@ -150,6 +156,7 @@ describe('Utility Functions', () => {
     });
 
     it('should pad random numbers with leading zeros', () => {
+      vi.setSystemTime(new Date('2025-11-29T12:00:00.000Z'));
       // Generate many to likely get a low number
       let foundPaddedNumber = false;
       for (let i = 0; i < 1000; i++) {
@@ -160,12 +167,11 @@ describe('Utility Functions', () => {
           expect(randomPart).toHaveLength(4);
           break;
         }
+        vi.advanceTimersByTime(1);
       }
       // This is probabilistic, but should happen
       expect(foundPaddedNumber).toBe(true);
     });
-
-    vi.useRealTimers();
   });
 
   describe('formatDate', () => {

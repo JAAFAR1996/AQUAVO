@@ -8,6 +8,11 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./vitest.setup.ts'],
+    include: [
+      'client/src/**/*.{test,spec}.{ts,tsx}',
+      'server/**/*.{test,spec}.{ts,tsx}',
+      'test/**/*.{test,spec}.{ts,tsx}',
+    ],
     exclude: [
       'node_modules/**',
       'dist/**',

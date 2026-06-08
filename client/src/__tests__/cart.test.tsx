@@ -68,13 +68,14 @@ describe('Shopping Cart Hook', () => {
 
   it('should update item quantity in cart', () => {
     const { result } = renderHook(() => useCart(), { wrapper });
+    const cartItemId = `${mockProduct.id}-default`;
 
     act(() => {
       result.current.addItem(mockProduct, 1);
     });
 
     act(() => {
-      result.current.updateQuantity(mockProduct.id, 3);
+      result.current.updateQuantity(cartItemId, 3);
     });
 
     expect(result.current.items[0].quantity).toBe(3);
@@ -82,6 +83,7 @@ describe('Shopping Cart Hook', () => {
 
   it('should remove item from cart', () => {
     const { result } = renderHook(() => useCart(), { wrapper });
+    const cartItemId = `${mockProduct.id}-default`;
 
     act(() => {
       result.current.addItem(mockProduct, 1);
@@ -90,7 +92,7 @@ describe('Shopping Cart Hook', () => {
     expect(result.current.items).toHaveLength(1);
 
     act(() => {
-      result.current.removeItem(mockProduct.id);
+      result.current.removeItem(cartItemId);
     });
 
     expect(result.current.items).toHaveLength(0);

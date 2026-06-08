@@ -67,11 +67,10 @@ describe('404 Not Found Page', () => {
             expect(screen.getByTestId('error-state')).toBeInTheDocument();
         });
 
-        it('should render the shrimp mascot with sad mood', () => {
+        it('should display current not-found guidance copy', () => {
             render(<NotFound />);
-            const mascot = screen.getByTestId('shrimp-mascot');
-            expect(mascot).toBeInTheDocument();
-            expect(mascot).toHaveAttribute('data-mood', 'sad');
+            const guidance = document.querySelector('.text-lg.font-medium');
+            expect(guidance?.textContent?.length).toBeGreaterThan(0);
         });
 
         it('should display 404 text', () => {
@@ -79,9 +78,9 @@ describe('404 Not Found Page', () => {
             expect(screen.getByText('404')).toBeInTheDocument();
         });
 
-        it('should display fun message about lost shrimp', () => {
+        it('should not render the old shrimp mascot', () => {
             render(<NotFound />);
-            expect(screen.getByText(/الجمبري ضيع الطريق/)).toBeInTheDocument();
+            expect(screen.queryByTestId('shrimp-mascot')).not.toBeInTheDocument();
         });
     });
 
@@ -109,11 +108,6 @@ describe('404 Not Found Page', () => {
         it('should have journey button', () => {
             render(<NotFound />);
             expect(screen.getByText('بدء رحلتك')).toBeInTheDocument();
-        });
-
-        it('should have deals button', () => {
-            render(<NotFound />);
-            expect(screen.getByText('العروض')).toBeInTheDocument();
         });
 
         it('should navigate to home when clicking home button', async () => {

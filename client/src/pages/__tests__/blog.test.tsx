@@ -3,6 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
 vi.mock('wouter', () => ({
@@ -37,6 +38,26 @@ vi.mock('framer-motion', () => ({
 
 import Blog from '../blog';
 
+const createWrapper = () => {
+    const queryClient = new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: false,
+                queryFn: async ({ queryKey }) => {
+                    const key = queryKey[0];
+                    if (key === '/api/blog/categories') return [];
+                    if (key === '/api/blog/posts') return [];
+                    return null;
+                },
+            },
+        },
+    });
+
+    return ({ children }: { children: React.ReactNode }) => (
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+};
+
 describe('Blog Page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -48,36 +69,36 @@ describe('Blog Page', () => {
 
     describe('Rendering', () => {
         it('should render the blog page', () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             expect(screen.getByTestId('navbar')).toBeInTheDocument();
             expect(screen.getByTestId('footer')).toBeInTheDocument();
         });
 
         it('should have main content area', () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             expect(screen.getByRole('main')).toBeInTheDocument();
         });
 
         it('should display blog title', () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             const heading = screen.getByRole('heading', { level: 1 });
             expect(heading).toBeInTheDocument();
         });
 
-        it('should render whatsapp widget', () => {
-            render(<Blog />);
-            expect(screen.getByTestId('whatsapp')).toBeInTheDocument();
+        it('should not render a page-level WhatsApp widget', () => {
+            render(<Blog />, { wrapper: createWrapper() });
+            expect(screen.queryByTestId('whatsapp')).not.toBeInTheDocument();
         });
 
         it('should render back to top button', () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             expect(screen.getByTestId('back-to-top')).toBeInTheDocument();
         });
     });
 
     describe('Blog Posts', () => {
         it('should display blog categories', async () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             // Blog uses filter buttons, not article role
             await waitFor(() => {
                 const buttons = screen.getAllByRole('button');
@@ -88,7 +109,7 @@ describe('Blog Page', () => {
 
     describe('Accessibility', () => {
         it('should have proper heading structure', () => {
-            render(<Blog />);
+            render(<Blog />, { wrapper: createWrapper() });
             const headings = screen.getAllByRole('heading');
             expect(headings.length).toBeGreaterThan(0);
         });

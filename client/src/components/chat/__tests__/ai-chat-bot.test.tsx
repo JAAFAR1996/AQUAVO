@@ -279,6 +279,7 @@ import { AIChatBot } from "../ai-chat-bot";
 describe("AIChatBot Component — واجهة الجات بوت", () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.stubGlobal("fetch", mockFetch);
         // Default: fetch returns empty done stream
         mockFetch.mockResolvedValue(
             buildSSEStream([{ type: "done", products: [] }])

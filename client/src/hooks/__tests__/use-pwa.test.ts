@@ -139,7 +139,7 @@ describe('usePWA', () => {
             renderHook(() => usePWA());
 
             await waitFor(() => {
-                expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw.js');
+                expect(navigator.serviceWorker.register).toHaveBeenCalledWith('/sw-push.js');
             });
         });
     });

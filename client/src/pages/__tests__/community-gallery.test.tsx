@@ -52,7 +52,20 @@ import CommunityGallery from '../community-gallery';
 
 const createWrapper = () => {
     const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
+        defaultOptions: {
+            queries: {
+                retry: false,
+                queryFn: async ({ queryKey }) => {
+                    if (queryKey[0] === '/api/gallery') {
+                        return [
+                            { id: '1', title: 'Test Tank', imageUrl: '/test.jpg', votes: 10, isApproved: true },
+                            { id: '2', title: 'My Aquarium', imageUrl: '/test2.jpg', votes: 5, isApproved: true },
+                        ];
+                    }
+                    return [];
+                },
+            },
+        },
     });
     return ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

@@ -94,8 +94,7 @@ describe('Forgot Password Page', () => {
 
         it('should have proper heading structure', () => {
             render(<ForgotPassword />);
-            const headings = screen.getAllByRole('heading');
-            expect(headings.length).toBeGreaterThan(0);
+            expect(screen.getByText('نسيت كلمة المرور؟')).toBeInTheDocument();
         });
     });
 });

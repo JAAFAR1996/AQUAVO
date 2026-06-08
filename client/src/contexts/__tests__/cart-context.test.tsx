@@ -45,8 +45,8 @@ function TestCartConsumer() {
             <div data-testid="itemCount">{items.length}</div>
             <div data-testid="items">{JSON.stringify(items)}</div>
             <button onClick={() => addItem(testProduct)}>Add Item</button>
-            <button onClick={() => removeItem('prod-123')}>Remove Item</button>
-            <button onClick={() => updateQuantity('prod-123', 5)}>Update Quantity</button>
+            <button onClick={() => removeItem('prod-123-default')}>Remove Item</button>
+            <button onClick={() => updateQuantity('prod-123-default', 5)}>Update Quantity</button>
             <button onClick={() => clearCart()}>Clear Cart</button>
         </div>
     );
@@ -198,7 +198,7 @@ describe('CartContext', () => {
             });
         });
 
-        it('should remove item when quantity set to 0', async () => {
+        it('should clamp item quantity to 1 when quantity is set to 0', async () => {
             const user = userEvent.setup();
 
             const TestComponent = () => {
@@ -219,7 +219,7 @@ describe('CartContext', () => {
                     <div>
                         <div data-testid="totalItems">{totalItems}</div>
                         <button onClick={() => addItem(testProduct)}>Add</button>
-                        <button onClick={() => updateQuantity('prod-123', 0)}>Set Zero</button>
+                        <button onClick={() => updateQuantity('prod-123-default', 0)}>Set Zero</button>
                     </div>
                 );
             };
@@ -238,7 +238,7 @@ describe('CartContext', () => {
             await user.click(screen.getByText('Set Zero'));
 
             await waitFor(() => {
-                expect(screen.getByTestId('totalItems')).toHaveTextContent('0');
+                expect(screen.getByTestId('totalItems')).toHaveTextContent('1');
             });
         });
     });

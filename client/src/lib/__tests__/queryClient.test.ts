@@ -72,7 +72,10 @@ describe('QueryClient', () => {
                 '/api/test',
                 expect.objectContaining({
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: expect.objectContaining({
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': expect.any(String),
+                    }),
                     body: JSON.stringify(testData),
                     credentials: 'include',
                 })

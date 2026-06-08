@@ -94,9 +94,9 @@ describe('Deals Page', () => {
             expect(heading).toBeInTheDocument();
         });
 
-        it('should render whatsapp widget', () => {
+        it('should not render a page-level WhatsApp widget', () => {
             render(<Deals />, { wrapper: createWrapper() });
-            expect(screen.getByTestId('whatsapp')).toBeInTheDocument();
+            expect(screen.queryByTestId('whatsapp')).not.toBeInTheDocument();
         });
 
         it('should render back to top button', () => {

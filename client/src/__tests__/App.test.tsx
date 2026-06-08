@@ -81,6 +81,7 @@ describe('App', () => {
 
     beforeEach(() => {
         vi.clearAllMocks();
+        sessionStorage.setItem('aq_init', '1');
         queryClient = new QueryClient({
             defaultOptions: {
                 queries: { retry: false },
@@ -90,6 +91,7 @@ describe('App', () => {
 
     afterEach(() => {
         queryClient.clear();
+        sessionStorage.clear();
         vi.restoreAllMocks();
     });
 
@@ -113,33 +115,30 @@ describe('App', () => {
             });
         });
 
-        it('should render scroll progress indicator', async () => {
+        it('should defer scroll progress indicator on initial render', async () => {
             render(<App />);
 
             await waitFor(() => {
-                // Look for the scroll progress container by class
                 const scrollProgress = document.querySelector('.fixed.top-0');
-                expect(scrollProgress).toBeInTheDocument();
+                expect(scrollProgress).not.toBeInTheDocument();
             });
         });
 
-        it('should render floating action button container', async () => {
+        it('should defer floating action button container on initial render', async () => {
             render(<App />);
 
             await waitFor(() => {
-                // Look for FAB container
                 const fabContainer = document.querySelector('.fixed.bottom-8');
-                expect(fabContainer).toBeInTheDocument();
+                expect(fabContainer).not.toBeInTheDocument();
             });
         });
 
-        it('should render bubble trail container', async () => {
+        it('should defer bubble trail container on initial render', async () => {
             render(<App />);
 
             await waitFor(() => {
-                // Look for bubble trail overlay
                 const bubbleTrail = document.querySelector('.fixed.inset-0.pointer-events-none');
-                expect(bubbleTrail).toBeInTheDocument();
+                expect(bubbleTrail).not.toBeInTheDocument();
             });
         });
     });
