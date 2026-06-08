@@ -243,19 +243,19 @@ test.describe('السلة - Cart', () => {
     });
 
     // ==================
-    // Free Shipping Tests
+    // Fixed Shipping Tests
     // ==================
-    test.describe('الشحن المجاني', () => {
-        test('should show free shipping progress', async () => {
+    test.describe('التوصيل الثابت', () => {
+        test('should show fixed 5,000 IQD delivery info when present', async () => {
             await cartPage.goto();
-            const isVisible = await cartPage.freeShippingProgress.isVisible();
+            const isVisible = await cartPage.hasFixedShippingInfo();
             expect(isVisible || true).toBe(true);
         });
 
-        test('should check free shipping status', async () => {
+        test('should not show delivery-waiver messaging', async () => {
             await cartPage.goto();
-            const hasFreeShipping = await cartPage.hasFreeShipping();
-            expect(typeof hasFreeShipping).toBe('boolean');
+            const hasWaiverClaim = await cartPage.hasShippingWaiverClaim();
+            expect(hasWaiverClaim).toBe(false);
         });
     });
 

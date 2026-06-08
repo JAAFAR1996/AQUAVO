@@ -212,7 +212,10 @@ export default function CheckoutPage() {
         })),
       });
 
-      setOrderResult({ orderId: orderData.id, orderNumber: orderData.id });
+      setOrderResult({
+        orderId: orderData.id,
+        orderNumber: orderData.orderNumber ?? orderData.id,
+      });
       setStep("success");
       clearCart();
       window.scrollTo(0, 0);

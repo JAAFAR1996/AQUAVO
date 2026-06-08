@@ -9,8 +9,12 @@ function derivePassword(password: string, salt: string) {
     .toString("hex");
 }
 
+function generateSalt() {
+  return crypto.randomBytes(16).toString("hex");
+}
+
 function hashPassword(password: string) {
-  const salt = crypto.randomBytes(16).toString("hex");
+  const salt = generateSalt();
   const digest = derivePassword(password, salt);
   return `${salt}:${digest}`;
 }
@@ -243,13 +247,13 @@ describe('Password Hashing', () => {
     });
 
     it('should produce cryptographically random salts', () => {
-      const password = 'testPassword';
-      const salts = new Set();
+      const salts = new Set<string>();
 
-      // Generate 100 hashes and check for unique salts
+      // Generate salts directly so this checks RNG quality without paying
+      // for 100 PBKDF2 derivations.
       for (let i = 0; i < 100; i++) {
-        const hashed = hashPassword(password);
-        const salt = hashed.split(':')[0];
+        const salt = generateSalt();
+        expect(salt).toMatch(/^[0-9a-f]{32}$/);
         salts.add(salt);
       }
 

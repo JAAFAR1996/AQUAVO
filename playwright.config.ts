@@ -1,8 +1,27 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const e2eBaseUrl = process.env.PLAYWRIGHT_BASE_URL?.trim() || process.env.E2E_BASE_URL?.trim();
+
+if (!e2eBaseUrl) {
+    throw new Error(
+        'Missing E2E base URL. Set PLAYWRIGHT_BASE_URL or E2E_BASE_URL to a safe local/staging URL before running Playwright.'
+    );
+}
+
+const parsedBaseUrl = new URL(e2eBaseUrl);
+const blockedHosts = new Set([
+    'aquavoiq.com',
+    'www.aquavoiq.com',
+    ['fist', 'live.vercel.app'].join('-'),
+]);
+
+if (blockedHosts.has(parsedBaseUrl.hostname)) {
+    throw new Error(`Refusing to run Playwright against blocked host: ${parsedBaseUrl.hostname}`);
+}
+
 /**
- * Playwright Configuration for FIST-LIVE E2E Tests
- * Tests against the production Vercel deployment
+ * Playwright configuration for AQUAVO E2E tests.
+ * Requires an explicit safe local or staging base URL.
  */
 export default defineConfig({
     // Test directory
@@ -29,7 +48,7 @@ export default defineConfig({
     // Shared settings for all the projects
     use: {
         // Base URL to use in actions like `await page.goto('/')`
-        baseURL: 'https://fist-live.vercel.app',
+        baseURL: parsedBaseUrl.toString(),
 
         // Collect trace when retrying the failed test
         trace: 'on-first-retry',
@@ -72,7 +91,7 @@ export default defineConfig({
         },
     ],
 
-    // Timeout for each test (60s for Vercel cold starts)
+    // Timeout for each test
     timeout: 60 * 1000,
 
     // Expect timeout

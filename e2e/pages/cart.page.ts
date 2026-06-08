@@ -40,9 +40,9 @@ export class CartPage extends BasePage {
     readonly checkoutButton: Locator;
     readonly clearCartButton: Locator;
 
-    // Free Shipping Progress
-    readonly freeShippingProgress: Locator;
-    readonly freeShippingMessage: Locator;
+    // Fixed Shipping
+    readonly fixedShippingInfo: Locator;
+    readonly shippingWaiverMessage: Locator;
 
     constructor(page: Page) {
         super(page);
@@ -82,9 +82,9 @@ export class CartPage extends BasePage {
         this.checkoutButton = page.locator('a:has-text("إتمام الطلب"), button:has-text("Checkout"), a[href*="checkout"]');
         this.clearCartButton = page.locator('button:has-text("تفريغ السلة"), button:has-text("Clear Cart")');
 
-        // Free Shipping Progress
-        this.freeShippingProgress = page.locator('[class*="shipping-progress"], [class*="free-shipping"]');
-        this.freeShippingMessage = page.locator('text=/شحن مجاني|Free shipping/');
+        // Fixed Shipping
+        this.fixedShippingInfo = page.locator('text=/5,000|5000|24/');
+        this.shippingWaiverMessage = page.locator('text=/(?:\\u0634\\u062d\\u0646|\\u062a\\u0648\\u0635\\u064a\\u0644)\\s+\\u0645\\u062c\\u0627\\u0646\\u064a|free\\s+shipping/i');
     }
 
     /**
@@ -227,11 +227,17 @@ export class CartPage extends BasePage {
     }
 
     /**
-     * Check if free shipping unlocked
+     * Check whether the page displays the fixed AQUAVO delivery policy.
      */
-    async hasFreeShipping(): Promise<boolean> {
-        const text = await this.freeShippingMessage.textContent();
-        return text?.includes('مجاني') || text?.includes('Free') || false;
+    async hasFixedShippingInfo(): Promise<boolean> {
+        return await this.fixedShippingInfo.isVisible();
+    }
+
+    /**
+     * Check for obsolete delivery-waiver messaging.
+     */
+    async hasShippingWaiverClaim(): Promise<boolean> {
+        return await this.shippingWaiverMessage.isVisible();
     }
 
     /**
