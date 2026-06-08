@@ -73,11 +73,36 @@ export function createUploadRouter() {
                 }
             }
 
+            // All uploads failed — return 500 so callers don't silently save empty arrays
+            if (uploadedUrls.length === 0) {
+                res.status(500).json({
+                    success: false,
+                    message: `All ${files.length} upload(s) failed`,
+                    failedFiles: errors,
+                    urls: [],
+                    totalUploaded: 0,
+                });
+                return;
+            }
+
+            // Partial failure — return 207 Multi-Status so callers know not all succeeded
+            if (errors.length > 0) {
+                res.status(207).json({
+                    success: false,
+                    message: `${errors.length} of ${files.length} upload(s) failed`,
+                    urls: uploadedUrls,
+                    failedFiles: errors,
+                    totalUploaded: uploadedUrls.length,
+                });
+                return;
+            }
+
+            // All succeeded
             res.json({
                 success: true,
                 urls: uploadedUrls,
-                failedFiles: errors,
-                totalUploaded: uploadedUrls.length
+                failedFiles: [],
+                totalUploaded: uploadedUrls.length,
             });
         } catch (error) {
             console.error("Multiple image upload error:", error);
