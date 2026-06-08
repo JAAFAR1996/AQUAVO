@@ -375,6 +375,9 @@ export default function Navbar() {
                             />
                             <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-sm truncate">{item.name}</h4>
+                              {item.variantLabel && (
+                                <p className="text-xs text-muted-foreground truncate">الخيار: {item.variantLabel}</p>
+                              )}
                               <p className="text-primary font-bold mt-1">
                                 {formatIQD(item.price)}
                               </p>

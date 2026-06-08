@@ -108,6 +108,57 @@ describe('CartContext', () => {
             });
         });
 
+        it('should store variant metadata and selected variant price', async () => {
+            const user = userEvent.setup();
+
+            const VariantConsumer = () => {
+                const { items, addItem } = useCart();
+                const baseProduct = {
+                    id: 'prod-123',
+                    slug: 'test-product',
+                    name: 'Test Product',
+                    brand: 'Test Brand',
+                    price: 25000,
+                    rating: 4.5,
+                    reviewCount: 10,
+                    thumbnail: '/images/test.jpg',
+                    images: ['/images/test.jpg'],
+                    category: 'أطعمة',
+                };
+                const selectedVariant = {
+                    ...baseProduct,
+                    price: 32000,
+                    _variantId: 'variant-170',
+                    _variantLabel: '1.7 متر',
+                } as typeof baseProduct & { _variantId: string; _variantLabel: string };
+
+                return (
+                    <div>
+                        <div data-testid="items">{JSON.stringify(items)}</div>
+                        <button onClick={() => addItem(selectedVariant)}>Add Variant</button>
+                    </div>
+                );
+            };
+
+            render(
+                <CartProvider>
+                    <VariantConsumer />
+                </CartProvider>
+            );
+
+            await user.click(screen.getByText('Add Variant'));
+
+            await waitFor(() => {
+                const items = JSON.parse(screen.getByTestId('items').textContent || '[]') as CartItem[];
+                expect(items[0]).toMatchObject({
+                    productId: 'prod-123',
+                    variantId: 'variant-170',
+                    variantLabel: '1.7 متر',
+                    price: 32000,
+                });
+            });
+        });
+
         it('should increment quantity when adding existing item', async () => {
             const user = userEvent.setup();
 
@@ -300,6 +351,107 @@ describe('CartContext', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('totalItems')).toHaveTextContent('2');
                 expect(screen.getByTestId('totalPrice')).toHaveTextContent('50000');
+            });
+        });
+
+        it('should keep different variants as separate cart items', async () => {
+            const user = userEvent.setup();
+
+            const VariantConsumer = () => {
+                const { items, addItem } = useCart();
+                const product = {
+                    id: 'prod-123',
+                    slug: 'test-product',
+                    name: 'Test Product',
+                    brand: 'Test Brand',
+                    price: 25000,
+                    rating: 4.5,
+                    reviewCount: 10,
+                    thumbnail: '/images/test.jpg',
+                    images: ['/images/test.jpg'],
+                    category: 'أطعمة',
+                };
+                const variantA = {
+                    ...product,
+                    price: 28000,
+                    _variantId: 'variant-150',
+                    _variantLabel: '1.5 متر',
+                } as typeof product & { _variantId: string; _variantLabel: string };
+                const variantB = {
+                    ...product,
+                    price: 32000,
+                    _variantId: 'variant-170',
+                    _variantLabel: '1.7 متر',
+                } as typeof product & { _variantId: string; _variantLabel: string };
+
+                return (
+                    <div>
+                        <div data-testid="itemCount">{items.length}</div>
+                        <button onClick={() => addItem(variantA)}>Add A</button>
+                        <button onClick={() => addItem(variantB)}>Add B</button>
+                    </div>
+                );
+            };
+
+            render(
+                <CartProvider>
+                    <VariantConsumer />
+                </CartProvider>
+            );
+
+            await user.click(screen.getByText('Add A'));
+            await user.click(screen.getByText('Add B'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('itemCount')).toHaveTextContent('2');
+            });
+        });
+
+        it('should merge quantities for the same variant', async () => {
+            const user = userEvent.setup();
+
+            const VariantConsumer = () => {
+                const { items, addItem } = useCart();
+                const product = {
+                    id: 'prod-123',
+                    slug: 'test-product',
+                    name: 'Test Product',
+                    brand: 'Test Brand',
+                    price: 25000,
+                    rating: 4.5,
+                    reviewCount: 10,
+                    thumbnail: '/images/test.jpg',
+                    images: ['/images/test.jpg'],
+                    category: 'أطعمة',
+                };
+                const variant = {
+                    ...product,
+                    price: 28000,
+                    _variantId: 'variant-150',
+                    _variantLabel: '1.5 متر',
+                } as typeof product & { _variantId: string; _variantLabel: string };
+
+                return (
+                    <div>
+                        <div data-testid="totalItems">{items.reduce((sum, item) => sum + item.quantity, 0)}</div>
+                        <div data-testid="itemCount">{items.length}</div>
+                        <button onClick={() => addItem(variant)}>Add Variant</button>
+                    </div>
+                );
+            };
+
+            render(
+                <CartProvider>
+                    <VariantConsumer />
+                </CartProvider>
+            );
+
+            await user.click(screen.getByText('Add Variant'));
+            await user.click(screen.getByText('Add Variant'));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('itemCount')).toHaveTextContent('1');
+                expect(screen.getByTestId('totalItems')).toHaveTextContent('2');
             });
         });
     });

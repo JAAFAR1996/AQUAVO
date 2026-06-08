@@ -52,6 +52,47 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = "cart-v2"; // syncStorage automatically adds 'aquavo_' prefix
 
+type ProductWithCartVariant = Product & {
+  _variantId?: string;
+  _variantLabel?: string;
+};
+
+const normalizeCartItemName = (name: string, variantLabel?: string): string => {
+  if (!variantLabel) return name;
+
+  const suffixes = [` (${variantLabel})`, ` — ${variantLabel}`, ` - ${variantLabel}`];
+  for (const suffix of suffixes) {
+    if (name.endsWith(suffix)) {
+      return name.slice(0, -suffix.length);
+    }
+  }
+
+  return name;
+};
+
+const getCartVariantMeta = (product: Product | ProductWithCartVariant) => {
+  const variantSource = product as ProductWithCartVariant;
+  return {
+    variantId: variantSource._variantId || undefined,
+    variantLabel: variantSource._variantLabel || undefined,
+  };
+};
+
+const mapServerCartItem = (item: ServerCartItem): CartItem => {
+  const variantLabel = item.variantLabel || undefined;
+  return {
+    id: item.id,
+    productId: item.productId,
+    name: normalizeCartItemName(item.product.name, variantLabel),
+    price: Number(item.variantPrice ?? item.product.price),
+    quantity: item.quantity,
+    image: item.product.thumbnail || item.product.images?.[0] || '',
+    slug: item.product.slug,
+    variantId: item.variantId || undefined,
+    variantLabel,
+  };
+};
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
@@ -63,7 +104,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const stored = syncStorage.getItem<CartItem[]>(CART_STORAGE_KEY);
       if (stored) {
         try {
-          setItems(stored);
+          setItems(stored.map((item) => ({
+            ...item,
+            name: normalizeCartItemName(item.name, item.variantLabel),
+          })));
         } catch (e) {
           console.error("Failed to parse cart", e);
         }
@@ -116,17 +160,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
             if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map((item: ServerCartItem) => ({
-                id: item.id,
-                productId: item.productId,
-                name: item.product.name,
-                price: Number(item.product.price),
-                quantity: item.quantity,
-                image: item.product.thumbnail || item.product.images?.[0] || '',
-                slug: item.product.slug,
-                variantId: item.variantId,
-                variantLabel: item.variantLabel,
-              }));
+              const mappedItems = serverItems.map(mapServerCartItem);
               setItems(mappedItems);
             }
           }
@@ -138,17 +172,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             if (cartRes.ok) {
               const serverItems = await cartRes.json();
               if (Array.isArray(serverItems)) {
-                const mappedItems = serverItems.map((item: ServerCartItem) => ({
-                  id: item.id,
-                  productId: item.productId,
-                  name: item.product.name,
-                  price: Number(item.product.price),
-                  quantity: item.quantity,
-                  image: item.product.thumbnail || item.product.images?.[0] || '',
-                  slug: item.product.slug,
-                  variantId: item.variantId,
-                  variantLabel: item.variantLabel,
-                }));
+                const mappedItems = serverItems.map(mapServerCartItem);
                 setItems(mappedItems);
               }
             }
@@ -184,6 +208,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = async (product: Product, quantity: number = 1) => {
     // Only block products with no price set (coming soon)
     const productPrice = Number(product.price);
+    const { variantId, variantLabel } = getCartVariantMeta(product);
     if (!productPrice || productPrice <= 0) {
       toast({
         title: "غير متوفر حالياً",
@@ -202,13 +227,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({
             productId: product.id,
             quantity,
-            // _variantId is set in product-details.tsx when a variant is selected
-            // Always send variantPrice when it's a variant product
-            variantPrice: (product as any)._variantId
-              ? Number(product.price)
-              : undefined,
-            variantLabel: (product as any)._variantLabel ?? undefined,
-            variantId: (product as any)._variantId ?? undefined,
+            variantPrice: variantId ? Number(product.price) : undefined,
+            variantLabel,
+            variantId,
           }),
         });
         if (res.ok) {
@@ -217,17 +238,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const cartRes = await fetch("/api/cart", { credentials: "include" });
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
-            const mappedItems = serverItems.map((item: ServerCartItem) => ({
-              id: item.id,
-              productId: item.productId,
-              name: item.product.name,
-              price: Number(item.product.price),
-              quantity: item.quantity,
-              image: item.product.thumbnail || item.product.images?.[0] || '',
-              slug: item.product.slug,
-              variantId: item.variantId,
-              variantLabel: item.variantLabel,
-            }));
+            const mappedItems = serverItems.map(mapServerCartItem);
             setItems(mappedItems);
           }
           // If cartRes is not ok, item was still added — optimistic local state is already correct
@@ -252,7 +263,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } else {
       // Client Side
-      const variantId = (product as any)._variantId;
       const cartItemId = `${product.id}-${variantId || 'default'}`;
       
       const existingItem = items.find((item) => item.id === cartItemId);
@@ -273,7 +283,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           image: product.thumbnail || product.image || product.images?.[0] || '',
           slug: product.slug,
           variantId: variantId ?? undefined,
-          variantLabel: (product as any)._variantLabel ?? undefined,
+          variantLabel,
         };
         newItems = [...items, newItem];
       }
@@ -301,14 +311,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (user) {
       // Server Side: Add all concurrently then update state
       try {
-        const promises = purchasableProducts.map(product =>
-          fetch("/api/cart", {
+        const promises = purchasableProducts.map(product => {
+          const { variantId, variantLabel } = getCartVariantMeta(product);
+          return fetch("/api/cart", {
             method: "POST",
             headers: addCsrfHeader({ "Content-Type": "application/json" }),
             credentials: "include",
-            body: JSON.stringify({ productId: product.id, quantity: 1 }),
-          })
-        );
+            body: JSON.stringify({
+              productId: product.id,
+              quantity: 1,
+              variantPrice: variantId ? Number(product.price) : undefined,
+              variantLabel,
+              variantId,
+            }),
+          });
+        });
 
         await Promise.all(promises);
 
@@ -316,17 +333,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const cartRes = await fetch("/api/cart", { credentials: "include" });
         if (cartRes.ok) {
           const serverItems = await cartRes.json();
-          const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.id,
-            productId: item.productId,
-            name: item.product.name,
-            price: Number(item.product.price),
-            quantity: item.quantity,
-            image: item.product.thumbnail || item.product.images?.[0] || '',
-            slug: item.product.slug,
-            variantId: item.variantId,
-            variantLabel: item.variantLabel,
-          }));
+          const mappedItems = serverItems.map(mapServerCartItem);
           setItems(mappedItems);
         }
       } catch (err) {
@@ -339,13 +346,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } else {
       // Client Side: Compute new state in one go
-      let currentItems = [...items]; // Copy current state (might be stale? better use functional if possible, but here we can't easily access functional setter inside this logic without refactor. BUT for guest, this function 'addItems' will run once. The problem with 'addItem' loop was re-renders not happening fast enough.)
-      // Wait, inside this function 'items' is const. We should use setItems(prev => ...) to be safe.
-
       setItems(prev => {
         let newItems = [...prev];
-        purchasableProducts.forEach((product: any) => {
-          const variantId = product._variantId;
+        purchasableProducts.forEach((product) => {
+          const { variantId, variantLabel } = getCartVariantMeta(product);
           const cartItemId = `${product.id}-${variantId || 'default'}`;
           
           const existingIndex = newItems.findIndex(i => i.id === cartItemId);
@@ -364,7 +368,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
               image: product.thumbnail || product.image || product.images?.[0] || '',
               slug: product.slug,
               variantId: variantId ?? undefined,
-              variantLabel: product._variantLabel ?? undefined,
+              variantLabel,
             });
           }
         });
@@ -398,17 +402,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           if (cartRes.ok) {
             const serverItems = await cartRes.json();
             if (Array.isArray(serverItems)) {
-              const mappedItems = serverItems.map((item: ServerCartItem) => ({
-                id: item.id,
-                productId: item.productId,
-                name: item.product.name,
-                price: Number(item.product.price),
-                quantity: item.quantity,
-                image: item.product.thumbnail || item.product.images?.[0] || '',
-                slug: item.product.slug,
-                variantId: item.variantId,
-                variantLabel: item.variantLabel,
-              }));
+              const mappedItems = serverItems.map(mapServerCartItem);
               setItems(mappedItems);
             }
           }
@@ -510,17 +504,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (cartRes.ok) {
         const serverItems = await cartRes.json();
         if (Array.isArray(serverItems)) {
-          const mappedItems = serverItems.map((item: ServerCartItem) => ({
-            id: item.id,
-            productId: item.productId,
-            name: item.product.name,
-            price: Number(item.product.price),
-            quantity: item.quantity,
-            image: item.product.thumbnail || item.product.images?.[0] || '',
-            slug: item.product.slug,
-            variantId: item.variantId,
-            variantLabel: item.variantLabel,
-          }));
+          const mappedItems = serverItems.map(mapServerCartItem);
           setItems(mappedItems);
         }
       }

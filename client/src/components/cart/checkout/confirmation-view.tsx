@@ -98,7 +98,12 @@ export function ConfirmationView({
                 <div className="space-y-1.5 max-h-28 overflow-y-auto">
                     {cartItems.map((item) => (
                         <div key={item.id} className="flex justify-between items-center text-sm">
-                            <span className="truncate flex-1 text-muted-foreground">{item.name} × {item.quantity}</span>
+                            <div className="min-w-0 flex-1">
+                                <span className="block truncate text-muted-foreground">{item.name} × {item.quantity}</span>
+                                {item.variantLabel && (
+                                    <span className="block truncate text-xs text-muted-foreground">الخيار: {item.variantLabel}</span>
+                                )}
+                            </div>
                             <span className="font-medium mr-2">{formatIQD(item.price * item.quantity)}</span>
                         </div>
                     ))}

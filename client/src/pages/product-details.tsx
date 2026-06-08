@@ -144,10 +144,11 @@ export default function ProductDetails() {
       // The variant-specific ID (e.g. "yxl-003-small") doesn't exist in DB
       const variantLabel = selectedVariant?.label || "";
       const variantId = selectedVariant?.id || "";
+      const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
       const productToAdd = selectedVariant
         ? {
           ...product,
-          name: variantLabel ? `${product.name} (${variantLabel})` : product.name,
+          name: product.name,
           price: selectedVariant.price,
           id: product.id, // ← Always use base product ID (NOT variant composite ID)
           // Metadata for cart-context to pass to server
@@ -162,7 +163,7 @@ export default function ProductDetails() {
       if (trackPrice > 0) {
         ttqAddToCart({
           id: productToAdd.id,
-          name: productToAdd.name,
+          name: displayName,
           price: trackPrice,
           quantity,
           category: product.category,
@@ -170,7 +171,7 @@ export default function ProductDetails() {
         // Meta Pixel: AddToCart event
         metaTrackAddToCart({
           productId: productToAdd.id,
-          productName: productToAdd.name,
+          productName: displayName,
           priceIQD: trackPrice,
           quantity,
           category: product.category,
@@ -178,13 +179,13 @@ export default function ProductDetails() {
         // GA4: add_to_cart event
         trackAddToCart({
           id: productToAdd.id,
-          name: productToAdd.name,
+          name: displayName,
           price: trackPrice,
           quantity,
         });
         phTrackAddToCart({
           id: productToAdd.id,
-          name: productToAdd.name,
+          name: displayName,
           price: trackPrice,
           quantity,
           category: product.category,
@@ -193,7 +194,7 @@ export default function ProductDetails() {
       setIsAddedToCart(true);
       toast({
         title: "تمت الإضافة",
-        description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${productToAdd.name} انضاف للسلة.`,
+        description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${displayName} انضاف للسلة.`,
       });
       setTimeout(() => setIsAddedToCart(false), 2000);
     }

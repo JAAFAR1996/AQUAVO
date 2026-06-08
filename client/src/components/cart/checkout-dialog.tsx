@@ -51,6 +51,32 @@ interface ServerOrderItem {
   variantLabel?: string;
 }
 
+const findMatchingCartItem = (cartItems: CartItem[], serverItem: ServerOrderItem) => {
+  if (!serverItem.productId) return undefined;
+
+  if (serverItem.variantId) {
+    const variantMatch = cartItems.find(
+      (cartItem) =>
+        cartItem.productId === serverItem.productId &&
+        cartItem.variantId === serverItem.variantId
+    );
+    if (variantMatch) return variantMatch;
+  }
+
+  if (serverItem.variantLabel) {
+    const labelMatch = cartItems.find(
+      (cartItem) =>
+        cartItem.productId === serverItem.productId &&
+        cartItem.variantLabel === serverItem.variantLabel
+    );
+    if (labelMatch) return labelMatch;
+  }
+
+  return cartItems.find(
+    (cartItem) => cartItem.productId === serverItem.productId && !cartItem.variantId
+  ) ?? cartItems.find((cartItem) => cartItem.productId === serverItem.productId);
+};
+
 export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onCheckoutComplete }: CheckoutDialogProps) {
   const { user } = useAuth();
   const { clearCart } = useCart();
@@ -239,18 +265,20 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       const serverItems = Array.isArray(orderData.items) ? orderData.items as ServerOrderItem[] : [];
       const invoiceItems = serverItems.length > 0
         ? serverItems.map((item) => {
-            const cartItem = cartItems.find((cartItem) => cartItem.productId === item.productId);
+            const cartItem = findMatchingCartItem(cartItems, item);
             const productId = item.productId || cartItem?.productId || cartItem?.id || "";
+            const variantId = item.variantId ?? cartItem?.variantId;
+            const variantLabel = item.variantLabel ?? cartItem?.variantLabel;
             return {
-              id: cartItem?.id || productId,
+              id: cartItem?.id || (variantId ? `${productId}-${variantId}` : productId),
               productId,
               name: item.productName || cartItem?.name || productId,
               price: Number(item.priceAtPurchase ?? cartItem?.price ?? 0),
               quantity: item.quantity || cartItem?.quantity || 1,
               image: cartItem?.image || "",
               slug: cartItem?.slug || "",
-              variantId: item.variantId ?? cartItem?.variantId,
-              variantLabel: item.variantLabel ?? cartItem?.variantLabel,
+              variantId,
+              variantLabel,
             };
           })
         : cartItems;

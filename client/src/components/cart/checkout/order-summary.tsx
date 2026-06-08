@@ -40,7 +40,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
                                 <div className="flex-1 min-w-0">
                                     <p className="text-foreground truncate">{item.name}</p>
                                     {item.variantLabel && (
-                                        <p className="text-xs text-muted-foreground">{item.variantLabel}</p>
+                                        <p className="text-xs text-muted-foreground">الخيار: {item.variantLabel}</p>
                                     )}
                                     <p className="text-xs text-muted-foreground">
                                         {formatIQD(item.price)} × {item.quantity}

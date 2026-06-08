@@ -7,6 +7,9 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
+const mockAddItem = vi.hoisted(() => vi.fn());
+const mockToast = vi.hoisted(() => vi.fn());
+
 // Mock wouter
 vi.mock('wouter', () => ({
     useLocation: () => ['/products/test-product', vi.fn()],
@@ -37,7 +40,7 @@ vi.mock('@/components/back-to-top', () => ({
 // Mock contexts
 vi.mock('@/contexts/cart-context', () => ({
     useCart: () => ({
-        addItem: vi.fn(),
+        addItem: mockAddItem,
         items: [],
         itemCount: 0
     })
@@ -67,22 +70,65 @@ vi.mock('@/contexts/comparison-context', () => ({
     }),
 }));
 
+vi.mock('@/hooks/use-toast', () => ({
+    useToast: () => ({
+        toast: mockToast,
+    }),
+}));
+
+vi.mock('@/lib/tiktok-pixel', () => ({
+    ttqViewContent: vi.fn(),
+    ttqAddToCart: vi.fn(),
+}));
+
+vi.mock('@/lib/meta-pixel', () => ({
+    metaTrackViewContent: vi.fn(),
+    metaTrackAddToCart: vi.fn(),
+}));
+
+vi.mock('@/lib/analytics', () => ({
+    trackViewItem: vi.fn(),
+    trackAddToCart: vi.fn(),
+}));
+
+vi.mock('@/lib/posthog', () => ({
+    phTrackViewContent: vi.fn(),
+    phTrackAddToCart: vi.fn(),
+    phTrackWhatsAppClick: vi.fn(),
+}));
+
 // Mock API
 vi.mock('@/lib/api', () => ({
     fetchProductBySlug: vi.fn(() => Promise.resolve({
         id: 'test-1',
-        name: 'Premium Fish Food',
+        name: 'سيفون تغيير ماء',
         slug: 'test-product',
-        price: 25000,
+        price: 28000,
         originalPrice: 30000,
-        description: 'High quality fish food for tropical fish',
-        category: 'أطعمة',
-        brand: 'Tetra',
+        description: 'سيفون عملي لتبديل الماء',
+        category: 'معدات',
+        brand: 'Houyi',
         stock: 50,
         rating: 4.5,
         reviewCount: 25,
-        image: '/images/fish-food.jpg',
-        images: ['/images/fish-food.jpg'],
+        image: '/images/siphon.jpg',
+        images: ['/images/siphon.jpg'],
+        hasVariants: true,
+        variants: [
+            {
+                id: 'variant-150',
+                label: '1.5 متر',
+                price: 28000,
+                stock: 10,
+                isDefault: true,
+            },
+            {
+                id: 'variant-170',
+                label: '1.7 متر',
+                price: 32000,
+                stock: 8,
+            },
+        ],
     })),
     fetchProducts: vi.fn(() => Promise.resolve({ products: [], total: 0 })),
     fetchProductVariants: vi.fn(() => Promise.resolve([])),
@@ -136,6 +182,31 @@ describe('Product Details Page', () => {
             const buttons = screen.queryAllByRole('button');
             expect(buttons.length).toBeGreaterThan(0);
         }, { timeout: 3000 });
+    });
+
+    it('should preserve the selected variant metadata when adding to cart', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: '1.7 متر' })).toBeInTheDocument();
+        });
+
+        await user.click(screen.getByRole('button', { name: '1.7 متر' }));
+        await user.click(screen.getByRole('button', { name: /أضف للسلة/ }));
+
+        expect(mockAddItem).toHaveBeenCalledTimes(1);
+        expect(mockAddItem).toHaveBeenCalledWith(
+            expect.objectContaining({
+                id: 'test-1',
+                name: 'سيفون تغيير ماء',
+                price: 32000,
+                _variantId: 'variant-170',
+                _variantLabel: '1.7 متر',
+            }),
+            1
+        );
     });
 
     it('should render footer', async () => {

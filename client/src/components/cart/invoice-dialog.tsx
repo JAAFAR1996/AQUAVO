@@ -15,6 +15,8 @@ interface InvoiceItem {
   price: number;
   quantity: number;
   image?: string;
+  variantId?: string;
+  variantLabel?: string;
 }
 
 interface CustomerInfo {
@@ -83,14 +85,19 @@ export function InvoiceDialog({ open, onOpenChange, orderData }: InvoiceDialogPr
     }
 
     // بناء HTML الفاتورة مباشرة — بدون أي خلفيات ملونة
-    const itemsRows = orderData.items.map(item => 
+    const itemsRows = orderData.items.map(item => {
+      const productName = item.variantLabel
+        ? `${item.name}<div style="font-size:11px;color:#64748b;margin-top:2px;">الخيار: ${item.variantLabel}</div>`
+        : item.name;
+      return (
       `<tr>
-        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${item.name}</td>
+        <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:right;font-size:13px;">${productName}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${item.quantity}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:center;font-size:13px;">${formatIQD(item.price)}</td>
         <td style="padding:8px 10px;border-bottom:1px solid #e5e7eb;text-align:left;font-size:13px;font-weight:600;">${formatIQD(item.price * item.quantity)}</td>
       </tr>`
-    ).join('');
+      );
+    }).join('');
 
 
 
@@ -361,7 +368,12 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                                   className="w-10 h-10 rounded-lg object-cover"
                                 />
                               )}
-                              <span className="text-sm font-medium line-clamp-2">{item.name}</span>
+                              <div className="min-w-0">
+                                <span className="block text-sm font-medium line-clamp-2">{item.name}</span>
+                                {item.variantLabel && (
+                                  <span className="block text-xs text-muted-foreground mt-0.5">الخيار: {item.variantLabel}</span>
+                                )}
+                              </div>
                             </div>
                           </td>
                           <td className="text-center py-3 px-2">
