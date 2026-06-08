@@ -11,6 +11,50 @@ import { corsConfig, sanitizeBody, securityHeaders } from "../server/middleware/
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
+const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+
+function getSourceOrigin(req: Request): string | undefined {
+  const origin = req.get("origin");
+  if (origin) return origin;
+
+  return req.get("referer");
+}
+
+function getTargetHost(req: Request): string | undefined {
+  return req.get("x-forwarded-host") || req.get("host");
+}
+
+function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
+  if (CSRF_SAFE_METHODS.has(req.method)) {
+    return next();
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    return next();
+  }
+
+  const sourceOrigin = getSourceOrigin(req);
+  const targetHost = getTargetHost(req);
+
+  if (!sourceOrigin || !targetHost) {
+    console.warn(`[Security] Blocked mutating request with missing origin: ${req.method} ${req.path}`);
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const sourceHost = new URL(sourceOrigin).host;
+    if (sourceHost !== targetHost) {
+      console.warn(`[Security] Blocked cross-origin mutating request: ${req.method} ${req.path}`);
+      return res.status(403).json({ message: "Forbidden" });
+    }
+  } catch {
+    console.warn(`[Security] Blocked mutating request with invalid origin: ${req.method} ${req.path}`);
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  return next();
+}
+
 async function buildApp() {
   console.log("🚀 Starting app initialization...");
   const app = express();
@@ -45,6 +89,9 @@ async function buildApp() {
 
   // Security: Request body sanitization (must be AFTER parsing)
   app.use(sanitizeBody);
+
+  // Security: CSRF origin validation for the Vercel API entrypoint.
+  app.use(csrfOriginProtection);
 
   console.log("📦 Creating session store...");
   // Use persistent PostgreSQL session store in production
