@@ -142,7 +142,10 @@ export function Product3DViewer({
     "camera-controls": true,
     "shadow-intensity": "0.9",
     "shadow-softness": "0.82",
-    "environment-image": "neutral",
+    // environment-image intentionally omitted: model-viewer's default environment
+    // preserves the GLB's own PBR/baked-texture colours.
+    // "neutral" (a flat studio-white HDR) desaturates wood textures → white/clay look.
+    exposure: "0.9",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
