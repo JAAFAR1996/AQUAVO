@@ -89,6 +89,8 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
     // Convert object to array, filtering out excluded keys and arrays
     return Object.entries(specs)
         .filter(([key, value]) => {
+            // Internal product presentation metadata, such as 3D model paths.
+            if (key.startsWith('__')) return false;
             // Exclude specific keys
             if (excludeKeys.includes(key)) return false;
             // Exclude arrays (they're usually benefits or parts)

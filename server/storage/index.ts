@@ -3,6 +3,7 @@ import { UserStorage } from "./user-storage.js";
 import { ProductStorage, ProductFilters } from "./product-storage.js";
 import { OrderStorage } from "./order-storage.js";
 import { SettingsStorage } from "./settings-storage.js";
+import { driftwoodProducts } from "../data/driftwood-products.js";
 
 export interface IStorage {
     getUser(id: string): Promise<User | undefined>;
@@ -230,8 +231,16 @@ class CombinedStorage implements IStorage {
 
     // Missing Stubs - Now Implemented
     seedProductsIfNeeded = async () => {
-        // Can be implemented later for seeding initial products
-        // For now, products are added via admin panel
+        if (!getDb()) return;
+
+        for (const product of driftwoodProducts) {
+            const existing = await this.productStorage.getProduct(product.id)
+                ?? await this.productStorage.getProductBySlug(product.slug);
+
+            if (!existing) {
+                await this.productStorage.createProduct(product);
+            }
+        }
     };
 
     getTrendingProducts = async (): Promise<Product[]> => {

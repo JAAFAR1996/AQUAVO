@@ -19,6 +19,7 @@ import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { useToast } from "@/hooks/use-toast";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
+import { Product3DViewer } from "@/components/products/product-3d-viewer";
 import { ExplodedProductView } from "@/components/products/exploded-product-view";
 import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
 import { ProductVariantSelector } from "@/components/products/product-variant-selector";
@@ -37,6 +38,32 @@ import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
 import { trackViewItem, trackAddToCart } from "@/lib/analytics";
 import { phTrackViewContent, phTrackAddToCart, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+
+interface Product3DMeta {
+  src: string;
+  poster?: string;
+  label?: string;
+  pieceCode?: string;
+}
+
+function readProduct3DMeta(specifications: Product["specifications"] | undefined): Product3DMeta | null {
+  const rawMeta = (specifications as Record<string, unknown> | undefined)?.__model3d;
+  if (!rawMeta || typeof rawMeta !== "object" || Array.isArray(rawMeta)) {
+    return null;
+  }
+
+  const meta = rawMeta as Record<string, unknown>;
+  if (typeof meta.src !== "string" || meta.src.trim().length === 0) {
+    return null;
+  }
+
+  return {
+    src: meta.src,
+    poster: typeof meta.poster === "string" ? meta.poster : undefined,
+    label: typeof meta.label === "string" ? meta.label : undefined,
+    pieceCode: typeof meta.pieceCode === "string" ? meta.pieceCode : undefined,
+  };
+}
 
 export default function ProductDetails() {
   const params = useParams();
@@ -130,6 +157,8 @@ export default function ProductDetails() {
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
   const isOutOfStock = product?.stock === 0 || (hasEmbeddedVariants && selectedVariant?.stock === 0);
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
+  const product3DMeta = readProduct3DMeta(product?.specifications);
+  const exactPieceCode = product3DMeta?.pieceCode ?? product3DMeta?.label;
 
   // أي منتج لديه سعر أكبر من صفر يمكن شراؤه
   const isPurchasableBrand = true; // Removed brand restriction — all brands are available
@@ -284,7 +313,7 @@ export default function ProductDetails() {
       <MetaTags
         title={product.name}
         description={product.specs?.substring(0, 160) || `تسوق ${product.name} من AQUAVO بأفضل الأسعار.`}
-        image={product.image || 'https://www.aquavoiq.com/og-image.jpg'}
+        image={product.image || product.thumbnail || 'https://www.aquavoiq.com/og-image.jpg'}
         type="product"
         price={product.price}
       />
@@ -292,7 +321,7 @@ export default function ProductDetails() {
       <ProductSchema
         name={product.name}
         description={product.description || ""}
-        image={product.image || ""}
+        image={product.image || product.thumbnail || ""}
         price={displayPrice}
         brand={product.brand}
         inStock={inStock}
@@ -361,6 +390,16 @@ export default function ProductDetails() {
                   }
                   productName={product.name}
                 />
+
+                {product3DMeta && (
+                  <Product3DViewer
+                    className="mt-4"
+                    src={product3DMeta.src}
+                    poster={product3DMeta.poster}
+                    productName={product.name}
+                    pieceCode={exactPieceCode}
+                  />
+                )}
               </div>
 
               {/* Product Info */}
@@ -371,6 +410,22 @@ export default function ProductDetails() {
                 </div>
 
                 <h1 className="text-xl md:text-2xl font-bold mb-4">{product.name}</h1>
+
+                {product3DMeta && (
+                  <div className="mb-4 flex flex-wrap gap-2">
+                    <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/10">
+                      القطعة نفسها التي تستلمها
+                    </Badge>
+                    <Badge variant="outline">
+                      عرض 3D
+                    </Badge>
+                    {exactPieceCode && (
+                      <Badge variant="outline">
+                        {exactPieceCode}
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
                 {/* Display Model */}
                 {displayModel && (
@@ -492,6 +547,23 @@ export default function ProductDetails() {
                   {product.description}
                 </p>
 
+                {product3DMeta && (
+                  <div className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
+                    <div className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>هاي القطعة مو صورة تمثيلية؛ هذا نفس الشكل اللي تستلمه.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>تقدر تلفها 3D وتشوف تفاصيلها من كل زاوية قبل الشراء.</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span>مناسبة للي يريد يضيف عمق وشخصية طبيعية لترتيب الحوض.</span>
+                    </div>
+                  </div>
+                )}
+
                 {/* Quantity & Add to Cart */}
                 {hasPrice && displayStock > 0 && (
                   <div className="space-y-4 mb-6">
@@ -610,8 +682,12 @@ export default function ProductDetails() {
                           <Shield className="w-5 h-5 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">ضمان الجودة</p>
-                          <p className="text-xs text-muted-foreground">منتج أصلي</p>
+                          <p className="text-sm font-medium">
+                            {product3DMeta ? "نفس القطعة" : "ضمان الجودة"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {product3DMeta ? "مو صورة تمثيلية" : "منتج أصلي"}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -663,8 +739,14 @@ export default function ProductDetails() {
                             <ShieldCheck className="w-5 h-5 text-green-600" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-sm">جودة مضمونة</h3>
-                            <p className="text-sm text-muted-foreground">منتج أصلي 100% من علامة {product.brand} العالمية</p>
+                            <h3 className="font-bold text-sm">
+                              {product3DMeta ? "قرار أوضح قبل الشراء" : "جودة مضمونة"}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              {product3DMeta
+                                ? "تعاين نفس القطعة ثلاثي الأبعاد قبل ما تضيفها للسلة."
+                                : `منتج أصلي 100% من علامة ${product.brand} العالمية`}
+                            </p>
                           </div>
                         </div>
                         {/* Only show rating if there are reviews */}
