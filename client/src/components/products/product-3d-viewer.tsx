@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
   jumpCameraToGoal?: () => void;
-  resetTurntableRotation?: () => void;
 };
 
 interface Product3DViewerProps {
@@ -26,46 +25,69 @@ export function Product3DViewer({
   const modelRef = useRef<ModelViewerElement | null>(null);
 
   useEffect(() => {
-    void import("@google/model-viewer");
+    // The package does not ship declarations for the prebuilt browser bundle.
+    // @ts-expect-error See runtime import path above.
+    void import("@google/model-viewer/dist/model-viewer.min.js");
   }, []);
 
   useEffect(() => {
     const viewer = modelRef.current;
     if (!viewer) return;
 
-    let autoRotateTimer: number | undefined;
+    const baseTheta = 145;
+    const basePhi = 71;
+    const baseRadius = 118;
+    const orbitAmplitude = 3.5;
+    const orbitCycleMs = 11000;
+    let animationFrame: number | undefined;
     let observer: IntersectionObserver | undefined;
     let isVisible = false;
-    let hasStartedAutoRotate = false;
+    let isLoaded = Boolean(viewer.loaded);
+    let hasUserInteracted = false;
+
+    const formatCameraOrbit = (theta: number) =>
+      `${theta.toFixed(2)}deg ${basePhi}deg ${baseRadius}%`;
 
     const setProductAngle = () => {
-      viewer.setAttribute("camera-orbit", "145deg 71deg 118%");
+      viewer.setAttribute("camera-orbit", formatCameraOrbit(baseTheta));
       viewer.jumpCameraToGoal?.();
     };
 
-    const startAutoRotateFromProductAngle = () => {
-      if (hasStartedAutoRotate) return;
+    const stopSubtleMotion = () => {
+      hasUserInteracted = true;
 
-      hasStartedAutoRotate = true;
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame);
+        animationFrame = undefined;
+      }
+    };
+
+    const animateCameraOrbit = (timestamp: number) => {
+      if (hasUserInteracted || !isVisible || !isLoaded) {
+        animationFrame = undefined;
+        return;
+      }
+
+      const progress = (timestamp % orbitCycleMs) / orbitCycleMs;
+      const theta =
+        baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
+      viewer.setAttribute("camera-orbit", formatCameraOrbit(theta));
+      animationFrame = window.requestAnimationFrame(animateCameraOrbit);
+    };
+
+    const startSubtleMotion = () => {
+      if (!isVisible || !isLoaded || hasUserInteracted || animationFrame !== undefined) {
+        return;
+      }
+
       setProductAngle();
-
-      autoRotateTimer = window.setTimeout(() => {
-        viewer.resetTurntableRotation?.();
-        viewer.setAttribute("auto-rotate", "");
-      }, 900);
+      animationFrame = window.requestAnimationFrame(animateCameraOrbit);
     };
 
-    const startWhenVisibleAndLoaded = () => {
-      if (isVisible && viewer.loaded) {
-        startAutoRotateFromProductAngle();
-      }
-    };
-
-    const pauseAutoRotate = () => {
-      if (autoRotateTimer !== undefined) {
-        window.clearTimeout(autoRotateTimer);
-      }
-      viewer.removeAttribute("auto-rotate");
+    const handleLoad = () => {
+      isLoaded = true;
+      setProductAngle();
+      startSubtleMotion();
     };
 
     viewer.removeAttribute("auto-rotate");
@@ -77,7 +99,7 @@ export function Product3DViewer({
           if (entry?.isIntersecting) {
             isVisible = true;
             setProductAngle();
-            startWhenVisibleAndLoaded();
+            startSubtleMotion();
             observer?.disconnect();
           }
         },
@@ -86,23 +108,29 @@ export function Product3DViewer({
       observer.observe(viewer);
     } else {
       isVisible = true;
-      startWhenVisibleAndLoaded();
+      startSubtleMotion();
     }
 
-    viewer.addEventListener("load", startWhenVisibleAndLoaded);
-    viewer.addEventListener("pointerdown", pauseAutoRotate, { once: true });
-    viewer.addEventListener("touchstart", pauseAutoRotate, { once: true });
+    viewer.addEventListener("load", handleLoad);
+    viewer.addEventListener("pointerdown", stopSubtleMotion);
+    viewer.addEventListener("touchstart", stopSubtleMotion, { passive: true });
+    viewer.addEventListener("wheel", stopSubtleMotion, { passive: true });
+    viewer.addEventListener("keydown", stopSubtleMotion);
 
-    startWhenVisibleAndLoaded();
+    if (viewer.loaded) {
+      handleLoad();
+    }
 
     return () => {
-      if (autoRotateTimer !== undefined) {
-        window.clearTimeout(autoRotateTimer);
+      if (animationFrame !== undefined) {
+        window.cancelAnimationFrame(animationFrame);
       }
       observer?.disconnect();
-      viewer.removeEventListener("load", startWhenVisibleAndLoaded);
-      viewer.removeEventListener("pointerdown", pauseAutoRotate);
-      viewer.removeEventListener("touchstart", pauseAutoRotate);
+      viewer.removeEventListener("load", handleLoad);
+      viewer.removeEventListener("pointerdown", stopSubtleMotion);
+      viewer.removeEventListener("touchstart", stopSubtleMotion);
+      viewer.removeEventListener("wheel", stopSubtleMotion);
+      viewer.removeEventListener("keydown", stopSubtleMotion);
     };
   }, [src]);
 
@@ -112,13 +140,9 @@ export function Product3DViewer({
     poster,
     alt: `عرض ثلاثي الأبعاد للمنتج ${productName}`,
     "camera-controls": true,
-    "auto-rotate-delay": "2200",
-    "rotation-per-second": "7deg",
     "shadow-intensity": "0.9",
     "shadow-softness": "0.82",
     "environment-image": "neutral",
-    exposure: "0.45",
-    "tone-mapping": "aces",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
@@ -126,10 +150,8 @@ export function Product3DViewer({
     "orbit-sensitivity": "1.1",
     "zoom-sensitivity": "0.85",
     "disable-pan": true,
-    "interaction-prompt": "auto",
-    "interaction-prompt-style": "basic",
-    "interaction-prompt-threshold": "1200",
-    "touch-action": "none",
+    "interaction-prompt": "none",
+    "touch-action": "pan-y",
     loading: "lazy",
     reveal: "auto",
     className: "absolute inset-0 h-full w-full",
