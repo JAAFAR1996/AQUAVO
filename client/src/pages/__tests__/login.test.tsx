@@ -210,8 +210,8 @@ describe('Login Page', () => {
     describe('Loading State', () => {
         it('should show loading text while submitting', async () => {
             const user = userEvent.setup();
-            // Delay the login resolution
-            mockLogin.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 1000)));
+            const pendingLogin = new Promise(() => {});
+            mockLogin.mockReturnValueOnce(pendingLogin);
 
             render(<Login />);
 

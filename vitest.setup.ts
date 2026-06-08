@@ -96,4 +96,5 @@ Object.defineProperty(window, 'IntersectionObserver', {
 // Cleanup after each test
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
 });

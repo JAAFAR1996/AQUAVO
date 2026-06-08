@@ -352,7 +352,11 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   verifyEmailConnection().catch(err => console.error("Email verification error:", err));
 
   // Initialize Scheduled Jobs (Cron)
-  initializeScheduledJobs();
+  if (process.env.DISABLE_SCHEDULED_JOBS === "true") {
+    console.log("Scheduled jobs disabled by DISABLE_SCHEDULED_JOBS");
+  } else {
+    initializeScheduledJobs();
+  }
 
   httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
