@@ -265,17 +265,17 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
           { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية." } },
           // الدفع والفواتير
-          { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نقبل الدفع نقداً عند الاستلام، التحويل البنكي، كي كارد، زين كاش، وآسيا حوالة. جميع طرق الدفع آمنة ومضمونة." } },
+          { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "الدفع المتاح حالياً هو الدفع نقداً عند الاستلام فقط." } },
           { "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },
           { "@type": "Question", name: "هل يمكنني الحصول على فاتورة؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نرسل فاتورة إلكترونية مع كل طلب عبر البريد الإلكتروني وواتساب. يمكنك أيضاً طلب فاتورة مطبوعة مع الطلب." } },
-          { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي. لا توجد رسوم خفية. رسوم التوصيل (إن وجدت) تظهر بوضوح قبل إتمام الطلب." } },
-          { "@type": "Question", name: "هل يمكن الدفع بالتقسيط؟", acceptedAnswer: { "@type": "Answer", text: "نعم، للطلبات فوق 200,000 دينار نوفر خيار التقسيط على دفعتين أو ثلاث دفعات بدون فوائد. تواصل معنا للتفاصيل." } },
+          { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي للمنتجات، ورسوم التوصيل الثابتة 5,000 دينار تظهر بوضوح قبل إتمام الطلب." } },
+          { "@type": "Question", name: "هل توجد طرق دفع غير الدفع عند الاستلام؟", acceptedAnswer: { "@type": "Answer", text: "حالياً الدفع نقداً عند الاستلام فقط. إذا فعّلنا أي طريقة دفع إضافية راح تظهر بشكل واضح بالموقع." } },
           // الإرجاع والاستبدال
-          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "يمكنك إرجاع المنتجات خلال 7 أيام من الاستلام بشرط أن تكون في حالتها الأصلية حسب سياسة الإرجاع." } },
-          { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب الإرجاع. سنرسل لك تأكيد ويمكننا استلام المنتج من موقعك مجاناً في بغداد." } },
-          { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "للدفع النقدي، يتم الاسترداد فوراً عند استلام المنتج. للتحويلات البنكية، خلال 3-7 أيام عمل." } },
-          { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الاستبدال متاح ومجاني. يمكنك استبدال المنتج بمنتج آخر بنفس القيمة أو دفع/استرداد الفرق." } },
-          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 24 ساعة. سنقوم بالاستبدال أو الاسترداد الكامل مع اعتذارنا." } },
+          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "إذا وصلك منتج تالف أو منتج خاطئ، أبلغنا خلال 48 ساعة مع صور واضحة وسنراجع الطلب للاستبدال حسب السياسة." } },
+          { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب المشكلة وصور واضحة للمنتج." } },
+          { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "بعد مراجعة حالة الطلب، يتم التعامل معه حسب سياسة الاستبدال أو الاسترداد المعتمدة." } },
+          { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "الاستبدال متاح للمنتج التالف أو المنتج الخاطئ بعد الإبلاغ خلال 48 ساعة ومراجعة الحالة." } },
+          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 48 ساعة. سنراجع الحالة ونرتب الاستبدال حسب السياسة." } },
           // العناية بالأسماك
           { "@type": "Question", name: "كيف أختار الحوض المناسب؟", acceptedAnswer: { "@type": "Answer", text: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة." } },
           { "@type": "Question", name: "كم مرة يجب تغيير الماء؟", acceptedAnswer: { "@type": "Answer", text: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض." } },
@@ -380,11 +380,20 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
   if (!db) return null;
   try {
     const { rows } = await db.query(
-      `SELECT id, name, description, price, brand, category, images, thumbnail, slug, specifications FROM products WHERE slug = $1 LIMIT 1`,
+      `SELECT id, name, description, price, currency, brand, category, images, thumbnail, slug, specifications, stock, variants, has_variants AS "hasVariants"
+       FROM products
+       WHERE slug = $1 AND deleted_at IS NULL
+       LIMIT 1`,
       [slug]
     );
     if (rows.length === 0) return null;
     const p = rows[0];
+    const variants = Array.isArray(p.variants) ? p.variants : [];
+    const defaultVariant = variants.find((variant) => variant?.isDefault) || variants[0];
+    const stock = Number(p.stock ?? 0);
+    const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;
+    const schemaPrice = defaultVariant?.price ?? p.price;
+    const inStock = p.hasVariants && defaultVariant ? stock > 0 && variantStock > 0 : stock > 0;
     const rawDesc = p.description
       || `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل لكل العراق خلال 24 ساعة.`;
     const desc = rawDesc.length > 158
@@ -407,9 +416,9 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
         brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
         offers: {
           "@type": "Offer",
-          price: p.price,
-          priceCurrency: "IQD",
-          availability: "https://schema.org/InStock",
+          price: schemaPrice,
+          priceCurrency: p.currency || "IQD",
+          availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
           url: `${BASE}/products/${p.slug}`,
           seller: { "@type": "Organization", name: "AQUAVO" },
         },

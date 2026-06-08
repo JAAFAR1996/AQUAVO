@@ -46,6 +46,7 @@ export class OrderStorage {
             SELECT id, name, price, stock, variants, has_variants AS "hasVariants"
             FROM products
             WHERE id = ${productId}
+              AND deleted_at IS NULL
             FOR UPDATE
         `);
         const rows = Array.isArray(result) ? result : (result?.rows ?? []);
@@ -253,7 +254,7 @@ export class OrderStorage {
             // 2. Calculate Delivery Fee — reads from settings DB (fallback 5000)
             const shippingRow = await tx.select().from(settings).where(eq(settings.key, "shipping_fee")).limit(1);
             const configuredFee = Number(shippingRow[0]?.value ?? 5000);
-            let deliveryFee = subtotal >= 100000 ? 0 : configuredFee;
+            let deliveryFee = Number.isFinite(configuredFee) && configuredFee > 0 ? configuredFee : 5000;
 
             // 3. Apply Coupon
             let discount = 0;

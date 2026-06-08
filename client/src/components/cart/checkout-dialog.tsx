@@ -57,7 +57,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const { toast } = useToast();
 
   // Read shipping fee from settings (admin-configurable)
-  const { data: shippingConfig } = useQuery<{ shippingFee: number; freeShippingThreshold: number }>({
+  const { data: shippingConfig } = useQuery<{ shippingFee: number }>({
     queryKey: ["/api/settings/shipping"],
     staleTime: 1000 * 60 * 10,
   });

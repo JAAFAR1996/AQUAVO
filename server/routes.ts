@@ -61,10 +61,9 @@ export async function registerRoutes(
       const shippingFee = await storage.getSetting("shipping_fee");
       res.json({
         shippingFee: Number(shippingFee ?? 5000),
-        freeShippingThreshold: 100000,
       });
     } catch {
-      res.json({ shippingFee: 5000, freeShippingThreshold: 100000 });
+      res.json({ shippingFee: 5000 });
     }
   });
 

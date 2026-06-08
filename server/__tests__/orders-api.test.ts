@@ -834,7 +834,7 @@ describe('OrderStorage.createOrderSecure', () => {
             variants: null,
             hasVariants: false,
         }, {
-            shippingFee: '0',
+            shippingFee: '5000',
             userRow: {
                 id: 'user-1',
                 loyaltyPoints: 0,
@@ -853,11 +853,11 @@ describe('OrderStorage.createOrderSecure', () => {
             address: 'Baghdad',
         }, undefined, {
             useCashback: true,
-            cashbackToUse: 5000,
+            cashbackToUse: 10000,
         });
 
-        expect(orderUpdates[0].cashbackUsed).toBe(1200);
-        expect(userUpdates[0].cashbackBalance).toBe(8800);
+        expect(orderUpdates[0].cashbackUsed).toBe(6200);
+        expect(userUpdates[0].cashbackBalance).toBe(3800);
     });
 
     it('prevents duplicate financial loyalty processing for an order inside the transaction', async () => {

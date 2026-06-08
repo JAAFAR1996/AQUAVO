@@ -177,14 +177,14 @@ export class ProductStorage {
 
     async getProduct(id: string): Promise<Product | undefined> {
         const db = this.ensureDb();
-        const result = await db.select().from(products).where(eq(products.id, id)).limit(1);
+        const result = await db.select().from(products).where(and(eq(products.id, id), isNull(products.deletedAt))).limit(1);
         return result[0];
     }
 
     async getProductsByIds(ids: string[]): Promise<Product[]> {
         if (ids.length === 0) return [];
         const db = this.ensureDb();
-        const result = await db.select().from(products).where(inArray(products.id, ids));
+        const result = await db.select().from(products).where(and(inArray(products.id, ids), isNull(products.deletedAt)));
         // Preserve the order of the input IDs
         const productMap = new Map(result.map(p => [p.id, p]));
         return ids.map(id => productMap.get(id)).filter((p): p is Product => p !== undefined);
@@ -192,7 +192,7 @@ export class ProductStorage {
 
     async getProductBySlug(slug: string): Promise<Product | undefined> {
         const db = this.ensureDb();
-        const result = await db.select().from(products).where(eq(products.slug, slug)).limit(1);
+        const result = await db.select().from(products).where(and(eq(products.slug, slug), isNull(products.deletedAt))).limit(1);
         return result[0];
     }
 
