@@ -4,6 +4,10 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
+  esbuild: {
+    jsx: 'automatic',
+    jsxImportSource: 'react',
+  },
   test: {
     globals: true,
     environment: 'happy-dom',
@@ -12,11 +16,14 @@ export default defineConfig({
       'client/src/**/*.{test,spec}.{ts,tsx}',
       'server/**/*.{test,spec}.{ts,tsx}',
       'test/**/*.{test,spec}.{ts,tsx}',
+      'scripts/**/*.{test,spec}.{ts,tsx}',
     ],
     exclude: [
       'node_modules/**',
+      '**/node_modules/**',
       'dist/**',
       '.claude/worktrees/**',
+      'e2e/**',
     ],
     coverage: {
       provider: 'v8',
