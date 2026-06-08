@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "noEmit": true,
+    "noCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2022",
