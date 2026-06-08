@@ -175,7 +175,10 @@ app.get("/health/db", async (_req, res) => {
     res.status(200).json({ status: "ok", database: "connected" });
   } catch (error: any) {
     console.error("Database health check failed:", error.message);
-    res.status(503).json({ status: "error", message: error.message });
+    res.status(503).json({
+      status: "error",
+      message: process.env.NODE_ENV === "production" ? "Database health check failed" : error.message,
+    });
   }
 });
 

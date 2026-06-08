@@ -7,12 +7,64 @@ import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
 import { sql } from "drizzle-orm";
+import { z } from "zod";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
     const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safe } = user;
     return safe;
 }
+
+const numericInputSchema = z.union([z.string(), z.number()]);
+
+const adminOrderUpdateSchema = z.object({
+    status: z.string().min(1).max(64).optional(),
+    paymentStatus: z.string().min(1).max(64).optional(),
+    shippingCost: numericInputSchema.optional(),
+    roundedTotal: numericInputSchema.optional(),
+    carrier: z.string().max(100).nullable().optional(),
+    codReceived: z.boolean().optional(),
+    boxCost: numericInputSchema.optional(),
+    source: z.string().min(1).max(64).optional(),
+    financiallyCounted: z.boolean().nullable().optional(),
+}).strip();
+
+const adminProductUpdateSchema = z.object({
+    slug: z.string().min(1).optional(),
+    name: z.string().min(1).optional(),
+    brand: z.string().min(1).optional(),
+    category: z.string().min(1).optional(),
+    categoryId: z.string().nullable().optional(),
+    subcategory: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    price: numericInputSchema.optional(),
+    originalPrice: numericInputSchema.nullable().optional(),
+    currency: z.string().optional(),
+    images: z.array(z.string()).optional(),
+    thumbnail: z.string().optional(),
+    rating: numericInputSchema.optional(),
+    reviewCount: z.number().int().min(0).optional(),
+    stock: z.number().int().min(0).optional(),
+    lowStockThreshold: z.number().int().min(0).optional(),
+    isNew: z.boolean().optional(),
+    isBestSeller: z.boolean().optional(),
+    isProductOfWeek: z.boolean().optional(),
+    specifications: z.record(z.string(), z.any()).optional(),
+    variants: z.array(z.any()).nullable().optional(),
+    hasVariants: z.boolean().optional(),
+    costPrice: numericInputSchema.optional(),
+    packagingCost: numericInputSchema.optional(),
+    insertCost: numericInputSchema.optional(),
+    imageBase64: z.string().optional(),
+}).strip();
+
+const adminSettingsUpdateSchema = z.object({
+    store_name: z.string(),
+    support_email: z.string(),
+    maintenance_mode: z.string(),
+    orders_enabled: z.string(),
+    shipping_fee: z.string(),
+}).strip();
 
 export function createAdminRouter(): RouterType {
     const router = Router();
@@ -61,8 +113,9 @@ export function createAdminRouter(): RouterType {
     router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params as { id: string };
+            const updates = adminOrderUpdateSchema.parse(req.body);
             const previousOrder = await storage.getOrder(id);
-            const order = await storage.updateOrder(id, req.body);
+            const order = await storage.updateOrder(id, updates);
 
             if (order) {
                 await storage.createAuditLog({
@@ -70,10 +123,10 @@ export function createAdminRouter(): RouterType {
                     action: "update",
                     entityType: "order",
                     entityId: order.id,
-                    changes: req.body
+                    changes: updates
                 });
 
-                const newStatus = req.body.status;
+                const newStatus = updates.status;
                 const oldStatus = previousOrder?.status;
 
                 // ✅ فك تجميد النقاط عند تأكيد التوصيل
@@ -805,7 +858,7 @@ export function createAdminRouter(): RouterType {
     router.patch("/products/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params as { id: string };
-            const updates = req.body;
+            const updates = adminProductUpdateSchema.parse(req.body);
 
             // Get existing product to merge images
             const existingProduct = await storage.getProduct(id);
@@ -950,7 +1003,7 @@ export function createAdminRouter(): RouterType {
     // Update settings
     router.put("/settings", async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const updates = req.body;
+            const updates = adminSettingsUpdateSchema.parse(req.body);
 
             // Validate that body is an object with string values
             if (typeof updates !== 'object' || updates === null) {
