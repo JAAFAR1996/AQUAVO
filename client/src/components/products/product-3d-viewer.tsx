@@ -5,6 +5,14 @@ import { cn } from "@/lib/utils";
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
   jumpCameraToGoal?: () => void;
+  model?: {
+    materials?: Array<{
+      pbrMetallicRoughness?: {
+        setRoughnessFactor?: (roughness: number) => void;
+        setMetallicFactor?: (metallic: number) => void;
+      };
+    }>;
+  };
 };
 
 interface Product3DViewerProps {
@@ -84,8 +92,18 @@ export function Product3DViewer({
       animationFrame = window.requestAnimationFrame(animateCameraOrbit);
     };
 
+    const applyMaterial = () => {
+      const materials = viewer.model?.materials ?? [];
+      materials.forEach((material) => {
+        const pbr = material.pbrMetallicRoughness;
+        pbr?.setRoughnessFactor?.(0.98);
+        pbr?.setMetallicFactor?.(0);
+      });
+    };
+
     const handleLoad = () => {
       isLoaded = true;
+      applyMaterial();
       setProductAngle();
       startSubtleMotion();
     };
@@ -142,10 +160,8 @@ export function Product3DViewer({
     "camera-controls": true,
     "shadow-intensity": "0.9",
     "shadow-softness": "0.82",
-    // environment-image intentionally omitted: model-viewer's default environment
-    // preserves the GLB's own PBR/baked-texture colours.
-    // "neutral" (a flat studio-white HDR) desaturates wood textures → white/clay look.
-    exposure: "0.9",
+    "environment-image": "neutral",
+    exposure: "0.55",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
@@ -193,7 +209,7 @@ export function Product3DViewer({
       </div>
 
       <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-        هذا العرض مبني على موديل GLB لنفس القطعة، مو صورة تمثيلية عامة.
+        هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تعاين تفرعاتها بدقة من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي للون الخشبة الفعلي.
       </div>
     </section>
   );
