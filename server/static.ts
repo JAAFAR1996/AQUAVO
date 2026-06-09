@@ -46,7 +46,7 @@ function setCacheHeaders(res: express.Response, requestPath: string) {
   res.setHeader("Cache-Control", "public, max-age=604800");
 }
 
-function renderLocalFallbackHtml(template: string, requestPath: string) {
+export function renderLocalFallbackHtml(template: string, requestPath: string) {
   let html = template
     .replace(/__META_TITLE__/g, "AQUAVO - تكنولوجيا الحياة المائية")
     .replace(/__META_DESCRIPTION__/g, "AQUAVO - متجر مستلزمات أحواض الأسماك والحياة المائية في العراق")

@@ -74,7 +74,8 @@ vi.mock('@/lib/api', () => ({
         categories: ['أطعمة', 'فلاتر', 'سخانات'],
         brands: ['Tetra', 'JBL', 'Eheim'],
         priceRange: { min: 5000, max: 500000 }
-    }))
+    })),
+    fetchPersonalizedOrder: vi.fn(() => Promise.resolve({ orderedIds: [] }))
 }));
 
 import Products from '../products';

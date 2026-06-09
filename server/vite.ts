@@ -5,13 +5,14 @@ import viteConfig from "../vite.config";
 import fs from "fs";
 import path from "path";
 import { nanoid } from "nanoid";
+import { renderLocalFallbackHtml } from "./static";
 
 const viteLogger = createLogger();
 
 export async function setupVite(server: Server, app: Express) {
   const serverOptions = {
     middlewareMode: true,
-    hmr: { server, path: "/vite-hmr" },
+    hmr: false,
     allowedHosts: true as const,
   };
 
@@ -48,8 +49,7 @@ export async function setupVite(server: Server, app: Express) {
         `src="/src/main.tsx"`,
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
-      // Remove SSR placeholders that are not replaced in dev mode
-      template = template.replace("__JSON_LD__", "");
+      template = renderLocalFallbackHtml(template, req.path);
       const page = await vite.transformIndexHtml(url, template);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {

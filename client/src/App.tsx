@@ -37,6 +37,7 @@ const FishBreedingCalculator = lazy(() => import("@/pages/fish-breeding-calculat
 const FishEncyclopedia = lazy(() => import("@/pages/fish-encyclopedia"));
 const CommunityGallery = lazy(() => import("@/pages/community-gallery"));
 const ProductDetails = lazy(() => import("@/pages/product-details"));
+const AiDriftwoodExperiment = lazy(() => import("@/pages/ai-driftwood-experiment"));
 const Profile = lazy(() => import("@/pages/profile"));
 const FAQ = lazy(() => import("@/pages/faq"));
 const Calculators = lazy(() => import("@/pages/calculators"));
@@ -233,6 +234,17 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><AquariumWizard /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+
+      <Route path="/experiments/ai-natural-matte-driftwood">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><AiDriftwoodExperiment /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}

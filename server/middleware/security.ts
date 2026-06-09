@@ -54,7 +54,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io; " +
+      "connect-src 'self' blob: ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io; " +
       "frame-src https://www.facebook.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
@@ -70,7 +70,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://analytics.tiktok.com; " +
+      "connect-src 'self' blob: https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://analytics.tiktok.com; " +
       "frame-src https://www.facebook.com; " +
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
