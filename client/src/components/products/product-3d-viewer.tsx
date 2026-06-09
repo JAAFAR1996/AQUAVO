@@ -11,6 +11,7 @@ type ModelViewerElement = HTMLElement & {
         setRoughnessFactor?: (roughness: number) => void;
         setMetallicFactor?: (metallic: number) => void;
         setBaseColorFactor?: (color: [number, number, number, number]) => void;
+        baseColorTexture?: unknown;
       };
     }>;
   };
@@ -33,6 +34,7 @@ export function Product3DViewer({
 }: Product3DViewerProps) {
   const modelRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
+  const [hasTexture, setHasTexture] = useState(true);
 
   useEffect(() => {
     // The package does not ship declarations for the prebuilt browser bundle.
@@ -49,7 +51,7 @@ export function Product3DViewer({
     const basePhi = 71;
     const baseRadius = 118;
     const orbitAmplitude = 4.0;
-    const orbitCycleMs = 7000;
+    const orbitCycleMs = 4000;
     let animationFrame: number | undefined;
     let observer: IntersectionObserver | undefined;
     let isVisible = false;
@@ -104,7 +106,7 @@ export function Product3DViewer({
       if (!overlayTimeout && !hasUserInteracted) {
         overlayTimeout = setTimeout(() => {
           stopSubtleMotion();
-        }, 4000);
+        }, 6000);
       }
     };
 
@@ -120,14 +122,18 @@ export function Product3DViewer({
         return;
       }
 
+      let textureFound = false;
       model.materials.forEach((material) => {
         const pbr = material.pbrMetallicRoughness;
         if (pbr) {
           pbr.setRoughnessFactor?.(0.85);
           pbr.setMetallicFactor?.(0);
-          pbr.setBaseColorFactor?.([0.45, 0.28, 0.16, 1.0]);
+          if (pbr.baseColorTexture) {
+            textureFound = true;
+          }
         }
       });
+      setHasTexture(textureFound);
     };
 
     const handleLoad = () => {
@@ -224,12 +230,16 @@ export function Product3DViewer({
         <div>
           <p className="text-sm font-semibold text-white">عرض 3D للقطعة</p>
           <p className="mt-1 text-xs leading-5 text-white/65">
-            لف القطعة وشوفها من كل زاوية قبل الشراء.
+            {hasTexture ? "لف القطعة وشوفها من كل زاوية قبل الشراء." : "لف القطعة وشوف تفاصيلها (عرض شكل فقط)."}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          <Badge className="bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15">
-            شوفها من كل زاوية
+          <Badge className={cn(
+            hasTexture
+              ? "bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15"
+              : "bg-yellow-500/15 text-yellow-100 hover:bg-yellow-500/15"
+          )}>
+            {hasTexture ? "شوفها من كل زاوية" : "عرض شكل فقط"}
           </Badge>
           {pieceCode && (
             <Badge variant="outline" className="border-white/25 text-white">
@@ -307,7 +317,7 @@ export function Product3DViewer({
       </div>
 
       <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-        هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
+        هذا المجسم ثلاثي الأبعاد يوضح شكل وتفرعات القطعة من كل جهة قبل الشراء. ألوان العرض قد تختلف بسبب الرندرة الرقمية، والصور الفوتوغرافية هي المرجع الأساسي للون وشكل القطعة الحقيقي.
       </div>
     </section>
   );

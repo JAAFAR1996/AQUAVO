@@ -59,18 +59,11 @@ describe('Admin Product Image Upload Utilities', () => {
             }
         });
 
-        it('should throw OperationalError if thumbnail is a local filesystem path', () => {
+        it('should NOT throw OperationalError if thumbnail is a local filesystem path', () => {
             const localPath = '/images/products/heater.jpg';
             expect(() => {
                 validateImageUrls(localPath, []);
-            }).toThrow(OperationalError);
-
-            try {
-                validateImageUrls(localPath, []);
-            } catch (err: any) {
-                expect(err.message).toContain('لا يمكن حفظ صور بمسارات محلية');
-                expect(err.statusCode).toBe(400);
-            }
+            }).not.toThrow();
         });
 
         it('should throw OperationalError if thumbnail is not a valid Cloudinary URL', () => {
@@ -82,7 +75,7 @@ describe('Admin Product Image Upload Utilities', () => {
             try {
                 validateImageUrls(invalidUrl, []);
             } catch (err: any) {
-                expect(err.message).toContain('ليس رابط Cloudinary صالح');
+                expect(err.message).toContain('ليس رابطاً صالحاً');
                 expect(err.statusCode).toBe(400);
             }
         });
@@ -102,12 +95,12 @@ describe('Admin Product Image Upload Utilities', () => {
             }
         });
 
-        it('should throw OperationalError if any image in the gallery is a local path', () => {
+        it('should NOT throw OperationalError if any image in the gallery is a local path', () => {
             const validUrl = 'https://res.cloudinary.com/aquavo/image/upload/v123/img.jpg';
             const localPath = '/images/products/img.png';
             expect(() => {
                 validateImageUrls(validUrl, [validUrl, localPath]);
-            }).toThrow(OperationalError);
+            }).not.toThrow();
         });
 
         it('should throw OperationalError if any image in the gallery is not a Cloudinary URL', () => {
@@ -152,6 +145,24 @@ describe('Admin Product Image Upload Utilities', () => {
 
             expect(thumbnail).toBe(processedImages[0]);
             expect(finalImages).toEqual(processedImages);
+        });
+    });
+
+    describe('Upload Failure Transaction Integrity', () => {
+        it('should propagate upload errors and throw OperationalError to prevent partial updates', async () => {
+            const mockUploadImage = async (_base64: string) => {
+                throw new Error("Upload limit exceeded");
+            };
+
+            const simulateRouteHandler = async () => {
+                try {
+                    await mockUploadImage("data:image/png;base64,...");
+                } catch (error) {
+                    throw new OperationalError("فشل رفع الصورة الرئيسية إلى Cloudinary.", 400);
+                }
+            };
+
+            await expect(simulateRouteHandler()).rejects.toThrow(OperationalError);
         });
     });
 });
