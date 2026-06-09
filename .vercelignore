@@ -46,7 +46,7 @@ client/public/models/*
 !client/public/models/driftwood/
 !client/public/models/driftwood/**
 client/public/test_wood*.glb
-client/src/pages/ai-driftwood-experiment.tsx
+# client/src/pages/ai-driftwood-experiment.tsx
 
 # Local one-off product inspection scripts
 script/query-variants.*
