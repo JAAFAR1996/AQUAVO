@@ -1,7 +1,6 @@
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useRef, useState, memo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
 
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
@@ -16,7 +15,23 @@ interface Product3DViewerProps {
   className?: string;
 }
 
-export function Product3DViewer({
+// Singleton promise — load model-viewer once globally, never twice.
+let modelViewerReady: Promise<void> | null = null;
+
+function loadModelViewer(): Promise<void> {
+  if (modelViewerReady) return modelViewerReady;
+  modelViewerReady = import("@google/model-viewer").then(() => {
+    // custom element is now registered in CustomElementRegistry
+  }).catch((err) => {
+    // Reset so next mount can retry
+    modelViewerReady = null;
+    console.warn("[Product3DViewer] Failed to load @google/model-viewer:", err);
+    throw err;
+  });
+  return modelViewerReady;
+}
+
+export const Product3DViewer = memo(function Product3DViewer({
   src,
   poster,
   productName,
@@ -25,19 +40,31 @@ export function Product3DViewer({
 }: Product3DViewerProps) {
   const modelRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
+  // libraryReady = true only AFTER model-viewer is imported and registered
+  const [libraryReady, setLibraryReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
-  // Dynamically import model-viewer in the browser only.
-  // Top-level import crashes production because the library accesses
-  // window/customElements at module-evaluation time (before the browser
-  // environment is available during Vite's build/pre-bundle phase).
+  // Step 1 — load the library (browser only, singleton)
   useEffect(() => {
-    void import("@google/model-viewer");
+    let cancelled = false;
+    loadModelViewer()
+      .then(() => {
+        if (!cancelled) setLibraryReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+    return () => { cancelled = true; };
   }, []);
 
+  // Step 2 — attach camera + motion ONLY after both library AND element are mounted
   useEffect(() => {
-    setShowOverlay(true);
+    if (!libraryReady) return;
+
     const viewer = modelRef.current;
     if (!viewer) return;
+
+    setShowOverlay(true);
 
     const baseTheta = 145;
     const basePhi = 71;
@@ -52,8 +79,12 @@ export function Product3DViewer({
       `${theta.toFixed(2)}deg ${basePhi}deg ${baseRadius}%`;
 
     const setProductAngle = () => {
-      viewer.setAttribute("camera-orbit", formatCameraOrbit(baseTheta));
-      viewer.jumpCameraToGoal?.();
+      try {
+        viewer.setAttribute("camera-orbit", formatCameraOrbit(baseTheta));
+        viewer.jumpCameraToGoal?.();
+      } catch {
+        // ignore if element not yet upgraded
+      }
     };
 
     const stopSubtleMotion = () => {
@@ -80,15 +111,19 @@ export function Product3DViewer({
       const progress = (timestamp % orbitCycleMs) / orbitCycleMs;
       const theta =
         baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
-      viewer.setAttribute("camera-orbit", formatCameraOrbit(theta));
-      viewer.jumpCameraToGoal?.();
+
+      try {
+        viewer.setAttribute("camera-orbit", formatCameraOrbit(theta));
+        viewer.jumpCameraToGoal?.();
+      } catch {
+        // element not yet upgraded, skip frame
+      }
+
       animationFrame = window.requestAnimationFrame(animateCameraOrbit);
     };
 
     const startSubtleMotion = () => {
-      if (hasUserInteracted || animationFrame !== undefined) {
-        return;
-      }
+      if (hasUserInteracted || animationFrame !== undefined) return;
 
       setProductAngle();
       animationFrame = window.requestAnimationFrame(animateCameraOrbit);
@@ -101,12 +136,9 @@ export function Product3DViewer({
     };
 
     const handleLoad = () => {
-      // Do NOT touch any material properties here.
-      // The GLB files already contain baked PBR textures (baseColorTexture,
-      // normalTexture, metallicRoughnessTexture).  Calling setRoughnessFactor()
-      // or setMetallicFactor() on a material that has embedded textures
-      // overrides the PBR shader and produces a solid-white/clay result.
-      // Let model-viewer render with its own embedded materials.
+      // Do NOT touch material properties here.
+      // The GLB files contain baked PBR textures. Calling setRoughnessFactor()
+      // or setMetallicFactor() overrides the PBR shader → white/clay result.
       setProductAngle();
       startSubtleMotion();
     };
@@ -118,7 +150,12 @@ export function Product3DViewer({
       }
     };
 
-    viewer.removeAttribute("auto-rotate");
+    try {
+      viewer.removeAttribute("auto-rotate");
+    } catch {
+      // ignore
+    }
+
     setProductAngle();
 
     viewer.addEventListener("load", handleLoad);
@@ -126,7 +163,7 @@ export function Product3DViewer({
 
     startSubtleMotion();
 
-    if (viewer.loaded) {
+    if ((viewer as ModelViewerElement).loaded) {
       handleLoad();
     }
 
@@ -140,7 +177,7 @@ export function Product3DViewer({
       viewer.removeEventListener("load", handleLoad);
       viewer.removeEventListener("camera-change", handleCameraChange);
     };
-  }, [src]);
+  }, [src, libraryReady]);
 
   // Cache-bust the GLB URL once per deploy day so browsers don't serve a
   // stale model after a file update.
@@ -148,9 +185,61 @@ export function Product3DViewer({
     ? `${src}${src.includes("?") ? "&" : "?"}v=20260609`
     : src;
 
+  // Show minimal placeholder while the library is loading
+  if (!libraryReady) {
+    return (
+      <section
+        className={cn(
+          "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
+          className
+        )}
+        aria-label="عرض المنتج ثلاثي الأبعاد"
+        dir="rtl"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold text-white">عرض 3D للقطعة</p>
+            <p className="mt-1 text-xs leading-5 text-white/65">
+              لف القطعة وشوفها من كل زاوية قبل الشراء.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap justify-end gap-2">
+            <Badge className="bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15">
+              شوفها من كل زاوية
+            </Badge>
+            {pieceCode && (
+              <Badge variant="outline" className="border-white/25 text-white">
+                {pieceCode}
+              </Badge>
+            )}
+          </div>
+        </div>
+        <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)] sm:min-h-[420px] flex items-center justify-center">
+          {poster && (
+            <img
+              src={poster}
+              alt={productName}
+              className="absolute inset-0 h-full w-full object-contain opacity-40"
+            />
+          )}
+          <div className="relative z-10 flex flex-col items-center gap-3 text-white/60">
+            <svg className="h-8 w-8 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <p className="text-xs">جاري تحميل المجسم...</p>
+          </div>
+        </div>
+        <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
+          هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
+        </div>
+      </section>
+    );
+  }
+
   // createElement is used instead of JSX because TypeScript's JSX checker
   // does not know about <model-viewer> as a valid intrinsic element.
-  // The custom element is registered by the top-level import above.
+  // The custom element is now guaranteed to be registered (libraryReady = true).
   const modelViewer = createElement("model-viewer", {
     ref: modelRef,
     src: busterSrc,
@@ -174,9 +263,8 @@ export function Product3DViewer({
     "touch-action": "pan-y",
     loading: "eager",
     reveal: "auto",
-    // background: transparent fixes the default white background that model-viewer
-    // renders during loading and behind the 3D canvas. Without this, the top/sides
-    // of the element show white instead of the dark gradient container behind it.
+    // background: transparent fixes the white background model-viewer renders
+    // during loading. --poster-color: transparent keeps the poster bg invisible.
     style: "background: transparent; --poster-color: transparent;",
     className: "absolute inset-0 h-full w-full",
   } as Record<string, unknown>);
@@ -281,4 +369,4 @@ export function Product3DViewer({
       </div>
     </section>
   );
-}
+});
