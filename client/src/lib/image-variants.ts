@@ -11,6 +11,10 @@ function toWebpPath(pathname: string): string | null {
 export function preferLocalWebp(url: string | null | undefined): string {
   if (!url || typeof url !== "string") return "";
 
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//") || url.includes("res.cloudinary.com")) {
+    return url;
+  }
+
   try {
     const parsed = new URL(url, window.location.origin);
     const replacement = toWebpPath(parsed.pathname);
@@ -27,6 +31,10 @@ export function preferLocalWebp(url: string | null | undefined): string {
 
 export function preferLocalProductCardWebp(url: string | null | undefined): string {
   if (!url || typeof url !== "string") return "";
+
+  if (url.startsWith("http://") || url.startsWith("https://") || url.startsWith("//") || url.includes("res.cloudinary.com")) {
+    return url;
+  }
 
   const toCardWebp = (pathname: string) => {
     if (!pathname.startsWith("/images/products/")) return "";

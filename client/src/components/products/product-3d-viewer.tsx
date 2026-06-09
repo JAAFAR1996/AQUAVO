@@ -191,9 +191,11 @@ export function Product3DViewer({
     };
   }, [src]);
 
+  const busterSrc = src ? `${src}${src.includes("?") ? "&" : "?"}v=20260609` : src;
+
   const modelViewer = createElement("model-viewer", {
     ref: modelRef,
-    src,
+    src: busterSrc,
     poster,
     alt: `عرض ثلاثي الأبعاد للمنتج ${productName}`,
     dir: "ltr",
@@ -202,7 +204,7 @@ export function Product3DViewer({
     "shadow-softness": "0.82",
     "environment-image": "neutral",
     "tone-mapping": "neutral",
-    exposure: "0.85",
+    exposure: "1.0",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
@@ -317,7 +319,9 @@ export function Product3DViewer({
       </div>
 
       <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-        هذا المجسم ثلاثي الأبعاد يوضح شكل وتفرعات القطعة من كل جهة قبل الشراء. ألوان العرض قد تختلف بسبب الرندرة الرقمية، والصور الفوتوغرافية هي المرجع الأساسي للون وشكل القطعة الحقيقي.
+        {hasTexture
+          ? "هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة."
+          : "هذا المجسم ثلاثي الأبعاد لعرض الهيكل والتفرعات فقط ولا يحتوي على ألوان القطعة. الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة الفعلي."}
       </div>
     </section>
   );

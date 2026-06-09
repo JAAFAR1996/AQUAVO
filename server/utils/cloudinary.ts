@@ -12,7 +12,7 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function uploadImage(imageBase64: string, folder: string = "aquavo-products"): Promise<string> {
+export async function uploadImage(imageBase64: string, folder: string = "aquavo/products/general"): Promise<string> {
     try {
         const result = await cloudinary.uploader.upload(imageBase64, {
             folder: folder,
