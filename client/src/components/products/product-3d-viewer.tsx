@@ -48,8 +48,8 @@ export function Product3DViewer({
     const baseTheta = 145;
     const basePhi = 71;
     const baseRadius = 118;
-    const orbitAmplitude = 3.5;
-    const orbitCycleMs = 11000;
+    const orbitAmplitude = 4.0;
+    const orbitCycleMs = 7000;
     let animationFrame: number | undefined;
     let observer: IntersectionObserver | undefined;
     let isVisible = false;
@@ -125,7 +125,7 @@ export function Product3DViewer({
         if (pbr) {
           pbr.setRoughnessFactor?.(0.85);
           pbr.setMetallicFactor?.(0);
-          pbr.setBaseColorFactor?.([0.78, 0.62, 0.48, 1.0]);
+          pbr.setBaseColorFactor?.([0.45, 0.28, 0.16, 1.0]);
         }
       });
     };
