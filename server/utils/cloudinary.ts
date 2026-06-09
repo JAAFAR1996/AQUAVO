@@ -12,10 +12,10 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-export async function uploadImage(imageBase64: string): Promise<string> {
+export async function uploadImage(imageBase64: string, folder: string = "aquavo-products"): Promise<string> {
     try {
         const result = await cloudinary.uploader.upload(imageBase64, {
-            folder: "aquavo-products",
+            folder: folder,
             // Convert to WebP, limit to 1200px, auto quality — stored optimally from day one
             transformation: [
                 { width: 1200, height: 1200, crop: "limit" },

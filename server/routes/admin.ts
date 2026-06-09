@@ -8,6 +8,7 @@ import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
+import { OperationalError } from "../middleware/error-handler.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -65,6 +66,50 @@ const adminSettingsUpdateSchema = z.object({
     orders_enabled: z.string(),
     shipping_fee: z.string(),
 }).strip();
+
+export function getCloudinaryFolder(brand?: string | null, slugOrId?: string | null): string {
+    const cleanBrand = brand
+        ? brand.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '')
+        : "unknown";
+    const brandName = cleanBrand || "unknown";
+
+    const cleanSlugOrId = slugOrId
+        ? slugOrId.trim().toLowerCase().replace(/[^a-z0-9-_]/g, '')
+        : "unnamed";
+    const slugName = cleanSlugOrId || "unnamed";
+
+    return `aquavo/products/${brandName}/${slugName}`;
+}
+
+export function validateImageUrls(thumbnail: string | undefined | null, images: string[] | undefined | null) {
+    if (thumbnail && thumbnail.trim() !== "") {
+        if (thumbnail.startsWith('data:')) {
+            throw new OperationalError("عذراً، فشل رفع الصورة المصغرة (Thumbnail) إلى Cloudinary.", 400);
+        }
+        if (thumbnail.startsWith('/images/') || thumbnail.startsWith('images/')) {
+            throw new OperationalError("عذراً، لا يمكن حفظ صور بمسارات محلية. يجب رفع كافة الصور إلى Cloudinary.", 400);
+        }
+        if (!thumbnail.startsWith('https://res.cloudinary.com/')) {
+            throw new OperationalError(`عذراً، الرابط ${thumbnail} ليس رابط Cloudinary صالح.`, 400);
+        }
+    }
+
+    if (images && Array.isArray(images)) {
+        for (const img of images) {
+            if (img && img.trim() !== "") {
+                if (img.startsWith('data:')) {
+                    throw new OperationalError("عذراً، فشل رفع إحدى الصور الإضافية إلى Cloudinary.", 400);
+                }
+                if (img.startsWith('/images/') || img.startsWith('images/')) {
+                    throw new OperationalError("عذراً، لا يمكن حفظ صور بمسارات محلية. يجب رفع كافة الصور إلى Cloudinary.", 400);
+                }
+                if (!img.startsWith('https://res.cloudinary.com/')) {
+                    throw new OperationalError(`عذراً، الرابط ${img} ليس رابط Cloudinary صالح.`, 400);
+                }
+            }
+        }
+    }
+}
 
 export function createAdminRouter(): RouterType {
     const router = Router();
@@ -798,27 +843,6 @@ export function createAdminRouter(): RouterType {
         try {
             const data = req.body;
 
-            // Handle image upload if provided
-            if (data.imageBase64) {
-                try {
-                    const { uploadImage } = await import("../utils/cloudinary.js");
-                    const imageUrl = await uploadImage(data.imageBase64);
-
-                    data.images = [imageUrl];
-                    data.thumbnail = imageUrl;
-                } catch (error) {
-                    console.error("Image upload failed:", error);
-                    throw new Error("Image upload failed. Please check your internet connection or Cloudinary configuration.");
-                }
-            }
-
-            // Ensure images is array if not set
-            if (!data.images) data.images = [];
-            if (!data.thumbnail && data.images.length > 0) data.thumbnail = data.images[0];
-
-            // Clean up imageBase64 before validation
-            delete data.imageBase64;
-
             // Auto-generate ID if not provided
             if (!data.id) {
                 data.id = crypto.randomUUID();
@@ -832,6 +856,56 @@ export function createAdminRouter(): RouterType {
                     .replace(/\s+/g, '-')
                     .substring(0, 100);
             }
+
+            const folder = getCloudinaryFolder(data.brand, data.slug || data.id);
+
+            let thumbnailUrl = "";
+            if (data.imageBase64) {
+                try {
+                    const { uploadImage } = await import("../utils/cloudinary.js");
+                    thumbnailUrl = await uploadImage(data.imageBase64, folder);
+                    data.thumbnail = thumbnailUrl;
+                } catch (error) {
+                    console.error("Main image upload failed:", error);
+                    throw new OperationalError("فشل رفع الصورة الرئيسية إلى Cloudinary. يرجى التحقق من اتصالك بالإنترنت وإعدادات Cloudinary.", 400);
+                }
+            }
+
+            const processedImages: string[] = [];
+            if (data.images && Array.isArray(data.images)) {
+                const { uploadImage } = await import("../utils/cloudinary.js");
+                for (const img of data.images) {
+                    if (typeof img === 'string') {
+                        if (img.startsWith('data:image/')) {
+                            try {
+                                const uploadedUrl = await uploadImage(img, folder);
+                                processedImages.push(uploadedUrl);
+                            } catch (error) {
+                                console.error("Additional image upload failed:", error);
+                                throw new OperationalError("فشل رفع إحدى الصور الإضافية إلى Cloudinary. يرجى التحقق من اتصالك بالإنترنت وإعدادات Cloudinary.", 400);
+                            }
+                        } else {
+                            processedImages.push(img);
+                        }
+                    }
+                }
+            }
+
+            if (thumbnailUrl) {
+                data.thumbnail = thumbnailUrl;
+                data.images = [thumbnailUrl, ...processedImages.filter(img => img !== thumbnailUrl)];
+            } else {
+                data.images = processedImages;
+                if (data.images.length > 0 && (!data.thumbnail || data.thumbnail.startsWith('data:'))) {
+                    data.thumbnail = data.images[0];
+                }
+            }
+
+            // Enforce validation to make sure everything is a Cloudinary URL
+            validateImageUrls(data.thumbnail, data.images);
+
+            // Clean up imageBase64 before validation
+            delete data.imageBase64;
 
             const parsed = insertProductSchema.parse(data);
             const product = await storage.createProduct(parsed);
@@ -867,62 +941,56 @@ export function createAdminRouter(): RouterType {
                 return;
             }
 
-            // Handle single main image upload (from ImageUpload component)
+            const folder = getCloudinaryFolder(updates.brand || existingProduct.brand, updates.slug || existingProduct.slug || id);
+
+            let thumbnailUrl = "";
             if (updates.imageBase64) {
                 try {
                     const { uploadImage } = await import("../utils/cloudinary.js");
-                    const imageUrl = await uploadImage(updates.imageBase64);
-
-                    // Set as primary thumbnail and add to images
-                    updates.thumbnail = imageUrl;
-
-                    // If there's no images array yet, create one
-                    if (!updates.images || !Array.isArray(updates.images)) {
-                        updates.images = existingProduct.images ? [...existingProduct.images] : [];
-                    }
-
-                    // Add the new image at the beginning
-                    updates.images = [imageUrl, ...updates.images.filter((img: string) => !img.startsWith('data:'))];
+                    thumbnailUrl = await uploadImage(updates.imageBase64, folder);
+                    updates.thumbnail = thumbnailUrl;
                 } catch (error) {
                     console.error("Main image upload failed:", error);
-                    throw new Error("Image upload failed. Please check your internet connection or Cloudinary configuration.");
+                    throw new OperationalError("فشل رفع الصورة الرئيسية إلى Cloudinary. يرجى التحقق من اتصالك بالإنترنت وإعدادات Cloudinary.", 400);
                 }
-
                 delete updates.imageBase64;
             }
 
-            // Handle multiple images in the images array (from MultipleImageUpload component)
-            // Check if any images are base64 and need to be uploaded
+            const processedImages: string[] = [];
             if (updates.images && Array.isArray(updates.images)) {
                 const { uploadImage } = await import("../utils/cloudinary.js");
-                const processedImages: string[] = [];
-
                 for (const image of updates.images) {
                     if (typeof image === 'string') {
                         if (image.startsWith('data:image/')) {
-                            // This is a base64 image, upload to Cloudinary
                             try {
-                                const imageUrl = await uploadImage(image);
-                                processedImages.push(imageUrl);
-                                console.log(`Uploaded base64 image to Cloudinary: ${imageUrl.substring(0, 50)}...`);
+                                const uploadedUrl = await uploadImage(image, folder);
+                                processedImages.push(uploadedUrl);
                             } catch (error) {
-                                console.error("Failed to upload image to Cloudinary:", error);
-                                // Skip this image but continue with others
+                                console.error("Additional image upload failed:", error);
+                                throw new OperationalError("فشل رفع إحدى الصور الإضافية إلى Cloudinary. يرجى التحقق من اتصالك بالإنترنت وإعدادات Cloudinary.", 400);
                             }
                         } else {
-                            // This is already a URL, keep it
                             processedImages.push(image);
                         }
                     }
                 }
-
                 updates.images = processedImages;
+            }
 
-                // Update thumbnail if not set or if it was a base64 image
+            if (thumbnailUrl) {
+                const currentImages = (updates.images && Array.isArray(updates.images))
+                    ? updates.images
+                    : (existingProduct.images ? [...existingProduct.images] : []);
+
+                updates.images = [thumbnailUrl, ...currentImages.filter((img: string) => img !== thumbnailUrl && !img.startsWith('data:'))];
+            } else if (updates.images && Array.isArray(updates.images)) {
                 if (!updates.thumbnail || updates.thumbnail.startsWith('data:')) {
-                    updates.thumbnail = processedImages[0] || existingProduct.thumbnail;
+                    updates.thumbnail = updates.images[0] || existingProduct.thumbnail;
                 }
             }
+
+            // Enforce validation to make sure everything is a Cloudinary URL if modified
+            validateImageUrls(updates.thumbnail, updates.images);
 
             const product = await storage.updateProduct(id, updates);
             clearProductsCache(); // Invalidate cache on product update
