@@ -1,13 +1,7 @@
-// This top-level import registers the <model-viewer> custom element in the
-// browser's CustomElementRegistry BEFORE React renders any JSX that uses it.
-// A dynamic import() inside useEffect() fires too late — React will have already
-// created the DOM node as an "unknown" HTMLElement and the model will never load.
-// Vite resolves "@google/model-viewer" to the ESM build via the "module" field.
-import "@google/model-viewer";
-
 import { createElement, useEffect, useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
 
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
@@ -31,6 +25,14 @@ export function Product3DViewer({
 }: Product3DViewerProps) {
   const modelRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
+
+  // Dynamically import model-viewer in the browser only.
+  // Top-level import crashes production because the library accesses
+  // window/customElements at module-evaluation time (before the browser
+  // environment is available during Vite's build/pre-bundle phase).
+  useEffect(() => {
+    void import("@google/model-viewer");
+  }, []);
 
   useEffect(() => {
     setShowOverlay(true);
