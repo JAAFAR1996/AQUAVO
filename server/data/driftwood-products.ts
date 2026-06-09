@@ -125,4 +125,28 @@ export const driftwoodProducts: DriftwoodProductSeed[] = [
     price: "24000",
     title: "خشب ديكور للأحواض — قطعة DW-03",
   }),
+  createDriftwoodProduct({
+    code: "DW-04",
+    idSuffix: "dw-04",
+    price: "14000",
+    title: "خشب ديكور للأحواض — قطعة DW-04",
+  }),
+  createDriftwoodProduct({
+    code: "DW-05",
+    idSuffix: "dw-05",
+    price: "14000",
+    title: "خشب ديكور للأحواض — قطعة DW-05",
+  }),
+  createDriftwoodProduct({
+    code: "DW-06",
+    idSuffix: "dw-06",
+    price: "16000",
+    title: "خشب ديكور للأحواض — قطعة DW-06",
+  }),
+  createDriftwoodProduct({
+    code: "DW-07",
+    idSuffix: "dw-07",
+    price: "24000",
+    title: "خشب ديكور للأحواض — قطعة DW-07",
+  }),
 ];
