@@ -10,6 +10,7 @@ type ModelViewerElement = HTMLElement & {
       pbrMetallicRoughness?: {
         setRoughnessFactor?: (roughness: number) => void;
         setMetallicFactor?: (metallic: number) => void;
+        setBaseColorFactor?: (color: [number, number, number, number]) => void;
       };
     }>;
   };
@@ -92,12 +93,25 @@ export function Product3DViewer({
       animationFrame = window.requestAnimationFrame(animateCameraOrbit);
     };
 
+    let isActive = true;
+
     const applyMaterial = () => {
-      const materials = viewer.model?.materials ?? [];
-      materials.forEach((material) => {
+      if (!isActive) return;
+
+      const model = viewer.model;
+      if (!model || !model.materials || model.materials.length === 0) {
+        // Retry on next frame if materials aren't loaded yet
+        window.requestAnimationFrame(applyMaterial);
+        return;
+      }
+
+      model.materials.forEach((material) => {
         const pbr = material.pbrMetallicRoughness;
-        pbr?.setRoughnessFactor?.(0.98);
-        pbr?.setMetallicFactor?.(0);
+        if (pbr) {
+          pbr.setRoughnessFactor?.(0.85);
+          pbr.setMetallicFactor?.(0);
+          pbr.setBaseColorFactor?.([0.78, 0.62, 0.48, 1.0]);
+        }
       });
     };
 
@@ -140,6 +154,7 @@ export function Product3DViewer({
     }
 
     return () => {
+      isActive = false;
       if (animationFrame !== undefined) {
         window.cancelAnimationFrame(animationFrame);
       }
@@ -157,11 +172,13 @@ export function Product3DViewer({
     src,
     poster,
     alt: `عرض ثلاثي الأبعاد للمنتج ${productName}`,
+    dir: "ltr",
     "camera-controls": true,
     "shadow-intensity": "0.9",
     "shadow-softness": "0.82",
     "environment-image": "neutral",
-    exposure: "0.55",
+    "tone-mapping": "neutral",
+    exposure: "0.85",
     "field-of-view": "28deg",
     "camera-orbit": "145deg 71deg 118%",
     "min-camera-orbit": "auto auto 55%",
