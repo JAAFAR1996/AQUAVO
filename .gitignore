@@ -109,7 +109,7 @@ _handoff_account_switch/
 client/public/images/products/hyper3d/
 client/public/models/
 client/public/test_wood*.glb
-client/src/pages/ai-driftwood-experiment.tsx
+
 
 # Local one-off product inspection scripts
 script/query-variants.*
