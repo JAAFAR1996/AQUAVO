@@ -1,6 +1,10 @@
-import { createElement, useEffect, useRef, useState, memo } from "react";
+import { useEffect, useRef, useState, memo, Component, type ErrorInfo, type ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+
+/* ──────────────────────────────────────────────────────────
+   Types
+   ────────────────────────────────────────────────────────── */
 
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
@@ -15,56 +19,262 @@ interface Product3DViewerProps {
   className?: string;
 }
 
-// Singleton promise — load model-viewer once globally, never twice.
+/* ──────────────────────────────────────────────────────────
+   Self-contained ErrorBoundary — prevents 3D viewer crash
+   from propagating to the page-level ErrorBoundary.
+   ────────────────────────────────────────────────────────── */
+
+interface ViewerErrorBoundaryState {
+  hasError: boolean;
+}
+
+class ViewerErrorBoundary extends Component<
+  { children: ReactNode; fallback: ReactNode },
+  ViewerErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode; fallback: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ViewerErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.warn("[Product3DViewer] ErrorBoundary caught:", error, info);
+  }
+
+  render(): ReactNode {
+    if (this.state.hasError) return this.props.fallback;
+    return this.props.children;
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   model-viewer loader — singleton promise
+   ────────────────────────────────────────────────────────── */
+
 let modelViewerReady: Promise<void> | null = null;
 
 function loadModelViewer(): Promise<void> {
   if (modelViewerReady) return modelViewerReady;
-  modelViewerReady = import("@google/model-viewer").then(() => {
-    // custom element is now registered in CustomElementRegistry
-  }).catch((err) => {
-    // Reset so next mount can retry
-    modelViewerReady = null;
-    console.warn("[Product3DViewer] Failed to load @google/model-viewer:", err);
-    throw err;
-  });
+  modelViewerReady = import("@google/model-viewer")
+    .then(() => {
+      /* custom element registered */
+    })
+    .catch((err) => {
+      modelViewerReady = null;
+      console.warn("[Product3DViewer] Failed to load @google/model-viewer:", err);
+      throw err;
+    });
   return modelViewerReady;
 }
 
-export const Product3DViewer = memo(function Product3DViewer({
+/* ──────────────────────────────────────────────────────────
+   Shared UI fragments
+   ────────────────────────────────────────────────────────── */
+
+function ViewerHeader({ pieceCode }: { pieceCode?: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
+      <div>
+        <p className="text-sm font-semibold text-white">عرض 3D للقطعة</p>
+        <p className="mt-1 text-xs leading-5 text-white/65">
+          لف القطعة وشوفها من كل زاوية قبل الشراء.
+        </p>
+      </div>
+      <div className="flex shrink-0 flex-wrap justify-end gap-2">
+        <Badge className="bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15">
+          شوفها من كل زاوية
+        </Badge>
+        {pieceCode && (
+          <Badge variant="outline" className="border-white/25 text-white">
+            {pieceCode}
+          </Badge>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ViewerFooter() {
+  return (
+    <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
+      هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
+    </div>
+  );
+}
+
+const VIEWER_BG =
+  "bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)]";
+
+function ViewerShell({
+  className,
+  pieceCode,
+  children,
+}: {
+  className?: string;
+  pieceCode?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      className={cn(
+        "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
+        className
+      )}
+      aria-label="عرض المنتج ثلاثي الأبعاد"
+      dir="rtl"
+    >
+      <ViewerHeader pieceCode={pieceCode} />
+      {children}
+      <ViewerFooter />
+    </section>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   CSS keyframes (inserted once)
+   ────────────────────────────────────────────────────────── */
+
+const ANIMATION_CSS = `
+  @keyframes horizontal-bounce {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(3px); }
+  }
+  @keyframes horizontal-bounce-reverse {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-3px); }
+  }
+  .animate-horizontal-bounce {
+    animation: horizontal-bounce 1.5s infinite ease-in-out;
+  }
+  .animate-horizontal-bounce-reverse {
+    animation: horizontal-bounce-reverse 1.5s infinite ease-in-out;
+  }
+`;
+
+/* ──────────────────────────────────────────────────────────
+   Drag overlay hint
+   ────────────────────────────────────────────────────────── */
+
+function DragOverlay({ visible }: { visible: boolean }) {
+  return (
+    <div
+      className={cn(
+        "pointer-events-none absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 items-center justify-center transition-all duration-700 ease-out select-none",
+        visible
+          ? "translate-y-0 scale-100 opacity-100"
+          : "translate-y-2 scale-95 opacity-0"
+      )}
+    >
+      <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#010611]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
+        <svg
+          className="h-4 w-4 shrink-0 animate-horizontal-bounce-reverse text-cyan-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+        <svg
+          className="h-5 w-5 shrink-0 animate-pulse text-white/95"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={1.8}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
+          <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6" />
+          <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4.5" />
+          <path d="M6 10V8a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9a4 4 0 0 0 4 4h7a5 5 0 0 0 5-5v-5" />
+        </svg>
+        <p className="whitespace-nowrap text-[11px] font-medium leading-none text-white/90">
+          اسحب يمين أو يسار حتى تشوف القطعة من كل زاوية
+        </p>
+        <svg
+          className="h-4 w-4 shrink-0 animate-horizontal-bounce text-cyan-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Inner viewer (only mounts when model-viewer library is ready)
+   ────────────────────────────────────────────────────────── */
+
+function ModelViewerInner({
   src,
   poster,
   productName,
-  pieceCode,
-  className,
-}: Product3DViewerProps) {
-  const modelRef = useRef<ModelViewerElement | null>(null);
+}: {
+  src: string;
+  poster?: string;
+  productName: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const viewerRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
-  // libraryReady = true only AFTER model-viewer is imported and registered
-  const [libraryReady, setLibraryReady] = useState(false);
-  const [loadError, setLoadError] = useState(false);
+  const [viewerError, setViewerError] = useState(false);
 
-  // Step 1 — load the library (browser only, singleton)
+  // Cache-bust the GLB URL
+  const busterSrc = src
+    ? `${src}${src.includes("?") ? "&" : "?"}v=20260610`
+    : src;
+
+  // Create the <model-viewer> element imperatively via DOM API
+  // This avoids React's createElement which can throw if the custom element
+  // registration has subtle issues.
   useEffect(() => {
-    let cancelled = false;
-    loadModelViewer()
-      .then(() => {
-        if (!cancelled) setLibraryReady(true);
-      })
-      .catch(() => {
-        if (!cancelled) setLoadError(true);
-      });
-    return () => { cancelled = true; };
-  }, []);
+    const container = containerRef.current;
+    if (!container) return;
 
-  // Step 2 — attach camera + motion ONLY after both library AND element are mounted
-  useEffect(() => {
-    if (!libraryReady) return;
+    let viewer: ModelViewerElement | null = null;
 
-    const viewer = modelRef.current;
-    if (!viewer) return;
+    try {
+      viewer = document.createElement("model-viewer") as ModelViewerElement;
+      viewer.setAttribute("src", busterSrc);
+      if (poster) viewer.setAttribute("poster", poster);
+      viewer.setAttribute("alt", `عرض ثلاثي الأبعاد للمنتج ${productName}`);
+      viewer.setAttribute("dir", "ltr");
+      viewer.setAttribute("camera-controls", "");
+      viewer.setAttribute("shadow-intensity", "0.9");
+      viewer.setAttribute("shadow-softness", "0.82");
+      viewer.setAttribute("environment-image", "neutral");
+      viewer.setAttribute("tone-mapping", "neutral");
+      viewer.setAttribute("exposure", "1.0");
+      viewer.setAttribute("field-of-view", "28deg");
+      viewer.setAttribute("camera-orbit", "145deg 71deg 118%");
+      viewer.setAttribute("min-camera-orbit", "auto auto 55%");
+      viewer.setAttribute("max-camera-orbit", "auto auto 260%");
+      viewer.setAttribute("orbit-sensitivity", "1.1");
+      viewer.setAttribute("zoom-sensitivity", "0.85");
+      viewer.setAttribute("disable-pan", "");
+      viewer.setAttribute("interaction-prompt", "none");
+      viewer.setAttribute("touch-action", "pan-y");
+      viewer.setAttribute("loading", "eager");
+      viewer.setAttribute("reveal", "auto");
+      viewer.style.cssText =
+        "background:transparent;--poster-color:transparent;position:absolute;inset:0;width:100%;height:100%;";
 
-    setShowOverlay(true);
+      viewerRef.current = viewer;
+      container.appendChild(viewer);
+    } catch (err) {
+      console.warn("[Product3DViewer] Failed to create model-viewer element:", err);
+      setViewerError(true);
+      return;
+    }
+
+    /* ── Motion animation ─────────────────────────── */
 
     const baseTheta = 145;
     const basePhi = 71;
@@ -75,146 +285,190 @@ export const Product3DViewer = memo(function Product3DViewer({
     let hasUserInteracted = false;
     let overlayTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const formatCameraOrbit = (theta: number) =>
+    const formatOrbit = (theta: number) =>
       `${theta.toFixed(2)}deg ${basePhi}deg ${baseRadius}%`;
 
-    const setProductAngle = () => {
+    const jumpTo = (theta: number) => {
       try {
-        viewer.setAttribute("camera-orbit", formatCameraOrbit(baseTheta));
-        viewer.jumpCameraToGoal?.();
+        viewer!.setAttribute("camera-orbit", formatOrbit(theta));
+        viewer!.jumpCameraToGoal?.();
       } catch {
-        // ignore if element not yet upgraded
+        /* element not yet upgraded */
       }
     };
 
-    const stopSubtleMotion = () => {
+    const stopMotion = () => {
       hasUserInteracted = true;
       setShowOverlay(false);
-
       if (overlayTimeout) {
         clearTimeout(overlayTimeout);
         overlayTimeout = undefined;
       }
-
       if (animationFrame !== undefined) {
-        window.cancelAnimationFrame(animationFrame);
+        cancelAnimationFrame(animationFrame);
         animationFrame = undefined;
       }
     };
 
-    const animateCameraOrbit = (timestamp: number) => {
+    const animate = (timestamp: number) => {
       if (hasUserInteracted) {
         animationFrame = undefined;
         return;
       }
-
       const progress = (timestamp % orbitCycleMs) / orbitCycleMs;
-      const theta =
-        baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
-
-      try {
-        viewer.setAttribute("camera-orbit", formatCameraOrbit(theta));
-        viewer.jumpCameraToGoal?.();
-      } catch {
-        // element not yet upgraded, skip frame
-      }
-
-      animationFrame = window.requestAnimationFrame(animateCameraOrbit);
+      const theta = baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
+      jumpTo(theta);
+      animationFrame = requestAnimationFrame(animate);
     };
 
-    const startSubtleMotion = () => {
+    const startMotion = () => {
       if (hasUserInteracted || animationFrame !== undefined) return;
-
-      setProductAngle();
-      animationFrame = window.requestAnimationFrame(animateCameraOrbit);
-
-      if (!overlayTimeout && !hasUserInteracted) {
-        overlayTimeout = setTimeout(() => {
-          stopSubtleMotion();
-        }, 6000);
+      jumpTo(baseTheta);
+      animationFrame = requestAnimationFrame(animate);
+      if (!overlayTimeout) {
+        overlayTimeout = setTimeout(stopMotion, 6000);
       }
     };
 
     const handleLoad = () => {
-      // Do NOT touch material properties here.
-      // The GLB files contain baked PBR textures. Calling setRoughnessFactor()
-      // or setMetallicFactor() overrides the PBR shader → white/clay result.
-      setProductAngle();
-      startSubtleMotion();
+      jumpTo(baseTheta);
+      startMotion();
     };
 
     const handleCameraChange = (event: Event) => {
-      const customEvent = event as CustomEvent<{ source: string }>;
-      if (customEvent.detail?.source === "user-interaction") {
-        stopSubtleMotion();
-      }
+      const ce = event as CustomEvent<{ source: string }>;
+      if (ce.detail?.source === "user-interaction") stopMotion();
     };
 
-    try {
-      viewer.removeAttribute("auto-rotate");
-    } catch {
-      // ignore
-    }
-
-    setProductAngle();
+    const handleError = (event: Event) => {
+      console.warn("[Product3DViewer] model-viewer error event:", event);
+      // Don't crash — just hide the overlay
+      setShowOverlay(false);
+    };
 
     viewer.addEventListener("load", handleLoad);
     viewer.addEventListener("camera-change", handleCameraChange);
+    viewer.addEventListener("error", handleError);
 
-    startSubtleMotion();
+    jumpTo(baseTheta);
+    startMotion();
 
-    if ((viewer as ModelViewerElement).loaded) {
-      handleLoad();
-    }
+    if (viewer.loaded) handleLoad();
 
     return () => {
-      if (animationFrame !== undefined) {
-        window.cancelAnimationFrame(animationFrame);
+      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+      if (overlayTimeout) clearTimeout(overlayTimeout);
+      try {
+        viewer!.removeEventListener("load", handleLoad);
+        viewer!.removeEventListener("camera-change", handleCameraChange);
+        viewer!.removeEventListener("error", handleError);
+        container.removeChild(viewer!);
+      } catch {
+        /* already removed */
       }
-      if (overlayTimeout) {
-        clearTimeout(overlayTimeout);
-      }
-      viewer.removeEventListener("load", handleLoad);
-      viewer.removeEventListener("camera-change", handleCameraChange);
+      viewerRef.current = null;
     };
-  }, [src, libraryReady]);
+  }, [busterSrc, poster, productName]);
 
-  // Cache-bust the GLB URL once per deploy day so browsers don't serve a
-  // stale model after a file update.
-  const busterSrc = src
-    ? `${src}${src.includes("?") ? "&" : "?"}v=20260609`
-    : src;
+  if (viewerError) {
+    return (
+      <div
+        className={cn(
+          "relative flex min-h-[320px] items-center justify-center overflow-hidden sm:min-h-[420px]",
+          VIEWER_BG
+        )}
+      >
+        {poster && (
+          <img
+            src={poster}
+            alt={productName}
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        )}
+      </div>
+    );
+  }
 
-  // Show minimal placeholder while the library is loading
+  return (
+    <div
+      className={cn(
+        "relative min-h-[320px] overflow-hidden sm:min-h-[420px]",
+        VIEWER_BG
+      )}
+    >
+      {/* model-viewer gets appended here imperatively */}
+      <div ref={containerRef} className="absolute inset-0" />
+
+      <style dangerouslySetInnerHTML={{ __html: ANIMATION_CSS }} />
+      <DragOverlay visible={showOverlay} />
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Main exported component
+   ────────────────────────────────────────────────────────── */
+
+export const Product3DViewer = memo(function Product3DViewer({
+  src,
+  poster,
+  productName,
+  pieceCode,
+  className,
+}: Product3DViewerProps) {
+  const [libraryReady, setLibraryReady] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadModelViewer()
+      .then(() => {
+        if (!cancelled) setLibraryReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Fallback: show poster image if 3D fails completely
+  const fallbackContent = (
+    <ViewerShell className={className} pieceCode={pieceCode}>
+      <div
+        className={cn(
+          "relative flex min-h-[320px] items-center justify-center overflow-hidden sm:min-h-[420px]",
+          VIEWER_BG
+        )}
+      >
+        {poster && (
+          <img
+            src={poster}
+            alt={productName}
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        )}
+        <div className="relative z-10 flex flex-col items-center gap-2 text-white/50">
+          <p className="text-xs">العرض الثلاثي الأبعاد غير متوفر حالياً</p>
+        </div>
+      </div>
+    </ViewerShell>
+  );
+
+  // Library failed to load — show fallback with poster
+  if (loadError) return fallbackContent;
+
+  // Library still loading — show spinner
   if (!libraryReady) {
     return (
-      <section
-        className={cn(
-          "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
-          className
-        )}
-        aria-label="عرض المنتج ثلاثي الأبعاد"
-        dir="rtl"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
-          <div>
-            <p className="text-sm font-semibold text-white">عرض 3D للقطعة</p>
-            <p className="mt-1 text-xs leading-5 text-white/65">
-              لف القطعة وشوفها من كل زاوية قبل الشراء.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            <Badge className="bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15">
-              شوفها من كل زاوية
-            </Badge>
-            {pieceCode && (
-              <Badge variant="outline" className="border-white/25 text-white">
-                {pieceCode}
-              </Badge>
-            )}
-          </div>
-        </div>
-        <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)] sm:min-h-[420px] flex items-center justify-center">
+      <ViewerShell className={className} pieceCode={pieceCode}>
+        <div
+          className={cn(
+            "relative flex min-h-[320px] items-center justify-center overflow-hidden sm:min-h-[420px]",
+            VIEWER_BG
+          )}
+        >
           {poster && (
             <img
               src={poster}
@@ -230,143 +484,20 @@ export const Product3DViewer = memo(function Product3DViewer({
             <p className="text-xs">جاري تحميل المجسم...</p>
           </div>
         </div>
-        <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-          هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
-        </div>
-      </section>
+      </ViewerShell>
     );
   }
 
-  // createElement is used instead of JSX because TypeScript's JSX checker
-  // does not know about <model-viewer> as a valid intrinsic element.
-  // The custom element is now guaranteed to be registered (libraryReady = true).
-  const modelViewer = createElement("model-viewer", {
-    ref: modelRef,
-    src: busterSrc,
-    poster,
-    alt: `عرض ثلاثي الأبعاد للمنتج ${productName}`,
-    dir: "ltr",
-    "camera-controls": true,
-    "shadow-intensity": "0.9",
-    "shadow-softness": "0.82",
-    "environment-image": "neutral",
-    "tone-mapping": "neutral",
-    exposure: "1.0",
-    "field-of-view": "28deg",
-    "camera-orbit": "145deg 71deg 118%",
-    "min-camera-orbit": "auto auto 55%",
-    "max-camera-orbit": "auto auto 260%",
-    "orbit-sensitivity": "1.1",
-    "zoom-sensitivity": "0.85",
-    "disable-pan": true,
-    "interaction-prompt": "none",
-    "touch-action": "pan-y",
-    loading: "eager",
-    reveal: "auto",
-    // background: transparent fixes the white background model-viewer renders
-    // during loading. --poster-color: transparent keeps the poster bg invisible.
-    style: "background: transparent; --poster-color: transparent;",
-    className: "absolute inset-0 h-full w-full",
-  } as Record<string, unknown>);
-
+  // Library ready — render the model viewer inside its own error boundary
   return (
-    <section
-      className={cn(
-        "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
-        className
-      )}
-      aria-label="عرض المنتج ثلاثي الأبعاد"
-      dir="rtl"
-    >
-      <div className="flex items-start justify-between gap-3 border-b border-white/10 px-4 py-3">
-        <div>
-          <p className="text-sm font-semibold text-white">عرض 3D للقطعة</p>
-          <p className="mt-1 text-xs leading-5 text-white/65">
-            لف القطعة وشوفها من كل زاوية قبل الشراء.
-          </p>
-        </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          <Badge className="bg-cyan-500/15 text-cyan-100 hover:bg-cyan-500/15">
-            شوفها من كل زاوية
-          </Badge>
-          {pieceCode && (
-            <Badge variant="outline" className="border-white/25 text-white">
-              {pieceCode}
-            </Badge>
-          )}
-        </div>
-      </div>
-
-      <div className="relative min-h-[320px] overflow-hidden bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)] sm:min-h-[420px]">
-        {modelViewer}
-
-        <style dangerouslySetInnerHTML={{__html: `
-          @keyframes horizontal-bounce {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(3px); }
-          }
-          @keyframes horizontal-bounce-reverse {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(-3px); }
-          }
-          .animate-horizontal-bounce {
-            animation: horizontal-bounce 1.5s infinite ease-in-out;
-          }
-          .animate-horizontal-bounce-reverse {
-            animation: horizontal-bounce-reverse 1.5s infinite ease-in-out;
-          }
-        `}} />
-
-        <div
-          className={cn(
-            "pointer-events-none absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center justify-center transition-all duration-700 ease-out select-none z-10",
-            showOverlay ? "opacity-100 translate-y-0 scale-100" : "opacity-0 translate-y-2 scale-95"
-          )}
-        >
-          <div className="flex items-center gap-3 rounded-full border border-cyan-500/20 bg-[#010611]/85 px-4 py-2.5 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.5)] max-w-[290px] sm:max-w-md">
-            <svg
-              className="h-4 w-4 text-cyan-400 animate-horizontal-bounce-reverse shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-
-            <svg
-              className="h-5 w-5 text-white/95 animate-pulse shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.8}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v5" />
-              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v6" />
-              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4.5" />
-              <path d="M6 10V8a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v9a4 4 0 0 0 4 4h7a5 5 0 0 0 5-5v-5" />
-            </svg>
-
-            <p className="text-[11px] font-medium leading-none text-white/90 whitespace-nowrap">
-              اسحب يمين أو يسار حتى تشوف القطعة من كل زاوية
-            </p>
-
-            <svg
-              className="h-4 w-4 text-cyan-400 animate-horizontal-bounce shrink-0"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2.5}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-        هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
-      </div>
-    </section>
+    <ViewerErrorBoundary fallback={fallbackContent}>
+      <ViewerShell className={className} pieceCode={pieceCode}>
+        <ModelViewerInner
+          src={src}
+          poster={poster}
+          productName={productName}
+        />
+      </ViewerShell>
+    </ViewerErrorBoundary>
   );
 });
