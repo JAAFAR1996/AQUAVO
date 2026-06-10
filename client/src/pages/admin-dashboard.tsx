@@ -210,6 +210,9 @@ export default function AdminDashboard() {
   // Variants management state
   const [isVariantsDialogOpen, setIsVariantsDialogOpen] = useState(false);
   const [variantsProduct, setVariantsProduct] = useState<Product | null>(null);
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   // Specifications editor state
   const [specKey, setSpecKey] = useState<string>("");
   const [specValue, setSpecValue] = useState<string>("");
@@ -464,14 +467,16 @@ export default function AdminDashboard() {
     },
   });
 
-  const handleDeleteProduct = (productId: string) => {
-    const confirmation = window.prompt("⚠️ تحذير: هذا الإجراء لا يمكن التراجع عنه!\n\nلحذف المنتج، اكتب كلمة «حذف» في الحقل أدناه:");
-    if (confirmation !== "حذف") {
-      if (confirmation !== null) toast({ title: "تم الإلغاء", description: "لم تتم كتابة كلمة «حذف» بشكل صحيح" });
-      return;
-    }
+  const handleDeleteProduct = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
 
-    deleteProductMutation.mutate(productId);
+  const confirmDelete = () => {
+    if (!productToDelete) return;
+    deleteProductMutation.mutate(productToDelete.id);
+    setDeleteDialogOpen(false);
+    setProductToDelete(null);
   };
 
   const duplicateProductMutation = useMutation({
@@ -976,7 +981,7 @@ export default function AdminDashboard() {
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                onClick={() => handleDeleteProduct(product.id)}
+                                onClick={() => handleDeleteProduct(product)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
@@ -1590,6 +1595,48 @@ export default function AdminDashboard() {
               }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ========== Delete Confirmation Dialog ========== */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle className="text-red-500 flex items-center gap-2">
+              <Trash2 className="h-5 w-5" />
+              تأكيد الحذف
+            </DialogTitle>
+            <DialogDescription className="text-right mt-2">
+              هل أنت متأكد من حذف المنتج؟
+              <br />
+              <span className="font-semibold text-white mt-1 block">
+                {productToDelete?.name}
+              </span>
+              <span className="text-yellow-400 text-xs block mt-1">
+                ⚠️ هذا الإجراء لا يمكن التراجع عنه
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setProductToDelete(null);
+              }}
+              className="flex-1"
+            >
+              إلغاء
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteProductMutation.isPending}
+              className="flex-1"
+            >
+              {deleteProductMutation.isPending ? "جاري الحذف..." : "حذف المنتج"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
