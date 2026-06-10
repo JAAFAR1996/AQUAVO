@@ -444,15 +444,26 @@ export default function AdminDashboard() {
 
   const deleteProductMutation = useMutation({
     mutationFn: async (productId: string) => {
+      console.log("[Admin] Sending DELETE for product:", productId);
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: "DELETE",
         headers: addCsrfHeader(),
         credentials: "include",
       });
 
+      console.log("[Admin] DELETE response status:", response.status);
+
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "فشل حذف المنتج");
+        let errorMessage = `فشل حذف المنتج (${response.status})`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          // Response might not be JSON (e.g., HTML error pages)
+          const text = await response.text().catch(() => "");
+          console.error("[Admin] Non-JSON error response:", text.slice(0, 200));
+        }
+        throw new Error(errorMessage);
       }
 
       return response.json();

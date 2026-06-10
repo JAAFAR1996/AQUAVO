@@ -2,12 +2,12 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Phone, MapPin, Calendar, FileText, Printer, Share2, CheckCircle2 } from "lucide-react";
+import { Phone, MapPin, Calendar, FileText, Printer, Share2, CheckCircle2, MessageCircle } from "lucide-react";
 import { formatIQD, formatDate, formatShortDate } from "@/lib/utils";
 import { useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { clientEnv } from "@/lib/config/env";
-import { DELIVERY_FEE } from "@/lib/constants/shipping";
+import { DELIVERY_FEE, WHATSAPP_URL } from "@/lib/constants/shipping";
 // Local item type — simpler than CartItem, works for order history too
 interface InvoiceItem {
   id: string;
@@ -501,6 +501,17 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                 <span className="font-semibold" dir="ltr">+964 774 788 0673</span>
               </div>
             </div>
+
+            {/* WhatsApp Confirmation — CTA الأساسي بعد الطلب */}
+            <a
+              href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أريد تأكيد طلبي رقم ${shortOrderNumber}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-base no-print print:hidden"
+            >
+              <MessageCircle className="h-5 w-5" />
+              أكد طلبك عبر واتساب
+            </a>
 
             {/* Action Buttons - hidden in print */}
             <div className="flex gap-3 no-print print:hidden">

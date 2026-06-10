@@ -1041,25 +1041,36 @@ export function createAdminRouter(): RouterType {
     router.delete("/products/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params as { id: string };
+            console.log(`[Admin DELETE] Attempting to delete product: ${id}`);
+            
             const success = await storage.deleteProduct(id);
             clearProductsCache(); // Invalidate cache on product delete
 
             if (!success) {
+                console.log(`[Admin DELETE] Product not found: ${id}`);
                 res.status(404).json({ message: "Product not found" });
                 return;
             }
 
             // Audit Log
-            await storage.createAuditLog({
-                userId: getSession(req)?.userId || "admin",
-                action: "delete",
-                entityType: "product",
-                entityId: id,
-                changes: {}
-            });
+            try {
+                await storage.createAuditLog({
+                    userId: getSession(req)?.userId || "admin",
+                    action: "delete",
+                    entityType: "product",
+                    entityId: id,
+                    changes: {}
+                });
+            } catch (auditErr) {
+                console.error("[Admin DELETE] Audit log failed (non-blocking):", auditErr);
+            }
 
-            res.json({ message: "Product deleted" });
-        } catch (err) { next(err); }
+            console.log(`[Admin DELETE] ✅ Product deleted successfully: ${id}`);
+            res.json({ message: "Product deleted", success: true });
+        } catch (err) {
+            console.error(`[Admin DELETE] ❌ Error deleting product:`, err);
+            next(err);
+        }
     });
 
     // ============ SETTINGS MANAGEMENT ============

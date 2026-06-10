@@ -11,6 +11,7 @@ import { sql } from "drizzle-orm";
 import { loyaltyStorage } from "../storage/loyalty-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
+import { sendOrderNotification } from "../services/order-notifications.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -243,6 +244,36 @@ export function createOrderRouter(): RouterType {
                     tier: loyaltyResult.newTier,
                     tierUpgraded: loyaltyResult.tierChanged,
                 };
+            }
+
+            // === TELEGRAM ORDER NOTIFICATION ===
+            try {
+                // Build enriched items with product names
+                const productIds = items.map(i => i.productId);
+                const orderProducts = productIds.length > 0 ? await storage.getProductsByIds(productIds) : [];
+                const productMap = new Map(orderProducts.map((p: any) => [p.id, p]));
+
+                const enrichedItems = items.map(item => {
+                    const product = productMap.get(item.productId);
+                    return {
+                        productId: item.productId,
+                        productName: product?.name || item.productId,
+                        quantity: item.quantity,
+                        priceAtPurchase: product?.price || 0,
+                    };
+                });
+
+                sendOrderNotification({
+                    orderId: order.id,
+                    orderNumber: (order as any).orderNumber,
+                    customerName: customerInfo.name,
+                    customerPhone: customerInfo.phone,
+                    customerAddress: customerInfo.address,
+                    total: String((order as any).total ?? 0),
+                    items: enrichedItems,
+                }).catch(err => console.error("[AQUAVO] Order notification failed:", err));
+            } catch (notifyErr) {
+                console.error("[AQUAVO] Order notification setup failed:", notifyErr);
             }
 
             res.status(201).json(response);
