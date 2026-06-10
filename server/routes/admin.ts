@@ -994,7 +994,7 @@ export function createAdminRouter(): RouterType {
             }
 
             // Enforce validation to make sure everything is a Cloudinary URL or allowed local path
-            validateImageUrls(updates.thumbnail, updates.images);
+            validateImageUrls(updates.thumbnail as string | undefined, updates.images as string[] | undefined);
 
             const product = await storage.updateProduct(id, updates);
             clearProductsCache(); // Invalidate cache on product update

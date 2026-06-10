@@ -20,7 +20,7 @@ async function send(text: string): Promise<void> {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Content-Length": Buffer.byteLength(body),
+          "Content-Length": String(Buffer.byteLength(body)),
         },
       },
       (res) => {
