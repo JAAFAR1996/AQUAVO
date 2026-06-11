@@ -56,11 +56,13 @@ class ViewerErrorBoundary extends Component<
    ────────────────────────────────────────────────────────── */
 
 let modelViewerReady: Promise<void> | null = null;
+let modelViewerResolved = false; // track if already done — no spinner needed
 
 function loadModelViewer(): Promise<void> {
   if (modelViewerReady) return modelViewerReady;
   modelViewerReady = import("@google/model-viewer")
     .then(() => {
+      modelViewerResolved = true;
       /* custom element registered */
     })
     .catch((err) => {
@@ -69,6 +71,14 @@ function loadModelViewer(): Promise<void> {
       throw err;
     });
   return modelViewerReady;
+}
+
+// ── Kick off download immediately on module import (browser only) ─────────
+// By the time the user navigates to a product page and React mounts the
+// component, the ~280 kB chunk is already in-flight (or done). This
+// eliminates the spinner that was visible on every first visit.
+if (typeof window !== "undefined") {
+  loadModelViewer().catch(() => { /* silent — component handles the error */ });
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -416,10 +426,13 @@ export const Product3DViewer = memo(function Product3DViewer({
   pieceCode,
   className,
 }: Product3DViewerProps) {
-  const [libraryReady, setLibraryReady] = useState(false);
+  // If the library already resolved before mount (module-level preload), skip
+  // the async wait entirely — no spinner shown.
+  const [libraryReady, setLibraryReady] = useState(() => modelViewerResolved);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    if (modelViewerResolved) return; // already done — nothing to wait for
     let cancelled = false;
     loadModelViewer()
       .then(() => {
