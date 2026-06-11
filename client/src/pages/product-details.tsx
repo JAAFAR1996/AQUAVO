@@ -381,23 +381,35 @@ export default function ProductDetails() {
                   )}
                 </div>
 
-                <ProductImageGallery
-                  images={
-                    // Show variant image first if selected and has image
-                    selectedVariant?.image
-                      ? [selectedVariant.image, ...product.images.filter(img => img !== selectedVariant.image)]
-                      : (product.images && product.images.length > 0 ? product.images : (product.thumbnail ? [product.thumbnail] : (product.image ? [product.image] : [])))
-                  }
-                  productName={product.name}
-                />
-
-                {product3DMeta && (
-                  <Product3DViewer
-                    className="mt-4"
-                    src={product3DMeta.src}
-                    poster={product3DMeta.poster}
+                {product3DMeta ? (
+                  <>
+                    {/* 3D Viewer — يظهر مباشرة أول ما تفتح الصفحة */}
+                    <Product3DViewer
+                      src={product3DMeta.src}
+                      poster={product3DMeta.poster}
+                      productName={product.name}
+                      pieceCode={exactPieceCode}
+                    />
+                    {/* الصور الفوتوغرافية تحت كمرجع */}
+                    <div className="mt-4">
+                      <ProductImageGallery
+                        images={
+                          selectedVariant?.image
+                            ? [selectedVariant.image, ...product.images.filter(img => img !== selectedVariant.image)]
+                            : (product.images && product.images.length > 0 ? product.images : (product.thumbnail ? [product.thumbnail] : (product.image ? [product.image] : [])))
+                        }
+                        productName={product.name}
+                      />
+                    </div>
+                  </>
+                ) : (
+                  <ProductImageGallery
+                    images={
+                      selectedVariant?.image
+                        ? [selectedVariant.image, ...product.images.filter(img => img !== selectedVariant.image)]
+                        : (product.images && product.images.length > 0 ? product.images : (product.thumbnail ? [product.thumbnail] : (product.image ? [product.image] : [])))
+                    }
                     productName={product.name}
-                    pieceCode={exactPieceCode}
                   />
                 )}
               </div>
