@@ -111,23 +111,36 @@ function DeferredOnboardingTour() {
   const [location] = useLocation();
 
   useEffect(() => {
-    // Quick localStorage check — if tour already seen, never import Joyride
     const path = location;
-    const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
-    if (localStorage.getItem(seenKey)) return;
+    const isTargetPage = [
+      '/fish-health-diagnosis',
+      '/calculators',
+      '/community-gallery',
+      '/journey'
+    ].includes(path);
 
-    let idleId: number | undefined;
+    if (!isTargetPage) {
+      setShouldLoad(false);
+      return;
+    }
+
+    const pageName = path.split('/')[1];
+    const seenKey = `aquavo_tour_seen_${pageName}`;
+    const globalDismissed = localStorage.getItem('aquavo_tours_dismissed');
+    const pageSeen = localStorage.getItem(seenKey);
+
+    if (globalDismissed || pageSeen) {
+      setShouldLoad(false);
+      return;
+    }
+
+    // Load after 1.5 seconds to ensure page layout is fully rendered
     const timer = window.setTimeout(() => {
-      idleId = (window as any).requestIdleCallback?.(
-        () => setShouldLoad(true),
-        { timeout: 2000 }
-      );
-      if (!idleId) setShouldLoad(true);
-    }, 30000);
+      setShouldLoad(true);
+    }, 1500);
 
     return () => {
       window.clearTimeout(timer);
-      if (idleId) (window as any).cancelIdleCallback(idleId);
     };
   }, [location]);
 

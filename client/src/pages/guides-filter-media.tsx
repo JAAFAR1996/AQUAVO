@@ -194,7 +194,7 @@ export default function GuideFilterMedia() {
               أرسل نوع الفلتر وحجم الحوض — ننصحك بالترتيب الأمثل.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="fmd-cta-btn"

@@ -677,13 +677,12 @@ export function FinanceReturnEvents() {
                 <th style={S.th}>النوع</th>
                 <th style={S.th}>الحالة</th>
                 <th style={S.th}>السبب</th>
-                <th style={S.th}>استرداد</th>
+                <th style={{ ...S.th, color: "#f97316" }}>استرداد (تسوية COD)</th>
                 <th style={S.th}>خسارة توصيل</th>
                 <th style={S.th}>شحن إرجاع</th>
                 <th style={S.th}>خسارة تغليف</th>
                 <th style={S.th}>شطب منتج</th>
-                <th style={S.th}>COGS</th>
-                <th style={{ ...S.th, color: "#f97316" }}>خصم تسوية COD</th>
+                <th style={S.th}>خسارة COGS</th>
                 <th style={{ ...S.th, color: "#ef4444" }}>خسارة فعلية</th>
                 <th style={S.th}>للمخزن</th>
                 <th style={S.th}>تاريخ التسجيل</th>
@@ -721,6 +720,9 @@ export function FinanceReturnEvents() {
                     <td style={{ ...S.td, maxWidth: 180, whiteSpace: "normal", color: "#94a3b8" }}>
                       {e.reason ?? "—"}
                     </td>
+                    <td style={{ ...S.td, color: e.refundAmount > 0 ? "#f97316" : "#64748b", fontWeight: 700 }}>
+                      {e.refundAmount > 0 ? fmtIqd(e.refundAmount) : "—"}
+                    </td>
                     <td style={S.td}>{e.deliveryCostLoss > 0 ? fmtIqd(e.deliveryCostLoss) : "—"}</td>
                     <td style={S.td}>{e.returnShippingCost > 0 ? fmtIqd(e.returnShippingCost) : "—"}</td>
                     <td style={S.td}>{e.packagingLoss > 0 ? fmtIqd(e.packagingLoss) : "—"}</td>
@@ -731,9 +733,6 @@ export function FinanceReturnEvents() {
                           {fmtIqd(e.cogsLoss)}{e.restocked ? " (متجاهل)" : ""}
                         </span>
                       ) : "—"}
-                    </td>
-                    <td style={{ ...S.td, color: e.refundAmount > 0 ? "#f97316" : "#64748b", fontWeight: 700 }}>
-                      {e.refundAmount > 0 ? fmtIqd(e.refundAmount) : "—"}
                     </td>
                     <td style={{ ...S.td, color: actualLoss > 0 ? "#ef4444" : "#64748b", fontWeight: 700 }}>
                       {actualLoss > 0 ? fmtIqd(actualLoss) : "—"}

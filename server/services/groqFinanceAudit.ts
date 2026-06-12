@@ -170,8 +170,13 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
     });
   }
 
-  // Delivered orders
-  const deliveredOrders = allOrders.filter(o => o.status === "delivered");
+  // Delivered orders (respecting manual financiallyCounted overrides)
+  const deliveredOrders = allOrders.filter(o => {
+    const fc = (o as any).financiallyCounted;
+    if (fc === false) return false;
+    if (fc === true) return true;
+    return o.status === "delivered";
+  });
   const grossRevenue = Math.round(deliveredOrders.reduce((s, o) => s + collectedAmount(o), 0));
   const deliveredNetTotal = Math.round(deliveredOrders.reduce((s, o) => s + netAmount(o), 0));
   const netRevenue = deliveredNetTotal;
@@ -202,7 +207,11 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
     return opLoss + writeOff + productCost;
   }
 
-  const salesReturnDeduction = Math.round(verifiedEvents.reduce((s, e) => s + evtSalesReturnDeduction(e), 0));
+  const salesReturnDeduction = Math.round(
+    verifiedEvents
+      .filter(e => deliveredIds.has(e.orderId))
+      .reduce((s, e) => s + evtSalesReturnDeduction(e), 0)
+  );
   const actualReturnLoss = Math.round(verifiedEvents.reduce((s, e) => s + evtActualReturnLoss(e), 0));
   const totalReturnFinancialImpact = salesReturnDeduction + actualReturnLoss;
   const refundAmount = salesReturnDeduction;

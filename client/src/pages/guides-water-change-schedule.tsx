@@ -265,7 +265,7 @@ export default function GuideWaterChangeSchedule() {
               دز حجم حوضك بالليتر وعدد الأسماك تقريباً — ونرتبلك جدول مناسب لوضعك مباشرة.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="wc-cta-btn"

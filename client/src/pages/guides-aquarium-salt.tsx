@@ -139,7 +139,7 @@ export default function GuideAquariumSalt() {
               أرسل حجم حوضك ونوع السمچ — نحسبها لك بدقة.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="slt-cta-btn"

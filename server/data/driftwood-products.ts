@@ -53,11 +53,13 @@ function createDriftwoodProduct({
   idSuffix,
   price,
   title,
+  description,
 }: {
   code: string;
   idSuffix: string;
   price: string;
   title: string;
+  description?: string;
 }): DriftwoodProductSeed {
   const slug = `aquavo-driftwood-${idSuffix}`;
   const poster = `/images/products/driftwood/${idSuffix}.webp`;
@@ -70,7 +72,7 @@ function createDriftwoodProduct({
     brand: "AQUAVO",
     category: "decor",
     subcategory: "driftwood",
-    description: driftwoodDescription(),
+    description: description || driftwoodDescription(),
     price,
     currency: "IQD",
     images: [poster],
@@ -152,25 +154,60 @@ export const driftwoodProducts: DriftwoodProductSeed[] = [
   createDriftwoodProduct({
     code: "DW-08",
     idSuffix: "dw-08",
-    price: "14000",
+    price: "15000",
     title: "خشب ديكور للأحواض — قطعة DW-08",
   }),
   createDriftwoodProduct({
     code: "DW-09",
     idSuffix: "dw-09",
-    price: "14000",
+    price: "13000",
     title: "خشب ديكور للأحواض — قطعة DW-09",
   }),
   createDriftwoodProduct({
     code: "DW-10",
     idSuffix: "dw-10",
-    price: "16000",
+    price: "18000",
     title: "خشب ديكور للأحواض — قطعة DW-10",
   }),
   createDriftwoodProduct({
     code: "DW-11",
     idSuffix: "dw-11",
-    price: "24000",
+    price: "28000",
     title: "خشب ديكور للأحواض — قطعة DW-11",
+  }),
+  createDriftwoodProduct({
+    code: "DW-12",
+    idSuffix: "dw-12",
+    price: "48000",
+    title: "خشب ديكور للأحواض — قطعة DW-12",
+    description: "قطعة خشبية ملكية بتفاصيل جذور معقدة ومتشعبة تعطي عمق طبيعي فائق للحوض. هذي القطعة تم اختيارها بعناية لتمثل محور التصميم الأساسي، بفضل تداخلاتها اللي تسمح بنمو الطحالب والنباتات المائية عليها بشكل انسيابي. مناسبة جدا لأحواض الأكواسكايب الاحترافية."
+  }),
+  createDriftwoodProduct({
+    code: "DW-13",
+    idSuffix: "dw-13",
+    price: "38000",
+    title: "خشب ديكور للأحواض — قطعة DW-13",
+    description: "جذر طبيعي ممتد بتموجات ناعمة وتفاصيل خشبية عتيقة تضفي طابع الغابات الاستوائية القديمة. مثالية لإنشاء ممرات ومخابئ طبيعية للأسماك الصغيرة والروبيان. قوامها المتين ولونها الغني يجعلها قطعة مميزة تدوم طويلا داخل حوضك."
+  }),
+  createDriftwoodProduct({
+    code: "DW-14",
+    idSuffix: "dw-14",
+    price: "42000",
+    title: "خشب ديكور للأحواض — قطعة DW-14",
+    description: "قطعة فريدة تمتاز بقاعدة عريضة وتفرعات مرتفعة تشبه الأشجار القزمة، تمنح حوضك لمسة فنية وارتفاعا بصريا مميزا. تكدر تستخدمها لربط نباتات الأنوبياس أو الجافا موس لتصميم منظر طبيعي خلاب يحاكي الطبيعة بدقة."
+  }),
+  createDriftwoodProduct({
+    code: "DW-15",
+    idSuffix: "dw-15",
+    price: "45000",
+    title: "خشب ديكور للأحواض — قطعة DW-15",
+    description: "تمتاز هذي القطعة بتجويفاتها الطبيعية الفريدة وتمازج ألوان الخشب الداكنة مع الإضاءة المائية. شكلها الانسيابي يسهل تنسيقها مع الصخور البركانية أو صخور التنين لإنشاء جدار صخري خشبي متكامل يبهر الناظرين."
+  }),
+  createDriftwoodProduct({
+    code: "DW-16",
+    idSuffix: "dw-16",
+    price: "65000",
+    title: "خشب ديكور للأحواض — قطعة DW-16",
+    description: "تحفة فنية عملاقة ونادرة، تتميز بجذورها المتشعبة بكثافة عالية وكتلتها الخشبية الثقيلة التي تستقر بثبات في قاع الحوض. تفاصيلها الملتوية تعكس سنوات من العوامل الطبيعية التي صقلت هذا الخشب ليكون لوحة جمالية ساحرة تجذب الأنظار وتجعله القطعة الأبرز في الحوض."
   }),
 ];

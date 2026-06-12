@@ -191,7 +191,7 @@ export default function CommunityGallery() {
           {user ? (
             <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
               <DialogTrigger asChild>
-                <Button size="lg" className="gap-2">
+                <Button size="lg" className="gap-2" data-tour="gallery-upload">
                   <Upload className="h-5 w-5" />
                   أضف صورة للألبوم
                 </Button>
@@ -306,7 +306,7 @@ export default function CommunityGallery() {
             <div className="flex flex-col items-center gap-4">
               <p className="text-muted-foreground">سجل دخولك لتتمكن من مشاركة صور حوضك مع العائلة</p>
               <Link href="/login">
-                <Button variant="outline" size="lg">تسجيل الدخول للمشاركة</Button>
+                <Button variant="outline" size="lg" data-tour="gallery-upload">تسجيل الدخول للمشاركة</Button>
               </Link>
             </div>
           )}
@@ -374,7 +374,7 @@ export default function CommunityGallery() {
         )}
 
         {/* Gallery Grid */}
-        <div>
+        <div data-tour="gallery-grid">
           <h2 className="text-2xl font-bold mb-6">معرض الأحواض</h2>
 
           {isLoading ? (

@@ -142,7 +142,7 @@ export default function GuideTreatmentBasics() {
               أرسل صورة أو فيديو للسمچة وأعراضها — نساعدك تحدد المشكلة قبل الدواء.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="trt-cta-btn"

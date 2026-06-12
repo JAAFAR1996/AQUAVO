@@ -188,7 +188,7 @@ export default function GuideFilterChoice() {
               أرسل حجم الحوض وعدد السمچ — ونرشدك لأنسب خيار بميزانيتك.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="fltr-cta-btn"

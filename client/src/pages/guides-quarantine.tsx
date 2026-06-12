@@ -175,7 +175,7 @@ export default function GuideQuarantine() {
               نساعدك تبني حوض عزل مؤقت بما لديك. أرسل لنا وضعك الحالي.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="qrn-cta-btn"

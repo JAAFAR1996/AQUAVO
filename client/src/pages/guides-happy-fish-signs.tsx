@@ -163,7 +163,7 @@ export default function GuideHappyFishSigns() {
               أرسل صورة أو فيديو للسمچة — نساعدك تشخص الموضوع بشكل أدق.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="hfs-cta-btn"

@@ -222,7 +222,7 @@ export default function GuideTankRescuePlan() {
               دز صورة واضحة للحوض، حجمه، وأرقام الفحص — ونرتبلك خطة مباشرة.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="rsc-cta-btn"

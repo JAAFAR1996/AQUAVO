@@ -709,7 +709,10 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     const sumReturn = (key: keyof typeof verifiedReturnRows[0]) =>
       verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
 
-    const totalSalesReturnDeduction = verifiedReturnRows.reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
+    const realizedOrderIds = new Set(realizedOrders.map((o) => o.id));
+    const totalSalesReturnDeduction = verifiedReturnRows
+      .filter((e) => realizedOrderIds.has(e.orderId))
+      .reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
     const totalActualReturnLoss = verifiedReturnRows.reduce((s, e) => s + eventActualReturnLoss(e), 0);
     const sellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked === true).length;
     const nonSellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked !== true).length;
@@ -2223,7 +2226,10 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     const sumRet = (key: keyof typeof verifiedReturnRows[0]) =>
       verifiedReturnRows.reduce((s, e) => s + toNumber(e[key]), 0);
 
-    const totalSalesReturnDeduction = verifiedReturnRows.reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
+    const realizedOrderIds = new Set(realizedOrders.map((o) => o.id));
+    const totalSalesReturnDeduction = verifiedReturnRows
+      .filter((e) => realizedOrderIds.has(e.orderId))
+      .reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
     const totalActualReturnLoss = verifiedReturnRows.reduce((s, e) => s + eventActualReturnLoss(e), 0);
     const sellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked === true).length;
     const nonSellableReturnedCount = verifiedReturnRows.filter((e) => e.restocked !== true).length;

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -192,6 +193,7 @@ function slugify(text: string): string {
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   // Filter states
@@ -343,7 +345,7 @@ export default function AdminDashboard() {
           });
         } else if (error.code === "NOT_LOGGED_IN") {
           toast({ title: "غير مسجل دخول", description: "يرجى تسجيل الدخول مرة أخرى", variant: "destructive" });
-          window.location.href = "/admin/login";
+          setLocation("/admin/login");
         } else {
           toast({ title: "غير مصرح", description: error.message || "يرجى تسجيل الدخول كمدير", variant: "destructive" });
         }
@@ -646,7 +648,7 @@ export default function AdminDashboard() {
           <Button
             variant="outline"
             className="gap-2 border-green-300 text-green-700 hover:bg-green-50"
-            onClick={() => window.location.href = '/admin/finance'}
+            onClick={() => setLocation('/admin/finance')}
           >
             <Calculator className="w-4 h-4" />
             الدخول إلى المحاسب
@@ -713,7 +715,7 @@ export default function AdminDashboard() {
 
       <Tabs defaultValue="products" className="w-full">
 
-        <TabsList className="grid w-full grid-cols-4 sm:grid-cols-6 lg:grid-cols-13 h-auto p-1 gap-1">
+        <TabsList className="flex flex-wrap w-full h-auto p-1.5 gap-1.5 bg-muted/60 border border-border/50 rounded-xl justify-start">
           <TabsTrigger value="products">المنتجات</TabsTrigger>
           <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
           <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>

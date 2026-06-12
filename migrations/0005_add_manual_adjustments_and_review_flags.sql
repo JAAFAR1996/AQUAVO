@@ -115,7 +115,7 @@ CREATE TABLE "shipping_settlements" (
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "social_interactions" (
+CREATE TABLE "store_social_interactions" (
 	"id" text PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"platform" text NOT NULL,
 	"media_id" text NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE "social_interactions" (
 	"dm_sent" boolean DEFAULT false,
 	"reply_sent" boolean DEFAULT false,
 	"created_at" timestamp DEFAULT now() NOT NULL,
-	CONSTRAINT "social_interactions_comment_id_unique" UNIQUE("comment_id")
+	CONSTRAINT "store_social_interactions_comment_id_unique" UNIQUE("comment_id")
 );
 --> statement-breakpoint
 ALTER TABLE "orders" ADD COLUMN "cod_received" boolean DEFAULT false;--> statement-breakpoint
@@ -158,6 +158,6 @@ CREATE INDEX "order_return_events_status_idx" ON "order_return_events" USING btr
 CREATE INDEX "order_return_events_created_at_idx" ON "order_return_events" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "pch_product_id_idx" ON "product_cost_history" USING btree ("product_id");--> statement-breakpoint
 CREATE INDEX "pch_effective_from_idx" ON "product_cost_history" USING btree ("effective_from");--> statement-breakpoint
-CREATE UNIQUE INDEX "social_interactions_comment_id_idx" ON "social_interactions" USING btree ("comment_id");--> statement-breakpoint
-CREATE INDEX "social_interactions_media_id_idx" ON "social_interactions" USING btree ("media_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "store_social_interactions_comment_id_idx" ON "store_social_interactions" USING btree ("comment_id");--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "store_social_interactions_media_id_idx" ON "store_social_interactions" USING btree ("media_id");--> statement-breakpoint
 CREATE INDEX "orders_source_idx" ON "orders" USING btree ("source");

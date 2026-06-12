@@ -248,12 +248,12 @@ export const reviewRatings = pgTable("review_ratings", {
 });
 
 // Sessions table for persistent session storage
-export const sessions = pgTable("sessions", {
+export const sessions = pgTable("express_sessions", {
   sid: text("sid").primaryKey(),
   sess: jsonb("sess").notNull().$type<any>(),
   expire: timestamp("expire").notNull(),
 }, (table) => ({
-  expireIdx: index("sessions_expire_idx").on(table.expire),
+  expireIdx: index("express_sessions_expire_idx").on(table.expire),
 }));
 
 // Discounts table for product discounts
@@ -270,7 +270,7 @@ export const discounts = pgTable("discounts", {
 });
 
 // Audit logs for tracking admin actions
-export const auditLogs = pgTable("audit_logs", {
+export const auditLogs = pgTable("store_audit_logs", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: text("user_id").references(() => users.id).notNull(),
   action: text("action").notNull(), // create, update, delete
@@ -2673,7 +2673,7 @@ export type AccountingReviewFlag = typeof accountingReviewFlags.$inferSelect;
 export type InsertAccountingReviewFlag = typeof accountingReviewFlags.$inferInsert;
 
 // Social Interactions Tracking for Auto-Responses
-export const socialInteractions = pgTable('social_interactions', {
+export const socialInteractions = pgTable('store_social_interactions', {
   id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   platform: text('platform').notNull(), // instagram, facebook
   mediaId: text('media_id').notNull(),
@@ -2684,8 +2684,8 @@ export const socialInteractions = pgTable('social_interactions', {
   replySent: boolean('reply_sent').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 }, (table) => ({
-  commentIdIdx: uniqueIndex('social_interactions_comment_id_idx').on(table.commentId),
-  mediaIdIdx: index('social_interactions_media_id_idx').on(table.mediaId),
+  commentIdIdx: uniqueIndex('store_social_interactions_comment_id_idx').on(table.commentId),
+  mediaIdIdx: index('store_social_interactions_media_id_idx').on(table.mediaId),
 }));
 
 export const insertSocialInteractionSchema = createInsertSchema(socialInteractions);

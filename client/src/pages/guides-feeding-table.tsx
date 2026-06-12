@@ -159,7 +159,7 @@ export default function GuideFeedingTable() {
               أرسل نوع السمچ وحجمه وعدده — ونرتبلك جدول تغذية مناسب.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="fd-cta-btn"

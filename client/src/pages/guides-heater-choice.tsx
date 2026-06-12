@@ -181,7 +181,7 @@ export default function GuideHeaterChoice() {
               أرسل حجم الحوض وموقعه (داخلي/خارجي) ودرجة الحرارة المطلوبة — نحسبها معك.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="htr-cta-btn"

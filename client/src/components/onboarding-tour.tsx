@@ -8,7 +8,7 @@ export function OnboardingTour() {
     const [location] = useLocation();
     const [isMobile, setIsMobile] = useState(false);
 
-    // Detect mobile
+    // Detect mobile screen sizes
     useEffect(() => {
         const checkMobile = () => setIsMobile(window.innerWidth < 768);
         checkMobile();
@@ -16,184 +16,22 @@ export function OnboardingTour() {
         return () => window.removeEventListener('resize', checkMobile);
     }, []);
 
+    // Set steps and run state based on the current location
     useEffect(() => {
         let pageSteps: Step[] = [];
         const path = location;
 
-        // 1. HOME PAGE STEPS
-        if (path === '/') {
+        // 1. FISH DOCTOR PAGE STEPS (طبيب الأسماك)
+        if (path === '/fish-health-diagnosis') {
             pageSteps = [
                 {
                     target: 'body',
                     content: (
-                        <div className="text-right" dir="rtl">
-                            <h2 className="text-xl font-bold mb-2">مرحباً بك في AQUAVO! 👋</h2>
-                            <p>جولة سريعة لنعرفك على أهم مميزات صفحتنا الرئيسية.</p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                // Mobile-specific step for Menu
-                ...(isMobile ? [{
-                    target: '[data-tour="mobile-menu-trigger"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">القائمة الرئيسية ☰</h3>
-                            <p>اضغط هنا للوصول إلى جميع الأقسام والصفحات.</p>
-                        </div>
-                    ),
-                }] : []),
-                // Desktop-specific step for Categories
-                ...(!isMobile ? [{
-                    target: '[data-tour="navbar-categories"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">الأقسام 📂</h3>
-                            <p>تصفح جميع منتجاتنا حسب الفئة بسهولة من هنا.</p>
-                        </div>
-                    ),
-                }] : []),
-                {
-                    target: '[data-tour="navbar-search"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">البحث الذكي 🔍</h3>
-                            <p>ابحث عن أي شيء تريده بالضغط هنا.</p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="navbar-cart"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">السلة 🛒</h3>
-                            <p>منتجاتك المختارة ستجدها هنا جاهزة للشراء.</p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="hero-cta"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">ابدأ من هنا 🚀</h3>
-                            <p>اضغط لتصفح أحدث العروض والمنتجات فوراً.</p>
-                        </div>
-                    ),
-                },
-            ];
-        }
-        // 2. PRODUCTS PAGE STEPS
-        else if (path.startsWith('/products')) {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h2 className="text-xl font-bold mb-2">صفحة المنتجات 🛍️</h2>
-                            <p>هنا تجد كل ما يحتاجه حوضك. دعنا نلقي نظرة!</p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                {
-                    target: '[data-tour="products-filter"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">الفلترة والترتيب ⚡</h3>
-                            <p>استخدم هذه الخيارات للعثور على المنتج المناسب بسرعة.</p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="product-card-first"]', // We'll target the first product card
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">تفاصيل المنتج 🏷️</h3>
-                            <p>اضغط على أي منتج لعرض التفاصيل الكاملة أو إضافته للسلة.</p>
-                        </div>
-                    ),
-                },
-            ];
-        }
-        // 3. CALCULATORS PAGE STEPS
-        else if (path === '/calculators') {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h2 className="text-xl font-bold mb-2">حاسبات الأحواض 🧮</h2>
-                            <p>أدوات ذكية لحساب كل ما تحتاجه لحوضك!</p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                {
-                    target: '[data-tour="calculators-tabs"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">اختر نوع الحساب 📊</h3>
-                            <p>حجم الحوض، الفلتر، السخان، والمزيد من الأدوات المفيدة.</p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="calculators-content"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">أدخل البيانات ✍️</h3>
-                            <p>أدخل قياسات حوضك وستحصل على النتيجة فوراً!</p>
-                        </div>
-                    ),
-                },
-            ];
-        }
-        // 4. FISH ENCYCLOPEDIA PAGE STEPS
-        else if (path === '/fish-encyclopedia') {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h2 className="text-xl font-bold mb-2">موسوعة الأسماك 🐠</h2>
-                            <p>تعرف على أنواع الأسماك ومتطلبات كل نوع.</p>
-                        </div>
-                    ),
-                    placement: 'center',
-                    skipBeacon: true,
-                },
-                {
-                    target: '[data-tour="encyclopedia-search"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">ابحث عن سمكة 🔍</h3>
-                            <p>اكتب اسم السمكة التي تريد معرفة معلومات عنها.</p>
-                        </div>
-                    ),
-                },
-                {
-                    target: '[data-tour="encyclopedia-filters"]',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">فلترة النتائج ⚡</h3>
-                            <p>صنّف الأسماك حسب الحجم، درجة الحرارة، أو مستوى العناية.</p>
-                        </div>
-                    ),
-                },
-            ];
-        }
-        // 5. FISH HEALTH PAGE STEPS
-        else if (path === '/fish-health-diagnosis') {
-            pageSteps = [
-                {
-                    target: 'body',
-                    content: (
-                        <div className="text-right" dir="rtl">
-                            <h2 className="text-xl font-bold mb-2">تشخيص صحة السمكة 🩺</h2>
-                            <p>ارفع صورة سمكتك لتشخيص حالتها الصحية بالذكاء الاصطناعي!</p>
+                        <div className="text-right font-sans" dir="rtl">
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">طبيب أسماك ذكي بجيبك 🩺</h2>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                هالفكرة مو خيال، هسه تكدر بضغطة وحدة تشخص حالة سمكتك وتعرف شنو اللي مأذيها بدون حيرة.
+                            </p>
                         </div>
                     ),
                     placement: 'center',
@@ -202,18 +40,153 @@ export function OnboardingTour() {
                 {
                     target: '[data-tour="health-upload"]',
                     content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">ارفع صورة سمكتك 📷</h3>
-                            <p>التقط صورة واضحة للسمكة ثم ارفعها هنا.</p>
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">ارفع صورة سمكتك 📷</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                كل اللي تحتاجه هو صورة واضحة من الجانب لسمكتك المريضة، ارفعها هنا والـ AI راح يحلل الأعراض والالتهابات بدقة عالية.
+                            </p>
                         </div>
                     ),
                 },
                 {
                     target: '[data-tour="health-results"]',
                     content: (
-                        <div className="text-right" dir="rtl">
-                            <h3 className="font-bold mb-2">نتيجة التشخيص 📋</h3>
-                            <p>ستظهر هنا حالة السمكة والتوصيات العلاجية.</p>
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">نتيجة التشخيص 📋</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                هنا راح تطلعلك النتيجة بالتفصيل الممل، مع خطة علاج يومية وتوصيات دقيقة للمي والجرعات المناسبة حتى ترجع سمكتك بكامل صحتها.
+                            </p>
+                        </div>
+                    ),
+                },
+            ];
+        }
+        // 2. CALCULATORS PAGE STEPS (الحاسبات)
+        else if (path === '/calculators') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">حسابات الأحواض بدون دوخة راس 🧮</h2>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                صممنا هالقسم حتى نخلصك من الحسابات المعقدة وتجهز حوضك بالملي وبدون أي غلطة.
+                            </p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    skipBeacon: true,
+                },
+                {
+                    target: '[data-tour="calculators-tabs"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">تنقل بين الحاسبات بكل سهولة 📊</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                حجم الحوض، قوة السخان، الفلتر المناسب، كمية الملح، وحتى جدول الصيانة، كلشي تحتاجه بمكان واحد.
+                            </p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="calculators-content"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">اكتب القياسات ✍️</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                اكتب القياسات والمعلومات هنا وراح تطلعلك الأرقام الصحيحة والتوصيات مباشرة بدون أي تعقيد.
+                            </p>
+                        </div>
+                    ),
+                },
+            ];
+        }
+        // 3. FAMILY ALBUM PAGE STEPS (ألبوم العائلة)
+        else if (path === '/community-gallery') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">ألبوم العائلة ومجتمع الهواة 📸</h2>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                هذا مكانك الخاص ومجتمع هواة الأحواض بالعراق. شاركنا إبداعك وشوف أحواض بقية العائلة واستمتع بجمال تصاميمهم.
+                            </p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    skipBeacon: true,
+                },
+                {
+                    target: '[data-tour="gallery-upload"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">شارك حوضك ويا العائلة 🌟</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                اضغط هنا حتى ترفع صورة حوضك وتشارك قصتك ويا الأسماك والنباتات وتدخل ويانا بالمسابقة الشهرية وتنافس على الجوائز.
+                            </p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="gallery-grid"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">تصفح وتفاعل 💬</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                تصفح معرض الأحواض، انطي لايك للتصاميم اللي تعجبك وتفاعل ويا بقية المربين بالبلد.
+                            </p>
+                        </div>
+                    ),
+                },
+            ];
+        }
+        // 4. YOUR JOURNEY PAGE STEPS (رحلتك)
+        else if (path === '/journey') {
+            pageSteps = [
+                {
+                    target: 'body',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h2 className="text-xl font-extrabold mb-2 text-primary">رحلتك ويا الحوض تبدي من هنا 🚀</h2>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                خطوة بخطوة نحو حوض أحلامك. هذا الدليل التفاعلي راح يمشي وياك من الصفر لحد ما يكمل حوضك بكل تفاصيله.
+                            </p>
+                        </div>
+                    ),
+                    placement: 'center',
+                    skipBeacon: true,
+                },
+                {
+                    target: '[data-tour="journey-progress"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">تتبع خطواتك 📍</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                شريط التقدم هذا يوضحلك وين واصل برحلتك، وتكدر تحفظ مسودتك وترجع تكمل بأي وقت يعجبك.
+                            </p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="journey-content"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">ركز على تفاصيل حوضك 🛠️</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                كل خطوة هنا تركز على جانب مهم: حجم الحوض، الأجهزة، الديكورات، معايير المياه، وحتى اختيار الأسماك المناسبة.
+                            </p>
+                        </div>
+                    ),
+                },
+                {
+                    target: '[data-tour="journey-nav"]',
+                    content: (
+                        <div className="text-right font-sans" dir="rtl">
+                            <h3 className="font-bold mb-2 text-primary">التنقل بين الخطوات ➡️</h3>
+                            <p className="text-muted-foreground leading-relaxed text-sm">
+                                استخدم الأزرار هنا حتى تتنقل بين الخطوات بعد ما تكمل اختيار كل مرحلة وتنتقل للي بعدها.
+                            </p>
                         </div>
                     ),
                 },
@@ -222,43 +195,24 @@ export function OnboardingTour() {
 
         setSteps(pageSteps);
 
-        // Global dismiss: once any tour is finished/skipped, never show again
-        const globalDismissed = localStorage.getItem('aquavo_tours_dismissed');
-        if (globalDismissed) {
-            setRun(false);
-            return;
-        }
-
-        // Only auto-show the tour on the home page (first visit)
-        // Other pages: user can trigger manually if needed
-        const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
-        const hasSeen = localStorage.getItem(seenKey);
-        const sessionDismissed = sessionStorage.getItem('aquavo_tour_session_done');
-
-        // Never auto-show if already seen this page or dismissed this session
-        if (!hasSeen && !sessionDismissed && pageSteps.length > 0 && path === '/') {
-            const timer = setTimeout(() => {
-                setRun(true);
-            }, 5000);
-            return () => clearTimeout(timer);
+        if (pageSteps.length > 0) {
+            setRun(true);
         } else {
             setRun(false);
         }
-
     }, [location, isMobile]);
 
     const handleJoyrideCallback = (data: EventData) => {
         const { status } = data;
         const difficultStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
 
-        // Identify current page key to save
         const path = location;
-        const seenKey = `aquavo_tour_seen_${path === '/' ? 'home' : path.split('/')[1]}`;
+        const pageName = path.split('/')[1];
+        const seenKey = `aquavo_tour_seen_${pageName}`;
 
         if (difficultStatuses.includes(status)) {
             localStorage.setItem(seenKey, 'true');
             localStorage.setItem('aquavo_tours_dismissed', 'true');
-            sessionStorage.setItem('aquavo_tour_session_done', 'true');
             setRun(false);
         }
     };
@@ -270,7 +224,6 @@ export function OnboardingTour() {
         backgroundColor: '#ffffff',
         arrowColor: '#ffffff',
         overlayClickAction: 'close',
-        buttons: ['back', 'close', 'skip', 'primary'],
     };
 
     const tourStyles: Partial<Styles> = {

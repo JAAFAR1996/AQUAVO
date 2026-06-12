@@ -534,7 +534,7 @@ export default function FishHealthDiagnosis() {
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
           {/* ═══════════ Upload Section ═══════════ */}
-          <Card className="overflow-hidden border-2 hover:border-primary/30 transition-colors">
+          <Card className="overflow-hidden border-2 hover:border-primary/30 transition-colors" data-tour="health-upload">
             <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10">
               <CardTitle className="flex items-center gap-2">
                 <Camera className="h-5 w-5" />
@@ -789,7 +789,7 @@ export default function FishHealthDiagnosis() {
           </Card>
 
           {/* ═══════════ Diagnosis Result ═══════════ */}
-          <div ref={resultsRef}>
+          <div ref={resultsRef} data-tour="health-results">
             <Card className={`overflow-hidden border-2 transition-colors ${diagnosis ? urgencyConfig[diagnosis.urgency].border : ''}`}>
               <CardHeader className={diagnosis ? `bg-gradient-to-r ${urgencyConfig[diagnosis.urgency].bgLight}` : ''}>
                 <div className="flex items-center justify-between">

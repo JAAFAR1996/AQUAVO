@@ -131,7 +131,7 @@ export default function GuideWhiteScale() {
               الألوان الأخرى تدل على مشاكل مختلفة. أرسل صورة نشخصها لك.
             </p>
             <a
-              href="https://www.instagram.com/aquavoiq/"
+              href="https://www.instagram.com/aquavo_iq/"
               target="_blank"
               rel="noopener noreferrer"
               className="whl-cta-btn"

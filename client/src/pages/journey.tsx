@@ -179,11 +179,13 @@ export default function JourneyPage() {
 
       <div className="container max-w-5xl mx-auto px-4">
         {/* Progress Bar */}
-        <JourneyProgress
-          steps={STEPS}
-          currentStep={currentStep}
-          setCurrentStep={setCurrentStep}
-        />
+        <div data-tour="journey-progress">
+          <JourneyProgress
+            steps={STEPS}
+            currentStep={currentStep}
+            setCurrentStep={setCurrentStep}
+          />
+        </div>
 
         {/* Content */}
         <AnimatePresence mode="wait">
@@ -193,6 +195,7 @@ export default function JourneyPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.3 }}
+            data-tour="journey-content"
           >
             {renderStep()}
           </motion.div>
@@ -200,7 +203,7 @@ export default function JourneyPage() {
 
         {/* Navigation Buttons (Hide for Summary Step) */}
         {currentStep < 8 && (
-          <div className="flex justify-between items-center mt-8 gap-4">
+          <div className="flex justify-between items-center mt-8 gap-4" data-tour="journey-nav">
             <Button
               variant="outline"
               size="lg"

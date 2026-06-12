@@ -41,10 +41,10 @@ const safetyWarnings = [
 ];
 
 const newProducts = [
-  { code: "DW-08", idSuffix: "dw-08", price: "14000" },
-  { code: "DW-09", idSuffix: "dw-09", price: "14000" },
-  { code: "DW-10", idSuffix: "dw-10", price: "16000" },
-  { code: "DW-11", idSuffix: "dw-11", price: "24000" },
+  { code: "DW-08", idSuffix: "dw-08", price: "15000" },
+  { code: "DW-09", idSuffix: "dw-09", price: "13000" },
+  { code: "DW-10", idSuffix: "dw-10", price: "18000" },
+  { code: "DW-11", idSuffix: "dw-11", price: "28000" },
 ];
 
 async function seedDriftwood() {
