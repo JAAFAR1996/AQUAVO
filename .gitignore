@@ -78,6 +78,27 @@ TOOLS/gmail-creator/
 # Playwright MCP session files (temp screenshots/logs)
 .playwright-mcp/
 
+# One-off DB scripts (may contain credentials — never commit)
+scripts/
+scratch/
+script/
+tmp_*.mjs
+tmp-*.mjs
+tmp-*.ts
+test-delete.mjs
+test_db.ts
+deep-check.js
+fetch_prices.*
+sync-prices.ts
+diag_*.mjs
+fix_*.mjs
+check_*.mjs
+Launch_Ideas/promot/_db_query.*
+
+# Vercel env exports (contain real secrets)
+.env.vercel
+.env.vercel.production
+
 # Audit/QA screenshots (root-level only)
 /audit-*.png
 /audit-*.jpeg

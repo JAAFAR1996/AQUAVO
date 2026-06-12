@@ -9,6 +9,8 @@ import { clearProductsCache } from "./products.js";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { OperationalError } from "../middleware/error-handler.js";
+import { getDb } from "../db.js";
+import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -168,6 +170,40 @@ export function createAdminRouter(): RouterType {
                     entityId: order.id,
                     changes: updates
                 });
+
+                // Financial audit trail: record before→after for money-affecting fields.
+                // These bypass REALIZED_STATUSES or change captured amounts, so they must be traceable.
+                try {
+                    const fdb = getDb();
+                    if (fdb) {
+                        const actor = actorFromRequest(req);
+                        const financialFields: { field: keyof typeof updates; entity: FinancialEntityType }[] = [
+                            { field: "financiallyCounted", entity: "order" },
+                            { field: "boxCost", entity: "order" },
+                            { field: "total", entity: "order" },
+                        ];
+                        for (const { field, entity } of financialFields) {
+                            if (updates[field] === undefined) continue;
+                            const oldVal = (previousOrder as any)?.[field] ?? null;
+                            const newVal = (order as any)?.[field] ?? null;
+                            if (String(oldVal) === String(newVal)) continue;
+                            await recordFinancialChange(fdb, {
+                                entityType: entity,
+                                entityId: order.id,
+                                action: field === "financiallyCounted" ? "status_change" : "update",
+                                fieldName: String(field),
+                                oldValue: oldVal,
+                                newValue: newVal,
+                                reason: typeof (req.body as any)?.financialReason === "string" ? (req.body as any).financialReason : null,
+                                performedBy: actor.id,
+                                performedByName: actor.name,
+                            });
+                        }
+                    }
+                } catch (auditErr) {
+                    console.error("[Admin] Failed to record financial audit trail:", auditErr);
+                    // Never block the order update on audit-trail failure.
+                }
 
                 const newStatus = updates.status;
                 const oldStatus = previousOrder?.status;

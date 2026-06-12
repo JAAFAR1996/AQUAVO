@@ -178,6 +178,8 @@ export const shippingSettlements = pgTable("shipping_settlements", {
   carrier: text("carrier").notNull(),
   amount: numeric("amount").notNull(),
   notes: text("notes"),
+  // Which specific orders this settlement covers — enables COD reconciliation.
+  coveredOrderIds: jsonb("covered_order_ids"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -206,6 +208,9 @@ export const expenses = pgTable("expenses", {
   isRecurring: boolean("is_recurring").notNull().default(false),
   recurringPeriod: text("recurring_period"),
   // valid: monthly, weekly, yearly — only when isRecurring = true
+  // Soft-delete: expenses are never hard-deleted (preserves period integrity).
+  deletedAt: timestamp("deleted_at"),
+  deletedBy: text("deleted_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => ({
@@ -2671,6 +2676,73 @@ export const accountingReviewFlags = pgTable("accounting_review_flags", {
 
 export type AccountingReviewFlag = typeof accountingReviewFlags.$inferSelect;
 export type InsertAccountingReviewFlag = typeof accountingReviewFlags.$inferInsert;
+
+// ==================== Finance: Universal Audit Trail ====================
+// Immutable, append-only log of EVERY financial mutation. Captures before→after
+// values, who did it, and why. This is what makes the books trustworthy:
+// no financial number can change without leaving a traceable record here.
+// Rows are never updated or deleted.
+
+export const accountingAuditTrail = pgTable("accounting_audit_trail", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  entityType: text("entity_type").notNull(),
+  // order | expense | settlement | return_event | manual_invoice | product_cost
+  entityId: text("entity_id").notNull(),
+  action: text("action").notNull(),
+  // create | update | delete | status_change
+  fieldName: text("field_name"),
+  // boxCost | financiallyCounted | amount | status | total | ... (null for create/delete of whole row)
+  oldValueJson: jsonb("old_value_json"),
+  newValueJson: jsonb("new_value_json"),
+  reason: text("reason"),
+  // required for manual edits of existing financial figures (enforced at route level)
+  performedBy: text("performed_by"),
+  performedByName: text("performed_by_name"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  entityIdx: index("aat_entity_idx").on(table.entityType, table.entityId),
+  actionIdx: index("aat_action_idx").on(table.action),
+  createdAtIdx: index("aat_created_at_idx").on(table.createdAt),
+}));
+
+export type AccountingAuditTrail = typeof accountingAuditTrail.$inferSelect;
+export type InsertAccountingAuditTrail = typeof accountingAuditTrail.$inferInsert;
+
+// ==================== Finance: Period Closes (immutable snapshots) ============
+// When a period (month) is "closed", its computed financials are frozen here.
+// This is the authoritative record of "what the books said" for that period.
+// Reconciliation later recomputes from source and flags any drift vs this snapshot.
+
+export const accountingPeriodCloses = pgTable("accounting_period_closes", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  periodKey: text("period_key").notNull(), // "YYYY-MM"
+  periodStart: timestamp("period_start").notNull(),
+  periodEnd: timestamp("period_end").notNull(),
+  // Frozen key figures (denormalized for fast listing + drift compare)
+  revenue: numeric("revenue").notNull().default("0"),
+  cogs: numeric("cogs").notNull().default("0"),
+  grossProfit: numeric("gross_profit").notNull().default("0"),
+  expensesTotal: numeric("expenses_total").notNull().default("0"),
+  salesReturnDeduction: numeric("sales_return_deduction").notNull().default("0"),
+  actualReturnLoss: numeric("actual_return_loss").notNull().default("0"),
+  finalNetProfit: numeric("final_net_profit").notNull().default("0"),
+  deliveredOrders: integer("delivered_orders").notNull().default(0),
+  // Full snapshot for audit/forensics
+  snapshotJson: jsonb("snapshot_json"),
+  status: text("status").notNull().default("closed"), // closed | reopened
+  closedBy: text("closed_by"),
+  closedByName: text("closed_by_name"),
+  closedAt: timestamp("closed_at").defaultNow().notNull(),
+  reopenedBy: text("reopened_by"),
+  reopenedReason: text("reopened_reason"),
+  reopenedAt: timestamp("reopened_at"),
+}, (table) => ({
+  periodKeyIdx: uniqueIndex("apc_period_key_idx").on(table.periodKey),
+  statusIdx: index("apc_status_idx").on(table.status),
+}));
+
+export type AccountingPeriodClose = typeof accountingPeriodCloses.$inferSelect;
+export type InsertAccountingPeriodClose = typeof accountingPeriodCloses.$inferInsert;
 
 // Social Interactions Tracking for Auto-Responses
 export const socialInteractions = pgTable('social_interactions', {

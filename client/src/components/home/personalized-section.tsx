@@ -120,8 +120,14 @@ export function PersonalizedSection() {
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {products.slice(0, 8).map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {products.slice(0, 8).map((product, index) => (
+              <div
+                key={product.id}
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${index * 70}ms`, animationFillMode: "both" }}
+              >
+                <ProductCard product={product} />
+              </div>
             ))}
           </div>
         )}

@@ -1,9 +1,11 @@
 import { Router, type Request, type Response, type NextFunction } from "express";
+import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { expenses } from "../../shared/schema.js";
 import { expenseInputSchema, accountingPeriodSchema, type AccountingPeriod } from "../../shared/accounting.js";
-import { and, gte, lte, eq, desc } from "drizzle-orm";
+import { and, gte, lte, eq, desc, isNull } from "drizzle-orm";
+import { recordFinancialChange, actorFromRequest } from "../services/accountingAuditTrail.js";
 
 const router = Router();
 router.use(requireAdmin);
@@ -100,7 +102,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction): Promise
     const list = await db
       .select()
       .from(expenses)
-      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end)))
+      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end), isNull(expenses.deletedAt)))
       .orderBy(desc(expenses.expenseDate));
 
     const serialized = list.map(serializeExpense);
@@ -144,6 +146,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
     }
 
     const { category, amount, description, expenseDate, isRecurring, recurringPeriod } = parsed.data;
+    const actor = actorFromRequest(req);
 
     const [inserted] = await db
       .insert(expenses)
@@ -156,6 +159,18 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
         recurringPeriod: recurringPeriod ?? null,
       })
       .returning();
+
+    await recordFinancialChange(db, {
+      entityType: "expense",
+      entityId: inserted.id,
+      action: "create",
+      fieldName: null,
+      oldValue: null,
+      newValue: { category, amount, description: description ?? null, expenseDate },
+      reason: null,
+      performedBy: actor.id,
+      performedByName: actor.name,
+    });
 
     res.status(201).json({ success: true, data: serializeExpense(inserted) });
   } catch (err) {
@@ -170,9 +185,17 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction): Pr
     if (!db) return;
 
     const { id } = req.params as { id: string };
-    const parsed = expenseInputSchema.partial().safeParse(req.body);
+    // Editing a recorded expense requires a reason — it changes a past financial figure.
+    const parsed = expenseInputSchema.partial().extend({ reason: z.string().trim().min(3).max(500) }).safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, message: "بيانات التحديث غير صالحة", errors: parsed.error.flatten() });
+      res.status(400).json({ success: false, message: "بيانات التحديث غير صالحة أو السبب مفقود", errors: parsed.error.flatten() });
+      return;
+    }
+
+    // Read the current row first so we can record before→after.
+    const [before] = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+    if (!before || before.deletedAt) {
+      res.status(404).json({ success: false, message: "المصروف غير موجود" });
       return;
     }
 
@@ -187,16 +210,28 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction): Pr
     if (parsed.data.isRecurring !== undefined) updateData.isRecurring = parsed.data.isRecurring;
     if (parsed.data.recurringPeriod !== undefined) updateData.recurringPeriod = parsed.data.recurringPeriod ?? null;
 
-    const [updated] = await db
-      .update(expenses)
-      .set(updateData)
-      .where(eq(expenses.id, id))
-      .returning();
+    const actor = actorFromRequest(req);
+    const [updated] = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(expenses)
+        .set(updateData)
+        .where(eq(expenses.id, id))
+        .returning();
 
-    if (!updated) {
-      res.status(404).json({ success: false, message: "المصروف غير موجود" });
-      return;
-    }
+      await recordFinancialChange(tx, {
+        entityType: "expense",
+        entityId: id,
+        action: "update",
+        fieldName: null,
+        oldValue: { category: before.category, amount: toNumber(before.amount), description: before.description, expenseDate: before.expenseDate },
+        newValue: { category: row.category, amount: toNumber(row.amount), description: row.description, expenseDate: row.expenseDate },
+        reason: parsed.data.reason,
+        performedBy: actor.id,
+        performedByName: actor.name,
+      });
+
+      return [row];
+    });
 
     res.json({ success: true, data: serializeExpense(updated) });
   } catch (err) {
@@ -204,23 +239,45 @@ router.patch("/:id", async (req: Request, res: Response, next: NextFunction): Pr
   }
 });
 
-// DELETE /:id — delete expense
+// DELETE /:id — soft-delete expense (never hard-deleted: preserves period integrity)
 router.delete("/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const db = getExpensesDb(res);
     if (!db) return;
 
     const { id } = req.params as { id: string };
+    // Deleting a recorded expense requires a reason.
+    const parsed = z.object({ reason: z.string().trim().min(3).max(500) }).safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "سبب الحذف مطلوب" });
+      return;
+    }
 
-    const [deleted] = await db
-      .delete(expenses)
-      .where(eq(expenses.id, id))
-      .returning({ id: expenses.id });
-
-    if (!deleted) {
+    const [before] = await db.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+    if (!before || before.deletedAt) {
       res.status(404).json({ success: false, message: "المصروف غير موجود" });
       return;
     }
+
+    const actor = actorFromRequest(req);
+    await db.transaction(async (tx) => {
+      await tx
+        .update(expenses)
+        .set({ deletedAt: new Date(), deletedBy: actor.id, updatedAt: new Date() })
+        .where(eq(expenses.id, id));
+
+      await recordFinancialChange(tx, {
+        entityType: "expense",
+        entityId: id,
+        action: "delete",
+        fieldName: null,
+        oldValue: { category: before.category, amount: toNumber(before.amount), description: before.description, expenseDate: before.expenseDate },
+        newValue: null,
+        reason: parsed.data.reason,
+        performedBy: actor.id,
+        performedByName: actor.name,
+      });
+    });
 
     res.json({ success: true });
   } catch (err) {

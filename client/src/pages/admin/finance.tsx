@@ -12,6 +12,10 @@ import { FinanceRecommendations } from "@/components/admin/finance-recommendatio
 import { FinanceAudit } from "@/components/admin/finance-audit";
 import { FinanceProductCosts } from "@/components/admin/finance-product-costs";
 import { FinanceManualCorrections } from "@/components/admin/finance-manual-corrections";
+import { FinanceAuditTrail } from "@/components/admin/finance-audit-trail";
+import { FinanceCharts } from "@/components/admin/finance-charts";
+import { FinancePeriodClose } from "@/components/admin/finance-period-close";
+import { FinanceLedger } from "@/components/admin/finance-ledger";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -60,13 +64,15 @@ export default function FinancePage() {
       </div>
 
       {/* Sub-tabs */}
-      <Tabs defaultValue="overview" dir="rtl">
+      <Tabs defaultValue="charts" dir="rtl">
         <TabsList style={{
           background: "#0d1f3c", borderBottom: "1px solid #1e3a5f",
           padding: "4px 8px", borderRadius: 10, marginBottom: 20,
           display: "flex", gap: 4, flexWrap: "wrap",
         }}>
+          <TabsTrigger value="charts">الرسوم البيانية</TabsTrigger>
           <TabsTrigger value="overview">نظرة عامة</TabsTrigger>
+          <TabsTrigger value="ledger">دفتر الأستاذ</TabsTrigger>
           <TabsTrigger value="expenses">المصاريف</TabsTrigger>
           <TabsTrigger value="reports">تقارير</TabsTrigger>
           <TabsTrigger value="products">ربحية المنتجات</TabsTrigger>
@@ -78,10 +84,20 @@ export default function FinancePage() {
           <TabsTrigger value="audit">تدقيق محاسبي</TabsTrigger>
           <TabsTrigger value="product-costs">تكاليف المنتجات</TabsTrigger>
           <TabsTrigger value="manual-corrections">التصحيح اليدوي</TabsTrigger>
+          <TabsTrigger value="audit-trail">سجل التدقيق</TabsTrigger>
+          <TabsTrigger value="period-close">إغلاق الفترات</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="charts">
+          <FinanceCharts period={period} />
+        </TabsContent>
 
         <TabsContent value="overview">
           <FinanceOverview period={period} />
+        </TabsContent>
+
+        <TabsContent value="ledger">
+          <FinanceLedger period={period} />
         </TabsContent>
 
         <TabsContent value="expenses">
@@ -126,6 +142,14 @@ export default function FinancePage() {
 
         <TabsContent value="manual-corrections">
           <FinanceManualCorrections />
+        </TabsContent>
+
+        <TabsContent value="audit-trail">
+          <FinanceAuditTrail />
+        </TabsContent>
+
+        <TabsContent value="period-close">
+          <FinancePeriodClose />
         </TabsContent>
       </Tabs>
     </div>

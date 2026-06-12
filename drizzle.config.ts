@@ -68,6 +68,8 @@ export default defineConfig({
     "auto_orders",
     "accounting_manual_adjustments",
     "accounting_review_flags",
+    "accounting_audit_trail",
+    "accounting_period_closes",
     "ai_agent_settings",
     "store_social_interactions",
     "settings"

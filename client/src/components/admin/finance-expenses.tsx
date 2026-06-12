@@ -207,7 +207,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
   });
 
   const editMutation = useMutation({
-    mutationFn: async ({ id, body }: { id: string; body: Partial<ExpenseInput> }) => {
+    mutationFn: async ({ id, body }: { id: string; body: Partial<ExpenseInput> & { reason: string } }) => {
       const res = await fetch(`/api/admin/expenses/${id}`, {
         method: "PATCH",
         credentials: "include",
@@ -227,11 +227,12 @@ export function FinanceExpenses({ period }: { period: Period }) {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
+    mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
       const res = await fetch(`/api/admin/expenses/${id}`, {
         method: "DELETE",
         credentials: "include",
-        headers: addCsrfHeader({}),
+        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ reason }),
       });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.success) throw new Error(json?.message ?? `خطأ ${res.status}`);
@@ -304,15 +305,26 @@ export function FinanceExpenses({ period }: { period: Period }) {
         : undefined,
     };
     if (editingId) {
-      editMutation.mutate({ id: editingId, body });
+      const reason = window.prompt("سبب تعديل هذا المصروف؟ (مطلوب للسجل المالي)");
+      if (reason === null) return;
+      if (reason.trim().length < 3) {
+        toast({ title: "سبب التعديل مطلوب (3 أحرف على الأقل)", variant: "destructive" });
+        return;
+      }
+      editMutation.mutate({ id: editingId, body: { ...body, reason: reason.trim() } });
     } else {
       addMutation.mutate(body);
     }
   }
 
   function handleDelete(expense: ExpenseResponse) {
-    if (!window.confirm("هل تريد حذف هذا المصروف؟")) return;
-    deleteMutation.mutate(expense.id);
+    const reason = window.prompt("سبب حذف هذا المصروف؟ (مطلوب للسجل المالي)");
+    if (reason === null) return;
+    if (reason.trim().length < 3) {
+      toast({ title: "سبب الحذف مطلوب (3 أحرف على الأقل)", variant: "destructive" });
+      return;
+    }
+    deleteMutation.mutate({ id: expense.id, reason: reason.trim() });
   }
 
   // ── Render ─────────────────────────────────────────────────────────────────

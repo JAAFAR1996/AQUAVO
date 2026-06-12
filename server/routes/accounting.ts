@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -26,6 +26,12 @@ import {
   listReviewFlags,
   updateReviewFlagStatus,
 } from "../services/accountingManualOverrides.js";
+import {
+  recordFinancialChange,
+  listFinancialAuditTrail,
+  actorFromRequest,
+  type FinancialEntityType,
+} from "../services/accountingAuditTrail.js";
 
 const router = Router();
 router.use(requireAdmin);
@@ -617,6 +623,80 @@ function calcOrderProfit(order: OrderRow, costs: CostResolver): OrderProfit {
   };
 }
 
+interface PeriodFinancials {
+  deliveredOrders: number;
+  revenue: number;
+  cogs: number;
+  packaging: number;
+  grossProfit: number;
+  expensesTotal: number;
+  salesReturnDeduction: number;
+  actualReturnLoss: number;
+  finalNetProfit: number;
+}
+
+/**
+ * Single source of truth for a period's key financials. Used by BOTH the
+ * period-close snapshot and the reconciliation recompute, so any difference
+ * between "frozen" and "recomputed" reflects real data drift — never a
+ * computation mismatch.
+ */
+async function computePeriodFinancials(db: Db, start: Date, end: Date): Promise<PeriodFinancials> {
+  const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
+  const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+
+  let revenue = 0, cogs = 0, packaging = 0;
+  for (const order of realizedOrders) {
+    const p = calcOrderProfit(order, costs);
+    revenue += p.revenue;
+    cogs += p.cogs;
+    packaging += p.boxCost;
+  }
+  const grossProfit = revenue - cogs;
+  const netProfitBeforeReturns = revenue - cogs - packaging;
+
+  const expenseRows = await db
+    .select()
+    .from(expenses)
+    .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end), isNull(expenses.deletedAt)));
+  const expensesTotal = expenseRows.reduce((s, e) => s + toNumber(e.amount), 0);
+
+  const returnRows = await db
+    .select()
+    .from(orderReturnEvents)
+    .where(and(gte(orderReturnEvents.createdAt, start), lte(orderReturnEvents.createdAt, end)));
+  const verified = returnRows.filter((e) => e.status === "verified");
+  const salesReturnDeduction = verified.reduce((s, e) => s + eventSalesReturnDeduction(e), 0);
+  const actualReturnLoss = verified.reduce((s, e) => s + eventActualReturnLoss(e), 0);
+
+  const finalNetProfit = netProfitBeforeReturns - salesReturnDeduction - actualReturnLoss - expensesTotal;
+
+  return {
+    deliveredOrders: realizedOrders.length,
+    revenue: Math.round(revenue),
+    cogs: Math.round(cogs),
+    packaging: Math.round(packaging),
+    grossProfit: Math.round(grossProfit),
+    expensesTotal: Math.round(expensesTotal),
+    salesReturnDeduction: Math.round(salesReturnDeduction),
+    actualReturnLoss: Math.round(actualReturnLoss),
+    finalNetProfit: Math.round(finalNetProfit),
+  };
+}
+
+/** Resolve a "YYYY-MM" period key into its exact start/end timestamps. */
+function monthKeyToRange(periodKey: string): { start: Date; end: Date } | null {
+  const m = /^(\d{4})-(\d{2})$/.exec(periodKey);
+  if (!m) return null;
+  const year = Number(m[1]);
+  const month = Number(m[2]) - 1;
+  if (month < 0 || month > 11) return null;
+  return {
+    start: new Date(year, month, 1, 0, 0, 0, 0),
+    end: new Date(year, month + 1, 0, 23, 59, 59, 999),
+  };
+}
+
 function serializeCostHistory(history: CostHistoryRow) {
   return {
     id: history.id,
@@ -628,6 +708,154 @@ function serializeCostHistory(history: CostHistoryRow) {
     note: history.note ?? null,
     changedBy: history.changedBy ?? null,
     createdAt: toDate(history.createdAt).toISOString(),
+  };
+}
+
+// ═══════════════════ Double-Entry Ledger (derived) ═══════════════════════════
+// A real-accounting view DERIVED from existing data (orders/expenses/returns).
+// Every transaction posts a BALANCED journal entry (debits === credits), so the
+// trial balance is guaranteed to net to zero. The ledger's net income must equal
+// computePeriodFinancials().finalNetProfit — that equality is the integrity proof.
+
+type AccountType = "asset" | "liability" | "revenue" | "expense" | "contra_revenue";
+
+interface LedgerAccount {
+  code: string;
+  name: string;
+  type: AccountType;
+  normal: "debit" | "credit";
+}
+
+const CHART_OF_ACCOUNTS: LedgerAccount[] = [
+  { code: "1000", name: "الصندوق (نقد محصّل)", type: "asset", normal: "debit" },
+  { code: "1100", name: "ذمم COD (معلّق لدى الناقل)", type: "asset", normal: "debit" },
+  { code: "1200", name: "المخزون", type: "asset", normal: "debit" },
+  { code: "3000", name: "إيرادات المبيعات", type: "revenue", normal: "credit" },
+  { code: "4000", name: "كلفة البضاعة المباعة", type: "expense", normal: "debit" },
+  { code: "4100", name: "مردودات المبيعات", type: "contra_revenue", normal: "debit" },
+  { code: "4200", name: "خسائر الراجعات", type: "expense", normal: "debit" },
+  { code: "5000", name: "مصاريف تشغيلية", type: "expense", normal: "debit" },
+  { code: "5100", name: "تكلفة الكراتين", type: "expense", normal: "debit" },
+];
+
+interface LedgerResult {
+  trialBalance: { code: string; name: string; type: AccountType; debit: number; credit: number; balance: number }[];
+  totals: { totalDebit: number; totalCredit: number; difference: number; balanced: boolean };
+  incomeStatement: {
+    revenue: number;
+    salesReturns: number;
+    netRevenue: number;
+    cogs: number;
+    grossProfit: number;
+    packaging: number;
+    returnsLoss: number;
+    operatingExpenses: number;
+    netIncome: number;
+  };
+  integrity: { ledgerNetIncome: number; computedFinalNetProfit: number; difference: number; matches: boolean };
+  counts: { orders: number; expenses: number; returns: number; journalEntries: number };
+}
+
+async function buildLedger(db: Db, start: Date, end: Date): Promise<LedgerResult> {
+  // Posting accumulator: per-account debit/credit totals.
+  const acc = new Map<string, { debit: number; credit: number }>();
+  for (const a of CHART_OF_ACCOUNTS) acc.set(a.code, { debit: 0, credit: 0 });
+  const post = (code: string, debit: number, credit: number) => {
+    const e = acc.get(code);
+    if (!e) return;
+    e.debit += debit;
+    e.credit += credit;
+  };
+  let journalEntries = 0;
+
+  // 1. Realized (delivered) orders → revenue, COGS, packaging
+  const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
+  const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+  for (const order of realizedOrders) {
+    const p = calcOrderProfit(order, costs);
+    const cashAccount = (order as any).codReceived === true ? "1000" : "1100";
+    // Sale: Dr Cash/Receivable, Cr Revenue
+    post(cashAccount, p.revenue, 0);
+    post("3000", 0, p.revenue);
+    // COGS: Dr COGS, Cr Inventory
+    if (p.cogs > 0) {
+      post("4000", p.cogs, 0);
+      post("1200", 0, p.cogs);
+    }
+    // Packaging (box): Dr Packaging expense, Cr Cash
+    if (p.boxCost > 0) {
+      post("5100", p.boxCost, 0);
+      post("1000", 0, p.boxCost);
+    }
+    journalEntries++;
+  }
+
+  // 2. Operating expenses → Dr Operating, Cr Cash
+  const expenseRows = await db
+    .select()
+    .from(expenses)
+    .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end), isNull(expenses.deletedAt)));
+  for (const e of expenseRows) {
+    const amt = toNumber(e.amount);
+    if (amt === 0) continue;
+    post("5000", amt, 0);
+    post("1000", 0, amt);
+    journalEntries++;
+  }
+
+  // 3. Verified returns → sales returns (refund) + operational loss
+  const returnRows = await db
+    .select()
+    .from(orderReturnEvents)
+    .where(and(gte(orderReturnEvents.createdAt, start), lte(orderReturnEvents.createdAt, end)));
+  const verified = returnRows.filter((e) => e.status === "verified");
+  for (const e of verified) {
+    const refund = eventSalesReturnDeduction(e);
+    const loss = eventActualReturnLoss(e);
+    if (refund > 0) {
+      post("4100", refund, 0); // Dr Sales Returns (contra-revenue)
+      post("1000", 0, refund); // Cr Cash (refund paid out)
+    }
+    if (loss > 0) {
+      post("4200", loss, 0); // Dr Returns Loss
+      post("1200", 0, loss); // Cr Inventory (written off / not restocked)
+    }
+    if (refund > 0 || loss > 0) journalEntries++;
+  }
+
+  // Build trial balance
+  const trialBalance = CHART_OF_ACCOUNTS.map((a) => {
+    const e = acc.get(a.code) ?? { debit: 0, credit: 0 };
+    const balance = a.normal === "debit" ? e.debit - e.credit : e.credit - e.debit;
+    return { code: a.code, name: a.name, type: a.type, debit: Math.round(e.debit), credit: Math.round(e.credit), balance: Math.round(balance) };
+  });
+
+  const totalDebit = Math.round(trialBalance.reduce((s, a) => s + a.debit, 0));
+  const totalCredit = Math.round(trialBalance.reduce((s, a) => s + a.credit, 0));
+  const difference = totalDebit - totalCredit;
+
+  // Income statement from ledger accounts
+  const bal = (code: string) => trialBalance.find((a) => a.code === code)?.balance ?? 0;
+  const revenue = bal("3000");
+  const salesReturns = bal("4100");
+  const cogs = bal("4000");
+  const returnsLoss = bal("4200");
+  const operatingExpenses = bal("5000");
+  const packaging = bal("5100");
+  const netRevenue = revenue - salesReturns;
+  const grossProfit = netRevenue - cogs;
+  const netIncome = grossProfit - packaging - returnsLoss - operatingExpenses;
+
+  // Integrity: ledger net income MUST equal the Phase-3 computation
+  const fin = await computePeriodFinancials(db, start, end);
+  const ledgerVsComputed = netIncome - fin.finalNetProfit;
+
+  return {
+    trialBalance,
+    totals: { totalDebit, totalCredit, difference, balanced: difference === 0 },
+    incomeStatement: { revenue, salesReturns, netRevenue, cogs, grossProfit, packaging, returnsLoss, operatingExpenses, netIncome },
+    integrity: { ledgerNetIncome: netIncome, computedFinalNetProfit: fin.finalNetProfit, difference: ledgerVsComputed, matches: ledgerVsComputed === 0 },
+    counts: { orders: realizedOrders.length, expenses: expenseRows.length, returns: verified.length, journalEntries },
   };
 }
 
@@ -1406,14 +1634,29 @@ router.post("/settlements", async (req: Request, res: Response, next: NextFuncti
     }
 
     const { carrier, amount, notes, orderIds } = parsed.data;
+    const actor = actorFromRequest(req);
+    const coveredOrderIds = Array.isArray(orderIds) && orderIds.length > 0 ? orderIds : null;
     const [settlement] = await db
       .insert(shippingSettlements)
-      .values({ carrier, amount: String(amount), notes: notes ?? null })
+      .values({ carrier, amount: String(amount), notes: notes ?? null, coveredOrderIds })
       .returning();
 
     if (Array.isArray(orderIds) && orderIds.length > 0) {
       await db.update(orders).set({ codReceived: true }).where(inArray(orders.id, orderIds));
     }
+
+    // Audit: settlements move real cash — record who entered what and which orders it covers.
+    await recordFinancialChange(db, {
+      entityType: "settlement",
+      entityId: settlement.id,
+      action: "create",
+      fieldName: "amount",
+      oldValue: null,
+      newValue: { carrier, amount, notes: notes ?? null, orderIds: orderIds ?? [] },
+      reason: notes ?? null,
+      performedBy: actor.id,
+      performedByName: actor.name,
+    });
 
     res.status(201).json({
       success: true,
@@ -1654,24 +1897,320 @@ router.patch("/orders/:orderId/box-cost", async (req: Request, res: Response, ne
     if (!db) return;
 
     const { orderId } = req.params as { orderId: string };
-    const parsed = z.object({ boxCost: z.coerce.number().min(0) }).safeParse(req.body);
+    const parsed = z
+      .object({ boxCost: z.coerce.number().min(0), reason: z.string().trim().min(3).max(500) })
+      .safeParse(req.body);
     if (!parsed.success) {
-      res.status(400).json({ success: false, message: "قيمة الكارتونة غير صالحة" });
+      res.status(400).json({ success: false, message: "قيمة الكارتونة أو سبب التعديل غير صالح (السبب مطلوب)" });
       return;
     }
 
-    const [updated] = await db
-      .update(orders)
-      .set({ boxCost: String(parsed.data.boxCost), updatedAt: new Date() })
+    // Read old value first so we can log before→after.
+    const [existing] = await db
+      .select({ boxCost: orders.boxCost })
+      .from(orders)
       .where(eq(orders.id, orderId))
-      .returning({ id: orders.id });
+      .limit(1);
 
-    if (!updated) {
+    if (!existing) {
       res.status(404).json({ success: false, message: "الطلبية غير موجودة" });
       return;
     }
 
+    const oldBoxCost = toNumber(existing.boxCost);
+    const newBoxCost = parsed.data.boxCost;
+    const actor = actorFromRequest(req);
+
+    // Update + audit log atomically — both succeed or both roll back.
+    await db.transaction(async (tx) => {
+      await tx
+        .update(orders)
+        .set({ boxCost: String(newBoxCost), updatedAt: new Date() })
+        .where(eq(orders.id, orderId));
+
+      await recordFinancialChange(tx, {
+        entityType: "order",
+        entityId: orderId,
+        action: "update",
+        fieldName: "boxCost",
+        oldValue: oldBoxCost,
+        newValue: newBoxCost,
+        reason: parsed.data.reason,
+        performedBy: actor.id,
+        performedByName: actor.name,
+      });
+    });
+
     res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /audit-trail — the immutable financial change log (who changed what, when, why)
+router.get("/audit-trail", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const entityTypeRaw = typeof req.query.entityType === "string" ? req.query.entityType : undefined;
+    const validTypes: FinancialEntityType[] = ["order", "expense", "settlement", "return_event", "manual_invoice", "product_cost"];
+    const entityType = validTypes.includes(entityTypeRaw as FinancialEntityType)
+      ? (entityTypeRaw as FinancialEntityType)
+      : undefined;
+    const entityId = typeof req.query.entityId === "string" ? req.query.entityId : undefined;
+    const limit = typeof req.query.limit === "string" ? Number(req.query.limit) : undefined;
+
+    const trail = await listFinancialAuditTrail(db, {
+      entityType,
+      entityId,
+      limit: Number.isFinite(limit) ? limit : undefined,
+    });
+
+    res.json({ success: true, data: trail });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /report-timeseries — bucketed revenue / cogs / profit / expenses over the period (for charts)
+router.get("/report-timeseries", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+
+    // Granularity: yearly view → monthly buckets; everything else → daily buckets.
+    const granularity: "day" | "month" = period === "year" ? "month" : "day";
+    const bucketKey = (d: Date): string =>
+      granularity === "month"
+        ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`
+        : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    // Pre-build empty buckets so the chart has a continuous x-axis (no gaps).
+    const buckets = new Map<string, { date: string; revenue: number; cogs: number; profit: number; expenses: number }>();
+    const cursor = new Date(start);
+    while (cursor <= end) {
+      const key = bucketKey(cursor);
+      if (!buckets.has(key)) buckets.set(key, { date: key, revenue: 0, cogs: 0, profit: 0, expenses: 0 });
+      if (granularity === "month") cursor.setMonth(cursor.getMonth() + 1);
+      else cursor.setDate(cursor.getDate() + 1);
+    }
+
+    // Realized orders → revenue / cogs / profit per bucket
+    const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
+    const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+    for (const order of realizedOrders) {
+      const p = calcOrderProfit(order, costs);
+      const b = buckets.get(bucketKey(toDate(order.createdAt)));
+      if (!b) continue;
+      b.revenue += p.revenue;
+      b.cogs += p.cogs;
+      b.profit += p.netProfit;
+    }
+
+    // Expenses per bucket (exclude soft-deleted)
+    const expenseRows = await db
+      .select()
+      .from(expenses)
+      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end), isNull(expenses.deletedAt)));
+    for (const e of expenseRows) {
+      const b = buckets.get(bucketKey(toDate(e.expenseDate)));
+      if (!b) continue;
+      b.expenses += toNumber(e.amount);
+    }
+
+    const series = Array.from(buckets.values())
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map((b) => ({
+        date: b.date,
+        revenue: Math.round(b.revenue),
+        cogs: Math.round(b.cogs),
+        grossProfit: Math.round(b.profit),
+        expenses: Math.round(b.expenses),
+        netProfit: Math.round(b.profit - b.expenses),
+      }));
+
+    res.json({ success: true, data: { granularity, series } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ═══════════════════ Period Close + Reconciliation ═══════════════════════════
+
+// GET /periods — list closed periods, each with live drift vs its frozen snapshot
+router.get("/periods", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const rows = await db
+      .select()
+      .from(accountingPeriodCloses)
+      .orderBy(desc(accountingPeriodCloses.periodKey));
+
+    const result = [];
+    for (const row of rows) {
+      // Recompute fresh and compare against the frozen figures → drift.
+      const live = await computePeriodFinancials(db, toDate(row.periodStart), toDate(row.periodEnd));
+      const frozenNet = toNumber(row.finalNetProfit);
+      const frozenRev = toNumber(row.revenue);
+      const netDrift = live.finalNetProfit - frozenNet;
+      const revDrift = live.revenue - frozenRev;
+      result.push({
+        id: row.id,
+        periodKey: row.periodKey,
+        status: row.status,
+        closedAt: toDate(row.closedAt).toISOString(),
+        closedByName: row.closedByName ?? row.closedBy ?? null,
+        reopenedReason: row.reopenedReason ?? null,
+        frozen: {
+          revenue: frozenRev,
+          grossProfit: toNumber(row.grossProfit),
+          expensesTotal: toNumber(row.expensesTotal),
+          finalNetProfit: frozenNet,
+          deliveredOrders: row.deliveredOrders,
+        },
+        live: {
+          revenue: live.revenue,
+          grossProfit: live.grossProfit,
+          expensesTotal: live.expensesTotal,
+          finalNetProfit: live.finalNetProfit,
+          deliveredOrders: live.deliveredOrders,
+        },
+        drift: { revenue: revDrift, finalNetProfit: netDrift },
+        hasDrift: revDrift !== 0 || netDrift !== 0,
+      });
+    }
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /periods/close — freeze a month's financials into an immutable snapshot
+router.post("/periods/close", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const parsed = z.object({ periodKey: z.string().regex(/^\d{4}-\d{2}$/) }).safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "صيغة الفترة غير صالحة (المتوقع YYYY-MM)" });
+      return;
+    }
+    const { periodKey } = parsed.data;
+    const range = monthKeyToRange(periodKey);
+    if (!range) {
+      res.status(400).json({ success: false, message: "فترة غير صالحة" });
+      return;
+    }
+
+    // Cannot close a period that hasn't ended yet.
+    if (range.end > new Date()) {
+      res.status(400).json({ success: false, message: "لا يمكن إغلاق فترة لم تنتهِ بعد" });
+      return;
+    }
+
+    const existing = await db
+      .select({ id: accountingPeriodCloses.id, status: accountingPeriodCloses.status })
+      .from(accountingPeriodCloses)
+      .where(eq(accountingPeriodCloses.periodKey, periodKey))
+      .limit(1);
+    if (existing.length > 0 && existing[0].status === "closed") {
+      res.status(409).json({ success: false, message: "هذه الفترة مغلقة بالفعل" });
+      return;
+    }
+
+    const fin = await computePeriodFinancials(db, range.start, range.end);
+    const actor = actorFromRequest(req);
+
+    const values = {
+      periodKey,
+      periodStart: range.start,
+      periodEnd: range.end,
+      revenue: String(fin.revenue),
+      cogs: String(fin.cogs),
+      grossProfit: String(fin.grossProfit),
+      expensesTotal: String(fin.expensesTotal),
+      salesReturnDeduction: String(fin.salesReturnDeduction),
+      actualReturnLoss: String(fin.actualReturnLoss),
+      finalNetProfit: String(fin.finalNetProfit),
+      deliveredOrders: fin.deliveredOrders,
+      snapshotJson: fin as unknown as object,
+      status: "closed",
+      closedBy: actor.id,
+      closedByName: actor.name,
+      closedAt: new Date(),
+      reopenedBy: null,
+      reopenedReason: null,
+      reopenedAt: null,
+    };
+
+    if (existing.length > 0) {
+      // Re-closing a previously reopened period: overwrite the snapshot.
+      await db.update(accountingPeriodCloses).set(values).where(eq(accountingPeriodCloses.periodKey, periodKey));
+    } else {
+      await db.insert(accountingPeriodCloses).values(values);
+    }
+
+    res.status(201).json({ success: true, data: { periodKey, ...fin } });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /periods/:periodKey/reopen — reopen a closed period (requires reason)
+router.post("/periods/:periodKey/reopen", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { periodKey } = req.params as { periodKey: string };
+    const parsed = z.object({ reason: z.string().trim().min(3).max(500) }).safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ success: false, message: "سبب إعادة الفتح مطلوب" });
+      return;
+    }
+
+    const actor = actorFromRequest(req);
+    const [updated] = await db
+      .update(accountingPeriodCloses)
+      .set({
+        status: "reopened",
+        reopenedBy: actor.id,
+        reopenedReason: parsed.data.reason,
+        reopenedAt: new Date(),
+      })
+      .where(eq(accountingPeriodCloses.periodKey, periodKey))
+      .returning({ id: accountingPeriodCloses.id });
+
+    if (!updated) {
+      res.status(404).json({ success: false, message: "الفترة غير موجودة" });
+      return;
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /ledger — double-entry trial balance + income statement (derived, period-scoped)
+router.get("/ledger", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const db = getAccountingDb(res);
+    if (!db) return;
+
+    const { period, from, to } = getPeriodQuery(req);
+    const { start, end } = periodRange(period, from, to);
+    const ledger = await buildLedger(db, start, end);
+
+    res.json({ success: true, data: { period, ...ledger } });
   } catch (err) {
     next(err);
   }
@@ -2004,14 +2543,44 @@ router.patch("/return-events/:id/status", async (req: Request, res: Response, ne
     }
 
     const { status, note } = parsed.data;
+
+    // Capture old status — "verified" is the only status that hits P&L, so transitions matter.
+    const [before] = await db
+      .select({ status: orderReturnEvents.status })
+      .from(orderReturnEvents)
+      .where(eq(orderReturnEvents.id, id))
+      .limit(1);
+
+    if (!before) {
+      res.status(404).json({ success: false, message: "حدث الإرجاع غير موجود" });
+      return;
+    }
+
     const updateValues: Record<string, unknown> = { status, updatedAt: new Date() };
     if (note !== undefined) updateValues.note = note;
 
-    const [updated] = await db
-      .update(orderReturnEvents)
-      .set(updateValues)
-      .where(eq(orderReturnEvents.id, id))
-      .returning();
+    const actor = actorFromRequest(req);
+    const [updated] = await db.transaction(async (tx) => {
+      const [row] = await tx
+        .update(orderReturnEvents)
+        .set(updateValues)
+        .where(eq(orderReturnEvents.id, id))
+        .returning();
+
+      await recordFinancialChange(tx, {
+        entityType: "return_event",
+        entityId: id,
+        action: "status_change",
+        fieldName: "status",
+        oldValue: before.status,
+        newValue: status,
+        reason: note ?? null,
+        performedBy: actor.id,
+        performedByName: actor.name,
+      });
+
+      return [row];
+    });
 
     if (!updated) {
       res.status(404).json({ success: false, message: "حدث الإرجاع غير موجود" });
@@ -2203,7 +2772,7 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     const expenseRows = await db
       .select()
       .from(expenses)
-      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end)));
+      .where(and(gte(expenses.expenseDate, start), lte(expenses.expenseDate, end), isNull(expenses.deletedAt)));
 
     const expensesTotal = expenseRows.reduce((sum, e) => sum + toNumber(e.amount), 0);
     const expenseCategoryMap: Record<string, number> = {};

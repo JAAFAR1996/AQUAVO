@@ -11,6 +11,7 @@ import { formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
 
 import { BackToTop } from "@/components/back-to-top";
+import { ExitIntentModal } from "@/components/retention/exit-intent-modal";
 import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
 
@@ -393,6 +394,8 @@ export default function Home() {
         </Suspense>
       </DeferredRender>
 
+
+      <ExitIntentModal />
 
       <DeferredMount>
         <BackToTop />

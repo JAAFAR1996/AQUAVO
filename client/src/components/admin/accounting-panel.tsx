@@ -186,11 +186,12 @@ export default function AccountingPanel() {
   const saveBoxCost = async (orderId: string, boxCost: number) => {
     setSavingBox(orderId);
     try {
+      const boxLabel = BOX_SIZES.find(b => b.value === boxCost)?.label ?? String(boxCost);
       const r = await fetch(`/api/admin/accounting/orders/${orderId}/box-cost`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", ...addCsrfHeader() },
         credentials: "include",
-        body: JSON.stringify({ boxCost }),
+        body: JSON.stringify({ boxCost, reason: `اختيار حجم كارتونة: ${boxLabel}` }),
       });
       if (!r.ok) throw new Error("فشل");
       await qc.invalidateQueries({ queryKey: ["acc-orders"] });
