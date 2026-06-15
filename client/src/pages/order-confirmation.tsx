@@ -51,12 +51,45 @@ const getDeliveryEstimate = () => {
     return `خلال ${DELIVERY_DAYS}`;
 };
 
+// Public tracking endpoint shape (PII-safe). Maps into the OrderData used by the
+// confirmation UI; per-item prices and customer info are intentionally absent.
+interface TrackOrderData {
+    id: string;
+    orderNumber?: string;
+    status?: string;
+    total?: number | string;
+    createdAt?: string;
+    items?: Array<{ name?: string; quantity: number }>;
+}
+
+function mapTrackToOrder(track: unknown): OrderData | undefined {
+    const t = track as TrackOrderData | undefined;
+    if (!t || !t.id) return undefined;
+    return {
+        id: t.id,
+        orderNumber: t.orderNumber,
+        status: t.status,
+        total: Number(t.total) || 0,
+        createdAt: t.createdAt,
+        items: (t.items || []).map(item => ({
+            productId: "",
+            productName: item.name,
+            quantity: item.quantity,
+            // priceAtPurchase intentionally omitted — not exposed by the public endpoint
+        })),
+    };
+}
+
 export default function OrderConfirmation() {
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
 
-    // Trigger confetti on mount
+    // Trigger confetti on mount — skipped when the user prefers reduced motion
     useEffect(() => {
+        if (typeof window !== "undefined" &&
+            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+            return;
+        }
         const duration = 3000;
         const end = Date.now() + duration;
         let rafId: number;
@@ -85,39 +118,55 @@ export default function OrderConfirmation() {
         return () => cancelAnimationFrame(rafId);
     }, []);
 
-    // TikTok Pixel: Purchase event once order data is loaded
+    // Primary: full order (authenticated owner). retry:false so a guest's 401
+    // settles quickly and we can fall back to the public tracking endpoint.
     const { data: order, isLoading } = useQuery({
         queryKey: [`/api/orders/${orderId}`],
         enabled: !!orderId,
+        retry: false,
     });
 
-    const orderData = order as OrderData | undefined;
+    // Fallback for guests: the PII-safe public tracking endpoint. Returns a
+    // reduced shape (no per-item price / customer info) but a real confirmation
+    // instead of an empty page. Only queried after the authed request settles empty.
+    const needsFallback = !!orderId && !isLoading && !order;
+    const { data: trackOrder, isLoading: trackLoading } = useQuery({
+        queryKey: [`/api/orders/track/${orderId}`],
+        enabled: needsFallback,
+        retry: false,
+    });
 
-    // Fire TikTok Purchase event when order loads successfully
+    const orderData = (order as OrderData | undefined) ?? mapTrackToOrder(trackOrder);
+    const loading = isLoading || (needsFallback && trackLoading);
+
+    // Fire Purchase pixels only from the authoritative authed order (has real
+    // product IDs + prices). Guest fallback skips this — the Purchase already
+    // fired at checkout submit and is deduped by orderId in the pixel helpers.
     useEffect(() => {
-        if (orderData && orderData.items && orderData.items.length > 0) {
+        const full = order as OrderData | undefined;
+        if (full && full.items && full.items.length > 0) {
             ttqPurchase({
-                orderId: orderData.orderNumber || orderData.id,
-                items: orderData.items.map(item => ({
+                orderId: full.orderNumber || full.id,
+                items: full.items.map(item => ({
                     id: item.productId,
                     name: item.productName || item.productId,
                     price: Number(item.priceAtPurchase || 0),
                     quantity: item.quantity,
                 })),
-                totalValue: orderData.total,
+                totalValue: full.total,
             });
             // Meta Pixel: Purchase event (critical for ROAS)
             metaTrackPurchase({
-                orderId: orderData.orderNumber || orderData.id,
-                totalIQD: orderData.total,
-                productIds: orderData.items.map(item => item.productId),
-                numItems: orderData.items.reduce((sum, item) => sum + item.quantity, 0),
-                phone: orderData.customerPhone,
+                orderId: full.orderNumber || full.id,
+                totalIQD: full.total,
+                productIds: full.items.map(item => item.productId),
+                numItems: full.items.reduce((sum, item) => sum + item.quantity, 0),
+                phone: full.customerPhone,
             });
         }
-    }, [orderData?.id]);
+    }, [(order as OrderData | undefined)?.id]);
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Navbar />
@@ -139,7 +188,7 @@ export default function OrderConfirmation() {
         );
     }
 
-    if (!orderData && !isLoading) {
+    if (!orderData && !loading) {
         return (
             <ConfirmationContent
                 orderId={orderId || "unknown"}
@@ -322,9 +371,11 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                                         <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{item.quantity}</span>
                                                         <span className="line-clamp-1">{item.productName || item.productId}</span>
                                                     </div>
-                                                    <span className="text-muted-foreground text-xs font-mono mr-2">
-                                                        {formatIQD(Number(item.priceAtPurchase || 0) * item.quantity)}
-                                                    </span>
+                                                    {item.priceAtPurchase != null && (
+                                                        <span className="text-muted-foreground text-xs font-mono mr-2">
+                                                            {formatIQD(Number(item.priceAtPurchase) * item.quantity)}
+                                                        </span>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -335,10 +386,12 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     <>
                                         <Separator />
                                         <div className="space-y-1.5 text-sm">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-muted-foreground">المجموع الفرعي</span>
-                                                <span>{formatIQD(subtotal)}</span>
-                                            </div>
+                                            {subtotal > 0 && (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-muted-foreground">المجموع الفرعي</span>
+                                                    <span>{formatIQD(subtotal)}</span>
+                                                </div>
+                                            )}
                                             {shippingCost > 0 && (
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-muted-foreground">🚚 التوصيل</span>

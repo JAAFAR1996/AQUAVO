@@ -509,7 +509,7 @@ router.post("/track-visit", async (req: Request, res: Response): Promise<void> =
         const db = getDb();
         if (!db) { res.status(200).json({ ok: true }); return; }
 
-        const { pagePath, referrer, utmSource, utmMedium, utmCampaign, clientSessionId } = req.body as {
+        const { pagePath, referrer, utmSource, utmMedium, utmCampaign, clientSessionId } = (req.body ?? {}) as {
             pagePath?: string;
             referrer?: string;
             utmSource?: string;
@@ -559,7 +559,7 @@ router.post("/update-visit", async (req: Request, res: Response): Promise<void> 
         const db = getDb();
         if (!db) { res.status(200).json({ ok: true }); return; }
 
-        const { viewId, duration } = req.body as { viewId?: string; duration?: number };
+        const { viewId, duration } = (req.body ?? {}) as { viewId?: string; duration?: number };
         if (!viewId || typeof duration !== "number" || duration < 0) {
             res.status(200).json({ ok: true }); return;
         }
