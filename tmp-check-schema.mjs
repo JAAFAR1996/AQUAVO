@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
+const sql = neon('postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
 
 // Check existing product structure to follow same pattern
 const sample = await sql`SELECT id, slug, name, brand, category, subcategory, price, currency, stock, images, thumbnail, specifications FROM products WHERE deleted_at IS NULL LIMIT 2`;

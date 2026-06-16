@@ -4,7 +4,7 @@ import fs from 'fs';
 
 async function syncPrices() {
   console.log('🔄 Fetching live prices from database...');
-  const connectionString = 'postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
+  const connectionString = 'postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
     
   const sql = neon(connectionString);
   const dbPrices = await sql`SELECT id, slug, name, price, variants FROM products`;

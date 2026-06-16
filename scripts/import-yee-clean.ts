@@ -17,7 +17,7 @@ const XLSX = require("xlsx");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
+const sql = neon('postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
 
 // ============ ARABIC NAME MAPPING (from audit logs - user's manual edits) ============
 const arabicData: Record<string, { name: string; description: string; category: string; subcategory: string; specs?: any }> = {

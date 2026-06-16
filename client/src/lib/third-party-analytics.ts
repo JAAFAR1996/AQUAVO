@@ -69,7 +69,14 @@ function loadTikTokPixel() {
     appendScript(`${scriptUrl}?sdkid=${id}&lib=${analyticsObject}`);
   };
 
-  ttq.load("D7OD1FBC77U8CJLLA610");
+  // Pixel ID is configurable via env; fall back to the known AQUAVO pixel so
+  // behavior is unchanged if the env var is unset.
+  const tiktokPixelId =
+    (import.meta.env.VITE_TIKTOK_PIXEL_ID as string | undefined) || "D7OD1FBC77U8CJLLA610";
+  ttq.load(tiktokPixelId);
+  // Fire the initial PageView here: this loader is deferred, so the route hook's
+  // mount-time ttqPage() no-ops (the ttq stub doesn't exist yet). Subsequent SPA
+  // navigations are tracked by the useMetaPageView route hook.
   ttq.page();
 }
 

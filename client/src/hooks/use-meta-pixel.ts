@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { initMetaPixel, trackMetaPageView } from "@/lib/meta-pixel";
+import { ttqPage } from "@/lib/tiktok-pixel";
 
 /**
  * Initialize Meta Pixel on app mount.
@@ -27,5 +28,8 @@ export function useMetaPageView() {
 
   useEffect(() => {
     trackMetaPageView();
+    // TikTok SPA PageView — keeps TikTok in sync with client-side route changes,
+    // matching Meta. The initial load PageView is fired by loadTikTokPixel().
+    ttqPage();
   }, [location]);
 }

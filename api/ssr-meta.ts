@@ -56,16 +56,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         currenciesAccepted: "IQD",
         paymentAccepted: "Cash on Delivery",
         priceRange: "$$",
-        address: { "@type": "PostalAddress", addressLocality: "بغداد", addressRegion: "بغداد", addressCountry: "IQ" },
-        geo: { "@type": "GeoCoordinates", latitude: "33.3152", longitude: "44.3661" },
+        address: { "@type": "PostalAddress", addressRegion: "بغداد", addressCountry: "IQ" },
         telephone: "+964-774-788-0673",
         contactPoint: { "@type": "ContactPoint", telephone: "+964-774-788-0673", contactType: "customer service", availableLanguage: ["Arabic", "ar"] },
         sameAs: ["https://www.instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
         areaServed: { "@type": "Country", name: "العراق" },
-        openingHoursSpecification: [
-          { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"], opens: "09:00", closes: "21:00" },
-          { "@type": "OpeningHoursSpecification", dayOfWeek: ["Friday"], opens: "14:00", closes: "21:00" },
-        ],
         potentialAction: {
           "@type": "SearchAction",
           target: `${BASE}/products?search={search_term_string}`,

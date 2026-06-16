@@ -6,7 +6,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as XLSX from "xlsx";
 
-const DATABASE_URL = "postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require";
+const DATABASE_URL = "postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require";
 const sql = neon(DATABASE_URL);
 const HOUYI_DIR = "./client/public/images/products/houyi";
 const EXCEL_FILE = "./Binzhou_Houyi (1) (1).xlsx";

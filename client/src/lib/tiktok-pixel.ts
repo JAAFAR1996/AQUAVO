@@ -43,6 +43,12 @@ function isTtqAvailable(): boolean {
   return typeof window !== 'undefined' && !!window.ttq;
 }
 
+/** Track a SPA route-change PageView (TikTok `page`). Safe no-op until SDK loads. */
+export function ttqPage() {
+  if (!isTtqAvailable() || typeof window.ttq!.page !== 'function') return;
+  window.ttq!.page();
+}
+
 // ----- Identification -----
 
 /**
@@ -271,6 +277,16 @@ export function ttqPurchase(orderData: {
   }>;
   totalValue: number;
 }) {
+  // Dedup: fire once per real order ID (survives confirmation-page refresh via localStorage),
+  // mirroring metaTrackPurchase. Without this, refreshes inflate TikTok Purchase + revenue.
+  if (orderData.orderId && orderData.orderId !== 'unknown') {
+    const dedupKey = `ttq_px_${orderData.orderId}`;
+    try {
+      if (localStorage.getItem(dedupKey)) return;
+      localStorage.setItem(dedupKey, '1');
+    } catch { /* private browsing — skip dedup, allow fire */ }
+  }
+
   trackTtq('Purchase', {
     contents: orderData.items.map(item => ({
       content_id: String(item.id),

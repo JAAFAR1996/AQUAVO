@@ -8,15 +8,15 @@ interface ShippingProgressProps {
 export function ShippingProgress({ compact = false }: ShippingProgressProps) {
   if (compact) {
     return (
-      <div className="text-xs text-white/70">
+      <div className="text-xs text-muted-foreground">
         التوصيل {formatIQD(DELIVERY_FEE)} لكل العراق خلال {DELIVERY_DAYS}
       </div>
     );
   }
 
   return (
-    <div className="rounded-xl border border-white/10 bg-white/[0.03] p-4">
-      <p className="text-sm text-white/70">
+    <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+      <p className="text-sm text-muted-foreground">
         رسوم التوصيل{" "}
         <span className="font-semibold text-[#199bb8]">
           {formatIQD(DELIVERY_FEE)}

@@ -2,7 +2,10 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import { Pool } from "@neondatabase/serverless";
 import * as schema from "../shared/schema.js";
 
-const connectionString = process.env.DATABASE_URL || "postgresql://neondb_owner:npg_LZ7zxhtYXB3A@ep-nameless-glade-al3932cf-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require";
+const connectionString = process.env.DATABASE_URL;
+if (!connectionString) {
+    throw new Error("DATABASE_URL is not set. Provide it via the environment (e.g. a gitignored .env), never hardcoded.");
+}
 
 async function main() {
     const pool = new Pool({ connectionString });

@@ -4,7 +4,7 @@ import fs from 'fs';
 async function run() {
   // 1. Check DB
   try {
-    const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
+    const sql = neon('postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require');
     const products = await sql`SELECT id, name, price, original_price FROM products LIMIT 5`;
     console.log('Sample Products from NEON:');
     console.log(products);

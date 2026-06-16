@@ -3,7 +3,7 @@ const fs = require('fs');
 
 async function getPrices() {
   const client = new Client({
-    connectionString: 'postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require',
+    connectionString: 'postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require',
   });
   
   await client.connect();

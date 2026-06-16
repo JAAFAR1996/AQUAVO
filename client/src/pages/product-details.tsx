@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
-import { fetchProductBySlug, fetchProducts, fetchProductVariants } from "@/lib/api";
+import { fetchProductBySlug, fetchProductVariants } from "@/lib/api";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -74,7 +74,6 @@ export default function ProductDetails() {
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [viewerCount, setViewerCount] = useState(() => Math.floor(Math.random() * 8) + 3);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
   const { data: product, isLoading, isError } = useQuery({
@@ -83,14 +82,8 @@ export default function ProductDetails() {
     enabled: !!slug,
   });
 
-  const { data: allProductsData } = useQuery<{ products: Product[] }>({
-    queryKey: ["products"],
-    queryFn: () => fetchProducts(),
-  });
-
-  const relatedProducts = allProductsData?.products
-    ?.filter((p: Product) => p.id !== product?.id && p.category === product?.category)
-    ?.slice(0, 4) || [];
+  // Related products are rendered by <RecommendationsSection/> below (dedicated
+  // endpoints). The previous full-catalog fetch here was unused dead code and is removed.
 
   // Fetch product variants (related sizes) - for legacy products without embedded variants
   const { data: legacyVariants = [] } = useQuery({
@@ -154,15 +147,6 @@ export default function ProductDetails() {
       available: (product.stock ?? 0) > 0,
     });
   }, [product?.id, displayPrice, hasEmbeddedVariants, selectedVariant?.id]);
-
-  // Viewer count drifts ±1 every 45s — signals live demand without fabricating numbers
-  useEffect(() => {
-    if (!product?.id) return;
-    const id = setInterval(() => {
-      setViewerCount((n) => Math.min(12, Math.max(2, n + (Math.random() > 0.45 ? 1 : -1))));
-    }, 45000);
-    return () => clearInterval(id);
-  }, [product?.id]);
 
   const displayOriginalPrice = selectedVariant?.originalPrice ?? product?.originalPrice;
   const displayStock = selectedVariant?.stock ?? product?.stock ?? 0;
@@ -539,7 +523,7 @@ export default function ProductDetails() {
                       <>
                         <Check className="w-4 h-4 text-green-500" />
                         <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                          متوفر حالياً — الكمية حسب المخزون
+                          متوفر
                         </span>
                       </>
                     )
@@ -552,17 +536,6 @@ export default function ProductDetails() {
                     </>
                   )}
                 </div>
-
-                {/* Live viewer count — social proof signal */}
-                {inStock && (
-                  <div className="flex items-center gap-2 mb-3 text-sm text-amber-500/90">
-                    <span className="relative flex h-2 w-2 shrink-0">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
-                    </span>
-                    <span>{viewerCount} شخص يشاهد هذا المنتج الحين</span>
-                  </div>
-                )}
 
                 {/* Shipping Info */}
                 <div className="flex flex-col gap-1 mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">

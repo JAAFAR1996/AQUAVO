@@ -2,7 +2,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 
 neonConfig.webSocketConstructor = ws;
-const pool = new Pool({ connectionString: 'postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require' });
+const pool = new Pool({ connectionString: 'postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require' });
 
 async function main() {
   const result = await pool.query(`SELECT id, name, thumbnail, images FROM products WHERE id = 'houyi-volcanic-stone'`);

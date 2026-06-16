@@ -17,13 +17,49 @@ interface CustomerInfoFormProps {
 export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGuest }: CustomerInfoFormProps) {
     const [govOpen, setGovOpen] = useState(false);
     const [govSearch, setGovSearch] = useState("");
+    const [activeIndex, setActiveIndex] = useState(0);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const triggerRef = useRef<HTMLButtonElement>(null);
 
     const filteredGovs = GOVERNORATES.filter(gov =>
         gov.label.includes(govSearch) || gov.value.toLowerCase().includes(govSearch.toLowerCase())
     );
 
     const selectedLabel = GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label;
+
+    const selectGov = (value: string) => {
+        setCustomerInfo({ ...customerInfo, governorate: value });
+        setGovOpen(false);
+        setGovSearch("");
+        triggerRef.current?.focus();
+    };
+
+    const closeGov = () => {
+        setGovOpen(false);
+        setGovSearch("");
+        triggerRef.current?.focus();
+    };
+
+    // Keyboard navigation for the searchable listbox
+    const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            setActiveIndex(i => Math.min(i + 1, filteredGovs.length - 1));
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            setActiveIndex(i => Math.max(i - 1, 0));
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            const gov = filteredGovs[activeIndex];
+            if (gov) selectGov(gov.value);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            closeGov();
+        }
+    };
+
+    // Reset the highlighted option whenever the list or open-state changes
+    useEffect(() => { setActiveIndex(0); }, [govSearch, govOpen]);
 
     // Close on outside click
     useEffect(() => {
@@ -106,7 +142,21 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     <button
                         type="button"
                         id="governorate"
+                        ref={triggerRef}
+                        role="combobox"
+                        aria-expanded={govOpen}
+                        aria-haspopup="listbox"
+                        aria-controls="governorate-listbox"
+                        aria-invalid={!!errors.governorate}
+                        aria-describedby={errors.governorate ? "governorate-error" : undefined}
                         onClick={() => { setGovOpen(prev => !prev); setGovSearch(""); }}
+                        onKeyDown={(e) => {
+                            if ((e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") && !govOpen) {
+                                e.preventDefault();
+                                setGovOpen(true);
+                                setGovSearch("");
+                            }
+                        }}
                         className={cn(
                             "w-full flex items-center justify-between px-3 py-2 rounded-md border text-sm text-right",
                             "bg-background hover:bg-accent/30 transition-colors cursor-pointer",
@@ -126,28 +176,38 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <input
                                     autoFocus
+                                    role="combobox"
+                                    aria-expanded={govOpen}
+                                    aria-controls="governorate-listbox"
+                                    aria-autocomplete="list"
+                                    aria-activedescendant={filteredGovs[activeIndex] ? `gov-opt-${filteredGovs[activeIndex].value}` : undefined}
+                                    aria-label="ابحث عن المحافظة"
                                     placeholder="ابحث... (مثال: بغ)"
                                     value={govSearch}
                                     onChange={(e) => setGovSearch(e.target.value)}
+                                    onKeyDown={handleSearchKeyDown}
                                     className="flex-1 px-2 py-2 text-sm bg-transparent outline-none text-right"
                                     dir="rtl"
                                 />
                             </div>
                             {/* Options list */}
-                            <ul className="max-h-[200px] overflow-y-auto py-1">
+                            <ul id="governorate-listbox" role="listbox" aria-label="المحافظة" className="max-h-[200px] overflow-y-auto py-1">
                                 {filteredGovs.length === 0 ? (
                                     <li className="px-3 py-2 text-sm text-muted-foreground text-center">لا توجد نتائج</li>
-                                ) : filteredGovs.map((gov) => (
+                                ) : filteredGovs.map((gov, idx) => (
                                     <li
                                         key={gov.value}
+                                        id={`gov-opt-${gov.value}`}
+                                        role="option"
+                                        aria-selected={customerInfo.governorate === gov.value}
                                         onMouseDown={(e) => {
                                             e.preventDefault();
-                                            setCustomerInfo({ ...customerInfo, governorate: gov.value });
-                                            setGovOpen(false);
-                                            setGovSearch("");
+                                            selectGov(gov.value);
                                         }}
+                                        onMouseEnter={() => setActiveIndex(idx)}
                                         className={cn(
                                             "px-3 py-2 text-sm cursor-pointer text-right hover:bg-accent hover:text-accent-foreground transition-colors",
+                                            idx === activeIndex && "bg-accent text-accent-foreground",
                                             customerInfo.governorate === gov.value && "bg-primary/10 text-primary font-medium"
                                         )}
                                     >
@@ -159,7 +219,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     )}
                 </div>
                 {errors.governorate && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
+                    <p id="governorate-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {errors.governorate}
                     </p>

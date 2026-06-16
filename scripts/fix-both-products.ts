@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { neon } from '@neondatabase/serverless';
 
-const dbUrl = 'postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
+const dbUrl = 'postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require';
 const sql = neon(dbUrl);
 
 const DRAGON_DIR = path.resolve('client/public/images/products/houyi/houyi-blue-dragon-stone');

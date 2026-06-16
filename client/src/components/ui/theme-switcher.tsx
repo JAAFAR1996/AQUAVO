@@ -10,11 +10,20 @@ import {
 import { ThemeOption } from "@/types";
 
 export function ThemeSwitcher() {
-  const [theme, setTheme] = useState<ThemeOption>("system");
+  // First-time visitors (no saved preference) default to LIGHT — not system.
+  // Read synchronously so the dropdown label matches the theme the head bootstrap
+  // script already applied, with no flicker/mismatch.
+  const [theme, setTheme] = useState<ThemeOption>(() => {
+    try {
+      return (localStorage.getItem("theme") as ThemeOption | null) || "light";
+    } catch {
+      return "light";
+    }
+  });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as ThemeOption | null;
-    const initialTheme = savedTheme || "system";
+    const initialTheme = savedTheme || "light";
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);
