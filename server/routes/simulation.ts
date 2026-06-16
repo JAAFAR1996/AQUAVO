@@ -436,7 +436,7 @@ const CULTURAL_FISH_MAP = [
   { species: "Molly Fish",        arabicName: "سمكة المولي",    segment: "الأمهات والنساء",        color: "#10b981", trait: "تتكاثر بسرعة، تغذي أبناءها، تتكيف مع كل ظرف" },
 ];
 
-router.get("/cultural-twin", async (req: Request, res: Response) => {
+router.get("/cultural-twin", simLimiter, async (req: Request, res: Response) => {
   try {
     const today = new Date().toLocaleDateString("ar-IQ", {
       weekday: "long", year: "numeric", month: "long", day: "numeric",
