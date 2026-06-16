@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 
-const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+const sql = neon('postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
 const houyiProducts = JSON.parse(fs.readFileSync('houyi_products_clean.json', 'utf-8'));
 

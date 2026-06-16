@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import fs from 'fs';
 import path from 'path';
 
-const sql = neon('postgresql://neondb_owner:npg_N7dEzt2pWjCi@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
+const sql = neon('postgresql://neondb_owner:REDACTED_ROTATE_ME@ep-quiet-moon-a4h7tdze-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require');
 
 const SOURCE_PATH = 'C:/Users/jaafa/Desktop/upload/FishWebClean/yee';
 const DEST_PATH = 'C:/Users/jaafa/Desktop/upload/FishWebClean/client/public/images/products/yee';

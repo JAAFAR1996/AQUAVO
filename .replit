@@ -65,14 +65,17 @@ expertMode = true
 
 [userenv]
 
+# Secrets are NOT stored here. Set them in the Replit "Secrets" panel
+# (or the host's environment). These keys are intentionally left blank in
+# version control; the runtime reads them from process.env.
 [userenv.shared]
-DATABASE_URL = "postgresql://neondb_owner:npg_2hbE5zHAaLnv@ep-quiet-moon-a4h7tdze.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-JWT_SECRET = "0Q7FwJ8ZOG6z5WT9JizE1myTxMf42FOria4LAI52qj/TDSYymlPc2qs/hux1ZxIkZzTmU3vVKPOjvvxSVjPtAQ=="
+DATABASE_URL = ""
+JWT_SECRET = ""
 NEXT_PUBLIC_SITE_URL = "https://fishweb.iq"
-RESEND_API_KEY = "re_Ym7tc4SR_C3rVKznKG36ydLDwnazQ3T3y"
-R2_ACCOUNT_ID = "437b94b7c116f757f2a1f76afdccc81c"
-R2_ACCESS_KEY_ID = "d799a34b275806aa2bd9b075ce150b54"
-R2_SECRET_ACCESS_KEY = "4ee014b9f2bd1b8907dffadfdd07eb22eef23279d2f0a5fafa198c3807fce44d"
+RESEND_API_KEY = ""
+R2_ACCOUNT_ID = ""
+R2_ACCESS_KEY_ID = ""
+R2_SECRET_ACCESS_KEY = ""
 NEXT_PUBLIC_R2_PUBLIC_URL = "https://pub-a4b6f72ec4db47098ef8158544ad8451.r2.dev"
 FROM_EMAIL = "orders@fishweb.iq"
 SUPPORT_EMAIL = "support@fishweb.iq"
