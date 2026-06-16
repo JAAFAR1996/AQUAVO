@@ -4,6 +4,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes" />
+
+  <!-- Theme bootstrap (runs before first paint — prevents flash + sets first-visit default).
+       First-time visitors (no saved preference) default to LIGHT — system preference is NOT used as the first default.
+       A returning visitor's explicit choice (light/dark/system) is read from localStorage and respected. -->
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        var resolved;
+        if (t === 'dark') resolved = 'dark';
+        else if (t === 'light') resolved = 'light';
+        else if (t === 'system') resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        else resolved = 'light'; /* first-time visitor default */
+        var el = document.documentElement;
+        el.classList.remove('dark', 'light');
+        el.classList.add(resolved);
+      } catch (e) {
+        document.documentElement.classList.add('light');
+      }
+    })();
+  </script>
+
   <title>__META_TITLE__</title>
   <meta name="description" content="__META_DESCRIPTION__" />
   <meta name="keywords" content="__META_KEYWORDS__" />
@@ -177,10 +199,9 @@
 </head>
 
 <body dir="rtl">
-  <!-- Minimal loading shell — just dark bg + shimmer navbar, no content-specific images -->
+  <!-- Minimal loading shell — theme-aware bg + shimmer navbar (matches the theme set by the bootstrap script above, so no flash) -->
   <div id="loading-shell" style="
     position:fixed;inset:0;z-index:9999;
-    background:hsl(222,47%,6%);
     box-sizing:border-box;
     animation: shell-out 0.35s ease-out 800ms forwards;
     pointer-events:none;
@@ -191,7 +212,9 @@
         0% { background-position: -400px 0; }
         100% { background-position: 400px 0; }
       }
-      .sk {
+      /* Default + dark: deep navy shell */
+      #loading-shell { background:hsl(222,47%,6%); }
+      #loading-shell .sk {
         background: linear-gradient(90deg,
           rgba(255,255,255,0.04) 0%,
           rgba(255,255,255,0.08) 50%,
@@ -200,9 +223,20 @@
         animation: sk-shimmer 1.6s infinite linear;
         border-radius: 8px;
       }
+      #loading-shell .shell-navbar { background:rgba(255,255,255,0.03); border-bottom:1px solid rgba(255,255,255,0.05); }
+      /* Light theme shell — matches html.light page background, prevents dark flash */
+      html.light #loading-shell { background:hsl(210,20%,98%); }
+      html.light #loading-shell .sk {
+        background: linear-gradient(90deg,
+          rgba(0,0,0,0.04) 0%,
+          rgba(0,0,0,0.08) 50%,
+          rgba(0,0,0,0.04) 100%);
+        background-size: 400px 100%;
+      }
+      html.light #loading-shell .shell-navbar { background:rgba(0,0,0,0.02); border-bottom:1px solid rgba(0,0,0,0.06); }
     </style>
     <!-- Navbar bar only -->
-    <div style="position:absolute;top:0;left:0;right:0;height:56px;background:rgba(255,255,255,0.03);border-bottom:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;padding:0 24px;gap:16px;justify-content:space-between;">
+    <div class="shell-navbar" style="position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;padding:0 24px;gap:16px;justify-content:space-between;">
       <div class="sk" style="width:100px;height:26px;border-radius:6px;"></div>
       <div style="display:flex;gap:16px;">
         <div class="sk" style="width:44px;height:14px;"></div>
