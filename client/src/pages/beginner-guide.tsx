@@ -384,12 +384,14 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
     document.documentElement.style.overflow = "";
     playMagicSplash();
     vib([40, 80, 160, 80, 240]);
-    confetti({
-      particleCount: 320, spread: 140, startVelocity: 48,
-      origin: { y: 0.44 },
-      colors: ["#00ffea","#00ff88","#ffffff","#7FFF00","#0ea5e9"],
-      shapes: ["circle"], scalar: 1.5, ticks: 380, gravity: 0.72,
-    });
+    if (!(typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)) {
+      confetti({
+        particleCount: 320, spread: 140, startVelocity: 48,
+        origin: { y: 0.44 },
+        colors: ["#00ffea","#00ff88","#ffffff","#7FFF00","#0ea5e9"],
+        shapes: ["circle"], scalar: 1.5, ticks: 380, gravity: 0.72,
+      });
+    }
     setTimeout(onComplete, 2800);
   }, [done, onComplete]);
 

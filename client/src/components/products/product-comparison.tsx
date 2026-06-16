@@ -76,7 +76,10 @@ export function CompareButton({
             }
             addToCompare(productId);
 
-            // Confetti effect like wishlist
+            // Confetti effect like wishlist — skipped when the user prefers reduced motion
+            if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+                return;
+            }
             import('canvas-confetti').then((confetti) => {
                 const button = e.currentTarget as HTMLElement;
                 const rect = button.getBoundingClientRect();
