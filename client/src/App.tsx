@@ -53,6 +53,8 @@ const FishCompatibility = lazy(() => import("@/pages/fish-compatibility"));
 const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
 const InvestPage = lazy(() => import("@/pages/invest"));
+const PartnersPage = lazy(() => import("@/pages/partners"));
+const AdminPartnersPage = lazy(() => import("@/pages/admin/partners"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
 const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
@@ -690,6 +692,17 @@ function Router() {
         )}
       </Route>
 
+      {/* Field Sales Partners Program — public application */}
+      <Route path="/partners">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><PartnersPage /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Invest Page */}
       <Route path="/invest">
         {() => (
@@ -752,6 +765,19 @@ function Router() {
             <RequireAdmin>
               <Suspense fallback={<PageLoader />}>
                 <FinancePage />
+              </Suspense>
+            </RequireAdmin>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* Admin: Field Sales Partners */}
+      <Route path="/admin/partners">
+        {() => (
+          <ErrorBoundary>
+            <RequireAdmin>
+              <Suspense fallback={<PageLoader />}>
+                <AdminPartnersPage />
               </Suspense>
             </RequireAdmin>
           </ErrorBoundary>

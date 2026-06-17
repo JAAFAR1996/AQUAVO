@@ -653,6 +653,14 @@ export default function AdminDashboard() {
             <Calculator className="w-4 h-4" />
             الدخول إلى المحاسب
           </Button>
+          <Button
+            variant="outline"
+            className="gap-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50"
+            onClick={() => setLocation('/admin/partners')}
+          >
+            <Users className="w-4 h-4" />
+            شركاء المبيعات
+          </Button>
           <Button variant="outline" onClick={logout} className="gap-2">
             <LogOut className="w-4 h-4" />
             تسجيل الخروج

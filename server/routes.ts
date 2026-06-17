@@ -25,6 +25,7 @@ import aiSettingsRoutes from "./routes/ai-settings.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
+import partnersRoutes from "./routes/partners.js";
 import socialAnalyticsRoutes from "./routes/social-analytics.js";
 import socialAutomationRouter from "./routes/social-automation.js";
 import blogRouter from "./routes/blog.js";
@@ -117,6 +118,9 @@ export async function registerRoutes(
 
   // Early Access Landing Page routes
   app.use("/api/early-access", earlyAccessRoutes);
+
+  // Field Sales Partners Program routes (برنامج شركاء المبيعات الميدانيين)
+  app.use("/api/partners", partnersRoutes);
 
   // Blog routes
   app.use("/api/blog", blogRouter);
