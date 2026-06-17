@@ -1875,6 +1875,56 @@ export const insertEarlyAccessLeadSchema = z.object({
 export type EarlyAccessLead = typeof earlyAccessLeads.$inferSelect;
 export type InsertEarlyAccessLead = z.infer<typeof insertEarlyAccessLeadSchema>;
 
+// ========================================
+// Partner Applications (برنامج شركاء المبيعات الميدانيين)
+// ========================================
+export const partnerApplications = pgTable("partner_applications", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  // Basic info
+  fullName: varchar("full_name", { length: 255 }).notNull(),
+  age: integer("age"),
+  gender: varchar("gender", { length: 16 }), // male | female
+  governorate: varchar("governorate", { length: 64 }),
+  area: varchar("area", { length: 128 }),
+  phone: varchar("phone", { length: 20 }).notNull(),
+  whatsapp: varchar("whatsapp", { length: 20 }),
+  socialLink: text("social_link"),
+  // Field readiness
+  fieldReady: varchar("field_ready", { length: 16 }), // yes | no
+  weeklyHours: varchar("weekly_hours", { length: 64 }),
+  transport: varchar("transport", { length: 64 }),
+  weeklyVisits: varchar("weekly_visits", { length: 64 }),
+  firstWeekPlaces: text("first_week_places"),
+  // Experience
+  salesExperience: varchar("sales_experience", { length: 16 }), // yes | no
+  relationshipsDetails: text("relationships_details"),
+  aquariumKnowledge: text("aquarium_knowledge"),
+  // All remaining structured + free-text answers
+  answers: jsonb("answers").$type<Record<string, unknown>>().default({}),
+  // Auto-evaluation (suggestion only — final decision is admin's)
+  systemScore: integer("system_score").default(0),
+  suggestedStatus: varchar("suggested_status", { length: 24 }).default("medium"), // accepted | medium | rejected
+  redFlags: jsonb("red_flags").$type<string[]>().default([]),
+  // Admin workflow
+  finalStatus: varchar("final_status", { length: 24 }).default("new"), // new | accepted | rejected | reviewing | contacted | trial_started
+  adminNotes: text("admin_notes"),
+  reviewedAt: timestamp("reviewed_at"),
+  contactedAt: timestamp("contacted_at"),
+}, (table) => ({
+  phoneIdx: index("partner_applications_phone_idx").on(table.phone),
+  statusIdx: index("partner_applications_final_status_idx").on(table.finalStatus),
+  createdAtIdx: index("partner_applications_created_at_idx").on(table.createdAt),
+}));
+
+export type PartnerApplication = typeof partnerApplications.$inferSelect;
+
+// Server-side validation for the public submission
+export const partnerApplicationStatuses = [
+  "new", "accepted", "rejected", "reviewing", "contacted", "trial_started",
+] as const;
+export type PartnerFinalStatus = (typeof partnerApplicationStatuses)[number];
+
 // ============================================================
 // AI AGENT SETTINGS - إعدادات وكلاء الذكاء الاصطناعي
 // ============================================================
