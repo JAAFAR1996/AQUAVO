@@ -49,21 +49,31 @@ export function createProductRouter(): RouterType {
                 sortOrder: query.sortOrder as 'asc' | 'desc',
             };
 
+            // Admin panel sends ?fresh=1 to bypass all caching and read straight
+            // from the DB — guarantees edits (price/stock/...) show immediately,
+            // without relying on in-memory cache invalidation across serverless instances.
+            const bypassCache = query.fresh !== undefined;
+
             // Serve from cache if available
             const cacheKey = JSON.stringify(filters);
-            const cached = productsCache.get(cacheKey);
-            if (cached && Date.now() < cached.expires) {
-                res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
-                return res.json(cached.data);
+            if (!bypassCache) {
+                const cached = productsCache.get(cacheKey);
+                if (cached && Date.now() < cached.expires) {
+                    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+                    return res.json(cached.data);
+                }
             }
 
             const products = await storage.getProducts(filters);
             const responseData = { products };
 
-            // Store in cache
-            productsCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL });
-
-            res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+            if (bypassCache) {
+                res.set('Cache-Control', 'no-store');
+            } else {
+                // Store in cache
+                productsCache.set(cacheKey, { data: responseData, expires: Date.now() + CACHE_TTL });
+                res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+            }
             res.json(responseData);
         } catch (err) {
             next(err);

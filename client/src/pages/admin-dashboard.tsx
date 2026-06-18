@@ -294,8 +294,10 @@ export default function AdminDashboard() {
   const { data: productsData, isLoading: loading } = useQuery({
     queryKey: ["products"],
     queryFn: async (): Promise<Product[]> => {
-      const response = await fetch("/api/products?limit=1000", {
+      // fresh=1 + no-store: admin always reads live DB data, never a cached copy
+      const response = await fetch("/api/products?limit=1000&fresh=1", {
         credentials: "include",
+        cache: "no-store",
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
