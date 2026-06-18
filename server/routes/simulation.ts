@@ -84,7 +84,7 @@ ${patientContext}
   };
 }
 
-router.post("/thousand-scenarios", simLimiter, async (req: Request, res: Response) => {
+router.post("/thousand-scenarios", requireAdmin as any, simLimiter, async (req: Request, res: Response) => {
   try {
     const { species, symptoms, waterTemp, waterPh, waterAmmonia, diagnosis, tankSize } = req.body;
 

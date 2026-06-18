@@ -58,7 +58,7 @@ interface OrderData {
 }
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -424,10 +424,10 @@ export default function Navbar() {
                           <span className="font-medium">المجموع:</span>
                           <span className="text-xl font-bold text-primary">{formatIQD(totalPrice)}</span>
                         </div>
-                        <Button className="w-full" size="lg" onClick={() => {
+                        <Button type="button" className="w-full" size="lg" onClick={() => {
                           setIsCartOpen(false);
                           if (isMobile) {
-                            window.location.href = "/checkout";
+                            setLocation("/checkout");
                           } else {
                             setTimeout(() => setIsCheckoutOpen(true), 150);
                           }

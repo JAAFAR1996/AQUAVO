@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { processCommentsForMedia, startMonitorMode, stopMonitorMode } from "../services/social/auto-responder.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
+
+// All social-automation endpoints are admin-only (trigger bot operations with credentials)
+router.use(requireAdmin as any);
 
 // Endpoint to trigger Replay Mode (Dry-run or actual execution)
 router.post('/replay', async (req, res) => {

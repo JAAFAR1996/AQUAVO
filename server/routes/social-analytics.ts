@@ -15,23 +15,13 @@ import type { SocialPlatform } from '../../shared/social-analytics-types.js';
 declare module 'express-session' {
     interface SessionData {
         userId: string;
+        // OAuth CSRF state — stored in the (DB-backed) session so it survives
+        // serverless cold starts and multi-instance deploys (was an in-memory Map).
+        oauthState?: { state: string; userId: string; platform: SocialPlatform; createdAt: number };
     }
 }
 
 const router = Router();
-
-// Store OAuth states temporarily (in production, use Redis or database)
-const oauthStates = new Map<string, { userId: string; platform: SocialPlatform; createdAt: Date }>();
-
-// Clean up expired states every hour
-setInterval(() => {
-    const now = Date.now();
-    for (const [state, data] of oauthStates) {
-        if (now - data.createdAt.getTime() > 10 * 60 * 1000) { // 10 minutes
-            oauthStates.delete(state);
-        }
-    }
-}, 60 * 60 * 1000);
 
 /**
  * Middleware to require authentication
@@ -69,11 +59,12 @@ router.get('/connect/:platform', requireAuth, (req: Request, res: Response) => {
     try {
         // Generate state for CSRF protection
         const state = crypto.randomBytes(32).toString('hex');
-        oauthStates.set(state, {
+        req.session!.oauthState = {
+            state,
             userId: req.session!.userId,
             platform,
-            createdAt: new Date(),
-        });
+            createdAt: Date.now(),
+        };
 
         let authUrl: string;
 
@@ -119,13 +110,19 @@ router.get('/callback/:platform', async (req: Request, res: Response) => {
         return res.redirect(`/admin/social-analytics?error=${encodeURIComponent(String(error_description || error))}`);
     }
 
-    // Validate state
-    const stateData = oauthStates.get(String(state));
-    if (!stateData || stateData.platform !== platform) {
+    // Validate state from the session (CSRF + serverless-safe)
+    const stateData = req.session?.oauthState;
+    if (
+        !stateData ||
+        stateData.state !== String(state) ||
+        stateData.platform !== platform ||
+        Date.now() - stateData.createdAt > 10 * 60 * 1000 // 10 minutes
+    ) {
         return res.redirect('/admin/social-analytics?error=invalid_state');
     }
 
-    oauthStates.delete(String(state));
+    // One-time use: clear it
+    req.session!.oauthState = undefined;
 
     try {
         let tokenData;

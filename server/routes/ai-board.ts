@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import path from "path";
 import { fileURLToPath } from "url";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -106,7 +107,7 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 // ============================================================
 // POST /discuss — Run the 3-expert discussion (SSE streaming)
 // ============================================================
-router.post("/discuss", boardRateLimiter, async (req: Request, res: Response) => {
+router.post("/discuss", requireAdmin as any, boardRateLimiter, async (req: Request, res: Response) => {
   try {
     const { role, question, accountantAnalysis, marketerAnalysis } = req.body as {
       role: string;
