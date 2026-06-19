@@ -16,6 +16,7 @@ import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { CompareButton } from "@/components/products/product-comparison";
 import { useToast } from "@/hooks/use-toast";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
@@ -636,6 +637,11 @@ export default function ProductDetails() {
                         variant="default"
                         size="lg"
                         className="gap-2"
+                      />
+                      <CompareButton
+                        productId={product.id}
+                        variant="full"
+                        className="h-11 px-4"
                       />
                       <Button size="lg" variant="outline" onClick={handleShare} aria-label="مشاركة المنتج">
                         <Share2 className="w-5 h-5" />

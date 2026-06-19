@@ -32,7 +32,47 @@ import {
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/lib/format";
 import type { Product } from "@/types";
+
+// --- Comparison helpers (mirror product-details + specifications-table logic) ---
+
+// Real price for a product: use lowest variant price when it has variants,
+// otherwise the base price. Returns original price only when it's a real discount.
+function getComparePrice(p: Product): { price: number; original?: number; fromVariant: boolean } {
+    const variantPrices = (p.hasVariants && p.variants?.length)
+        ? p.variants.map((v) => v.price).filter((n) => n > 0)
+        : [];
+    const minVariant = variantPrices.length ? Math.min(...variantPrices) : undefined;
+    const price = minVariant ?? p.price ?? 0;
+    const original = p.originalPrice && p.originalPrice > price ? p.originalPrice : undefined;
+    return { price, original, fromVariant: minVariant !== undefined };
+}
+
+// Keys that are shown elsewhere (or not real technical specs) — excluded from the spec rows.
+const COMPARE_EXCLUDE_SPEC_KEYS = [
+    "benefits", "difficulty", "ecoFriendly", "videoUrl",
+    "explodedViewParts", "brand", "usageInstructions",
+];
+
+// Normalize a product's specifications into a flat label->value map.
+function getCompareSpecs(p: Product): Record<string, string> {
+    const out: Record<string, string> = {};
+    const specs = p.specifications;
+    if (!specs || typeof specs !== "object") return out;
+    for (const [key, value] of Object.entries(specs)) {
+        if (key.startsWith("__")) continue;
+        if (COMPARE_EXCLUDE_SPEC_KEYS.includes(key)) continue;
+        if (Array.isArray(value)) continue;
+        if (value === null || value === undefined || value === "") continue;
+        out[key] = typeof value === "boolean"
+            ? (value ? "نعم ✓" : "لا ✗")
+            : typeof value === "object"
+                ? JSON.stringify(value)
+                : String(value);
+    }
+    return out;
+}
 
 // Re-export useComparison from context for backward compatibility
 export { useComparison } from "@/contexts/comparison-context";
@@ -246,20 +286,16 @@ export function ProductComparisonTable({
         );
     }
 
-    // Extract all unique specs
-    const allSpecs = new Set<string>();
-    products.forEach((p) => {
-        // Parse specs if it's a string description
-        // For now, we'll use some common comparison points
-    });
+    // Collect the union of all spec keys across compared products
+    const specMaps = products.map(getCompareSpecs);
+    const allSpecKeys = Array.from(new Set(specMaps.flatMap((m) => Object.keys(m))));
 
-    const comparisonPoints = [
-        { key: "price", label: "السعر" },
-        { key: "rating", label: "التقييم" },
-        { key: "brand", label: "العلامة التجارية" },
-        { key: "category", label: "الفئة" },
-        { key: "stock", label: "التوفر" },
-    ];
+    const difficultyLabels: Record<string, string> = {
+        easy: "سهل",
+        medium: "متوسط",
+        hard: "صعب",
+        expert: "خبير",
+    };
 
     return (
         <div className="overflow-x-auto">
@@ -298,14 +334,31 @@ export function ProductComparisonTable({
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {/* Price Row */}
+                    {/* Price Row — real prices, with discount + "starting from" for variants */}
                     <TableRow>
                         <TableCell className="font-medium">السعر</TableCell>
-                        {products.map((product) => (
-                            <TableCell key={product.id} className="text-center">
-                                <div className="font-bold text-lg text-purple-500">قريباً جداً</div>
-                            </TableCell>
-                        ))}
+                        {products.map((product) => {
+                            const { price, original, fromVariant } = getComparePrice(product);
+                            return (
+                                <TableCell key={product.id} className="text-center">
+                                    {price > 0 ? (
+                                        <div className="flex flex-col items-center">
+                                            {fromVariant && (
+                                                <span className="text-[10px] text-muted-foreground">يبدأ من</span>
+                                            )}
+                                            <span className="font-bold text-lg text-primary">{formatPrice(price)}</span>
+                                            {original && (
+                                                <span className="text-xs text-muted-foreground line-through">
+                                                    {formatPrice(original)}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <span className="text-muted-foreground">-</span>
+                                    )}
+                                </TableCell>
+                            );
+                        })}
                     </TableRow>
 
                     {/* Rating Row */}
@@ -313,13 +366,17 @@ export function ProductComparisonTable({
                         <TableCell className="font-medium">التقييم</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
-                                <div className="flex items-center justify-center gap-1">
-                                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                                    <span className="font-medium">{product.rating}</span>
-                                    <span className="text-muted-foreground text-sm">
-                                        ({product.reviewCount})
-                                    </span>
-                                </div>
+                                {(product.reviewCount ?? 0) > 0 ? (
+                                    <div className="flex items-center justify-center gap-1">
+                                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                                        <span className="font-medium">{product.rating}</span>
+                                        <span className="text-muted-foreground text-sm">
+                                            ({product.reviewCount})
+                                        </span>
+                                    </div>
+                                ) : (
+                                    <span className="text-muted-foreground text-sm">لا توجد تقييمات</span>
+                                )}
                             </TableCell>
                         ))}
                     </TableRow>
@@ -339,7 +396,12 @@ export function ProductComparisonTable({
                         <TableCell className="font-medium">الفئة</TableCell>
                         {products.map((product) => (
                             <TableCell key={product.id} className="text-center">
-                                <Badge variant="secondary">{product.category}</Badge>
+                                <div className="flex flex-col items-center gap-1">
+                                    <Badge variant="secondary">{product.category}</Badge>
+                                    {product.subcategory && (
+                                        <span className="text-[10px] text-muted-foreground">{product.subcategory}</span>
+                                    )}
+                                </div>
                             </TableCell>
                         ))}
                     </TableRow>
@@ -347,16 +409,61 @@ export function ProductComparisonTable({
                     {/* Stock Row */}
                     <TableRow>
                         <TableCell className="font-medium">التوفر</TableCell>
-                        {products.map((product) => (
-                            <TableCell key={product.id} className="text-center">
-                                {(product.stock ?? 0) > 0 ? (
-                                    <Badge className="bg-green-500">متوفر</Badge>
-                                ) : (
-                                    <Badge variant="destructive">غير متوفر</Badge>
-                                )}
-                            </TableCell>
-                        ))}
+                        {products.map((product) => {
+                            const stock = product.hasVariants && product.variants?.length
+                                ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+                                : (product.stock ?? 0);
+                            return (
+                                <TableCell key={product.id} className="text-center">
+                                    {stock > 0 ? (
+                                        <Badge className="bg-green-500">متوفر{stock <= 5 ? ` (${stock})` : ""}</Badge>
+                                    ) : (
+                                        <Badge variant="destructive">غير متوفر</Badge>
+                                    )}
+                                </TableCell>
+                            );
+                        })}
                     </TableRow>
+
+                    {/* Difficulty Row — only when at least one product has it */}
+                    {products.some((p) => p.difficulty) && (
+                        <TableRow>
+                            <TableCell className="font-medium">مستوى الصعوبة</TableCell>
+                            {products.map((product) => (
+                                <TableCell key={product.id} className="text-center">
+                                    {product.difficulty
+                                        ? (difficultyLabels[product.difficulty] || product.difficulty)
+                                        : <span className="text-muted-foreground">-</span>}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    )}
+
+                    {/* Dynamic Specification Rows — union of all product specs */}
+                    {allSpecKeys.map((key) => (
+                        <TableRow key={`spec-${key}`}>
+                            <TableCell className="font-medium">{key}</TableCell>
+                            {products.map((product, i) => (
+                                <TableCell key={product.id} className="text-center text-sm">
+                                    {specMaps[i][key] ?? <span className="text-muted-foreground">-</span>}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    ))}
+
+                    {/* Description Row */}
+                    {products.some((p) => p.description) && (
+                        <TableRow>
+                            <TableCell className="font-medium align-top">الوصف</TableCell>
+                            {products.map((product) => (
+                                <TableCell key={product.id} className="text-sm text-muted-foreground align-top text-right">
+                                    {product.description
+                                        ? <span className="line-clamp-4">{product.description}</span>
+                                        : "-"}
+                                </TableCell>
+                            ))}
+                        </TableRow>
+                    )}
 
                     {/* Badges Row */}
                     <TableRow>
@@ -384,18 +491,36 @@ export function ProductComparisonTable({
                     {/* Add to Cart Row */}
                     <TableRow>
                         <TableCell className="font-medium">الإجراء</TableCell>
-                        {products.map((product) => (
-                            <TableCell key={product.id} className="text-center">
-                                <Button
-                                    className="gap-2"
-                                    onClick={() => handleAddToCart(product)}
-                                    disabled={(product.stock ?? 0) <= 0}
-                                >
-                                    <ShoppingCart className="w-4 h-4" />
-                                    أضف للسلة
-                                </Button>
-                            </TableCell>
-                        ))}
+                        {products.map((product) => {
+                            const stock = product.hasVariants && product.variants?.length
+                                ? product.variants.reduce((sum, v) => sum + (v.stock ?? 0), 0)
+                                : (product.stock ?? 0);
+                            // Variant products need an option selected — send to the detail page.
+                            if (product.hasVariants && product.variants?.length) {
+                                return (
+                                    <TableCell key={product.id} className="text-center">
+                                        <Link href={`/products/${product.slug}`}>
+                                            <Button variant="outline" className="gap-2" disabled={stock <= 0}>
+                                                <ArrowRight className="w-4 h-4" />
+                                                اختر الخيار
+                                            </Button>
+                                        </Link>
+                                    </TableCell>
+                                );
+                            }
+                            return (
+                                <TableCell key={product.id} className="text-center">
+                                    <Button
+                                        className="gap-2"
+                                        onClick={() => handleAddToCart(product)}
+                                        disabled={stock <= 0}
+                                    >
+                                        <ShoppingCart className="w-4 h-4" />
+                                        أضف للسلة
+                                    </Button>
+                                </TableCell>
+                            );
+                        })}
                     </TableRow>
                 </TableBody>
             </Table>
