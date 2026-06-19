@@ -57,7 +57,6 @@ import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
 import InvoicesList from "@/components/admin/invoices-list";
 import AccountingPanel from "@/components/admin/accounting-panel";
-import CompetitorMonitorPanel from "@/components/admin/competitor-monitor-panel";
 import {
   Plus,
   Pencil,
@@ -735,7 +734,6 @@ export default function AdminDashboard() {
           <TabsTrigger value="orders">الطلبات</TabsTrigger>
           <TabsTrigger value="invoices">فواتير واتساب</TabsTrigger>
           <TabsTrigger value="accounting">💰 المحاسب</TabsTrigger>
-          <TabsTrigger value="competitors">🔍 المنافسون</TabsTrigger>
           <TabsTrigger value="customers">العملاء</TabsTrigger>
           <TabsTrigger value="reviews">المراجعات</TabsTrigger>
           <TabsTrigger value="gallery">المعرض</TabsTrigger>
@@ -752,10 +750,6 @@ export default function AdminDashboard() {
 
         <TabsContent value="accounting" className="space-y-4">
           <AccountingPanel />
-        </TabsContent>
-
-        <TabsContent value="competitors" className="space-y-4">
-          <CompetitorMonitorPanel />
         </TabsContent>
 
         {/* AI Insights Tab */}

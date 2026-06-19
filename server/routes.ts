@@ -26,8 +26,6 @@ import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
 import partnersRoutes from "./routes/partners.js";
-import socialAnalyticsRoutes from "./routes/social-analytics.js";
-import socialAutomationRouter from "./routes/social-automation.js";
 import blogRouter from "./routes/blog.js";
 import aiMonitorRouter from "./routes/ai-monitor.js";
 import aiLearningsRouter from "./routes/ai-learnings.js";
@@ -125,12 +123,9 @@ export async function registerRoutes(
   // Blog routes
   app.use("/api/blog", blogRouter);
 
-  // Social Media Analytics routes (TikTok, Facebook, Instagram)
-  app.use("/api/social-analytics", socialAnalyticsRoutes);
+  // Social media analytics + comment automation routes removed from the product
+  // (unused marketing automation). Service modules retained for any internal use.
 
-  // Comment Automation — dry-run, monitor start/stop
-  app.use("/api/social-automation", socialAutomationRouter);
-  
 
   // Cron job routes (Vercel Cron calls these endpoints)
   app.use("/api/cron", cronRouter);

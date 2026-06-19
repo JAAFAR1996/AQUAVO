@@ -57,7 +57,6 @@ const PartnersPage = lazy(() => import("@/pages/partners"));
 const AdminPartnersPage = lazy(() => import("@/pages/admin/partners"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
-const SocialAnalytics = lazy(() => import("@/pages/admin/social-analytics"));
 const FinancePage = lazy(() => import("@/pages/admin/finance"));
 const Wishlist = lazy(() => import("@/pages/wishlist"));
 const SearchResults = lazy(() => import("@/pages/search-results"));
@@ -830,19 +829,6 @@ function Router() {
             <RequireAdmin>
               <Suspense fallback={<PageLoader />}>
                 <AdminAI />
-              </Suspense>
-            </RequireAdmin>
-          </ErrorBoundary>
-        )}
-      </Route>
-
-      {/* Admin: Social Media Analytics */}
-      <Route path="/admin/social-analytics">
-        {() => (
-          <ErrorBoundary>
-            <RequireAdmin>
-              <Suspense fallback={<PageLoader />}>
-                <SocialAnalytics />
               </Suspense>
             </RequireAdmin>
           </ErrorBoundary>
