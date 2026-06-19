@@ -501,7 +501,9 @@ export class ProductStorage {
                 .from(orderItems)
                 .leftJoin(orders, eq(orders.id, orderItems.orderId))
                 .where(
-                    eq(orders.status, 'completed') // Only completed orders
+                    // Real fulfilled status in this store is 'delivered' (there is no
+                    // 'completed' status), so the old filter always matched nothing.
+                    inArray(orders.status, ['delivered', 'confirmed', 'processing', 'shipped'])
                 )
                 .groupBy(orderItems.productId)
                 .orderBy(desc(sql`sum(${orderItems.quantity})`))
