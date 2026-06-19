@@ -22,7 +22,7 @@ export interface IStorage {
     updateProduct(id: string, updates: Partial<Product>): Promise<Product | undefined>;
     updateProductVariants(id: string, hasVariants: boolean, variants: any[] | null): Promise<boolean>;
     deleteProduct(id: string): Promise<boolean>;
-    getOrders(userId?: string, options?: { limit?: number, offset?: number, phone?: string }): Promise<Order[]>;
+    getOrders(userId?: string, options?: { limit?: number, offset?: number }): Promise<Order[]>;
     getOrder(id: string): Promise<Order | undefined>;
     createOrder(order: Partial<Order>): Promise<Order>;
     updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined>;

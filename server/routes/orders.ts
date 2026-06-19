@@ -329,16 +329,7 @@ export function createOrderRouter(): RouterType {
     router.get("/", requireAuth, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const sess = getSession(req);
-            // Look up the account phone so we can also surface the customer's own
-            // guest orders (placed before logging in) that match their number.
-            let phone: string | undefined;
-            if (sess?.userId) {
-                try {
-                    const user = await storage.getUser(sess.userId);
-                    phone = user?.phone || undefined;
-                } catch { /* non-blocking — fall back to user_id only */ }
-            }
-            const orders = await storage.getOrders(sess?.userId, { phone });
+            const orders = await storage.getOrders(sess?.userId);
             // Enrich all orders with product names
             const enriched = await Promise.all((orders || []).map(enrichOrderItems));
             res.json(enriched);

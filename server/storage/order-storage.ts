@@ -61,31 +61,16 @@ export class OrderStorage {
         return price;
     }
 
-    async getOrders(userId?: string, options?: { limit?: number; offset?: number; phone?: string }): Promise<Order[]> {
+    async getOrders(userId?: string, options?: { limit?: number; offset?: number }): Promise<Order[]> {
         const db = this.ensureDb();
         let query = db.select().from(orders);
 
-        // Match the customer's own guest orders by phone (country-code agnostic:
-        // compares the last 9 digits, so 07XXXXXXXXX and +9647XXXXXXXXX both match).
-        const normalizedPhone = (options?.phone || "").replace(/\D/g, "");
-        const last9 = normalizedPhone.slice(-9);
-
+        // SECURITY: only return orders explicitly linked to this account (user_id).
+        // We intentionally do NOT match guest orders by phone here — phone numbers
+        // are user-editable and unverified, so phone matching would be an IDOR/PII
+        // leak. Linking a guest order to an account requires a verified claim flow.
         if (userId) {
-            const ownByUser = eq(orders.userId, userId);
-            if (last9.length === 9) {
-                // Include guest orders (user_id IS NULL) whose phone matches this account.
-                query = query.where(
-                    or(
-                        ownByUser,
-                        and(
-                            isNull(orders.userId),
-                            sql`right(regexp_replace(${orders.customerPhone}, '\D', '', 'g'), 9) = ${last9}`,
-                        ),
-                    ),
-                ) as any;
-            } else {
-                query = query.where(ownByUser) as any;
-            }
+            query = query.where(eq(orders.userId, userId)) as any;
         }
 
         query = query.orderBy(desc(orders.createdAt)) as any;
