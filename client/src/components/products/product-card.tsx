@@ -91,6 +91,15 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
             )}
           </div>
 
+          {/* Always-visible compare toggle (top-left) — works on mobile too */}
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20">
+            <CompareButton
+              productId={product.id}
+              variant="icon"
+              className="h-8 w-8 sm:h-9 sm:w-9 bg-background/80 backdrop-blur-sm shadow-md"
+            />
+          </div>
+
           {/* Image */}
           <div className="relative pt-[100%] overflow-hidden rounded-t-xl" data-protected="true">
             <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
@@ -141,11 +150,6 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <Eye className="w-4 h-4 ml-1" aria-hidden="true" />
                 نظرة سريعة
               </Button>
-              <CompareButton
-                productId={product.id}
-                variant="full"
-                className="rounded-full shadow-md micro-bounce"
-              />
               <WishlistButton
                 product={product}
                 variant="icon"
