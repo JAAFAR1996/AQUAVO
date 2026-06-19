@@ -332,6 +332,24 @@ export class OrderStorage {
                 customerPhone: customerInfo.phone,
             } as any).returning();
 
+            // 6b. Persist normalized line items into order_items_relational so that
+            // sales analytics (top-selling, predictive, inventory) see website orders.
+            // Items are also kept inline in orders.items (JSONB) for fast reads.
+            if (orderItemsData.length > 0) {
+                await tx.insert(orderItems).values(
+                    orderItemsData.map((line) => ({
+                        orderId: newOrder.id,
+                        productId: line.productId,
+                        quantity: line.quantity,
+                        priceAtPurchase: String(line.priceAtPurchase),
+                        totalPrice: String(line.lineTotal),
+                        metadata: (line.variantId || line.variantLabel)
+                            ? { variantId: line.variantId, variantLabel: line.variantLabel }
+                            : null,
+                    })) as any,
+                );
+            }
+
             if (userId) {
                 const loyaltyResult = await loyaltyStorage.processOrderPointsInTransaction(tx, {
                     userId,
