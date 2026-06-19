@@ -61,12 +61,31 @@ export class OrderStorage {
         return price;
     }
 
-    async getOrders(userId?: string, options?: { limit?: number; offset?: number }): Promise<Order[]> {
+    async getOrders(userId?: string, options?: { limit?: number; offset?: number; phone?: string }): Promise<Order[]> {
         const db = this.ensureDb();
         let query = db.select().from(orders);
 
+        // Match the customer's own guest orders by phone (country-code agnostic:
+        // compares the last 9 digits, so 07XXXXXXXXX and +9647XXXXXXXXX both match).
+        const normalizedPhone = (options?.phone || "").replace(/\D/g, "");
+        const last9 = normalizedPhone.slice(-9);
+
         if (userId) {
-            query = query.where(eq(orders.userId, userId)) as any;
+            const ownByUser = eq(orders.userId, userId);
+            if (last9.length === 9) {
+                // Include guest orders (user_id IS NULL) whose phone matches this account.
+                query = query.where(
+                    or(
+                        ownByUser,
+                        and(
+                            isNull(orders.userId),
+                            sql`right(regexp_replace(${orders.customerPhone}, '\D', '', 'g'), 9) = ${last9}`,
+                        ),
+                    ),
+                ) as any;
+            } else {
+                query = query.where(ownByUser) as any;
+            }
         }
 
         query = query.orderBy(desc(orders.createdAt)) as any;
@@ -111,7 +130,14 @@ export class OrderStorage {
         await db.update(loyaltyCoupons).set({ usedOrderId: null } as any).where(eq(loyaltyCoupons.usedOrderId as any, id));
         // Delete child rows with NOT NULL FK
         await db.delete(returnRequests).where(eq(returnRequests.orderId, id));
-        await db.delete(orderItems).where(eq(orderItems.orderId, id));
+        // NOTE: order line items are stored inline in orders.items (JSONB); the
+        // normalized `order_items` table is not provisioned in this DB. Guard the
+        // delete so a missing table can never block order deletion.
+        try {
+            await db.delete(orderItems).where(eq(orderItems.orderId, id));
+        } catch (err) {
+            console.warn("[AQUAVO] Skipping order_items cleanup (table not present):", (err as Error)?.message);
+        }
         await db.delete(payments).where(eq(payments.orderId, id));
         // Now delete the order itself
         const result = await db.delete(orders).where(eq(orders.id, id)).returning({ id: orders.id });
