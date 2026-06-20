@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Star, Percent, Tag, TrendingDown, Timer, Sparkles } from "lucide-react";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
 
 import { BackToTop } from "@/components/back-to-top";
@@ -25,6 +25,7 @@ export default function Deals() {
 
   const { addItem } = useCart();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   // Filter products with discounts
   const dealsProducts = data?.products?.filter(
@@ -42,6 +43,13 @@ export default function Deals() {
     : 0;
 
   const handleAddToCart = (product: Product) => {
+    // Variant products need an option chosen on the detail page (base price is
+    // often 0) — otherwise addItem rejects them as unavailable.
+    if (product.hasVariants && product.variants?.length) {
+      setLocation(`/products/${product.slug}`);
+      return;
+    }
+
     addItem(product);
 
     toast({

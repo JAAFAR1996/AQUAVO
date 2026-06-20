@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { formatIQD, generateOrderNumber, cn } from "@/lib/utils";
+import { stashOrder } from "@/lib/order-stash";
 import { useCart, CartItem } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useAuth } from "@/contexts/auth-context";
@@ -130,6 +131,45 @@ export default function Navbar() {
     setIsCheckoutOpen(false);
     setIsCartOpen(false);
     clearCart();
+
+    // Preferred path: send the customer to the full confirmation/invoice page so
+    // the invoice is impossible to miss (the #1 complaint was "I never see it").
+    // We stash the order we already hold so the invoice renders fully even for
+    // guests, whose authed order endpoint returns 401.
+    if (data.orderId) {
+      stashOrder({
+        id: data.orderId,
+        orderNumber: newOrderData.orderNumber,
+        total: data.total,
+        status: data.status,
+        items: data.items.map((item) => ({
+          productId: item.productId || item.id,
+          productName: item.name,
+          quantity: item.quantity,
+          priceAtPurchase: item.price,
+          variantId: item.variantId,
+          variantLabel: item.variantLabel,
+        })),
+        shippingAddress: data.customerInfo.address,
+        customerName: data.customerInfo.name,
+        customerPhone: data.customerInfo.phone,
+        shippingCost: data.deliveryFee,
+        discountTotal: data.discount,
+        createdAt: newOrderData.orderDate.toISOString(),
+        loyalty: {
+          pointsEarned: data.pointsEarned ?? 0,
+          cashbackEarned: data.cashbackEarned ?? 0,
+          cashbackUsed: data.cashbackUsed ?? 0,
+          roundedTotal: data.roundedTotal ?? data.total,
+          tier: "",
+          tierUpgraded: false,
+        },
+      });
+      setLocation(`/order-confirmation/${data.orderId}`);
+      return;
+    }
+
+    // Fallback: no order id (shouldn't happen) — show the invoice modal in place.
     setIsInvoiceOpen(true);
   };
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useRoute } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
 import { formatIQD, formatDate } from "@/lib/utils";
+import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS } from "@/lib/constants/shipping";
@@ -126,17 +127,22 @@ export default function OrderConfirmation() {
         retry: false,
     });
 
-    // Fallback for guests: the PII-safe public tracking endpoint. Returns a
-    // reduced shape (no per-item price / customer info) but a real confirmation
-    // instead of an empty page. Only queried after the authed request settles empty.
-    const needsFallback = !!orderId && !isLoading && !order;
+    // Freshest, complete source for the customer who just checked out — written
+    // at purchase time. Critical for guests, whose authed order endpoint 401s and
+    // whose public tracking fallback omits prices. Read once per orderId.
+    const stashed = useMemo(() => readStashedOrder(orderId) as OrderData | undefined, [orderId]);
+
+    // Fallback for guests with no stash (e.g. opened the link on another device):
+    // the PII-safe public tracking endpoint. Returns a reduced shape (no per-item
+    // price / customer info) but a real confirmation instead of an empty page.
+    const needsFallback = !!orderId && !isLoading && !order && !stashed;
     const { data: trackOrder, isLoading: trackLoading } = useQuery({
         queryKey: [`/api/orders/track/${orderId}`],
         enabled: needsFallback,
         retry: false,
     });
 
-    const orderData = (order as OrderData | undefined) ?? mapTrackToOrder(trackOrder);
+    const orderData = (order as OrderData | undefined) ?? stashed ?? mapTrackToOrder(trackOrder);
     const loading = isLoading || (needsFallback && trackLoading);
 
     // Fire Purchase pixels only from the authoritative authed order (has real
