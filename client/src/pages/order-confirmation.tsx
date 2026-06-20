@@ -5,7 +5,7 @@ import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { CheckCircle2, Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, Calendar } from "lucide-react";
+import { CheckCircle2, Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, Calendar, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import confetti from "canvas-confetti";
 import { useQuery } from "@tanstack/react-query";
@@ -16,7 +16,7 @@ import { formatIQD, formatDate } from "@/lib/utils";
 import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
-import { DELIVERY_DAYS } from "@/lib/constants/shipping";
+import { DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 // Proper interface for order data
 interface OrderItem {
@@ -268,6 +268,20 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         orderDate: createdAt,
     };
 
+    // WhatsApp confirmation message — includes the order number, items (with the
+    // chosen variant) and total so the customer can confirm in one tap.
+    const itemsText = items
+        .map(item => {
+            const variant = item.variantLabel ? ` (${item.variantLabel})` : "";
+            return `• ${item.productName || item.productId}${variant} × ${item.quantity}`;
+        })
+        .join("\n");
+    const whatsappText =
+        `مرحباً، أريد تأكيد طلبي رقم ${displayNumber}\n` +
+        (itemsText ? `\n${itemsText}\n` : "") +
+        (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (الدفع عند الاستلام)` : "");
+    const whatsappHref = `${WHATSAPP_URL}?text=${encodeURIComponent(whatsappText)}`;
+
     return (
         <div className="min-h-screen flex flex-col bg-background font-sans">
             <MetaTags
@@ -490,6 +504,17 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
 
                             {/* الأزرار */}
                             <div className="space-y-2.5 pt-1">
+                                {/* WhatsApp confirmation — primary CTA after ordering */}
+                                <a
+                                    href={whatsappHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 w-full h-11 rounded-md bg-green-600 hover:bg-green-700 text-white font-semibold transition-colors"
+                                >
+                                    <MessageCircle className="w-4 h-4" />
+                                    أكد طلبك عبر واتساب
+                                </a>
+
                                 <Link href="/order-tracking">
                                     <Button className="w-full h-11" variant="default">
                                         <Truck className="w-4 h-4 ml-2" />
