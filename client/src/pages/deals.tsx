@@ -42,7 +42,7 @@ export default function Deals() {
     ? Math.max(...dealsProducts.map((p: Product) => getDiscountPercentage(Number(p.originalPrice), Number(p.price))))
     : 0;
 
-  const handleAddToCart = (product: Product) => {
+  const handleAddToCart = async (product: Product) => {
     // Variant products need an option chosen on the detail page (base price is
     // often 0) — otherwise addItem rejects them as unavailable.
     if (product.hasVariants && product.variants?.length) {
@@ -50,7 +50,8 @@ export default function Deals() {
       return;
     }
 
-    addItem(product);
+    const ok = await addItem(product);
+    if (!ok) return;
 
     toast({
       title: "تمت الإضافة للسلة",

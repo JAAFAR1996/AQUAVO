@@ -6,6 +6,15 @@ import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-
 
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
+// Canonical Arabic stock errors — shared so routes can map them to HTTP 409
+// and the frontend can surface a clean message without leaking English.
+export const STOCK_ERROR_INSUFFICIENT = "الكمية المطلوبة غير متوفرة حالياً";
+export const STOCK_ERROR_MAX_REACHED = "وصلت للكمية المتوفرة";
+export function isStockError(message?: string): boolean {
+    if (!message) return false;
+    return message.includes(STOCK_ERROR_INSUFFICIENT) || message.includes(STOCK_ERROR_MAX_REACHED);
+}
+
 interface CreateOrderLineInput {
     productId: string;
     quantity: number;
@@ -209,7 +218,7 @@ export class OrderStorage {
 
                     const variantStock = Number(selectedVariant.stock ?? 0);
                     if (variantStock < quantity) {
-                        throw new Error(`Insufficient stock for ${product.name} (${selectedVariant.label})`);
+                        throw new Error(`${STOCK_ERROR_INSUFFICIENT} (${product.name} — ${selectedVariant.label})`);
                     }
 
                     price = this.parsePositivePrice(selectedVariant.price, `Variant ${selectedVariant.label}`);
@@ -235,7 +244,7 @@ export class OrderStorage {
                 } else {
                     const currentStock = Number(product.stock ?? 0);
                     if (currentStock < quantity) {
-                        throw new Error(`Insufficient stock for ${product.name}`);
+                        throw new Error(`${STOCK_ERROR_INSUFFICIENT} (${product.name})`);
                     }
 
                     price = this.parsePositivePrice(product.price, `Product ${product.name}`);
@@ -527,22 +536,28 @@ export class OrderStorage {
             .where(or(eq(products.id, productId), eq(products.slug, productId)));
         if (!product) throw new Error("Product not found");
 
-        // For variant products, use variant stock if variantId provided
-        const effectiveStock = product.stock || 0;
-        if (effectiveStock < quantity) throw new Error("وصلت للكمية المتوفرة حالياً من هذا المنتج");
+        // Source of truth for stock: for variant products use the selected
+        // variant's stock, otherwise the base product stock.
+        let effectiveStock = product.stock || 0;
+        if (variantId && Array.isArray((product as any).variants)) {
+            const selected = ((product as any).variants as ProductVariant[]).find((v) => v.id === variantId);
+            if (selected) effectiveStock = Number(selected.stock ?? 0);
+        }
+        if (effectiveStock < quantity) throw new Error(STOCK_ERROR_INSUFFICIENT);
 
         const actualProductId = product.id;
 
         const [existing] = await db.select().from(cartItems)
             .where(and(
-                eq(cartItems.userId, userId), 
+                eq(cartItems.userId, userId),
                 eq(cartItems.productId, actualProductId),
                 variantId ? eq(cartItems.variantId, variantId) : isNull(cartItems.variantId)
             ));
 
         if (existing) {
             if (effectiveStock < (existing.quantity || 0) + quantity) {
-                throw new Error("وصلت للكمية المتوفرة حالياً من هذا المنتج");
+                // Already holding the maximum available quantity in the cart.
+                throw new Error(STOCK_ERROR_MAX_REACHED);
             }
 
             const [updated] = await db.update(cartItems)

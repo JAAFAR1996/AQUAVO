@@ -34,10 +34,10 @@ import { BackToTop } from "@/components/back-to-top";
 import { MetaTags, ProductSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
-import { ttqViewContent, ttqAddToCart } from "@/lib/tiktok-pixel";
-import { metaTrackViewContent, metaTrackAddToCart } from "@/lib/meta-pixel";
-import { trackViewItem, trackAddToCart } from "@/lib/analytics";
-import { phTrackViewContent, phTrackAddToCart, phTrackWhatsAppClick } from "@/lib/posthog";
+import { ttqViewContent } from "@/lib/tiktok-pixel";
+import { metaTrackViewContent } from "@/lib/meta-pixel";
+import { trackViewItem } from "@/lib/analytics";
+import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 interface Product3DMeta {
@@ -182,46 +182,19 @@ export default function ProductDetails() {
         }
         : product;
 
-      addItem(productToAdd, quantity);
-      // TikTok Pixel: AddToCart event
-      const trackPrice = Number(productToAdd.price) > 0 ? Number(productToAdd.price) : Number(displayPrice);
-      if (trackPrice > 0) {
-        ttqAddToCart({
-          id: productToAdd.id,
-          name: displayName,
-          price: trackPrice,
-          quantity,
-          category: product.category,
+      // addItem validates stock against the server and fires AddToCart analytics
+      // (Meta/TikTok/GA/PostHog) ONLY on success — and shows the Arabic error toast
+      // itself when blocked. Gate the success UI on the result.
+      void (async () => {
+        const ok = await addItem(productToAdd, quantity);
+        if (!ok) return;
+        setIsAddedToCart(true);
+        toast({
+          title: "تمت الإضافة",
+          description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${displayName} انضاف للسلة.`,
         });
-        // Meta Pixel: AddToCart event
-        metaTrackAddToCart({
-          productId: productToAdd.id,
-          productName: displayName,
-          priceIQD: trackPrice,
-          quantity,
-          category: product.category,
-        });
-        // GA4: add_to_cart event
-        trackAddToCart({
-          id: productToAdd.id,
-          name: displayName,
-          price: trackPrice,
-          quantity,
-        });
-        phTrackAddToCart({
-          id: productToAdd.id,
-          name: displayName,
-          price: trackPrice,
-          quantity,
-          category: product.category,
-        });
-      }
-      setIsAddedToCart(true);
-      toast({
-        title: "تمت الإضافة",
-        description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${displayName} انضاف للسلة.`,
-      });
-      setTimeout(() => setIsAddedToCart(false), 2000);
+        setTimeout(() => setIsAddedToCart(false), 2000);
+      })();
     }
   };
 

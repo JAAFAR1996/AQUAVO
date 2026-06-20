@@ -9,6 +9,7 @@ import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
 import { sql } from "drizzle-orm";
 import { loyaltyStorage } from "../storage/loyalty-storage.js";
+import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
 import { sendOrderNotification } from "../services/order-notifications.js";
@@ -280,9 +281,11 @@ export function createOrderRouter(): RouterType {
 
             res.status(201).json(response);
         } catch (err: any) {
-            // Convert known validation errors to 400
+            // Convert known validation errors to 400 (stock issues surface the
+            // clean Arabic message produced by order-storage).
             if (err.message?.includes('not found') ||
                 err.message?.includes('Insufficient stock') ||
+                isStockError(err.message) ||
                 err.message?.includes('Invalid')) {
                 res.status(400).json({ message: err.message });
                 return;

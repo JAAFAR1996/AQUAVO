@@ -14,27 +14,32 @@ vi.mock('@/hooks/use-toast', () => ({
   useToast: () => ({
     toast: vi.fn(),
   }),
+  toast: vi.fn(),
 }));
 
 vi.mock('@/lib/tiktok-pixel', () => ({
   ttqInitiateCheckout: vi.fn(),
   ttqAddPaymentInfo: vi.fn(),
   ttqPlaceAnOrder: vi.fn(),
+  ttqAddToCart: vi.fn(),
 }));
 
 vi.mock('@/lib/meta-pixel', () => ({
   metaTrackInitiateCheckout: vi.fn(),
   metaTrackPurchase: vi.fn(),
+  metaTrackAddToCart: vi.fn(),
 }));
 
 vi.mock('@/lib/analytics', () => ({
   trackBeginCheckout: vi.fn(),
   trackPurchase: vi.fn(),
+  trackAddToCart: vi.fn(),
 }));
 
 vi.mock('@/lib/posthog', () => ({
   phTrackInitiateCheckout: vi.fn(),
   phTrackPurchase: vi.fn(),
+  phTrackAddToCart: vi.fn(),
 }));
 
 // Mock localStorage
@@ -182,14 +187,23 @@ describe('Shopping Cart Hook', () => {
     expect(result.current.items).toHaveLength(0);
   });
 
-  it('should not exceed stock limit', () => {
+  it('should not exceed stock limit', async () => {
     const { result } = renderHook(() => useCart(), { wrapper });
 
-    act(() => {
-      result.current.addItem(mockProduct, 10); // More than stock (5)
+    // Requesting more than the known stock (5) must be blocked client-side.
+    let blocked: boolean | undefined;
+    await act(async () => {
+      blocked = await result.current.addItem(mockProduct, 10);
     });
+    expect(blocked).toBe(false);
+    expect(result.current.items).toHaveLength(0);
 
-    // Should add item (stock validation is done at UI level)
+    // Adding within available stock succeeds.
+    let ok: boolean | undefined;
+    await act(async () => {
+      ok = await result.current.addItem(mockProduct, 1);
+    });
+    expect(ok).toBe(true);
     expect(result.current.items).toHaveLength(1);
   });
 

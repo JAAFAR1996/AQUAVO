@@ -632,7 +632,7 @@ describe('OrderStorage.createOrderSecure', () => {
             name: 'Customer',
             phone: '07701234567',
             address: 'Baghdad',
-        })).rejects.toThrow('Insufficient stock for Base Filter');
+        })).rejects.toThrow('الكمية المطلوبة غير متوفرة حالياً (Base Filter)');
         expect(insertedOrders).toHaveLength(0);
     });
 
@@ -652,7 +652,7 @@ describe('OrderStorage.createOrderSecure', () => {
             name: 'Customer',
             phone: '07701234567',
             address: 'Baghdad',
-        })).rejects.toThrow('Insufficient stock for Variant Pump (Small)');
+        })).rejects.toThrow('الكمية المطلوبة غير متوفرة حالياً (Variant Pump — Small)');
         expect(insertedOrders).toHaveLength(0);
     });
 

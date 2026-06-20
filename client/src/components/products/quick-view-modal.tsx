@@ -32,9 +32,10 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
     const images = product.images?.length ? product.images : [product.thumbnail];
     const hasPrice = (product.price ?? 0) > 0;
 
-    const handleAddToCart = () => {
+    const handleAddToCart = async () => {
         if (!hasPrice) return;
-        addItem(product);
+        const ok = await addItem(product);
+        if (!ok) return;
         toast({
             title: "تمت الإضافة للسلة",
             description: `تم إضافة ${product.name} إلى سلة المشتريات`,

@@ -13,7 +13,6 @@ import { CompareButton } from "@/components/products/product-comparison";
 import { Link, useLocation } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { formatNumber, formatPrice } from "@/lib/format";
-import { trackAddToCart } from "@/lib/analytics";
 import { cardImage } from "@/lib/cloudinary";
 import { CartPulse } from "@/components/ui/micro-animations";
 
@@ -51,7 +50,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
   // pick an option instead, so the add always succeeds.
   const requiresVariantChoice = !!(product.hasVariants && product.variants?.length);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -60,19 +59,15 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
       return;
     }
 
-    addItem(product);
+    // addItem validates stock and fires AddToCart analytics ONLY on success.
+    // It also surfaces the Arabic error toast itself when blocked.
+    const ok = await addItem(product);
+    if (!ok) return;
+
     setCartAdded(true);
     setTimeout(() => setCartAdded(false), 700);
 
-    // GA4: add_to_cart event
-    trackAddToCart({
-      id: product.id,
-      name: product.name,
-      price: Number(product.price),
-      quantity: 1,
-    });
-
-    // Track A/B Conversion
+    // Track A/B Conversion (only counts real adds)
     trackABConversion(EXPERIMENTS.ADD_TO_CART_BUTTON.name, 'added_to_cart');
     toast({
       title: "تمت الإضافة",

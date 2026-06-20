@@ -261,8 +261,9 @@ export function ProductComparisonTable({
     const { addItem } = useCart();
     const { toast } = useToast();
 
-    const handleAddToCart = (product: Product) => {
-        addItem(product);
+    const handleAddToCart = async (product: Product) => {
+        const ok = await addItem(product);
+        if (!ok) return;
         toast({
             title: "تمت الإضافة للسلة",
             description: product.name,

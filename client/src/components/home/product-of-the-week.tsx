@@ -19,7 +19,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
 
   const isInStock = product.stock !== undefined && product.stock > 0;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!isInStock) {
       toast({
         title: "غير متوفر",
@@ -28,7 +28,8 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
       });
       return;
     }
-    addItem(product);
+    const ok = await addItem(product);
+    if (!ok) return;
     toast({
       title: "تمت الإضافة للسلة ✓",
       description: `تم إضافة ${product.name} إلى سلة المشتريات`,

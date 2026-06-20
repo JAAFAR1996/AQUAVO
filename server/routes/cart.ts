@@ -1,6 +1,7 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
 import { storage } from "../storage/index.js";
+import { isStockError } from "../storage/order-storage.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import * as Sentry from "@sentry/node";
@@ -88,6 +89,11 @@ export function createCartRouter(): RouterType {
 
             res.status(201).json(item);
         } catch (err) {
+            // Stock conflicts → 409 with the clean Arabic message (no English leak)
+            if (err instanceof Error && isStockError(err.message)) {
+                res.status(409).json({ message: err.message, code: "OUT_OF_STOCK" });
+                return;
+            }
             next(err);
         }
     });

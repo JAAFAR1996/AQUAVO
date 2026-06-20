@@ -4,6 +4,29 @@ import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { syncStorage } from "@/lib/secure-storage";
+import { metaTrackAddToCart } from "@/lib/meta-pixel";
+import { ttqAddToCart } from "@/lib/tiktok-pixel";
+import { trackAddToCart as gaTrackAddToCart } from "@/lib/analytics";
+import { phTrackAddToCart } from "@/lib/posthog";
+
+// Single source of truth for AddToCart tracking. Fires Meta Pixel (+CAPI),
+// TikTok, GA4 and PostHog — ONLY after a successful add. Centralizing here
+// guarantees every surface (cards, PDP, quick-view, suggestions, bundles…)
+// tracks identically and that we never fire on a failed/blocked add.
+function fireAddToCartAnalytics(args: {
+  id: string;
+  name: string;
+  price: number;
+  quantity: number;
+  category?: string;
+}): void {
+  if (!(args.price > 0)) return;
+  const { id, name, price, quantity, category } = args;
+  try { metaTrackAddToCart({ productId: id, productName: name, priceIQD: price, quantity, category }); } catch { /* tracking must never break UX */ }
+  try { ttqAddToCart({ id, name, price, quantity, category }); } catch { /* noop */ }
+  try { gaTrackAddToCart({ id, name, price, quantity }); } catch { /* noop */ }
+  try { phTrackAddToCart({ id, name, price, quantity, category }); } catch { /* noop */ }
+}
 
 export interface CartItem {
   id: string;
@@ -37,7 +60,8 @@ interface ServerCartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => void;
+  /** Resolves true when the item was added, false when blocked (e.g. out of stock). */
+  addItem: (product: Product, quantity?: number) => Promise<boolean>;
   addItems: (products: Product[]) => void;
   removeItem: (id: string) => void;
   updateQuantity: (id: string, quantity: number) => void;
@@ -204,7 +228,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const addItem = async (product: Product, quantity: number = 1) => {
+  const addItem = async (product: Product, quantity: number = 1): Promise<boolean> => {
     let { variantId, variantLabel } = getCartVariantMeta(product);
 
     // Safety net for "quick add" surfaces (suggestions, frequently-bought,
@@ -212,6 +236,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // option. Variant products usually have base price 0, which would otherwise be
     // rejected below as "unavailable". Auto-pick the cheapest in-stock variant so
     // the add always succeeds; the detail page still passes an explicit choice.
+    // Tracks the selected variant's stock when it is a known number (undefined
+    // means "unknown" — we then defer stock validation to the server/checkout).
+    let chosenVariantStock: number | undefined;
     if (!variantId && product.hasVariants && product.variants?.length) {
       const inStock = product.variants.filter((v) => (v.stock ?? 0) > 0 && Number(v.price) > 0);
       const pool = inStock.length > 0 ? inStock : product.variants.filter((v) => Number(v.price) > 0);
@@ -220,7 +247,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         product = { ...product, price: Number(chosen.price) } as Product;
         variantId = chosen.id;
         variantLabel = chosen.label;
+        if (chosen.stock != null) chosenVariantStock = Number(chosen.stock);
       }
+    } else if (variantId && product.variants?.length) {
+      const selected = product.variants.find((v) => v.id === variantId);
+      if (selected && selected.stock != null) chosenVariantStock = Number(selected.stock);
     }
 
     // Only block products with no price set (coming soon)
@@ -231,10 +262,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         description: "هذا المنتج غير متوفر حالياً — سيتوفر قريباً.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
+
+    // Display name carries the variant label so analytics + cart match the PDP.
+    const displayName = variantLabel ? `${product.name} (${variantLabel})` : product.name;
+
     if (user) {
-      // Server Side
+      // Server Side — the server is the source of truth for stock.
       try {
         const res = await fetch("/api/cart", {
           method: "POST",
@@ -258,17 +293,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
             setItems(mappedItems);
           }
           // If cartRes is not ok, item was still added — optimistic local state is already correct
-        } else {
-          if (res.status === 401) {
-            toast({
-              title: "جلسة منتهية",
-              description: "يرجى تسجيل الدخول مرة أخرى لإضافة المنتجات.",
-              variant: "destructive",
-            });
-          } else {
-            throw new Error("Server responded with " + res.status);
-          }
+          fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+          return true;
         }
+
+        if (res.status === 401) {
+          toast({
+            title: "جلسة منتهية",
+            description: "يرجى تسجيل الدخول مرة أخرى لإضافة المنتجات.",
+            variant: "destructive",
+          });
+          return false;
+        }
+
+        // Out-of-stock / validation → surface the server's clean Arabic message.
+        let description = "الكمية المطلوبة غير متوفرة حالياً";
+        try {
+          const data = await res.json();
+          if (data?.message && typeof data.message === "string") description = data.message;
+        } catch { /* keep default Arabic message */ }
+        toast({ title: "غير متوفر", description, variant: "destructive" });
+        return false;
       } catch (err) {
         console.warn("Failed to add to server cart", err);
         toast({
@@ -276,47 +321,74 @@ export function CartProvider({ children }: { children: ReactNode }) {
           description: "لم نتمكن من إضافة المنتج — حاول مرة ثانية.",
           variant: "destructive",
         });
+        return false;
       }
-    } else {
-      // Client Side — use a functional update so rapid successive clicks never
-      // read a stale `items` snapshot (the old "had to click add twice" bug).
-      const cartItemId = `${product.id}-${variantId || 'default'}`;
-
-      setItems((prev) => {
-        const existingItem = prev.find((item) => item.id === cartItemId);
-        let newItems: CartItem[];
-        if (existingItem) {
-          newItems = prev.map((item) =>
-            item.id === cartItemId
-              ? { ...item, quantity: item.quantity + quantity }
-              : item
-          );
-        } else {
-          const newItem: CartItem = {
-            id: cartItemId,
-            productId: product.id,
-            name: product.name,
-            price: Number(product.price),
-            quantity: quantity,
-            image: product.thumbnail || product.image || product.images?.[0] || '',
-            slug: product.slug,
-            variantId: variantId ?? undefined,
-            variantLabel,
-          };
-          newItems = [...prev, newItem];
-        }
-
-        // Persist to localStorage + notify other tabs/components (same side
-        // effects saveCart performs for guests).
-        syncStorage.setItem(CART_STORAGE_KEY, newItems);
-        window.dispatchEvent(new StorageEvent('storage', {
-          key: CART_STORAGE_KEY,
-          newValue: JSON.stringify(newItems),
-        }));
-
-        return newItems;
-      });
     }
+
+    // Guest (client-side) — validate against the product's stock before adding so
+    // a guest can never oversell (the old bug: checkout later threw a raw error).
+    const cartItemId = `${product.id}-${variantId || 'default'}`;
+    // Only enforce a limit when stock is a KNOWN number. Unknown stock
+    // (undefined/null) defers validation to the server + checkout, so we never
+    // wrongly block a product whose stock field wasn't included on this surface.
+    const rawStock = chosenVariantStock !== undefined
+      ? chosenVariantStock
+      : (product.stock ?? null);
+    const stockKnown = rawStock != null && Number.isFinite(Number(rawStock));
+    const available = stockKnown ? Number(rawStock) : Infinity;
+    const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
+
+    if (stockKnown && available <= 0) {
+      toast({ title: "غير متوفر", description: "نفذت الكمية", variant: "destructive" });
+      return false;
+    }
+    if (currentQty + quantity > available) {
+      toast({
+        title: "غير متوفر",
+        description: currentQty >= available ? "وصلت للكمية المتوفرة" : "الكمية المطلوبة غير متوفرة حالياً",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Use a functional update so rapid successive clicks never read a stale
+    // `items` snapshot (the old "had to click add twice" bug).
+    setItems((prev) => {
+      const existingItem = prev.find((item) => item.id === cartItemId);
+      let newItems: CartItem[];
+      if (existingItem) {
+        newItems = prev.map((item) =>
+          item.id === cartItemId
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        );
+      } else {
+        const newItem: CartItem = {
+          id: cartItemId,
+          productId: product.id,
+          name: product.name,
+          price: Number(product.price),
+          quantity: quantity,
+          image: product.thumbnail || product.image || product.images?.[0] || '',
+          slug: product.slug,
+          variantId: variantId ?? undefined,
+          variantLabel,
+        };
+        newItems = [...prev, newItem];
+      }
+
+      // Persist to localStorage + notify other tabs/components.
+      syncStorage.setItem(CART_STORAGE_KEY, newItems);
+      window.dispatchEvent(new StorageEvent('storage', {
+        key: CART_STORAGE_KEY,
+        newValue: JSON.stringify(newItems),
+      }));
+
+      return newItems;
+    });
+
+    fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+    return true;
   };
 
   const addItems = async (products: Product[]) => {
@@ -364,6 +436,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           const mappedItems = serverItems.map(mapServerCartItem);
           setItems(mappedItems);
         }
+
+        purchasableProducts.forEach((product) => {
+          fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
+        });
       } catch (err) {
         console.error("Failed to add items batch", err);
         toast({
@@ -409,6 +485,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }));
 
         return newItems;
+      });
+
+      purchasableProducts.forEach((product) => {
+        fireAddToCartAnalytics({ id: product.id, name: product.name, price: Number(product.price), quantity: 1, category: product.category });
       });
     }
   };
