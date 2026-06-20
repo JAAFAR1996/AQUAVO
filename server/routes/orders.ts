@@ -248,20 +248,18 @@ export function createOrderRouter(): RouterType {
 
             // === TELEGRAM ORDER NOTIFICATION ===
             try {
-                // Build enriched items with product names
-                const productIds = items.map(i => i.productId);
-                const orderProducts = productIds.length > 0 ? await storage.getProductsByIds(productIds) : [];
-                const productMap = new Map(orderProducts.map((p: any) => [p.id, p]));
-
-                const enrichedItems = items.map(item => {
-                    const product = productMap.get(item.productId);
-                    return {
-                        productId: item.productId,
-                        productName: product?.name || item.productId,
-                        quantity: item.quantity,
-                        priceAtPurchase: product?.price || 0,
-                    };
-                });
+                // Use the order's own stored line items — they already carry the chosen
+                // variant label and the real price paid (variant price), so the admin
+                // sees EXACTLY what the customer selected, not just the base product.
+                const storedItems = ((order as any).items as any[]) || [];
+                const notifyItems = storedItems.map((item: any) => ({
+                    productId: item.productId,
+                    productName: item.productName || item.productId,
+                    variantLabel: item.variantLabel,
+                    quantity: Number(item.quantity) || 1,
+                    priceAtPurchase: item.priceAtPurchase ?? 0,
+                    lineTotal: item.lineTotal ?? (Number(item.priceAtPurchase ?? 0) * (Number(item.quantity) || 1)),
+                }));
 
                 sendOrderNotification({
                     orderId: order.id,
@@ -270,7 +268,11 @@ export function createOrderRouter(): RouterType {
                     customerPhone: customerInfo.phone,
                     customerAddress: customerInfo.address,
                     total: String((order as any).total ?? 0),
-                    items: enrichedItems,
+                    subtotal: (order as any).subtotal != null ? String((order as any).subtotal) : undefined,
+                    shippingCost: (order as any).shippingCost != null ? String((order as any).shippingCost) : undefined,
+                    discountTotal: (order as any).discountTotal != null ? String((order as any).discountTotal) : undefined,
+                    paymentMethod: "الدفع عند الاستلام",
+                    items: notifyItems,
                 }).catch(err => console.error("[AQUAVO] Order notification failed:", err));
             } catch (notifyErr) {
                 console.error("[AQUAVO] Order notification setup failed:", notifyErr);
@@ -289,30 +291,42 @@ export function createOrderRouter(): RouterType {
         }
     });
 
-    // Enrich order items with product names/prices from DB (handles old orders missing productName)
+    // Enrich order items with product names/prices/images from DB.
+    // Stored items already carry productName, variantLabel and priceAtPurchase, but
+    // NOT the product image — fetch it for every item so the confirmation page and
+    // invoice can render a detailed, visual line (and backfill old orders that are
+    // missing productName/price).
     async function enrichOrderItems(order: any) {
         const rawItems = (order.items as any[]) || [];
 
-        // Batch fetch only items missing productName (old orders) — avoids N+1
-        const missingIds = rawItems
-            .filter((item: any) => !item.productName)
-            .map((item: any) => item.productId);
-
+        // Batch fetch products for all line items (image isn't stored on the order).
+        const allIds = Array.from(new Set(rawItems.map((item: any) => item.productId).filter(Boolean)));
         const productMap = new Map<string, any>();
-        if (missingIds.length > 0) {
+        if (allIds.length > 0) {
             try {
-                const products = await storage.getProductsByIds(missingIds);
+                const products = await storage.getProductsByIds(allIds);
                 products.forEach((p: any) => productMap.set(p.id, p));
             } catch { /* non-blocking — fall back to item IDs */ }
         }
 
         const enrichedItems = rawItems.map((item: any) => {
-            if (item.productName) return item;
             const product = productMap.get(item.productId);
+            // Prefer a variant-specific image when the chosen variant has one.
+            let variantImage: string | undefined;
+            if (item.variantId && Array.isArray(product?.variants)) {
+                variantImage = product.variants.find((v: any) => v.id === item.variantId)?.image || undefined;
+            }
+            const image = item.image
+                || variantImage
+                || product?.thumbnail
+                || product?.images?.[0]
+                || product?.image
+                || "";
             return {
                 ...item,
-                productName: product?.name || item.productId,
+                productName: item.productName || product?.name || item.productId,
                 priceAtPurchase: item.priceAtPurchase || (product?.price ? String(product.price) : "0"),
+                image,
             };
         });
         // Build loyalty object from stored DB columns

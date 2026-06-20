@@ -54,12 +54,24 @@ interface OrderNotificationData {
     customerPhone: string;
     customerAddress: string;
     total: string | number;
+    subtotal?: string | number;
+    shippingCost?: string | number;
+    discountTotal?: string | number;
+    paymentMethod?: string;
     items: Array<{
         productId: string;
         productName?: string;
+        variantLabel?: string;
         quantity: number;
         priceAtPurchase?: string | number;
+        lineTotal?: string | number;
     }>;
+}
+
+function formatIQD(value: string | number | undefined): string {
+    const n = Number(value ?? 0);
+    if (!Number.isFinite(n)) return "0 د.ع";
+    return `${n.toLocaleString("en-US")} د.ع`;
 }
 
 /**
@@ -73,25 +85,43 @@ export async function sendOrderNotification(data: OrderNotificationData): Promis
     }
 
     try {
+        const totalQty = data.items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+
         const itemLines = data.items
-            .map(
-                (item, i) =>
-                    `  ${i + 1}. ${item.productName || item.productId} × ${item.quantity}${item.priceAtPurchase ? ` — ${item.priceAtPurchase} IQD` : ""}`
-            )
+            .map((item, i) => {
+                const name = escapeHtml(item.productName || item.productId);
+                // The chosen variant/option — the whole point of "I want to know
+                // exactly what they picked, not just the product name".
+                const variant = item.variantLabel
+                    ? `\n      ▸ <b>الخيار:</b> ${escapeHtml(item.variantLabel)}`
+                    : "";
+                const unit = formatIQD(item.priceAtPurchase);
+                const line = formatIQD(
+                    item.lineTotal ?? Number(item.priceAtPurchase ?? 0) * (Number(item.quantity) || 1)
+                );
+                return `  ${i + 1}. <b>${name}</b>${variant}\n      ▸ الكمية: ${item.quantity} × ${unit} = <b>${line}</b>`;
+            })
             .join("\n");
 
         const lines = [
-            `🛒 <b>طلب جديد!</b>`,
+            `🛒 <b>طلب جديد على الموقع!</b>`,
             ``,
-            `📋 <b>رقم الطلب:</b> ${data.orderNumber || data.orderId.slice(0, 8)}`,
+            `📋 <b>رقم الطلب:</b> <code>${escapeHtml(data.orderNumber || data.orderId.slice(0, 8))}</code>`,
             `👤 <b>الاسم:</b> ${escapeHtml(data.customerName)}`,
             `📱 <b>الهاتف:</b> ${escapeHtml(data.customerPhone)}`,
             `📍 <b>العنوان:</b> ${escapeHtml(data.customerAddress)}`,
             ``,
-            `📦 <b>المنتجات:</b>`,
+            `📦 <b>المنتجات (${data.items.length} نوع / ${totalQty} قطعة):</b>`,
             itemLines,
             ``,
-            `💰 <b>المجموع:</b> ${data.total} IQD`,
+            `━━━━━━━━━━━━━━━`,
+            ...(data.subtotal != null ? [`🧾 <b>المجموع الفرعي:</b> ${formatIQD(data.subtotal)}`] : []),
+            ...(data.shippingCost != null ? [`🚚 <b>التوصيل:</b> ${formatIQD(data.shippingCost)}`] : []),
+            ...(data.discountTotal != null && Number(data.discountTotal) > 0
+                ? [`🎁 <b>الخصم:</b> -${formatIQD(data.discountTotal)}`]
+                : []),
+            `💰 <b>المبلغ الكلي:</b> ${formatIQD(data.total)}`,
+            `💵 <b>طريقة الدفع:</b> ${escapeHtml(data.paymentMethod || "الدفع عند الاستلام")}`,
             ``,
             `🔗 <a href="https://www.aquavoiq.com/ADMIN">فتح لوحة التحكم</a>`,
         ];

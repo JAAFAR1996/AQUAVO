@@ -149,6 +149,7 @@ export default function Navbar() {
           priceAtPurchase: item.price,
           variantId: item.variantId,
           variantLabel: item.variantLabel,
+          image: item.image,
         })),
         shippingAddress: data.customerInfo.address,
         customerName: data.customerInfo.name,

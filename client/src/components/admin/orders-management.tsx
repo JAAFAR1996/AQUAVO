@@ -45,6 +45,10 @@ interface OrderItem {
   productName: string;
   quantity: number;
   price: number;
+  priceAtPurchase?: number | string;
+  variantId?: string;
+  variantLabel?: string;
+  image?: string;
 }
 
 interface Order {
@@ -573,14 +577,29 @@ export function OrdersManagement() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedOrder.items?.map((item, i) => (
-                        <TableRow key={i}>
-                          <TableCell className="font-medium">{item.productName}</TableCell>
-                          <TableCell className="text-center">{item.quantity}</TableCell>
-                          <TableCell className="text-center">{Number(item.price).toLocaleString()} د.ع</TableCell>
-                          <TableCell className="text-left font-semibold">{(item.price * item.quantity).toLocaleString()} د.ع</TableCell>
-                        </TableRow>
-                      ))}
+                      {selectedOrder.items?.map((item, i) => {
+                        const unitPrice = Number(item.priceAtPurchase ?? item.price ?? 0);
+                        return (
+                          <TableRow key={i}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {item.image && (
+                                  <img src={item.image} alt={item.productName} className="w-9 h-9 rounded object-cover border" loading="lazy" />
+                                )}
+                                <div>
+                                  <span>{item.productName}</span>
+                                  {item.variantLabel && (
+                                    <span className="block text-xs text-muted-foreground">الخيار: {item.variantLabel}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center">{item.quantity}</TableCell>
+                            <TableCell className="text-center">{unitPrice.toLocaleString()} د.ع</TableCell>
+                            <TableCell className="text-left font-semibold">{(unitPrice * item.quantity).toLocaleString()} د.ع</TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>

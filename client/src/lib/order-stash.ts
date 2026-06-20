@@ -16,6 +16,7 @@ export interface StashedOrderItem {
   priceAtPurchase?: string | number;
   variantId?: string;
   variantLabel?: string;
+  image?: string;
 }
 
 export interface StashedOrder {

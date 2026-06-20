@@ -24,6 +24,9 @@ interface OrderItem {
     productName?: string;
     quantity: number;
     priceAtPurchase?: string;
+    variantId?: string;
+    variantLabel?: string;
+    image?: string;
 }
 
 interface OrderData {
@@ -244,10 +247,13 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
             notes: ""
         },
         items: items.map(item => ({
-            id: item.productId,
+            id: item.variantId ? `${item.productId}-${item.variantId}` : item.productId,
             name: item.productName || item.productId,
             quantity: item.quantity,
             price: item.priceAtPurchase ? Number(item.priceAtPurchase) : 0,
+            image: item.image,
+            variantId: item.variantId,
+            variantLabel: item.variantLabel,
         })),
         total: total,
         subtotal: subtotal,
@@ -372,13 +378,30 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                         <div className="space-y-1.5">
                                             <p className="text-xs font-semibold text-muted-foreground mb-2">{items.length} منتجات</p>
                                             {items.map((item, idx) => (
-                                                <div key={idx} className="flex items-center justify-between text-sm">
-                                                    <div className="flex items-center gap-2 flex-1">
-                                                        <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{item.quantity}</span>
-                                                        <span className="line-clamp-1">{item.productName || item.productId}</span>
+                                                <div key={idx} className="flex items-center justify-between text-sm gap-2">
+                                                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                        {item.image ? (
+                                                            <img
+                                                                src={item.image}
+                                                                alt={item.productName || ""}
+                                                                className="w-9 h-9 rounded-md object-cover border border-border/50 flex-shrink-0"
+                                                                loading="lazy"
+                                                            />
+                                                        ) : (
+                                                            <span className="bg-primary/10 text-primary text-xs rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{item.quantity}</span>
+                                                        )}
+                                                        <div className="min-w-0">
+                                                            <span className="line-clamp-1">{item.productName || item.productId}</span>
+                                                            {item.variantLabel && (
+                                                                <span className="block text-[11px] text-muted-foreground line-clamp-1">الخيار: {item.variantLabel} · الكمية: {item.quantity}</span>
+                                                            )}
+                                                            {!item.variantLabel && item.image && (
+                                                                <span className="block text-[11px] text-muted-foreground">الكمية: {item.quantity}</span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     {item.priceAtPurchase != null && (
-                                                        <span className="text-muted-foreground text-xs font-mono mr-2">
+                                                        <span className="text-muted-foreground text-xs font-mono flex-shrink-0">
                                                             {formatIQD(Number(item.priceAtPurchase) * item.quantity)}
                                                         </span>
                                                     )}

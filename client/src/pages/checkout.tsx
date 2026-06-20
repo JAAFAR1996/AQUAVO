@@ -237,6 +237,7 @@ export default function CheckoutPage() {
             priceAtPurchase: item.price,
             variantId: item.variantId,
             variantLabel: item.variantLabel,
+            image: item.image,
           })),
           shippingAddress: `${governorateLabel || customerInfo.governorate} - ${customerInfo.address}`,
           customerName: customerInfo.name,
