@@ -170,7 +170,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-3 pt-2">
               <a
-                href="https://www.facebook.com/profile.php?id=61586032750706"
+                href="https://www.facebook.com/profile.php?id=61587249730248"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="تابعنا على فيسبوك"
