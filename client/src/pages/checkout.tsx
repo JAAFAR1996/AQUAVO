@@ -13,6 +13,7 @@ import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_D
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 
+import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
 import { CustomerInfoForm } from "@/components/cart/checkout/customer-info-form";
 import { CouponSection } from "@/components/cart/checkout/coupon-section";
@@ -216,7 +217,47 @@ export default function CheckoutPage() {
         orderId: orderData.id,
         orderNumber: orderData.orderNumber ?? orderData.id,
       });
+      // step "success" first so the empty-cart redirect effect doesn't bounce us
+      // home once clearCart() empties the cart.
       setStep("success");
+
+      if (orderData.id) {
+        // Stash the full order so the confirmation page shows a complete invoice
+        // for guests too (their authed order endpoint returns 401).
+        const governorateLabel = GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label;
+        stashOrder({
+          id: orderData.id,
+          orderNumber: orderData.orderNumber ?? orderData.id,
+          total: Number(orderData.total ?? grandTotal),
+          status: orderData.status,
+          items: cartItems.map((item) => ({
+            productId: item.productId,
+            productName: item.name,
+            quantity: item.quantity,
+            priceAtPurchase: item.price,
+            variantId: item.variantId,
+            variantLabel: item.variantLabel,
+          })),
+          shippingAddress: `${governorateLabel || customerInfo.governorate} - ${customerInfo.address}`,
+          customerName: customerInfo.name,
+          customerPhone: customerInfo.phone,
+          shippingCost: Number(orderData.shippingCost ?? deliveryFee),
+          discountTotal: Number(orderData.discountTotal ?? discount),
+          createdAt: new Date().toISOString(),
+          loyalty: {
+            pointsEarned: orderData.loyalty?.pointsEarned ?? 0,
+            cashbackEarned: orderData.loyalty?.cashbackEarned ?? 0,
+            cashbackUsed: orderData.loyalty?.cashbackUsed ?? 0,
+            roundedTotal: Number(orderData.loyalty?.roundedTotal ?? orderData.total ?? grandTotal),
+            tier: "",
+            tierUpgraded: false,
+          },
+        });
+        clearCart();
+        setLocation(`/order-confirmation/${orderData.id}`);
+        return;
+      }
+
       clearCart();
       window.scrollTo(0, 0);
     } catch (error: unknown) {

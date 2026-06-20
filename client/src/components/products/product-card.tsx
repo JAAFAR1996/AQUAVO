@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { CompareButton } from "@/components/products/product-comparison";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { trackAddToCart } from "@/lib/analytics";
@@ -28,6 +28,7 @@ interface ProductCardProps {
 export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView, priority = false }: ProductCardProps) {
   const { toast } = useToast();
   const { addItem } = useCart();
+  const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
 
@@ -44,9 +45,21 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
   // كل منتج عنده سعر أكبر من صفر يمكن شراؤه — لا قيود على البراند
   const hasPrice = ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
 
+  // Variant products have no option selector on the card, and their base price is
+  // often 0 (price lives on each variant) — calling addItem(product) here would be
+  // silently rejected as "unavailable". Send the customer to the detail page to
+  // pick an option instead, so the add always succeeds.
+  const requiresVariantChoice = !!(product.hasVariants && product.variants?.length);
+
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (requiresVariantChoice) {
+      setLocation(`/products/${product.slug}`);
+      return;
+    }
+
     addItem(product);
     setCartAdded(true);
     setTimeout(() => setCartAdded(false), 700);
@@ -210,13 +223,13 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
               <Button
                 className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
                 onClick={handleAddToCart}
-                aria-label={`أضف ${product.name} إلى سلة المشتريات`}
+                aria-label={requiresVariantChoice ? `اختر خيار ${product.name}` : `أضف ${product.name} إلى سلة المشتريات`}
                 disabled={!hasPrice || isOutOfStock}
               >
                 {hasPrice && !isOutOfStock ? (
                   <>
                     <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-                    {buttonText}
+                    {requiresVariantChoice ? "اختر الخيار" : buttonText}
                   </>
                 ) : !hasPrice ? (
                   <>

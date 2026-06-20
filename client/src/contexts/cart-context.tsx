@@ -4,7 +4,6 @@ import { useAuth } from "./auth-context";
 import { toast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { syncStorage } from "@/lib/secure-storage";
-import { ttqAddToCart } from "@/lib/tiktok-pixel";
 
 export interface CartItem {
   id: string;
@@ -206,9 +205,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const addItem = async (product: Product, quantity: number = 1) => {
+    let { variantId, variantLabel } = getCartVariantMeta(product);
+
+    // Safety net for "quick add" surfaces (suggestions, frequently-bought,
+    // comparison, personalized…) that pass a variant product without choosing an
+    // option. Variant products usually have base price 0, which would otherwise be
+    // rejected below as "unavailable". Auto-pick the cheapest in-stock variant so
+    // the add always succeeds; the detail page still passes an explicit choice.
+    if (!variantId && product.hasVariants && product.variants?.length) {
+      const inStock = product.variants.filter((v) => (v.stock ?? 0) > 0 && Number(v.price) > 0);
+      const pool = inStock.length > 0 ? inStock : product.variants.filter((v) => Number(v.price) > 0);
+      const chosen = pool.slice().sort((a, b) => Number(a.price) - Number(b.price))[0];
+      if (chosen) {
+        product = { ...product, price: Number(chosen.price) } as Product;
+        variantId = chosen.id;
+        variantLabel = chosen.label;
+      }
+    }
+
     // Only block products with no price set (coming soon)
     const productPrice = Number(product.price);
-    const { variantId, variantLabel } = getCartVariantMeta(product);
     if (!productPrice || productPrice <= 0) {
       toast({
         title: "غير متوفر حالياً",
@@ -262,32 +278,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
       }
     } else {
-      // Client Side
+      // Client Side — use a functional update so rapid successive clicks never
+      // read a stale `items` snapshot (the old "had to click add twice" bug).
       const cartItemId = `${product.id}-${variantId || 'default'}`;
-      
-      const existingItem = items.find((item) => item.id === cartItemId);
-      let newItems;
-      if (existingItem) {
-        newItems = items.map((item) =>
-          item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      } else {
-        const newItem: CartItem = {
-          id: cartItemId,
-          productId: product.id,
-          name: product.name,
-          price: Number(product.price),
-          quantity: quantity,
-          image: product.thumbnail || product.image || product.images?.[0] || '',
-          slug: product.slug,
-          variantId: variantId ?? undefined,
-          variantLabel,
-        };
-        newItems = [...items, newItem];
-      }
-      saveCart(newItems);
+
+      setItems((prev) => {
+        const existingItem = prev.find((item) => item.id === cartItemId);
+        let newItems: CartItem[];
+        if (existingItem) {
+          newItems = prev.map((item) =>
+            item.id === cartItemId
+              ? { ...item, quantity: item.quantity + quantity }
+              : item
+          );
+        } else {
+          const newItem: CartItem = {
+            id: cartItemId,
+            productId: product.id,
+            name: product.name,
+            price: Number(product.price),
+            quantity: quantity,
+            image: product.thumbnail || product.image || product.images?.[0] || '',
+            slug: product.slug,
+            variantId: variantId ?? undefined,
+            variantLabel,
+          };
+          newItems = [...prev, newItem];
+        }
+
+        // Persist to localStorage + notify other tabs/components (same side
+        // effects saveCart performs for guests).
+        syncStorage.setItem(CART_STORAGE_KEY, newItems);
+        window.dispatchEvent(new StorageEvent('storage', {
+          key: CART_STORAGE_KEY,
+          newValue: JSON.stringify(newItems),
+        }));
+
+        return newItems;
+      });
     }
   };
 
