@@ -545,14 +545,19 @@ html.dark {
   }
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal-on-scroll {
-      animation: reveal-rise linear both;
-      animation-timeline: view();
-      /* Play as the element travels through the bottom 30% of the viewport. */
-      animation-range: entry 0% cover 30%;
-    }
+/* Universal reveal (works on ALL browsers, incl. mobile Safari): JS adds
+   `.reveal-armed` on mount, then `.reveal-in` when the element enters view.
+   If JS never runs the element is fully visible (no hidden content). GPU-only. */
+@media (prefers-reduced-motion: no-preference) {
+  .reveal-on-scroll.reveal-armed {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  .reveal-on-scroll.reveal-armed.reveal-in {
+    opacity: 1;
+    transform: none;
+    transition: opacity 460ms var(--ease-snappy, ease-out),
+      transform 460ms var(--ease-snappy, ease-out);
   }
 }
 
@@ -666,7 +671,6 @@ html.dark {
   animation-name: bubble-rise;
   animation-timing-function: ease-in;
   animation-iteration-count: infinite;
-  will-change: transform, opacity;
 }
 
 /* Snappy lift on hover for interactive cards (works alongside Tailwind). */

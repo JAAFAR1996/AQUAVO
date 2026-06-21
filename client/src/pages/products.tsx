@@ -203,6 +203,37 @@ export default function Products() {
 
   const hasMore = displayCount < finalProducts.length;
 
+  // Reveal product cards as they scroll into view — one shared IntersectionObserver
+  // (works on every browser incl. mobile Safari; cheap; unobserves after reveal).
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const els = Array.from(
+      document.querySelectorAll<HTMLElement>(".reveal-on-scroll:not(.reveal-in)")
+    );
+    if (els.length === 0) return;
+    els.forEach((el) => el.classList.add("reveal-armed"));
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add("reveal-in");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 }
+    );
+    els.forEach((el) => io.observe(el));
+    // Safety: reveal everything after 1.2s in case the observer never fires.
+    const fallback = window.setTimeout(() => {
+      els.forEach((el) => el.classList.add("reveal-in"));
+    }, 1200);
+    return () => {
+      io.disconnect();
+      window.clearTimeout(fallback);
+    };
+  }, [displayedProducts.length]);
+
   // Restore scroll position when coming back from product detail page
   useEffect(() => {
     // Only attempt to restore if we actually have products rendered

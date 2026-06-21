@@ -65,7 +65,7 @@ export function flyToCart(sourceEl: HTMLElement | null, imageUrl?: string): void
         offset: 1,
       },
     ],
-    { duration: 750, easing: "cubic-bezier(0.5, -0.2, 0.7, 1)", fill: "forwards" }
+    { duration: 600, easing: "cubic-bezier(0.4, 0, 0.2, 1)", fill: "forwards" }
   );
 
   anim.onfinish = () => {

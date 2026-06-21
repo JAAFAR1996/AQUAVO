@@ -12,16 +12,28 @@ interface Bubble {
   drift: number;     // px sideways sway
 }
 
-export function BubblesOverlay({ count = 14 }: { count?: number }) {
+export function BubblesOverlay({ count }: { count?: number }) {
+  // Fewer bubbles on phones / data-saver / reduced-motion — they cost compositor
+  // layers and were a real source of jank on low-end devices.
+  const resolvedCount = useMemo(() => {
+    if (count != null) return count;
+    if (typeof window === "undefined") return 0;
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return 0;
+    const saveData = Boolean((navigator as any).connection?.saveData);
+    if (saveData) return 0;
+    const isMobile = window.matchMedia?.("(max-width: 768px)").matches;
+    return isMobile ? 5 : 12;
+  }, [count]);
+
   const bubbles = useMemo<Bubble[]>(() => {
-    return Array.from({ length: count }, () => ({
+    return Array.from({ length: resolvedCount }, () => ({
       left: Math.random() * 100,
       size: 6 + Math.random() * 18,
       delay: Math.random() * 8,
       duration: 9 + Math.random() * 8,
       drift: (Math.random() - 0.5) * 40,
     }));
-  }, [count]);
+  }, [resolvedCount]);
 
   return (
     <div
