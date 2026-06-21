@@ -11,9 +11,9 @@ import { formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
 
 import { BackToTop } from "@/components/back-to-top";
-import { ExitIntentModal } from "@/components/retention/exit-intent-modal";
 import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
+import { BubblesOverlay } from "@/components/home/bubbles-overlay";
 
 // Lazy-load below-fold heavy components (reduces initial bundle by ~50KB)
 const PersonalizedSection = lazy(() => import("@/components/home/personalized-section").then(m => ({ default: m.PersonalizedSection })));
@@ -196,6 +196,9 @@ export default function Home() {
             {/* Video loads lazily after poster is visible */}
             <LazyHeroVideo poster={heroImage} />
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-60"></div>
+
+            {/* Calm aquatic bubbles drifting up over the hero */}
+            <BubblesOverlay />
 
             {/* Overlay Content */}
             <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-20 text-right">
@@ -393,9 +396,6 @@ export default function Home() {
           <AquascapeStyles />
         </Suspense>
       </DeferredRender>
-
-
-      <ExitIntentModal />
 
       <DeferredMount>
         <BackToTop />

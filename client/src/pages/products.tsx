@@ -421,7 +421,7 @@ export default function Products() {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {displayedProducts.map((product, index) => (
-                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full">
+                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full reveal-on-scroll">
                       <ProductCard
                         product={product}
                         priority={index < 8}

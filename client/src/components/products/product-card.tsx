@@ -15,6 +15,7 @@ import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
 import { formatNumber, formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
 import { CartPulse } from "@/components/ui/micro-animations";
+import { flyToCart } from "@/lib/fly-to-cart";
 
 interface ProductCardProps {
   product: Product;
@@ -67,6 +68,10 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
     setCartAdded(true);
     setTimeout(() => setCartAdded(false), 700);
 
+    // 2026 fly-to-cart: send the product image arcing into the navbar cart icon.
+    const card = (e.currentTarget as HTMLElement).closest("a")?.querySelector("img") as HTMLElement | null;
+    flyToCart(card ?? (e.currentTarget as HTMLElement), cardImage(product.thumbnail || product.image) || product.image);
+
     // Track A/B Conversion (only counts real adds)
     trackABConversion(EXPERIMENTS.ADD_TO_CART_BUTTON.name, 'added_to_cart');
     toast({
@@ -82,7 +87,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
   return (
     <>
       <Link href={`/products/${product.slug}`} aria-label={`عرض تفاصيل ${product.name}`}>
-        <Card className="group overflow-hidden rounded-xl sm:rounded-[2rem] border border-border bg-card/50 backdrop-blur-xl hover:border-primary/50 transition-all duration-500 hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_0_30px_rgba(79,209,197,0.15)] hover:-translate-y-2 h-full flex flex-col relative cursor-pointer text-right gpu-accelerate">
+        <Card className="card-sheen group overflow-hidden rounded-xl sm:rounded-[2rem] border border-border bg-card/50 backdrop-blur-xl hover:border-primary/50 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_0_30px_rgba(79,209,197,0.15)] hover:-translate-y-1 h-full flex flex-col relative cursor-pointer text-right gpu-accelerate">
           {/* Badges */}
           <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1 sm:gap-2 pointer-events-none" aria-hidden="true">
             {product.isNew && <Badge className="bg-primary text-primary-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-lg">جديد</Badge>}
@@ -118,7 +123,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
               <img
                 src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
                 alt={`صورة منتج ${product.name} من ${product.brand}`}
-                className={`absolute inset-0 w-full h-full object-cover select-none transition-all duration-500 group-hover:scale-105 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+                className={`absolute inset-0 w-full h-full object-cover select-none transition-[opacity,filter,transform] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 ${imgLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-md scale-105"}`}
                 loading={priority ? "eager" : "lazy"}
                 fetchPriority={priority ? "high" : "auto"}
                 width={400}

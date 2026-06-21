@@ -11,6 +11,7 @@ import { createReviewsRouter } from "./routes/reviews.js";
 import { createCartRouter } from "./routes/cart.js";
 import { createFavoritesRouter } from "./routes/favorites.js";
 import { createCouponRouter } from "./routes/coupons.js";
+import { createBirthdayRouter } from "./routes/birthday.js";
 import { createNewsletterRouter } from "./routes/newsletter.js";
 import { createReferralRouter } from "./routes/referral.js";
 import { createSecurityRouter } from "./routes/security.js";
@@ -91,6 +92,7 @@ export async function registerRoutes(
   app.use("/api/cart", createCartRouter());
   app.use("/api/favorites", createFavoritesRouter());
   app.use("/api/coupons", createCouponRouter());
+  app.use("/api/birthday", createBirthdayRouter());
   app.use("/api/newsletter", createNewsletterRouter(storage));
   app.use("/api/upload", createUploadRouter());
 

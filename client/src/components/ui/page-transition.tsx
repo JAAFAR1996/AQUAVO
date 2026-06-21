@@ -28,8 +28,10 @@ export function PageTransition({ children, className }: PageTransitionProps) {
       className={className}
       style={{
         opacity: mounted ? 1 : 0,
-        transform: mounted ? "translateY(0)" : "translateY(8px)",
-        transition: "opacity 220ms ease-out, transform 220ms ease-out",
+        transform: mounted ? "translateY(0) scale(1)" : "translateY(12px) scale(0.994)",
+        transition:
+          "opacity 260ms cubic-bezier(0.2,0.8,0.2,1), transform 260ms cubic-bezier(0.2,0.8,0.2,1)",
+        willChange: "opacity, transform",
       }}
     >
       {children}

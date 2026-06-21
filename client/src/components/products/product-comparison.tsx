@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Link } from "wouter";
 import {
     X,
@@ -175,13 +176,20 @@ export function CompareButton({
     );
 }
 
-// Comparison Drawer (Floating)
+// Comparison Drawer (Floating, mobile-first)
+//
+// 2026 design: a compact thumb-reachable "dock" pinned to the bottom of the
+// products page. Collapsed by default into a small pill (count + stacked
+// thumbnails); tapping it springs open a bottom sheet with the full list and
+// the "عرض المقارنة" CTA. Honours safe-area insets and prefers-reduced-motion.
 interface ComparisonDrawerProps {
     products: Product[];
 }
 
 export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
     const { compareIds, removeFromCompare, clearCompare } = useComparison();
+    const [expanded, setExpanded] = useState(false);
+    const reduceMotion = useReducedMotion();
 
     const comparedProducts = useMemo(() => {
         return compareIds
@@ -189,62 +197,152 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
             .filter(Boolean) as Product[];
     }, [compareIds, products]);
 
-    if (comparedProducts.length === 0) return null;
+    const count = comparedProducts.length;
+
+    // Bounce the dock whenever the count grows (a product was just added).
+    const [bump, setBump] = useState(false);
+    const prevCount = useRef(0);
+    useEffect(() => {
+        if (count > prevCount.current) {
+            setBump(true);
+            const t = setTimeout(() => setBump(false), 480);
+            prevCount.current = count;
+            return () => clearTimeout(t);
+        }
+        prevCount.current = count;
+    }, [count]);
+
+    // Auto-collapse when emptied.
+    useEffect(() => {
+        if (count === 0 && expanded) setExpanded(false);
+    }, [count, expanded]);
+
+    const spring = reduceMotion
+        ? { duration: 0 }
+        : { type: "spring" as const, stiffness: 420, damping: 32 };
 
     return (
-        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
-            <Card className="shadow-2xl border-primary/20">
-                <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm flex items-center gap-2">
-                            <Scale className="w-4 h-4" />
-                            المقارنة ({comparedProducts.length}/{MAX_COMPARE})
-                        </CardTitle>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs"
-                            onClick={clearCompare}
-                        >
-                            مسح الكل
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent className="pb-3">
-                    <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-                        {comparedProducts.map((product) => (
-                            <div
-                                key={product.id}
-                                className="relative flex-shrink-0 w-16 h-16"
+        <AnimatePresence>
+            {count > 0 && (
+                <motion.div
+                    key="compare-dock"
+                    initial={reduceMotion ? false : { y: 120, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={reduceMotion ? { opacity: 0 } : { y: 120, opacity: 0 }}
+                    transition={spring}
+                    className="fixed inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
+                    style={{ bottom: "calc(1rem + env(safe-area-inset-bottom, 0px))" }}
+                >
+                    <motion.div
+                        animate={bump && !reduceMotion ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+                        transition={{ duration: 0.45, ease: "easeOut" }}
+                        className="pointer-events-auto w-full max-w-md"
+                    >
+                        {expanded ? (
+                            /* ---- Expanded bottom sheet ---- */
+                            <motion.div
+                                layout
+                                className="rounded-3xl border border-primary/25 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/10 overflow-hidden"
                             >
-                                <img
-                                    src={product.image || product.thumbnail}
-                                    alt={product.name}
-                                    className="w-full h-full object-contain rounded border"
-                                />
-                                <button
-                                    onClick={() => removeFromCompare(product.id)}
-                                    className="absolute -top-1 -right-1 w-5 h-5 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center"
-                                >
-                                    <X className="w-3 h-3" />
-                                </button>
-                            </div>
-                        ))}
-                        {comparedProducts.length < MAX_COMPARE && (
-                            <div className="flex-shrink-0 w-16 h-16 border-2 border-dashed rounded flex items-center justify-center text-muted-foreground">
-                                <Plus className="w-5 h-5" />
-                            </div>
+                                <div className="flex items-center justify-between px-4 pt-3 pb-2">
+                                    <span className="text-sm font-bold flex items-center gap-2">
+                                        <Scale className="w-4 h-4 text-primary" />
+                                        المقارنة ({count}/{MAX_COMPARE})
+                                    </span>
+                                    <div className="flex items-center gap-1">
+                                        <Button variant="ghost" size="sm" className="text-xs h-8" onClick={clearCompare}>
+                                            مسح الكل
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8"
+                                            onClick={() => setExpanded(false)}
+                                            aria-label="تصغير"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2.5 px-4 pb-3 overflow-x-auto">
+                                    <AnimatePresence mode="popLayout">
+                                        {comparedProducts.map((product) => (
+                                            <motion.div
+                                                key={product.id}
+                                                layout
+                                                initial={reduceMotion ? false : { scale: 0.5, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 }}
+                                                exit={reduceMotion ? { opacity: 0 } : { scale: 0.5, opacity: 0 }}
+                                                transition={spring}
+                                                className="relative flex-shrink-0 w-[4.25rem] h-[4.25rem]"
+                                            >
+                                                <img
+                                                    src={product.image || product.thumbnail}
+                                                    alt={product.name}
+                                                    className="w-full h-full object-contain rounded-xl border bg-background"
+                                                />
+                                                <button
+                                                    onClick={() => removeFromCompare(product.id)}
+                                                    className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-md active:scale-90 transition-transform"
+                                                    aria-label={`إزالة ${product.name}`}
+                                                >
+                                                    <X className="w-3.5 h-3.5" />
+                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                    {count < MAX_COMPARE && (
+                                        <div className="flex-shrink-0 w-[4.25rem] h-[4.25rem] border-2 border-dashed border-muted-foreground/30 rounded-xl flex items-center justify-center text-muted-foreground/60">
+                                            <Plus className="w-5 h-5" />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="px-4 pb-4">
+                                    <Link href="/compare">
+                                        <Button className="w-full gap-2 h-12 rounded-2xl text-base font-bold shadow-lg shadow-primary/20">
+                                            عرض المقارنة
+                                            <ArrowRight className="w-5 h-5" />
+                                        </Button>
+                                    </Link>
+                                </div>
+                            </motion.div>
+                        ) : (
+                            /* ---- Collapsed pill ---- */
+                            <motion.button
+                                layout
+                                onClick={() => setExpanded(true)}
+                                className="mx-auto flex items-center gap-3 rounded-full border border-primary/25 bg-card/95 backdrop-blur-xl shadow-2xl shadow-primary/15 ps-2 pe-4 py-2 active:scale-[0.97] transition-transform"
+                                aria-label={`فتح المقارنة (${count})`}
+                            >
+                                {/* Stacked thumbnails */}
+                                <span className="flex items-center">
+                                    {comparedProducts.slice(0, 3).map((product, i) => (
+                                        <img
+                                            key={product.id}
+                                            src={product.image || product.thumbnail}
+                                            alt=""
+                                            aria-hidden="true"
+                                            className="w-9 h-9 rounded-full border-2 border-card object-cover bg-background"
+                                            style={{ marginInlineStart: i === 0 ? 0 : "-12px", zIndex: 3 - i }}
+                                        />
+                                    ))}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-sm font-bold">
+                                    <Scale className="w-4 h-4 text-primary" />
+                                    قارن
+                                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-primary text-primary-foreground text-xs">
+                                        {count}
+                                    </span>
+                                </span>
+                                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+                            </motion.button>
                         )}
-                    </div>
-                    <Link href="/compare">
-                        <Button className="w-full gap-2">
-                            عرض المقارنة
-                            <ArrowRight className="w-4 h-4" />
-                        </Button>
-                    </Link>
-                </CardContent>
-            </Card>
-        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 }
 

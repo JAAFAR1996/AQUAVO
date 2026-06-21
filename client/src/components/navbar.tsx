@@ -406,8 +406,12 @@ export default function Navbar() {
                         <ShippingProgress />
                       </div>
                       <div className="flex-1 overflow-auto space-y-4">
-                        {cartItems.map((item) => (
-                          <div key={item.id} className="flex gap-3 p-3 rounded-lg border bg-card">
+                        {cartItems.map((item, idx) => (
+                          <div
+                            key={item.id}
+                            className="cart-item-in flex gap-3 p-3 rounded-lg border bg-card"
+                            style={{ animationDelay: `${Math.min(idx * 55, 330)}ms` }}
+                          >
                             <img
                               src={item.image}
                               alt={`صورة منتج ${item.name}`}

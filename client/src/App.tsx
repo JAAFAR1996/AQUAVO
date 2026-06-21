@@ -101,6 +101,7 @@ const Contact = lazy(() => import("@/pages/contact"));
 const AIChatBot = lazy(() => import("@/components/chat/ai-chat-bot").then(m => ({ default: m.AIChatBot })));
 const OnboardingTour = lazy(() => import("@/components/onboarding-tour").then(m => ({ default: m.OnboardingTour })));
 const InstallPrompt = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.InstallPrompt })));
+const BirthdayCelebration = lazy(() => import("@/components/birthday/birthday-celebration").then(m => ({ default: m.BirthdayCelebration })));
 const OfflineIndicator = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.OfflineIndicator })));
 const UpdateBanner = lazy(() => import("@/components/pwa/pwa-components").then(m => ({ default: m.UpdateBanner })));
 
@@ -957,6 +958,11 @@ function AppShell() {
                   </IdleMount>
 
                   <Toaster />
+                  {!isStandalonePage && (
+                    <Suspense fallback={null}>
+                      <BirthdayCelebration />
+                    </Suspense>
+                  )}
                   {!isStandalonePage && (
                     <IdleMount timeout={30000}>
                       <Suspense fallback={null}>

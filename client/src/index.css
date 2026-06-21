@@ -526,6 +526,160 @@ html.dark {
   }
 }
 
+/* ============================================
+   SCROLL-DRIVEN REVEAL (2026) — zero-JS fade-up
+   ============================================
+   Uses native scroll-driven animations where supported. Each element marked
+   `.reveal-on-scroll` fades + rises as it enters the viewport. Browsers without
+   `animation-timeline` (older Safari/Firefox) simply show the element fully —
+   no observers, no layout cost. Disabled under reduced-motion. */
+@keyframes reveal-rise {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-on-scroll {
+      animation: reveal-rise linear both;
+      animation-timeline: view();
+      /* Play as the element travels through the bottom 30% of the viewport. */
+      animation-range: entry 0% cover 30%;
+    }
+  }
+}
+
+/* ============================================
+   AGENCY MOTION TOKENS (2026 — "Snappy Modern")
+   ============================================
+   Shared easing + interaction utilities so every surface moves with the same
+   personality. Mirrors client/src/lib/motion.ts for framer-motion usage. */
+:root {
+  --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --dur-fast: 140ms;
+  --dur-base: 240ms;
+}
+
+/* Press feedback — add to any tappable element. Snappy scale-down on press. */
+.press {
+  transition: transform var(--dur-fast) var(--ease-snappy);
+}
+.press:active {
+  transform: scale(0.97);
+}
+
+/* Luxury "sheen" sweep across a card on hover — pure CSS, GPU-only.
+   Apply to a `position: relative; overflow: hidden` container. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .card-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 30%,
+      hsla(0, 0%, 100%, 0.13) 48%,
+      transparent 66%
+    );
+    transform: translateX(-120%);
+    transition: transform 650ms var(--ease-snappy);
+    pointer-events: none;
+    z-index: 4;
+  }
+  .card-sheen:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+/* Navbar gains depth as the page scrolls — zero-JS via scroll-timeline.
+   Degrades to the static sticky header where unsupported. */
+@keyframes navbar-depth {
+  to {
+    box-shadow: 0 6px 24px -8px rgba(0, 0, 0, 0.28);
+    backdrop-filter: blur(14px);
+  }
+}
+@supports (animation-timeline: scroll()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .navbar-2025 {
+      animation: navbar-depth linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 120px;
+    }
+  }
+}
+
+/* Newly-added cart row briefly slides in + flashes to confirm the add. */
+@keyframes cart-item-in {
+  0% {
+    opacity: 0;
+    transform: translateX(16px);
+    background-color: hsla(191, 70%, 50%, 0.18);
+  }
+  60% {
+    background-color: hsla(191, 70%, 50%, 0.12);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    background-color: transparent;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cart-item-in {
+    animation: cart-item-in 480ms var(--ease-snappy, ease-out) both;
+  }
+}
+
+/* Floating hero bubbles — rise + gentle sideways sway, fading near the top. */
+@keyframes bubble-rise {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  12% {
+    opacity: 0.55;
+  }
+  80% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--drift, 0), -120vh) scale(1);
+  }
+}
+.bubble-rise {
+  background: radial-gradient(
+    circle at 32% 30%,
+    hsla(0, 0%, 100%, 0.85),
+    hsla(191, 65%, 60%, 0.35) 55%,
+    hsla(191, 70%, 50%, 0.05) 100%
+  );
+  border: 1px solid hsla(0, 0%, 100%, 0.18);
+  animation-name: bubble-rise;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+/* Snappy lift on hover for interactive cards (works alongside Tailwind). */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .lift-snappy {
+    transition: transform var(--dur-base) var(--ease-snappy),
+      box-shadow var(--dur-base) var(--ease-snappy);
+  }
+  .lift-snappy:hover {
+    transform: translateY(-4px);
+  }
+}
+
 @keyframes shimmer {
   from {
     background-position: 200% 0;
