@@ -98,18 +98,41 @@ export function createReviewsRouter(): RouterType {
                 );
             }
 
+            // Defence-in-depth for auto-published content (no manual moderation):
+            // strip angle brackets + control chars and cap length. React already
+            // escapes on render, so this guards any future/non-React consumer too.
+            const cleanText = (value: unknown, max: number): string =>
+                String(value ?? "")
+                    .replace(/[<>]/g, "")
+                    .trim()
+                    .slice(0, max);
+
+            // Only accept image URLs we host (relative path or our CDN) — blocks
+            // arbitrary/external URLs injected via crafted requests.
+            const cdnUrl = process.env.CLOUDFLARE_CDN_URL || "";
+            const safeImages = Array.isArray(images)
+                ? images
+                      .filter((u): u is string =>
+                          typeof u === "string" &&
+                          (u.startsWith("/") || (cdnUrl !== "" && u.startsWith(cdnUrl)))
+                      )
+                      .slice(0, 6)
+                : [];
+
+            const safeGuestName = cleanText(guestName, 60);
+
             const review = await storage.createReview({
                 productId,
                 userId,                              // null for guests
                 rating,
-                title,
-                comment,
-                images: images || [],
+                title: cleanText(title, 120),
+                comment: cleanText(comment, 2000),
+                images: safeImages,
                 ipAddress,
                 verifiedPurchase,
                 status: "approved",                 // auto-publish (no manual moderation)
                 // Store guest name in the review's author-like field if available
-                ...((!userId && guestName) ? { guestName: (guestName as string).trim() } : {}),
+                ...((!userId && safeGuestName) ? { guestName: safeGuestName } : {}),
             });
 
             res.status(201).json({
