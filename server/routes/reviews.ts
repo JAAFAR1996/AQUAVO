@@ -107,16 +107,33 @@ export function createReviewsRouter(): RouterType {
                     .trim()
                     .slice(0, max);
 
-            // Only accept image URLs we host (relative path or our CDN) — blocks
-            // arbitrary/external URLs injected via crafted requests.
-            const cdnUrl = process.env.CLOUDFLARE_CDN_URL || "";
+            // Only accept image URLs we host — blocks arbitrary/external URLs
+            // injected via crafted requests. Relative paths must be a strict
+            // image path (not protocol-relative "//evil.com"); absolute URLs must
+            // match our CDN origin exactly (not a substring like "cdn.x.com.evil").
+            const cdnOrigin = (() => {
+                try {
+                    return process.env.CLOUDFLARE_CDN_URL
+                        ? new URL(process.env.CLOUDFLARE_CDN_URL).origin
+                        : "";
+                } catch {
+                    return "";
+                }
+            })();
+            // Leading "/" but NOT "//" (blocks protocol-relative "//evil.com/x.png").
+            const RELATIVE_IMAGE = /^\/(?!\/)[A-Za-z0-9._\-\/]+\.(png|jpe?g|webp|gif)$/i;
+            const isSafeImageUrl = (u: unknown): u is string => {
+                if (typeof u !== "string" || u === "") return false;
+                if (RELATIVE_IMAGE.test(u)) return true; // local relative image path
+                if (cdnOrigin === "") return false;
+                try {
+                    return new URL(u).origin === cdnOrigin; // exact CDN origin match
+                } catch {
+                    return false;
+                }
+            };
             const safeImages = Array.isArray(images)
-                ? images
-                      .filter((u): u is string =>
-                          typeof u === "string" &&
-                          (u.startsWith("/") || (cdnUrl !== "" && u.startsWith(cdnUrl)))
-                      )
-                      .slice(0, 6)
+                ? images.filter(isSafeImageUrl).slice(0, 6)
                 : [];
 
             const safeGuestName = cleanText(guestName, 60);
