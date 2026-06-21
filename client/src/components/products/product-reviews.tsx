@@ -151,8 +151,8 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
 
       if (response.ok) {
         toast({
-          title: "تم إرسال تقييمك ✅",
-          description: "شكراً لك! سيظهر تقييمك بعد مراجعته من قِبل الفريق.",
+          title: "تم نشر تقييمك ✅",
+          description: "شكراً لك! تقييمك ظاهر الآن على صفحة المنتج.",
         });
 
         // Reset form
@@ -560,7 +560,7 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                 <span
                                   className={[
                                     "inline-flex items-center gap-0.5 text-[10px] font-medium px-1.5 py-0.5 rounded-full border",
-                                    (review as any).authorTier === "platinum" && "bg-sky-100 text-sky-700 border-sky-300 dark:bg-sky-900/30 dark:text-sky-300",
+                                    (review as any).authorTier === "diamond"  && "bg-cyan-100 text-cyan-700 border-cyan-300 dark:bg-cyan-900/30 dark:text-cyan-300",
                                     (review as any).authorTier === "gold"     && "bg-amber-100 text-amber-700 border-amber-300 dark:bg-amber-900/30 dark:text-amber-300",
                                     (review as any).authorTier === "silver"   && "bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700/30 dark:text-slate-300",
                                     (review as any).authorTier === "bronze"   && "bg-orange-100 text-orange-700 border-orange-300 dark:bg-orange-900/20 dark:text-orange-300",
@@ -569,12 +569,12 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                 >
                                   {(review as any).authorTier === "guest" ? "👤" : "👑"}&nbsp;
                                   {{
-                                    platinum: "بلاتيني",
+                                    diamond: "ماسي",
                                     gold: "ذهبي",
                                     silver: "فضي",
                                     bronze: "برونزي",
                                     guest: "زائر",
-                                  }[(review as any).authorTier as string] ?? (review as any).authorTier}
+                                  }[(review as any).authorTier as string] ?? "برونزي"}
                                 </span>
                               )}
                               {review.verifiedPurchase && (

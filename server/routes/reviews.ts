@@ -107,14 +107,14 @@ export function createReviewsRouter(): RouterType {
                 images: images || [],
                 ipAddress,
                 verifiedPurchase,
-                status: "pending",                  // must be approved by admin first
+                status: "approved",                 // auto-publish (no manual moderation)
                 // Store guest name in the review's author-like field if available
                 ...((!userId && guestName) ? { guestName: (guestName as string).trim() } : {}),
             });
 
             res.status(201).json({
                 ...review,
-                pending: true, // hint to frontend: review is awaiting moderation
+                pending: false, // auto-published — shows immediately
             });
         } catch (err) {
             next(err);
