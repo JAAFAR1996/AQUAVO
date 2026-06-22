@@ -6,8 +6,12 @@ import { insertProductSchema } from "../../shared/schema.js";
 import { broadcastDiscountForProduct } from "./newsletter.js";
 import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
-import { sql } from "drizzle-orm";
+import { sql, eq, desc, gte, and, count, sum } from "drizzle-orm";
 import { z } from "zod";
+import {
+    users, orders, pageViews, searchQueries, productViews, cartItems,
+    favorites, reviews, churnPredictions, customerProfiles, products,
+} from "../../shared/schema.js";
 import { OperationalError } from "../middleware/error-handler.js";
 import { getDb } from "../db.js";
 import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
@@ -514,6 +518,245 @@ export function createAdminRouter(): RouterType {
                 const users = await storage.getUsers();
                 res.json(users.map(sanitizeUser));
             }
+        } catch (err) {
+            next(err);
+        }
+    });
+
+    // ─── Customer Full Profile ────────────────────────────────────────────────
+    router.get("/users/:id/profile", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        try {
+            const db = getDb();
+            if (!db) { res.status(500).json({ message: "DB not connected" }); return; }
+
+            const userId = req.params.id;
+
+            // 1. Basic user info
+            const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+            if (!user) { res.status(404).json({ message: "العميل غير موجود" }); return; }
+
+            // 2. Orders — parse items JSONB
+            const userOrders = await db
+                .select()
+                .from(orders)
+                .where(eq(orders.userId, userId))
+                .orderBy(desc(orders.createdAt));
+
+            const totalSpent = userOrders.reduce((s, o) => s + Number(o.total ?? 0), 0);
+            const completedOrders = userOrders.filter(o => o.status === "delivered").length;
+            const lastOrderDate = userOrders[0]?.createdAt ?? null;
+
+            // 3. Page journey (last 200 views)
+            const journey = await db
+                .select({
+                    pagePath: pageViews.pagePath,
+                    duration: pageViews.duration,
+                    deviceType: pageViews.deviceType,
+                    detectedSource: pageViews.detectedSource,
+                    createdAt: pageViews.createdAt,
+                    sessionId: pageViews.sessionId,
+                })
+                .from(pageViews)
+                .where(eq(pageViews.userId, userId))
+                .orderBy(desc(pageViews.createdAt))
+                .limit(200);
+
+            // 4. Search history
+            const searches = await db
+                .select({
+                    query: searchQueries.query,
+                    resultsCount: searchQueries.resultsCount,
+                    noResults: searchQueries.noResultsFound,
+                    createdAt: searchQueries.createdAt,
+                })
+                .from(searchQueries)
+                .where(eq(searchQueries.userId, userId))
+                .orderBy(desc(searchQueries.createdAt))
+                .limit(50);
+
+            // 5. Product views with product name
+            const prodViews = await db
+                .select({
+                    productId: productViews.productId,
+                    productName: products.name,
+                    productCategory: products.category,
+                    viewDuration: productViews.viewDuration,
+                    viewedAt: productViews.viewedAt,
+                    source: productViews.source,
+                })
+                .from(productViews)
+                .leftJoin(products, eq(products.id, productViews.productId))
+                .where(eq(productViews.userId, userId))
+                .orderBy(desc(productViews.viewedAt))
+                .limit(50);
+
+            // 6. Current cart
+            const cart = await db
+                .select({
+                    productId: cartItems.productId,
+                    productName: products.name,
+                    quantity: cartItems.quantity,
+                    variantLabel: cartItems.variantLabel,
+                    addedAt: cartItems.createdAt,
+                })
+                .from(cartItems)
+                .leftJoin(products, eq(products.id, cartItems.productId))
+                .where(eq(cartItems.userId, userId));
+
+            // 7. Favorites
+            const favs = await db
+                .select({
+                    productId: favorites.productId,
+                    productName: products.name,
+                    productCategory: products.category,
+                    addedAt: favorites.createdAt,
+                })
+                .from(favorites)
+                .leftJoin(products, eq(products.id, favorites.productId))
+                .where(eq(favorites.userId, userId));
+
+            // 8. Reviews
+            const userReviews = await db
+                .select({
+                    productId: reviews.productId,
+                    productName: products.name,
+                    rating: reviews.rating,
+                    title: reviews.title,
+                    comment: reviews.comment,
+                    status: reviews.status,
+                    createdAt: reviews.createdAt,
+                })
+                .from(reviews)
+                .leftJoin(products, eq(products.id, reviews.productId))
+                .where(eq(reviews.userId, userId))
+                .orderBy(desc(reviews.createdAt));
+
+            // 9. Churn prediction
+            const [churn] = await db
+                .select()
+                .from(churnPredictions)
+                .where(eq(churnPredictions.userId, userId))
+                .limit(1);
+
+            // 10. AI customer profile
+            const [aiProfile] = await db
+                .select()
+                .from(customerProfiles)
+                .where(eq(customerProfiles.userId, userId))
+                .limit(1);
+
+            // ── Derived Analytics ──
+            // Most visited pages
+            const pageFreq = new Map<string, number>();
+            for (const v of journey) pageFreq.set(v.pagePath, (pageFreq.get(v.pagePath) ?? 0) + 1);
+            const topPages = [...pageFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+                .map(([path, count]) => ({ path, count }));
+
+            // Total time on site (sum of page durations)
+            const totalTimeOnSite = journey.reduce((s, v) => s + (v.duration ?? 0), 0);
+
+            // Most searched terms
+            const searchFreq = new Map<string, number>();
+            for (const s of searches) searchFreq.set(s.query, (searchFreq.get(s.query) ?? 0) + 1);
+            const topSearches = [...searchFreq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
+                .map(([term, count]) => ({ term, count }));
+
+            // Device breakdown
+            const devices = { mobile: 0, desktop: 0, tablet: 0 };
+            for (const v of journey) {
+                const d = (v.deviceType ?? "desktop") as keyof typeof devices;
+                if (d in devices) devices[d]++;
+            }
+
+            // Traffic source breakdown
+            const sourceFreq = new Map<string, number>();
+            for (const v of journey) sourceFreq.set(v.detectedSource ?? "direct", (sourceFreq.get(v.detectedSource ?? "direct") ?? 0) + 1);
+            const topSources = [...sourceFreq.entries()].sort((a, b) => b[1] - a[1])
+                .map(([source, count]) => ({ source, count }));
+
+            // Days since last activity
+            const lastActivity = journey[0]?.createdAt ?? lastOrderDate;
+            const daysSinceLastActivity = lastActivity
+                ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / 86400000)
+                : null;
+
+            // Repurchase prediction (simple heuristic)
+            let repurchaseLikelihood: "high" | "medium" | "low" | "unknown" = "unknown";
+            if (churn) {
+                const score = churn.churnScore ?? 0;
+                repurchaseLikelihood = score < 30 ? "high" : score < 60 ? "medium" : "low";
+            } else if (completedOrders >= 3) {
+                repurchaseLikelihood = "high";
+            } else if (completedOrders >= 1 && (daysSinceLastActivity ?? 99) < 30) {
+                repurchaseLikelihood = "medium";
+            } else if (completedOrders === 0) {
+                repurchaseLikelihood = "low";
+            }
+
+            // Addresses (from orders)
+            const addressSet = new Set<string>();
+            const addresses: Record<string, string>[] = [];
+            for (const o of userOrders) {
+                try {
+                    const addr = typeof o.shippingAddress === "string"
+                        ? JSON.parse(o.shippingAddress)
+                        : o.shippingAddress;
+                    const key = JSON.stringify(addr);
+                    if (!addressSet.has(key)) { addressSet.add(key); addresses.push(addr as Record<string, string>); }
+                } catch { /* skip */ }
+            }
+
+            const { passwordHash, verificationToken, verificationTokenExpiresAt, ...safeUser } = user;
+
+            res.json({
+                user: safeUser,
+                stats: {
+                    totalOrders: userOrders.length,
+                    completedOrders,
+                    totalSpent,
+                    averageOrderValue: userOrders.length > 0 ? totalSpent / userOrders.length : 0,
+                    totalPageViews: journey.length,
+                    totalTimeOnSite,
+                    totalSearches: searches.length,
+                    totalProductViews: prodViews.length,
+                    totalReviews: userReviews.length,
+                    totalFavorites: favs.length,
+                    cartItems: cart.length,
+                    daysSinceLastActivity,
+                    repurchaseLikelihood,
+                    devices,
+                    topSources,
+                },
+                orders: userOrders.map(o => ({
+                    id: o.id,
+                    orderNumber: o.orderNumber,
+                    status: o.status,
+                    paymentStatus: o.paymentStatus,
+                    total: Number(o.total),
+                    items: o.items,
+                    shippingAddress: o.shippingAddress,
+                    source: o.source,
+                    createdAt: o.createdAt,
+                })),
+                journey: journey.map(v => ({
+                    pagePath: v.pagePath,
+                    duration: v.duration,
+                    deviceType: v.deviceType,
+                    source: v.detectedSource,
+                    sessionId: v.sessionId,
+                    timestamp: v.createdAt,
+                })),
+                topPages,
+                searches,
+                topSearches,
+                productViews: prodViews,
+                cart,
+                favorites: favs,
+                reviews: userReviews,
+                addresses,
+                churnPrediction: churn ?? null,
+                aiProfile: aiProfile ?? null,
+            });
         } catch (err) {
             next(err);
         }

@@ -179,42 +179,12 @@ export function AIInsightsPanel() {
         return insights;
     }, [products, realInsights]);
 
-    // Generate demand forecasts - NOW FROM REAL DATA! 🎉
+    // Generate demand forecasts — real data from API only
     const forecasts = useMemo((): DemandForecast[] => {
-        // Use real forecasts from API if available
         if (realInsights?.forecasts && realInsights.forecasts.length > 0) {
             return realInsights.forecasts;
         }
-
-        // Fallback to seasonal estimates only if no real data
-        const now = new Date();
-        const month = now.getMonth();
-        const isSummer = month >= 5 && month <= 8;
-        const isWinter = month >= 11 || month <= 2;
-
-        const forecasts: DemandForecast[] = [];
-
-        if (isSummer) {
-            forecasts.push(
-                { category: "أحواض", trend: "up", percentage: 35, reason: "موسم العائلات - بداية الصيف" },
-                { category: "فلاتر", trend: "up", percentage: 25, reason: "طلب مرتفع مع الأحواض" },
-                { category: "نباتات مائية", trend: "up", percentage: 20, reason: "تزيين الأحواض الجديدة" }
-            );
-        } else if (isWinter) {
-            forecasts.push(
-                { category: "سخانات", trend: "up", percentage: 45, reason: "الماء بارد - ضرورة" },
-                { category: "أدوية", trend: "up", percentage: 30, reason: "أمراض موسمية" },
-                { category: "طعام", trend: "stable", percentage: 5, reason: "طلب ثابت" }
-            );
-        } else {
-            forecasts.push(
-                { category: "إضاءة LED", trend: "up", percentage: 15, reason: "تحديث الأحواض" },
-                { category: "طعام", trend: "stable", percentage: 5, reason: "طلب ثابت على مدار السنة" },
-                { category: "ديكور", trend: "down", percentage: -10, reason: "انتظار الموسم" }
-            );
-        }
-
-        return forecasts;
+        return [];
     }, [realInsights]);
 
     const getInsightBg = (type: Insight["type"]) => {
@@ -315,7 +285,11 @@ export function AIInsightsPanel() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                        {forecasts.map((forecast, index) => (
+                        {forecasts.length === 0 ? (
+                            <p className="text-center text-muted-foreground text-sm py-4">
+                                لا توجد بيانات مبيعات كافية بعد — ستظهر التوقعات بعد تسجيل أول طلبات
+                            </p>
+                        ) : forecasts.map((forecast, index) => (
                             <div
                                 key={index}
                                 className="flex items-center justify-between p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"

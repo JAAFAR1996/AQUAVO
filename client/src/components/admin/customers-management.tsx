@@ -2,23 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { User } from "@shared/schema";
-import { Loader2, User as UserIcon, Mail, Phone, Calendar, Search, ChevronLeft, ChevronRight, ShieldCheck, Users } from "lucide-react";
+import { Loader2, User as UserIcon, Mail, Phone, Calendar, Search, ChevronLeft, ChevronRight, ShieldCheck, Users, ChevronDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
+import { CustomerProfileDrawer } from "./customer-profile-drawer";
 
 export default function CustomersManagement() {
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
     const limit = 20;
 
-    // Debounce search
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search);
-            setPage(1); // Reset page on new search
+            setPage(1);
         }, 500);
         return () => clearTimeout(timer);
     }, [search]);
@@ -26,12 +27,8 @@ export default function CustomersManagement() {
     const { data: result, isLoading } = useQuery<{ users: User[], total: number } | User[]>({
         queryKey: ["/api/admin/users", page, limit, debouncedSearch],
         queryFn: async () => {
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: limit.toString(),
-            });
+            const params = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
             if (debouncedSearch) params.append("search", debouncedSearch);
-
             const res = await fetch(`/api/admin/users?${params}`, { credentials: "include" });
             if (!res.ok) throw new Error("Failed to fetch users");
             return res.json();
@@ -47,7 +44,6 @@ export default function CustomersManagement() {
         }
     });
 
-    // Normalize data structure handling both backward compatibility arrays and new paginated objects
     const users = Array.isArray(result) ? result : (result?.users || []);
     const totalCount = Array.isArray(result) ? result.length : (result?.total || 0);
     const totalPages = Math.ceil(totalCount / limit);
@@ -58,6 +54,12 @@ export default function CustomersManagement() {
 
     return (
         <div className="space-y-6">
+            {/* Customer Profile Drawer */}
+            <CustomerProfileDrawer
+                userId={selectedUserId}
+                onClose={() => setSelectedUserId(null)}
+            />
+
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
@@ -65,27 +67,21 @@ export default function CustomersManagement() {
                         <CardTitle className="text-sm font-medium">إجمالي المستخدمين</CardTitle>
                         <UserIcon className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats?.total || 0}</div>
-                    </CardContent>
+                    <CardContent><div className="text-2xl font-bold">{stats?.total || 0}</div></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">العملاء</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats?.customers || 0}</div>
-                    </CardContent>
+                    <CardContent><div className="text-2xl font-bold">{stats?.customers || 0}</div></CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">المسؤولين</CardTitle>
                         <ShieldCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{stats?.admins || 0}</div>
-                    </CardContent>
+                    <CardContent><div className="text-2xl font-bold">{stats?.admins || 0}</div></CardContent>
                 </Card>
             </div>
 
@@ -98,7 +94,7 @@ export default function CustomersManagement() {
                                 إدارة العملاء
                             </CardTitle>
                             <CardDescription>
-                                عرض وإدارة حسابات المستخدمين
+                                اضغط على اسم أي عميل لعرض ملفه الكامل بالتفصيل
                             </CardDescription>
                         </div>
                         <div className="relative w-full md:w-64">
@@ -117,16 +113,20 @@ export default function CustomersManagement() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="text-right">المستخدم</TableHead>
+                                    <TableHead className="text-right">العميل</TableHead>
                                     <TableHead className="text-right">البريد الإلكتروني</TableHead>
                                     <TableHead className="text-right">الهاتف</TableHead>
                                     <TableHead className="text-center">تاريخ التسجيل</TableHead>
                                     <TableHead className="text-center">الدور</TableHead>
+                                    <TableHead className="text-center">الملف</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 {users.map((user) => (
-                                    <TableRow key={user.id}>
+                                    <TableRow
+                                        key={user.id}
+                                        className="hover:bg-primary/5 transition-colors"
+                                    >
                                         <TableCell className="font-medium">
                                             <div className="flex items-center gap-2">
                                                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -160,11 +160,22 @@ export default function CustomersManagement() {
                                                 {user.role === 'admin' ? "أدمن" : "عميل"}
                                             </Badge>
                                         </TableCell>
+                                        <TableCell className="text-center">
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                                                onClick={() => setSelectedUserId(user.id)}
+                                            >
+                                                عرض الملف
+                                                <ChevronDown className="w-3 h-3" />
+                                            </Button>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                                 {users.length === 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                        <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                                             {search ? "لا توجد نتائج للبحث" : "لا يوجد مستخدمين"}
                                         </TableCell>
                                     </TableRow>
@@ -173,29 +184,14 @@ export default function CustomersManagement() {
                         </Table>
                     </div>
 
-                    {/* Pagination Controls */}
                     {totalPages > 1 && (
                         <div className="flex items-center justify-end space-x-2 py-4 gap-2">
-                            <div className="text-xs text-muted-foreground ml-2">
-                                صفحة {page} من {totalPages}
-                            </div>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                            >
-                                <ChevronRight className="h-4 w-4 ml-1" />
-                                السابق
+                            <div className="text-xs text-muted-foreground ml-2">صفحة {page} من {totalPages}</div>
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}>
+                                <ChevronRight className="h-4 w-4 ml-1" />السابق
                             </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                            >
-                                التالي
-                                <ChevronLeft className="h-4 w-4 mr-1" />
+                            <Button variant="outline" size="sm" onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}>
+                                التالي<ChevronLeft className="h-4 w-4 mr-1" />
                             </Button>
                         </div>
                     )}
