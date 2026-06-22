@@ -129,26 +129,36 @@ export function createAdminRouter(): RouterType {
         try {
             const orders = await storage.getOrders();
 
-            // Enrich orders with product names
+            // Enrich orders with product names, cost_price, and profit
             const enrichedOrders = await Promise.all(orders.map(async (order) => {
                 if (order.items && Array.isArray(order.items)) {
+                    let totalCogs = 0;
                     const enrichedItems = await Promise.all(
                         (order.items as any[]).map(async (item: any) => {
                             let productName = item.productName;
                             let price = item.priceAtPurchase || item.price;
-                            if ((!productName || !price) && item.productId) {
+                            let costPrice = 0;
+                            if (item.productId) {
                                 const product = await storage.getProduct(item.productId);
                                 productName = productName || product?.name || `منتج #${item.productId.slice(0, 8)}`;
                                 if (!price) price = product?.price || 0;
+                                costPrice = Number(product?.costPrice ?? 0);
                             }
+                            const qty = Number(item.quantity) || 1;
+                            totalCogs += costPrice * qty;
                             return {
                                 ...item,
                                 productName,
-                                price: Number(price) || 0
+                                price: Number(price) || 0,
+                                costPrice,
                             };
                         })
                     );
-                    return { ...order, items: enrichedItems };
+                    const revenue = enrichedItems.reduce(
+                        (sum, item) => sum + Number(item.price) * (Number(item.quantity) || 1), 0
+                    );
+                    const profit = revenue - totalCogs;
+                    return { ...order, items: enrichedItems, profit };
                 }
                 return order;
             }));

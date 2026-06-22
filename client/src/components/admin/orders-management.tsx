@@ -76,6 +76,7 @@ interface Order {
   roundingCashback?: number;
   notes?: string;
   codReceived?: boolean;
+  profit?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -346,6 +347,7 @@ export function OrdersManagement() {
               <TableHead className="text-right">رقم الطلب</TableHead>
               <TableHead className="text-right">العميل</TableHead>
               <TableHead className="text-right">المبلغ</TableHead>
+              <TableHead className="text-right">الربح</TableHead>
               <TableHead className="text-right">الحالة</TableHead>
               <TableHead className="text-right">التاريخ</TableHead>
               <TableHead className="text-right">الإجراءات</TableHead>
@@ -354,11 +356,11 @@ export function OrdersManagement() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">جاري التحميل...</TableCell>
+                <TableCell colSpan={7} className="text-center py-8">جاري التحميل...</TableCell>
               </TableRow>
             ) : filteredOrders.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
+                <TableCell colSpan={7} className="text-center py-8">
                   <Package className="h-12 w-12 mx-auto mb-4 opacity-50 text-gray-400" />
                   <p className="text-gray-500">لا توجد طلبات</p>
                 </TableCell>
@@ -379,6 +381,23 @@ export function OrdersManagement() {
                     </TableCell>
                     <TableCell className="font-semibold">
                       {getDisplayTotal(order).toLocaleString()} د.ع
+                    </TableCell>
+                    <TableCell>
+                      {order.profit !== undefined ? (
+                        order.profit > 0 ? (
+                          <span className="text-green-500 font-semibold">
+                            +{Math.round(order.profit).toLocaleString()} د.ع
+                          </span>
+                        ) : order.profit === 0 ? (
+                          <span className="text-gray-400 text-sm">—</span>
+                        ) : (
+                          <span className="text-red-500 font-semibold">
+                            {Math.round(order.profit).toLocaleString()} د.ع
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-gray-400 text-sm">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <Badge className={`${statusInfo.color} border-none`}>{statusInfo.label}</Badge>
