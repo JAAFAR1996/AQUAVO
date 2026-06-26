@@ -100,11 +100,12 @@ export function corsConfig(req: Request, res: Response, next: NextFunction) {
   // Vercel rewrites /oauth/* to /api/index, so req.path might be /api/index.
   // We must check originalUrl and x-invoke-path.
   const pathToCheck = req.headers['x-invoke-path']?.toString() || req.originalUrl || req.path;
-  const isOauthOrMcp = pathToCheck.startsWith('/oauth') || pathToCheck.startsWith('/api/mcp');
+  const isMcp = pathToCheck.startsWith('/api/mcp');
+  const isOauth = pathToCheck.startsWith('/oauth');
+  if (isMcp) return next();
 
-  // OAuth & MCP endpoints use Bearer tokens (not cookies) — wildcard CORS is safe
-  // Required for ChatGPT, Claude.ai, and other AI MCP clients
-  if (isOauthOrMcp) {
+  // OAuth discovery remains public; MCP CORS is handled by createMcpRouter().
+  if (isOauth) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Session-Id');

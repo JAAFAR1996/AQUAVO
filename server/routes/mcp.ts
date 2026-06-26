@@ -9,11 +9,23 @@
  */
 
 import type { Request, Response, NextFunction, Router as RouterType } from "express";
+import type { Table } from "drizzle-orm/table";
 import { Router } from "express";
 import { timingSafeEqual } from "crypto";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import {
+  CallToolRequestSchema,
+  GetPromptRequestSchema,
+  ListPromptsRequestSchema,
+  ListResourceTemplatesRequestSchema,
+  ListResourcesRequestSchema,
+  ListToolsRequestSchema,
+  ReadResourceRequestSchema,
+} from "@modelcontextprotocol/sdk/types.js";
+import { isTable, getTableName } from "drizzle-orm/table";
+import { getTableColumns } from "drizzle-orm/utils";
+import { z } from "zod";
 import {
   sql, eq, ilike, or, and, desc, asc, gte, lte, isNull, gt,
 } from "drizzle-orm";
@@ -26,16 +38,157 @@ import { verifyMcpToken } from "./oauth.js";
 const BASE_URL = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
 const MCP_RESOURCE = `${BASE_URL}/api/mcp`;
 const STATIC_TOKEN = process.env.AQUAVO_MCP_TOKEN?.trim();
+const STATIC_SCOPES = process.env.AQUAVO_MCP_STATIC_SCOPES ?? "mcp:read mcp:write";
+const MCP_AUDIT_USER_ID = process.env.AQUAVO_MCP_AUDIT_USER_ID?.trim();
+const DEFAULT_ALLOWED_ORIGINS = [
+  "https://claude.ai",
+  "https://chatgpt.com",
+  "https://chat.openai.com",
+  BASE_URL,
+];
+const DEFAULT_ALLOWED_HOSTS = [
+  new URL(BASE_URL).host,
+  "aquavoiq.com",
+  "www.aquavoiq.com",
+  "localhost:5000",
+  "localhost:3000",
+  "127.0.0.1:5000",
+  "127.0.0.1:3000",
+];
+
+type McpAuthInfo = {
+  clientId: string;
+  mode: "oauth" | "static";
+  scopes: Set<string>;
+};
+
+type McpRequest = Request & {
+  mcpAuth?: McpAuthInfo;
+};
+
+type SchemaTable = {
+  exportName: string;
+  tableName: string;
+  table: Table;
+  columns: string[];
+};
+
+const blockedTables = new Set([
+  "sessions",
+  "password_reset_tokens",
+]);
+
+const sensitiveFieldPatterns = [
+  /password/i,
+  /token/i,
+  /secret/i,
+  /api[_-]?key/i,
+  /access[_-]?token/i,
+  /refresh[_-]?token/i,
+  /^sid$/i,
+  /^sess$/i,
+  /cookie/i,
+  /authorization/i,
+];
+
+const writeTools = new Set([
+  "update_order_status",
+  "update_product",
+  "update_stock",
+  "create_coupon",
+  "toggle_coupon",
+  "add_expense",
+  "soft_delete_product",
+  "restore_product",
+  "update_review_status",
+]);
+
+const dbOptionalTools = new Set([
+  "list_site_data_sources",
+  "get_table_schema",
+  "get_site_overview",
+]);
+
+function splitEnvList(value: string | undefined, defaults: string[]): string[] {
+  const items = value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+  return [...new Set([...defaults, ...items])];
+}
+
+function expandScopes(scope: string): Set<string> {
+  const scopes = new Set(scope.split(/\s+/).map((item) => item.trim()).filter(Boolean));
+  if (scopes.has("mcp")) {
+    scopes.add("mcp:read");
+    scopes.add("mcp:write");
+  }
+  return scopes;
+}
+
+function hasScope(auth: McpAuthInfo, scope: "mcp:read" | "mcp:write"): boolean {
+  return auth.scopes.has("mcp:admin") || auth.scopes.has("mcp") || auth.scopes.has(scope);
+}
+
+function requireMcpScope(auth: McpAuthInfo, scope: "mcp:read" | "mcp:write"): void {
+  if (!hasScope(auth, scope)) {
+    throw new Error(`Missing required MCP scope: ${scope}`);
+  }
+}
+
+function getAllowedOrigins(): string[] {
+  return splitEnvList(process.env.AQUAVO_MCP_ALLOWED_ORIGINS, DEFAULT_ALLOWED_ORIGINS);
+}
+
+function getAllowedHosts(): string[] {
+  return splitEnvList(process.env.AQUAVO_MCP_ALLOWED_HOSTS, DEFAULT_ALLOWED_HOSTS);
+}
+
+function isAllowedOrigin(req: Request): boolean {
+  const origin = req.headers.origin;
+  if (!origin) return true;
+  return getAllowedOrigins().includes(origin);
+}
+
+function isAllowedHost(req: Request): boolean {
+  const host = req.headers.host;
+  if (!host) return true;
+  return getAllowedHosts().includes(host);
+}
+
+function setMcpCors(req: Request, res: Response): void {
+  const origin = req.headers.origin;
+  if (origin && getAllowedOrigins().includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, MCP-Session-Id, Mcp-Session-Id");
+  res.setHeader("Access-Control-Expose-Headers", "MCP-Session-Id, Mcp-Session-Id, WWW-Authenticate");
+  res.setHeader("Access-Control-Max-Age", "86400");
+}
+
+function enforceMcpRequestBoundary(req: Request, res: Response, next: NextFunction): void {
+  setMcpCors(req, res);
+  if (!isAllowedHost(req) || !isAllowedOrigin(req)) {
+    res.status(403).json({ error: "Forbidden MCP origin or host" });
+    return;
+  }
+  next();
+}
 
 // ─── Auth middleware ───────────────────────────────────────────────────────────
 // Accepts: OAuth JWT (Claude.ai web) OR static bearer token (Claude Code CLI)
 
-function mcpAuth(req: Request, res: Response, next: NextFunction): void {
+function mcpAuth(req: McpRequest, res: Response, next: NextFunction): void {
   const auth = req.headers["authorization"] ?? "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
 
   // 1. Try JWT (Claude.ai web OAuth flow)
-  if (token && verifyMcpToken(token)) {
+  const verified = token ? verifyMcpToken(token) : null;
+  if (verified) {
+    req.mcpAuth = {
+      clientId: verified.clientId,
+      mode: "oauth",
+      scopes: expandScopes(verified.scope),
+    };
     return next();
   }
 
@@ -45,7 +198,14 @@ function mcpAuth(req: Request, res: Response, next: NextFunction): void {
     const eBuf = Buffer.from(STATIC_TOKEN);
     if (tBuf.length === eBuf.length) {
       try {
-        if (timingSafeEqual(tBuf, eBuf)) return next();
+        if (timingSafeEqual(tBuf, eBuf)) {
+          req.mcpAuth = {
+            clientId: "static-token",
+            mode: "static",
+            scopes: expandScopes(STATIC_SCOPES),
+          };
+          return next();
+        }
       } catch { /* */ }
     }
   }
@@ -74,13 +234,178 @@ function err(msg: string) {
   return { content: [{ type: "text", text: msg }], isError: true };
 }
 
+function normalizeLimit(value: unknown, fallback = 50, max = 200): number {
+  const parsed = Number(value ?? fallback);
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  return Math.min(Math.floor(parsed), max);
+}
+
+function normalizeOffset(value: unknown): number {
+  const parsed = Number(value ?? 0);
+  if (!Number.isFinite(parsed) || parsed < 0) return 0;
+  return Math.floor(parsed);
+}
+
+function isSensitiveField(key: string): boolean {
+  return sensitiveFieldPatterns.some((pattern) => pattern.test(key));
+}
+
+function redactValue(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map((item) => redactValue(item));
+  if (!value || typeof value !== "object") return value;
+  const output: Record<string, unknown> = {};
+  for (const [key, nestedValue] of Object.entries(value)) {
+    output[key] = isSensitiveField(key) ? "[REDACTED]" : redactValue(nestedValue);
+  }
+  return output;
+}
+
+function getSchemaTables(): SchemaTable[] {
+  return Object.entries(schema)
+    .filter((entry): entry is [string, Table] => isTable(entry[1]))
+    .map(([exportName, table]) => {
+      const tableName = getTableName(table);
+      const columns = Object.keys(getTableColumns(table));
+      return { exportName, tableName, table, columns };
+    })
+    .filter((entry) => !blockedTables.has(entry.tableName))
+    .sort((left, right) => left.tableName.localeCompare(right.tableName));
+}
+
+function findSchemaTable(name: string): SchemaTable | undefined {
+  const normalized = name.trim();
+  return getSchemaTables().find(
+    (entry) => entry.tableName === normalized || entry.exportName === normalized,
+  );
+}
+
+function siteDataSources() {
+  return getSchemaTables().map((entry) => ({
+    name: entry.tableName,
+    exportName: entry.exportName,
+    uri: `aquavo://table/${entry.tableName}`,
+    columns: entry.columns.map((column) => ({
+      name: column,
+      redacted: isSensitiveField(column),
+    })),
+  }));
+}
+
+function resourcePayload(uri: string, data: unknown) {
+  return {
+    contents: [{
+      uri,
+      mimeType: "application/json",
+      text: JSON.stringify(safe(redactValue(data)), null, 2),
+    }],
+  };
+}
+
+async function readTableRows(db: ReturnType<typeof getDb>, tableName: string, limitInput?: unknown, offsetInput?: unknown) {
+  if (!db) throw new Error("Database is not connected");
+  const entry = findSchemaTable(tableName);
+  if (!entry) throw new Error(`Unknown or blocked table: ${tableName}`);
+  const limit = normalizeLimit(limitInput, 50, 100);
+  const offset = normalizeOffset(offsetInput);
+  const rows = await db.select().from(entry.table).limit(limit).offset(offset);
+  return {
+    table: entry.tableName,
+    limit,
+    offset,
+    rows: redactValue(rows),
+  };
+}
+
+async function buildSiteOverview(db: ReturnType<typeof getDb>) {
+  if (!db) {
+    return {
+      name: "AQUAVO",
+      resource: MCP_RESOURCE,
+      database: "not_connected",
+      allowedTables: siteDataSources().length,
+    };
+  }
+
+  const [
+    productCount,
+    activeProductCount,
+    orderCount,
+    customerCount,
+    pendingOrderCount,
+    lowStockCount,
+  ] = await Promise.all([
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.products),
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.products).where(isNull(schema.products.deletedAt)),
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.orders),
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.users).where(eq(schema.users.role, "user")),
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.orders).where(eq(schema.orders.status, "pending")),
+    db.select({ count: sql<number>`COUNT(*)` }).from(schema.products)
+      .where(and(isNull(schema.products.deletedAt), sql`${schema.products.stock} <= ${schema.products.lowStockThreshold}`)),
+  ]);
+
+  return {
+    name: "AQUAVO",
+    resource: MCP_RESOURCE,
+    transport: "streamable_http_stateless",
+    database: "connected",
+    counts: {
+      products_total: productCount[0]?.count ?? 0,
+      products_active: activeProductCount[0]?.count ?? 0,
+      orders_total: orderCount[0]?.count ?? 0,
+      customers_total: customerCount[0]?.count ?? 0,
+      pending_orders: pendingOrderCount[0]?.count ?? 0,
+      low_stock_products: lowStockCount[0]?.count ?? 0,
+    },
+    rules: {
+      sells_live_fish: false,
+      payment: "cash_on_delivery",
+      shipping_fee_iqd: 5000,
+    },
+  };
+}
+
+async function recordMcpAudit(
+  db: ReturnType<typeof getDb>,
+  auth: McpAuthInfo,
+  action: string,
+  entityType: string,
+  entityId: string,
+  changes: Record<string, unknown>,
+): Promise<void> {
+  const payload = {
+    actor: auth.clientId,
+    mode: auth.mode,
+    action,
+    entityType,
+    entityId,
+    changes: redactValue(changes),
+    ts: new Date().toISOString(),
+  };
+  console.log(`[MCP WRITE] ${JSON.stringify(payload)}`);
+
+  if (!db || !MCP_AUDIT_USER_ID) return;
+
+  try {
+    await db.insert(schema.auditLogs).values({
+      userId: MCP_AUDIT_USER_ID,
+      action,
+      entityType,
+      entityId,
+      changes: payload,
+      createdAt: new Date(),
+    });
+  } catch (auditError) {
+    console.warn("[MCP audit persistence failed]", auditError);
+  }
+}
+
 // ─── MCP Server Factory ───────────────────────────────────────────────────────
 
-function buildMcpServer(): Server {
+function buildMcpServer(auth: McpAuthInfo): Server {
   const db = getDb();
   const server = new Server(
     { name: "aquavo-store", version: "2.0.0" },
-    { capabilities: { tools: {} } },
+    { capabilities: { tools: {}, resources: {}, prompts: {} } },
   );
 
   // ── Tool List ──────────────────────────────────────────────────────────────
@@ -203,6 +528,40 @@ function buildMcpServer(): Server {
             limit: { type: "number" },
           },
         },
+      },
+      {
+        name: "list_site_data_sources",
+        description: "List all readable AQUAVO site data sources, table names, columns, and MCP resource URIs. Sensitive credential/session fields are marked and redacted.",
+        inputSchema: { type: "object", properties: {} },
+      },
+      {
+        name: "get_table_schema",
+        description: "Return the readable schema for one AQUAVO table by database table name or schema export name.",
+        inputSchema: {
+          type: "object",
+          required: ["table"],
+          properties: {
+            table: { type: "string", description: "Example: products, orders, users, blog_posts" },
+          },
+        },
+      },
+      {
+        name: "read_site_table",
+        description: "Read rows from any allowed AQUAVO table. Passwords, tokens, sessions, and secret-like fields are redacted.",
+        inputSchema: {
+          type: "object",
+          required: ["table"],
+          properties: {
+            table: { type: "string" },
+            limit: { type: "number", description: "Default 50, max 100" },
+            offset: { type: "number", description: "Default 0" },
+          },
+        },
+      },
+      {
+        name: "get_site_overview",
+        description: "Return a compact operational overview of AQUAVO: counts, MCP endpoint, and core business rules.",
+        inputSchema: { type: "object", properties: {} },
       },
       {
         name: "search",
@@ -347,13 +706,173 @@ function buildMcpServer(): Server {
     ],
   }));
 
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    requireMcpScope(auth, "mcp:read");
+    const staticResources = [
+      {
+        uri: "aquavo://site/overview",
+        name: "AQUAVO Site Overview",
+        description: "Operational counts, endpoint metadata, and core business rules.",
+        mimeType: "application/json",
+      },
+      {
+        uri: "aquavo://site/data-sources",
+        name: "AQUAVO Data Sources",
+        description: "Readable database tables and redacted columns exposed to MCP.",
+        mimeType: "application/json",
+      },
+      {
+        uri: "aquavo://site/brand",
+        name: "AQUAVO Brand Rules",
+        description: "Internal brand and customer-facing content rules for AQUAVO.",
+        mimeType: "application/json",
+      },
+    ];
+
+    const tableResources = getSchemaTables().map((entry) => ({
+      uri: `aquavo://table/${entry.tableName}`,
+      name: `Table: ${entry.tableName}`,
+      description: `Readable rows from ${entry.tableName}. Sensitive fields are redacted.`,
+      mimeType: "application/json",
+    }));
+
+    return { resources: [...staticResources, ...tableResources] };
+  });
+
+  server.setRequestHandler(ListResourceTemplatesRequestSchema, async () => {
+    requireMcpScope(auth, "mcp:read");
+    return {
+      resourceTemplates: [
+        {
+          uriTemplate: "aquavo://table/{table}?limit={limit}&offset={offset}",
+          name: "AQUAVO Table Rows",
+          description: "Read rows from any allowed AQUAVO database table with pagination.",
+          mimeType: "application/json",
+        },
+      ],
+    };
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    requireMcpScope(auth, "mcp:read");
+    const uri = request.params.uri;
+
+    if (uri === "aquavo://site/overview") {
+      return resourcePayload(uri, await buildSiteOverview(db));
+    }
+
+    if (uri === "aquavo://site/data-sources") {
+      return resourcePayload(uri, { dataSources: siteDataSources() });
+    }
+
+    if (uri === "aquavo://site/brand") {
+      return resourcePayload(uri, {
+        identity: "AQUAVO is an Iraqi premium aquarium equipment and supplies brand/store.",
+        market: "Iraq first, regional expansion later.",
+        sells: ["aquarium equipment", "aquarium supplies", "filters", "heaters", "food", "decor", "tanks", "lighting", "water treatment"],
+        does_not_sell: ["live fish", "live animals", "water plants"],
+        voice: "premium, trusted, practical, expert, direct, human, Iraqi/Baghdadi, calm",
+        customer_text_rules: {
+          arabic: "Natural Iraqi/Baghdadi Arabic",
+          no_fake_claims: true,
+          no_invented_specs: true,
+          no_aggressive_selling: true,
+          no_emojis: true,
+        },
+      });
+    }
+
+    if (uri.startsWith("aquavo://table/")) {
+      const url = new URL(uri.replace("aquavo://", "https://aquavo.local/"));
+      const table = url.pathname.replace(/^\/table\//, "");
+      return resourcePayload(uri, await readTableRows(
+        db,
+        table,
+        url.searchParams.get("limit") ?? undefined,
+        url.searchParams.get("offset") ?? undefined,
+      ));
+    }
+
+    throw new Error(`Unknown resource URI: ${uri}`);
+  });
+
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    requireMcpScope(auth, "mcp:read");
+    return {
+      prompts: [
+        {
+          name: "aquavo-inventory-audit",
+          title: "AQUAVO Inventory Audit",
+          description: "Inspect inventory, low stock, inactive products, and margin-sensitive product risks.",
+        },
+        {
+          name: "aquavo-product-page-improver",
+          title: "AQUAVO Product Page Improver",
+          description: "Improve product page copy using AQUAVO rules without inventing specs or claims.",
+        },
+        {
+          name: "aquavo-order-followup",
+          title: "AQUAVO Order Follow-up",
+          description: "Review orders and suggest practical follow-up actions without changing data.",
+        },
+        {
+          name: "aquavo-growth-audit",
+          title: "AQUAVO Growth Audit",
+          description: "Audit store, product, and customer data for realistic growth opportunities.",
+        },
+      ],
+    };
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    requireMcpScope(auth, "mcp:read");
+    const prompts: Record<string, string> = {
+      "aquavo-inventory-audit": [
+        "Use AQUAVO MCP tools/resources to review inventory.",
+        "Check get_inventory_summary, get_products, get_top_products, and relevant table resources.",
+        "Classify issues by risk. Do not invent costs, specs, stock, or demand.",
+        "Recommend the smallest operational actions first.",
+      ].join("\n"),
+      "aquavo-product-page-improver": [
+        "Improve AQUAVO product content in natural Iraqi/Baghdadi Arabic.",
+        "Use product facts from get_product/read_site_table only.",
+        "Do not invent specifications, brand claims, prices, warranty, or availability.",
+        "Keep the copy premium, practical, and calm.",
+      ].join("\n"),
+      "aquavo-order-followup": [
+        "Review order state and customer context through MCP read tools.",
+        "Suggest follow-up messages or admin actions only; do not write unless explicitly asked and scoped.",
+        "Keep customer-facing Arabic short, human, and Baghdadi.",
+      ].join("\n"),
+      "aquavo-growth-audit": [
+        "Analyze AQUAVO as a real premium ecommerce business.",
+        "Use data sources, dashboard stats, orders summary, top products, and customers.",
+        "Report what is strong, weak, missing, risky, and what should be tested next.",
+        "Reality over comfort. No fantasy numbers.",
+      ].join("\n"),
+    };
+
+    const prompt = prompts[request.params.name];
+    if (!prompt) throw new Error(`Unknown prompt: ${request.params.name}`);
+
+    return {
+      description: request.params.name,
+      messages: [{
+        role: "user" as const,
+        content: { type: "text" as const, text: prompt },
+      }],
+    };
+  });
+
   // ── Tool Handlers ──────────────────────────────────────────────────────────
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args = {} } = request.params;
     const a = args as Record<string, any>;
-    console.log(`[MCP AUDIT] tool=${name} ts=${new Date().toISOString()}`);
+    const requiredScope = writeTools.has(name) ? "mcp:write" : "mcp:read";
+    requireMcpScope(auth, requiredScope);
+    console.log(`[MCP AUDIT] client=${auth.clientId} scope=${requiredScope} tool=${name} ts=${new Date().toISOString()}`);
 
-    if (!db) return err("قاعدة البيانات غير متصلة");
+    if (!db && !dbOptionalTools.has(name)) return err("قاعدة البيانات غير متصلة");
 
     try {
       switch (name) {
@@ -621,6 +1140,38 @@ function buildMcpServer(): Server {
           return text({ total: totals.total, expenses: rows });
         }
 
+        case "list_site_data_sources": {
+          return text({ dataSources: siteDataSources() });
+        }
+
+        case "get_table_schema": {
+          const parsed = z.object({ table: z.string().min(1) }).parse(a);
+          const entry = findSchemaTable(parsed.table);
+          if (!entry) throw new Error(`Unknown or blocked table: ${parsed.table}`);
+          return text({
+            name: entry.tableName,
+            exportName: entry.exportName,
+            uri: `aquavo://table/${entry.tableName}`,
+            columns: entry.columns.map((column) => ({
+              name: column,
+              redacted: isSensitiveField(column),
+            })),
+          });
+        }
+
+        case "read_site_table": {
+          const parsed = z.object({
+            table: z.string().min(1),
+            limit: z.number().optional(),
+            offset: z.number().optional(),
+          }).parse(a);
+          return text(await readTableRows(db, parsed.table, parsed.limit, parsed.offset));
+        }
+
+        case "get_site_overview": {
+          return text(await buildSiteOverview(db));
+        }
+
         case "search": {
           const { query } = a;
           if (!query?.trim()) throw new Error("يجب توفير نص للبحث");
@@ -649,7 +1200,11 @@ function buildMcpServer(): Server {
             updatedAt: new Date(),
             ...(note ? { adminNotes: note } : {}),
           } as any).where(eq(schema.orders.id, id));
-          console.log(`[MCP WRITE] update_order_status id=${id} ${existing.status} → ${status}`);
+          await recordMcpAudit(db, auth, "update_order_status", "order", id, {
+            previousStatus: existing.status,
+            newStatus: status,
+            note: note ?? null,
+          });
           return text({ success: true, orderNumber: existing.orderNumber, previous_status: existing.status, new_status: status });
         }
 
@@ -670,7 +1225,10 @@ function buildMcpServer(): Server {
           if (is_new !== undefined) updates.isNew = Boolean(is_new);
           if (low_stock_threshold !== undefined) updates.lowStockThreshold = Number(low_stock_threshold);
           await db.update(schema.products).set(updates as any).where(eq(schema.products.id, id));
-          console.log(`[MCP WRITE] update_product id=${id} fields=${Object.keys(updates).join(",")}`);
+          await recordMcpAudit(db, auth, "update_product", "product", id, {
+            fields: Object.keys(updates),
+            updates,
+          });
           return text({ success: true, product_id: id, product_name: existing.name, updated_fields: Object.keys(updates) });
         }
 
@@ -683,7 +1241,7 @@ function buildMcpServer(): Server {
             await db.update(schema.products).set({ stock: Number(stock), updatedAt: new Date() } as any).where(eq(schema.products.id, id));
             results.push({ id, new_stock: Number(stock) });
           }
-          console.log(`[MCP WRITE] update_stock updated=${results.length}`);
+          await recordMcpAudit(db, auth, "update_stock", "product", "bulk", { updates: results });
           return text({ success: true, updated: results });
         }
 
@@ -704,7 +1262,11 @@ function buildMcpServer(): Server {
             usedCount: 0,
             createdAt: new Date(),
           } as any);
-          console.log(`[MCP WRITE] create_coupon code=${code}`);
+          await recordMcpAudit(db, auth, "create_coupon", "coupon", String(code).toUpperCase(), {
+            code: String(code).toUpperCase(),
+            discount_type,
+            discount_value,
+          });
           return text({ success: true, code: String(code).toUpperCase(), discount_type, discount_value });
         }
 
@@ -714,7 +1276,7 @@ function buildMcpServer(): Server {
           const [existing] = await db.select({ id: schema.coupons.id }).from(schema.coupons).where(eq(schema.coupons.code, String(code).toUpperCase())).limit(1);
           if (!existing) throw new Error(`الكوبون "${code}" غير موجود`);
           await db.update(schema.coupons).set({ isActive: Boolean(active) } as any).where(eq(schema.coupons.code, String(code).toUpperCase()));
-          console.log(`[MCP WRITE] toggle_coupon code=${code} active=${active}`);
+          await recordMcpAudit(db, auth, "toggle_coupon", "coupon", String(code).toUpperCase(), { active: Boolean(active) });
           return text({ success: true, code, active: Boolean(active) });
         }
 
@@ -730,7 +1292,11 @@ function buildMcpServer(): Server {
             createdAt: new Date(),
             updatedAt: new Date(),
           } as any);
-          console.log(`[MCP WRITE] add_expense amount=${amount} category=${category}`);
+          await recordMcpAudit(db, auth, "add_expense", "expense", "new", {
+            amount,
+            category,
+            description: description ?? null,
+          });
           return text({ success: true, amount, category, description });
         }
 
@@ -741,7 +1307,7 @@ function buildMcpServer(): Server {
           const [existing] = await db.select({ id: schema.products.id, name: schema.products.name }).from(schema.products).where(eq(schema.products.id, id)).limit(1);
           if (!existing) throw new Error("المنتج غير موجود");
           await db.update(schema.products).set({ deletedAt: new Date(), updatedAt: new Date() } as any).where(eq(schema.products.id, id));
-          console.log(`[MCP WRITE] soft_delete_product id=${id} name="${existing.name}"`);
+          await recordMcpAudit(db, auth, "soft_delete_product", "product", id, { name: existing.name });
           return text({ success: true, deleted_product: { id, name: existing.name } });
         }
 
@@ -749,7 +1315,7 @@ function buildMcpServer(): Server {
           const { id } = a;
           if (!id) throw new Error("id مطلوب");
           await db.update(schema.products).set({ deletedAt: null, updatedAt: new Date() } as any).where(eq(schema.products.id, id));
-          console.log(`[MCP WRITE] restore_product id=${id}`);
+          await recordMcpAudit(db, auth, "restore_product", "product", id, {});
           return text({ success: true, restored_product_id: id });
         }
 
@@ -757,7 +1323,7 @@ function buildMcpServer(): Server {
           const { id, status } = a;
           if (!id || !status) throw new Error("id و status مطلوبان");
           await db.update(schema.reviews).set({ status } as any).where(eq(schema.reviews.id, id));
-          console.log(`[MCP WRITE] update_review_status id=${id} status=${status}`);
+          await recordMcpAudit(db, auth, "update_review_status", "review", id, { status });
           return text({ success: true, review_id: id, new_status: status });
         }
 
@@ -784,31 +1350,45 @@ export function createMcpRouter(): RouterType {
   });
 
   // CORS preflight for all MCP requests
-  router.options("/", (_req: Request, res: Response) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, MCP-Session-Id");
+  router.options("/", enforceMcpRequestBoundary, (_req: Request, res: Response) => {
     res.sendStatus(204);
   });
+
+  router.use(enforceMcpRequestBoundary);
 
   // Auth on all other requests
   router.use(mcpAuth);
 
-  // Handle MCP protocol (GET SSE + POST JSON-RPC + DELETE session)
-  router.all("/", async (req: Request, res: Response) => {
-    // Allow cross-origin (Claude.ai calls this)
-    res.setHeader("Access-Control-Allow-Origin", "*");
+  // Stateless Streamable HTTP. Vercel/serverless cannot rely on in-memory MCP sessions.
+  router.post("/", async (req: McpRequest, res: Response) => {
     try {
       const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => `aquavo-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        sessionIdGenerator: undefined,
+        enableJsonResponse: true,
       });
-      const mcpServer = buildMcpServer();
+      const mcpServer = buildMcpServer(req.mcpAuth ?? {
+        clientId: "unknown",
+        mode: "static",
+        scopes: new Set(),
+      });
       await mcpServer.connect(transport);
-      await transport.handleRequest(req, res);
+      res.on("close", () => {
+        void transport.close();
+        void mcpServer.close();
+      });
+      await transport.handleRequest(req, res, req.body);
     } catch (e) {
       console.error("[MCP route error]", e);
       if (!res.headersSent) res.status(500).json({ error: "Internal error" });
     }
+  });
+
+  router.all("/", (_req: Request, res: Response) => {
+    res.status(405).json({
+      jsonrpc: "2.0",
+      id: null,
+      error: { code: -32000, message: "Method not allowed. Use POST for AQUAVO MCP Streamable HTTP." },
+    });
   });
 
   return router;

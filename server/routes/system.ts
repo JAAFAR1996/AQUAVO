@@ -96,18 +96,30 @@ export function createSystemRouter(): RouterType {
 
     // MCP Server Card (SEP-2127)
     router.get("/.well-known/mcp/server-card.json", (_req: Request, res: Response): void => {
+        const baseUrl = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
         res.header("Content-Type", "application/json");
         res.json({
             serverInfo: {
                 name: "AQUAVO",
                 version: "2.0.0",
-                description: "AQUAVO — Iraq's premium aquarium supplies e-commerce platform. Browse products, track orders, and get AI-powered fish care advice."
+                description: "AQUAVO MCP server for Iraq's premium aquarium equipment store. Provides authenticated read/write tools, resources, and prompts for site operations."
             },
-            transport: { type: "https", endpoint: "https://www.aquavoiq.com/api" },
+            transport: { type: "streamable_http", endpoint: `${baseUrl}/api/mcp` },
+            auth: {
+                type: "oauth2_bearer_or_static_bearer",
+                protectedResourceMetadata: `${baseUrl}/.well-known/oauth-protected-resource`,
+                scopes: ["mcp", "mcp:read", "mcp:write"]
+            },
             capabilities: {
-                products: { description: "Browse aquarium products and supplies", endpoint: "/api/products" },
-                "fish-encyclopedia": { description: "Comprehensive fish species database with care guides", endpoint: "/api/fish" },
-                "health-check": { description: "Service health status", endpoint: "/health" }
+                tools: {
+                    description: "Products, inventory, orders, customers, dashboard, reviews, coupons, expenses, and controlled write actions."
+                },
+                resources: {
+                    description: "Site overview, data sources, brand rules, and readable database table resources with sensitive fields redacted."
+                },
+                prompts: {
+                    description: "AQUAVO operating prompts for inventory audits, product page improvement, order follow-up, and growth audit."
+                }
             }
         });
     });
@@ -214,7 +226,7 @@ export function createSystemRouter(): RouterType {
             registration_endpoint: "https://www.aquavoiq.com/oauth/register",
             userinfo_endpoint: "https://www.aquavoiq.com/api/auth/me",
             jwks_uri: "https://www.aquavoiq.com/.well-known/jwks.json",
-            scopes_supported: ["mcp", "openid", "profile"],
+            scopes_supported: ["mcp", "mcp:read", "mcp:write", "openid", "profile"],
             response_types_supported: ["code"],
             grant_types_supported: ["authorization_code", "refresh_token"],
             code_challenge_methods_supported: ["S256"],
