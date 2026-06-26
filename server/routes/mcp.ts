@@ -23,7 +23,7 @@ import { verifyMcpToken } from "./oauth.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const BASE_URL = (process.env.AQUAVO_BASE_URL ?? "https://aquavoiq.com").replace(/\/$/, "");
+const BASE_URL = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
 const MCP_RESOURCE = `${BASE_URL}/api/mcp`;
 const STATIC_TOKEN = process.env.AQUAVO_MCP_TOKEN?.trim();
 

@@ -18,7 +18,7 @@ import { Router } from "express";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
-const ISSUER = (process.env.AQUAVO_BASE_URL ?? "https://aquavoiq.com").replace(/\/$/, "");
+const ISSUER = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
 const MCP_RESOURCE = `${ISSUER}/api/mcp`;
 const JWT_SECRET = (process.env.AQUAVO_MCP_SECRET ?? process.env.AQUAVO_MCP_TOKEN ?? "").trim();
 const ADMIN_PASSWORD = (process.env.AQUAVO_MCP_ADMIN_PASSWORD ?? "").trim();
