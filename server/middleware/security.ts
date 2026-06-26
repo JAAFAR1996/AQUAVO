@@ -97,6 +97,19 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
 export function corsConfig(req: Request, res: Response, next: NextFunction) {
   const isProduction = process.env.NODE_ENV === 'production';
 
+  // OAuth & MCP endpoints use Bearer tokens (not cookies) — wildcard CORS is safe
+  // Required for ChatGPT, Claude.ai, and other AI MCP clients
+  if (req.path.startsWith('/oauth') || req.path.startsWith('/api/mcp')) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, MCP-Session-Id');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    if (req.method === 'OPTIONS') {
+      return res.status(204).send();
+    }
+    return next();
+  }
+
   const allowedOrigins = [
     // Only allow localhost in development
     ...(!isProduction ? ['http://localhost:5000', 'http://localhost:3000'] : []),
