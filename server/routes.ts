@@ -82,6 +82,14 @@ export async function registerRoutes(
   app.use("/api/referral", createReferralRouter());
   app.use("/api/loyalty", createLoyaltyRouter());
 
+  // OAuth 2.1 Authorization Server + Well-Known discovery endpoints
+  // MUST be before systemRouter so /.well-known/oauth-* endpoints from oauth.ts
+  // are not shadowed by system.ts routes (which caused Claude.ai connector failure)
+  app.use("/", createOAuthRouter());
+
+  // AQUAVO MCP — remote AI access endpoint (OAuth JWT or static Bearer token)
+  app.use("/api/mcp", createMcpRouter());
+
   // System routes (sitemap, robots, health) - mount at root for correct paths
   const systemRouter = createSystemRouter();
   app.use("/api/system", systemRouter);
@@ -156,12 +164,6 @@ export async function registerRoutes(
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
 
-  // OAuth 2.1 Authorization Server + Well-Known discovery endpoints
-  // Must be mounted at root (/) so /.well-known/... works at domain root
-  app.use("/", createOAuthRouter());
-
-  // AQUAVO MCP — remote AI access endpoint (OAuth JWT or static Bearer token)
-  app.use("/api/mcp", createMcpRouter());
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
