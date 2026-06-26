@@ -256,7 +256,17 @@ export function createOAuthRouter(): RouterType {
   // The actual security gate is the ADMIN PASSWORD on the consent screen (/oauth/authorize).
   // A registered client that lacks the password can never get tokens.
   // redirect_uri is validated (https:// or http://localhost only) to prevent open-redirect abuse.
+
+  // CORS preflight for /oauth/register (browser-origin request from Claude.ai web)
+  router.options("/oauth/register", (_req: Request, res: Response) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.sendStatus(204);
+  });
+
   router.post("/oauth/register", (req: Request, res: Response) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
     // Simple rate-limit: cap at 100 registered clients in memory (restarts clear it)
     if (registeredClients.size >= 100) {
       res.status(429).json({ error: "server_error", error_description: "Too many registered clients — server restart will reset" });
