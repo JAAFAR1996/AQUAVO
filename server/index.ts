@@ -200,6 +200,11 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
   // Skip for MCP endpoint — uses Bearer token auth (OAuth JWT or static token), not cookies
   if (req.path.startsWith("/mcp")) return next();
 
+  // Skip for OAuth 2.1 endpoints — these are server-to-server calls (RFC 7591 DCR,
+  // RFC 6749 token endpoint) that have no browser Origin header by design.
+  // Security is enforced via PKCE + admin password on the consent screen.
+  if (req.path.startsWith("/oauth")) return next();
+
   // Skip for webhooks if any (e.g. Stripe) - add check here if needed
 
   const origin = req.headers.origin || req.headers.referer;
