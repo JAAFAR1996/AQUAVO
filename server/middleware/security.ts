@@ -60,7 +60,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
-      "form-action 'self' https://www.facebook.com;"
+      "form-action 'self' https://www.facebook.com https://claude.ai;"
     );
   } else {
     // Production: Strict CSP following OWASP best practices
@@ -77,7 +77,7 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
       "frame-ancestors 'none'; " +
       "object-src 'none'; " +
       "base-uri 'self'; " +
-      "form-action 'self' https://www.facebook.com; " +
+      "form-action 'self' https://www.facebook.com https://claude.ai; " +
       "upgrade-insecure-requests; " +
       "block-all-mixed-content;"
     );

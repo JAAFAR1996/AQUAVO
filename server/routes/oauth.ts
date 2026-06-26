@@ -381,6 +381,12 @@ export function createOAuthRouter(): RouterType {
       return;
     }
 
+    // Override CSP for the consent page — allow form POST redirect to the OAuth callback
+    let redirectOriginForCsp = "'self'";
+    try { redirectOriginForCsp = new URL(redirect_uri).origin; } catch { /* keep self */ }
+    res.setHeader("Content-Security-Policy",
+      `default-src 'none'; style-src 'unsafe-inline'; form-action 'self' ${redirectOriginForCsp}; base-uri 'self'`
+    );
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.send(consentHtml({
       client_id,
