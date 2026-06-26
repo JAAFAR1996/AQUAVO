@@ -201,20 +201,24 @@ export function createSystemRouter(): RouterType {
     // DO NOT add them here — previous duplicates pointed to /login and /register (user auth)
     // instead of /oauth/* (MCP DCR), which broke Claude.ai connector registration.
 
-    // OpenID Connect Discovery (openid-connect-discovery-1_0)
-    // This is for user-facing OIDC, NOT MCP — kept separate intentionally.
+    // OpenID Connect Discovery — also used by ChatGPT for MCP OAuth discovery
+    // ChatGPT reads this BEFORE /.well-known/oauth-authorization-server
+    // Must point to the same /oauth/* endpoints for MCP to work
     router.get("/.well-known/openid-configuration", (_req: Request, res: Response): void => {
         res.header("Content-Type", "application/json");
+        res.header("Access-Control-Allow-Origin", "*");
         res.json({
             issuer: "https://www.aquavoiq.com",
-            authorization_endpoint: "https://www.aquavoiq.com/login",
-            token_endpoint: "https://www.aquavoiq.com/api/auth/token",
+            authorization_endpoint: "https://www.aquavoiq.com/oauth/authorize",
+            token_endpoint: "https://www.aquavoiq.com/oauth/token",
+            registration_endpoint: "https://www.aquavoiq.com/oauth/register",
             userinfo_endpoint: "https://www.aquavoiq.com/api/auth/me",
             jwks_uri: "https://www.aquavoiq.com/.well-known/jwks.json",
-            registration_endpoint: "https://www.aquavoiq.com/register",
-            scopes_supported: ["openid", "profile", "orders"],
+            scopes_supported: ["mcp", "openid", "profile"],
             response_types_supported: ["code"],
-            grant_types_supported: ["authorization_code"],
+            grant_types_supported: ["authorization_code", "refresh_token"],
+            code_challenge_methods_supported: ["S256"],
+            token_endpoint_auth_methods_supported: ["none"],
             subject_types_supported: ["public"],
             id_token_signing_alg_values_supported: ["RS256"],
             claims_supported: ["sub", "name", "email", "phone_number"]
