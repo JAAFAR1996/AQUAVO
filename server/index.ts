@@ -111,8 +111,12 @@ app.use(corsConfig);
 
 // Performance: Only apply body parsing, sanitization, and security logging to API routes
 // Static file requests skip these entirely to avoid unnecessary overhead
+const getRealRoute = (req: Request) => req.headers['x-invoke-path']?.toString() || req.originalUrl || req.path;
+
 const apiOnly = (fn: any) => (req: Request, res: Response, next: NextFunction) => {
-  if (!req.path.startsWith("/api")) return next();
+  const realRoute = getRealRoute(req);
+  // Exclude oauth from apiOnly because Vercel rewrites both to /api/index
+  if (!realRoute.startsWith("/api") || realRoute.startsWith("/oauth")) return next();
   return fn(req, res, next);
 };
 
@@ -129,7 +133,8 @@ app.use(apiOnly(express.urlencoded({ extended: true, limit: '5mb' })));
 
 // OAuth 2.1 endpoints need their own body parsing (not under /api/)
 const oauthOnly = (fn: any) => (req: Request, res: Response, next: NextFunction) => {
-  if (!req.path.startsWith("/oauth")) return next();
+  const realRoute = getRealRoute(req);
+  if (!realRoute.startsWith("/oauth")) return next();
   return fn(req, res, next);
 };
 app.use(oauthOnly(express.json({ limit: '1mb' })));
@@ -197,13 +202,15 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
     return next();
   }
 
+  const pathToCheck = req.headers['x-invoke-path']?.toString() || req.originalUrl || req.path;
+
   // Skip for MCP endpoint — uses Bearer token auth (OAuth JWT or static token), not cookies
-  if (req.path.startsWith("/mcp")) return next();
+  if (pathToCheck.startsWith("/api/mcp") || pathToCheck.startsWith("/mcp")) return next();
 
   // Skip for OAuth 2.1 endpoints — these are server-to-server calls (RFC 7591 DCR,
   // RFC 6749 token endpoint) that have no browser Origin header by design.
   // Security is enforced via PKCE + admin password on the consent screen.
-  if (req.path.startsWith("/oauth")) return next();
+  if (pathToCheck.startsWith("/oauth")) return next();
 
   // Skip for webhooks if any (e.g. Stripe) - add check here if needed
 
