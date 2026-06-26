@@ -13,6 +13,26 @@ type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
 const CSRF_SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+function getRealRoute(req: Request): string {
+  const raw =
+    req.get("x-invoke-path") ||
+    req.get("x-vercel-original-url") ||
+    req.get("x-original-url") ||
+    req.get("x-forwarded-uri") ||
+    req.originalUrl ||
+    req.path;
+  try {
+    const path = raw.startsWith("http://") || raw.startsWith("https://")
+      ? new URL(raw).pathname
+      : raw;
+    const normalized = path.startsWith("/") ? path : `/${path}`;
+    return normalized.split("?")[0] || "/";
+  } catch {
+    const normalized = raw.startsWith("/") ? raw : `/${raw}`;
+    return normalized.split("?")[0] || "/";
+  }
+}
+
 function getSourceOrigin(req: Request): string | undefined {
   const origin = req.get("origin");
   if (origin) return origin;
@@ -33,14 +53,16 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  const realRoute = getRealRoute(req);
+
   // OAuth 2.1 endpoints (RFC 7591 DCR + RFC 6749 token) are server-to-server —
   // no browser Origin header by design. Security: PKCE S256 + admin password.
-  if (req.path.startsWith("/oauth")) {
+  if (realRoute.startsWith("/oauth")) {
     return next();
   }
 
   // MCP endpoint uses Bearer token auth, not cookies — no CSRF risk.
-  if (req.path.startsWith("/api/mcp")) {
+  if (realRoute.startsWith("/api/mcp") || realRoute.startsWith("/mcp")) {
     return next();
   }
 
@@ -48,18 +70,18 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
   const targetHost = getTargetHost(req);
 
   if (!sourceOrigin || !targetHost) {
-    console.warn(`[Security] Blocked mutating request with missing origin: ${req.method} ${req.path}`);
+    console.warn(`[Security] Blocked mutating request with missing origin: ${req.method} ${realRoute}`);
     return res.status(403).json({ message: "Forbidden" });
   }
 
   try {
     const sourceHost = new URL(sourceOrigin).host;
     if (sourceHost !== targetHost) {
-      console.warn(`[Security] Blocked cross-origin mutating request: ${req.method} ${req.path}`);
+      console.warn(`[Security] Blocked cross-origin mutating request: ${req.method} ${realRoute}`);
       return res.status(403).json({ message: "Forbidden" });
     }
   } catch {
-    console.warn(`[Security] Blocked mutating request with invalid origin: ${req.method} ${req.path}`);
+    console.warn(`[Security] Blocked mutating request with invalid origin: ${req.method} ${realRoute}`);
     return res.status(403).json({ message: "Forbidden" });
   }
 
