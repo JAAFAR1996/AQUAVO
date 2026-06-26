@@ -419,7 +419,7 @@ export function createOAuthRouter(): RouterType {
 
     if (!passwordOk) {
       const params = new URLSearchParams({ client_id, redirect_uri, state, code_challenge, code_challenge_method, scope, error: "1" });
-      res.redirect(`/oauth/authorize?${params}`);
+      res.redirect(303, `/oauth/authorize?${params}`);
       return;
     }
 
@@ -446,7 +446,8 @@ export function createOAuthRouter(): RouterType {
     dest.searchParams.set("code", code);
     if (state) dest.searchParams.set("state", state);
     dest.searchParams.set("iss", ISSUER);
-    res.redirect(dest.toString());
+    // Force 303 See Other to ensure the browser switches from POST to GET
+    res.redirect(303, dest.toString());
   });
 
   // Token Endpoint — CORS preflight
