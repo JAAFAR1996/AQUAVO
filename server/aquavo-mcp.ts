@@ -23,7 +23,6 @@ import { drizzle } from "drizzle-orm/neon-serverless";
 import {
   sql,
   eq,
-  like,
   ilike,
   or,
   and,
@@ -36,11 +35,24 @@ import {
 } from "drizzle-orm";
 import * as schema from "../shared/schema.js";
 
-// ─── DB Setup ────────────────────────────────────────────────────────────────
+// ─── Auth Guard ───────────────────────────────────────────────────────────────
+// الـ MCP server يحتاج AQUAVO_MCP_TOKEN في الـ environment — بدونه لا يشتغل.
+// ضع نفس القيمة في .mcp.json داخل env، وفي أي client آخر تستخدمه.
+
+const MCP_TOKEN = process.env.AQUAVO_MCP_TOKEN?.trim();
+if (!MCP_TOKEN) {
+  console.error(
+    "[AQUAVO MCP] AQUAVO_MCP_TOKEN غير موجود — الـ server لن يشتغل بدون token.\n" +
+    "أضف AQUAVO_MCP_TOKEN=<سر-قوي> في ملف .env.local أو في env مال .mcp.json"
+  );
+  process.exit(1);
+}
+
+// ─── DB Setup ─────────────────────────────────────────────────────────────────
+// نمرّر DATABASE_URL مباشرة بدون تعديل لحماية TLS (channel_binding=require)
 
 neonConfig.webSocketConstructor = ws;
-const rawUrl = process.env.DATABASE_URL ?? "";
-const databaseUrl = rawUrl.replace(/[&?]channel_binding=require/g, "");
+const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   console.error("[AQUAVO MCP] DATABASE_URL غير موجود");
@@ -291,6 +303,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args = {} } = request.params;
+
+  // Audit log: كل tool call يُسجَّل مع اسم الأداة ومفاتيح الـ args (بدون القيم)
+  console.error(
+    `[AQUAVO MCP AUDIT] tool=${name} args=[${Object.keys(args).join(",")}] ts=${new Date().toISOString()}`
+  );
 
   try {
     switch (name) {
