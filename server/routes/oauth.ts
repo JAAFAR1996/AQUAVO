@@ -23,10 +23,16 @@ const MCP_RESOURCE = `${ISSUER}/api/mcp`;
 const JWT_SECRET = (process.env.AQUAVO_MCP_SECRET ?? process.env.AQUAVO_MCP_TOKEN ?? "").trim();
 const ADMIN_PASSWORD = (process.env.AQUAVO_MCP_ADMIN_PASSWORD ?? "").trim();
 
-// ─── In-memory stores ─────────────────────────────────────────────────────────
+// ─── In-memory stores (auth codes only — clients are stateless) ───────────────
+//
+// On Vercel serverless, in-memory Maps are NOT shared across instances.
+// → Client registration uses HMAC-signed tokens (no storage needed).
+// → Auth codes are still ephemeral (10-min TTL); user re-authorizes if expired.
+// → Refresh tokens are also ephemeral; user re-authorizes after restart.
 
 interface AuthCodeRecord {
-  clientId: string;
+  clientId: string;          // the full signed client_id string
+  redirectUris: string[];    // decoded from client_id
   codeChallenge: string;
   codeChallengeMethod: string;
   redirectUri: string;
@@ -34,13 +40,7 @@ interface AuthCodeRecord {
   scope: string;
 }
 
-interface ClientRecord {
-  redirectUris: string[];
-  name?: string;
-}
-
 const authCodes = new Map<string, AuthCodeRecord>();
-const registeredClients = new Map<string, ClientRecord>();
 const refreshTokenStore = new Map<string, { clientId: string; expiresAt: number }>();
 
 // Cleanup expired records every minute
@@ -49,6 +49,50 @@ setInterval(() => {
   for (const [k, v] of authCodes) if (v.expiresAt < now) authCodes.delete(k);
   for (const [k, v] of refreshTokenStore) if (v.expiresAt < now) refreshTokenStore.delete(k);
 }, 60_000);
+
+// ─── Stateless Client ID (HMAC-signed, no DB / no Map needed) ─────────────────
+//
+// client_id = base64url(JSON payload) + "." + hmac(payload, JWT_SECRET)[0:32]
+// This survives Vercel cold-starts and horizontal scaling.
+
+interface ClientPayload {
+  r: string[];   // redirect_uris
+  n: string;     // client_name
+  t: number;     // issued_at (ms)
+}
+
+function createClientId(redirectUris: string[], name: string): string {
+  const payload = JSON.stringify({ r: redirectUris, n: name, t: Date.now() } satisfies ClientPayload);
+  const payloadB64 = Buffer.from(payload).toString("base64url");
+  const sig = createHmac("sha256", JWT_SECRET || "fallback-insecure")
+    .update(payloadB64)
+    .digest("hex")
+    .slice(0, 32);
+  return `${payloadB64}.${sig}`;
+}
+
+function verifyClientId(clientId: string): { redirectUris: string[]; name: string } | null {
+  try {
+    const dot = clientId.lastIndexOf(".");
+    if (dot < 0) return null;
+    const payloadB64 = clientId.slice(0, dot);
+    const sig = clientId.slice(dot + 1);
+    const expected = createHmac("sha256", JWT_SECRET || "fallback-insecure")
+      .update(payloadB64)
+      .digest("hex")
+      .slice(0, 32);
+    // Timing-safe compare
+    const sigBuf = Buffer.from(sig);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length) return null;
+    try { if (!timingSafeEqual(sigBuf, expBuf)) return null; } catch { return null; }
+    const parsed: ClientPayload = JSON.parse(Buffer.from(payloadB64, "base64url").toString());
+    if (!Array.isArray(parsed.r)) return null;
+    return { redirectUris: parsed.r, name: String(parsed.n ?? "unknown") };
+  } catch {
+    return null;
+  }
+}
 
 // ─── JWT (HS256, no deps) ─────────────────────────────────────────────────────
 
@@ -251,13 +295,12 @@ export function createOAuthRouter(): RouterType {
     });
   });
 
-  // RFC 7591 — Dynamic Client Registration (open per spec)
-  // Security note: Registration is intentionally open — any client can register.
-  // The actual security gate is the ADMIN PASSWORD on the consent screen (/oauth/authorize).
-  // A registered client that lacks the password can never get tokens.
-  // redirect_uri is validated (https:// or http://localhost only) to prevent open-redirect abuse.
+  // RFC 7591 — Dynamic Client Registration
+  // Uses stateless HMAC-signed client_id — no server-side storage required.
+  // Survives Vercel cold-starts and horizontal scaling.
+  // Security: the actual gate is the admin password on the consent screen.
 
-  // CORS preflight for /oauth/register (browser-origin request from Claude.ai web)
+  // CORS preflight for /oauth/register
   router.options("/oauth/register", (_req: Request, res: Response) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -267,11 +310,6 @@ export function createOAuthRouter(): RouterType {
 
   router.post("/oauth/register", (req: Request, res: Response) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    // Simple rate-limit: cap at 100 registered clients in memory (restarts clear it)
-    if (registeredClients.size >= 100) {
-      res.status(429).json({ error: "server_error", error_description: "Too many registered clients — server restart will reset" });
-      return;
-    }
 
     const body = req.body ?? {};
     const rawUris: unknown[] = Array.isArray(body.redirect_uris) ? body.redirect_uris : [];
@@ -294,9 +332,9 @@ export function createOAuthRouter(): RouterType {
       redirectUris.push(uri);
     }
 
-    const clientId = randomBytes(16).toString("hex");
-    registeredClients.set(clientId, { redirectUris, name: String(body.client_name ?? "unknown") });
-    console.log(`[OAUTH] Registered client: ${clientId} name=${body.client_name ?? "unknown"} uris=${redirectUris.join(",")}`);
+    // Stateless: encode client info in the signed client_id itself
+    const clientId = createClientId(redirectUris, String(body.client_name ?? "unknown"));
+    console.log(`[OAUTH] Registered client (stateless): name=${body.client_name ?? "unknown"} uris=${redirectUris.join(",")}`);
     res.status(201).json({
       client_id: clientId,
       client_id_issued_at: Math.floor(Date.now() / 1000),
@@ -307,8 +345,8 @@ export function createOAuthRouter(): RouterType {
     });
   });
 
-  // Admin endpoint — list registered clients (requires admin password)
-  router.get("/oauth/admin/clients", (req: Request, res: Response) => {
+  // Admin endpoint — verify a client_id token
+  router.get("/oauth/admin/verify-client", (req: Request, res: Response) => {
     const authHeader = req.headers["authorization"] ?? "";
     const provided = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
     if (!ADMIN_PASSWORD) { res.status(503).json({ error: "AQUAVO_MCP_ADMIN_PASSWORD not set" }); return; }
@@ -317,23 +355,9 @@ export function createOAuthRouter(): RouterType {
     let ok = false;
     if (pwBuf.length === expectedBuf.length) { try { ok = timingSafeEqual(pwBuf, expectedBuf); } catch { /* */ } }
     if (!ok) { res.status(401).json({ error: "unauthorized" }); return; }
-    const clients = Array.from(registeredClients.entries()).map(([id, c]) => ({ id, name: c.name, redirectUris: c.redirectUris }));
-    res.json({ total: clients.length, clients });
-  });
-
-  // Admin endpoint — revoke a registered client
-  router.delete("/oauth/admin/clients/:clientId", (req: Request, res: Response) => {
-    const authHeader = req.headers["authorization"] ?? "";
-    const provided = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
-    if (!ADMIN_PASSWORD) { res.status(503).json({ error: "AQUAVO_MCP_ADMIN_PASSWORD not set" }); return; }
-    const pwBuf = Buffer.from(provided);
-    const expectedBuf = Buffer.from(ADMIN_PASSWORD);
-    let ok = false;
-    if (pwBuf.length === expectedBuf.length) { try { ok = timingSafeEqual(pwBuf, expectedBuf); } catch { /* */ } }
-    if (!ok) { res.status(401).json({ error: "unauthorized" }); return; }
-    const { clientId } = req.params;
-    const existed = registeredClients.delete(clientId);
-    res.json({ revoked: existed, clientId });
+    const clientId = String(req.query.client_id ?? "");
+    const client = verifyClientId(clientId);
+    res.json({ valid: !!client, client });
   });
 
   // Authorization Endpoint — GET (consent page)
@@ -345,9 +369,11 @@ export function createOAuthRouter(): RouterType {
       res.status(400).send("<h1>Bad Request: missing required parameters</h1>");
       return;
     }
-    const client = registeredClients.get(client_id);
+
+    // Stateless: verify the HMAC-signed client_id (no Map lookup)
+    const client = verifyClientId(client_id);
     if (!client) {
-      res.status(400).send("<h1>Unknown client_id</h1>");
+      res.status(400).send("<h1>Invalid client_id signature</h1>");
       return;
     }
     if (!client.redirectUris.includes(redirect_uri)) {
@@ -397,15 +423,17 @@ export function createOAuthRouter(): RouterType {
       return;
     }
 
-    const client = registeredClients.get(client_id);
-    if (!client?.redirectUris.includes(redirect_uri)) {
-      res.status(400).json({ error: "invalid_client" });
+    // Stateless: verify the HMAC-signed client_id (no Map lookup needed)
+    const client = verifyClientId(client_id);
+    if (!client || !client.redirectUris.includes(redirect_uri)) {
+      res.status(400).json({ error: "invalid_client", error_description: "Invalid or tampered client_id" });
       return;
     }
 
     const code = randomBytes(32).toString("hex");
     authCodes.set(code, {
       clientId: client_id,
+      redirectUris: client.redirectUris,
       codeChallenge: code_challenge,
       codeChallengeMethod: code_challenge_method,
       redirectUri: redirect_uri,
@@ -413,7 +441,7 @@ export function createOAuthRouter(): RouterType {
       scope,
     });
 
-    console.log(`[OAUTH] Issued auth code for client=${client_id}`);
+    console.log(`[OAUTH] Issued auth code for client=${client_id.slice(0, 20)}...`);
     const dest = new URL(redirect_uri);
     dest.searchParams.set("code", code);
     if (state) dest.searchParams.set("state", state);
