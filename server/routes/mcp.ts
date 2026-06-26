@@ -295,8 +295,9 @@ export function createMcpRouter(): RouterType {
       await mcpServer.connect(transport);
       await transport.handleRequest(req, res);
     } catch (err) {
+      console.error("[MCP route]", err);
       if (!res.headersSent) {
-        res.status(500).json({ error: "MCP handler error", detail: String(err) });
+        res.status(500).json({ error: "Internal error" });
       }
     }
   });
