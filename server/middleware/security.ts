@@ -43,6 +43,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   // Content Security Policy - Different for development vs production
+  // Skip for /oauth paths — the OAuth consent page sets its own CSP
+  // with a dynamic form-action that allows redirect to the callback URI
+  if (req.path.startsWith("/oauth")) {
+    return next();
+  }
   const isDevelopment = process.env.NODE_ENV !== 'production';
 
   if (isDevelopment) {
