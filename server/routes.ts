@@ -41,6 +41,7 @@ import { createAccountingRouter } from "./routes/accounting.js";
 import { createExpensesRouter } from "./routes/expenses.js";
 import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
+import { createMcpRouter } from "./routes/mcp.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -153,6 +154,9 @@ export async function registerRoutes(
   app.use("/api/admin/expenses", createExpensesRouter());
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
+
+  // AQUAVO MCP — remote AI access endpoint (Bearer token required)
+  app.use("/api/mcp", createMcpRouter());
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

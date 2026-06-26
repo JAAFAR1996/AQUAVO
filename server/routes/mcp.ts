@@ -1,24 +1,18 @@
 /**
- * AQUAVO MCP Server — HTTP/SSE Transport
- * للاستخدام مع Claude.ai web و أي AI يدعم remote MCP
- *
- * تشغيل: npx tsx server/aquavo-mcp-http.ts
- * PORT: 3333 (أو PORT env var)
+ * AQUAVO MCP Route — /api/mcp
+ * يعطي Claude.ai web وأي AI يدعم remote MCP وصول كامل لبيانات المتجر.
+ * محمي بـ Bearer token (AQUAVO_MCP_TOKEN).
  */
 
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local", override: true });
-dotenv.config({ override: true });
-
+import type { Request, Response, NextFunction, Router as RouterType } from "express";
+import { Router } from "express";
+import { timingSafeEqual } from "crypto";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-import { drizzle } from "drizzle-orm/neon-serverless";
 import {
   sql,
   eq,
@@ -32,31 +26,31 @@ import {
   isNull,
   gt,
 } from "drizzle-orm";
-import * as schema from "../shared/schema.js";
-import http from "http";
-import { randomUUID, timingSafeEqual } from "crypto";
+import { getDb } from "../db.js";
+import * as schema from "../../shared/schema.js";
 
-// ─── Auth Guard ────────────────────────────────────────────────────────────────
+// ─── Auth ─────────────────────────────────────────────────────────────────────
 
 const MCP_TOKEN = process.env.AQUAVO_MCP_TOKEN?.trim();
-if (!MCP_TOKEN) {
-  console.error("[AQUAVO MCP] AQUAVO_MCP_TOKEN غير موجود — أضفه في .env.local");
-  process.exit(1);
+
+function bearerAuth(req: Request, res: Response, next: NextFunction): void {
+  if (!MCP_TOKEN) {
+    res.status(503).json({ error: "AQUAVO_MCP_TOKEN not configured on server" });
+    return;
+  }
+  const auth = req.headers["authorization"] ?? "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+  const tokenBuf = Buffer.from(token);
+  const expectedBuf = Buffer.from(MCP_TOKEN);
+  const ok = tokenBuf.length === expectedBuf.length && timingSafeEqual(tokenBuf, expectedBuf);
+  if (!ok) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  next();
 }
 
-// ─── DB Setup ──────────────────────────────────────────────────────────────────
-
-neonConfig.webSocketConstructor = ws;
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) {
-  console.error("[AQUAVO MCP] DATABASE_URL غير موجود");
-  process.exit(1);
-}
-
-const pool = new Pool({ connectionString: databaseUrl, max: 5 });
-const db = drizzle(pool, { schema });
-
-// ─── Helpers ───────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function safe(obj: unknown): unknown {
   return JSON.parse(
@@ -64,10 +58,10 @@ function safe(obj: unknown): unknown {
   );
 }
 
-// ─── MCP Server Factory ────────────────────────────────────────────────────────
-// نصنع instance جديد لكل connection (stateless per-session)
+// ─── MCP Server Factory (stateless — new instance per request) ─────────────
 
 function buildMcpServer(): Server {
+  const db = getDb();
   const server = new Server(
     { name: "aquavo-store", version: "1.0.0" },
     { capabilities: { tools: {} } }
@@ -75,185 +69,29 @@ function buildMcpServer(): Server {
 
   server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
-      {
-        name: "get_products",
-        description: "قائمة منتجات AQUAVO مع السعر والمخزون والفئة. يدعم فلترة وبحث.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            search: { type: "string" },
-            category: { type: "string" },
-            brand: { type: "string" },
-            in_stock_only: { type: "boolean" },
-            low_stock_only: { type: "boolean" },
-            limit: { type: "number" },
-            offset: { type: "number" },
-            sort_by: { type: "string", enum: ["price_asc", "price_desc", "newest", "stock_asc", "name"] },
-          },
-        },
-      },
-      {
-        name: "get_product",
-        description: "تفاصيل منتج واحد بالكامل + مراجعاته.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            slug: { type: "string" },
-          },
-        },
-      },
-      {
-        name: "get_inventory_summary",
-        description: "ملخص المخزون: إجمالي، منتهي، منخفض.",
-        inputSchema: { type: "object", properties: {} },
-      },
-      {
-        name: "get_orders",
-        description: "قائمة الطلبات مع فلتر بالحالة والتاريخ.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            status: { type: "string" },
-            limit: { type: "number" },
-            offset: { type: "number" },
-            date_from: { type: "string" },
-            date_to: { type: "string" },
-            source: { type: "string" },
-            search: { type: "string" },
-          },
-        },
-      },
-      {
-        name: "get_order",
-        description: "تفاصيل طلب واحد + بيانات الزبون.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            order_number: { type: "string" },
-          },
-        },
-      },
-      {
-        name: "get_orders_summary",
-        description: "إحصائيات الطلبات مجمّعة بالحالة.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            date_from: { type: "string" },
-            date_to: { type: "string" },
-          },
-        },
-      },
-      {
-        name: "get_customers",
-        description: "قائمة الزبائن مع معلومات التواصل والولاء.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            search: { type: "string" },
-            loyalty_tier: { type: "string" },
-            limit: { type: "number" },
-            offset: { type: "number" },
-          },
-        },
-      },
-      {
-        name: "get_customer",
-        description: "تفاصيل زبون واحد + طلباته + سلة التسوق.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            email: { type: "string" },
-          },
-        },
-      },
-      {
-        name: "get_dashboard_stats",
-        description: "إحصائيات لوحة التحكم: إيرادات، طلبات، زبائن، منتجات.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            period: { type: "string", enum: ["7d", "30d", "90d"] },
-          },
-        },
-      },
-      {
-        name: "get_revenue_breakdown",
-        description: "تفصيل الإيرادات: مبيعات، شحن، خصومات حسب الفترة.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            period: { type: "string", enum: ["7d", "30d", "90d"] },
-          },
-        },
-      },
-      {
-        name: "get_top_products",
-        description: "أكثر المنتجات مبيعاً.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            period: { type: "string", enum: ["7d", "30d", "90d"] },
-            limit: { type: "number" },
-          },
-        },
-      },
-      {
-        name: "get_reviews",
-        description: "مراجعات المنتجات.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            product_id: { type: "string" },
-            status: { type: "string" },
-            min_rating: { type: "number" },
-            limit: { type: "number" },
-          },
-        },
-      },
-      {
-        name: "get_coupons",
-        description: "قائمة الكوبونات.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            active_only: { type: "boolean" },
-          },
-        },
-      },
-      {
-        name: "get_expenses",
-        description: "مصاريف المتجر.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            category: { type: "string" },
-            date_from: { type: "string" },
-            date_to: { type: "string" },
-            limit: { type: "number" },
-          },
-        },
-      },
-      {
-        name: "search",
-        description: "بحث شامل في المنتجات والطلبات والزبائن.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            query: { type: "string" },
-          },
-          required: ["query"],
-        },
-      },
+      { name: "get_products", description: "قائمة منتجات AQUAVO مع السعر والمخزون والفئة. يدعم فلترة وبحث.", inputSchema: { type: "object", properties: { search: { type: "string" }, category: { type: "string" }, brand: { type: "string" }, in_stock_only: { type: "boolean" }, low_stock_only: { type: "boolean" }, limit: { type: "number" }, offset: { type: "number" }, sort_by: { type: "string", enum: ["price_asc", "price_desc", "newest", "stock_asc", "name"] } } } },
+      { name: "get_product", description: "تفاصيل منتج واحد بالكامل + مراجعاته.", inputSchema: { type: "object", properties: { id: { type: "string" }, slug: { type: "string" } } } },
+      { name: "get_inventory_summary", description: "ملخص المخزون: إجمالي، منتهي، منخفض، قائمة الأصناف الحرجة.", inputSchema: { type: "object", properties: {} } },
+      { name: "get_orders", description: "قائمة الطلبات مع فلتر بالحالة والتاريخ والمصدر.", inputSchema: { type: "object", properties: { status: { type: "string" }, limit: { type: "number" }, offset: { type: "number" }, date_from: { type: "string" }, date_to: { type: "string" }, source: { type: "string" }, search: { type: "string" } } } },
+      { name: "get_order", description: "تفاصيل طلب واحد + بيانات الزبون.", inputSchema: { type: "object", properties: { id: { type: "string" }, order_number: { type: "string" } } } },
+      { name: "get_orders_summary", description: "إحصائيات الطلبات مجمّعة بالحالة والمبالغ.", inputSchema: { type: "object", properties: { date_from: { type: "string" }, date_to: { type: "string" } } } },
+      { name: "get_customers", description: "قائمة الزبائن مع معلومات التواصل والولاء والنقاط.", inputSchema: { type: "object", properties: { search: { type: "string" }, loyalty_tier: { type: "string" }, limit: { type: "number" }, offset: { type: "number" } } } },
+      { name: "get_customer", description: "تفاصيل زبون واحد + طلباته + سلة التسوق.", inputSchema: { type: "object", properties: { id: { type: "string" }, email: { type: "string" } } } },
+      { name: "get_dashboard_stats", description: "إحصائيات لوحة التحكم: إيرادات، طلبات، زبائن، منتجات.", inputSchema: { type: "object", properties: { period: { type: "string", enum: ["7d", "30d", "90d"] } } } },
+      { name: "get_revenue_breakdown", description: "تفصيل الإيرادات: مبيعات، شحن، خصومات، WhatsApp vs موقع.", inputSchema: { type: "object", properties: { period: { type: "string", enum: ["7d", "30d", "90d"] } } } },
+      { name: "get_top_products", description: "أكثر المنتجات مبيعاً بالفترة.", inputSchema: { type: "object", properties: { period: { type: "string", enum: ["7d", "30d", "90d"] }, limit: { type: "number" } } } },
+      { name: "get_reviews", description: "مراجعات المنتجات مع فلتر بالتقييم والحالة.", inputSchema: { type: "object", properties: { product_id: { type: "string" }, status: { type: "string" }, min_rating: { type: "number" }, limit: { type: "number" } } } },
+      { name: "get_coupons", description: "قائمة الكوبونات: الكود، الخصم، الاستخدام، الصلاحية.", inputSchema: { type: "object", properties: { active_only: { type: "boolean" } } } },
+      { name: "get_expenses", description: "مصاريف المتجر التشغيلية.", inputSchema: { type: "object", properties: { category: { type: "string" }, date_from: { type: "string" }, date_to: { type: "string" }, limit: { type: "number" } } } },
+      { name: "search", description: "بحث شامل في المنتجات والطلبات والزبائن دفعة واحدة.", inputSchema: { type: "object", properties: { query: { type: "string" } }, required: ["query"] } },
     ],
   }));
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args = {} } = request.params;
-    console.log(`[AUDIT] tool=${name} args=[${Object.keys(args).join(",")}] ts=${new Date().toISOString()}`);
+    console.log(`[MCP AUDIT] tool=${name} args=[${Object.keys(args).join(",")}] ts=${new Date().toISOString()}`);
+
+    if (!db) return { content: [{ type: "text", text: "خطأ: قاعدة البيانات غير متصلة" }], isError: true };
 
     try {
       switch (name) {
@@ -395,8 +233,7 @@ function buildMcpServer(): Server {
 
         case "get_coupons": {
           const { active_only } = args as Record<string, any>;
-          const conditions = active_only ? [eq(schema.coupons.isActive, true)] : [];
-          const rows = await db.select().from(schema.coupons).where(conditions.length ? and(...conditions) : undefined).orderBy(desc(schema.coupons.createdAt));
+          const rows = await db.select().from(schema.coupons).where(active_only ? eq(schema.coupons.isActive, true) : undefined).orderBy(desc(schema.coupons.createdAt));
           return { content: [{ type: "text", text: JSON.stringify(safe(rows), null, 2) }] };
         }
 
@@ -428,103 +265,41 @@ function buildMcpServer(): Server {
       }
     } catch (err) {
       console.error(`[MCP ERROR] tool=${name}`, err);
-      return { content: [{ type: "text", text: "خطأ داخلي — راجع سجلات الـ server" }], isError: true };
+      return { content: [{ type: "text", text: "خطأ داخلي" }], isError: true };
     }
   });
 
   return server;
 }
 
-// ─── HTTP Server ───────────────────────────────────────────────────────────────
+// ─── Express Router ────────────────────────────────────────────────────────────
 
-const PORT = Number(process.env.PORT ?? 3333);
+export function createMcpRouter(): RouterType {
+  const router = Router();
 
-// Session store with TTL (30 min) and max cap (100) to prevent unbounded memory growth
-const MAX_SESSIONS = 100;
-const SESSION_TTL_MS = 30 * 60 * 1000;
-const sessions = new Map<string, { transport: StreamableHTTPServerTransport; lastSeen: number }>();
+  // Health check (no auth needed)
+  router.get("/health", (_req: Request, res: Response) => {
+    res.json({ status: "ok", server: "aquavo-store", version: "1.0.0" });
+  });
 
-function reapSessions() {
-  const cutoff = Date.now() - SESSION_TTL_MS;
-  for (const [id, s] of sessions) if (s.lastSeen < cutoff) { s.transport.close().catch(() => {}); sessions.delete(id); }
-}
-setInterval(reapSessions, 5 * 60 * 1000);
+  // All MCP requests require Bearer token
+  router.use(bearerAuth);
 
-const httpServer = http.createServer(async (req, res) => {
-  // CORS headers
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Mcp-Session-Id");
-
-  if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    res.end();
-    return;
-  }
-
-  // Bearer token check — constant-time to prevent timing attacks
-  const auth = req.headers["authorization"] ?? "";
-  const bearer = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
-  const tokenBuf = Buffer.from(bearer);
-  const expectedBuf = Buffer.from(MCP_TOKEN);
-  const tokenOk = tokenBuf.length === expectedBuf.length && timingSafeEqual(tokenBuf, expectedBuf);
-  if (!tokenOk) {
-    res.writeHead(401, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ error: "Unauthorized" }));
-    return;
-  }
-
-  // Health check
-  if (req.method === "GET" && req.url === "/health") {
-    res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", server: "aquavo-store", version: "1.0.0" }));
-    return;
-  }
-
-  // MCP endpoint
-  if (req.url === "/mcp" || req.url === "/") {
-    const sessionId = (req.headers["mcp-session-id"] as string) || randomUUID();
-
-    if (req.method === "DELETE") {
-      const e = sessions.get(sessionId);
-      if (e) { await e.transport.close(); sessions.delete(sessionId); }
-      res.writeHead(200); res.end();
-      return;
-    }
-
-    let entry = sessions.get(sessionId);
-    if (!entry) {
-      // Reject unknown client-supplied IDs — only server-generated UUIDs can create sessions
-      const isServerGenerated = req.headers["mcp-session-id"] === undefined;
-      if (!isServerGenerated && sessions.has(sessionId) === false) {
-        res.writeHead(404, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Unknown session" }));
-        return;
-      }
-      if (sessions.size >= MAX_SESSIONS) {
-        res.writeHead(503, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Too many sessions" }));
-        return;
-      }
-      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => sessionId });
+  // Handle GET (SSE) + POST (JSON-RPC) + DELETE (session close)
+  router.all("/", async (req: Request, res: Response) => {
+    try {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => `aquavo-${Date.now()}`,
+      });
       const mcpServer = buildMcpServer();
       await mcpServer.connect(transport);
-      entry = { transport, lastSeen: Date.now() };
-      sessions.set(sessionId, entry);
-      transport.onclose = () => sessions.delete(sessionId);
-    } else {
-      entry.lastSeen = Date.now();
+      await transport.handleRequest(req, res);
+    } catch (err) {
+      if (!res.headersSent) {
+        res.status(500).json({ error: "MCP handler error", detail: String(err) });
+      }
     }
+  });
 
-    await entry.transport.handleRequest(req, res);
-    return;
-  }
-
-  res.writeHead(404); res.end("Not found");
-});
-
-httpServer.listen(PORT, () => {
-  console.log(`[AQUAVO MCP HTTP] Server running on port ${PORT}`);
-  console.log(`[AQUAVO MCP HTTP] MCP endpoint: http://localhost:${PORT}/mcp`);
-  console.log(`[AQUAVO MCP HTTP] Health check: http://localhost:${PORT}/health`);
-});
+  return router;
+}
