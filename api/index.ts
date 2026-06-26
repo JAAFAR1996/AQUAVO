@@ -33,6 +33,17 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
     return next();
   }
 
+  // OAuth 2.1 endpoints (RFC 7591 DCR + RFC 6749 token) are server-to-server —
+  // no browser Origin header by design. Security: PKCE S256 + admin password.
+  if (req.path.startsWith("/oauth")) {
+    return next();
+  }
+
+  // MCP endpoint uses Bearer token auth, not cookies — no CSRF risk.
+  if (req.path.startsWith("/api/mcp")) {
+    return next();
+  }
+
   const sourceOrigin = getSourceOrigin(req);
   const targetHost = getTargetHost(req);
 
