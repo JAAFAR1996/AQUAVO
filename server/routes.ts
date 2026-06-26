@@ -42,6 +42,7 @@ import { createExpensesRouter } from "./routes/expenses.js";
 import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
 import { createMcpRouter } from "./routes/mcp.js";
+import { createOAuthRouter } from "./routes/oauth.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -155,7 +156,11 @@ export async function registerRoutes(
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
 
-  // AQUAVO MCP — remote AI access endpoint (Bearer token required)
+  // OAuth 2.1 Authorization Server + Well-Known discovery endpoints
+  // Must be mounted at root (/) so /.well-known/... works at domain root
+  app.use("/", createOAuthRouter());
+
+  // AQUAVO MCP — remote AI access endpoint (OAuth JWT or static Bearer token)
   app.use("/api/mcp", createMcpRouter());
 
   // Error handling middleware

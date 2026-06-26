@@ -127,6 +127,14 @@ app.use(apiOnly(
 
 app.use(apiOnly(express.urlencoded({ extended: true, limit: '5mb' })));
 
+// OAuth 2.1 endpoints need their own body parsing (not under /api/)
+const oauthOnly = (fn: any) => (req: Request, res: Response, next: NextFunction) => {
+  if (!req.path.startsWith("/oauth")) return next();
+  return fn(req, res, next);
+};
+app.use(oauthOnly(express.json({ limit: '1mb' })));
+app.use(oauthOnly(express.urlencoded({ extended: false, limit: '1mb' })));
+
 // Security: Request body sanitization (must be AFTER parsing)
 app.use(apiOnly(sanitizeBody));
 
@@ -188,6 +196,9 @@ app.use(apiOnly((req: Request, res: Response, next: NextFunction) => {
   if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
     return next();
   }
+
+  // Skip for MCP endpoint — uses Bearer token auth (OAuth JWT or static token), not cookies
+  if (req.path.startsWith("/mcp")) return next();
 
   // Skip for webhooks if any (e.g. Stripe) - add check here if needed
 
