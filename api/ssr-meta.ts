@@ -1,817 +1,220 @@
-import "../server/suppress.js";
-import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { Pool, neonConfig } from "@neondatabase/serverless";
-import ws from "ws";
-import { HTML_TEMPLATE } from "./_html-template.js";
+export function generateSsrMeta(requestPath: string): string {
+  const BASE_URL = "https://www.aquavoiq.com";
+  const LOGO_URL = `${BASE_URL}/logo_aquavo.png`;
+  let jsonLdScripts: any[] = [];
 
-// ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
-neonConfig.webSocketConstructor = ws;
-let pool: Pool | null = null;
-function getPool(): Pool | null {
-  if (!process.env.DATABASE_URL) return null;
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  return pool;
-}
+  // Helper to generate script tags
+  const scriptTag = (data: any) => `<script type="application/ld+json">\n${JSON.stringify(data, null, 2)}\n</script>`;
 
-// ─── HTML template (imported from build-generated file) ─────────────────────
-function getTemplate(): string {
-  return HTML_TEMPLATE;
-}
-
-// ─── Constants ──────────────────────────────────────────────────────────────
-const BASE = "https://www.aquavoiq.com";
-const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
-const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
-const DEFAULT_DESC = "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.";
-const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
-
-// ─── Static page metadata ───────────────────────────────────────────────────
-interface PageMeta {
-  title: string;
-  description: string;
-  keywords?: string;
-  ogType?: string;
-  ogTitle?: string;
-  jsonLd?: object | object[];
-}
-
-const STATIC_PAGES: Record<string, PageMeta> = {
-  "/": {
-    title: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
-    ogTitle: "AQUAVO — معدات أحواض بريميوم في العراق",
-    description: "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.",
-    keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة",
-    ogType: "website",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "@id": `${BASE}/#organization`,
-        name: "AQUAVO",
-        alternateName: ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
-        url: BASE,
-        logo: {
-          "@type": "ImageObject",
-          url: DEFAULT_IMAGE,
-          width: 512,
-          height: 512
-        },
-        description: "متجر أحواض أسماك عراقي متخصص في معدات ومستلزمات الأحواض — فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع",
-        foundingDate: "2024",
-        knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
-        areaServed: {
+  // 1. Organization & Core Schemas
+  if (requestPath === "/" || requestPath === "/ar") {
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "@id": `${BASE_URL}/#organization`,
+      "name": "AQUAVO",
+      "alternateName": ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
+      "url": BASE_URL,
+      "logo": {
+        "@type": "ImageObject",
+        "url": LOGO_URL,
+        "width": 512,
+        "height": 512
+      },
+      "description": "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. نوفر الفلاتر، السخانات، الأغذية، الديكورات، ومعالجات المياه. الدفع عند الاستلام مع توصيل لجميع محافظات العراق بـ 5,000 دينار.",
+      "slogan": "مستلزمات ومعدات أحواض الزينة الأصلية في العراق",
+      "areaServed": [
+        {
           "@type": "Country",
-          name: "Iraq",
-          sameAs: "https://www.wikidata.org/wiki/Q796"
-        },
-        contactPoint: [
-          {
-            "@type": "ContactPoint",
-            telephone: "+964-774-788-0673",
-            contactType: "customer service",
-            availableLanguage: ["Arabic"],
-            areaServed: "IQ",
-            hoursAvailable: {
-              "@type": "OpeningHoursSpecification",
-              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-              opens: "00:00",
-              closes: "23:59"
-            }
-          }
-        ],
-        sameAs: [
-          "https://www.facebook.com/profile.php?id=61587249730248",
-          "https://instagram.com/aquavo_iq",
-          "https://www.tiktok.com/@aquavo.iq"
-        ],
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "Baghdad",
-          addressRegion: "Baghdad",
-          addressCountry: "IQ"
-        },
-        hasOfferCatalog: {
-          "@type": "OfferCatalog",
-          name: "معدات ومستلزمات أحواض الأسماك",
-          itemListElement: [
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "غذاء أسماك" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "ديكورات أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "معالجات مياه" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "إضاءة أحواض" } }
-          ]
+          "name": "Iraq",
+          "sameAs": "https://www.wikidata.org/wiki/Q796"
         }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "Store",
-        "@id": `${BASE}/#localbusiness`,
-        name: "AQUAVO",
-        image: DEFAULT_IMAGE,
-        url: BASE,
-        telephone: "+964-774-788-0673",
-        priceRange: "$$",
-        currenciesAccepted: "IQD",
-        paymentAccepted: "Cash on Delivery",
-        description: "متجر إلكتروني عراقي متخصص في معدات وإكسسوارات أحواض الأسماك. يخدم العراق بالكامل بتوصيل خلال 24 ساعة وبرسوم ثابتة 5,000 دينار عراقي.",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "بغداد",
-          addressRegion: "Baghdad",
-          addressCountry: "IQ"
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: 33.3128,
-          longitude: 44.3615
-        },
-        openingHoursSpecification: [
-          {
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-            opens: "00:00",
-            closes: "23:59"
-          }
-        ],
-        areaServed: {
+      ],
+      "knowsAbout": [
+        "مستلزمات أحواض الزينة",
+        "معدات أحواض الزينة",
+        "فلاتر الأحواض",
+        "سخانات الأحواض",
+        "معالجات المياه",
+        "طعام أسماك الزينة",
+        "ديكورات الأحواض"
+      ],
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "telephone": "+964-774-788-0673",
+          "contactType": "customer support",
+          "availableLanguage": ["Arabic"],
+          "areaServed": "IQ"
+        }
+      ],
+      "sameAs": [
+        "https://www.facebook.com/profile.php?id=61587249730248",
+        "https://instagram.com/aquavo_iq",
+        "https://www.tiktok.com/@aquavo.iq"
+      ]
+    });
+
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "OnlineStore",
+      "@id": `${BASE_URL}/#store`,
+      "name": "AQUAVO Store",
+      "image": LOGO_URL,
+      "url": BASE_URL,
+      "telephone": "+964-774-788-0673",
+      "currenciesAccepted": "IQD",
+      "paymentAccepted": ["Cash on Delivery", "Cash"],
+      "description": "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. خدمة توصيل لجميع المحافظات.",
+      "areaServed": [
+        {
           "@type": "Country",
-          name: "Iraq"
-        },
-        sameAs: [
-          "https://www.facebook.com/profile.php?id=61587249730248",
-          "https://instagram.com/aquavo_iq",
-          "https://www.tiktok.com/@aquavo.iq"
-        ]
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "@id": `${BASE}/#website`,
-        name: "AQUAVO",
-        alternateName: "اكوافو",
-        url: BASE,
-        inLanguage: "ar",
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${BASE}/products?search={search_term_string}`,
-          "query-input": "required name=search_term_string",
-        },
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "VideoObject",
-        name: "AQUAVO — معدات أحواض أسماك أصلية في العراق",
-        description: "نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة",
-        thumbnailUrl: `${BASE}/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp`,
-        uploadDate: "2026-01-01",
-        contentUrl: `${BASE}/images/hero/Aquarium_Animation_Request_Fulfilled.mp4`,
-        duration: "PT30S"
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "SpeakableSpecification",
-        cssSelector: ["h1", ".hero-section", "[data-speakable]"],
-      },
-    ],
-  },
-  "/products": {
-    title: "مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية | AQUAVO",
-    description: "تسوق جميع مستلزمات أحواض الزينة في العراق: فلاتر، سخانات، أغذية، علاجات، إضاءة LED، ديكورات وأكثر. ماركة YEE وغيرها. أسعار منافسة وتوصيل لكل المحافظات.",
-    keywords: "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، اغذية احواض، معدات YEE العراق، احواض زجاجية، علاجات مياه",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "CollectionPage",
-        name: "جميع مستلزمات أحواض الزينة",
-        description: "تصفح جميع مستلزمات أحواض الزينة في العراق",
-        url: `${BASE}/products`,
-        inLanguage: "ar",
-        isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "ItemList",
-        name: "فئات منتجات AQUAVO",
-        description: "جميع فئات مستلزمات أحواض الزينة المتوفرة في العراق",
-        url: `${BASE}/products`,
-        numberOfItems: 12,
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
-          { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
-          { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
-          { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
-          { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
-          { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
-          { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
-          { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
-          { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
-          { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
-          { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
-        ],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
-        ],
-      },
-    ],
-  },
-  "/deals": {
-    title: "عروض وتخفيضات مستلزمات أحواض الزينة في العراق | AQUAVO",
-    description: "أقوى العروض والتخفيضات على مستلزمات أحواض الزينة في العراق. خصومات يومية على الفلاتر والسخانات والأغذية والديكورات. وفّر أكثر مع AQUAVO.",
-    keywords: "عروض مستلزمات احواض العراق، تخفيضات احواض بغداد، خصومات فلاتر سخانات، عروض يومية AQUAVO",
-  },
-  "/blog": {
-    title: "مدونة أحواض الزينة — نصائح العناية والمعدات في العراق | AQUAVO",
-    description: "مقالات ونصائح متخصصة عن أحواض الزينة في العراق: العناية بالمعدات، معالجة مياه الحوض، الفلاتر والسخانات، وأفضل الممارسات للمبتدئين والمحترفين.",
-    keywords: "نصائح احواض الزينة العراق، مدونة احواض بغداد، عناية فلاتر سخانات، معلومات احواض",
-    jsonLd: {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-        { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
+          "name": "Iraq",
+          "sameAs": "https://www.wikidata.org/wiki/Q796"
+        }
       ],
-    },
-  },
-  "/fish-encyclopedia": {
-    title: "موسوعة اسماك الزينة - أنواع الأسماك المتوفرة في العراق | AQUAVO",
-    description: "موسوعة شاملة لأنواع اسماك الزينة المتوفرة في العراق مع معلومات عن كل نوع: التغذية، درجة الحرارة، التوافق، والعناية. دليلك الأول لاسماك الزينة في بغداد.",
-    keywords: "انواع اسماك زينة العراق، موسوعة اسماك بغداد، جوبي، نيون تيترا، بيتا، سيكلد، اسماك عراق",
-  },
-  "/journey": {
-    title: "رحلة حوضك - خطة متكاملة لبناء حوض أسماك زينة في العراق | AQUAVO",
-    description: "ابدأ رحلة حوضك مع AQUAVO. خطط مخصصة خطوة بخطوة لبناء حوض اسماك زينة مثالي من الصفر. دليل عراقي شامل للمبتدئين.",
-    keywords: "بناء حوض سمك العراق، رحلة حوض، حوض سمك للمبتدئين بغداد، تأسيس حوض زينة",
-  },
-  "/calculators": {
-    title: "حاسبات احواض السمك - احسب حجم الحوض والفلتر والسخان مجاناً | AQUAVO",
-    description: "حاسبات ذكية مجانية لهواة اسماك الزينة في العراق: احسب حجم الحوض المناسب، قوة الفلتر المطلوبة، حجم السخان، كمية الماء، وعدد الأسماك المثالي لحوضك.",
-    keywords: "حاسبة حوض سمك، حساب حجم حوض، حاسبة فلتر احواض، حاسبة سخان، حاسبة اسماك زينة، ادوات مجانية",
-    jsonLd: {
+      "parentOrganization": {
+        "@id": `${BASE_URL}/#organization`
+      },
+      "sameAs": [
+        "https://www.facebook.com/profile.php?id=61587249730248",
+        "https://instagram.com/aquavo_iq",
+        "https://www.tiktok.com/@aquavo.iq"
+      ]
+    });
+
+    jsonLdScripts.push({
       "@context": "https://schema.org",
-      "@type": "WebApplication",
-      name: "حاسبات احواض السمك - AQUAVO",
-      url: `${BASE}/calculators`,
-      applicationCategory: "UtilityApplication",
-      operatingSystem: "Web",
-      offers: { "@type": "Offer", price: "0", priceCurrency: "IQD" },
-      description: "حاسبات ذكية مجانية لحساب حجم الحوض وقوة الفلتر وحجم السخان وعدد الأسماك",
-      inLanguage: "ar",
-    },
-  },
-  "/fish-finder": {
-    title: "البحث عن اسماك زينة مناسبة لحوضك في العراق | AQUAVO",
-    description: "أداة ذكية للبحث عن اسماك الزينة المناسبة لحوضك حسب الحجم ودرجة الحرارة والتوافق. اعثر على السمكة المثالية من AQUAVO العراق.",
-    keywords: "بحث اسماك زينة، اسماك مناسبة لحوضي، اختيار اسماك، توافق اسماك العراق",
-  },
-  "/fish-health": {
-    title: "تشخيص وعلاج أمراض اسماك الزينة في العراق | AQUAVO",
-    description: "شخّص أمراض اسماك الزينة واحصل على خطة علاج مناسبة. دليل شامل لأمراض الأسماك الشائعة في العراق: النقطة البيضاء، الفطريات، تعفن الزعانف وأكثر.",
-    keywords: "امراض اسماك زينة العراق، علاج اسماك بغداد، تشخيص مرض سمكة، فطريات اسماك، نقطة بيضاء، تعفن زعانف",
-  },
-  "/beginner-guide": {
-    title: "دليل المبتدئين لتربية اسماك الزينة في العراق | AQUAVO",
-    description: "دليل شامل للمبتدئين في تربية اسماك الزينة في العراق. من اختيار الحوض والفلتر إلى إضافة الأسماك والعناية اليومية. كل ما تحتاجه لبدء هوايتك في بغداد.",
-    keywords: "دليل مبتدئين اسماك زينة العراق، بداية هواية اسماك بغداد، نصائح اول حوض سمك، تربية اسماك للمبتدئين",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        name: "كيف تبدأ بتربية اسماك الزينة في العراق - دليل خطوة بخطوة",
-        description: "دليل شامل للمبتدئين لإنشاء حوض اسماك زينة ناجح من الصفر",
-        totalTime: "P7D",
-        estimatedCost: { "@type": "MonetaryAmount", currency: "IQD", value: "100000" },
-        supply: [
-          { "@type": "HowToSupply", name: "حوض زجاجي (60 لتر على الأقل)" },
-          { "@type": "HowToSupply", name: "فلتر مناسب لحجم الحوض" },
-          { "@type": "HowToSupply", name: "سخان مائي" },
-          { "@type": "HowToSupply", name: "إضاءة LED" },
-          { "@type": "HowToSupply", name: "حصى أو ركيزة" },
-          { "@type": "HowToSupply", name: "مزيل كلور" },
-        ],
-        step: [
-          { "@type": "HowToStep", name: "اختيار الحوض", text: "اختر حوضاً بحجم 60 لتر على الأقل. الأحواض الأكبر أسهل في الصيانة وأكثر استقراراً." },
-          { "@type": "HowToStep", name: "تركيب المعدات", text: "ركّب الفلتر والسخان والإضاءة حسب تعليمات الشركة المصنعة." },
-          { "@type": "HowToStep", name: "إضافة الركيزة والديكور", text: "أضف الحصى أو الركيزة ثم النباتات والصخور والديكورات." },
-          { "@type": "HowToStep", name: "ملء الحوض بالماء", text: "املأ الحوض بالماء المعالج بمزيل الكلور ببطء لتجنب تحريك الديكور." },
-          { "@type": "HowToStep", name: "تدوير الحوض", text: "شغّل الفلتر والسخان وانتظر 5-7 أيام قبل إضافة أي أسماك لتنمو البكتيريا النافعة." },
-          { "@type": "HowToStep", name: "إضافة الأسماك", text: "أضف 2-3 أسماك صغيرة في البداية ثم زد العدد تدريجياً كل أسبوع." },
-        ],
-        inLanguage: "ar",
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "دليل المبتدئين", item: `${BASE}/beginner-guide` },
-        ],
-      },
-    ],
-  },
-  "/guides-filter-choice": {
-    title: "كيف تختار الفلتر المناسب لحوضك في العراق | دليل AQUAVO",
-    description: "دليل عملي لاختيار الفلتر المثالي لحوض اسماك الزينة في العراق. مقارنة بين الفلاتر الداخلية، الخارجية، والإسفنجية لتصل لأفضل تصفية لماء حوضك.",
-    keywords: "اختيار فلتر حوض، دليل فلاتر احواض زينة، فلاتر خارجية بغداد، فلاتر داخلية، تنظيف ماء الحوض",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "HowTo",
-        name: "كيف تختار الفلتر المناسب لحوض أسماك الزينة في العراق",
-        description: "خطوات عملية لاختيار الفلتر المثالي لضمان جودة ونقاء مياه حوض أسماك الزينة",
-        totalTime: "P1D",
-        step: [
-          { "@type": "HowToStep", name: "تحديد حجم الحوض", text: "الفلتر يجب أن يكون قادراً على تدوير مياه الحوض بالكامل 4-5 مرات في الساعة. احسب حجم حوضك باللتر." },
-          { "@type": "HowToStep", name: "معرفة نوع الأسماك", text: "الأسماك الذهبية والسيشيلد تحتاج فلاتر قوية جداً. أسماك البيتا والنيون تيترا تفضل الفلاتر الهادئة مثل الإسفنجية أو الشلال." },
-          { "@type": "HowToStep", name: "اختيار نوع الفلتر", text: "الفلاتر الخارجية (Canister) للأحواض الكبيرة. الفلاتر الداخلية (Internal) للأحواض الصغيرة. فلاتر الإسفنج (Sponge) لأحواض التفريخ والروبيان." },
-          { "@type": "HowToStep", name: "التحقق من الميديا (Media)", text: "تأكد أن الفلتر يدعم التصفية الميكانيكية (إسفنج)، البيولوجية (سيراميك رينج)، والكيميائية (كربون نشط)." }
-        ],
-        inLanguage: "ar"
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "كيف تختار الفلتر", item: `${BASE}/guides-filter-choice` }
-        ]
+      "@type": "WebSite",
+      "@id": `${BASE_URL}/#website`,
+      "name": "AQUAVO",
+      "url": BASE_URL,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": `${BASE_URL}/products?q={search_term_string}`
+        },
+        "query-input": "required name=search_term_string"
       }
-    ]
-  },
-  "/fish-compatibility": {
-    title: "توافق اسماك الزينة - أي الأسماك تعيش مع بعض | AQUAVO",
-    description: "تعرف على توافق اسماك الزينة مع بعضها في العراق. دليل شامل: أي الأسماك تعيش بسلام وأيها يجب فصلها. جوبي، بيتا، سيكلد، نيون تيترا والمزيد.",
-    keywords: "توافق اسماك زينة، اسماك تعيش مع بعض، خلط اسماك حوض، توافق جوبي، توافق بيتا",
-  },
-  "/tank-builder": {
-    title: "مصمم احواض السمك - صمم حوضك المثالي اونلاين | AQUAVO",
-    description: "صمم حوض اسماك الزينة المثالي خطوة بخطوة اونلاين. اختر الحجم والفلتر والسخان والديكور مع مصمم الأحواض الذكي من AQUAVO العراق.",
-    keywords: "تصميم حوض سمك، مصمم احواض اونلاين، بناء حوض زينة، تجهيز حوض سمك العراق",
-  },
-  "/community-gallery": {
-    title: "معرض أحواض اسماك الزينة - صور عملاء AQUAVO في العراق",
-    description: "شاهد أجمل أحواض اسماك الزينة من عملاء AQUAVO في العراق. شارك صور حوضك وألهم هواة الأسماك الآخرين في بغداد والعراق.",
-  },
-  "/faq": {
-    title: "أسئلة شائعة عن اسماك الزينة واحواض السمك في العراق | AQUAVO",
-    description: "إجابات على أكثر الأسئلة شيوعاً حول تربية اسماك الزينة في العراق، العناية بالأحواض، التوصيل، والطلب من AQUAVO. كل ما يسأله المبتدئين والهواة.",
-    keywords: "اسئلة اسماك زينة، اسئلة احواض سمك، كيف اربي اسماك زينة، متجر اسماك العراق",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        name: "الأسئلة الشائعة - AQUAVO",
-        description: "إجابات شاملة على أكثر الأسئلة شيوعاً حول اسماك الزينة ومستلزمات الأحواض في العراق",
-        url: `${BASE}/faq`,
-        inLanguage: "ar",
-        mainEntity: [
-          // الشحن والتوصيل
-          { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى بغداد وكل المحافظات العراقية خلال 24 ساعة." } },
-          { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل 5,000 دينار لبغداد وكل المحافظات العراقية." } },
-          { "@type": "Question", name: "هل يمكن تتبع طلبي؟", acceptedAnswer: { "@type": "Answer", text: "نعم! بمجرد شحن طلبك، ستتلقى رسالة نصية ورسالة واتساب تحتوي على رابط التتبع المباشر ورقم الشحنة." } },
-          { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
-          { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية." } },
-          // الدفع والفواتير
-          { "@type": "Question", name: "ما هي طرق الدفع المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "الدفع المتاح حالياً هو الدفع نقداً عند الاستلام فقط." } },
-          { "@type": "Question", name: "هل الدفع عند الاستلام متاح؟", acceptedAnswer: { "@type": "Answer", text: "نعم! الدفع عند الاستلام متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع." } },
-          { "@type": "Question", name: "هل يمكنني الحصول على فاتورة؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نرسل فاتورة إلكترونية مع كل طلب عبر البريد الإلكتروني وواتساب. يمكنك أيضاً طلب فاتورة مطبوعة مع الطلب." } },
-          { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي للمنتجات، ورسوم التوصيل الثابتة 5,000 دينار تظهر بوضوح قبل إتمام الطلب." } },
-          { "@type": "Question", name: "هل توجد طرق دفع غير الدفع عند الاستلام؟", acceptedAnswer: { "@type": "Answer", text: "حالياً الدفع نقداً عند الاستلام فقط. إذا فعّلنا أي طريقة دفع إضافية راح تظهر بشكل واضح بالموقع." } },
-          // الإرجاع والاستبدال
-          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "إذا وصلك منتج تالف أو منتج خاطئ، أبلغنا خلال 48 ساعة مع صور واضحة وسنراجع الطلب للاستبدال حسب السياسة." } },
-          { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب المشكلة وصور واضحة للمنتج." } },
-          { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "بعد مراجعة حالة الطلب، يتم التعامل معه حسب سياسة الاستبدال أو الاسترداد المعتمدة." } },
-          { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "الاستبدال متاح للمنتج التالف أو المنتج الخاطئ بعد الإبلاغ خلال 48 ساعة ومراجعة الحالة." } },
-          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 48 ساعة. سنراجع الحالة ونرتب الاستبدال حسب السياسة." } },
-          // العناية بالأسماك
-          { "@type": "Question", name: "كيف أختار الحوض المناسب؟", acceptedAnswer: { "@type": "Answer", text: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة." } },
-          { "@type": "Question", name: "كم مرة يجب تغيير الماء؟", acceptedAnswer: { "@type": "Answer", text: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض." } },
-          { "@type": "Question", name: "ما هي درجة الحرارة المناسبة؟", acceptedAnswer: { "@type": "Answer", text: "معظم الأسماك الاستوائية تحتاج 24-28 درجة مئوية. الأسماك الذهبية تفضل 18-24 درجة. تحقق من متطلبات كل نوع." } },
-          { "@type": "Question", name: "كم مرة أطعم الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "مرتين يومياً بكمية تستهلكها الأسماك خلال 2-3 دقائق. الإفراط في التغذية أخطر من التقليل ويلوث الماء." } },
-          { "@type": "Question", name: "لماذا تموت أسماكي رغم العناية بها؟", acceptedAnswer: { "@type": "Answer", text: "الأسباب الشائعة: عدم تدوير الحوض قبل إضافة الأسماك، تغيير الماء بكميات كبيرة، أو اكتظاظ الحوض. تواصل معنا للتشخيص المجاني." } },
-          // المنتجات والجودة
-          { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع منتجاتنا أصلية 100% ومستوردة من الشركات المصنعة مباشرة. نوفر ضمان الأصالة على جميع المنتجات." } },
-          { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المعدات الإلكترونية (فلاتر، مضخات، سخانات، إضاءة) مغطاة بضمان من 6 أشهر إلى سنتين حسب المنتج." } },
-          { "@type": "Question", name: "هل توفرون كائنات حية؟", acceptedAnswer: { "@type": "Answer", text: "لا. المتجر الإلكتروني متخصص بمعدات ومستلزمات الأحواض فقط." } },
-          { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة ومعدات سهلة الاستخدام مع دليل عناية مجاني." } },
-          { "@type": "Question", name: "هل يمكن طلب منتج غير متوفر؟", acceptedAnswer: { "@type": "Answer", text: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة." } },
-          // الضمان والدعم
-          { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الفلاتر والمضخات: سنة واحدة. السخانات والإضاءة LED: 6 أشهر. الأحواض: ضمان ضد التسريب لمدة سنة." } },
-          { "@type": "Question", name: "ماذا يغطي الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الضمان يغطي عيوب التصنيع والأعطال غير الناتجة عن سوء الاستخدام. لا يشمل الأضرار الناتجة عن الكهرباء غير المستقرة." } },
-          { "@type": "Question", name: "كيف أستفيد من الضمان؟", acceptedAnswer: { "@type": "Answer", text: "احتفظ بفاتورة الشراء. عند حدوث مشكلة، تواصل معنا مع صور المنتج ورقم الفاتورة. سنوجهك للخطوات التالية." } },
-          { "@type": "Question", name: "هل تقدمون دعماً فنياً؟", acceptedAnswer: { "@type": "Answer", text: "نعم! نوفر دعماً فنياً مجانياً عبر واتساب والهاتف. كما نقدم زيارات منزلية للمساعدة في تركيب وصيانة الأحواض الكبيرة." } },
-          { "@type": "Question", name: "هل تتوفر قطع غيار؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نوفر قطع غيار لمعظم المنتجات التي نبيعها. تواصل معنا مع موديل المنتج وسنخبرك بالتوفر والسعر." } },
-        ],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "الأسئلة الشائعة", item: `${BASE}/faq` },
-        ],
-      },
-    ],
-  },
-  "/shipping": {
-    title: "شحن وتوصيل مستلزمات الأحواض لكل العراق | AQUAVO",
-    description: "خدمة شحن وتوصيل مستلزمات الأحواض لجميع محافظات العراق برسوم ثابتة 5,000 دينار والتوصيل خلال 24 ساعة.",
-    keywords: "توصيل مستلزمات احواض العراق، شحن مستلزمات احواض بغداد، توصيل البصرة، توصيل اربيل",
-  },
-  "/terms": {
-    title: "الشروط والأحكام - AQUAVO متجر اسماك الزينة العراق",
-    description: "شروط وأحكام الاستخدام والشراء من متجر AQUAVO لمستلزمات احواض اسماك الزينة في العراق.",
-  },
-  "/privacy-policy": {
-    title: "سياسة الخصوصية - AQUAVO متجر اسماك الزينة العراق",
-    description: "سياسة الخصوصية وحماية بيانات العملاء في متجر AQUAVO لمستلزمات احواض اسماك الزينة.",
-  },
-  "/return-policy": {
-    title: "سياسة الإرجاع والاستبدال - AQUAVO العراق",
-    description: "سياسة إرجاع واستبدال المنتجات في متجر AQUAVO. ضمان رضا العملاء وحقوق المستهلك في العراق.",
-  },
-  "/about": {
-    title: "من نحن - AQUAVO متجر مستلزمات أحواض الزينة في العراق",
-    description: "AQUAVO (اكوافو) متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأحواض في كل المحافظات العراقية بمنتجات أصلية من أفضل الماركات.",
-    keywords: "AQUAVO، اكوافو، من نحن، متجر اسماك زينة العراق، مستلزمات احواض بغداد",
-    jsonLd: [
-      {
-        "@context": "https://schema.org",
-        "@type": "AboutPage",
-        name: "من نحن - AQUAVO",
-        description: "AQUAVO هو أول متجر اونلاين متخصص في مستلزمات أحواض الزينة في العراق",
-        url: `${BASE}/about`,
-        mainEntity: {
-          "@type": "Organization",
-          name: "AQUAVO",
-          alternateName: "اكوافو",
-          url: BASE,
-          logo: DEFAULT_IMAGE,
-          foundingDate: "2024",
-          foundingLocation: { "@type": "Place", name: "بغداد، العراق" },
-          description: "متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية وعلاجات أصلية.",
-          knowsAbout: ["أحواض الزينة", "معدات الأحواض", "Aquascaping", "مستلزمات الأحواض", "فلاتر المياه", "معالجة مياه الأحواض"],
-          areaServed: { "@type": "Country", name: "العراق" },
-          sameAs: ["https://www.instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
-        },
-        inLanguage: "ar",
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "من نحن", item: `${BASE}/about` },
-        ],
-      },
-    ],
-  },
-  "/why-aquavo": {
-    title: "لماذا AQUAVO - متجر مستلزمات أحواض بريميوم في العراق | مقارنة شاملة",
-    description: "لماذا AQUAVO هو أفضل خيار لمستلزمات أحواض الزينة في العراق؟ منتجات أصلية مضمونة، توصيل لكل المحافظات، دعم فني مجاني، وأسعار منافسة.",
-    keywords: "لماذا AQUAVO، متجر مستلزمات احواض العراق، مقارنة متاجر احواض بغداد",
-    jsonLd: {
+    });
+
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      "name": "AQUAVO — معدات أحواض أسماك أصلية في العراق",
+      "description": "نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة",
+      "thumbnailUrl": "https://www.aquavoiq.com/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp",
+      "uploadDate": "2026-01-01",
+      "contentUrl": "https://www.aquavoiq.com/images/hero/Aquarium_Animation_Request_Fulfilled.mp4",
+      "duration": "PT30S"
+    });
+
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "SpeakableSpecification",
+      "cssSelector": ["#hero-headline", "#trust-signals", "h1", ".hero-description"]
+    });
+  }
+
+  // 2. Beginner Guide Page
+  if (requestPath === "/beginner-guide") {
+    jsonLdScripts.push({
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-        { "@type": "ListItem", position: 2, name: "لماذا AQUAVO", item: `${BASE}/why-aquavo` },
-      ],
-    },
-  },
-};
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": BASE_URL },
+        { "@type": "ListItem", "position": 2, "name": "دليل المبتدئين", "item": `${BASE_URL}/beginner-guide` }
+      ]
+    });
 
-// ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
-async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
-  const db = getPool();
-  if (!db) return null;
-  try {
-    const { rows } = await db.query(
-      `SELECT id, name, description, price, currency, brand, category, images, thumbnail, slug, specifications, stock, variants, has_variants AS "hasVariants"
-       FROM products
-       WHERE slug = $1 AND deleted_at IS NULL
-       LIMIT 1`,
-      [slug]
-    );
-    if (rows.length === 0) return null;
-    const p = rows[0];
-    const variants = Array.isArray(p.variants) ? p.variants : [];
-    const defaultVariant = variants.find((variant) => variant?.isDefault) || variants[0];
-    const stock = Number(p.stock ?? 0);
-    const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;
-    const schemaPrice = defaultVariant?.price ?? p.price;
-    const inStock = p.hasVariants && defaultVariant ? stock > 0 && variantStock > 0 : stock > 0;
-    const rawDesc = p.description
-      || `تسوق ${p.name} من AQUAVO بأفضل الأسعار في العراق. توصيل لكل العراق خلال 24 ساعة.`;
-    const desc = rawDesc.length > 158
-      ? rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155) || 155) + "..."
-      : rawDesc;
-    const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
-    const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
-    return {
-      title: `${p.name}${p.brand ? ` - ${p.brand}` : ""} | AQUAVO`,
-      description: desc,
-      keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
-      ogType: "product",
-      productImage: primaryImage,
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: p.name,
-        description: desc,
-        image: primaryImage,
-        brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
-        offers: {
-          "@type": "Offer",
-          price: schemaPrice,
-          priceCurrency: p.currency || "IQD",
-          availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          url: `${BASE}/products/${p.slug}`,
-          seller: { "@type": "Organization", name: "AQUAVO" },
-        },
-      },
-    };
-  } catch (err) {
-    console.error("SSR meta: product query error", err);
-    return null;
-  }
-}
-
-async function getBlogMeta(slug: string): Promise<PageMeta | null> {
-  const db = getPool();
-  if (!db) return null;
-  try {
-    const { rows } = await db.query(
-      `SELECT title, excerpt, "imageUrl", author, "publishedAt", "updatedAt", content FROM blog_posts WHERE slug = $1 AND status = 'published' LIMIT 1`,
-      [slug]
-    );
-    if (rows.length === 0) return null;
-    const post = rows[0];
-    const wordCount = post.content ? post.content.split(/\s+/).length : undefined;
-    const datePublished = post.publishedAt ? new Date(post.publishedAt).toISOString() : undefined;
-    const dateModified = post.updatedAt ? new Date(post.updatedAt).toISOString() : datePublished;
-    return {
-      title: `${post.title} | مدونة AQUAVO`,
-      description: post.excerpt || post.title,
-      ogType: "article",
-      jsonLd: [
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "كيف تبدأ حوض أسماك ناجح في العراق",
+      "description": "دليل خطوة بخطوة للمبتدئين في هواية تربية الأسماك: من اختيار الحوض إلى الدورة البايولوجية",
+      "totalTime": "PT14D",
+      "step": [
         {
-          "@context": "https://schema.org",
-          "@type": "Article",
-          headline: post.title,
-          description: post.excerpt || post.title,
-          image: post.imageUrl || DEFAULT_IMAGE,
-          author: { "@type": "Person", name: post.author || "AQUAVO" },
-          publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
-          datePublished,
-          dateModified,
-          wordCount,
-          inLanguage: "ar",
-          mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}/blog/${slug}` },
-          isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+          "@type": "HowToStep",
+          "name": "اختيار الحوض وتحديد الموقع",
+          "text": "اختر مكان بعيد عن أشعة الشمس المباشرة والتيارات الهوائية. استخدم قاعدة إسفنجية لتسوية الحوض.",
+          "url": `${BASE_URL}/beginner-guide#step-1`
         },
         {
-          "@context": "https://schema.org",
-          "@type": "SpeakableSpecification",
-          cssSelector: ["h1", "article p:first-of-type", "[data-speakable]"],
+          "@type": "HowToStep",
+          "name": "التجهيز المائي (مزيل الكلور)",
+          "text": "املأ الحوض بماء الإسالة، وأضف مزيل الكلور (Anti-Chlorine) فوراً. الكلور قاتل للأسماك والبكتيريا النافعة.",
+          "url": `${BASE_URL}/beginner-guide#step-2`
         },
         {
-          "@context": "https://schema.org",
-          "@type": "BreadcrumbList",
-          itemListElement: [
-            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-            { "@type": "ListItem", position: 2, name: "المدونة", item: `${BASE}/blog` },
-            { "@type": "ListItem", position: 3, name: post.title, item: `${BASE}/blog/${slug}` },
-          ],
+          "@type": "HowToStep",
+          "name": "إضافة الديكور والمعدات الأساسية",
+          "text": "اغسل الحصى جيداً قبل وضعه. ركّب الفلتر والسخان (حسب نوع الأسماك) لكن لا تشغلها إلا بعد التأكد من منسوب الماء.",
+          "url": `${BASE_URL}/beginner-guide#step-3`
         },
-      ],
-    };
-  } catch (err) {
-    console.error("SSR meta: blog query error", err);
-    return null;
+        {
+          "@type": "HowToStep",
+          "name": "تجميع البكتيريا النافعة (الدورة البايولوجية)",
+          "text": "أضف كبسولة أو سائل البكتيريا النافعة، وشغل الفلتر، وانتظر من 3 إلى 7 أيام على الأقل قبل إضافة أي سمكة. هذه الخطوة تمنع متلازمة الحوض الجديد.",
+          "url": `${BASE_URL}/beginner-guide#step-4`
+        },
+        {
+          "@type": "HowToStep",
+          "name": "الحوض يحيا (إضافة الأسماك تدريجياً)",
+          "text": "أضف سمكتين أو ثلاث فقط كأسماك تحمل (مثل الزيبرا أو الغوبي). طوّف الكيس في الحوض لمدة 15 دقيقة لمعادلة الحرارة قبل إطلاقها.",
+          "url": `${BASE_URL}/beginner-guide#step-5`
+        }
+      ]
+    });
   }
+
+  // 3. Filter Choice Guide
+  if (requestPath === "/guides-filter-choice") {
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": BASE_URL },
+        { "@type": "ListItem", "position": 2, "name": "دليل اختيار الفلتر", "item": `${BASE_URL}/guides-filter-choice` }
+      ]
+    });
+
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "كيف تختار فلتر حوض الأسماك المناسب",
+      "description": "دليل خطوة بخطوة لاختيار الفلتر الصحيح لحجم حوضك ونوع أسماكك",
+      "totalTime": "PT10M",
+      "step": [
+        {
+          "@type": "HowToStep",
+          "name": "احسب حجم حوضك بالليتر",
+          "text": "قِس طول × عرض × ارتفاع الحوض بالسنتيمتر وأضرب الناتج في 0.001. مثلاً: حوض 60×30×35 سم = 63 لتر تقريباً.",
+          "url": `${BASE_URL}/guides-filter-choice#step-1`
+        },
+        {
+          "@type": "HowToStep",
+          "name": "احسب معدل تدفق الفلتر المطلوب",
+          "text": "القاعدة الذهبية: الفلتر يجب أن يضخ حجم الحوض كاملاً من 4 إلى 6 مرات في الساعة. لحوض 60 لتر = فلتر بقدرة 240-360 لتر/ساعة على الأقل.",
+          "url": `${BASE_URL}/guides-filter-choice#step-2`
+        },
+        {
+          "@type": "HowToStep",
+          "name": "اختر نوع الفلتر المناسب",
+          "text": "الفلتر الداخلي: مناسب للأحواض الصغيرة (حتى 60 لتر) وسهل التركيب. الفلتر الخارجي (كانيستر): مناسب للأحواض الكبيرة (+80 لتر) ويعطي فلترة أعمق. الفلتر الإسفنجي: مثالي للأحواض العزل والريشات الصغيرة.",
+          "url": `${BASE_URL}/guides-filter-choice#step-3`
+        },
+        {
+          "@type": "HowToStep",
+          "name": "راجع مواصفات المنتج قبل الشراء",
+          "text": "تأكد من مطابقة قدرة الفلتر لحجم حوضك. ابحث عن الفلتر في صفحة المنتجات على AQUAVO واقرأ المواصفات الكاملة.",
+          "url": `${BASE_URL}/products`
+        }
+      ]
+    });
+  }
+
+  return jsonLdScripts.map(scriptTag).join("\n");
 }
 
-// ─── Resolve metadata for any path ──────────────────────────────────────────
-async function resolveMetadata(pathname: string): Promise<PageMeta & { url: string; image: string }> {
-  const cleanPath = pathname.replace(/\/+$/, "") || "/";
-
-  // Static pages
-  if (STATIC_PAGES[cleanPath]) {
-    const meta = STATIC_PAGES[cleanPath];
-    return {
-      ...meta,
-      url: `${BASE}${cleanPath === "/" ? "" : cleanPath}`,
-      image: DEFAULT_IMAGE,
-      ogType: meta.ogType || "website",
-    };
-  }
-
-  // Product detail: /products/:slug
-  const productMatch = cleanPath.match(/^\/products\/([^/]+)$/);
-  if (productMatch) {
-    const meta = await getProductMeta(productMatch[1]);
-    if (meta) {
-      return {
-        ...meta,
-        url: `${BASE}${cleanPath}`,
-        image: meta.productImage || DEFAULT_IMAGE,
-        ogType: meta.ogType || "product",
-      };
-    }
-  }
-
-  // Blog post: /blog/:slug
-  const blogMatch = cleanPath.match(/^\/blog\/([^/]+)$/);
-  if (blogMatch) {
-    const meta = await getBlogMeta(blogMatch[1]);
-    if (meta) {
-      return {
-        ...meta,
-        url: `${BASE}${cleanPath}`,
-        image: DEFAULT_IMAGE,
-        ogType: meta.ogType || "article",
-      };
-    }
-  }
-
-  // Fallback
-  return {
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESC,
-    keywords: DEFAULT_KEYWORDS,
-    url: `${BASE}${cleanPath}`,
-    image: DEFAULT_IMAGE,
-    ogType: "website",
-  };
-}
-
-// ─── Inject metadata into HTML ──────────────────────────────────────────────
-function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
-  let jsonLdScript = "";
-  if (meta.jsonLd) {
-    if (Array.isArray(meta.jsonLd)) {
-      jsonLdScript = meta.jsonLd
-        .map((ld) => `<script type="application/ld+json">${JSON.stringify(ld)}</script>`)
-        .join("\n  ");
-    } else {
-      jsonLdScript = `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
-    }
-  }
-
-  let result = html
-    .replace(/__META_TITLE__/g, escapeHtml(meta.title))
-    .replace(/__META_DESCRIPTION__/g, escapeHtml(meta.description))
-    .replace(/__META_KEYWORDS__/g, escapeHtml(meta.keywords || DEFAULT_KEYWORDS))
-    .replace(/__META_URL__/g, meta.url)
-    .replace(/__META_IMAGE__/g, meta.image)
-    .replace(/__META_OG_TYPE__/g, meta.ogType || "website");
-
-  if (meta.ogTitle) {
-    const escapedOgTitle = escapeHtml(meta.ogTitle);
-    result = result.replace(
-      /(<meta property="og:title" content=")[^"]*(")/,
-      `$1${escapedOgTitle}$2`
-    );
-    result = result.replace(
-      /(<meta name="twitter:title" content=")[^"]*(")/,
-      `$1${escapedOgTitle}$2`
-    );
-  }
-
-  // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
-  result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
-
-  // Performance: strip old unused preconnects from stale template
-  result = result.replace(/<link rel="dns-prefetch"[^>]*images\.unsplash[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="preconnect"[^>]*images\.unsplash[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="preconnect"[^>]*fist-live-server[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="dns-prefetch"[^>]*fist-live-server[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="preconnect"[^>]*plausible\.io[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="dns-prefetch"[^>]*plausible\.io[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="preconnect"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
-  result = result.replace(/<link rel="dns-prefetch"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
-
-  // Performance: for product pages, replace hero preload with product image preload
-  const isProductPage = meta.ogType === 'product' && meta.image && meta.image !== DEFAULT_IMAGE;
-  if (isProductPage) {
-    // Replace hero image preload with product LCP image preload
-    result = result.replace(
-      /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
-      `<link rel="preload" as="image" href="${meta.image}" fetchpriority="high">`
-    );
-  }
-
-  // Inject JSON-LD
-  result = result.replace(/__JSON_LD__/g, jsonLdScript);
-
-  const metaPath = meta.url.replace(BASE, "") || "/";
-  if (metaPath === "/" || metaPath === "/ar") {
-    result = result.replace(
-      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
-      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
-    );
-    result = result.replace('<div id="root"></div>', `${CRITICAL_HOME_SHELL}<div id="root"></div>`);
-  }
-
-  return result;
-}
-
-function escapeHtml(str: string): string {
-  return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-}
-
-// ─── Markdown for Agents ────────────────────────────────────────────────────
-function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathname: string): string {
-  const lines: string[] = [];
-  lines.push(`# ${meta.title}\n`);
-  lines.push(`${meta.description}\n`);
-  lines.push(`**URL:** ${meta.url}\n`);
-
-  if (pathname === "/" || pathname === "") {
-    lines.push(`## About AQUAVO\n`);
-    lines.push(`AQUAVO is Iraq's premier online aquarium equipment and supplies e-commerce platform, based in Baghdad.\n`);
-    lines.push(`## Available Services\n`);
-    lines.push(`- **Product Catalog**: Browse aquarium products at [/products](${BASE}/products)`);
-    lines.push(`- **Fish Encyclopedia**: Comprehensive fish species database at [/fish-encyclopedia](${BASE}/fish-encyclopedia)`);
-    lines.push(`- **Calculators**: Free aquarium calculators at [/calculators](${BASE}/calculators)`);
-    lines.push(`- **Blog**: Aquarium care articles at [/blog](${BASE}/blog)`);
-    lines.push(`- **Fish Health**: Disease diagnosis tool at [/fish-health](${BASE}/fish-health)\n`);
-    lines.push(`## API Endpoints\n`);
-    lines.push(`- \`GET /api/products\` — Browse product catalog`);
-    lines.push(`- \`GET /api/products?search={query}\` — Search products`);
-    lines.push(`- \`GET /api/fish\` — Fish species database`);
-    lines.push(`- \`GET /api/blog\` — Blog articles`);
-    lines.push(`- \`GET /api/orders/track/{orderNumber}\` — Track an order\n`);
-    lines.push(`## Agent Discovery\n`);
-    lines.push(`- [API Catalog](${BASE}/.well-known/api-catalog) (RFC 9727)`);
-    lines.push(`- [MCP Server Card](${BASE}/.well-known/mcp/server-card.json)`);
-    lines.push(`- [Agent Skills](${BASE}/.well-known/agent-skills/index.json)`);
-    lines.push(`- [ACP](${BASE}/.well-known/acp.json)\n`);
-    lines.push(`## Contact\n`);
-    lines.push(`- Phone: +964 774 788 0673`);
-    lines.push(`- Website: ${BASE}`);
-    lines.push(`- Instagram: [@aquavo_iq](https://www.instagram.com/aquavo_iq)`);
-    lines.push(`- TikTok: [@aquavo.iq](https://www.tiktok.com/@aquavo.iq)\n`);
-  }
-
-  if (meta.keywords) {
-    lines.push(`---\n*Keywords: ${meta.keywords}*`);
-  }
-
-  return lines.join("\n");
-}
-
-// ─── Handler ────────────────────────────────────────────────────────────────
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  try {
-    const pathname = (req.url || "/").split("?")[0];
-
-    // Skip for actual static files (shouldn't reach here, but safety)
-    if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(pathname)) {
-      return res.status(404).end();
-    }
-
-    const template = getTemplate();
-    const meta = await resolveMetadata(pathname);
-    const html = injectMeta(template, meta);
-
-    // Markdown for Agents: If Accept: text/markdown, return markdown version
-    const acceptHeader = (req.headers.accept || "").toLowerCase();
-    if (acceptHeader.includes("text/markdown")) {
-      const md = generateMarkdown(meta, pathname);
-      res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-      return res.status(200).send(md);
-    }
-
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return res.status(200).send(html);
-  } catch (err) {
-    console.error("SSR meta handler error:", err);
-    // Fallback: serve template with defaults
-    try {
-      const template = getTemplate();
-      const fallback = injectMeta(template, {
-        title: DEFAULT_TITLE,
-        description: DEFAULT_DESC,
-        keywords: DEFAULT_KEYWORDS,
-        url: BASE,
-        image: DEFAULT_IMAGE,
-        ogType: "website",
-      });
-      res.setHeader("Content-Type", "text/html; charset=utf-8");
-      return res.status(200).send(fallback);
-    } catch {
-      return res.status(500).send("Server Error");
-    }
-  }
-}
