@@ -312,7 +312,7 @@ export function createOAuthRouter(): RouterType {
 
   // RFC 9728 — Protected Resource Metadata
   // Claude.ai fetches this after getting 401 from /api/mcp
-  router.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response) => {
+  const protectedResourceMetadata = (_req: Request, res: Response): void => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.json({
       resource: MCP_RESOURCE,
@@ -320,7 +320,10 @@ export function createOAuthRouter(): RouterType {
       bearer_methods_supported: ["header"],
       scopes_supported: ["mcp", "mcp:read", "mcp:write"],
     });
-  });
+  };
+
+  router.get("/.well-known/oauth-protected-resource", protectedResourceMetadata);
+  router.get("/.well-known/oauth-protected-resource/*", protectedResourceMetadata);
 
   // RFC 8414 — Authorization Server Metadata
   router.get("/.well-known/oauth-authorization-server", (_req: Request, res: Response) => {
