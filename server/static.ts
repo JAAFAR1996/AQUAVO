@@ -2,6 +2,7 @@ import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { generateSsrMeta } from "./ssr-meta.js";
 
 const PRECOMPRESSED_EXTENSIONS = new Set([
   ".css",
@@ -54,7 +55,7 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     .replace(/__META_URL__/g, "http://localhost:5000/")
     .replace(/__META_IMAGE__/g, "/logo_aquavo.png")
     .replace(/__META_OG_TYPE__/g, "website")
-    .replace(/__JSON_LD__/g, "");
+    .replace(/__JSON_LD__/g, generateSsrMeta(requestPath));
 
   if (requestPath === "/" || requestPath === "/ar") {
     html = html.replace(
