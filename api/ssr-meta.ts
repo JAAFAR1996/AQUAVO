@@ -665,13 +665,17 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     }
   }
 
+  // Validate + escape URLs before they land in href/src/content attributes (XSS / scheme injection guard)
+  const safeUrl = escapeHtml(safeHttpUrl(meta.url, BASE));
+  const safeImage = escapeHtml(safeHttpUrl(meta.image, DEFAULT_IMAGE));
+
   let result = html
     .replace(/__META_TITLE__/g, escapeHtml(meta.title))
     .replace(/__META_DESCRIPTION__/g, escapeHtml(meta.description))
     .replace(/__META_KEYWORDS__/g, escapeHtml(meta.keywords || DEFAULT_KEYWORDS))
-    .replace(/__META_URL__/g, meta.url)
-    .replace(/__META_IMAGE__/g, meta.image)
-    .replace(/__META_OG_TYPE__/g, meta.ogType || "website");
+    .replace(/__META_URL__/g, safeUrl)
+    .replace(/__META_IMAGE__/g, safeImage)
+    .replace(/__META_OG_TYPE__/g, escapeHtml(meta.ogType || "website"));
 
   if (meta.ogTitle) {
     const escapedOgTitle = escapeHtml(meta.ogTitle);
@@ -705,7 +709,7 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     // Replace hero image preload with product LCP image preload
     result = result.replace(
       /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
-      `<link rel="preload" as="image" href="${meta.image}" fetchpriority="high">`
+      `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`
     );
   }
 
@@ -726,6 +730,17 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Only allow http(s) URLs into href/src/content attributes; reject javascript:/data: etc.
+function safeHttpUrl(raw: string, fallback: string): string {
+  try {
+    const u = new URL(raw, BASE);
+    if (u.protocol === "http:" || u.protocol === "https:") return raw;
+  } catch {
+    /* fall through to fallback */
+  }
+  return fallback;
 }
 
 // ─── Markdown for Agents ────────────────────────────────────────────────────
