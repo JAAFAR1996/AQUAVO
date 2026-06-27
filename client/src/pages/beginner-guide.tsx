@@ -47,6 +47,7 @@ import {
 import { Link } from "wouter";
 import confetti from "canvas-confetti";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
+import { MetaTags, HowToSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 
 // ─────────────────────────────────────────────────
 // DATA
@@ -732,6 +733,62 @@ export default function BeginnerGuide() {
   }, []);
 
   return (
+    <>
+      {/* ─── SEO / GEO / AEO 2026 ─── */}
+      <MetaTags
+        title="دليل المبتدئين — كيف تبدأ حوض أسماك من الصفر"
+        description="دليل خطوة بخطوة لإعداد حوض أسماك احترافي من الصفر — 5 خطوات تفاعلية: اختيار الحوض، التجهيز المائي، الديكور، البكتيريا، والتشغيل. من AQUAVO العراق."
+        keywords={["كيفية إعداد حوض أسماك", "دليل المبتدئين", "حوض أسماك للمبتدئين", "تجهيز حوض أسماك", "AQUAVO", "أحواض أسماك العراق"]}
+        url="https://www.aquavoiq.com/beginner-guide"
+        canonicalUrl="https://www.aquavoiq.com/beginner-guide"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "الرئيسية", url: "https://www.aquavoiq.com/" },
+          { name: "دليل المبتدئين", url: "https://www.aquavoiq.com/beginner-guide" },
+        ]}
+      />
+      {/* HowTo Schema — GEO/AEO 2026: AI Overviews & ChatGPT يستخدمونه للإجابة على 'كيف أبدأ حوض أسماك' */}
+      <HowToSchema
+        name="كيف تبدأ حوض أسماك من الصفر — 5 خطوات"
+        description="دليل شامل خطوة بخطوة لإعداد حوض أسماك احترافي للمبتدئين في العراق"
+        image="https://www.aquavoiq.com/guide-images/1-1-1-1-1.png"
+        totalTime="PT2H"
+        estimatedCost={{ currency: "IQD", value: "50000-200000" }}
+        supply={["حوض زجاجي", "فلتر مناسب", "سخّان", "إضاءة LED", "حصى أو رمل", "منظّف مياه", "بكتيريا مفيدة", "ديكورات آمنة"]}
+        steps={[
+          {
+            name: "اختيار الحوض وتجهيز المكان",
+            text: "اختر حوضاً زجاجياً مناسباً لحجم الغرفة وعدد الأسماك المرغوبة. الحد الأدنى الموصى به للمبتدئين هو 40-60 لتر. ضع الحوض بعيداً عن أشعة الشمس المباشرة وعلى سطح مستوٍ وقوي.",
+            image: "https://www.aquavoiq.com/guide-images/1-1-1-1-1.png",
+            url: "https://www.aquavoiq.com/beginner-guide#step-1"
+          },
+          {
+            name: "التجهيز المائي وتركيب الفلتر والسخان",
+            text: "نظّف الحوض بالماء فقط بدون صابون. ركّب الفلتر والسخان. أضف مرسّب الكلور (منظّف مياه) للماء قبل ملء الحوض. اضبط السخان على 26-28 درجة مئوية للأسماك الاستوائية.",
+            image: "https://www.aquavoiq.com/guide-images/2-2-2-2-2.png",
+            url: "https://www.aquavoiq.com/beginner-guide#step-2"
+          },
+          {
+            name: "إضافة الديكور والأساس",
+            text: "اغسل الحصى أو الرمل جيداً ثم ضعه في قاع الحوض. أضف الديكورات والنباتات الاصطناعية. اترك مساحة كافية للأسماك للسباحة بحرية. أضف الإضاءة LED المناسبة لنوع الأسماك.",
+            image: "https://www.aquavoiq.com/guide-images/3-3-3-3-3.png",
+            url: "https://www.aquavoiq.com/beginner-guide#step-3"
+          },
+          {
+            name: "تجميع البكتيريا المفيدة وتأسيس الدورة البيولوجية",
+            text: "البكتيريا المفيدة هي قلب الحوض الصحي. استخدم محفّز بكتيريا جاهز لتسريع الدورة البيولوجية (Nitrogen Cycle). شغّل الفلتر والسخان وانتظر 1-2 أسبوع قبل إضافة الأسماك. يمكن قياس الأمونيا والنيتريت بمجموعة اختبار المياه.",
+            image: "https://www.aquavoiq.com/guide-images/4-4-4-4-4.png",
+            url: "https://www.aquavoiq.com/beginner-guide#step-4"
+          },
+          {
+            name: "الحوض يحيا — إضافة الأسماك والصيانة الدورية",
+            text: "بعد اكتمال الدورة البيولوجية، أضف الأسماك تدريجياً (2-3 أسماك في البداية). غيّر 20-25% من الماء أسبوعياً. أطعم الأسماك مرة أو مرتين يومياً بكميات صغيرة. نظّف الفلتر شهرياً بماء الحوض نفسه وليس الماء الجديد.",
+            image: "https://www.aquavoiq.com/guide-images/5-5-5-5-5.png",
+            url: "https://www.aquavoiq.com/beginner-guide#step-5"
+          }
+        ]}
+      />
     <div className="relative bg-[#010611] text-white min-h-screen w-full" dir="rtl">
       {/* Layers */}
       <AmbientBg idx={activeIdx} />
@@ -768,5 +825,6 @@ export default function BeginnerGuide() {
         </AnimatePresence>
       </motion.div>
     </div>
+    </>
   );
 }

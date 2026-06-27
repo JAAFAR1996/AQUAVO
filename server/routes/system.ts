@@ -9,31 +9,80 @@ import { eq, desc } from "drizzle-orm";
 export function createSystemRouter(): RouterType {
     const router = Router();
 
-    // Sitemap
+    // ─── Sitemap (GEO/AEO 2026 Enhanced) ───────────────────────────────────────
+    // Includes: priority, changefreq, image:image sitemap extension for AI crawlers
     router.get("/sitemap.xml", async (req: Request, res: Response): Promise<void> => {
         try {
             const products = await storage.getProducts();
             const baseUrl = "https://www.aquavoiq.com";
             const today = new Date().toISOString().split('T')[0];
 
-            const staticPages = [
-                "/", "/products", "/deals", "/fish-encyclopedia", "/journey", "/calculators",
-                "/fish-finder", "/fish-health", "/fish-compatibility", "/beginner-guide",
-                "/tank-builder", "/community-gallery", "/blog", "/faq",
-                "/sustainability", "/shipping", "/terms", "/privacy-policy", "/return-policy"
+            // Static pages with priority and changefreq for crawl budget optimisation
+            const staticPages: { loc: string; priority: string; changefreq: string }[] = [
+                { loc: "/",                    priority: "1.0", changefreq: "daily" },
+                { loc: "/products",            priority: "0.9", changefreq: "daily" },
+                { loc: "/deals",               priority: "0.8", changefreq: "daily" },
+                { loc: "/blog",                priority: "0.8", changefreq: "weekly" },
+                { loc: "/faq",                 priority: "0.8", changefreq: "weekly" },
+                { loc: "/beginner-guide",      priority: "0.8", changefreq: "monthly" },
+                { loc: "/fish-encyclopedia",   priority: "0.7", changefreq: "weekly" },
+                { loc: "/community-gallery",   priority: "0.7", changefreq: "weekly" },
+                { loc: "/journey",             priority: "0.6", changefreq: "monthly" },
+                { loc: "/calculators",         priority: "0.6", changefreq: "monthly" },
+                { loc: "/sustainability",      priority: "0.6", changefreq: "monthly" },
+                { loc: "/shipping",            priority: "0.6", changefreq: "monthly" },
+                { loc: "/return-policy",       priority: "0.5", changefreq: "monthly" },
+                { loc: "/terms",               priority: "0.4", changefreq: "yearly" },
+                { loc: "/privacy-policy",      priority: "0.4", changefreq: "yearly" },
             ];
 
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`;
+            // Guide pages (high AEO value — rich educational content)
+            const guidePages = [
+                "/guides-filter-choice", "/guides-heater-choice", "/guides-water-change-schedule",
+                "/guides-feeding-table", "/guides-quarantine", "/guides-algae-control",
+                "/guides-aquarium-salt", "/guides-white-scale", "/guides-5-mistakes",
+                "/guides-essential-tools", "/guides-filter-media", "/guides-eco-friendly",
+                "/guides-fish-hiding", "/guides-happy-fish-signs", "/guides-temperature-guide",
+                "/guides-treatment-basics", "/guides-water-myths", "/guides-tank-rescue-plan",
+            ];
 
-            // Static
-            staticPages.forEach(loc => {
-                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n  </url>`;
+            // Image sitemap namespace for Google visual search + AI image indexing
+            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"\n        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">`;
+
+            // Static pages
+            staticPages.forEach(({ loc, priority, changefreq }) => {
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
             });
 
-            // Products
+            // Guide pages (0.7 priority — rich AEO content)
+            guidePages.forEach(loc => {
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
+            });
+
+            // Products — with image sitemap extension for visual AI search
             products.forEach(p => {
                 const updated = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : today;
-                xml += `\n  <url>\n    <loc>${baseUrl}/products/${p.slug}</loc>\n    <lastmod>${updated}</lastmod>\n  </url>`;
+                // Collect up to 3 images per product
+                const images: string[] = [];
+                try {
+                    const rawImages = p.images as string[] | null;
+                    if (Array.isArray(rawImages)) {
+                        rawImages.slice(0, 3).forEach((img: string) => {
+                            if (img && typeof img === 'string') {
+                                const imgUrl = img.startsWith('http') ? img : `${baseUrl}${img}`;
+                                images.push(imgUrl);
+                            }
+                        });
+                    }
+                } catch { /* skip image extraction if error */ }
+
+                let imageXml = "";
+                images.forEach(imgUrl => {
+                    const escapedTitle = (p.name ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                    imageXml += `\n    <image:image>\n      <image:loc>${imgUrl}</image:loc>\n      <image:title>${escapedTitle}</image:title>\n    </image:image>`;
+                });
+
+                xml += `\n  <url>\n    <loc>${baseUrl}/products/${p.slug}</loc>\n    <lastmod>${updated}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.9</priority>${imageXml}\n  </url>`;
             });
 
             // Blog posts
@@ -45,13 +94,14 @@ export function createSystemRouter(): RouterType {
                         .orderBy(desc(blogPosts.publishedAt));
                     posts.forEach(p => {
                         const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : today;
-                        xml += `\n  <url>\n    <loc>${baseUrl}/blog/${p.slug}</loc>\n    <lastmod>${date}</lastmod>\n  </url>`;
+                        xml += `\n  <url>\n    <loc>${baseUrl}/blog/${p.slug}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
                     });
                 } catch { /* blog table might not exist yet */ }
             }
 
             xml += `\n</urlset>`;
             res.header("Content-Type", "application/xml");
+            res.header("Cache-Control", "public, max-age=3600"); // cache 1 hour
             res.send(xml);
         } catch (err) {
             console.error(err);
@@ -80,7 +130,7 @@ export function createSystemRouter(): RouterType {
     });
 
     // ─── .well-known Endpoints (Agent Readiness) ─────────────
-    
+
     // API Catalog (RFC 9727)
     router.get("/.well-known/api-catalog", (_req: Request, res: Response): void => {
         res.header("Content-Type", "application/linkset+json");

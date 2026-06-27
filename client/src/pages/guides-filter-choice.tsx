@@ -1,5 +1,49 @@
+import { MetaTags, HowToSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
+
 export default function GuideFilterChoice() {
   return (
+    <>
+      {/* SEO / GEO / AEO 2026 */}
+      <MetaTags
+        title="كيف تختار فلتر الحوض المناسب — دليل شامل"
+        description="دليل اختيار فلتر حوض الأسماك المناسب: الفرق بين الفلتر الداخلي والخارجي والإسفنجي، وكيف تحسب القدرة المطلوبة حسب حجم حوضك. من AQUAVO العراق."
+        keywords={["فلتر حوض أسماك", "كيفية اختيار فلتر", "فلتر داخلي", "فلتر خارجي", "فلتر إسفنجي", "AQUAVO"]}
+        url="https://www.aquavoiq.com/guides-filter-choice"
+        canonicalUrl="https://www.aquavoiq.com/guides-filter-choice"
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: "الرئيسية", url: "https://www.aquavoiq.com/" },
+          { name: "دليل اختيار الفلتر", url: "https://www.aquavoiq.com/guides-filter-choice" },
+        ]}
+      />
+      <HowToSchema
+        name="كيف تختار فلتر حوض الأسماك المناسب"
+        description="دليل خطوة بخطوة لاختيار الفلتر الصحيح لحجم حوضك ونوع أسماكك"
+        totalTime="PT10M"
+        steps={[
+          {
+            name: "احسب حجم حوضك بالليتر",
+            text: "قِس طول × عرض × ارتفاع الحوض بالسنتيمتر وأضرب الناتج في 0.001. مثلاً: حوض 60×30×35 سم = 63 لتر تقريباً.",
+            url: "https://www.aquavoiq.com/guides-filter-choice#step-1"
+          },
+          {
+            name: "احسب معدل تدفق الفلتر المطلوب",
+            text: "القاعدة الذهبية: الفلتر يجب أن يضخ حجم الحوض كاملاً من 4 إلى 6 مرات في الساعة. لحوض 60 لتر = فلتر بقدرة 240-360 لتر/ساعة على الأقل.",
+            url: "https://www.aquavoiq.com/guides-filter-choice#step-2"
+          },
+          {
+            name: "اختر نوع الفلتر المناسب",
+            text: "الفلتر الداخلي: مناسب للأحواض الصغيرة (حتى 60 لتر) وسهل التركيب. الفلتر الخارجي (كانيستر): مناسب للأحواض الكبيرة (+80 لتر) ويعطي فلترة أعمق. الفلتر الإسفنجي: مثالي للأحواض العزل والريشات الصغيرة.",
+            url: "https://www.aquavoiq.com/guides-filter-choice#step-3"
+          },
+          {
+            name: "راجع مواصفات المنتج قبل الشراء",
+            text: "تأكد من مطابقة قدرة الفلتر لحجم حوضك. ابحث عن الفلتر في صفحة المنتجات على AQUAVO واقرأ المواصفات الكاملة.",
+            url: "https://www.aquavoiq.com/products"
+          }
+        ]}
+      />
     <div className="fltr-wrap">
 
       <header className="fltr-bar">
@@ -363,5 +407,6 @@ export default function GuideFilterChoice() {
       `}</style>
 
     </div>
+    </>
   );
 }

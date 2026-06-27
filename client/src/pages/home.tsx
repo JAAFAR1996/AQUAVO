@@ -11,7 +11,7 @@ import { formatPrice } from "@/lib/format";
 import { cardImage } from "@/lib/cloudinary";
 
 import { BackToTop } from "@/components/back-to-top";
-import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema } from "@/components/seo/meta-tags";
+import { MetaTags, OrganizationSchema, WebsiteSchema, LocalBusinessSchema, VideoObjectSchema, SpeakableSchema } from "@/components/seo/meta-tags";
 import { WaveDivider } from "@/components/ui/wave-divider";
 import { BubblesOverlay } from "@/components/home/bubbles-overlay";
 
@@ -166,11 +166,23 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">
       <MetaTags
         title="الرئيسية"
-        description="AQUAVO - معدات وإكسسوارات أحواض أصلية في العراق — الدفع عند الاستلام."
+        description="AQUAVO - معدات وإكسسوارات أحواض أصلية في العراق — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع"
       />
       <OrganizationSchema />
       <WebsiteSchema />
       <LocalBusinessSchema />
+      {/* VideoObject Schema — GEO 2026: indexes hero video for Google/AI visual search */}
+      <VideoObjectSchema
+        name="AQUAVO — معدات أحواض أسماك أصلية في العراق"
+        description="نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة"
+        thumbnailUrl="https://www.aquavoiq.com/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
+        uploadDate="2026-01-01"
+        contentUrl="https://www.aquavoiq.com/images/hero/Aquarium_Animation_Request_Fulfilled.mp4"
+        duration="PT30S"
+      />
+      {/* Speakable Schema — voice search & AI audio responses */}
+      <SpeakableSchema cssSelectors={["#hero-headline", "#trust-signals", "h1", ".hero-description"]} />
+
 
       <Navbar />
 

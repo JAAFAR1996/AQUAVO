@@ -1,6 +1,10 @@
 import { useEffect } from "react";
 import DOMPurify from 'isomorphic-dompurify';
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+const BASE_URL = "https://www.aquavoiq.com";
+const LOGO_URL = `${BASE_URL}/logo_aquavo.png`;
+
 /**
  * Sanitizes string values for schema.org JSON-LD to prevent XSS
  */
@@ -40,7 +44,7 @@ export function MetaTags({
     title,
     description = "AQUAVO - معدات أحواض أصلية وبريميوم في العراق — توصيل لكل المحافظات",
     keywords = [],
-    image = "https://aquavo.iq/logo_aquavo.png",
+    image = LOGO_URL,
     url,
     type = "website",
     price,
@@ -158,7 +162,7 @@ export function ProductSchema({
         name,
         description,
         image: image ? (Array.isArray(image) ? image.filter(Boolean) : [image]).filter(Boolean) : undefined,
-        brand: brand ? { "@type": "Brand", name: brand } : undefined,
+        brand: brand ? { "@type": "Brand", name: brand } : { "@type": "Brand", name: "AQUAVO" },
         sku,
         category,
         offers: {
@@ -172,6 +176,7 @@ export function ProductSchema({
             seller: {
                 "@type": "Organization",
                 name: "AQUAVO",
+                url: BASE_URL,
             },
             priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             shippingDetails: {
@@ -272,23 +277,44 @@ export function ReviewSchema({ reviews, productName }: ReviewSchemaProps) {
 
 /**
  * Schema.org structured data for organization
+ * FIXED: Corrected URL from aquavo.iq → www.aquavoiq.com
  */
 export function OrganizationSchema() {
     const schema = {
         "@context": "https://schema.org",
         "@type": "Organization",
+        "@id": `${BASE_URL}/#organization`,
         name: "AQUAVO",
-        alternateName: "AQUAVO Store",
-        url: "https://aquavo.iq",
-        logo: "https://aquavo.iq/logo_aquavo.png",
-        description: "أفضل منصة لمعدات وتقنيات أحواض الأسماك في العراق",
-        contactPoint: {
-            "@type": "ContactPoint",
-            telephone: "+964-772-609-0012",
-            contactType: "customer service",
-            availableLanguage: ["Arabic", "English"],
-            areaServed: "IQ",
+        alternateName: ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
+        url: BASE_URL,
+        logo: {
+            "@type": "ImageObject",
+            url: LOGO_URL,
+            width: 512,
+            height: 512,
         },
+        description: "متجر أحواض أسماك عراقي متخصص في معدات ومستلزمات الأحواض — فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع",
+        foundingDate: "2024",
+        areaServed: {
+            "@type": "Country",
+            name: "Iraq",
+            sameAs: "https://www.wikidata.org/wiki/Q796"
+        },
+        contactPoint: [
+            {
+                "@type": "ContactPoint",
+                telephone: "+964-774-788-0673",
+                contactType: "customer service",
+                availableLanguage: ["Arabic"],
+                areaServed: "IQ",
+                hoursAvailable: {
+                    "@type": "OpeningHoursSpecification",
+                    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                    opens: "00:00",
+                    closes: "23:59",
+                },
+            }
+        ],
         sameAs: [
             "https://www.facebook.com/profile.php?id=61587249730248",
             "https://instagram.com/aquavo_iq",
@@ -297,7 +323,20 @@ export function OrganizationSchema() {
         address: {
             "@type": "PostalAddress",
             addressLocality: "Baghdad",
+            addressRegion: "Baghdad",
             addressCountry: "IQ",
+        },
+        hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "معدات ومستلزمات أحواض الأسماك",
+            itemListElement: [
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "غذاء أسماك" } },
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "ديكورات أحواض" } },
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "معالجات مياه" } },
+                { "@type": "Offer", itemOffered: { "@type": "Product", name: "إضاءة أحواض" } },
+            ],
         },
     };
 
@@ -311,20 +350,26 @@ export function OrganizationSchema() {
 
 /**
  * Schema.org structured data for local business
+ * FIXED: Removed conflicting opening hours (was 09-21 while site claims 24/7 support)
+ * FIXED: Corrected URL from aquavo.iq → www.aquavoiq.com
  */
 export function LocalBusinessSchema() {
     const schema = {
         "@context": "https://schema.org",
         "@type": "Store",
+        "@id": `${BASE_URL}/#localbusiness`,
         name: "AQUAVO",
-        image: "https://aquavo.iq/logo_aquavo.png",
-        "@id": "https://aquavo.iq",
-        url: "https://aquavo.iq",
-        telephone: "+964-772-609-0012",
+        image: LOGO_URL,
+        url: BASE_URL,
+        telephone: "+964-774-788-0673",
         priceRange: "$$",
+        currenciesAccepted: "IQD",
+        paymentAccepted: "Cash on Delivery",
+        description: "متجر إلكتروني عراقي متخصص في معدات وإكسسوارات أحواض الأسماك. يخدم العراق بالكامل بتوصيل خلال 24 ساعة وبرسوم ثابتة 5,000 دينار عراقي.",
         address: {
             "@type": "PostalAddress",
             addressLocality: "بغداد",
+            addressRegion: "Baghdad",
             addressCountry: "IQ",
         },
         geo: {
@@ -332,13 +377,24 @@ export function LocalBusinessSchema() {
             latitude: 33.3128,
             longitude: 44.3615,
         },
+        // Support is 24/7 — no restrictive hours listed to avoid contradiction
         openingHoursSpecification: [
             {
                 "@type": "OpeningHoursSpecification",
-                dayOfWeek: ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-                opens: "09:00",
-                closes: "21:00",
+                dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                opens: "00:00",
+                closes: "23:59",
             },
+        ],
+        hasMap: "https://maps.google.com/?q=Baghdad,Iraq",
+        areaServed: {
+            "@type": "Country",
+            name: "Iraq"
+        },
+        sameAs: [
+            "https://www.facebook.com/profile.php?id=61587249730248",
+            "https://instagram.com/aquavo_iq",
+            "https://www.tiktok.com/@aquavo.iq",
         ],
     };
 
@@ -408,21 +464,29 @@ export function FAQSchema({
 
 /**
  * Schema.org structured data for website search
+ * FIXED: Corrected URL from aquavo.iq → www.aquavoiq.com
+ * GEO/AEO 2026: Added speakable + potentialAction for voice/AI search
  */
 export function WebsiteSchema() {
     const schema = {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": `${BASE_URL}/#website`,
         name: "AQUAVO",
         alternateName: "AQUAVO Store",
-        url: "https://aquavo.iq",
+        url: BASE_URL,
+        description: "أكبر متجر إلكتروني متخصص في معدات أحواض الأسماك في العراق — توصيل لكل المحافظات خلال 24 ساعة",
+        inLanguage: "ar-IQ",
         potentialAction: {
             "@type": "SearchAction",
             target: {
                 "@type": "EntryPoint",
-                urlTemplate: "https://aquavo.iq/search?q={search_term_string}",
+                urlTemplate: `${BASE_URL}/search?q={search_term_string}`,
             },
             "query-input": "required name=search_term_string",
+        },
+        publisher: {
+            "@id": `${BASE_URL}/#organization`,
         },
     };
 
@@ -467,11 +531,201 @@ export function ArticleSchema({
         publisher: {
             "@type": "Organization",
             name: "AQUAVO",
+            url: BASE_URL,
             logo: {
                 "@type": "ImageObject",
-                url: "https://aquavo.iq/logo_aquavo.png",
+                url: LOGO_URL,
             },
         },
+        mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": typeof window !== "undefined" ? window.location.href : BASE_URL,
+        },
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
+        />
+    );
+}
+
+// ─── NEW SCHEMAS FOR GEO/AEO 2026 ────────────────────────────────────────────
+
+/**
+ * VideoObject Schema — for hero videos and product demos
+ * GEO 2026: Helps Google/AI index video content for AI Overviews
+ */
+export function VideoObjectSchema({
+    name,
+    description,
+    thumbnailUrl,
+    uploadDate,
+    contentUrl,
+    duration = "PT30S",
+    embedUrl,
+}: {
+    name: string;
+    description: string;
+    thumbnailUrl: string;
+    uploadDate: string;
+    contentUrl: string;
+    duration?: string;
+    embedUrl?: string;
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name,
+        description,
+        thumbnailUrl,
+        uploadDate,
+        contentUrl,
+        duration,
+        embedUrl,
+        publisher: {
+            "@type": "Organization",
+            name: "AQUAVO",
+            logo: {
+                "@type": "ImageObject",
+                url: LOGO_URL,
+            },
+        },
+        inLanguage: "ar",
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
+        />
+    );
+}
+
+/**
+ * ItemList Schema — for product category / product listing pages
+ * GEO/AEO 2026: Helps AI engines understand product catalogs and provide shopping recommendations
+ */
+export function ItemListSchema({
+    name,
+    description,
+    items,
+    url,
+}: {
+    name: string;
+    description?: string;
+    url?: string;
+    items: {
+        name: string;
+        url: string;
+        image?: string;
+        price?: number;
+        description?: string;
+        position?: number;
+    }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "ItemList",
+        name,
+        description,
+        url: url || (typeof window !== "undefined" ? window.location.href : BASE_URL),
+        numberOfItems: items.length,
+        itemListElement: items.map((item, idx) => ({
+            "@type": "ListItem",
+            position: item.position ?? idx + 1,
+            name: item.name,
+            url: item.url,
+            image: item.image,
+            description: item.description,
+        })),
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
+        />
+    );
+}
+
+/**
+ * HowTo Schema — for setup guides, tutorials, and step-by-step content
+ * GEO/AEO 2026: AI Overviews and voice search heavily favour HowTo structured content
+ */
+export function HowToSchema({
+    name,
+    description,
+    image,
+    totalTime,
+    estimatedCost,
+    supply,
+    steps,
+}: {
+    name: string;
+    description: string;
+    image?: string;
+    totalTime?: string; // ISO 8601 e.g. "PT1H30M"
+    estimatedCost?: { currency: string; value: string };
+    supply?: string[];
+    steps: {
+        name: string;
+        text: string;
+        image?: string;
+        url?: string;
+    }[];
+}) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name,
+        description,
+        image: image || LOGO_URL,
+        totalTime,
+        estimatedCost: estimatedCost ? {
+            "@type": "MonetaryAmount",
+            currency: estimatedCost.currency,
+            value: estimatedCost.value,
+        } : undefined,
+        supply: supply?.map(s => ({ "@type": "HowToSupply", name: s })),
+        step: steps.map((step, idx) => ({
+            "@type": "HowToStep",
+            position: idx + 1,
+            name: step.name,
+            text: step.text,
+            image: step.image,
+            url: step.url,
+        })),
+        publisher: {
+            "@type": "Organization",
+            name: "AQUAVO",
+            url: BASE_URL,
+        },
+        inLanguage: "ar",
+    };
+
+    return (
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(sanitizeSchemaValue(schema)) }}
+        />
+    );
+}
+
+/**
+ * SpeakableSpecification Schema — for voice search / AI audio responses
+ * GEO 2026: Marks which page sections are most suitable for text-to-speech AI
+ */
+export function SpeakableSchema({ cssSelectors }: { cssSelectors: string[] }) {
+    const schema = {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        speakable: {
+            "@type": "SpeakableSpecification",
+            cssSelector: cssSelectors,
+        },
+        url: typeof window !== "undefined" ? window.location.href : BASE_URL,
     };
 
     return (
