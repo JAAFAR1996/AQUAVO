@@ -293,26 +293,30 @@ export function OrganizationSchema() {
             width: 512,
             height: 512,
         },
-        description: "متجر أحواض أسماك عراقي متخصص في معدات ومستلزمات الأحواض — فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع",
-        foundingDate: "2024",
-        areaServed: {
-            "@type": "Country",
-            name: "Iraq",
-            sameAs: "https://www.wikidata.org/wiki/Q796"
-        },
+        description: "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. نوفر الفلاتر، السخانات، الأغذية، الديكورات، ومعالجات المياه. الدفع عند الاستلام مع توصيل لجميع محافظات العراق بـ 5,000 دينار.",
+        areaServed: [
+            {
+                "@type": "Country",
+                name: "Iraq",
+                sameAs: "https://www.wikidata.org/wiki/Q796"
+            }
+        ],
+        knowsAbout: [
+            "مستلزمات أحواض الزينة",
+            "معدات أحواض الزينة",
+            "فلاتر الأحواض",
+            "سخانات الأحواض",
+            "معالجات المياه",
+            "طعام أسماك الزينة",
+            "ديكورات الأحواض"
+        ],
         contactPoint: [
             {
                 "@type": "ContactPoint",
                 telephone: "+964-774-788-0673",
-                contactType: "customer service",
+                contactType: "customer support",
                 availableLanguage: ["Arabic"],
                 areaServed: "IQ",
-                hoursAvailable: {
-                    "@type": "OpeningHoursSpecification",
-                    dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-                    opens: "00:00",
-                    closes: "23:59",
-                },
             }
         ],
         sameAs: [
@@ -320,24 +324,6 @@ export function OrganizationSchema() {
             "https://instagram.com/aquavo_iq",
             "https://www.tiktok.com/@aquavo.iq",
         ],
-        address: {
-            "@type": "PostalAddress",
-            addressLocality: "Baghdad",
-            addressRegion: "Baghdad",
-            addressCountry: "IQ",
-        },
-        hasOfferCatalog: {
-            "@type": "OfferCatalog",
-            name: "معدات ومستلزمات أحواض الأسماك",
-            itemListElement: [
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "غذاء أسماك" } },
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "ديكورات أحواض" } },
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "معالجات مياه" } },
-                { "@type": "Offer", itemOffered: { "@type": "Product", name: "إضاءة أحواض" } },
-            ],
-        },
     };
 
     return (
