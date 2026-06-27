@@ -57,39 +57,24 @@ export function generateSsrMeta(requestPath: string): string {
 
     jsonLdScripts.push({
       "@context": "https://schema.org",
-      "@type": "Store",
-      "@id": `${BASE_URL}/#localbusiness`,
-      "name": "AQUAVO",
+      "@type": "OnlineStore",
+      "@id": `${BASE_URL}/#store`,
+      "name": "AQUAVO Store",
       "image": LOGO_URL,
       "url": BASE_URL,
       "telephone": "+964-774-788-0673",
-      "priceRange": "$$",
       "currenciesAccepted": "IQD",
-      "paymentAccepted": "Cash on Delivery",
-      "description": "متجر إلكتروني عراقي متخصص في معدات وإكسسوارات أحواض الأسماك. يخدم العراق بالكامل بتوصيل خلال 24 ساعة وبرسوم ثابتة 5,000 دينار عراقي.",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "بغداد",
-        "addressRegion": "Baghdad",
-        "addressCountry": "IQ"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 33.3128,
-        "longitude": 44.3615
-      },
-      "openingHoursSpecification": [
+      "paymentAccepted": ["Cash on Delivery", "Cash"],
+      "description": "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. خدمة توصيل لجميع المحافظات.",
+      "areaServed": [
         {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          "opens": "00:00",
-          "closes": "23:59"
+          "@type": "Country",
+          "name": "Iraq",
+          "sameAs": "https://www.wikidata.org/wiki/Q796"
         }
       ],
-      "hasMap": "https://maps.google.com/?q=Baghdad,Iraq",
-      "areaServed": {
-        "@type": "Country",
-        "name": "Iraq"
+      "parentOrganization": {
+        "@id": `${BASE_URL}/#organization`
       },
       "sameAs": [
         "https://www.facebook.com/profile.php?id=61587249730248",

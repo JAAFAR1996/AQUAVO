@@ -6,7 +6,7 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
+import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { useComparison } from "@/contexts/comparison-context";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
@@ -346,13 +346,41 @@ export default function Products() {
     phTrackCategoryClick(category);
   };
 
+  const breadcrumbItems = [
+    { name: "الرئيسية", url: "https://www.aquavoiq.com" },
+    { name: "المتجر", url: "https://www.aquavoiq.com/products" },
+  ];
+  if (filters.categories.length === 1) {
+    breadcrumbItems.push({
+      name: filters.categories[0],
+      url: `https://www.aquavoiq.com/products?category=${encodeURIComponent(filters.categories[0])}`
+    });
+  }
+
+  const itemListItems = useMemo(() => {
+    return displayedProducts.map((p, idx) => ({
+      name: p.name,
+      url: `https://www.aquavoiq.com/products/${p.slug}`,
+      image: p.imageUrls?.[0],
+      price: p.price,
+      description: p.description?.slice(0, 150),
+      position: idx + 1,
+    }));
+  }, [displayedProducts]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="معدات أحواض أصلية لكل العراق"
         description="منتجات أصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة لكل العراق."
       />
-      <OrganizationSchema />
+      <BreadcrumbSchema items={breadcrumbItems} />
+      {itemListItems.length > 0 && (
+        <ItemListSchema 
+          name={filters.categories.length === 1 ? `معدات أحواض الزينة - ${filters.categories[0]}` : "جميع منتجات AQUAVO"}
+          items={itemListItems} 
+        />
+      )}
       <Navbar />
 
       <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8" dir="rtl">

@@ -162,7 +162,7 @@ export function ProductSchema({
         name,
         description,
         image: image ? (Array.isArray(image) ? image.filter(Boolean) : [image]).filter(Boolean) : undefined,
-        brand: brand ? { "@type": "Brand", name: brand } : { "@type": "Brand", name: "AQUAVO" },
+        brand: brand ? { "@type": "Brand", name: brand } : undefined,
         sku,
         category,
         offers: {
@@ -175,10 +175,10 @@ export function ProductSchema({
             url: url || (typeof window !== "undefined" ? window.location.href : ""),
             seller: {
                 "@type": "Organization",
-                name: "AQUAVO",
-                url: BASE_URL,
+                "@id": `${BASE_URL}/#organization`,
+                "name": "AQUAVO",
+                "url": BASE_URL
             },
-            priceValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             shippingDetails: {
                 "@type": "OfferShippingDetails",
                 shippingRate: {
@@ -193,16 +193,8 @@ export function ProductSchema({
                 deliveryTime: {
                     "@type": "ShippingDeliveryTime",
                     handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
-                    transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 1, unitCode: "DAY" },
+                    transitTime: { "@type": "QuantitativeValue", maxValue: 1, unitCode: "DAY" },
                 },
-            },
-            hasMerchantReturnPolicy: {
-                "@type": "MerchantReturnPolicy",
-                applicableCountry: "IQ",
-                returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-                merchantReturnDays: 2,
-                returnMethod: "https://schema.org/ReturnByMail",
-                returnFees: "https://schema.org/FreeReturn",
             },
         },
         aggregateRating:
