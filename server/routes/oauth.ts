@@ -168,6 +168,50 @@ function isAllowedRedirectUri(uri: string): boolean {
 
 // ─── HTML helpers ─────────────────────────────────────────────────────────────
 
+export function handleOAuthRegisterOptions(_req: Request, res: Response): void {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.sendStatus(204);
+}
+
+export function handleOAuthRegister(req: Request, res: Response): void {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  const body = req.body ?? {};
+  const rawUris: unknown[] = Array.isArray(body.redirect_uris) ? body.redirect_uris : [];
+  if (!rawUris.length) {
+    res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris is required" });
+    return;
+  }
+
+  const redirectUris: string[] = [];
+  for (const uri of rawUris) {
+    if (typeof uri !== "string") {
+      res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris must be strings" });
+      return;
+    }
+    if (!isAllowedRedirectUri(uri)) {
+      res.status(400).json({ error: "invalid_redirect_uri", error_description: `Redirect URI scheme not allowed: ${uri} — only https:// or http://localhost` });
+      return;
+    }
+    redirectUris.push(uri);
+  }
+
+  const clientId = createClientId(redirectUris, String(body.client_name ?? "unknown"));
+  console.log(`[OAUTH] Registered client (stateless): name=${body.client_name ?? "unknown"} uris=${redirectUris.join(",")}`);
+  res.status(201).json({
+    client_id: clientId,
+    client_id_issued_at: Math.floor(Date.now() / 1000),
+    redirect_uris: redirectUris,
+    grant_types: ["authorization_code", "refresh_token"],
+    response_types: ["code"],
+    token_endpoint_auth_method: "none",
+  });
+}
+
 function esc(s: string): string {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -301,49 +345,8 @@ export function createOAuthRouter(): RouterType {
   // Security: the actual gate is the admin password on the consent screen.
 
   // CORS preflight for /oauth/register
-  router.options("/oauth/register", (_req: Request, res: Response) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-    res.sendStatus(204);
-  });
-
-  router.post("/oauth/register", (req: Request, res: Response) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-
-    const body = req.body ?? {};
-    const rawUris: unknown[] = Array.isArray(body.redirect_uris) ? body.redirect_uris : [];
-    if (!rawUris.length) {
-      res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris is required" });
-      return;
-    }
-
-    // Validate each redirect_uri: only https:// or http://localhost allowed
-    const redirectUris: string[] = [];
-    for (const uri of rawUris) {
-      if (typeof uri !== "string") {
-        res.status(400).json({ error: "invalid_client_metadata", error_description: "redirect_uris must be strings" });
-        return;
-      }
-      if (!isAllowedRedirectUri(uri)) {
-        res.status(400).json({ error: "invalid_redirect_uri", error_description: `Redirect URI scheme not allowed: ${uri} — only https:// or http://localhost` });
-        return;
-      }
-      redirectUris.push(uri);
-    }
-
-    // Stateless: encode client info in the signed client_id itself
-    const clientId = createClientId(redirectUris, String(body.client_name ?? "unknown"));
-    console.log(`[OAUTH] Registered client (stateless): name=${body.client_name ?? "unknown"} uris=${redirectUris.join(",")}`);
-    res.status(201).json({
-      client_id: clientId,
-      client_id_issued_at: Math.floor(Date.now() / 1000),
-      redirect_uris: redirectUris,
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code"],
-      token_endpoint_auth_method: "none",
-    });
-  });
+  router.options("/oauth/register", handleOAuthRegisterOptions);
+  router.post("/oauth/register", handleOAuthRegister);
 
   // Admin endpoint — verify a client_id token
   router.get("/oauth/admin/verify-client", (req: Request, res: Response) => {

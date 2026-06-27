@@ -31,7 +31,7 @@ import {
 } from "drizzle-orm";
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
-import { verifyMcpToken } from "./oauth.js";
+import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -1348,6 +1348,13 @@ export function createMcpRouter(): RouterType {
   router.get("/health", (_req: Request, res: Response) => {
     res.json({ status: "ok", server: "aquavo-store", version: "2.0.0", resource: MCP_RESOURCE });
   });
+
+  // Some MCP clients derive DCR from the server URL itself.
+  // Keep this as an alias for the official /oauth/register endpoint.
+  router.options("/register", handleOAuthRegisterOptions);
+  router.post("/register", handleOAuthRegister);
+  router.options("/oauth/register", handleOAuthRegisterOptions);
+  router.post("/oauth/register", handleOAuthRegister);
 
   // CORS preflight for all MCP requests
   router.options("/", enforceMcpRequestBoundary, (_req: Request, res: Response) => {
