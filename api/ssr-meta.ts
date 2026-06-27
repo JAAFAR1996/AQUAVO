@@ -46,30 +46,109 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     jsonLd: [
       {
         "@context": "https://schema.org",
-        "@type": "OnlineStore",
+        "@type": "Organization",
+        "@id": `${BASE}/#organization`,
         name: "AQUAVO",
-        alternateName: "اكوافو",
+        alternateName: ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
         url: BASE,
-        logo: DEFAULT_IMAGE,
+        logo: {
+          "@type": "ImageObject",
+          url: DEFAULT_IMAGE,
+          width: 512,
+          height: 512
+        },
+        description: "متجر أحواض أسماك عراقي متخصص في معدات ومستلزمات الأحواض — فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع",
+        foundingDate: "2024",
+        knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
+        areaServed: {
+          "@type": "Country",
+          name: "Iraq",
+          sameAs: "https://www.wikidata.org/wiki/Q796"
+        },
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            telephone: "+964-774-788-0673",
+            contactType: "customer service",
+            availableLanguage: ["Arabic"],
+            areaServed: "IQ",
+            hoursAvailable: {
+              "@type": "OpeningHoursSpecification",
+              dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+              opens: "00:00",
+              closes: "23:59"
+            }
+          }
+        ],
+        sameAs: [
+          "https://www.facebook.com/profile.php?id=61587249730248",
+          "https://instagram.com/aquavo_iq",
+          "https://www.tiktok.com/@aquavo.iq"
+        ],
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Baghdad",
+          addressRegion: "Baghdad",
+          addressCountry: "IQ"
+        },
+        hasOfferCatalog: {
+          "@type": "OfferCatalog",
+          name: "معدات ومستلزمات أحواض الأسماك",
+          itemListElement: [
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "غذاء أسماك" } },
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "ديكورات أحواض" } },
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "معالجات مياه" } },
+            { "@type": "Offer", itemOffered: { "@type": "Product", name: "إضاءة أحواض" } }
+          ]
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "Store",
+        "@id": `${BASE}/#localbusiness`,
+        name: "AQUAVO",
         image: DEFAULT_IMAGE,
-        description: "أفضل مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية، علاجات. توصيل لجميع المحافظات.",
+        url: BASE,
+        telephone: "+964-774-788-0673",
+        priceRange: "$$",
         currenciesAccepted: "IQD",
         paymentAccepted: "Cash on Delivery",
-        priceRange: "$$",
-        address: { "@type": "PostalAddress", addressRegion: "بغداد", addressCountry: "IQ" },
-        telephone: "+964-774-788-0673",
-        contactPoint: { "@type": "ContactPoint", telephone: "+964-774-788-0673", contactType: "customer service", availableLanguage: ["Arabic", "ar"] },
-        sameAs: ["https://www.instagram.com/aquavo_iq", "https://www.tiktok.com/@aquavo.iq", "https://www.facebook.com/profile.php?id=61587249730248"],
-        areaServed: { "@type": "Country", name: "العراق" },
-        potentialAction: {
-          "@type": "SearchAction",
-          target: `${BASE}/products?search={search_term_string}`,
-          "query-input": "required name=search_term_string",
+        description: "متجر إلكتروني عراقي متخصص في معدات وإكسسوارات أحواض الأسماك. يخدم العراق بالكامل بتوصيل خلال 24 ساعة وبرسوم ثابتة 5,000 دينار عراقي.",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "بغداد",
+          addressRegion: "Baghdad",
+          addressCountry: "IQ"
         },
+        geo: {
+          "@type": "GeoCoordinates",
+          latitude: 33.3128,
+          longitude: 44.3615
+        },
+        openingHoursSpecification: [
+          {
+            "@type": "OpeningHoursSpecification",
+            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+            opens: "00:00",
+            closes: "23:59"
+          }
+        ],
+        areaServed: {
+          "@type": "Country",
+          name: "Iraq"
+        },
+        sameAs: [
+          "https://www.facebook.com/profile.php?id=61587249730248",
+          "https://instagram.com/aquavo_iq",
+          "https://www.tiktok.com/@aquavo.iq"
+        ]
       },
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
+        "@id": `${BASE}/#website`,
         name: "AQUAVO",
         alternateName: "اكوافو",
         url: BASE,
@@ -79,6 +158,16 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           target: `${BASE}/products?search={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        name: "AQUAVO — معدات أحواض أسماك أصلية في العراق",
+        description: "نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة",
+        thumbnailUrl: `${BASE}/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp`,
+        uploadDate: "2026-01-01",
+        contentUrl: `${BASE}/images/hero/Aquarium_Animation_Request_Fulfilled.mp4`,
+        duration: "PT30S"
       },
       {
         "@context": "https://schema.org",
@@ -225,6 +314,35 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         ],
       },
     ],
+  },
+  "/guides-filter-choice": {
+    title: "كيف تختار الفلتر المناسب لحوضك في العراق | دليل AQUAVO",
+    description: "دليل عملي لاختيار الفلتر المثالي لحوض اسماك الزينة في العراق. مقارنة بين الفلاتر الداخلية، الخارجية، والإسفنجية لتصل لأفضل تصفية لماء حوضك.",
+    keywords: "اختيار فلتر حوض، دليل فلاتر احواض زينة، فلاتر خارجية بغداد، فلاتر داخلية، تنظيف ماء الحوض",
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "HowTo",
+        name: "كيف تختار الفلتر المناسب لحوض أسماك الزينة في العراق",
+        description: "خطوات عملية لاختيار الفلتر المثالي لضمان جودة ونقاء مياه حوض أسماك الزينة",
+        totalTime: "P1D",
+        step: [
+          { "@type": "HowToStep", name: "تحديد حجم الحوض", text: "الفلتر يجب أن يكون قادراً على تدوير مياه الحوض بالكامل 4-5 مرات في الساعة. احسب حجم حوضك باللتر." },
+          { "@type": "HowToStep", name: "معرفة نوع الأسماك", text: "الأسماك الذهبية والسيشيلد تحتاج فلاتر قوية جداً. أسماك البيتا والنيون تيترا تفضل الفلاتر الهادئة مثل الإسفنجية أو الشلال." },
+          { "@type": "HowToStep", name: "اختيار نوع الفلتر", text: "الفلاتر الخارجية (Canister) للأحواض الكبيرة. الفلاتر الداخلية (Internal) للأحواض الصغيرة. فلاتر الإسفنج (Sponge) لأحواض التفريخ والروبيان." },
+          { "@type": "HowToStep", name: "التحقق من الميديا (Media)", text: "تأكد أن الفلتر يدعم التصفية الميكانيكية (إسفنج)، البيولوجية (سيراميك رينج)، والكيميائية (كربون نشط)." }
+        ],
+        inLanguage: "ar"
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: "كيف تختار الفلتر", item: `${BASE}/guides-filter-choice` }
+        ]
+      }
+    ]
   },
   "/fish-compatibility": {
     title: "توافق اسماك الزينة - أي الأسماك تعيش مع بعض | AQUAVO",
