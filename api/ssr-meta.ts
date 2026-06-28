@@ -652,16 +652,27 @@ async function resolveMetadata(pathname: string): Promise<PageMeta & { url: stri
   };
 }
 
+// Serialize JSON-LD safely for an inline <script> context: neutralize </script>
+// breakouts and JS line separators so DB-derived values can't inject markup.
+function safeJsonLd(obj: object): string {
+  return JSON.stringify(obj)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
 function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
   if (meta.jsonLd) {
     if (Array.isArray(meta.jsonLd)) {
       jsonLdScript = meta.jsonLd
-        .map((ld) => `<script type="application/ld+json">${JSON.stringify(ld)}</script>`)
+        .map((ld) => `<script type="application/ld+json">${safeJsonLd(ld)}</script>`)
         .join("\n  ");
     } else {
-      jsonLdScript = `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`;
+      jsonLdScript = `<script type="application/ld+json">${safeJsonLd(meta.jsonLd)}</script>`;
     }
   }
 
