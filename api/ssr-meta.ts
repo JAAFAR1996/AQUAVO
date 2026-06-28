@@ -26,7 +26,7 @@ const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="t
 // answer engines that don't execute JavaScript see this real text (the React
 // app renders the full interactive experience into #root over it). Kept in the
 // DOM but visually-hidden so it never disrupts the designed UI.
-const HOME_SEO_CONTENT = `<section data-ssr-seo aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0">
+const HOME_SEO_CONTENT = `<section data-ssr-seo style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0">
 <h2>شنو هو AQUAVO؟</h2>
 <p data-speakable>AQUAVO هو متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. نوفّر فلاتر وسخانات وأغذية وإضاءة LED وديكورات ومعالجات مياه أصلية، مع توصيل لكل العراق خلال 24 ساعة ودفع عند الاستلام. لا نبيع كائنات حية ولا نباتات.</p>
 <h2>معلومات أساسية عن AQUAVO</h2>
