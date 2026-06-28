@@ -42,6 +42,16 @@ AQUAVO sells aquarium equipment and supplies only. It does NOT sell live animals
 - Blog: https://www.aquavoiq.com/blog
 - Shipping info: https://www.aquavoiq.com/shipping
 - Return Policy: https://www.aquavoiq.com/return-policy
+- About AQUAVO (what it sells / does not sell): https://www.aquavoiq.com/about-aquavo
+
+## Server-Rendered Educational Pages
+- https://www.aquavoiq.com/guides/new-aquarium-setup-iraq — Setting up a new aquarium in Iraq, step by step
+- https://www.aquavoiq.com/guides/aquarium-filter-guide — How to choose an aquarium filter by tank size
+- https://www.aquavoiq.com/guides/aquarium-heater-guide — How to choose an aquarium heater wattage by tank size
+- https://www.aquavoiq.com/guides/aquarium-water-test-guide — Testing aquarium water: ammonia, nitrite, nitrate, pH
+- https://www.aquavoiq.com/guides/water-conditioner-guide — Dechlorinator (water conditioner) and why it is essential
+- https://www.aquavoiq.com/guides/aquarium-weekly-maintenance — Weekly aquarium maintenance schedule
+- https://www.aquavoiq.com/guides/beginner-aquarium-mistakes — Common beginner aquarium mistakes and how to avoid them
 
 ## Guide Pages (Educational — High AEO Value)
 - https://www.aquavoiq.com/guides/filter-choice — How to choose an aquarium filter

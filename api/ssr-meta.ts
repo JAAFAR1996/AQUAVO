@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
+import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown } from "./_guides-content.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -921,6 +922,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Skip for actual static files (shouldn't reach here, but safety)
     if (/\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|json|xml|txt|map|gz|br)$/i.test(pathname)) {
       return res.status(404).end();
+    }
+
+    // Fully server-rendered educational content pages (visible in View Source,
+    // quotable by AI engines). Served as complete HTML, bypassing the SPA shell.
+    const guidePath = pathname.replace(/\/+$/, "") || "/";
+    const guidePage = GUIDE_CONTENT_PAGES[guidePath];
+    if (guidePage) {
+      const acceptHeader = (req.headers.accept || "").toLowerCase();
+      if (acceptHeader.includes("text/markdown")) {
+        res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+        res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+        return res.status(200).send(renderGuideMarkdown(guidePath, guidePage, BASE));
+      }
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+      return res.status(200).send(renderGuideHtml(guidePath, guidePage, BASE, DEFAULT_IMAGE));
     }
 
     const template = getTemplate();
