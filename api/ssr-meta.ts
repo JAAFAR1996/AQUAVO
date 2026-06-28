@@ -315,7 +315,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
       },
     ],
   },
-  "/guides-filter-choice": {
+  "/guides/filter-choice": {
     title: "كيف تختار الفلتر المناسب لحوضك في العراق | دليل AQUAVO",
     description: "دليل عملي لاختيار الفلتر المثالي لحوض اسماك الزينة في العراق. مقارنة بين الفلاتر الداخلية، الخارجية، والإسفنجية لتصل لأفضل تصفية لماء حوضك.",
     keywords: "اختيار فلتر حوض، دليل فلاتر احواض زينة، فلاتر خارجية بغداد، فلاتر داخلية، تنظيف ماء الحوض",
@@ -339,7 +339,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "BreadcrumbList",
         itemListElement: [
           { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
-          { "@type": "ListItem", position: 2, name: "كيف تختار الفلتر", item: `${BASE}/guides-filter-choice` }
+          { "@type": "ListItem", position: 2, name: "كيف تختار الفلتر", item: `${BASE}/guides/filter-choice` }
         ]
       }
     ]
@@ -486,6 +486,61 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     },
   },
 };
+
+// ─── Guide pages (educational — high AEO value) ─────────────────────────────
+// Real routes are /guides/<slug> (slash). These power rich SSR meta + Article
+// + BreadcrumbList JSON-LD; without them guide pages fall back to generic meta.
+const GUIDE_META: Array<{ slug: string; title: string; description: string; keywords: string }> = [
+  { slug: "heater-choice", title: "كيف تختار سخان الحوض المناسب وحساب الواط في العراق", description: "دليل عملي لاختيار سخان الحوض المناسب وحساب عدد الواط حسب حجم الحوض ودرجة حرارة الغرفة، مع نصائح للتثبيت الآمن والحفاظ على ثبات الحرارة.", keywords: "سخان حوض سمك، حساب واط السخان، اختيار سخان الحوض، درجة حرارة الحوض العراق" },
+  { slug: "water-change-schedule", title: "جدول تغيير ماء الحوض — كل متى وكم النسبة | دليل AQUAVO", description: "تعرف على الجدول الصحيح لتغيير ماء حوض اسماك الزينة: كم نسبة الماء التي تغيرها وكل متى، وكيف تتجنب الأخطاء التي تربك توازن الحوض.", keywords: "تغيير ماء الحوض، جدول تغيير الماء، صيانة حوض السمك، نسبة تبديل الماء" },
+  { slug: "feeding-table", title: "جدول تغذية أسماك الزينة — كم مرة حسب النوع | دليل AQUAVO", description: "جدول تغذية أسماك الزينة حسب النوع: كم مرة يومياً وكمية الغذاء المناسبة، وكيف تتجنب الإفراط في التغذية الذي يلوّث ماء الحوض.", keywords: "تغذية اسماك الزينة، كم مرة اطعم السمك، جدول طعام الحوض، غذاء اسماك" },
+  { slug: "quarantine", title: "كيف تجهّز حوض حجر صحي للأسماك الجديدة | دليل AQUAVO", description: "دليل تجهيز حوض الحجر الصحي للأسماك الجديدة قبل إدخالها للحوض الرئيسي، لحماية بقية الأسماك من الأمراض ولتقليل الإجهاد.", keywords: "حوض حجر صحي، عزل اسماك جديدة، حماية الحوض من الامراض، quarantine اسماك" },
+  { slug: "algae-control", title: "السيطرة على الطحالب ومنعها في حوض السمك | دليل AQUAVO", description: "أسباب نمو الطحالب في حوض اسماك الزينة وطرق السيطرة عليها ومنع عودتها: ضبط الإضاءة، التغذية، والصيانة الدورية.", keywords: "طحالب الحوض، التخلص من الطحالب، منع الطحالب، تنظيف زجاج الحوض" },
+  { slug: "aquarium-salt", title: "متى وكيف تستخدم ملح الحوض بأمان | دليل AQUAVO", description: "متى يكون ملح الحوض مفيداً وكيف تستخدمه بالجرعة الصحيحة بأمان، ومتى يجب تجنّبه مع أنواع معينة من الأسماك أو النباتات.", keywords: "ملح الحوض، استخدام ملح اسماك، علاج بالملح، aquarium salt" },
+  { slug: "white-scale", title: "إزالة ترسبات الكلس البيضاء عن زجاج الحوض | دليل AQUAVO", description: "كيف تزيل ترسبات الكلس والبقع البيضاء عن زجاج حوض السمك بأمان دون خدش الزجاج أو إيذاء الأسماك.", keywords: "ترسبات بيضاء على الحوض، كلس زجاج الحوض، تنظيف بقع الحوض، limescale" },
+  { slug: "5-mistakes", title: "5 أخطاء شائعة عند المبتدئين بأحواض الزينة | دليل AQUAVO", description: "أبرز 5 أخطاء يقع بها المبتدئون عند تربية اسماك الزينة وكيف تتجنبها لحوض صحي ومستقر من البداية.", keywords: "اخطاء المبتدئين اسماك، نصائح حوض السمك، اخطاء تربية اسماك الزينة" },
+  { slug: "essential-tools", title: "أدوات الحوض الأساسية لكل هاوٍ | دليل AQUAVO", description: "قائمة الأدوات الأساسية التي يحتاجها كل هاوي أحواض زينة: من شبكة الصيد وسيفون التنظيف إلى أدوات فحص الماء.", keywords: "ادوات حوض السمك، مستلزمات الحوض الاساسية، سيفون تنظيف، شبكة اسماك" },
+  { slug: "filter-media", title: "كيف تختار وتصين ميديا الفلتر | دليل AQUAVO", description: "شرح أنواع ميديا الفلتر (الميكانيكية والبيولوجية والكيميائية) وكيف تختارها وتصينها للحفاظ على نقاء ماء الحوض.", keywords: "ميديا الفلتر، اسفنج الفلتر، سيراميك رينج، كربون نشط، صيانة الفلتر" },
+  { slug: "fish-hiding", title: "لماذا تختبئ الأسماك وكيف تتصرف | دليل AQUAVO", description: "الأسباب وراء اختباء أسماك الزينة وكيف تميّز بين السلوك الطبيعي وعلامات الإجهاد أو المرض، وما الذي يجب فعله.", keywords: "اختباء الاسماك، سمكة تختبئ، سلوك اسماك الزينة، اجهاد الاسماك" },
+  { slug: "happy-fish-signs", title: "علامات صحة وسعادة أسماك الزينة | دليل AQUAVO", description: "كيف تعرف أن أسماك الزينة بصحة جيدة: علامات السلوك واللون والشهية والتنفس التي تدل على حوض سليم.", keywords: "علامات صحة الاسماك، سمكة سليمة، سلوك سمكة سعيدة، صحة اسماك الزينة" },
+  { slug: "temperature-guide", title: "درجات حرارة الماء المثالية لأسماك الزينة | دليل AQUAVO", description: "أفضل نطاقات درجة حرارة الماء لأسماك الزينة الاستوائية والذهبية، وكيف تحافظ على ثبات الحرارة في حوضك.", keywords: "درجة حرارة الحوض، حرارة ماء اسماك الزينة، حرارة الاسماك الاستوائية" },
+  { slug: "treatment-basics", title: "أساسيات علاج أمراض أسماك الزينة | دليل AQUAVO", description: "مدخل عملي لعلاج أمراض اسماك الزينة الشائعة: كيف تتعرف على المرض وتبدأ العلاج المناسب بأمان داخل الحوض.", keywords: "علاج امراض الاسماك، معالج اسماك الزينة، امراض الحوض، نقطة بيضاء" },
+  { slug: "water-myths", title: "خرافات شائعة عن جودة ماء الحوض | دليل AQUAVO", description: "تفكيك أكثر الخرافات شيوعاً حول جودة ماء حوض السمك بمعلومات صحيحة تساعدك على إدارة حوضك بثقة.", keywords: "خرافات ماء الحوض، جودة ماء اسماك الزينة، معلومات خاطئة عن الحوض" },
+  { slug: "tank-rescue-plan", title: "خطة إنقاذ الحوض في حالات الطوارئ | دليل AQUAVO", description: "خطوات طوارئ لإنقاذ حوض اسماك الزينة عند تدهور الماء أو ظهور أعراض خطيرة على الأسماك، خطوة بخطوة.", keywords: "انقاذ الحوض، طوارئ حوض السمك، ازمة الحوض، انقاذ الاسماك" },
+  { slug: "eco-friendly", title: "دليل أحواض الزينة الصديقة للبيئة | دليل AQUAVO", description: "ممارسات صديقة للبيئة في هواية أحواض الزينة: ترشيد الطاقة والماء واختيار معدات تدوم أطول لتقليل الهدر.", keywords: "حوض صديق للبيئة، توفير طاقة الحوض، استدامة اسماك الزينة" },
+];
+
+for (const g of GUIDE_META) {
+  const path = `/guides/${g.slug}`;
+  if (STATIC_PAGES[path]) continue;
+  STATIC_PAGES[path] = {
+    title: g.title,
+    description: g.description,
+    keywords: g.keywords,
+    jsonLd: [
+      {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: g.title,
+        description: g.description,
+        image: DEFAULT_IMAGE,
+        author: { "@type": "Organization", name: "AQUAVO" },
+        publisher: { "@type": "Organization", name: "AQUAVO", logo: { "@type": "ImageObject", url: DEFAULT_IMAGE } },
+        mainEntityOfPage: { "@type": "WebPage", "@id": `${BASE}${path}` },
+        inLanguage: "ar",
+        isPartOf: { "@type": "WebSite", name: "AQUAVO", url: BASE },
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+          { "@type": "ListItem", position: 2, name: g.title.split(" | ")[0], item: `${BASE}${path}` },
+        ],
+      },
+    ],
+  };
+}
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
 async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {

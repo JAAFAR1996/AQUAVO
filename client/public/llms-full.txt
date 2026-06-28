@@ -100,23 +100,23 @@ These pages contain step-by-step guides answering common aquarium-keeping questi
 
 | Guide | URL | Topic |
 |---|---|---|
-| Filter Choice Guide | https://www.aquavoiq.com/guides-filter-choice | How to choose the right filter for your tank size |
-| Heater Choice Guide | https://www.aquavoiq.com/guides-heater-choice | How to choose the right heater wattage |
-| Water Change Schedule | https://www.aquavoiq.com/guides-water-change-schedule | How often to change aquarium water |
-| Feeding Table | https://www.aquavoiq.com/guides-feeding-table | How often to feed fish by species type |
-| Quarantine Guide | https://www.aquavoiq.com/guides-quarantine | How to set up a quarantine tank for new fish |
-| Algae Control | https://www.aquavoiq.com/guides-algae-control | How to control and prevent algae in aquariums |
-| Aquarium Salt Guide | https://www.aquavoiq.com/guides-aquarium-salt | When and how to use aquarium salt |
-| White Scale / Limescale | https://www.aquavoiq.com/guides-white-scale | How to remove white mineral deposits from aquarium glass |
-| 5 Beginner Mistakes | https://www.aquavoiq.com/guides-5-mistakes | Most common mistakes beginner fish keepers make |
-| Essential Tools | https://www.aquavoiq.com/guides-essential-tools | Which aquarium tools every hobbyist needs |
-| Filter Media Guide | https://www.aquavoiq.com/guides-filter-media | How to choose and maintain filter media |
-| Fish Hiding | https://www.aquavoiq.com/guides-fish-hiding | Why fish hide and what to do about it |
-| Happy Fish Signs | https://www.aquavoiq.com/guides-happy-fish-signs | How to tell if your fish are healthy and happy |
-| Temperature Guide | https://www.aquavoiq.com/guides-temperature-guide | Optimal water temperature ranges for tropical fish |
-| Treatment Basics | https://www.aquavoiq.com/guides-treatment-basics | Basic fish disease treatment guide |
-| Water Myths | https://www.aquavoiq.com/guides-water-myths | Common myths about aquarium water quality debunked |
-| Tank Rescue Plan | https://www.aquavoiq.com/guides-tank-rescue-plan | Emergency steps when your tank is in crisis |
+| Filter Choice Guide | https://www.aquavoiq.com/guides/filter-choice | How to choose the right filter for your tank size |
+| Heater Choice Guide | https://www.aquavoiq.com/guides/heater-choice | How to choose the right heater wattage |
+| Water Change Schedule | https://www.aquavoiq.com/guides/water-change-schedule | How often to change aquarium water |
+| Feeding Table | https://www.aquavoiq.com/guides/feeding-table | How often to feed fish by species type |
+| Quarantine Guide | https://www.aquavoiq.com/guides/quarantine | How to set up a quarantine tank for new fish |
+| Algae Control | https://www.aquavoiq.com/guides/algae-control | How to control and prevent algae in aquariums |
+| Aquarium Salt Guide | https://www.aquavoiq.com/guides/aquarium-salt | When and how to use aquarium salt |
+| White Scale / Limescale | https://www.aquavoiq.com/guides/white-scale | How to remove white mineral deposits from aquarium glass |
+| 5 Beginner Mistakes | https://www.aquavoiq.com/guides/5-mistakes | Most common mistakes beginner fish keepers make |
+| Essential Tools | https://www.aquavoiq.com/guides/essential-tools | Which aquarium tools every hobbyist needs |
+| Filter Media Guide | https://www.aquavoiq.com/guides/filter-media | How to choose and maintain filter media |
+| Fish Hiding | https://www.aquavoiq.com/guides/fish-hiding | Why fish hide and what to do about it |
+| Happy Fish Signs | https://www.aquavoiq.com/guides/happy-fish-signs | How to tell if your fish are healthy and happy |
+| Temperature Guide | https://www.aquavoiq.com/guides/temperature-guide | Optimal water temperature ranges for tropical fish |
+| Treatment Basics | https://www.aquavoiq.com/guides/treatment-basics | Basic fish disease treatment guide |
+| Water Myths | https://www.aquavoiq.com/guides/water-myths | Common myths about aquarium water quality debunked |
+| Tank Rescue Plan | https://www.aquavoiq.com/guides/tank-rescue-plan | Emergency steps when your tank is in crisis |
 
 ---
 

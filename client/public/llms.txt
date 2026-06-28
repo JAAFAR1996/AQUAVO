@@ -44,13 +44,13 @@ AQUAVO sells aquarium equipment and supplies only. It does NOT sell live animals
 - Return Policy: https://www.aquavoiq.com/return-policy
 
 ## Guide Pages (Educational — High AEO Value)
-- https://www.aquavoiq.com/guides-filter-choice — How to choose an aquarium filter
-- https://www.aquavoiq.com/guides-heater-choice — How to choose an aquarium heater
-- https://www.aquavoiq.com/guides-water-change-schedule — Water change schedule guide
-- https://www.aquavoiq.com/guides-feeding-table — Fish feeding frequency table
-- https://www.aquavoiq.com/guides-quarantine — Fish quarantine tank setup
-- https://www.aquavoiq.com/guides-algae-control — Algae control in aquariums
-- https://www.aquavoiq.com/guides-aquarium-salt — Aquarium salt usage guide
+- https://www.aquavoiq.com/guides/filter-choice — How to choose an aquarium filter
+- https://www.aquavoiq.com/guides/heater-choice — How to choose an aquarium heater
+- https://www.aquavoiq.com/guides/water-change-schedule — Water change schedule guide
+- https://www.aquavoiq.com/guides/feeding-table — Fish feeding frequency table
+- https://www.aquavoiq.com/guides/quarantine — Fish quarantine tank setup
+- https://www.aquavoiq.com/guides/algae-control — Algae control in aquariums
+- https://www.aquavoiq.com/guides/aquarium-salt — Aquarium salt usage guide
 
 ## Shipping
 - Delivery fee: 5,000 IQD flat fee for Baghdad and ALL 18 Iraqi governorates

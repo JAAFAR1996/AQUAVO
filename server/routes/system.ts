@@ -38,12 +38,12 @@ export function createSystemRouter(): RouterType {
 
             // Guide pages (high AEO value — rich educational content)
             const guidePages = [
-                "/guides-filter-choice", "/guides-heater-choice", "/guides-water-change-schedule",
-                "/guides-feeding-table", "/guides-quarantine", "/guides-algae-control",
-                "/guides-aquarium-salt", "/guides-white-scale", "/guides-5-mistakes",
-                "/guides-essential-tools", "/guides-filter-media", "/guides-eco-friendly",
-                "/guides-fish-hiding", "/guides-happy-fish-signs", "/guides-temperature-guide",
-                "/guides-treatment-basics", "/guides-water-myths", "/guides-tank-rescue-plan",
+                "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule",
+                "/guides/feeding-table", "/guides/quarantine", "/guides/algae-control",
+                "/guides/aquarium-salt", "/guides/white-scale", "/guides/5-mistakes",
+                "/guides/essential-tools", "/guides/filter-media", "/guides/eco-friendly",
+                "/guides/fish-hiding", "/guides/happy-fish-signs", "/guides/temperature-guide",
+                "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
             ];
 
             // Image sitemap namespace for Google visual search + AI image indexing
