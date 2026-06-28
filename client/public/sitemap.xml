@@ -298,6 +298,13 @@
 
   <!-- Server-rendered educational pages (high citability for AI engines) -->
   <url>
+    <loc>https://www.aquavoiq.com/guides</loc>
+    <lastmod>2026-06-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
     <loc>https://www.aquavoiq.com/about-aquavo</loc>
     <lastmod>2026-06-28</lastmod>
     <changefreq>monthly</changefreq>

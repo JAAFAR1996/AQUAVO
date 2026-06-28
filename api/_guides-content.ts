@@ -676,3 +676,143 @@ export function renderGuideMarkdown(path: string, page: GuidePage, base: string)
   lines.push(`**URL:** ${base}${path}`);
   return lines.join("\n");
 }
+
+// ─── Index of the educational pages (shared by /guides + homepage section) ───
+export interface GuideIndexItem {
+  href: string;
+  label: string;
+  blurb: string;
+}
+export const GUIDE_INDEX_ITEMS: GuideIndexItem[] = [
+  { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض سمك جديد في العراق", blurb: "خطوات ترتيب المعدات وملء الحوض وتدوير الماء قبل إضافة الأسماك." },
+  { href: "/guides/aquarium-filter-guide", label: "كيف تختار فلتر مناسب", blurb: "أنواع الفلاتر والقوة المناسبة حسب حجم الحوض ونوع الأسماك." },
+  { href: "/guides/aquarium-heater-guide", label: "كيف تختار سخان (هيتر)", blurb: "حساب الواط المناسب لحجم الحوض والتثبيت الآمن لثبات الحرارة." },
+  { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض", blurb: "معنى الأمونيا والنتريت والنترات وpH وكيف تتصرف عند ارتفاعها." },
+  { href: "/guides/water-conditioner-guide", label: "مزيل الكلور وأهميته", blurb: "ليش معالجة ماء الحنفية ضرورية قبل إضافته للحوض." },
+  { href: "/guides/aquarium-weekly-maintenance", label: "جدول صيانة أسبوعي", blurb: "مهام بسيطة أسبوعية تحافظ على ماء مستقر وأسماك صحية." },
+  { href: "/guides/beginner-aquarium-mistakes", label: "أخطاء المبتدئين", blurb: "أكثر أخطاء المبتدئين شيوعاً وكيف تتجنبها من البداية." },
+  { href: "/about-aquavo", label: "من هو AQUAVO؟", blurb: "متجر معدات أحواض الزينة في العراق — ماذا يبيع وماذا لا يبيع." },
+];
+
+const HOME_FAQ: GuideFaq[] = [
+  { q: "هل AQUAVO يبيع أسماك حية؟", a: "لا نبيع أسماك حية. AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط، ولا يبيع كائنات حية ولا نباتات حية." },
+  { q: "شنو يبيع AQUAVO؟", a: "يبيع مستلزمات ومعدات أحواض الزينة: فلاتر، سخانات، أغذية، إضاءة، ديكورات، معالجات مياه، أحواض، وأدوات صيانة." },
+  { q: "هل توجد أدلة للمبتدئين؟", a: "نعم، عندنا أدلة تعليمية مثل تجهيز حوض جديد وأخطاء المبتدئين، إضافة لدليل المبتدئين الكامل." },
+  { q: "كيف أختار منتجات الحوض؟", a: "استعن بأدلتنا لاختيار الفلتر والسخان حسب حجم الحوض، وافحص ماء الحوض بانتظام قبل وبعد أي تغيير." },
+  { q: "هل التوصيل داخل العراق؟", a: "نعم، التوصيل لكل المحافظات العراقية خلال 24 ساعة برسوم ثابتة 5,000 دينار ودفع عند الاستلام." },
+];
+
+const HOME_SECTION_CSS = `#aquavo-guides{background:#0a1628;color:#dbe7f0;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right;line-height:1.85}
+#aquavo-guides .ag-wrap{max-width:1100px;margin:0 auto;padding:42px 18px 56px}
+#aquavo-guides h2{font-family:'Changa','Cairo',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;margin:0 0 .5em}
+#aquavo-guides .ag-intro{color:#c7d6e3;margin:.2em 0 1em}
+#aquavo-guides .ag-answer{background:#0f1f38;border:1px solid rgba(255,255,255,.10);border-inline-start:4px solid #199bb8;border-radius:12px;padding:14px 16px;margin:0 0 1.4em;color:#eef5fa}
+#aquavo-guides .ag-answer strong{color:#199bb8}
+#aquavo-guides .ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:0 0 1.6em}
+#aquavo-guides .ag-grid a{display:block;background:#0f1f38;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .2s}
+#aquavo-guides .ag-grid a:hover{border-color:#199bb8}
+#aquavo-guides .ag-grid strong{display:block;color:#fff;font-size:1.05rem;margin-bottom:.25em}
+#aquavo-guides .ag-grid span{display:block;color:#b6c6d6;font-size:.92rem}
+#aquavo-guides .ag-faq h3{font-weight:700;color:#eaf2f7;font-size:1.05rem;margin:1.1em 0 .25em;border-top:1px solid rgba(255,255,255,.08);padding-top:.9em}
+#aquavo-guides .ag-faq p{color:#c7d6e3;margin:.2em 0}
+#aquavo-guides .ag-more{margin-top:1.6em;font-size:.95rem}
+#aquavo-guides .ag-more a{color:#56c6dd;font-weight:600;text-decoration:none}
+#aquavo-guides .ag-more a:hover{text-decoration:underline}`;
+
+// Visible, crawlable "AQUAVO Guides" + FAQ section injected at the bottom of the
+// homepage (after #root). Real text in View Source — no clip / aria-hidden.
+export function renderHomeGuidesSection(base: string): string {
+  const cards = GUIDE_INDEX_ITEMS.map(
+    (g) =>
+      `<a href="${esc(g.href)}"><strong>${esc(g.label)}</strong><span>${esc(g.blurb)}</span></a>`
+  ).join("");
+  const faq = HOME_FAQ.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
+  return `<section id="aquavo-guides" data-ssr-seo>
+<style>${HOME_SECTION_CSS}</style>
+<div class="ag-wrap">
+<h2>أدلة AQUAVO لأحواض الزينة</h2>
+<p class="ag-intro">AQUAVO مصدر تعليمي عراقي لهواة أحواض الزينة. أدلتنا تشرح تجهيز الحوض واختيار المعدات والعناية بالماء بأسلوب عملي وواقعي، وكلها مفتوحة ومجانية.</p>
+<div class="ag-answer"><strong>من هو AQUAVO؟</strong> AQUAVO متجر إلكتروني عراقي يبيع مستلزمات ومعدات أحواض الزينة فقط — فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه. لا نبيع أسماك حية ولا كائنات أو نباتات حية. التوصيل لكل العراق خلال 24 ساعة والدفع عند الاستلام.</div>
+<div class="ag-grid">${cards}</div>
+<h2>أسئلة شائعة</h2>
+<div class="ag-faq">${faq}</div>
+<p class="ag-more"><a href="/guides">كل الأدلة</a> · <a href="/products">تصفح المنتجات</a> · <a href="/about-aquavo">من نحن</a></p>
+</div>
+</section>`;
+}
+
+// Full server-rendered /guides index page.
+export function renderGuidesIndexHtml(base: string, image: string): string {
+  const url = `${base}/guides`;
+  const title = "أدلة AQUAVO لأحواض الزينة — التجهيز والعناية والصيانة | AQUAVO";
+  const description =
+    "فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق: تجهيز حوض جديد، اختيار الفلتر والسخان، فحص ماء الحوض، الصيانة الأسبوعية وأخطاء المبتدئين.";
+  const cards = GUIDE_INDEX_ITEMS.map(
+    (g) =>
+      `<li><a href="${esc(g.href)}"><strong>${esc(g.label)}</strong></a><p>${esc(g.blurb)}</p></li>`
+  ).join("");
+  return `<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}" />
+<link rel="canonical" href="${esc(url)}" />
+<meta name="robots" content="index, follow, max-image-preview:large" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="${esc(url)}" />
+<meta property="og:site_name" content="AQUAVO" />
+<meta property="og:locale" content="ar_IQ" />
+<meta property="og:image" content="${esc(image)}" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="${esc(title)}" />
+<meta name="twitter:description" content="${esc(description)}" />
+<meta name="twitter:image" content="${esc(image)}" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<meta name="theme-color" content="#199bb8" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@800;900&display=swap&subset=arabic" />
+<style>${PAGE_CSS}
+ul.guide-index{list-style:none;padding:0;margin:1em 0}
+ul.guide-index li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:.6em 0}
+ul.guide-index strong{color:#fff;font-size:1.1rem}
+ul.guide-index p{margin:.3em 0 0;color:#b6c6d6;font-size:.95rem}</style>
+</head>
+<body>
+<header class="site">
+  <a class="brand" href="/">AQUAVO</a>
+  <nav><a href="/products">المنتجات</a><a href="/faq">الأسئلة</a><a href="/about-aquavo">من نحن</a></nav>
+</header>
+<div class="wrap">
+  <nav class="crumb"><a href="/">الرئيسية</a> / <span>الأدلة</span></nav>
+  <h1>أدلة AQUAVO لأحواض الزينة</h1>
+  <div class="answer"><strong>الخلاصة السريعة:</strong> هذي صفحة فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق. كل دليل يجاوب على سؤال شائع بأسلوب عملي: من تجهيز حوض جديد واختيار الفلتر والسخان، إلى فحص الماء والصيانة الأسبوعية وأخطاء المبتدئين. AQUAVO يبيع المعدات والمستلزمات فقط، ولا يبيع كائنات حية.</div>
+  <h2>كل الأدلة</h2>
+  <ul class="guide-index">${cards}</ul>
+  <div class="cta">
+    <p>تقدر تتصفح المعدات والمستلزمات المتوفرة بـ AQUAVO مع توصيل لكل العراق ودفع عند الاستلام.</p>
+    <a class="btn" href="/products">تصفح المنتجات</a>
+  </div>
+</div>
+<footer class="site">
+  <p>AQUAVO — متجر معدات ومستلزمات أحواض الزينة في العراق. توصيل لكل المحافظات، دفع عند الاستلام. لا نبيع كائنات حية.</p>
+  <p><a href="/">الرئيسية</a> · <a href="/products">المنتجات</a> · <a href="/shipping">التوصيل</a> · <a href="/faq">الأسئلة الشائعة</a> · <a href="/about-aquavo">من نحن</a></p>
+</footer>
+</body>
+</html>`;
+}
+
+export function renderGuidesIndexMarkdown(base: string): string {
+  const lines: string[] = [];
+  lines.push(`# أدلة AQUAVO لأحواض الزينة\n`);
+  lines.push(`فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق. AQUAVO يبيع المعدات والمستلزمات فقط ولا يبيع كائنات حية.\n`);
+  for (const g of GUIDE_INDEX_ITEMS) {
+    lines.push(`- [${g.label}](${base}${g.href}) — ${g.blurb}`);
+  }
+  lines.push(`\n**URL:** ${base}/guides`);
+  return lines.join("\n");
+}
