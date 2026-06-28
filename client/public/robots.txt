@@ -32,25 +32,20 @@ User-agent: Yandex
 Allow: /
 
 # ─── AI Answer Engine Bots ────────────────────────
+# Full crawl access for AI search & answer engines (maximum GEO/AEO
+# visibility). Sensitive areas (/admin, /api, /checkout, /profile) are
+# auth-protected at the application layer, so they need no robots block here.
+
 # ChatGPT / OpenAI
 User-agent: GPTBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
 User-agent: ChatGPT-User
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
-# OpenAI Search (new 2025)
+# OpenAI Search
 User-agent: OAI-SearchBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
 # Google AI (Gemini, AI Overviews)
 User-agent: Google-Extended
@@ -59,21 +54,19 @@ Allow: /
 # Claude / Anthropic
 User-agent: ClaudeBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
 User-agent: anthropic-ai
 Allow: /
-Disallow: /admin
-Disallow: /api/
+
+User-agent: Claude-Web
+Allow: /
 
 # Perplexity AI
 User-agent: PerplexityBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
+
+User-agent: Perplexity-User
+Allow: /
 
 # Apple Intelligence / Siri
 User-agent: Applebot
@@ -89,6 +82,9 @@ Allow: /
 User-agent: Meta-ExternalAgent
 Allow: /
 
+User-agent: Meta-ExternalFetcher
+Allow: /
+
 # Bing Copilot / Microsoft AI
 User-agent: Bingbot
 Allow: /
@@ -100,15 +96,10 @@ Allow: /
 # ByteDance / TikTok AI
 User-agent: Bytespider
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
 # You.com AI
 User-agent: YouBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
 
 # Allen AI (AI2)
 User-agent: AI2Bot
@@ -130,12 +121,13 @@ Allow: /
 User-agent: Timpibot
 Allow: /
 
+# Huawei / Petal AI
+User-agent: PetalBot
+Allow: /
+
 # Common Crawl (used by many AI models)
 User-agent: CCBot
 Allow: /
-Disallow: /admin
-Disallow: /api/
-Disallow: /profile
 
 # ─── LLMs.txt reference ──────────────────────────
 # See /llms.txt for AI content guidance (summary)

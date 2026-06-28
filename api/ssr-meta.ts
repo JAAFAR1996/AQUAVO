@@ -22,6 +22,52 @@ function getTemplate(): string {
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
 const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
+// Crawlable, quotable SSR content for the homepage. AI audit crawlers and
+// answer engines that don't execute JavaScript see this real text (the React
+// app renders the full interactive experience into #root over it). Kept in the
+// DOM but visually-hidden so it never disrupts the designed UI.
+const HOME_SEO_CONTENT = `<section data-ssr-seo aria-hidden="true" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:normal;border:0">
+<h2>شنو هو AQUAVO؟</h2>
+<p data-speakable>AQUAVO هو متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. نوفّر فلاتر وسخانات وأغذية وإضاءة LED وديكورات ومعالجات مياه أصلية، مع توصيل لكل العراق خلال 24 ساعة ودفع عند الاستلام. لا نبيع كائنات حية ولا نباتات.</p>
+<h2>معلومات أساسية عن AQUAVO</h2>
+<ul>
+<li>التوصيل: رسوم ثابتة 5,000 دينار عراقي لبغداد وكل المحافظات الثماني عشرة خلال 24 ساعة.</li>
+<li>الدفع: نقداً عند الاستلام فقط — يمكنك فحص المنتج قبل الدفع.</li>
+<li>المنتجات: أصلية ومستوردة من الشركات المصنعة، مع ضمان على المعدات الإلكترونية.</li>
+<li>الدعم الفني: مجاني على مدار الساعة عبر واتساب والهاتف.</li>
+<li>المقر: بغداد، العراق — تأسس عام 2024.</li>
+</ul>
+<h2>فئات منتجات أحواض الزينة</h2>
+<ul>
+<li><a href="/products?category=tanks">أحواض زجاجية وأطقم كاملة</a></li>
+<li><a href="/products?category=filters">فلاتر داخلية وخارجية وإسفنجية</a></li>
+<li><a href="/products?category=heaters">سخانات مائية بأحجام مختلفة</a></li>
+<li><a href="/products?category=lighting">إضاءة LED للأحواض</a></li>
+<li><a href="/products?category=food">أغذية أسماك الزينة</a></li>
+<li><a href="/products?category=treatments">معالجات ومحسّنات المياه</a></li>
+<li><a href="/products?category=decorations">ديكورات ونباتات صناعية</a></li>
+</ul>
+<h2>أسئلة شائعة عن AQUAVO</h2>
+<h3>شنو يبيع AQUAVO؟</h3>
+<p>AQUAVO متخصص بمعدات ومستلزمات أحواض الزينة فقط: فلاتر، سخانات، أغذية، إضاءة، ديكورات، ومعالجات مياه. لا نبيع كائنات حية ولا نباتات.</p>
+<h3>كم رسوم التوصيل وأين تصلون؟</h3>
+<p>رسوم التوصيل ثابتة 5,000 دينار عراقي لبغداد وكل المحافظات الثماني عشرة، والتوصيل خلال 24 ساعة.</p>
+<h3>ما هي طرق الدفع؟</h3>
+<p>الدفع نقداً عند الاستلام فقط، ويمكنك فحص المنتج والتأكد من سلامته قبل الدفع.</p>
+<h3>هل المنتجات أصلية؟</h3>
+<p>نعم، جميع المنتجات أصلية ومستوردة من الشركات المصنعة، مع ضمان على المعدات الإلكترونية.</p>
+<h3>هل يوجد دعم فني؟</h3>
+<p>نعم، نوفّر دعماً فنياً مجانياً على مدار الساعة عبر واتساب والهاتف لمساعدتك في اختيار وتركيب المعدات.</p>
+<h2>أدلة ومراجع تعليمية</h2>
+<ul>
+<li><a href="/beginner-guide">دليل المبتدئين لتربية أسماك الزينة</a></li>
+<li><a href="/guides/filter-choice">كيف تختار الفلتر المناسب لحوضك</a></li>
+<li><a href="/guides/heater-choice">كيف تختار سخان الحوض المناسب</a></li>
+<li><a href="/guides/water-change-schedule">جدول تغيير ماء الحوض</a></li>
+<li><a href="/faq">كل الأسئلة الشائعة</a></li>
+<li><a href="/products">تصفّح كل المنتجات</a></li>
+</ul>
+</section>`;
 const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
 const DEFAULT_DESC = "AQUAVO — أفضل مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية وعلاجات متخصصة. أحواض زجاجية، إضاءة LED، ديكورات. توصيل لجميع المحافظات، دفع عند الاستلام.";
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
@@ -168,6 +214,18 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         uploadDate: "2026-01-01",
         contentUrl: `${BASE}/images/hero/Aquarium_Animation_Request_Fulfilled.mp4`,
         duration: "PT30S"
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "@id": `${BASE}/#faq`,
+        mainEntity: [
+          { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متجر إلكتروني عراقي متخصص بمعدات ومستلزمات أحواض الزينة فقط: فلاتر، سخانات، أغذية، إضاءة، ديكورات، ومعالجات مياه. لا نبيع كائنات حية ولا نباتات." } },
+          { "@type": "Question", name: "كم رسوم التوصيل وأين تصلون؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل ثابتة 5,000 دينار عراقي لبغداد وكل المحافظات الثماني عشرة، والتوصيل خلال 24 ساعة." } },
+          { "@type": "Question", name: "ما هي طرق الدفع؟", acceptedAnswer: { "@type": "Answer", text: "الدفع نقداً عند الاستلام فقط. يمكنك فحص المنتج قبل الدفع." } },
+          { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المنتجات أصلية ومستوردة من الشركات المصنعة، مع ضمان على المعدات الإلكترونية." } },
+          { "@type": "Question", name: "هل يوجد دعم فني؟", acceptedAnswer: { "@type": "Answer", text: "نعم، دعم فني مجاني على مدار الساعة عبر واتساب والهاتف لمساعدتك في اختيار وتركيب المعدات." } },
+        ],
       },
       {
         "@context": "https://schema.org",
@@ -788,7 +846,12 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
       /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
       (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
     );
-    result = result.replace('<div id="root"></div>', `${CRITICAL_HOME_SHELL}<div id="root"></div>`);
+    // Robust against root div attribute changes (e.g. dir="rtl"): inject the
+    // critical LCP shell + crawlable SEO content immediately before #root.
+    result = result.replace(
+      /<div id="root"[^>]*><\/div>/,
+      (rootDiv) => `${CRITICAL_HOME_SHELL}${HOME_SEO_CONTENT}${rootDiv}`
+    );
   }
 
   return result;
