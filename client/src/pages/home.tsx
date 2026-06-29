@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from "react";
 import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Crown, Sparkles, Package, Truck, Banknote, Headphones } from "lucide-react";
+import { ArrowRight, Trophy, Crown, Sparkles, Package, Truck, Banknote, Headphones, BookOpen } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { useQuery } from "@tanstack/react-query";
@@ -224,6 +224,16 @@ export default function Home() {
                   data-tour="hero-cta"
                 >
                   تصفح المنتجات <ArrowRight className="mr-2 w-5 h-5 rotate-180" />
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white font-bold text-lg px-8 py-6 h-auto backdrop-blur-sm transition-all hover:scale-105 active:scale-95"
+                >
+                  <Link href="/guides">
+                    أدلة AQUAVO للمبتدئين <BookOpen className="mr-2 w-5 h-5" />
+                  </Link>
                 </Button>
                 {/* Play button removed */}
               </div>

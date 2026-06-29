@@ -66,14 +66,11 @@ export default function Footer() {
   ];
 
   const guideLinks = [
-    { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض سمك جديد" },
+    { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
     { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
-    { href: "/guides/heater-choice", label: "اختيار السخان" },
-    { href: "/guides/filter-choice", label: "اختيار الفلتر" },
+    { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
+    { href: "/guides/aquarium-heater-guide", label: "اختيار السخان" },
     { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
-    { href: "/guides/algae-control", label: "مكافحة الطحالب" },
-    { href: "/guides/water-change-schedule", label: "جدول تغيير الماء" },
-    { href: "/beginner-guide", label: "دليل المبتدئين" },
   ];
 
   return (
@@ -176,7 +173,7 @@ export default function Footer() {
               </div>
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed">
-              وجهتك الأولى لمستلزمات أحواض الأسماك في العراق. نوفر أفضل المنتجات العالمية لضمان بيئة صحية وسعيدة لأسماكك.
+              AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة. نوفر منتجات أصلية، تعليم عملي، وتوصيل لكل العراق.
             </p>
             <div className="flex gap-3 pt-2">
               <a
@@ -303,7 +300,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white flex items-center gap-2">
               <ChevronLeft className="h-4 w-4 text-primary" />
-              أدلة الأحواض
+              أدلة أحواض الزينة
             </h4>
             <ul className="space-y-2.5 text-sm">
               {guideLinks.map((link) => (

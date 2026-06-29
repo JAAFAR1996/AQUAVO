@@ -962,7 +962,7 @@ export function renderHomeGuidesSection(base: string): string {
 <div class="ag-grid">${cards}</div>
 <h2>أسئلة شائعة</h2>
 <div class="ag-faq">${faq}</div>
-<p class="ag-more"><a href="/guides">كل الأدلة</a> · <a href="/products">تصفح المنتجات</a> · <a href="/about-aquavo">من نحن</a></p>
+<p class="ag-more"><a href="/guides">أدلة AQUAVO للمبتدئين</a> · <a href="/products">تصفح المنتجات</a> · <a href="/about-aquavo">من نحن</a></p>
 </div>
 </section>`;
 }
