@@ -3,7 +3,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
-import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown, renderHomeGuidesSection } from "./_guides-content.js";
+import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown, renderHomeGuidesSection, renderImportantInternalLinksSection, shouldRenderImportantInternalLinks } from "./_guides-content.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -796,6 +796,10 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   result = result.replace(/__JSON_LD__/g, jsonLdScript);
 
   const metaPath = meta.url.replace(BASE, "") || "/";
+  const importantLinksShell = shouldRenderImportantInternalLinks(metaPath)
+    ? renderImportantInternalLinksSection()
+    : "";
+
   if (metaPath === "/" || metaPath === "/ar") {
     result = result.replace(
       /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
@@ -806,7 +810,12 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     // + FAQ section after #root (real text in View Source — no clip/aria-hidden).
     result = result.replace(
       /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE)}`
+      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE)}${importantLinksShell}`
+    );
+  } else if (importantLinksShell) {
+    result = result.replace(
+      /<div id="root"[^>]*><\/div>/,
+      (rootDiv) => `${rootDiv}${importantLinksShell}`
     );
   }
 

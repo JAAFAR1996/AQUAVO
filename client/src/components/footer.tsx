@@ -305,11 +305,13 @@ export default function Footer() {
             <ul className="space-y-2.5 text-sm">
               {guideLinks.map((link) => (
                 <li key={link.label}>
-                  <Link href={link.href} onClick={handleLinkClick}>
-                    <span className="text-slate-400 hover:text-primary hover:translate-x-1 transition-all inline-block cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
+                  <a
+                    href={link.href}
+                    onClick={handleLinkClick}
+                    className="text-slate-400 hover:text-primary hover:translate-x-1 transition-all inline-block cursor-pointer"
+                  >
+                    {link.label}
+                  </a>
                 </li>
               ))}
             </ul>

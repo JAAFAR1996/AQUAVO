@@ -117,9 +117,9 @@ export default function GuideWaterTestGuide() {
         <header className="wt-bar">
           <Link href="/" className="wt-brand">AQUAVO</Link>
           <nav className="wt-nav">
-            <Link href="/guides/new-aquarium-setup-iraq" className="wt-nav-link">تجهيز الحوض</Link>
+            <a href="/guides/new-aquarium-setup-iraq" className="wt-nav-link">تجهيز الحوض</a>
             <Link href="/guides/heater-choice" className="wt-nav-link">السخانات</Link>
-            <Link href="/guides/aquarium-decor-stones-guide" className="wt-nav-link">الديكور</Link>
+            <a href="/guides/aquarium-decor-stones-guide" className="wt-nav-link">الديكور</a>
           </nav>
         </header>
 
@@ -128,7 +128,7 @@ export default function GuideWaterTestGuide() {
           <nav className="wt-breadcrumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
             <span> / </span>
-            <Link href="/guides">الأدلة</Link>
+            <a href="/guides">الأدلة</a>
             <span> / </span>
             <span>فحص ماء الحوض</span>
           </nav>
@@ -283,13 +283,13 @@ export default function GuideWaterTestGuide() {
           <section className="wt-section">
             <h2 className="wt-title">أدلة ذات صلة</h2>
             <div className="wt-related-grid">
-              <Link href="/guides/new-aquarium-setup-iraq" className="wt-related-card">
+              <a href="/guides/new-aquarium-setup-iraq" className="wt-related-card">
                 <span className="wt-related-icon">🐠</span>
                 <div>
                   <div className="wt-related-title">دليل تجهيز حوض سمك جديد</div>
                   <div className="wt-related-desc">كل خطوات البداية الصحيحة</div>
                 </div>
-              </Link>
+              </a>
               <Link href="/guides/water-change-schedule" className="wt-related-card">
                 <span className="wt-related-icon">💧</span>
                 <div>

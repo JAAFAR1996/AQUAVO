@@ -967,6 +967,60 @@ export function renderHomeGuidesSection(base: string): string {
 </section>`;
 }
 
+const IMPORTANT_INTERNAL_LINKS = [
+  { href: "/", label: "الرئيسية" },
+  { href: "/products", label: "المنتجات" },
+  { href: "/guides", label: "أدلة أحواض الزينة" },
+  { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
+  { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
+  { href: "/guides/aquarium-heater-guide", label: "اختيار السخان" },
+  { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
+  { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
+  { href: "/shipping", label: "التوصيل" },
+  { href: "/faq", label: "الأسئلة الشائعة" },
+  { href: "/about-aquavo", label: "من هو AQUAVO؟" },
+  { href: "/return-policy", label: "سياسة الإرجاع" },
+];
+
+const IMPORTANT_LINK_BLOCKED_PREFIXES = [
+  "/admin",
+  "/api",
+  "/checkout",
+  "/profile",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+];
+
+const IMPORTANT_LINKS_CSS = `#aquavo-important-links{background:#071226;color:#cbd8e5;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right}
+#aquavo-important-links .ail-wrap{max-width:1100px;margin:0 auto;padding:18px}
+#aquavo-important-links h2{font-family:'Changa','Cairo',sans-serif;font-size:1rem;line-height:1.4;color:#fff;margin:0 0 .75rem;font-weight:800}
+#aquavo-important-links nav{display:flex;flex-wrap:wrap;gap:.55rem}
+#aquavo-important-links a{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#dbe7f0;background:rgba(255,255,255,.04);padding:.45rem .7rem;text-decoration:none;font-size:.9rem;line-height:1.4}
+#aquavo-important-links a:hover{border-color:#199bb8;color:#fff;background:rgba(25,155,184,.14)}`;
+
+export function shouldRenderImportantInternalLinks(pathname: string): boolean {
+  const cleanPath = (pathname || "/").split("?")[0].replace(/\/+$/, "") || "/";
+  return !IMPORTANT_LINK_BLOCKED_PREFIXES.some(
+    (prefix) => cleanPath === prefix || cleanPath.startsWith(`${prefix}/`)
+  );
+}
+
+export function renderImportantInternalLinksSection(): string {
+  const links = IMPORTANT_INTERNAL_LINKS.map(
+    (link) => `<a href="${esc(link.href)}">${esc(link.label)}</a>`
+  ).join("");
+
+  return `<section id="aquavo-important-links" data-ssr-internal-links>
+<style>${IMPORTANT_LINKS_CSS}</style>
+<div class="ail-wrap">
+<h2>روابط مهمة من AQUAVO</h2>
+<nav aria-label="روابط مهمة من AQUAVO">${links}</nav>
+</div>
+</section>`;
+}
+
 // Full server-rendered /guides index page.
 export function renderGuidesIndexHtml(base: string, image: string): string {
   const url = `${base}/guides`;

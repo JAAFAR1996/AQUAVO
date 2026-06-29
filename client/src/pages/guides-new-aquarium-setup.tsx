@@ -128,9 +128,9 @@ export default function GuideNewAquariumSetup() {
         <header className="nas-bar">
           <Link href="/" className="nas-brand">AQUAVO</Link>
           <nav className="nas-nav">
-            <Link href="/guides/aquarium-water-test-guide" className="nas-nav-link">فحص الماء</Link>
+            <a href="/guides/aquarium-water-test-guide" className="nas-nav-link">فحص الماء</a>
             <Link href="/guides/heater-choice" className="nas-nav-link">السخانات</Link>
-            <Link href="/guides/aquarium-decor-stones-guide" className="nas-nav-link">الديكور</Link>
+            <a href="/guides/aquarium-decor-stones-guide" className="nas-nav-link">الديكور</a>
           </nav>
         </header>
 
@@ -140,7 +140,7 @@ export default function GuideNewAquariumSetup() {
           <nav className="nas-breadcrumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
             <span> / </span>
-            <Link href="/guides">الأدلة</Link>
+            <a href="/guides">الأدلة</a>
             <span> / </span>
             <span>تجهيز حوض سمك جديد</span>
           </nav>
@@ -253,7 +253,7 @@ export default function GuideNewAquariumSetup() {
               </table>
             </div>
             <div className="nas-related-links">
-              <Link href="/guides/aquarium-water-test-guide" className="nas-related-link">← دليل كامل: شرائط فحص ماء الحوض وتفسير القراءات</Link>
+              <a href="/guides/aquarium-water-test-guide" className="nas-related-link">← دليل كامل: شرائط فحص ماء الحوض وتفسير القراءات</a>
             </div>
           </section>
 
@@ -320,13 +320,13 @@ export default function GuideNewAquariumSetup() {
           <section className="nas-section">
             <h2 className="nas-title">أدلة ذات صلة</h2>
             <div className="nas-related-grid">
-              <Link href="/guides/aquarium-water-test-guide" className="nas-related-card">
+              <a href="/guides/aquarium-water-test-guide" className="nas-related-card">
                 <span className="nas-related-icon">🧪</span>
                 <div>
                   <div className="nas-related-title">دليل شرائط فحص ماء الحوض</div>
                   <div className="nas-related-desc">شنو تعني القراءات؟ ومتى تكون خطيرة؟</div>
                 </div>
-              </Link>
+              </a>
               <Link href="/guides/heater-choice" className="nas-related-card">
                 <span className="nas-related-icon">🌡️</span>
                 <div>
@@ -341,13 +341,13 @@ export default function GuideNewAquariumSetup() {
                   <div className="nas-related-desc">أنواع الفلاتر والفرق بينها</div>
                 </div>
               </Link>
-              <Link href="/guides/aquarium-decor-stones-guide" className="nas-related-card">
+              <a href="/guides/aquarium-decor-stones-guide" className="nas-related-card">
                 <span className="nas-related-icon">🪨</span>
                 <div>
                   <div className="nas-related-title">دليل الديكور والأحجار</div>
                   <div className="nas-related-desc">شنو الأحجار الآمنة وكيف تختارها</div>
                 </div>
-              </Link>
+              </a>
             </div>
           </section>
 

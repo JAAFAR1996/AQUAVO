@@ -130,8 +130,8 @@ export default function GuideDecorStonesGuide() {
         <header className="dc-bar">
           <Link href="/" className="dc-brand">AQUAVO</Link>
           <nav className="dc-nav">
-            <Link href="/guides/new-aquarium-setup-iraq" className="dc-nav-link">تجهيز الحوض</Link>
-            <Link href="/guides/aquarium-water-test-guide" className="dc-nav-link">فحص الماء</Link>
+            <a href="/guides/new-aquarium-setup-iraq" className="dc-nav-link">تجهيز الحوض</a>
+            <a href="/guides/aquarium-water-test-guide" className="dc-nav-link">فحص الماء</a>
             <Link href="/guides/heater-choice" className="dc-nav-link">السخانات</Link>
           </nav>
         </header>
@@ -141,7 +141,7 @@ export default function GuideDecorStonesGuide() {
           <nav className="dc-breadcrumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
             <span> / </span>
-            <Link href="/guides">الأدلة</Link>
+            <a href="/guides">الأدلة</a>
             <span> / </span>
             <span>ديكور وأحجار الحوض</span>
           </nav>
@@ -362,20 +362,20 @@ export default function GuideDecorStonesGuide() {
           <section className="dc-section">
             <h2 className="dc-title">أدلة ذات صلة</h2>
             <div className="dc-related-grid">
-              <Link href="/guides/new-aquarium-setup-iraq" className="dc-related-card">
+              <a href="/guides/new-aquarium-setup-iraq" className="dc-related-card">
                 <span className="dc-related-icon">🐠</span>
                 <div>
                   <div className="dc-related-title">دليل تجهيز حوض سمك جديد</div>
                   <div className="dc-related-desc">كل خطوات البداية الصحيحة</div>
                 </div>
-              </Link>
-              <Link href="/guides/aquarium-water-test-guide" className="dc-related-card">
+              </a>
+              <a href="/guides/aquarium-water-test-guide" className="dc-related-card">
                 <span className="dc-related-icon">🧪</span>
                 <div>
                   <div className="dc-related-title">فحص ماء الحوض</div>
                   <div className="dc-related-desc">تفسير القراءات والتصرف الصحيح</div>
                 </div>
-              </Link>
+              </a>
               <Link href="/guides/heater-choice" className="dc-related-card">
                 <span className="dc-related-icon">🌡️</span>
                 <div>

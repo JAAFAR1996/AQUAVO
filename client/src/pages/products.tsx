@@ -1,10 +1,10 @@
 import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { AlertCircle, ArrowUpDown, BookOpen, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { useComparison } from "@/contexts/comparison-context";
@@ -21,7 +21,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BackToTop } from "@/components/back-to-top";
 import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
-import { getEducationalGuideForSignals } from "@/lib/educational-guides";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -335,11 +334,6 @@ export default function Products() {
     return count;
   }, [filters, minPrice, maxPrice]);
 
-  const educationalGuide = useMemo(
-    () => getEducationalGuideForSignals(filters.categories),
-    [filters.categories],
-  );
-
   // Toggle individual raw category — the CategoryScrollBar handles single-select
   // at the group level by clearing existing selections before adding the new group.
   const handleCategoryToggle = (category: string) => {
@@ -416,19 +410,6 @@ export default function Products() {
             categoryCounts={categoryCounts}
           />
         </div>
-
-        {educationalGuide && (
-          <Link
-            href={educationalGuide.href}
-            className="mb-5 flex items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-right transition-colors hover:border-primary/40 hover:bg-primary/10"
-          >
-            <BookOpen className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-            <span>
-              <span className="block text-sm font-bold text-foreground">{educationalGuide.label}</span>
-              <span className="block text-xs text-muted-foreground mt-1">{educationalGuide.description}</span>
-            </span>
-          </Link>
-        )}
 
         {/* Filter Bar with Quick Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">

@@ -39,7 +39,6 @@ import { metaTrackViewContent } from "@/lib/meta-pixel";
 import { trackViewItem } from "@/lib/analytics";
 import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
-import { getEducationalGuideForSignals } from "@/lib/educational-guides";
 
 interface Product3DMeta {
   src: string;
@@ -156,10 +155,6 @@ export default function ProductDetails() {
   const displayModel = selectedVariant?.specifications?.['الموديل'] ?? product?.specifications?.['الموديل'];
   const product3DMeta = readProduct3DMeta(product?.specifications);
   const exactPieceCode = product3DMeta?.pieceCode ?? product3DMeta?.label;
-  const educationalGuide = product
-    ? getEducationalGuideForSignals([product.category, product.subcategory, product.name])
-    : null;
-
   // أي منتج لديه سعر أكبر من صفر يمكن شراؤه
   const isPurchasableBrand = true; // Removed brand restriction — all brands are available
   const variantMinPriceDetail = (product?.hasVariants && product?.variants?.length)
@@ -526,19 +521,6 @@ export default function ProductDetails() {
                     <span>يوصل خلال 24 ساعة</span>
                   </div>
                 </div>
-
-                {educationalGuide && (
-                  <Link
-                    href={educationalGuide.href}
-                    className="mb-6 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm transition-colors hover:border-primary/40 hover:bg-primary/10"
-                  >
-                    <Info className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>
-                      <span className="block font-semibold text-foreground">{educationalGuide.label}</span>
-                      <span className="block text-xs text-muted-foreground mt-1">{educationalGuide.description}</span>
-                    </span>
-                  </Link>
-                )}
 
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
