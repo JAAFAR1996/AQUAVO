@@ -18,6 +18,51 @@ const PRECOMPRESSED_EXTENSIONS = new Set([
 const IMAGE_EXTENSIONS_WITH_WEBP_FALLBACK = new Set([".jpg", ".jpeg", ".png"]);
 const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
 
+/**
+ * SSR_NAV_SHELL — injected into every page's server HTML before React mounts.
+ * Visually hidden (1×1px, opacity:0, pointer-events:none) so users never see it.
+ * Crawlers (Googlebot, Ahrefs, ClaudeBot, GPTBot) parse it as real HTML links.
+ * React replaces #root contents on hydration — zero visual conflict.
+ */
+const SSR_NAV_SHELL = `<nav id="ssr-nav-shell" aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;clip:rect(0,0,0,0);white-space:nowrap;">
+  <a href="/">AQUAVO &#1575;&#1604;&#1585;&#1574;&#1610;&#1587;&#1610;&#1577;</a>
+  <a href="/products">&#1575;&#1604;&#1605;&#1606;&#1578;&#1580;&#1575;&#1578;</a>
+  <a href="/deals">&#1575;&#1604;&#1593;&#1585;&#1608;&#1590;</a>
+  <a href="/blog">&#1575;&#1604;&#1605;&#1583;&#1608;&#1606;&#1577;</a>
+  <a href="/faq">&#1575;&#1604;&#1571;&#1587;&#1574;&#1604;&#1577; &#1575;&#1604;&#1588;&#1575;&#1574;&#1593;&#1577;</a>
+  <a href="/shipping">&#1575;&#1604;&#1578;&#1608;&#1589;&#1610;&#1604;</a>
+  <a href="/return-policy">&#1587;&#1610;&#1575;&#1587;&#1577; &#1575;&#1604;&#1573;&#1585;&#1580;&#1575;&#1593;</a>
+  <a href="/about">&#1593;&#1606; AQUAVO</a>
+  <a href="/why-aquavo">&#1604;&#1605;&#1575;&#1584;&#1575; AQUAVO</a>
+  <a href="/beginner-guide">&#1583;&#1604;&#1610;&#1604; &#1575;&#1604;&#1605;&#1576;&#1578;&#1583;&#1574;&#1610;&#1606;</a>
+  <a href="/calculators">&#1575;&#1604;&#1581;&#1575;&#1587;&#1576;&#1575;&#1578;</a>
+  <a href="/fish-encyclopedia">&#1605;&#1608;&#1587;&#1608;&#1593;&#1577; &#1575;&#1604;&#1571;&#1587;&#1605;&#1575;&#1603;</a>
+  <a href="/journey">&#1585;&#1581;&#1604;&#1578;&#1603;</a>
+  <a href="/sustainability">&#1575;&#1604;&#1575;&#1587;&#1578;&#1583;&#1575;&#1605;&#1577;</a>
+  <a href="/order-tracking">&#1578;&#1578;&#1576;&#1593; &#1575;&#1604;&#1591;&#1604;&#1576;</a>
+  <a href="/guides/new-aquarium-setup-iraq">&#1578;&#1580;&#1607;&#1610;&#1586; &#1581;&#1608;&#1590; &#1587;&#1605;&#1603; &#1580;&#1583;&#1610;&#1583;</a>
+  <a href="/guides/aquarium-water-test-guide">&#1601;&#1581;&#1589; &#1605;&#1575;&#1569; &#1575;&#1604;&#1581;&#1608;&#1590;</a>
+  <a href="/guides/aquarium-decor-stones-guide">&#1583;&#1610;&#1603;&#1608;&#1585; &#1575;&#1604;&#1581;&#1608;&#1590;</a>
+  <a href="/guides/heater-choice">&#1575;&#1582;&#1578;&#1610;&#1575;&#1585; &#1575;&#1604;&#1587;&#1582;&#1575;&#1606;</a>
+  <a href="/guides/filter-choice">&#1575;&#1582;&#1578;&#1610;&#1575;&#1585; &#1575;&#1604;&#1601;&#1604;&#1578;&#1585;</a>
+  <a href="/guides/algae-control">&#1605;&#1603;&#1575;&#1601;&#1581;&#1577; &#1575;&#1604;&#1591;&#1581;&#1575;&#1604;&#1576;</a>
+  <a href="/guides/water-change-schedule">&#1580;&#1583;&#1608;&#1604; &#1578;&#1594;&#1610;&#1610;&#1585; &#1575;&#1604;&#1605;&#1575;&#1569;</a>
+  <a href="/guides/feeding-table">&#1580;&#1583;&#1608;&#1604; &#1575;&#1604;&#1578;&#1594;&#1584;&#1610;&#1577;</a>
+  <a href="/guides/quarantine">&#1575;&#1604;&#1581;&#1580;&#1585; &#1575;&#1604;&#1589;&#1581;&#1610;</a>
+  <a href="/guides/aquarium-salt">&#1605;&#1604;&#1581; &#1575;&#1604;&#1581;&#1608;&#1590;</a>
+  <a href="/guides/treatment-basics">&#1571;&#1587;&#1575;&#1587;&#1610;&#1575;&#1578; &#1575;&#1604;&#1593;&#1604;&#1575;&#1580;</a>
+  <a href="/guides/tank-rescue-plan">&#1573;&#1606;&#1602;&#1575;&#1584; &#1575;&#1604;&#1581;&#1608;&#1590;</a>
+  <a href="/guides/white-scale">&#1575;&#1604;&#1578;&#1585;&#1587;&#1576;&#1575;&#1578; &#1575;&#1604;&#1576;&#1610;&#1590;&#1575;&#1569;</a>
+  <a href="/guides/temperature-guide">&#1583;&#1604;&#1610;&#1604; &#1575;&#1604;&#1581;&#1585;&#1575;&#1585;&#1577;</a>
+  <a href="/guides/filter-media">&#1571;&#1608;&#1587;&#1575;&#1591; &#1575;&#1604;&#1578;&#1585;&#1588;&#1610;&#1581;</a>
+  <a href="/guides/happy-fish-signs">&#1593;&#1604;&#1575;&#1605;&#1575;&#1578; &#1575;&#1604;&#1587;&#1605;&#1603; &#1575;&#1604;&#1587;&#1593;&#1610;&#1583;</a>
+  <a href="/guides/fish-hiding">&#1575;&#1582;&#1578;&#1576;&#1575;&#1569; &#1575;&#1604;&#1587;&#1605;&#1603;</a>
+  <a href="/guides/water-myths">&#1582;&#1585;&#1575;&#1601;&#1575;&#1578; &#1575;&#1604;&#1605;&#1575;&#1569;</a>
+  <a href="/guides/essential-tools">&#1575;&#1604;&#1571;&#1583;&#1608;&#1575;&#1578; &#1575;&#1604;&#1571;&#1587;&#1575;&#1587;&#1610;&#1577;</a>
+  <a href="/guides/eco-friendly">&#1575;&#1604;&#1593;&#1606;&#1575;&#1610;&#1577; &#1575;&#1604;&#1576;&#1610;&#1574;&#1610;&#1577;</a>
+  <a href="/guides/aquarium-salt">&#1605;&#1604;&#1581; &#1575;&#1604;&#1581;&#1608;&#1590;</a>
+</nav>`;
+
 function resolveStaticAssetPath(root: string, requestPath: string) {
   try {
     const decodedPath = decodeURIComponent(requestPath);
@@ -57,12 +102,23 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     .replace(/__META_OG_TYPE__/g, "website")
     .replace(/__JSON_LD__/g, generateSsrMeta(requestPath));
 
+  // Inject SSR nav shell on EVERY page (crawlable links, visually hidden)
+  html = html.replace('<div id="root" dir="rtl"></div>', `${SSR_NAV_SHELL}<div id="root" dir="rtl"></div>`);
+  // Fallback: if root div has no dir attribute (dev/template variants)
+  if (!html.includes(SSR_NAV_SHELL)) {
+    html = html.replace('<div id="root"></div>', `${SSR_NAV_SHELL}<div id="root"></div>`);
+  }
+
   if (requestPath === "/" || requestPath === "/ar") {
     html = html.replace(
       /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
       (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
     );
-    html = html.replace('<div id="root"></div>', `${CRITICAL_HOME_SHELL}<div id="root"></div>`);
+    // At this point SSR_NAV_SHELL is already before #root. Insert CRITICAL_HOME_SHELL between them.
+    html = html.replace(
+      `${SSR_NAV_SHELL}<div id="root" dir="rtl"></div>`,
+      `${SSR_NAV_SHELL}${CRITICAL_HOME_SHELL}<div id="root" dir="rtl"></div>`
+    );
   }
 
   return html;
