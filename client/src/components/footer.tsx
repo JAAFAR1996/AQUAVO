@@ -59,11 +59,21 @@ export default function Footer() {
   const supportLinks = [
     { href: "/shipping", label: "معلومات التوصيل" },
     { href: "/sustainability", label: "الاستدامة البيئية" },
-    { href: "/guides/eco-friendly", label: "دليل العناية" },
     { href: "/return-policy", label: "سياسة الإرجاع" },
     { href: "/faq", label: "الأسئلة الشائعة" },
     { href: "/order-tracking", label: "تتبع الطلب" },
     { href: "/blog", label: "المدونة" },
+  ];
+
+  const guideLinks = [
+    { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض سمك جديد" },
+    { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
+    { href: "/guides/heater-choice", label: "اختيار السخان" },
+    { href: "/guides/filter-choice", label: "اختيار الفلتر" },
+    { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
+    { href: "/guides/algae-control", label: "مكافحة الطحالب" },
+    { href: "/guides/water-change-schedule", label: "جدول تغيير الماء" },
+    { href: "/beginner-guide", label: "دليل المبتدئين" },
   ];
 
   return (
@@ -278,6 +288,25 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               {supportLinks.map((link) => (
+                <li key={link.label}>
+                  <Link href={link.href} onClick={handleLinkClick}>
+                    <span className="text-slate-400 hover:text-primary hover:translate-x-1 transition-all inline-block cursor-pointer">
+                      {link.label}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Guides Column — SEO/AEO Internal Linking */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-semibold text-white flex items-center gap-2">
+              <ChevronLeft className="h-4 w-4 text-primary" />
+              أدلة الأحواض
+            </h4>
+            <ul className="space-y-2.5 text-sm">
+              {guideLinks.map((link) => (
                 <li key={link.label}>
                   <Link href={link.href} onClick={handleLinkClick}>
                     <span className="text-slate-400 hover:text-primary hover:translate-x-1 transition-all inline-block cursor-pointer">

@@ -215,6 +215,125 @@ export function generateSsrMeta(requestPath: string): string {
     });
   }
 
+  // 4. New Aquarium Setup Guide
+  if (requestPath === "/guides/new-aquarium-setup-iraq") {
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": BASE_URL },
+        { "@type": "ListItem", "position": 2, "name": "الأدلة", "item": `${BASE_URL}/guides` },
+        { "@type": "ListItem", "position": 3, "name": "تجهيز حوض سمك جديد", "item": `${BASE_URL}/guides/new-aquarium-setup-iraq` }
+      ]
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      "name": "كيف تجهز حوض سمك جديد في العراق — خطوة بخطوة",
+      "description": "دليل كامل لتجهيز أول حوض سمك: من اختيار المعدات حتى إضافة السمك بأمان. مقدم من AQUAVO — متجر مستلزمات أحواض الزينة في العراق.",
+      "totalTime": "PT7D",
+      "supply": [
+        { "@type": "HowToSupply", "name": "فلتر مائي" },
+        { "@type": "HowToSupply", "name": "سخان حوض بثرموستات" },
+        { "@type": "HowToSupply", "name": "مزيل كلور وكلورامين" },
+        { "@type": "HowToSupply", "name": "شرائط فحص ماء" },
+        { "@type": "HowToSupply", "name": "حصى أو رمل مغسول" }
+      ],
+      "step": [
+        { "@type": "HowToStep", "position": 1, "name": "نظف الحوض وحدد موقعه", "text": "انظف الحوض بماء فقط بدون صابون. اختر مكان بعيد عن أشعة الشمس المباشرة.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-1` },
+        { "@type": "HowToStep", "position": 2, "name": "ضع الحصى وركب المعدات", "text": "اغسل الحصى جيداً ثم ضعه. ركب الفلتر والسخان قرب مصدر تدفق الماء.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-2` },
+        { "@type": "HowToStep", "position": 3, "name": "أملأ بالماء وأضف مزيل الكلور", "text": "أملأ بماء الإسالة وأضف مزيل الكلور فوراً. الكلور يقتل السمك والبكتيريا النافعة.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-3` },
+        { "@type": "HowToStep", "position": 4, "name": "انتظر الدورة البايولوجية", "text": "شغل الفلتر وانتظر 3-7 أيام مع بكتيريا جاهزة. البكتيريا النافعة تحمي السمك من الأمونيا.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-4` },
+        { "@type": "HowToStep", "position": 5, "name": "افحص الماء قبل إضافة السمك", "text": "استخدم شرائط فحص الماء. الأمونيا والنتريت يجب أن يكونا صفر.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-5` },
+        { "@type": "HowToStep", "position": 6, "name": "أضف السمك تدريجياً", "text": "ابدأ بـ 2-3 سمكات فقط. طوّف الكيس 15 دقيقة في الحوض لمعادلة الحرارة.", "url": `${BASE_URL}/guides/new-aquarium-setup-iraq#step-6` }
+      ],
+      "publisher": { "@type": "Organization", "name": "AQUAVO", "url": BASE_URL },
+      "inLanguage": "ar"
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "شنو أحتاج حتى أجهز حوض سمك جديد؟", "acceptedAnswer": { "@type": "Answer", "text": "تحتاج: حوض، فلتر مائي، سخان (للأسماك الاستوائية)، حصى أو رمل، مزيل كلور، وشرائط فحص ماء." } },
+        { "@type": "Question", "name": "هل أحتاج فلتر للحوض؟", "acceptedAnswer": { "@type": "Answer", "text": "نعم، الفلتر ضروري في كل حوض. يزيل الأمونيا والمواد الضارة ويحافظ على توازن الماء." } },
+        { "@type": "Question", "name": "كم يوم أنتظر قبل ما أضيف السمك؟", "acceptedAnswer": { "@type": "Answer", "text": "الحد الأدنى 3 أيام مع بكتيريا جاهزة، و7-14 يوم بدونها. افحص الماء أولاً: لما الأمونيا والنتريت يصيرون صفر، الحوض جاهز." } },
+        { "@type": "Question", "name": "ليش مزيل الكلور مهم؟", "acceptedAnswer": { "@type": "Answer", "text": "ماء الإسالة يحتوي على كلور وكلورامين يقتل السمك والبكتيريا النافعة. مزيل الكلور يحيّد هذه المواد فوراً." } }
+      ]
+    });
+  }
+
+  // 5. Water Test Guide
+  if (requestPath === "/guides/aquarium-water-test-guide") {
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": BASE_URL },
+        { "@type": "ListItem", "position": 2, "name": "الأدلة", "item": `${BASE_URL}/guides` },
+        { "@type": "ListItem", "position": 3, "name": "فحص ماء الحوض", "item": `${BASE_URL}/guides/aquarium-water-test-guide` }
+      ]
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "شنو تفحص شرائط ماء الحوض؟", "acceptedAnswer": { "@type": "Answer", "text": "شرائط ماء الحوض تقيس: الأمونيا (NH3)، النتريت (NO2)، النترات (NO3)، درجة الحموضة (pH)، وأحياناً الكلور والصلابة." } },
+        { "@type": "Question", "name": "شنو القراءات الآمنة لماء الحوض؟", "acceptedAnswer": { "@type": "Answer", "text": "الأمونيا: 0 ppm. النتريت: 0 ppm. النترات: أقل من 40 ppm. pH: بين 6.8 و7.5." } },
+        { "@type": "Question", "name": "شنو أسوي إذا الأمونيا ارتفعت؟", "acceptedAnswer": { "@type": "Answer", "text": "فوراً: غيّر 25-30% من الماء. أوقف الأكل يوم أو يومين. تأكد من شغل الفلتر. افحص الماء مرة ثانية بعد 24 ساعة." } },
+        { "@type": "Question", "name": "شنو الفرق بين النتريت والنترات؟", "acceptedAnswer": { "@type": "Answer", "text": "النتريت (NO2) أخطر بكثير من النترات (NO3). النتريت يمنع الدم من حمل الأوكسجين ويقتل السمك بسرعة. النترات أقل خطراً ويُخفَّض بتغيير الماء." } }
+      ]
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "شرائط فحص ماء الحوض — كيف تقرأ النتائج وشنو تسوي",
+      "description": "دليل كامل لشرائط فحص ماء الحوض: الأمونيا والنتريت والنترات وpH والكلور — القراءات الآمنة والتصرف الصحيح.",
+      "author": { "@type": "Organization", "name": "AQUAVO" },
+      "publisher": { "@type": "Organization", "name": "AQUAVO", "url": BASE_URL },
+      "datePublished": "2026-06-29",
+      "dateModified": "2026-06-29",
+      "inLanguage": "ar",
+      "url": `${BASE_URL}/guides/aquarium-water-test-guide`,
+      "mainEntityOfPage": `${BASE_URL}/guides/aquarium-water-test-guide`
+    });
+  }
+
+  // 6. Decor & Stones Guide
+  if (requestPath === "/guides/aquarium-decor-stones-guide") {
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": BASE_URL },
+        { "@type": "ListItem", "position": 2, "name": "الأدلة", "item": `${BASE_URL}/guides` },
+        { "@type": "ListItem", "position": 3, "name": "ديكور وأحجار الحوض", "item": `${BASE_URL}/guides/aquarium-decor-stones-guide` }
+      ]
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        { "@type": "Question", "name": "شنو الأحجار الآمنة لحوض السمك؟", "acceptedAnswer": { "@type": "Answer", "text": "الأحجار الآمنة هي الأحجار الخاملة: البازلت، الكوارتز، الأردواز (Slate)، والأحجار النهرية المصقولة. تجنب الرخام والحجر الجيري لأنهما يرفعان pH." } },
+        { "@type": "Question", "name": "كيف أعرف إذا الحجر كلسي؟", "acceptedAnswer": { "@type": "Answer", "text": "ضع قطرة خل أبيض على الحجر. إذا فقع أو صدر فوران — الحجر كلسي وغير مناسب. بدون فوران = غالباً آمن." } },
+        { "@type": "Question", "name": "هل خشب الحوض يغير لون الماء؟", "acceptedAnswer": { "@type": "Answer", "text": "نعم، خشب الحوض الطبيعي يفرز تانينات تحول الماء للأصفر أو البني الخفيف. هذا طبيعي وغير ضار. لإزالة الصبغة: نقع الخشب في ماء ساخن أسبوعاً قبل الاستخدام." } },
+        { "@type": "Question", "name": "هل لازم أغسل الحجر قبل الاستخدام؟", "acceptedAnswer": { "@type": "Answer", "text": "نعم دائماً. اغسل كل ديكور بماء نظيف دافئ بدون صابون. الصابون يقتل البكتيريا النافعة ويسمم الماء." } }
+      ]
+    });
+    jsonLdScripts.push({
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": "ديكور وأحجار حوض السمك — الآمن وغير الآمن",
+      "description": "دليل كامل لديكور أحواض الزينة: الأحجار الآمنة، اختبار الخل، خشب الحوض، الفرق بين الطبيعي والصناعي.",
+      "author": { "@type": "Organization", "name": "AQUAVO" },
+      "publisher": { "@type": "Organization", "name": "AQUAVO", "url": BASE_URL },
+      "datePublished": "2026-06-29",
+      "dateModified": "2026-06-29",
+      "inLanguage": "ar",
+      "url": `${BASE_URL}/guides/aquarium-decor-stones-guide`,
+      "mainEntityOfPage": `${BASE_URL}/guides/aquarium-decor-stones-guide`
+    });
+  }
+
   return jsonLdScripts.map(scriptTag).join("\n");
 }
 

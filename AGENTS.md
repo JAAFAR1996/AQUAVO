@@ -196,5 +196,25 @@ For content, reels, stories, carousels, campaign planning, and social media stra
 - Decisions Log: `.agents/memory/04_decisions_log.md`
 - Content Engine: `.agents/memory/05_content_engine.md`
 - Psychology Framework: `.agents/memory/06_psychology_framework.md`
+- **رب الزبون (Customer Conversion System):** `.agents/memory/11_rab_alzabon.md`
 
-> **Last Updated:** 2026-05-16 | Prompts: 62 | Completed: 0
+---
+
+## 🛒 رب الزبون — نظام تحويل الزبون
+
+**اقرأ هذا الملف قبل أي رد على زبون (DM، تعليق، واتساب)**
+
+الملف يشمل:
+- خريطة رحلة الزبون (5 مراحل: استكشاف → تقييم → تردد → شراء → ولاء)
+- جدول الخوف المخفي × السؤال الظاهر
+- 7 تقنيات نفسية مرتّبة (Feel-Felt-Found, Pre-suasion, Loss Framing, Commitment Ladder, BYAF, Authentic Social Proof, Cognitive Ease)
+- بنك ردود جاهزة لـ 6 مواقف شائعة
+- دورة الولاء الكاملة (AQUAVO Loyalty Loop)
+- 5 شخصيات زبائن مع علاجها
+- 8 قواعد لا تُكسر
+
+> **المبدأ الأساسي:** السؤال = إشارة اهتمام + خوف مخفي. مهمتك تكشف الخوف وتجعل AQUAVO هو الحل الوحيد المنطقي.
+
+---
+
+> **Last Updated:** 2026-06-28 | Prompts: 62 | Completed: 0

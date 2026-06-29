@@ -44,6 +44,10 @@ export function createSystemRouter(): RouterType {
                 "/guides/essential-tools", "/guides/filter-media", "/guides/eco-friendly",
                 "/guides/fish-hiding", "/guides/happy-fish-signs", "/guides/temperature-guide",
                 "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
+                // New SEO/AEO pages — 2026 (target topics with low visibility score)
+                "/guides/new-aquarium-setup-iraq",
+                "/guides/aquarium-water-test-guide",
+                "/guides/aquarium-decor-stones-guide",
             ];
 
             // Image sitemap namespace for Google visual search + AI image indexing

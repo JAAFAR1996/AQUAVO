@@ -79,6 +79,9 @@ const GuideWhiteScale = lazy(() => import("@/pages/guides-white-scale"));
 const GuideQuarantine = lazy(() => import("@/pages/guides-quarantine"));
 const GuideHeaterChoice = lazy(() => import("@/pages/guides-heater-choice"));
 const GuideTreatmentBasics = lazy(() => import("@/pages/guides-treatment-basics"));
+const GuideNewAquariumSetup = lazy(() => import("@/pages/guides-new-aquarium-setup"));
+const GuideWaterTestGuide = lazy(() => import("@/pages/guides-water-test-guide"));
+const GuideDecorStones = lazy(() => import("@/pages/guides-decor-stones"));
 const About = lazy(() => import("@/pages/about"));
 const WhyAquavo = lazy(() => import("@/pages/why-aquavo"));
 const ReturnPolicy = lazy(() => import("@/pages/return-policy"));
@@ -452,6 +455,37 @@ function Router() {
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <PageTransition><GuideTreatmentBasics /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      {/* New SEO/AEO Guide Pages — 2026 */}
+      <Route path="/guides/new-aquarium-setup-iraq">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideNewAquariumSetup /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/aquarium-water-test-guide">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideWaterTestGuide /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/guides/aquarium-decor-stones-guide">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><GuideDecorStones /></PageTransition>
             </Suspense>
           </ErrorBoundary>
         )}

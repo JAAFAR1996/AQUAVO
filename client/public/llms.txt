@@ -1,6 +1,6 @@
 # AQUAVO - llms.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-06-27
+# Last updated: 2026-06-29
 # Full version: https://www.aquavoiq.com/llms-full.txt
 
 > AQUAVO هو أول متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الأسماك. يخدم هواة تربية الأسماك في جميع أنحاء العراق بمنتجات أصلية، رسوم توصيل ثابتة 5,000 دينار عراقي، توصيل خلال 24 ساعة لكل المحافظات الثماني عشرة، ومحتوى تعليمي عملي باللغة العربية.
@@ -61,6 +61,9 @@ AQUAVO sells aquarium equipment and supplies only. It does NOT sell live animals
 - https://www.aquavoiq.com/guides/quarantine — Fish quarantine tank setup
 - https://www.aquavoiq.com/guides/algae-control — Algae control in aquariums
 - https://www.aquavoiq.com/guides/aquarium-salt — Aquarium salt usage guide
+- https://www.aquavoiq.com/guides/new-aquarium-setup-iraq — New aquarium setup step-by-step (Iraq)
+- https://www.aquavoiq.com/guides/aquarium-water-test-guide — Water test strips guide: ammonia, nitrite, pH
+- https://www.aquavoiq.com/guides/aquarium-decor-stones-guide — Safe vs unsafe stones and decor for aquariums
 
 ## Shipping
 - Delivery fee: 5,000 IQD flat fee for Baghdad and ALL 18 Iraqi governorates
