@@ -3,6 +3,11 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { generateSsrMeta } from "./ssr-meta.js";
+import {
+  GUIDE_CONTENT_PAGES,
+  renderGuideHtml,
+  renderGuidesIndexHtml,
+} from "../api/_guides-content.js";
 
 const PRECOMPRESSED_EXTENSIONS = new Set([
   ".css",
@@ -230,6 +235,17 @@ const SSR_DECOR_GUIDE_SHELL = `<article id="ssr-decor-guide" lang="ar" dir="rtl"
 </article>`;
 
 export function renderLocalFallbackHtml(template: string, requestPath: string) {
+  const cleanPath = requestPath.replace(/\/+$/, "") || "/";
+  const defaultImage = `${BASE_SITE}/logo_aquavo.png`;
+  if (cleanPath === "/guides") {
+    return renderGuidesIndexHtml(BASE_SITE, defaultImage);
+  }
+
+  const guidePage = GUIDE_CONTENT_PAGES[cleanPath];
+  if (guidePage) {
+    return renderGuideHtml(cleanPath, guidePage, BASE_SITE, defaultImage);
+  }
+
   const meta = getPageMeta(requestPath);
 
   let html = template
@@ -298,6 +314,25 @@ export function serveStatic(app: Express) {
   }
 
   console.log(`[Static] Serving static files from: ${distPath}`);
+
+  app.get(["/guides", "/guides/"], (_req, res) => {
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.type("html").send(renderGuidesIndexHtml(BASE_SITE, `${BASE_SITE}/logo_aquavo.png`));
+  });
+
+  const guideRoutes = Object.keys(GUIDE_CONTENT_PAGES).flatMap((guidePath) => [
+    guidePath,
+    `${guidePath}/`,
+  ]);
+
+  app.get(guideRoutes, (req, res, next) => {
+    const cleanPath = req.path.replace(/\/+$/, "") || "/";
+    const guidePage = GUIDE_CONTENT_PAGES[cleanPath];
+    if (!guidePage) return next();
+
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.type("html").send(renderGuideHtml(cleanPath, guidePage, BASE_SITE, `${BASE_SITE}/logo_aquavo.png`));
+  });
 
   app.use((req, res, next) => {
     if (req.method !== "GET" && req.method !== "HEAD") return next();
@@ -377,7 +412,8 @@ export function serveStatic(app: Express) {
         return;
       }
 
-      res.type("html").send(renderLocalFallbackHtml(template, req.path));
+      const requestPath = (req.originalUrl || req.url || req.path).split("?")[0] || "/";
+      res.type("html").send(renderLocalFallbackHtml(template, requestPath));
     });
   });
 }

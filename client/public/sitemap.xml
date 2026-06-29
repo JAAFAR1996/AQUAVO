@@ -360,26 +360,11 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- New SEO/AEO Guide Pages — 2026-06-29 -->
-  <url>
-    <loc>https://www.aquavoiq.com/guides/new-aquarium-setup-iraq</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-
-  <url>
-    <loc>https://www.aquavoiq.com/guides/aquarium-water-test-guide</loc>
-    <lastmod>2026-06-29</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.85</priority>
-  </url>
-
   <url>
     <loc>https://www.aquavoiq.com/guides/aquarium-decor-stones-guide</loc>
     <lastmod>2026-06-29</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.82</priority>
+    <priority>0.8</priority>
   </url>
 
 </urlset>

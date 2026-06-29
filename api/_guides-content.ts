@@ -1,8 +1,8 @@
 // ─── Static, fully server-rendered educational pages (high Citability) ──────
 // These pages return complete HTML from the server so every word is visible in
 // View Source / to AI answer engines (ChatGPT, Claude, Perplexity) and no-JS
-// crawlers — independent of the React SPA. No JSON-LD is added here (the global
-// Schema is already complete); the value is plain, quotable, accurate content.
+// crawlers — independent of the React SPA. JSON-LD is emitted with the visible
+// content so Article, FAQPage, and BreadcrumbList are present in raw HTML.
 
 export interface GuideLink {
   href: string;
@@ -11,6 +11,11 @@ export interface GuideLink {
 export interface GuideSection {
   h2: string;
   paras: string[];
+}
+export interface GuideTable {
+  heading: string;
+  headers: string[];
+  rows: string[][];
 }
 export interface GuideFaq {
   q: string;
@@ -22,6 +27,7 @@ export interface GuidePage {
   h1: string;
   answer: string; // 40–70 word answer box
   sections: GuideSection[];
+  tables?: GuideTable[];
   faq: GuideFaq[];
   links: GuideLink[];
   cta: { text: string; href: string; label: string };
@@ -475,6 +481,124 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
     ],
   },
 
+  "/guides/aquarium-decor-stones-guide": {
+    title: "دليل ديكور وأحجار أحواض الزينة في العراق | AQUAVO",
+    description:
+      "دليل عملي لاختيار ديكور وأحجار آمنة لأحواض الزينة في العراق: شنو الحجر الآمن، هل الحجر يغير pH، شلون تغسل الديكور قبل الاستخدام، والفرق بين الديكور الطبيعي والصناعي، مع روابط لمنتجات AQUAVO وتوصيل لكل العراق.",
+    h1: "دليل ديكور وأحجار أحواض الزينة في العراق",
+    answer:
+      "اختيار ديكور وأحجار الحوض لازم يكون حسب الأمان وتأثيره على الماء، مو الشكل فقط. الحجر المناسب ما يطلق مواد ضارة، وما يرفع pH بقوة إلا إذا كان هذا مطلوباً لنوع الأسماك. قبل إدخال أي حجر أو ديكور للحوض، اغسله جيداً بدون صابون وتأكد أنه مناسب لأحواض الزينة.",
+    sections: [
+      {
+        h2: "شنو معنى ديكور آمن لحوض السمك؟",
+        paras: [
+          "الديكور الآمن هو الديكور المصمم أو المناسب لأحواض الزينة، وما يطلق صبغ أو معدن أو مواد تنظيف داخل الماء. الشكل مهم، بس الأمان أهم لأن أي مادة تذوب بالماء ممكن تأثر على السمك والبكتيريا النافعة.",
+          "ابتعد عن أي حجر أو قطعة ديكور من مصدر مجهول إذا بيها طلاء يتقشر، رائحة كيميائية، حواف حادة، أو معدن مكشوف.",
+        ],
+      },
+      {
+        h2: "هل الحجر يغير pH؟",
+        paras: [
+          "نعم، بعض الأحجار ترفع pH والصلابة، خصوصاً الأحجار الكلسية مثل الحجر الجيري والرخام. هذا مو دائماً خطأ، لكنه لازم يكون قرار مقصود حسب نوع السمك وقراءات الماء.",
+          "الأحجار الخاملة مثل البازلت والكوارتز والأردواز غالباً ما تغيّر pH بشكل واضح، لذلك تكون خيار أهدأ للأحواض العامة.",
+        ],
+      },
+      {
+        h2: "شلون أفحص الحجر قبل استخدامه؟",
+        paras: [
+          "اغسل الحجر وجففه، بعدها حط قطرة خل أبيض على سطحه. إذا صار فوران أو فقاعات واضحة، غالباً الحجر كلسي وقد يرفع pH والصلابة.",
+          "اختبار الخل مؤشر سريع وليس فحصاً مختبرياً كاملاً. إذا حوضك حساس أو عندك نوع سمك يحتاج ماء محدد، افحص pH وKH بعد نقع الحجر بماء نظيف يوم أو يومين.",
+        ],
+      },
+      {
+        h2: "هل الخشب يغير لون الماء؟",
+        paras: [
+          "نعم، الخشب الطبيعي المخصص للأحواض ممكن يطلق تانينات وتخلي لون الماء مائل للأصفر أو البني الخفيف. هذا غالباً طبيعي، لكن قد يخفض pH بشكل بسيط حسب نوع الخشب والماء.",
+          "إذا تريد تقلل اللون، انقع الخشب بماء نظيف وبدّل الماء أكثر من مرة قبل إدخاله للحوض.",
+        ],
+      },
+      {
+        h2: "شلون أغسل الديكور قبل الاستخدام؟",
+        paras: [
+          "اغسل الأحجار والديكور بماء نظيف فقط. لا تستخدم صابون، كلور، معقمات، عطور، أو منظفات مطبخ لأن بقاياها ممكن تضر الحوض حتى لو كانت كمية قليلة.",
+          "للحصى والركائز، اشطفها أكثر من مرة إلى أن يصير الماء أوضح. للديكور الصناعي، افحص الأطراف والطلاء قبل إدخاله للحوض.",
+        ],
+      },
+      {
+        h2: "شنو منتجات AQUAVO المناسبة؟",
+        paras: [
+          "لصفحة الديكور، ابدأ من ديكورات وأحجار الأحواض إذا تريد شكل طبيعي أو مخابئ للسمك، ومن الركائز إذا تريد حصى أو أرضية مناسبة للحوض.",
+          "إذا أنت تجهز حوض جديد، اقرأ دليل تجهيز حوض جديد ودليل فحص الماء قبل ما تضيف كمية كبيرة من الديكور أو الركائز.",
+        ],
+      },
+    ],
+    tables: [
+      {
+        heading: "جدول عملي لاختيار ديكور وأحجار الحوض",
+        headers: ["النوع", "مناسب غالباً؟", "تأثيره على الماء", "ملاحظة مهمة"],
+        rows: [
+          ["بازلت أو حجر بركاني", "نعم", "غالباً خامل ولا يرفع pH بوضوح", "اغسله جيداً لأن مسامه تمسك غبار"],
+          ["كوارتز أو أردواز", "نعم غالباً", "تأثيره محدود على pH", "تأكد من عدم وجود حواف حادة"],
+          ["حجر نهري ناعم", "نعم بشرط الفحص", "قد يكون خامل أو كلسي حسب النوع", "افحصه بالخل قبل الاستخدام"],
+          ["رخام أو حجر جيري", "حسب نوع الحوض", "يرفع pH والصلابة", "لا تستخدمه إلا إذا تحتاج ماء قلوي"],
+          ["خشب مخصص للأحواض", "نعم", "قد يطلق تانينات ويخفض pH قليلاً", "انقعه قبل الاستخدام لتقليل اللون"],
+          ["ديكور بلاستك مخصص للأحواض", "نعم", "غالباً لا يغير الماء", "تأكد أنه aquarium-safe ومن مصدر موثوق"],
+          ["قطع معدنية أو مطلية عشوائياً", "لا", "قد تطلق معادن أو صبغ", "تجنبها داخل الحوض"],
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: "شنو أفضل حجر آمن لحوض السمك؟",
+        a: "الأحجار الخاملة مثل البازلت والكوارتز والأردواز غالباً تكون آمنة لأنها ما تغيّر pH بشكل واضح. المهم تفحص الحجر وتغسله جيداً وتتأكد ما بيه طلاء أو معدن مكشوف.",
+      },
+      {
+        q: "هل كل حجر طبيعي يصلح للحوض؟",
+        a: "لا. بعض الأحجار الطبيعية تكون كلسية وترفع pH والصلابة، وبعضها قد يحتوي معادن أو ملوثات. لا تدخل أي حجر للحوض إلا بعد الغسل والفحص.",
+      },
+      {
+        q: "هل الحجر يرفع pH؟",
+        a: "الأحجار الكلسية مثل الرخام والحجر الجيري ممكن ترفع pH والصلابة. الأحجار الخاملة مثل البازلت والكوارتز غالباً تأثيرها محدود.",
+      },
+      {
+        q: "هل الخشب الطبيعي يغير لون الماء؟",
+        a: "نعم، الخشب الطبيعي المخصص للأحواض قد يطلق تانينات وتخلي الماء أصفر أو بني خفيف. هذا غالباً طبيعي، ويمكن تقليله بالنقع وتبديل الماء قبل الاستخدام.",
+      },
+      {
+        q: "هل أغسل الديكور بالصابون؟",
+        a: "لا. الصابون والمنظفات تترك بقايا خطرة على الحوض. اغسل الديكور والأحجار بماء نظيف فقط، وكرر الشطف إذا كان بيها غبار.",
+      },
+      {
+        q: "هل الديكور البلاستك آمن؟",
+        a: "يكون آمن إذا كان مخصص لأحواض الزينة ومن مصدر موثوق. تجنب القطع البلاستيكية العشوائية أو المصبوغة إذا مو مكتوب أنها مناسبة للأحواض.",
+      },
+      {
+        q: "شلون أعرف الديكور غير مناسب للحوض؟",
+        a: "إذا بيه رائحة كيميائية، طلاء يتقشر، معدن مكشوف، حواف حادة، أو يغير لون الماء بسرعة غير طبيعية، لا تستخدمه داخل الحوض.",
+      },
+      {
+        q: "هل AQUAVO يبيع ديكور وأحجار أحواض الزينة في العراق؟",
+        a: "نعم، AQUAVO يبيع مستلزمات أحواض الزينة في العراق، وتشمل الديكورات والركائز حسب المتوفر بالموقع. تقدر تشوف التفاصيل من صفحات المنتجات.",
+      },
+    ],
+    links: [
+      { href: "/products?category=decorations", label: "ديكورات أحواض الزينة" },
+      { href: "/products?category=substrates", label: "ركائز وحصى الأحواض" },
+      { href: "/guides/aquarium-water-test-guide", label: "دليل فحص ماء الحوض" },
+      { href: "/guides/new-aquarium-setup-iraq", label: "دليل تجهيز حوض جديد" },
+      { href: "/guides", label: "كل أدلة AQUAVO" },
+    ],
+    cta: {
+      text: "تقدر تشوف الديكورات والركائز المتوفرة على AQUAVO، وإذا متردد اختار حسب حجم الحوض ونوع السمك وقراءات الماء.",
+      href: "/products?category=decorations",
+      label: "شوف ديكورات الأحواض",
+    },
+    breadcrumb: [
+      { label: "الرئيسية", href: "/" },
+      { label: "ديكور وأحجار الحوض", href: "/guides/aquarium-decor-stones-guide" },
+    ],
+  },
+
   "/about-aquavo": {
     title: "من هو AQUAVO؟ متجر معدات أحواض الزينة في العراق",
     description:
@@ -550,6 +674,82 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function safeJsonForScript(data: object): string {
+  return JSON.stringify(data)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+}
+
+function renderJsonLdScripts(items: object[]): string {
+  return items
+    .map((item) => `<script type="application/ld+json">${safeJsonForScript(item)}</script>`)
+    .join("\n");
+}
+
+function buildBreadcrumbItems(path: string, page: GuidePage, base: string): object[] {
+  const currentName = page.breadcrumb.at(-1)?.label ?? page.h1;
+  if (path === "/guides") {
+    return [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: base },
+      { "@type": "ListItem", position: 2, name: "الأدلة", item: `${base}/guides` },
+    ];
+  }
+  if (path.startsWith("/guides/")) {
+    return [
+      { "@type": "ListItem", position: 1, name: "الرئيسية", item: base },
+      { "@type": "ListItem", position: 2, name: "الأدلة", item: `${base}/guides` },
+      { "@type": "ListItem", position: 3, name: currentName, item: `${base}${path}` },
+    ];
+  }
+  return page.breadcrumb.map((item, index) => ({
+    "@type": "ListItem",
+    position: index + 1,
+    name: item.label,
+    item: `${base}${item.href === "/" ? "" : item.href}`,
+  }));
+}
+
+function buildGuideJsonLd(path: string, page: GuidePage, base: string, image: string): object[] {
+  const url = `${base}${path}`;
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: page.h1,
+      description: page.description,
+      image,
+      author: { "@type": "Organization", name: "AQUAVO", url: base },
+      publisher: {
+        "@type": "Organization",
+        name: "AQUAVO",
+        url: base,
+        logo: { "@type": "ImageObject", url: image },
+      },
+      datePublished: "2026-06-29",
+      dateModified: "2026-06-29",
+      inLanguage: "ar-IQ",
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: page.faq.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: buildBreadcrumbItems(path, page, base),
+    },
+  ];
+}
+
 const PAGE_CSS = `:root{--bg:#0a1628;--card:#0f1f38;--fg:#eaf2f7;--muted:#b6c6d6;--primary:#199bb8;--accent:#ff7b5a;--line:rgba(255,255,255,.10)}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--bg);color:#eaf2f7;font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;line-height:1.85;font-size:17px}
@@ -565,6 +765,10 @@ h3{font-weight:700;font-size:1.08rem;margin:1.1em 0 .3em;color:#dcebf7;color:#dc
 p{margin:.5em 0;color:#dbe7f0}
 .answer{background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--primary);border-radius:12px;padding:16px 18px;margin:8px 0 6px;font-size:1.05rem;color:#eef5fa}
 .answer strong{color:var(--primary)}
+table{width:100%;border-collapse:collapse;margin:.8em 0 1.3em;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:right;vertical-align:top}
+th{color:#fff;background:rgba(25,155,184,.18);font-weight:800}
+td{color:#dbe7f0}
 ul.links{list-style:none;padding:0;margin:.4em 0}
 ul.links li{margin:.35em 0}ul.links li a{font-weight:600}
 .faq h3{border-top:1px solid var(--line);padding-top:.8em}
@@ -583,6 +787,7 @@ function renderLinks(links: GuideLink[], base: string): string {
 
 export function renderGuideHtml(path: string, page: GuidePage, base: string, image: string): string {
   const url = `${base}${path}`;
+  const jsonLd = renderJsonLdScripts(buildGuideJsonLd(path, page, base, image));
   const crumb = page.breadcrumb
     .map((c, i) =>
       i === page.breadcrumb.length - 1
@@ -595,6 +800,17 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
     .map(
       (s) =>
         `<h2>${esc(s.h2)}</h2>` + s.paras.map((p) => `<p>${esc(p)}</p>`).join("")
+    )
+    .join("\n");
+
+  const tables = (page.tables ?? [])
+    .map(
+      (table) =>
+        `<h2>${esc(table.heading)}</h2><table><thead><tr>${table.headers
+          .map((header) => `<th>${esc(header)}</th>`)
+          .join("")}</tr></thead><tbody>${table.rows
+          .map((row) => `<tr>${row.map((cell) => `<td>${esc(cell)}</td>`).join("")}</tr>`)
+          .join("")}</tbody></table>`
     )
     .join("\n");
 
@@ -628,6 +844,7 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@800;900&display=swap&subset=arabic" />
+${jsonLd}
 <style>${PAGE_CSS}</style>
 </head>
 <body>
@@ -640,6 +857,7 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
   <h1>${esc(page.h1)}</h1>
   <div class="answer"><strong>الخلاصة السريعة:</strong> ${esc(page.answer)}</div>
   ${sections}
+  ${tables}
   ${faq}
   <h2>روابط مفيدة</h2>
   ${renderLinks(page.links, base)}
@@ -664,6 +882,13 @@ export function renderGuideMarkdown(path: string, page: GuidePage, base: string)
   for (const s of page.sections) {
     lines.push(`## ${s.h2}\n`);
     for (const p of s.paras) lines.push(`${p}\n`);
+  }
+  for (const table of page.tables ?? []) {
+    lines.push(`## ${table.heading}\n`);
+    lines.push(`| ${table.headers.join(" | ")} |`);
+    lines.push(`| ${table.headers.map(() => "---").join(" | ")} |`);
+    for (const row of table.rows) lines.push(`| ${row.join(" | ")} |`);
+    lines.push("");
   }
   lines.push(`## أسئلة شائعة\n`);
   for (const f of page.faq) {
@@ -691,6 +916,7 @@ export const GUIDE_INDEX_ITEMS: GuideIndexItem[] = [
   { href: "/guides/water-conditioner-guide", label: "مزيل الكلور وأهميته", blurb: "ليش معالجة ماء الحنفية ضرورية قبل إضافته للحوض." },
   { href: "/guides/aquarium-weekly-maintenance", label: "جدول صيانة أسبوعي", blurb: "مهام بسيطة أسبوعية تحافظ على ماء مستقر وأسماك صحية." },
   { href: "/guides/beginner-aquarium-mistakes", label: "أخطاء المبتدئين", blurb: "أكثر أخطاء المبتدئين شيوعاً وكيف تتجنبها من البداية." },
+  { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار أحواض الزينة", blurb: "دليل لاختيار الأحجار والديكور الآمن للحوض وتأثيره على الماء." },
   { href: "/about-aquavo", label: "من هو AQUAVO؟", blurb: "متجر معدات أحواض الزينة في العراق — ماذا يبيع وماذا لا يبيع." },
 ];
 
@@ -751,6 +977,44 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
     (g) =>
       `<li><a href="${esc(g.href)}"><strong>${esc(g.label)}</strong></a><p>${esc(g.blurb)}</p></li>`
   ).join("");
+  const faq = HOME_FAQ.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
+  const jsonLd = renderJsonLdScripts([
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "أدلة AQUAVO لأحواض الزينة",
+      description,
+      image,
+      author: { "@type": "Organization", name: "AQUAVO", url: base },
+      publisher: {
+        "@type": "Organization",
+        name: "AQUAVO",
+        url: base,
+        logo: { "@type": "ImageObject", url: image },
+      },
+      datePublished: "2026-06-29",
+      dateModified: "2026-06-29",
+      inLanguage: "ar-IQ",
+      mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: HOME_FAQ.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "الرئيسية", item: base },
+        { "@type": "ListItem", position: 2, name: "الأدلة", item: url },
+      ],
+    },
+  ]);
   return `<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -776,6 +1040,7 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@800;900&display=swap&subset=arabic" />
+${jsonLd}
 <style>${PAGE_CSS}
 ul.guide-index{list-style:none;padding:0;margin:1em 0}
 ul.guide-index li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:.6em 0}
@@ -793,6 +1058,7 @@ ul.guide-index p{margin:.3em 0 0;color:#b6c6d6;font-size:.95rem}</style>
   <div class="answer"><strong>الخلاصة السريعة:</strong> هذي صفحة فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق. كل دليل يجاوب على سؤال شائع بأسلوب عملي: من تجهيز حوض جديد واختيار الفلتر والسخان، إلى فحص الماء والصيانة الأسبوعية وأخطاء المبتدئين. AQUAVO يبيع المعدات والمستلزمات فقط، ولا يبيع كائنات حية.</div>
   <h2>كل الأدلة</h2>
   <ul class="guide-index">${cards}</ul>
+  <section class="faq"><h2>أسئلة شائعة</h2>${faq}</section>
   <div class="cta">
     <p>تقدر تتصفح المعدات والمستلزمات المتوفرة بـ AQUAVO مع توصيل لكل العراق ودفع عند الاستلام.</p>
     <a class="btn" href="/products">تصفح المنتجات</a>
@@ -812,6 +1078,11 @@ export function renderGuidesIndexMarkdown(base: string): string {
   lines.push(`فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق. AQUAVO يبيع المعدات والمستلزمات فقط ولا يبيع كائنات حية.\n`);
   for (const g of GUIDE_INDEX_ITEMS) {
     lines.push(`- [${g.label}](${base}${g.href}) — ${g.blurb}`);
+  }
+  lines.push(`\n## أسئلة شائعة\n`);
+  for (const f of HOME_FAQ) {
+    lines.push(`### ${f.q}`);
+    lines.push(`${f.a}\n`);
   }
   lines.push(`\n**URL:** ${base}/guides`);
   return lines.join("\n");
