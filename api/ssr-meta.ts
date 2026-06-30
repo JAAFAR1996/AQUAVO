@@ -51,7 +51,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "Organization",
         "@id": `${BASE}/#organization`,
         name: "AQUAVO",
-        alternateName: ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
+        alternateName: ["أكوافو", "AQUAVO Iraq"],
         url: BASE,
         logo: {
           "@type": "ImageObject",

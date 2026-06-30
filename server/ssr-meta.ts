@@ -13,7 +13,7 @@ export function generateSsrMeta(requestPath: string): string {
       "@type": "Organization",
       "@id": `${BASE_URL}/#organization`,
       "name": "AQUAVO",
-      "alternateName": ["أكوافو", "AQUAVO Store", "AQUAVO Iraq"],
+      "alternateName": ["أكوافو", "AQUAVO Iraq"],
       "url": BASE_URL,
       "logo": {
         "@type": "ImageObject",
