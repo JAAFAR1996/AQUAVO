@@ -96,6 +96,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 </Label>
                 <Input
                     id="name"
+                    data-clarity-mask="True"
                     placeholder="أدخل اسمك الكامل"
                     value={customerInfo.name}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
@@ -117,6 +118,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 <Input
                     id="phone"
                     type="tel"
+                    data-clarity-mask="True"
                     placeholder="07801234567"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
@@ -176,6 +178,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                                 <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                                 <input
                                     autoFocus
+                                    data-clarity-mask="True"
                                     role="combobox"
                                     aria-expanded={govOpen}
                                     aria-controls="governorate-listbox"
@@ -233,6 +236,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 </Label>
                 <Input
                     id="address"
+                    data-clarity-mask="True"
                     placeholder="المنطقة، الشارع، أقرب نقطة دالة..."
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
@@ -250,6 +254,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 <Label htmlFor="notes">ملاحظات إضافية (اختياري)</Label>
                 <Input
                     id="notes"
+                    data-clarity-mask="True"
                     placeholder="أي ملاحظات للتوصيل..."
                     value={customerInfo.notes}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}

@@ -55,11 +55,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://connect.facebook.net https://us-assets.i.posthog.com; " +
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://connect.facebook.net https://us-assets.i.posthog.com https://www.clarity.ms https://*.clarity.ms; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' blob: ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io; " +
+      "connect-src 'self' blob: ws://localhost:* wss://localhost:* https://api.unsplash.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://www.clarity.ms https://*.clarity.ms; " +
       "worker-src 'self' blob:; " +
       "frame-src https://www.facebook.com; " +
       "frame-ancestors 'none'; " +
@@ -72,11 +72,11 @@ export function securityHeaders(req: Request, res: Response, next: NextFunction)
     res.setHeader(
       'Content-Security-Policy',
       "default-src 'self'; " +
-      "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://connect.facebook.net https://analytics.tiktok.com https://us-assets.i.posthog.com; " +
+      "script-src 'self' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com https://static.cloudflareinsights.com https://connect.facebook.net https://analytics.tiktok.com https://us-assets.i.posthog.com https://www.clarity.ms https://*.clarity.ms; " +
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
       "img-src 'self' data: https: blob:; " +
       "font-src 'self' data: https://fonts.gstatic.com; " +
-      "connect-src 'self' blob: https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://analytics.tiktok.com; " +
+      "connect-src 'self' blob: https://api.unsplash.com https://cloudflareinsights.com https://www.facebook.com https://connect.facebook.net https://graph.facebook.com https://us.i.posthog.com https://us-assets.i.posthog.com https://o4509516012191744.ingest.de.sentry.io https://analytics.tiktok.com https://www.clarity.ms https://*.clarity.ms; " +
       "worker-src 'self' blob:; " +
       "frame-src https://www.facebook.com; " +
       "frame-ancestors 'none'; " +

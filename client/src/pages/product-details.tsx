@@ -12,7 +12,7 @@ import { formatNumber, formatPrice } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, AlertTriangle, Package, FileText, ExternalLink, Clock } from "lucide-react";
+import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -485,21 +485,12 @@ export default function ProductDetails() {
                 {/* Stock Status */}
                 <div className="flex items-center gap-2 mb-4">
                   {displayStock > 0 ? (
-                    displayStock <= 5 ? (
-                      <>
-                        <AlertTriangle className="w-4 h-4 text-amber-500" />
-                        <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                          متبقي {displayStock} فقط
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4 text-green-500" />
-                        <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                          متوفر
-                        </span>
-                      </>
-                    )
+                    <>
+                      <Check className="w-4 h-4 text-green-500" />
+                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                        متوفر ({formatNumber(displayStock)} قطعة)
+                      </span>
+                    </>
                   ) : (
                     <>
                       <Package className="w-4 h-4 text-red-500" />

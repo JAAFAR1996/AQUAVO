@@ -16,6 +16,7 @@ const Analytics = lazy(() => import("@vercel/analytics/react").then(m => ({ defa
 const SpeedInsights = lazy(() => import("@vercel/speed-insights/react").then(m => ({ default: m.SpeedInsights })));
 
 import { initGA, trackPageView } from "@/lib/analytics";
+import { initClarity } from "@/lib/clarity";
 import { initPostHog, phTrackPageView } from "@/lib/posthog";
 import { useMetaPixelInit, useMetaPageView } from "@/hooks/use-meta-pixel";
 import { useDeviceDetection } from "@/hooks/use-device-detection";
@@ -960,9 +961,9 @@ function AppShell() {
   useEffect(() => {
     // Defer GA + PostHog init to after first idle to reduce TBT
     if ('requestIdleCallback' in window) {
-      requestIdleCallback(() => { initGA(); initPostHog(); }, { timeout: 4000 });
+      requestIdleCallback(() => { initGA(); initPostHog(); initClarity(); }, { timeout: 4000 });
     } else {
-      setTimeout(() => { initGA(); initPostHog(); }, 3000);
+      setTimeout(() => { initGA(); initPostHog(); initClarity(); }, 3000);
     }
   }, []);
 

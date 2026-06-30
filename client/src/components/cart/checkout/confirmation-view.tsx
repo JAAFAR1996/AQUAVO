@@ -71,22 +71,22 @@ export function ConfirmationView({
                 <div className="grid gap-1.5 text-sm">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">الاسم</span>
-                        <span className="font-medium">{customerInfo.name}</span>
+                        <span className="font-medium" data-clarity-mask="True">{customerInfo.name}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">الهاتف</span>
-                        <span className="font-medium" dir="ltr">{customerInfo.phone}</span>
+                        <span className="font-medium" dir="ltr" data-clarity-mask="True">{customerInfo.phone}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">العنوان</span>
-                        <span className="font-medium text-right max-w-[60%]">
+                        <span className="font-medium text-right max-w-[60%]" data-clarity-mask="True">
                             {GOVERNORATES.find(g => g.value === customerInfo.governorate)?.label} - {customerInfo.address}
                         </span>
                     </div>
                     {customerInfo.notes && (
                         <div className="flex justify-between">
                             <span className="text-muted-foreground">ملاحظات</span>
-                            <span className="font-medium text-right max-w-[60%]">{customerInfo.notes}</span>
+                            <span className="font-medium text-right max-w-[60%]" data-clarity-mask="True">{customerInfo.notes}</span>
                         </div>
                     )}
                 </div>
