@@ -1,7 +1,6 @@
-import { ShoppingCart, Loader2, Check, AlertTriangle, Package, Truck } from "lucide-react";
+import { ShoppingCart, Loader2, Check, Package, Truck } from "lucide-react";
 import { DELIVERY_TEXT } from "@/lib/constants/shipping";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 interface ProductCTAProps {
@@ -9,7 +8,6 @@ interface ProductCTAProps {
     originalPrice?: number;
     currency?: string;
     stock: number;
-    lowStockThreshold?: number;
     isLoading?: boolean;
     isAddedToCart?: boolean;
     quantity?: number;
@@ -23,7 +21,6 @@ export function ProductCTA({
     originalPrice,
     currency = "د.ع",
     stock,
-    lowStockThreshold = 10,
     isLoading = false,
     isAddedToCart = false,
     quantity = 1,
@@ -32,7 +29,6 @@ export function ProductCTA({
     className,
 }: ProductCTAProps) {
     const inStock = stock > 0;
-    const isLowStock = stock > 0 && stock <= lowStockThreshold;
     const discount = originalPrice
         ? Math.round(((originalPrice - price) / originalPrice) * 100)
         : 0;
@@ -49,24 +45,12 @@ export function ProductCTA({
             {/* Stock Status */}
             <div className="flex items-center gap-2">
                 {inStock ? (
-                    isLowStock ? (
-                        <>
-                            <AlertTriangle className="w-4 h-4 text-amber-500" />
-                            <span className="text-sm font-medium text-amber-600 dark:text-amber-400">
-                                متبقي {stock} فقط - اطلب الآن!
-                            </span>
-                        </>
-                    ) : (
-                        <>
-                            <Check className="w-4 h-4 text-green-500" />
-                            <span className="text-sm font-medium text-green-600 dark:text-green-400">
-                                متوفر في المخزن
-                            </span>
-                            <Badge variant="secondary" className="text-xs">
-                                {stock} قطعة
-                            </Badge>
-                        </>
-                    )
+                    <>
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                            متوفر ({stock} قطعة)
+                        </span>
+                    </>
                 ) : (
                     <>
                         <Package className="w-4 h-4 text-red-500" />
