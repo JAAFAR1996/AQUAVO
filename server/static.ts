@@ -7,9 +7,11 @@ import {
   GUIDE_CONTENT_PAGES,
   renderGuideHtml,
   renderGuidesIndexHtml,
+  renderHomeGuidesSection,
   renderImportantInternalLinksSection,
   shouldRenderImportantInternalLinks,
 } from "../api/_guides-content.js";
+import { getSeoMetaOverride, renderAhrefsSsrContentSection } from "../api/_seo-content.js";
 
 const PRECOMPRESSED_EXTENSIONS = new Set([
   ".css",
@@ -23,7 +25,7 @@ const PRECOMPRESSED_EXTENSIONS = new Set([
 ]);
 
 const IMAGE_EXTENSIONS_WITH_WEBP_FALLBACK = new Set([".jpg", ".jpeg", ".png"]);
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
+const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="حوض زينة بتصميم مائي من AQUAVO" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
 
 function resolveStaticAssetPath(root: string, requestPath: string) {
   try {
@@ -68,6 +70,8 @@ interface PageMeta {
 const BASE_SITE = "https://www.aquavoiq.com";
 
 function getPageMeta(requestPath: string): PageMeta {
+  const cleanPath = requestPath.replace(/\/+$/, "") || "/";
+  const seoOverride = getSeoMetaOverride(cleanPath);
   const map: Record<string, PageMeta> = {
     "/guides/new-aquarium-setup-iraq": {
       title: "تجهيز حوض سمك جديد خطوة بخطوة في العراق | AQUAVO",
@@ -101,9 +105,17 @@ function getPageMeta(requestPath: string): PageMeta {
     },
   };
 
-  return map[requestPath] ?? {
-    title: "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
-    description: "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة الأصلية. فلاتر، سخانات، طعام، ديكورات، معالجات مياه. توصيل 5,000 دينار لكل العراق.",
+  const meta = map[cleanPath];
+  if (meta) {
+    return {
+      ...meta,
+      ...(seoOverride ?? {}),
+    };
+  }
+
+  return {
+    title: seoOverride?.title || "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+    description: seoOverride?.description || "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.",
     url: `${BASE_SITE}${requestPath}`,
   };
 }
@@ -138,14 +150,10 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     `<link rel="canonical" href="${meta.url}" />`
   );
 
+  const ahrefsSeoShell = renderAhrefsSsrContentSection(requestPath);
   const importantLinksShell = shouldRenderImportantInternalLinks(requestPath)
     ? renderImportantInternalLinksSection()
     : "";
-
-  html = html.replace(
-    /<div id="root"[^>]*><\/div>/,
-    (rootDiv) => `${rootDiv}${importantLinksShell}`
-  );
 
   if (requestPath === "/" || requestPath === "/ar") {
     html = html.replace(
@@ -154,7 +162,12 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     );
     html = html.replace(
       /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}`
+      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE_SITE)}${importantLinksShell}`
+    );
+  } else if (ahrefsSeoShell || importantLinksShell) {
+    html = html.replace(
+      /<div id="root"[^>]*><\/div>/,
+      (rootDiv) => `${rootDiv}${ahrefsSeoShell}${importantLinksShell}`
     );
   }
 
@@ -182,6 +195,10 @@ export function serveStatic(app: Express) {
   }
 
   console.log(`[Static] Serving static files from: ${distPath}`);
+
+  app.get(/^\/guides\/5-mistakes\/$/, (_req, res) => {
+    res.redirect(301, "/guides/5-mistakes");
+  });
 
   app.get(["/guides", "/guides/"], (_req, res) => {
     res.setHeader("Cache-Control", "public, max-age=3600");

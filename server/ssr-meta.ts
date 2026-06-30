@@ -99,22 +99,6 @@ export function generateSsrMeta(requestPath: string): string {
       }
     });
 
-    jsonLdScripts.push({
-      "@context": "https://schema.org",
-      "@type": "VideoObject",
-      "name": "AQUAVO — معدات أحواض أسماك أصلية في العراق",
-      "description": "نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة",
-      "thumbnailUrl": "https://www.aquavoiq.com/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp",
-      "uploadDate": "2026-01-01",
-      "contentUrl": "https://www.aquavoiq.com/images/hero/Aquarium_Animation_Request_Fulfilled.mp4",
-      "duration": "PT30S"
-    });
-
-    jsonLdScripts.push({
-      "@context": "https://schema.org",
-      "@type": "SpeakableSpecification",
-      "cssSelector": ["#hero-headline", "#trust-signals", "h1", ".hero-description"]
-    });
   }
 
   // 2. Beginner Guide Page
@@ -346,4 +330,3 @@ export function generateSsrMeta(requestPath: string): string {
 
   return jsonLdScripts.map(scriptTag).join("\n");
 }
-

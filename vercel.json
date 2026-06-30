@@ -116,9 +116,9 @@
   ],
   "redirects": [
     {
-      "source": "/guides/5-mistakes",
-      "destination": "/guides/5-mistakes/",
-      "permanent": false
+      "source": "/guides/5-mistakes/",
+      "destination": "/guides/5-mistakes",
+      "permanent": true
     },
     {
       "source": "/(.*)",

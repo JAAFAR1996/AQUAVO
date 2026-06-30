@@ -35,6 +35,7 @@ const Journey = lazy(() => import("@/pages/journey"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const FishBreedingCalculator = lazy(() => import("@/pages/fish-breeding-calculator"));
 const FishEncyclopedia = lazy(() => import("@/pages/fish-encyclopedia"));
+const FishFinder = lazy(() => import("@/pages/fish-finder"));
 const CommunityGallery = lazy(() => import("@/pages/community-gallery"));
 const ProductDetails = lazy(() => import("@/pages/product-details"));
 const AiDriftwoodExperiment = lazy(() => import("@/pages/ai-driftwood-experiment"));
@@ -550,6 +551,16 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/fish-finder">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><FishFinder /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Fish Compatibility Calculator */}
       <Route path="/fish-compatibility">
         {() => (
@@ -610,6 +621,15 @@ function Router() {
           </ErrorBoundary>
         )}
       </Route>
+      <Route path="/fish-health">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><FishHealthDiagnosis /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
 
       {/* Fish Patient Records */}
       <Route path="/fish-patients">
@@ -648,6 +668,9 @@ function Router() {
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><Sustainability /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/about">
+        {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><About /></PageTransition></Suspense></ErrorBoundary>)}
+      </Route>
+      <Route path="/about-aquavo">
         {() => (<ErrorBoundary><Suspense fallback={<PageLoader />}><PageTransition><About /></PageTransition></Suspense></ErrorBoundary>)}
       </Route>
       <Route path="/why-aquavo">

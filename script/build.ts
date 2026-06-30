@@ -55,6 +55,9 @@ async function buildAll() {
   // Also remove compressed variants so Vercel CDN doesn't serve them directly
   await rm("dist/public/index.html.br", { force: true });
   await rm("dist/public/index.html.gz", { force: true });
+  // This legacy static PDF viewer conflicts with the canonical no-trailing-slash
+  // guide route and can force /guides/5-mistakes -> /guides/5-mistakes/.
+  await rm("dist/public/guides/5-mistakes", { recursive: true, force: true });
   // Also write as importable JS for the serverless function
   const { writeFile } = await import("fs/promises");
   await writeFile(

@@ -503,7 +503,7 @@ export default function FishHealthDiagnosis() {
     <div className="min-h-screen flex flex-col bg-background">
       <MetaTags
         title="طبيب الأسماك — تشخيص الأمراض بالذكاء الاصطناعي"
-        description="ارفع صورة سمكتك واحصل على تشخيص فوري للأمراض، التوصيات العلاجية، وأفضل المنتجات من AQUAVO."
+        description="أداة تعليمية تساعدك تراجع أعراض أسماك الزينة وتفكر بخطوات فحص الماء والعزل والمعالجة المناسبة حسب الحالة."
       />
       <Navbar />
 

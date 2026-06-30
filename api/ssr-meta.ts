@@ -4,6 +4,7 @@ import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
 import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown, renderHomeGuidesSection, renderImportantInternalLinksSection, shouldRenderImportantInternalLinks } from "./_guides-content.js";
+import { getSeoMetaOverride, renderAhrefsSsrContentSection } from "./_seo-content.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -22,9 +23,9 @@ function getTemplate(): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
+const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="حوض زينة بتصميم مائي من AQUAVO" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
 const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
-const DEFAULT_DESC = "AQUAVO — متجر إلكتروني عراقي متخصص في مستلزمات أحواض الزينة في العراق. فلاتر، سخانات، أغذية، أحواض زجاجية، إضاءة LED، ديكورات ومعالجات مياه. توصيل لجميع المحافظات، دفع عند الاستلام.";
+const DEFAULT_DESC = "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.";
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
 
 // ─── Static page metadata ───────────────────────────────────────────────────
@@ -58,7 +59,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           width: 512,
           height: 512
         },
-        description: "متجر أحواض أسماك عراقي متخصص في معدات ومستلزمات الأحواض — فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع",
+        description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكورات ومعالجات مياه. الدفع عند الاستلام، وتوصيل لكل العراق برسوم 5,000 د.ع.",
         foundingDate: "2024",
         knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
         areaServed: {
@@ -94,7 +95,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         },
         hasOfferCatalog: {
           "@type": "OfferCatalog",
-          name: "معدات ومستلزمات أحواض الأسماك",
+          name: "معدات ومستلزمات أحواض الزينة",
           itemListElement: [
             { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
             { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
@@ -116,7 +117,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         priceRange: "$$",
         currenciesAccepted: "IQD",
         paymentAccepted: "Cash on Delivery",
-        description: "متجر إلكتروني عراقي متخصص في معدات وإكسسوارات أحواض الأسماك. يخدم العراق بالكامل بتوصيل خلال 24 ساعة وبرسوم ثابتة 5,000 دينار عراقي.",
+        description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. يخدم العراق بتوصيل ورسوم ثابتة 5,000 دينار عراقي حسب السياسة المعتمدة.",
         address: {
           "@type": "PostalAddress",
           addressLocality: "بغداد",
@@ -162,16 +163,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
       },
       {
         "@context": "https://schema.org",
-        "@type": "VideoObject",
-        name: "AQUAVO — معدات أحواض أسماك أصلية في العراق",
-        description: "نشرة AQUAVO لمعدات أحواض الأسماك: فلاتر، سخانات، أغذية، ديكورات، معالجات مياه — توصيل لكل العراق خلال 24 ساعة",
-        thumbnailUrl: `${BASE}/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp`,
-        uploadDate: "2026-01-01",
-        contentUrl: `${BASE}/images/hero/Aquarium_Animation_Request_Fulfilled.mp4`,
-        duration: "PT30S"
-      },
-      {
-        "@context": "https://schema.org",
         "@type": "FAQPage",
         "@id": `${BASE}/#faq`,
         mainEntity: [
@@ -181,11 +172,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المنتجات أصلية ومستوردة من الشركات المصنعة، مع ضمان على المعدات الإلكترونية." } },
           { "@type": "Question", name: "هل يوجد دعم فني؟", acceptedAnswer: { "@type": "Answer", text: "نعم، دعم فني مجاني على مدار الساعة عبر واتساب والهاتف لمساعدتك في اختيار وتركيب المعدات." } },
         ],
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "SpeakableSpecification",
-        cssSelector: ["h1", ".hero-section", "[data-speakable]"],
       },
     ],
   },
@@ -236,7 +222,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   },
   "/deals": {
     title: "عروض وتخفيضات مستلزمات أحواض الزينة في العراق | AQUAVO",
-    description: "أقوى العروض والتخفيضات على مستلزمات أحواض الزينة في العراق. خصومات يومية على الفلاتر والسخانات والأغذية والديكورات. وفّر أكثر مع AQUAVO.",
+    description: "تابع عروض AQUAVO على معدات ومستلزمات أحواض الزينة المتوفرة حسب المخزون، مع أسعار واضحة وتوصيل لكل العراق.",
     keywords: "عروض مستلزمات احواض العراق، تخفيضات احواض بغداد، خصومات فلاتر سخانات، عروض يومية AQUAVO",
   },
   "/blog": {
@@ -374,7 +360,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   "/faq": {
     title: "أسئلة شائعة عن اسماك الزينة واحواض السمك في العراق | AQUAVO",
     description: "إجابات على أكثر الأسئلة شيوعاً حول تربية اسماك الزينة في العراق، العناية بالأحواض، التوصيل، والطلب من AQUAVO. كل ما يسأله المبتدئين والهواة.",
-    keywords: "اسئلة اسماك زينة، اسئلة احواض سمك، كيف اربي اسماك زينة، متجر اسماك العراق",
+    keywords: "اسئلة احواض زينة، مستلزمات احواض الزينة العراق، توصيل مستلزمات احواض، AQUAVO",
     jsonLd: [
       {
         "@context": "https://schema.org",
@@ -438,11 +424,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
     keywords: "توصيل مستلزمات احواض العراق، شحن مستلزمات احواض بغداد، توصيل البصرة، توصيل اربيل",
   },
   "/terms": {
-    title: "الشروط والأحكام - AQUAVO متجر اسماك الزينة العراق",
+    title: "الشروط والأحكام - AQUAVO مستلزمات أحواض الزينة",
     description: "شروط وأحكام الاستخدام والشراء من متجر AQUAVO لمستلزمات احواض اسماك الزينة في العراق.",
   },
   "/privacy-policy": {
-    title: "سياسة الخصوصية - AQUAVO متجر اسماك الزينة العراق",
+    title: "سياسة الخصوصية - AQUAVO مستلزمات أحواض الزينة",
     description: "سياسة الخصوصية وحماية بيانات العملاء في متجر AQUAVO لمستلزمات احواض اسماك الزينة.",
   },
   "/return-policy": {
@@ -452,7 +438,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   "/about": {
     title: "من نحن - AQUAVO متجر مستلزمات أحواض الزينة في العراق",
     description: "AQUAVO (اكوافو) متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأحواض في كل المحافظات العراقية بمنتجات أصلية حسب المتوفر.",
-    keywords: "AQUAVO، اكوافو، من نحن، متجر اسماك زينة العراق، مستلزمات احواض بغداد",
+    keywords: "AQUAVO، اكوافو، من نحن، مستلزمات أحواض الزينة في العراق، معدات أحواض بغداد",
     jsonLd: [
       {
         "@context": "https://schema.org",
@@ -646,11 +632,6 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
         },
         {
           "@context": "https://schema.org",
-          "@type": "SpeakableSpecification",
-          cssSelector: ["h1", "article p:first-of-type", "[data-speakable]"],
-        },
-        {
-          "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
@@ -669,12 +650,14 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
 // ─── Resolve metadata for any path ──────────────────────────────────────────
 async function resolveMetadata(pathname: string): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
+  const seoOverride = getSeoMetaOverride(cleanPath);
 
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
     const meta = STATIC_PAGES[cleanPath];
     return {
       ...meta,
+      ...(seoOverride ?? {}),
       url: `${BASE}${cleanPath === "/" ? "" : cleanPath}`,
       image: DEFAULT_IMAGE,
       ogType: meta.ogType || "website",
@@ -711,9 +694,9 @@ async function resolveMetadata(pathname: string): Promise<PageMeta & { url: stri
 
   // Fallback
   return {
-    title: DEFAULT_TITLE,
-    description: DEFAULT_DESC,
-    keywords: DEFAULT_KEYWORDS,
+    title: seoOverride?.title || DEFAULT_TITLE,
+    description: seoOverride?.description || DEFAULT_DESC,
+    keywords: seoOverride?.keywords || DEFAULT_KEYWORDS,
     url: `${BASE}${cleanPath}`,
     image: DEFAULT_IMAGE,
     ogType: "website",
@@ -796,6 +779,7 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   result = result.replace(/__JSON_LD__/g, jsonLdScript);
 
   const metaPath = meta.url.replace(BASE, "") || "/";
+  const ahrefsSeoShell = renderAhrefsSsrContentSection(metaPath);
   const importantLinksShell = shouldRenderImportantInternalLinks(metaPath)
     ? renderImportantInternalLinksSection()
     : "";
@@ -812,10 +796,10 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
       /<div id="root"[^>]*><\/div>/,
       (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE)}${importantLinksShell}`
     );
-  } else if (importantLinksShell) {
+  } else if (ahrefsSeoShell || importantLinksShell) {
     result = result.replace(
       /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${rootDiv}${importantLinksShell}`
+      (rootDiv) => `${rootDiv}${ahrefsSeoShell}${importantLinksShell}`
     );
   }
 

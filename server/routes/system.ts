@@ -21,17 +21,28 @@ export function createSystemRouter(): RouterType {
             const staticPages: { loc: string; priority: string; changefreq: string }[] = [
                 { loc: "/",                    priority: "1.0", changefreq: "daily" },
                 { loc: "/products",            priority: "0.9", changefreq: "daily" },
+                { loc: "/guides",              priority: "0.9", changefreq: "weekly" },
                 { loc: "/deals",               priority: "0.8", changefreq: "daily" },
                 { loc: "/blog",                priority: "0.8", changefreq: "weekly" },
                 { loc: "/faq",                 priority: "0.8", changefreq: "weekly" },
                 { loc: "/beginner-guide",      priority: "0.8", changefreq: "monthly" },
+                { loc: "/about",               priority: "0.7", changefreq: "monthly" },
+                { loc: "/about-aquavo",        priority: "0.7", changefreq: "monthly" },
                 { loc: "/fish-encyclopedia",   priority: "0.7", changefreq: "weekly" },
+                { loc: "/fish-health",         priority: "0.7", changefreq: "weekly" },
+                { loc: "/fish-finder",         priority: "0.7", changefreq: "monthly" },
+                { loc: "/fish-compatibility",  priority: "0.7", changefreq: "monthly" },
                 { loc: "/community-gallery",   priority: "0.7", changefreq: "weekly" },
                 { loc: "/journey",             priority: "0.6", changefreq: "monthly" },
                 { loc: "/calculators",         priority: "0.6", changefreq: "monthly" },
+                { loc: "/aquarium-wizard",     priority: "0.6", changefreq: "monthly" },
+                { loc: "/tank-builder",        priority: "0.6", changefreq: "monthly" },
+                { loc: "/ai-tools",            priority: "0.6", changefreq: "monthly" },
                 { loc: "/sustainability",      priority: "0.6", changefreq: "monthly" },
+                { loc: "/why-aquavo",          priority: "0.6", changefreq: "monthly" },
                 { loc: "/shipping",            priority: "0.6", changefreq: "monthly" },
                 { loc: "/return-policy",       priority: "0.5", changefreq: "monthly" },
+                { loc: "/invest",              priority: "0.5", changefreq: "monthly" },
                 { loc: "/terms",               priority: "0.4", changefreq: "yearly" },
                 { loc: "/privacy-policy",      priority: "0.4", changefreq: "yearly" },
             ];
@@ -46,8 +57,13 @@ export function createSystemRouter(): RouterType {
                 "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
                 // New SEO/AEO pages — 2026 (target topics with low visibility score)
                 "/guides/new-aquarium-setup-iraq",
+                "/guides/aquarium-filter-guide",
+                "/guides/aquarium-heater-guide",
                 "/guides/aquarium-water-test-guide",
                 "/guides/aquarium-decor-stones-guide",
+                "/guides/water-conditioner-guide",
+                "/guides/aquarium-weekly-maintenance",
+                "/guides/beginner-aquarium-mistakes",
             ];
 
             // Image sitemap namespace for Google visual search + AI image indexing

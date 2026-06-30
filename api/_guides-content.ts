@@ -38,7 +38,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/new-aquarium-setup-iraq": {
     title: "دليل تجهيز حوض سمك جديد في العراق خطوة بخطوة | AQUAVO",
     description:
-      "دليل عملي لتجهيز حوض سمك زينة جديد في العراق: المعدات الأساسية، ترتيب التركيب، تدوير الحوض قبل الأسماك، وأهم الأخطاء. مع روابط للمعدات وتوصيل لكل العراق.",
+      "دليل عملي لتجهيز حوض زينة جديد في العراق: المعدات الأساسية، ترتيب التركيب، تدوير الحوض، وأخطاء البداية، مع روابط مفيدة ومهمة.",
     h1: "دليل تجهيز حوض سمك جديد في العراق خطوة بخطوة",
     answer:
       "لتجهيز حوض جديد بنجاح، جهّز المعدات الأساسية أولاً: حوض مناسب، فلتر، سخان، وإضاءة. املأ الحوض بماء معالَج بمزيل الكلور، شغّل الفلتر والسخان، وانتظر اكتمال دورة التدوير البكتيري قبل إضافة أي أسماك. هذا الترتيب يعطي ماء مستقر وآمن ويقلل المشاكل لاحقاً.",
@@ -74,7 +74,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
     faq: [
       {
         q: "كم يحتاج الحوض الجديد قبل إضافة الأسماك؟",
-        a: "عادة عدة أيام إلى أسابيع حتى تكتمل دورة التدوير. الأفضل تعتمد على قياس الماء (أمونيا ونتريت = صفر) مو على عدد الأيام فقط.",
+        a: "عادة عدة أيام إلى أسابيع حتى تكتمل دورة التدوير. اعتمد على قياس الماء (أمونيا ونتريت = صفر) مو على عدد الأيام فقط.",
       },
       {
         q: "هل أكدر أستخدم ماء الحنفية مباشرة؟",
@@ -106,7 +106,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/aquarium-filter-guide": {
     title: "كيف تختار فلتر مناسب لحوض السمك | دليل AQUAVO",
     description:
-      "دليل اختيار فلتر الحوض حسب حجمه ونوع الأسماك: أنواع الفلاتر الداخلية والخارجية والإسفنجية وأنواع الميديا. نصائح عملية وروابط للفلاتر وتوصيل لكل العراق.",
+      "دليل اختيار فلتر الحوض حسب الحجم والحاجة: فلاتر داخلية وخارجية وإسفنجية، ميديا الفلتر، ونصائح لتصفية ماء مستقرة وروابط مناسبة.",
     h1: "كيف تختار فلتر مناسب لحوض السمك",
     answer:
       "اختيار الفلتر يعتمد على حجم الحوض ونوع الأسماك. القاعدة العامة أن الفلتر يدوّر ماء الحوض عدة مرات بالساعة. للأحواض الكبيرة استخدم فلتر خارجي، للصغيرة فلتر داخلي، ولأحواض التفريخ فلتر إسفنجي. تأكد أن الفلتر يدعم التصفية الميكانيكية والبيولوجية والكيميائية.",
@@ -172,7 +172,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/aquarium-heater-guide": {
     title: "كيف تختار سخان (هيتر) مناسب لحجم الحوض | دليل AQUAVO",
     description:
-      "دليل اختيار سخان الحوض حسب حجمه ودرجة حرارة الغرفة، مع نصائح للتثبيت الآمن والحفاظ على ثبات الحرارة. روابط للسخانات وتوصيل لكل العراق.",
+      "دليل اختيار سخان الحوض حسب حجم الماء وحرارة الغرفة، مع نصائح التثبيت الآمن والحفاظ على حرارة مستقرة داخل حوض الزينة وروابط مرتبطة.",
     h1: "كيف تختار سخان (هيتر) مناسب لحجم الحوض",
     answer:
       "يعتمد اختيار السخان على حجم الحوض والفرق بين حرارة الغرفة والحرارة المطلوبة. القاعدة التقريبية الشائعة نحو 1 واط لكل لتر ماء، وتزيد إذا كانت الغرفة باردة. اختر سخاناً بترموستات قابل للضبط، وثبّته قرب مجرى الماء من الفلتر لتوزيع حرارة متساوٍ.",
@@ -236,7 +236,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/aquarium-water-test-guide": {
     title: "فحص ماء الحوض: الأمونيا والنتريت والنترات وpH | دليل AQUAVO",
     description:
-      "دليل فحص ماء حوض السمك: ماذا تعني الأمونيا والنتريت والنترات وpH، والقيم المرجعية الشائعة، وكيف تتصرف عند ارتفاعها. روابط لمعالجات المياه وتوصيل لكل العراق.",
+      "دليل فحص ماء الحوض: معنى الأمونيا والنتريت والنترات وpH، وكيف تتصرف عند ارتفاع القيم وروابط لمعالجات المياه والصيانة الدورية.",
     h1: "فحص ماء الحوض: الأمونيا والنتريت والنترات وpH",
     answer:
       "فحص الماء يكشف صحة الحوض قبل ظهور المشاكل. القيم المرجعية الشائعة: الأمونيا صفر، النتريت صفر، والنترات منخفضة قدر الإمكان. أما pH فيعتمد على نوع الأسماك وعادة يكون قريباً من المتعادل. اختبر الماء بانتظام، خصوصاً في الحوض الجديد، وغيّر جزءاً من الماء عند ارتفاع القيم.",
@@ -297,7 +297,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/water-conditioner-guide": {
     title: "مزيل الكلور لماء الحوض ولماذا هو ضروري | دليل AQUAVO",
     description:
-      "ليش مزيل الكلور ضروري لماء حوض السمك، كيف يحمي الأسماك والبكتيريا النافعة، وكيف تستخدمه عند ملء الحوض أو تغيير الماء. روابط لمعالجات المياه وتوصيل لكل العراق.",
+      "شرح أهمية مزيل الكلور لماء الحوض، كيف يحمي الأسماك والبكتيريا النافعة، ومتى تستخدمه عند الملء أو تغيير الماء وروابط للفحص.",
     h1: "مزيل الكلور لماء الحوض ولماذا هو ضروري",
     answer:
       "مزيل الكلور (Water Conditioner) يعالج ماء الحنفية ويزيل الكلور والكلورامين اللي يضران الأسماك والبكتيريا النافعة. استخدمه دائماً قبل إضافة أي ماء جديد للحوض، سواء عند التجهيز أو عند تغيير الماء الأسبوعي. بدونه، الكلور يؤذي الخياشيم والبكتيريا ويسبب مشاكل سريعة.",
@@ -354,7 +354,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/aquarium-weekly-maintenance": {
     title: "جدول صيانة أسبوعي لحوض السمك | دليل AQUAVO",
     description:
-      "جدول صيانة أسبوعي عملي لحوض السمك: تغيير جزء من الماء، تنظيف الزجاج، فحص المعدّات والقيم. خطوات بسيطة تحافظ على حوض صحي. روابط لأدوات العناية وتوصيل لكل العراق.",
+      "جدول صيانة أسبوعي لحوض الزينة: تغيير جزء من الماء، تنظيف الزجاج، فحص المعدات والقيم، وروتين يحافظ على ماء مستقر وروابط صيانة.",
     h1: "جدول صيانة أسبوعي لحوض السمك",
     answer:
       "الصيانة المنتظمة أسهل من إصلاح المشاكل. أسبوعياً: غيّر جزءاً من الماء (عادة حوالي 20–30%) بماء معالَج، نظّف الزجاج من الطحالب، وتأكد أن الفلتر والسخان يشتغلون. افحص سلوك الأسماك وكمية الطعام. هذا الروتين يحافظ على ماء مستقر وأسماك صحية.",
@@ -414,7 +414,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/beginner-aquarium-mistakes": {
     title: "أخطاء المبتدئين بأحواض الزينة وكيف تتجنبها | دليل AQUAVO",
     description:
-      "أكثر أخطاء المبتدئين شيوعاً بأحواض الزينة: عدم تدوير الحوض، الإفراط بالتغذية، الاكتظاظ، وإهمال معالجة الماء. تعرّف عليها وتجنبها. روابط للمعدات وتوصيل لكل العراق.",
+      "أخطاء المبتدئين في أحواض الزينة: تشغيل الحوض بسرعة، الإفراط بالتغذية، الاكتظاظ، وإهمال معالجة الماء وكيف تتجنبها مع روابط مفيدة.",
     h1: "أخطاء المبتدئين بأحواض الزينة وكيف تتجنبها",
     answer:
       "أغلب مشاكل المبتدئين تنتج من أخطاء بسيطة يمكن تجنبها: إضافة الأسماك قبل تدوير الحوض، الإفراط في التغذية، اكتظاظ الحوض، واستخدام ماء غير معالَج. لو تجنبت هذي الأخطاء من البداية، راح يكون حوضك أكثر استقراراً وأسماكك أصح وأطول عمراً.",
@@ -484,7 +484,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/guides/aquarium-decor-stones-guide": {
     title: "دليل ديكور وأحجار أحواض الزينة في العراق | AQUAVO",
     description:
-      "دليل عملي لاختيار ديكور وأحجار آمنة لأحواض الزينة في العراق: شنو الحجر الآمن، هل الحجر يغير pH، شلون تغسل الديكور قبل الاستخدام، والفرق بين الديكور الطبيعي والصناعي، مع روابط لمنتجات AQUAVO وتوصيل لكل العراق.",
+      "دليل اختيار ديكور وأحجار آمنة لأحواض الزينة في العراق: تأثير الحجر على pH، غسل الديكور، والفرق بين الطبيعي والصناعي وروابط منتجات.",
     h1: "دليل ديكور وأحجار أحواض الزينة في العراق",
     answer:
       "اختيار ديكور وأحجار الحوض لازم يكون حسب الأمان وتأثيره على الماء، مو الشكل فقط. الحجر المناسب ما يطلق مواد ضارة، وما يرفع pH بقوة إلا إذا كان هذا مطلوباً لنوع الأسماك. قبل إدخال أي حجر أو ديكور للحوض، اغسله جيداً بدون صابون وتأكد أنه مناسب لأحواض الزينة.",
@@ -602,7 +602,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
   "/about-aquavo": {
     title: "من هو AQUAVO؟ متجر معدات أحواض الزينة في العراق",
     description:
-      "AQUAVO متجر إلكتروني عراقي متخصص بمعدات ومستلزمات أحواض الزينة فقط — فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه. توصيل لكل العراق ودفع عند الاستلام. لا نبيع كائنات حية.",
+      "AQUAVO متجر إلكتروني عراقي متخصص بمعدات ومستلزمات أحواض الزينة فقط، مع توصيل لكل العراق ودفع عند الاستلام، ولا يبيع كائنات حية.",
     h1: "من هو AQUAVO؟ وماذا يبيع؟",
     answer:
       "AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة فقط: فلاتر، سخانات، أغذية، إضاءة، ديكورات، ومعالجات مياه. لا نبيع أسماكاً حية ولا كائنات حية ولا نباتات حية. نخدم كل المحافظات العراقية بتوصيل خلال 24 ساعة، برسوم ثابتة 5,000 دينار، والدفع عند الاستلام.",
@@ -909,7 +909,7 @@ export interface GuideIndexItem {
   blurb: string;
 }
 export const GUIDE_INDEX_ITEMS: GuideIndexItem[] = [
-  { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض سمك جديد في العراق", blurb: "خطوات ترتيب المعدات وملء الحوض وتدوير الماء قبل إضافة الأسماك." },
+  { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض زينة جديد في العراق", blurb: "خطوات ترتيب المعدات وملء الحوض وتدوير الماء قبل إضافة الأسماك." },
   { href: "/guides/aquarium-filter-guide", label: "كيف تختار فلتر مناسب", blurb: "أنواع الفلاتر والقوة المناسبة حسب حجم الحوض ونوع الأسماك." },
   { href: "/guides/aquarium-heater-guide", label: "كيف تختار سخان (هيتر)", blurb: "حساب الواط المناسب لحجم الحوض والتثبيت الآمن لثبات الحرارة." },
   { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض", blurb: "معنى الأمونيا والنتريت والنترات وpH وكيف تتصرف عند ارتفاعها." },
@@ -917,6 +917,24 @@ export const GUIDE_INDEX_ITEMS: GuideIndexItem[] = [
   { href: "/guides/aquarium-weekly-maintenance", label: "جدول صيانة أسبوعي", blurb: "مهام بسيطة أسبوعية تحافظ على ماء مستقر وأسماك صحية." },
   { href: "/guides/beginner-aquarium-mistakes", label: "أخطاء المبتدئين", blurb: "أكثر أخطاء المبتدئين شيوعاً وكيف تتجنبها من البداية." },
   { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار أحواض الزينة", blurb: "دليل لاختيار الأحجار والديكور الآمن للحوض وتأثيره على الماء." },
+  { href: "/guides/filter-choice", label: "اختيار فلتر الحوض", blurb: "شرح سريع لاختيار نوع الفلتر المناسب للحوض وحجم الماء." },
+  { href: "/guides/heater-choice", label: "اختيار سخان الحوض", blurb: "حساب تقريبي لقوة السخان وتجنب تذبذب الحرارة." },
+  { href: "/guides/water-change-schedule", label: "جدول تغيير الماء", blurb: "متى تغير الماء وكم النسبة حسب استقرار الحوض." },
+  { href: "/guides/feeding-table", label: "جدول التغذية", blurb: "تنظيم كمية الطعام لتقليل الفضلات ومشاكل الماء." },
+  { href: "/guides/quarantine", label: "الحجر الصحي", blurb: "مراقبة الأسماك الجديدة قبل إدخالها للحوض الرئيسي." },
+  { href: "/guides/algae-control", label: "السيطرة على الطحالب", blurb: "أسباب الطحالب وكيف تقللها بالإضاءة والصيانة." },
+  { href: "/guides/aquarium-salt", label: "ملح الحوض", blurb: "متى يستخدم الملح ومتى يكون غير مناسب." },
+  { href: "/guides/white-scale", label: "إزالة الكلس الأبيض", blurb: "تنظيف ترسبات الزجاج بدون صابون أو خدش." },
+  { href: "/guides/5-mistakes", label: "5 أخطاء شائعة", blurb: "أخطاء البداية التي تسبب مشاكل في الأسابيع الأولى." },
+  { href: "/guides/essential-tools", label: "أدوات الحوض الأساسية", blurb: "الأدوات التي تسهّل الصيانة والفحص والتنظيف." },
+  { href: "/guides/filter-media", label: "ميديا الفلتر", blurb: "دور الإسفنج والسيراميك والكربون داخل الفلتر." },
+  { href: "/guides/eco-friendly", label: "حوض صديق للبيئة", blurb: "تقليل الهدر في الماء والطاقة عبر روتين صحيح." },
+  { href: "/guides/fish-hiding", label: "اختباء الأسماك", blurb: "تمييز السلوك الطبيعي عن علامات الإجهاد أو المرض." },
+  { href: "/guides/happy-fish-signs", label: "علامات صحة الأسماك", blurb: "مؤشرات الشهية والحركة والتنفس داخل الحوض." },
+  { href: "/guides/temperature-guide", label: "درجة حرارة الحوض", blurb: "ثبات الحرارة ودور السخان والترمومتر." },
+  { href: "/guides/treatment-basics", label: "أساسيات العلاج", blurb: "خطوات الفحص والعزل قبل استخدام أي معالجة." },
+  { href: "/guides/water-myths", label: "خرافات ماء الحوض", blurb: "تصحيح أفكار شائعة عن جودة الماء والتغيير." },
+  { href: "/guides/tank-rescue-plan", label: "خطة إنقاذ الحوض", blurb: "خطوات طوارئ عند تدهور الماء أو ظهور أعراض خطرة." },
   { href: "/about-aquavo", label: "من هو AQUAVO؟", blurb: "متجر معدات أحواض الزينة في العراق — ماذا يبيع وماذا لا يبيع." },
 ];
 
@@ -967,19 +985,74 @@ export function renderHomeGuidesSection(base: string): string {
 </section>`;
 }
 
-const IMPORTANT_INTERNAL_LINKS = [
-  { href: "/", label: "الرئيسية" },
-  { href: "/products", label: "المنتجات" },
-  { href: "/guides", label: "أدلة أحواض الزينة" },
-  { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
-  { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
-  { href: "/guides/aquarium-heater-guide", label: "اختيار السخان" },
-  { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
-  { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
-  { href: "/shipping", label: "التوصيل" },
-  { href: "/faq", label: "الأسئلة الشائعة" },
-  { href: "/about-aquavo", label: "من هو AQUAVO؟" },
-  { href: "/return-policy", label: "سياسة الإرجاع" },
+const IMPORTANT_INTERNAL_LINK_GROUPS = [
+  {
+    heading: "أدلة أحواض الزينة",
+    links: [
+      { href: "/guides", label: "كل الأدلة" },
+      { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
+      { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
+      { href: "/guides/aquarium-heater-guide", label: "اختيار السخان" },
+      { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
+      { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
+      { href: "/guides/filter-media", label: "ميديا الفلتر" },
+      { href: "/guides/water-change-schedule", label: "تغيير الماء" },
+      { href: "/guides/5-mistakes", label: "5 أخطاء شائعة" },
+      { href: "/guides/tank-rescue-plan", label: "خطة إنقاذ الحوض" },
+      { href: "/guides/quarantine", label: "الحجر الصحي" },
+      { href: "/guides/treatment-basics", label: "أساسيات العلاج" },
+      { href: "/guides/white-scale", label: "إزالة الكلس" },
+      { href: "/guides/water-myths", label: "خرافات الماء" },
+      { href: "/guides/feeding-table", label: "جدول التغذية" },
+      { href: "/guides/algae-control", label: "السيطرة على الطحالب" },
+      { href: "/guides/aquarium-salt", label: "ملح الحوض" },
+      { href: "/guides/temperature-guide", label: "درجة الحرارة" },
+      { href: "/guides/fish-hiding", label: "اختباء الأسماك" },
+      { href: "/guides/happy-fish-signs", label: "علامات الصحة" },
+      { href: "/guides/essential-tools", label: "أدوات أساسية" },
+      { href: "/guides/eco-friendly", label: "حوض صديق للبيئة" },
+    ],
+  },
+  {
+    heading: "أدوات AQUAVO",
+    links: [
+      { href: "/calculators", label: "حاسبات الحوض" },
+      { href: "/aquarium-wizard", label: "مساعد تجهيز الحوض" },
+      { href: "/tank-builder", label: "مصمم الحوض" },
+      { href: "/fish-finder", label: "اختيار السمك المناسب" },
+      { href: "/fish-compatibility", label: "توافق الأسماك" },
+      { href: "/fish-health", label: "تشخيص مشاكل الأسماك" },
+      { href: "/ai-tools", label: "أدوات تعليمية" },
+    ],
+  },
+  {
+    heading: "صفحات مهمة",
+    links: [
+      { href: "/", label: "الرئيسية" },
+      { href: "/products", label: "المنتجات" },
+      { href: "/deals", label: "العروض" },
+      { href: "/blog", label: "المدونة" },
+      { href: "/beginner-guide", label: "دليل المبتدئين" },
+      { href: "/fish-encyclopedia", label: "موسوعة أسماك الزينة" },
+      { href: "/community-gallery", label: "معرض المجتمع" },
+      { href: "/journey", label: "رحلة الحوض" },
+      { href: "/about", label: "من هو AQUAVO؟" },
+      { href: "/about-aquavo", label: "عن AQUAVO" },
+      { href: "/why-aquavo", label: "لماذا AQUAVO" },
+      { href: "/sustainability", label: "الاستدامة" },
+      { href: "/invest", label: "الاستثمار" },
+    ],
+  },
+  {
+    heading: "سياسات وثقة",
+    links: [
+      { href: "/shipping", label: "التوصيل" },
+      { href: "/faq", label: "الأسئلة الشائعة" },
+      { href: "/return-policy", label: "سياسة الإرجاع" },
+      { href: "/privacy-policy", label: "سياسة الخصوصية" },
+      { href: "/terms", label: "الشروط والأحكام" },
+    ],
+  },
 ];
 
 const IMPORTANT_LINK_BLOCKED_PREFIXES = [
@@ -994,9 +1067,11 @@ const IMPORTANT_LINK_BLOCKED_PREFIXES = [
 ];
 
 const IMPORTANT_LINKS_CSS = `#aquavo-important-links{background:#071226;color:#cbd8e5;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right}
-#aquavo-important-links .ail-wrap{max-width:1100px;margin:0 auto;padding:18px}
+#aquavo-important-links .ail-wrap{max-width:1100px;margin:0 auto;padding:22px 18px}
 #aquavo-important-links h2{font-family:'Changa','Cairo',sans-serif;font-size:1rem;line-height:1.4;color:#fff;margin:0 0 .75rem;font-weight:800}
-#aquavo-important-links nav{display:flex;flex-wrap:wrap;gap:.55rem}
+#aquavo-important-links .ail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
+#aquavo-important-links h3{font-size:.9rem;line-height:1.4;color:#fff;margin:0 0 .55rem;font-weight:800}
+#aquavo-important-links nav{display:flex;flex-wrap:wrap;gap:.45rem}
 #aquavo-important-links a{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#dbe7f0;background:rgba(255,255,255,.04);padding:.45rem .7rem;text-decoration:none;font-size:.9rem;line-height:1.4}
 #aquavo-important-links a:hover{border-color:#199bb8;color:#fff;background:rgba(25,155,184,.14)}`;
 
@@ -1008,15 +1083,18 @@ export function shouldRenderImportantInternalLinks(pathname: string): boolean {
 }
 
 export function renderImportantInternalLinksSection(): string {
-  const links = IMPORTANT_INTERNAL_LINKS.map(
-    (link) => `<a href="${esc(link.href)}">${esc(link.label)}</a>`
-  ).join("");
+  const groups = IMPORTANT_INTERNAL_LINK_GROUPS.map((group) => {
+    const links = group.links.map(
+      (link) => `<a href="${esc(link.href)}">${esc(link.label)}</a>`
+    ).join("");
+    return `<div><h3>${esc(group.heading)}</h3><nav aria-label="${esc(group.heading)}">${links}</nav></div>`;
+  }).join("");
 
   return `<section id="aquavo-important-links" data-ssr-internal-links>
 <style>${IMPORTANT_LINKS_CSS}</style>
 <div class="ail-wrap">
 <h2>روابط مهمة من AQUAVO</h2>
-<nav aria-label="روابط مهمة من AQUAVO">${links}</nav>
+<div class="ail-grid">${groups}</div>
 </div>
 </section>`;
 }
