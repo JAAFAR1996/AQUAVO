@@ -42,9 +42,6 @@ products_company_official/
 
 # Local experimental 3D/browser QA artifacts
 client/public/images/products/hyper3d/
-client/public/models/*
-!client/public/models/driftwood/
-!client/public/models/driftwood/**
 client/public/test_wood*.glb
 # client/src/pages/ai-driftwood-experiment.tsx
 

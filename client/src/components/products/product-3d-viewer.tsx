@@ -73,17 +73,12 @@ function loadModelViewer(): Promise<void> {
   return modelViewerReady;
 }
 
-// ── Kick off download immediately on module import (browser only) ─────────
-// By the time the user navigates to a product page and React mounts the
-// component, the ~280 kB chunk is already in-flight (or done). This
-// eliminates the spinner that was visible on every first visit.
-if (typeof window !== "undefined") {
-  loadModelViewer().catch(() => { /* silent — component handles the error */ });
-}
-
 /* ──────────────────────────────────────────────────────────
    Shared UI fragments
    ────────────────────────────────────────────────────────── */
+
+const MODEL_LOAD_ERROR_MESSAGE =
+  "تعذر تحميل العرض ثلاثي الأبعاد حالياً، جرّب تحديث الصفحة أو تواصل معنا.";
 
 function ViewerHeader({ pieceCode }: { pieceCode?: string }) {
   return (
@@ -352,8 +347,8 @@ function ModelViewerInner({
 
     const handleError = (event: Event) => {
       console.warn("[Product3DViewer] model-viewer error event:", event);
-      // Don't crash — just hide the overlay
       setShowOverlay(false);
+      setViewerError(true);
     };
 
     viewer.addEventListener("load", handleLoad);
@@ -395,6 +390,9 @@ function ModelViewerInner({
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
+        <div className="relative z-10 mx-4 max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+          {MODEL_LOAD_ERROR_MESSAGE}
+        </div>
       </div>
     );
   }
@@ -446,7 +444,7 @@ export const Product3DViewer = memo(function Product3DViewer({
     };
   }, []);
 
-  // Fallback: show poster image if 3D fails completely
+  // Fallback: show a clear error instead of implying a working 3D view.
   const fallbackContent = (
     <ViewerShell className={className} pieceCode={pieceCode}>
       <div
@@ -463,7 +461,9 @@ export const Product3DViewer = memo(function Product3DViewer({
           />
         )}
         <div className="relative z-10 flex flex-col items-center gap-2 text-white/50">
-          <p className="text-xs">العرض الثلاثي الأبعاد غير متوفر حالياً</p>
+          <p className="max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+            {MODEL_LOAD_ERROR_MESSAGE}
+          </p>
         </div>
       </div>
     </ViewerShell>
