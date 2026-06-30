@@ -97,11 +97,6 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <Leaf className="w-3 h-3" aria-hidden="true" /> صديق للبيئة
               </Badge>
             )}
-            {!isOutOfStock && (product.stock ?? 99) <= 4 && (product.stock ?? 0) > 0 && (
-              <Badge className="bg-red-500/90 text-white text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-lg animate-in fade-in duration-500 delay-300">
-                متبقي {product.stock} فقط
-              </Badge>
-            )}
           </div>
 
           {/* Always-visible compare toggle (top-left) — works on mobile too */}
