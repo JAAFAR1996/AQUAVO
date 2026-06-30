@@ -57,34 +57,6 @@ export function generateSsrMeta(requestPath: string): string {
 
     jsonLdScripts.push({
       "@context": "https://schema.org",
-      "@type": "OnlineStore",
-      "@id": `${BASE_URL}/#store`,
-      "name": "AQUAVO Store",
-      "image": LOGO_URL,
-      "url": BASE_URL,
-      "telephone": "+964-774-788-0673",
-      "currenciesAccepted": "IQD",
-      "paymentAccepted": ["Cash on Delivery", "Cash"],
-      "description": "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. خدمة توصيل لجميع المحافظات.",
-      "areaServed": [
-        {
-          "@type": "Country",
-          "name": "Iraq",
-          "sameAs": "https://www.wikidata.org/wiki/Q796"
-        }
-      ],
-      "parentOrganization": {
-        "@id": `${BASE_URL}/#organization`
-      },
-      "sameAs": [
-        "https://www.facebook.com/profile.php?id=61587249730248",
-        "https://instagram.com/aquavo_iq",
-        "https://www.tiktok.com/@aquavo.iq"
-      ]
-    });
-
-    jsonLdScripts.push({
-      "@context": "https://schema.org",
       "@type": "WebSite",
       "@id": `${BASE_URL}/#website`,
       "name": "AQUAVO",

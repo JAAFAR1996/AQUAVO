@@ -92,60 +92,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           addressLocality: "Baghdad",
           addressRegion: "Baghdad",
           addressCountry: "IQ"
-        },
-        hasOfferCatalog: {
-          "@type": "OfferCatalog",
-          name: "معدات ومستلزمات أحواض الزينة",
-          itemListElement: [
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "فلاتر أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "سخانات أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "غذاء أسماك" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "ديكورات أحواض" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "معالجات مياه" } },
-            { "@type": "Offer", itemOffered: { "@type": "Product", name: "إضاءة أحواض" } }
-          ]
         }
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "Store",
-        "@id": `${BASE}/#localbusiness`,
-        name: "AQUAVO",
-        image: DEFAULT_IMAGE,
-        url: BASE,
-        telephone: "+964-774-788-0673",
-        priceRange: "$$",
-        currenciesAccepted: "IQD",
-        paymentAccepted: "Cash on Delivery",
-        description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. يخدم العراق بتوصيل ورسوم ثابتة 5,000 دينار عراقي حسب السياسة المعتمدة.",
-        address: {
-          "@type": "PostalAddress",
-          addressLocality: "بغداد",
-          addressRegion: "Baghdad",
-          addressCountry: "IQ"
-        },
-        geo: {
-          "@type": "GeoCoordinates",
-          latitude: 33.3128,
-          longitude: 44.3615
-        },
-        openingHoursSpecification: [
-          {
-            "@type": "OpeningHoursSpecification",
-            dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-            opens: "00:00",
-            closes: "23:59"
-          }
-        ],
-        areaServed: {
-          "@type": "Country",
-          name: "Iraq"
-        },
-        sameAs: [
-          "https://www.facebook.com/profile.php?id=61587249730248",
-          "https://instagram.com/aquavo_iq",
-          "https://www.tiktok.com/@aquavo.iq"
-        ]
       },
       {
         "@context": "https://schema.org",
@@ -160,18 +107,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           target: `${BASE}/products?search={search_term_string}`,
           "query-input": "required name=search_term_string",
         },
-      },
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "@id": `${BASE}/#faq`,
-        mainEntity: [
-          { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متجر إلكتروني عراقي متخصص بمعدات ومستلزمات أحواض الزينة فقط: فلاتر، سخانات، أغذية، إضاءة، ديكورات، ومعالجات مياه. لا نبيع كائنات حية ولا نباتات." } },
-          { "@type": "Question", name: "كم رسوم التوصيل وأين تصلون؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل ثابتة 5,000 دينار عراقي لبغداد وكل المحافظات الثماني عشرة، والتوصيل خلال 24 ساعة." } },
-          { "@type": "Question", name: "ما هي طرق الدفع؟", acceptedAnswer: { "@type": "Answer", text: "الدفع نقداً عند الاستلام فقط. يمكنك فحص المنتج قبل الدفع." } },
-          { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المنتجات أصلية ومستوردة من الشركات المصنعة، مع ضمان على المعدات الإلكترونية." } },
-          { "@type": "Question", name: "هل يوجد دعم فني؟", acceptedAnswer: { "@type": "Answer", text: "نعم، دعم فني مجاني على مدار الساعة عبر واتساب والهاتف لمساعدتك في اختيار وتركيب المعدات." } },
-        ],
       },
     ],
   },
