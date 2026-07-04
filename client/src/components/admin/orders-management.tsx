@@ -51,6 +51,13 @@ interface OrderItem {
   image?: string;
 }
 
+interface ShippingAddress {
+  addressLine1?: string;
+  city?: string;
+  country?: string;
+  [key: string]: string | undefined;
+}
+
 interface Order {
   id: string;
   userId: string;
@@ -62,7 +69,7 @@ interface Order {
   totalAmount?: number;
   roundedTotal?: number;
   status: string;
-  shippingAddress?: string;
+  shippingAddress?: string | ShippingAddress;
   trackingNumber?: string;
   orderNumber?: string;
   shippingCost?: number;
@@ -92,6 +99,23 @@ const ORDER_STATUSES = {
   cancelled: { label: "ملغي", color: "bg-gray-500 hover:bg-gray-600" },
   rejected_returned: { label: "رجع للبائع", color: "bg-orange-600 hover:bg-orange-700" },
   rejected_carrier:  { label: "بقي بالشركة", color: "bg-rose-700 hover:bg-rose-800" },
+};
+
+/** Parse shippingAddress whether it's a JSON string or an object */
+const parseShippingAddress = (addr: string | ShippingAddress | undefined): string => {
+  if (!addr) return "";
+  if (typeof addr === "string") {
+    try {
+      const parsed = JSON.parse(addr) as ShippingAddress;
+      const parts = [parsed.addressLine1, parsed.city, parsed.country].filter(Boolean);
+      return parts.length > 0 ? parts.join(" - ") : addr;
+    } catch {
+      return addr;
+    }
+  }
+  // Already an object
+  const parts = [addr.addressLine1, addr.city, addr.country].filter(Boolean);
+  return parts.length > 0 ? parts.join(" - ") : "";
 };
 
 const getDisplayTotal = (order: Order) => {
@@ -533,7 +557,7 @@ export function OrdersManagement() {
               <div>
                 <DialogTitle className="text-2xl">فاتورة الطلب</DialogTitle>
                 <DialogDescription className="flex items-center gap-2 flex-wrap">
-                  <span>رقم الطلب: <span className="text-primary font-mono font-bold">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span></span>
+                  <span>رقم الطلب: <span className="text-primary font-mono font-bold" dir="ltr">{selectedOrder?.orderNumber || selectedOrder?.id.slice(0, 8)}</span></span>
                   {detailReturnCount > 0 && (
                     <span className="text-orange-500 font-semibold text-xs border border-orange-300 rounded px-2 py-0.5 inline-flex items-center gap-1">
                       <AlertTriangle className="h-3 w-3 inline" />
@@ -571,7 +595,10 @@ export function OrdersManagement() {
                   {selectedOrder.customerPhone && (
                     <p className="text-sm font-mono mt-1">📞 <a href={`tel:${selectedOrder.customerPhone}`} className="text-primary hover:underline" dir="ltr">{selectedOrder.customerPhone}</a></p>
                   )}
-                  {selectedOrder.shippingAddress && <p className="text-sm mt-1">📍 {selectedOrder.shippingAddress}</p>}
+                  {(() => {
+                    const addrText = parseShippingAddress(selectedOrder.shippingAddress);
+                    return addrText ? <p className="text-sm mt-1">📍 {addrText}</p> : null;
+                  })()}
                 </div>
                 <div className="text-left">
                   <h3 className="font-semibold text-sm text-muted-foreground mb-2">تفاصيل الطلب</h3>

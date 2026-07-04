@@ -40,6 +40,24 @@ const CATEGORY_LABELS: Record<string, string> = {
   substrate: "تربة", wood: "أخشاب", decor: "ديكور",
 };
 
+interface KnownCustomer {
+  name: string;
+  phone: string;
+  city: string;
+  address: string;
+}
+
+/** Extract city+address from a shippingAddress that can be string|object */
+function parseAddr(raw: unknown): { city: string; address: string } {
+  if (!raw) return { city: "", address: "" };
+  try {
+    const obj: Record<string, string> = typeof raw === "string" ? JSON.parse(raw) : (raw as Record<string, string>);
+    return { city: obj.city || "", address: obj.addressLine1 || obj.address || "" };
+  } catch {
+    return { city: "", address: typeof raw === "string" ? raw : "" };
+  }
+}
+
 export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoiceCreatorProps) {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -50,6 +68,13 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const [customerCity, setCustomerCity] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [customerNotes, setCustomerNotes] = useState("");
+
+  // Autocomplete — قاعدة بيانات الزبائن السابقين
+  const [knownCustomers, setKnownCustomers] = useState<KnownCustomer[]>([]);
+  const [nameSuggestions, setNameSuggestions] = useState<KnownCustomer[]>([]);
+  const [showNameDrop, setShowNameDrop] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const nameSuggestRef = useRef<HTMLDivElement>(null);
 
   // المنتجات
   const [items, setItems] = useState<InvoiceItem[]>([]);
@@ -75,6 +100,60 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   const rawTotal = Math.max(0, subtotal - discount + delivery);
   const total = Math.ceil(rawTotal / 250) * 250;
   const roundingDifference = total - rawTotal;
+
+  // ── جلب الزبائن السابقين عند فتح النموذج ──────────────────────────────────
+  useEffect(() => {
+    fetch("/api/admin/orders", { credentials: "include" })
+      .then(r => r.ok ? r.json() : [])
+      .then((orders: Array<{ customerName?: string; customerPhone?: string; shippingAddress?: unknown }>) => {
+        const seen = new Map<string, KnownCustomer>();
+        // نأخذ أحدث طلب لكل رقم هاتف
+        for (const o of orders) {
+          const name = (o.customerName || "").trim();
+          const phone = (o.customerPhone || "").trim();
+          if (!name || !phone) continue;
+          const key = phone;
+          if (!seen.has(key)) {
+            const { city, address } = parseAddr(o.shippingAddress);
+            seen.set(key, { name, phone, city, address });
+          }
+        }
+        setKnownCustomers(Array.from(seen.values()));
+      })
+      .catch(() => {});
+  }, []);
+
+  // ── فلترة الاقتراحات بحسب ما يكتبه الأدمن ──────────────────────────────────
+  useEffect(() => {
+    const q = customerName.trim();
+    if (q.length < 2) { setNameSuggestions([]); setShowNameDrop(false); return; }
+    const filtered = knownCustomers.filter(c =>
+      c.name.includes(q) || c.name.toLowerCase().includes(q.toLowerCase())
+    ).slice(0, 8);
+    setNameSuggestions(filtered);
+    setShowNameDrop(filtered.length > 0);
+  }, [customerName, knownCustomers]);
+
+  // ── إغلاق dropdown الاسم عند النقر خارجه ──────────────────────────────────
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        nameSuggestRef.current && !nameSuggestRef.current.contains(e.target as Node) &&
+        nameInputRef.current && !nameInputRef.current.contains(e.target as Node)
+      ) setShowNameDrop(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const applyCustomer = (c: KnownCustomer) => {
+    setCustomerName(c.name);
+    setCustomerPhone(c.phone);
+    if (c.city) setCustomerCity(c.city);
+    if (c.address) setCustomerAddress(c.address);
+    setShowNameDrop(false);
+    setTimeout(() => nameInputRef.current?.blur(), 50);
+  };
 
   // ── Smart AI Search (uses embedding semantic search with text fallback) ──────
   const searchProducts = useCallback(async (q: string) => {
@@ -342,9 +421,56 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               👤 بيانات العميل
             </div>
             <div style={s.grid2}>
-              <div>
+              <div style={{ position: "relative" }}>
                 <label style={s.label}>الاسم <span style={{ color: "#ef4444" }}>*</span></label>
-                <input style={s.input} placeholder="أحمد محمد" value={customerName} onChange={e => setCustomerName(e.target.value)} />
+                <input
+                  ref={nameInputRef}
+                  style={{
+                    ...s.input,
+                    border: showNameDrop ? "1px solid rgba(25,155,184,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: showNameDrop ? "0 0 0 3px rgba(25,155,184,0.1)" : "none",
+                    borderRadius: showNameDrop ? "10px 10px 0 0" : 10,
+                  }}
+                  placeholder="أحمد محمد"
+                  value={customerName}
+                  onChange={e => setCustomerName(e.target.value)}
+                  onFocus={() => { if (nameSuggestions.length > 0) setShowNameDrop(true); }}
+                  autoComplete="off"
+                />
+                {/* ── اقتراحات الأسماء ── */}
+                {showNameDrop && nameSuggestions.length > 0 && (
+                  <div
+                    ref={nameSuggestRef}
+                    style={{
+                      position: "absolute", top: "calc(100% + 0px)", right: 0, left: 0,
+                      background: "#0d1e33", border: "1px solid rgba(25,155,184,0.4)",
+                      borderTop: "none", borderRadius: "0 0 10px 10px",
+                      zIndex: 100, maxHeight: 240, overflowY: "auto",
+                      boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
+                    }}
+                  >
+                    {nameSuggestions.map((c, i) => (
+                      <div
+                        key={i}
+                        onMouseDown={e => { e.preventDefault(); applyCustomer(c); }}
+                        style={{
+                          padding: "10px 14px", cursor: "pointer",
+                          borderBottom: i < nameSuggestions.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                          display: "flex", flexDirection: "column", gap: 2,
+                          transition: "background 0.15s",
+                        }}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.12)")}
+                        onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                      >
+                        <span style={{ fontWeight: 700, fontSize: 14, color: "#e2e8f0" }}>{c.name}</span>
+                        <span style={{ fontSize: 12, color: "#64748b", direction: "ltr" as const, display: "flex", gap: 8 }}>
+                          <span>📞 {c.phone}</span>
+                          {c.city && <span>📍 {c.city}</span>}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               <div>
                 <label style={s.label}>رقم الهاتف <span style={{ color: "#ef4444" }}>*</span></label>
