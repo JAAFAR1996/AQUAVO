@@ -50,12 +50,28 @@ interface KnownCustomer {
 /** Extract city+address from a shippingAddress that can be string|object */
 function parseAddr(raw: unknown): { city: string; address: string } {
   if (!raw) return { city: "", address: "" };
-  try {
-    const obj: Record<string, string> = typeof raw === "string" ? JSON.parse(raw) : (raw as Record<string, string>);
+  // If it's an object (jsonb) — extract fields directly
+  if (typeof raw === "object" && raw !== null) {
+    const obj = raw as Record<string, string>;
     return { city: obj.city || "", address: obj.addressLine1 || obj.address || "" };
-  } catch {
-    return { city: "", address: typeof raw === "string" ? raw : "" };
   }
+  // If it's a string
+  if (typeof raw === "string") {
+    const str = raw.trim();
+    // Try JSON first
+    try {
+      const obj = JSON.parse(str) as Record<string, string>;
+      return { city: obj.city || "", address: obj.addressLine1 || obj.address || "" };
+    } catch { /* not JSON */ }
+    // Plain string like "بغداد - الكرخ، شارع 10" → split on first " - "
+    const dashIdx = str.indexOf(" - ");
+    if (dashIdx > 0) {
+      return { city: str.slice(0, dashIdx).trim(), address: str.slice(dashIdx + 3).trim() };
+    }
+    // No dash — treat whole string as address
+    return { city: "", address: str };
+  }
+  return { city: "", address: "" };
 }
 
 export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoiceCreatorProps) {
@@ -106,13 +122,13 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     fetch("/api/admin/orders", { credentials: "include" })
       .then(r => r.ok ? r.json() : [])
       .then((orders: Array<{ customerName?: string; customerPhone?: string; shippingAddress?: unknown }>) => {
+        // نأخذ أحدث طلب لكل اسم زبون (وليس لكل رقم هاتف)
         const seen = new Map<string, KnownCustomer>();
-        // نأخذ أحدث طلب لكل رقم هاتف
         for (const o of orders) {
           const name = (o.customerName || "").trim();
           const phone = (o.customerPhone || "").trim();
-          if (!name || !phone) continue;
-          const key = phone;
+          if (!name) continue;
+          const key = name;
           if (!seen.has(key)) {
             const { city, address } = parseAddr(o.shippingAddress);
             seen.set(key, { name, phone, city, address });
