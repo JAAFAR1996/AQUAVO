@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { CheckCircle2, XCircle, Clock, Package, MapPin, AlertTriangle, Loader2, Sparkles } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 
@@ -48,6 +48,7 @@ export default function InvoiceView() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionDone, setActionDone] = useState<"confirmed" | "rejected" | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     if (!token) return;
@@ -72,9 +73,14 @@ export default function InvoiceView() {
       });
       const d = await r.json();
       if (d.success) {
+        const confirmedOrderId = d.orderId ?? null;
+        setOrderId(confirmedOrderId);
         setActionDone("confirmed");
-        setOrderId(d.orderId ?? null);
         setInvoice(prev => prev ? { ...prev, status: "confirmed" } : prev);
+        // تحويل مباشر لصفحة الاحتفالية كالطلب العادي بعد ثانيتين
+        if (confirmedOrderId) {
+          setTimeout(() => setLocation(`/order-confirmation/${confirmedOrderId}`), 1500);
+        }
       } else {
         alert(d.message);
       }

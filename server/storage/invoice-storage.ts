@@ -1,6 +1,6 @@
 import { eq, desc, and } from "drizzle-orm";
 import { getDb } from "../db.js";
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import {
   manualInvoices,
   type ManualInvoice,
@@ -16,14 +16,14 @@ function generateToken(length = 16): string {
   return Array.from(bytes).map((b) => chars[b % chars.length]).join("");
 }
 
-// Generate invoice number: INV-2026-0001
-async function generateInvoiceNo(db: ReturnType<typeof getDb>): Promise<string> {
-  const year = new Date().getFullYear();
-  const result = await db!.execute(
-    `SELECT nextval('invoice_no_seq') AS seq` as any
-  );
-  const seq = String(result.rows?.[0]?.seq ?? "1").padStart(4, "0");
-  return `INV-${year}-${seq}`;
+// Generate invoice number in the same format as website orders: FH-YYMMDD-XXXXXXXX
+function generateInvoiceNo(): string {
+  const now = new Date();
+  const year  = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, "0");
+  const day   = now.getDate().toString().padStart(2, "0");
+  const randomSuffix = randomBytes(4).toString("hex").toUpperCase();
+  return `FH-${year}${month}${day}-${randomSuffix}`;
 }
 
 export class InvoiceStorage {
@@ -67,7 +67,7 @@ export class InvoiceStorage {
     const db = this.ensureDb();
     const id = randomUUID();
     const token = generateToken(16);
-    const invoiceNo = await generateInvoiceNo(db);
+    const invoiceNo = generateInvoiceNo();
 
     const [created] = await db.insert(manualInvoices).values({
       id,
@@ -213,15 +213,20 @@ export class InvoiceStorage {
     // Create order (only columns that exist in the Drizzle schema)
     await db.insert(orders).values({
       id: orderId,
+      orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
       userId: null,
       status: "pending",
       total: invoice.total,
       shippingCost: invoice.delivery,
       customerName: invoice.customerName,
       customerPhone: invoice.customerPhone,
+      shippingAddress: invoice.customerCity
+        ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
+        : (invoice.customerAddress || null),
       source: "whatsapp",
       items: (invoice.items as any[]).map((i) => ({
         productId: i.productId,
+        productName: i.name,
         quantity: i.quantity,
         priceAtPurchase: i.unitPrice,
         variantLabel: i.variantLabel || undefined,
