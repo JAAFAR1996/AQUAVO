@@ -93,3 +93,21 @@ for (const viewport of [
     expect(overflow).toBeLessThanOrEqual(1);
   });
 }
+
+test("YEE proof document supports keyboard viewing and stays separate from warranty", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/verify-certificate/yee", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("heading", { level: 1, name: "وثيقة أصالة منتجات YEE" })).toBeVisible();
+  await expect(page.getByText(/مو ضمان AQUAVO/)).toBeVisible();
+  await expect(page.getByRole("link", { name: /افتح ملف PDF/ })).toHaveAttribute("href", "/certificates/yee-certificate.pdf");
+  await expect(page.getByRole("link", { name: /ارجع للمتجر/ })).toHaveAttribute("href", "/products");
+
+  await page.getByRole("button", { name: "افتح الشهادة بحجم أكبر" }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "تكبير الشهادة" }).click();
+  await expect(dialog.locator("output")).toHaveText("125%");
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});

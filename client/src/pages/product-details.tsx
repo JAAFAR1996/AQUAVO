@@ -635,9 +635,9 @@ export default function ProductDetails() {
                   </Button>
                 )}
                 {hasPrice && displayStock <= 0 && (
-                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6">
+                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled>
                     <Package className="w-5 h-5" />
-                    أبلغني عند التوفر
+                    غير متوفر حالياً
                   </Button>
                 )}
 
@@ -669,10 +669,10 @@ export default function ProductDetails() {
                         </div>
                         <div>
                           <p className="text-sm font-medium">
-                            {product3DMeta ? "نفس القطعة" : "ضمان الجودة"}
+                            {product3DMeta ? "نفس القطعة" : "معلومات المنتج"}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            {product3DMeta ? "مو صورة تمثيلية" : "منتج أصلي"}
+                            {product3DMeta ? "مو صورة تمثيلية" : "الصور والمواصفات المتوفرة"}
                           </p>
                         </div>
                       </div>
@@ -688,10 +688,10 @@ export default function ProductDetails() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-1">
-                        منتجات YEE أصلية 100%
-                        <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        وثيقة أصالة منتجات YEE
+                        <ExternalLink className="w-3 h-3" />
                       </p>
-                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">شهادة أصالة من الشركة المصنعة — اضغط للتحقق</p>
+                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">صادرة من Weifang Yipin إلى AQUAVO العراق — شوف الوثيقة</p>
                     </div>
                     <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" />
                   </Link>
@@ -726,12 +726,12 @@ export default function ProductDetails() {
                           </div>
                           <div>
                             <h3 className="font-bold text-sm">
-                              {product3DMeta ? "قرار أوضح قبل الشراء" : "جودة مضمونة"}
+                              {product3DMeta ? "قرار أوضح قبل الشراء" : "معلومات قبل الاختيار"}
                             </h3>
                             <p className="text-sm text-muted-foreground">
                               {product3DMeta
                                 ? "تعاين نفس القطعة ثلاثي الأبعاد قبل ما تضيفها للسلة."
-                                : `منتج أصلي 100% من علامة ${product.brand} العالمية`}
+                                : "راجع الصور والمواصفات المتوفرة حتى تتأكد أن القطعة تناسب احتياج حوضك."}
                             </p>
                           </div>
                         </div>

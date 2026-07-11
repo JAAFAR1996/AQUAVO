@@ -222,4 +222,12 @@ describe('Product Details Page', () => {
             expect(screen.queryByTestId('whatsapp-widget')).not.toBeInTheDocument();
         });
     });
+
+    it('does not invent authenticity or warranty claims for a non-YEE product', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
+        expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/ضمان الجودة/i)).not.toBeInTheDocument();
+        expect(screen.getByText('معلومات المنتج')).toBeInTheDocument();
+    });
 });

@@ -120,3 +120,28 @@ Category URL follow-up:
 - Added one shared category-link source for the homepage and global search.
 - Replaced non-existent/mismatched links such as `Heaters`, `Lighting`, `Food` and `Water Treatment` with exact returned categories including `التحكم بالحرارة`, `الإضاءة`, `طعام الأسماك` and `معالجة المياه`.
 - Added a contract test locking the seven shared category values to the verified public response.
+
+## 2026-07-11 — Phase 6A product proof and YEE document
+
+- Visually inspected the repository's YEE certificate image; the document names Weifang Yipin Pet Products Co., Ltd., `AQUAVO, Iraq`, the date January 14, 2026, and states the supplied YEE products are original.
+- Rebuilt the proof page in the AQUAVO v2 system with global navigation/footer and no entrance, tilt, hologram or hover-lift effects.
+- Added an accessible image viewer with zoom in, zoom out, reset, focusable scrolling and Escape close behavior.
+- Kept direct access to the repository PDF and a clear return to the store.
+- Scoped every authenticity statement to the YEE document and explicitly stated that it is not an AQUAVO warranty or proof for other brands.
+- Removed the invented verification ID, fake remote-image fallback and nested anchor markup.
+- Removed generic non-YEE product claims such as `ضمان الجودة` and `منتج أصلي 100%` from product details.
+- Replaced the non-functional out-of-stock notification action with a truthful disabled status.
+- Left AQUAVO warranty eligibility disabled; the exact eligible electrical product ID/SKU list is still owner data required before implementation.
+
+Preserved document SHA-256 values:
+
+- `yee-certificate.jpg`: `667D090A5FF452765A4E0F0DCC4AFAAD6F32532516ECD70CBF72367231C1210D`
+- `yee-certificate.pdf`: `92A8BD7BC0CD09975F30C50528667AEB54A0827BF6D4FF72C923F3DFF65F31EB`
+
+Verification:
+
+- Product-detail and certificate Vitest: 2 files, 10/10 tests passed.
+- TypeScript client check: passed.
+- Chromium foundation/shop/certificate regression: 7/7 tests passed.
+- Certificate desktop 1440×900 and mobile 390×844 screenshots inspected.
+- Keyboard viewer path verified: open, zoom to 125%, Escape close; store-back and PDF targets verified.

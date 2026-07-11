@@ -73,12 +73,13 @@ Allowed status values:
 
 ## Phase 6 — Product detail, proof, certificate and warranty
 
-- PENDING — Product media gallery and Specimen Gallery interaction.
-- PENDING — Product facts only; no invented specs or claims.
-- PENDING — Preserve the real YEE certificate document.
-- PENDING — Verify YEE certificate open, keyboard access, zoom, close and back on desktop/mobile.
-- PENDING — Keep YEE certificate separate from AQUAVO customer warranty.
-- PENDING — Warranty eligibility disabled by default.
+- IN PROGRESS — Existing product media gallery remains; final Specimen Gallery visual audit is pending against real product data.
+- COMPLETED — Removed generic `100% original`, `quality guaranteed` and non-functional stock-notification claims from non-YEE product UI.
+- COMPLETED — Preserved and visually inspected the real YEE JPG/PDF certificate documents.
+- COMPLETED — YEE certificate supports open, keyboard focus, zoom in/out/reset, Escape close and store-back action on desktop/mobile.
+- COMPLETED — YEE proof is explicitly scoped to YEE products supplied to AQUAVO Iraq and separated from AQUAVO customer warranty.
+- COMPLETED — Removed the invented `YEE-AQ-2026-VERIFIED` identifier and remote image fallback.
+- COMPLETED — AQUAVO warranty eligibility remains disabled by default; no product was marked eligible.
 - BLOCKED — OWNER DATA REQUIRED — Explicit list of electrical product IDs eligible for the proposed six-month limited warranty.
 - PENDING — Eligible-item warranty starts on confirmed delivery date.
 - PENDING — First seven calendar days: replacement after inspection confirms manufacturing defect.
