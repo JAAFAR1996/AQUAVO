@@ -162,9 +162,9 @@ export default function Footer() {
               <div className="flex items-center gap-3 cursor-pointer group">
                 <div className="relative">
                   <img
-                    src="/logo_aquavo_icon.png"
+                    src="/brand/aquavo-v2-horizontal.svg"
                     alt="AQUAVO"
-                    className="h-10 w-10 object-contain"
+                    className="h-10 w-auto object-contain"
                   />
                 </div>
                 <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400 font-sans tracking-tighter">

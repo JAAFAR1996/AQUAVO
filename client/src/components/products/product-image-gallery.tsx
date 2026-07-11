@@ -78,7 +78,7 @@ export function ProductImageGallery({
                 >
                     {/* Main Image */}
                     {galleryImages.length === 0 || imageFailed ? (
-                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-[#0a1628]/40 border border-white/5 rounded-lg p-6 text-center select-none">
+                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
                             <span className="text-sm text-muted-foreground/80 font-medium font-cairo">الصورة غير متوفرة</span>
                         </div>
                     ) : (

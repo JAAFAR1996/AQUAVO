@@ -253,7 +253,7 @@ export function createSystemRouter(): RouterType {
                 name: "AQUAVO",
                 description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
                 url: "https://www.aquavoiq.com",
-                logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
+                logo: "https://www.aquavoiq.com/brand/aquavo-v2-icon.png",
                 country: "IQ",
                 currency: "IQD",
                 language: "ar"

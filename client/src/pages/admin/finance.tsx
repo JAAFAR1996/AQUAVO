@@ -30,7 +30,7 @@ export default function FinancePage() {
   const [period, setPeriod] = useState<Period>("month");
 
   return (
-    <div dir="rtl" style={{ minHeight: "100vh", background: "#010611", padding: "20px 16px" }}>
+    <div dir="rtl" style={{ minHeight: "100vh", background: "#0B1E28", padding: "20px 16px" }}>
       {/* Header */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -52,8 +52,8 @@ export default function FinancePage() {
               style={{
                 padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
                 cursor: "pointer",
-                background: period === p.value ? "#199bb8" : "#0d1f3c",
-                border: period === p.value ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+                background: period === p.value ? "#0B93A6" : "#0d1f3c",
+                border: period === p.value ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
                 color: period === p.value ? "#fff" : "#94a3b8",
               }}
             >

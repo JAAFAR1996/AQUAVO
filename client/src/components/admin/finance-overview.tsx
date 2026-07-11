@@ -39,7 +39,7 @@ function KpiCard({
   label,
   value,
   sub,
-  color = "#199bb8",
+  color = "#0B93A6",
   badge,
   onClick,
 }: {
@@ -55,7 +55,7 @@ function KpiCard({
       onClick={onClick}
       style={{
         background: "#0d1f3c",
-        border: "1px solid #199bb820",
+        border: "1px solid #0B93A620",
         borderRadius: 12,
         padding: "14px 18px",
         cursor: onClick ? "pointer" : undefined,
@@ -89,7 +89,7 @@ function SectionHeader({ title }: { title: string }) {
   return (
     <div
       style={{
-        color: "#199bb8",
+        color: "#0B93A6",
         fontSize: 13,
         fontWeight: 700,
         marginBottom: 10,
@@ -130,7 +130,7 @@ function LoadingSkeleton() {
           key={i}
           style={{
             background: "#0d1f3c",
-            border: "1px solid #199bb820",
+            border: "1px solid #0B93A620",
             borderRadius: 12,
             padding: "14px 18px",
             height: 72,
@@ -269,7 +269,7 @@ export function FinanceOverview({ period }: { period: Period }) {
           {/* Tooltip explanation */}
           <div style={{
             background: "#0d1f3c",
-            border: "1px solid #199bb820",
+            border: "1px solid #0B93A620",
             borderRadius: 8,
             padding: "8px 14px",
             fontSize: 10,
@@ -291,7 +291,7 @@ export function FinanceOverview({ period }: { period: Period }) {
               label="معدل إرجاع الطلبات"
               value={returnMetrics ? `${returnMetrics.orderReturnRate}%` : `${summary.rtoRate}%`}
               sub={returnMetrics ? `${returnMetrics.periodReturnedOrdersCount} من ${returnMetrics.periodTotalOrdersCount} طلبية (الفترة)` : undefined}
-              color={(returnMetrics?.orderReturnRate ?? summary.rtoRate) > 20 ? "#ef4444" : "#199bb8"}
+              color={(returnMetrics?.orderReturnRate ?? summary.rtoRate) > 20 ? "#ef4444" : "#0B93A6"}
             />
             <KpiCard
               label="معدل إرجاع المنتجات"
@@ -303,7 +303,7 @@ export function FinanceOverview({ period }: { period: Period }) {
               sub={returnMetrics
                 ? `${returnMetrics.returnedItemsAllTime} منتج مُرجَع / ${returnMetrics.totalSoldItemsAllTime} مُباع (كل الوقت)`
                 : loadingReturnMetrics ? "جاري الحساب…" : undefined}
-              color={returnMetrics && returnMetrics.productReturnRate > 0 ? "#f97316" : "#199bb8"}
+              color={returnMetrics && returnMetrics.productReturnRate > 0 ? "#f97316" : "#0B93A6"}
             />
           </KpiGrid>
         </>
@@ -316,12 +316,12 @@ export function FinanceOverview({ period }: { period: Period }) {
           <KpiCard
             label="صافي الربح"
             value={summary.costsComplete ? fmt(summary.netProfit) : "غير مكتمل"}
-            color={summary.costsComplete ? "#199bb8" : "#94a3b8"}
+            color={summary.costsComplete ? "#0B93A6" : "#94a3b8"}
           />
           <KpiCard
             label="هامش الربح"
             value={summary.costsComplete ? `${summary.margin}%` : "غير مكتمل"}
-            color={summary.costsComplete ? "#199bb8" : "#94a3b8"}
+            color={summary.costsComplete ? "#0B93A6" : "#94a3b8"}
           />
           <KpiCard label="متوسط قيمة الطلبية (AOV)" value={fmt(summary.aov)} />
         </KpiGrid>
@@ -331,12 +331,12 @@ export function FinanceOverview({ period }: { period: Period }) {
       {summary && summary.whatsappInvoices.total > 0 && (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-            <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>فواتير واتساب</div>
+            <div style={{ color: "#0B93A6", fontSize: 13, fontWeight: 700 }}>فواتير واتساب</div>
             <button
               onClick={() => setShowWaDetails((v) => !v)}
               style={{
                 background: "#0d1f3c",
-                border: "1px solid #199bb830",
+                border: "1px solid #0B93A630",
                 borderRadius: 6,
                 color: "#94a3b8",
                 fontSize: 11,
@@ -352,7 +352,7 @@ export function FinanceOverview({ period }: { period: Period }) {
               label="فواتير واتساب مقبولة"
               value={String(summary.whatsappInvoices.accepted)}
               sub={`من أصل ${summary.whatsappInvoices.total} فاتورة`}
-              color="#199bb8"
+              color="#0B93A6"
             />
             <KpiCard
               label="فواتير واتساب بانتظار التسليم"
@@ -370,15 +370,15 @@ export function FinanceOverview({ period }: { period: Period }) {
                 label="ربح فواتير واتساب"
                 value={summary.whatsappInvoices.costsComplete ? fmt(summary.whatsappInvoices.profit) : "كلفة ناقصة"}
                 badge={!summary.whatsappInvoices.costsComplete ? "غير مكتمل" : undefined}
-                color={summary.whatsappInvoices.costsComplete ? "#199bb8" : "#94a3b8"}
+                color={summary.whatsappInvoices.costsComplete ? "#0B93A6" : "#94a3b8"}
               />
             )}
           </KpiGrid>
 
           {/* WhatsApp Drilldown */}
           {showWaDetails && (
-            <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ background: "#0B1E28", border: "1px solid #0B93A630", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ color: "#0B93A6", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
                 تفاصيل فواتير واتساب
               </div>
               {loadingWa && <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>}
@@ -419,7 +419,7 @@ export function FinanceOverview({ period }: { period: Period }) {
                           </td>
                           <td style={{ padding: "5px 8px", color: "#94a3b8" }}>{inv.orderStatus ?? "—"}</td>
                           <td style={{ padding: "5px 8px" }}>{fmt(inv.total)}</td>
-                          <td style={{ padding: "5px 8px", color: inv.costsComplete ? "#199bb8" : "#94a3b8" }}>
+                          <td style={{ padding: "5px 8px", color: inv.costsComplete ? "#0B93A6" : "#94a3b8" }}>
                             {inv.costsComplete ? fmt(inv.profit) : "كلفة ناقصة"}
                           </td>
                           <td style={{ padding: "5px 8px", color: inv.financiallyIncluded ? "#22c55e" : "#64748b" }}>
@@ -464,7 +464,7 @@ export function FinanceOverview({ period }: { period: Period }) {
             <KpiCard
               label="الربح قبل الراجعات"
               value={summary.costsComplete ? fmt(summary.netProfitBeforeReturns) : "غير مكتمل"}
-              color={summary.costsComplete ? "#199bb8" : "#94a3b8"}
+              color={summary.costsComplete ? "#0B93A6" : "#94a3b8"}
             />
             <KpiCard
               label="خصم تسوية راجعات"
@@ -526,8 +526,8 @@ export function FinanceOverview({ period }: { period: Period }) {
 
           {/* COD Drilldown */}
           {showCodDetails && (
-            <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ color: "#199bb8", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ background: "#0B1E28", border: "1px solid #0B93A630", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+              <div style={{ color: "#0B93A6", fontSize: 12, fontWeight: 700, marginBottom: 10 }}>
                 تفاصيل الطلبيات المسلّمة
               </div>
               {/* 4-line settlement breakdown */}
@@ -608,12 +608,12 @@ export function FinanceOverview({ period }: { period: Period }) {
 
       {/* Row 5 — Returned Orders */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-        <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700 }}>المرتجعات</div>
+        <div style={{ color: "#0B93A6", fontSize: 13, fontWeight: 700 }}>المرتجعات</div>
         <button
           onClick={() => setShowReturns((v) => !v)}
           style={{
             background: "#0d1f3c",
-            border: "1px solid #199bb830",
+            border: "1px solid #0B93A630",
             borderRadius: 6,
             color: "#94a3b8",
             fontSize: 11,
@@ -625,7 +625,7 @@ export function FinanceOverview({ period }: { period: Period }) {
         </button>
       </div>
       {showReturns && (
-        <div style={{ background: "#0a1628", border: "1px solid #199bb830", borderRadius: 12, padding: 16, marginBottom: 20 }}>
+        <div style={{ background: "#0B1E28", border: "1px solid #0B93A630", borderRadius: 12, padding: 16, marginBottom: 20 }}>
           {loadingReturns && <div style={{ color: "#64748b", fontSize: 11 }}>جاري التحميل…</div>}
           {returnedOrders && returnedOrders.totalCount === 0 && (
             <div style={{ color: "#64748b", fontSize: 12 }}>لا توجد مرتجعات مسجلة</div>
@@ -699,7 +699,7 @@ export function FinanceOverview({ period }: { period: Period }) {
                 ? fmt(inventory.inventoryValueAtCost)
                 : "غير مكتمل"
             }
-            color={inventory.productsWithCost > 0 ? "#199bb8" : "#94a3b8"}
+            color={inventory.productsWithCost > 0 ? "#0B93A6" : "#94a3b8"}
           />
           <KpiCard
             label="قيمة المخزون (بالبيع)"
@@ -708,17 +708,17 @@ export function FinanceOverview({ period }: { period: Period }) {
           <KpiCard
             label="منتجات بدون كلفة"
             value={String(inventory.productsWithoutCost)}
-            color={inventory.productsWithoutCost > 0 ? "#ef4444" : "#199bb8"}
+            color={inventory.productsWithoutCost > 0 ? "#ef4444" : "#0B93A6"}
           />
           <KpiCard
             label="منتجات انتهى مخزونها"
             value={String(inventory.outOfStockProducts)}
-            color={inventory.outOfStockProducts > 0 ? "#ef4444" : "#199bb8"}
+            color={inventory.outOfStockProducts > 0 ? "#ef4444" : "#0B93A6"}
           />
           <KpiCard
             label="منتجات مخزون منخفض"
             value={String(inventory.lowStockProducts)}
-            color={inventory.lowStockProducts > 0 ? "#f97316" : "#199bb8"}
+            color={inventory.lowStockProducts > 0 ? "#f97316" : "#0B93A6"}
           />
         </KpiGrid>
       )}

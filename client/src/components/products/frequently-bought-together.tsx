@@ -131,14 +131,14 @@ export function FrequentlyBoughtTogether({
                                     {/* Product Image */}
                                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-muted/30 mb-2">
                                         <img
-                                            src={cardImage(product.image) || "/logo_aquavo.png"}
+                                            src={cardImage(product.image) || "/brand/aquavo-v2-icon.svg"}
                                             alt={product.name}
                                             className="w-full h-full object-contain p-1"
                                             loading="lazy"
                                             decoding="async"
                                             width={80}
                                             height={80}
-                                            onError={(e) => { (e.target as HTMLImageElement).src = "/logo_aquavo.png"; }}
+                                            onError={(e) => { (e.target as HTMLImageElement).src = "/brand/aquavo-v2-icon.svg"; }}
                                         />
                                     </div>
 

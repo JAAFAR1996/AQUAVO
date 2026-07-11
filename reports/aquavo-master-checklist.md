@@ -30,11 +30,13 @@ Allowed status values:
 
 ## Phase 2 — AQUAVO v2 identity foundation
 
-- IN PROGRESS — Replace legacy color tokens with v2: `#0B93A6`, `#0B64A6`, `#0B1E28`, `#F6F4EF`.
-- IN PROGRESS — Cairo for Arabic body/interface, Inter for English/interface, Changa only for display headings at 40px or larger.
-- IN PROGRESS — Replace public logo, icon, favicon, manifest, OG, structured-data and email-template references with approved v2 sources.
-- PENDING — Remove active Poppins, Outfit, `#199BB8`, coral and amber brand dependencies.
-- PENDING — Verify contrast in dark and clean-proof surfaces.
+- COMPLETED — Replaced legacy primary/deep/coral system with v2: `#0B93A6`, `#0B64A6`, `#0B1E28`, `#F6F4EF`.
+- COMPLETED — Cairo for Arabic body/interface, Inter for English/interface, Changa restricted to the display token for later 40px+ use.
+- COMPLETED — Replaced public logo, icon, favicon, manifest, OG, structured-data and email-template references with approved v2 sources.
+- COMPLETED — Removed active Poppins, Outfit, `#199BB8`, coral and old dark-brand dependencies from source outside archived brand documentation.
+- COMPLETED — Dark Authority is the first-visit default; saved light/system preferences remain respected.
+- COMPLETED — Browser checks pass at desktop, tablet and mobile with no horizontal overflow in the tested foundation state.
+- COMPLETED — Primary/FlowLine usage follows documented contrast limits; full accessibility audit remains in Phase 10.
 
 ## Phase 3 — Global trust and navigation
 

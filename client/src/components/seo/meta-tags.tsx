@@ -3,7 +3,7 @@ import DOMPurify from 'isomorphic-dompurify';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BASE_URL = "https://www.aquavoiq.com";
-const LOGO_URL = `${BASE_URL}/logo_aquavo.png`;
+const LOGO_URL = `${BASE_URL}/brand/aquavo-v2-horizontal.png`;
 
 /**
  * Sanitizes string values for schema.org JSON-LD to prevent XSS

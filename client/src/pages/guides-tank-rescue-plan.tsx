@@ -237,7 +237,7 @@ export default function GuideTankRescuePlan() {
       <style>{`
         .rsc-wrap {
           min-height: 100vh;
-          background: #010611;
+          background: #0B1E28;
           color: #E2E8F0;
           font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
           direction: rtl;

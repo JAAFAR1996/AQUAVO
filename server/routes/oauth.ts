@@ -245,22 +245,22 @@ function consentHtml(params: {
   <title>AQUAVO — تفويض MCP</title>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:system-ui,sans-serif;background:#0a1628;color:#e8f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    body{font-family:system-ui,sans-serif;background:#0B1E28;color:#e8f4f8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
     .card{background:#0d1f3c;border:1px solid #1e3a5f;border-radius:16px;padding:36px;max-width:460px;width:100%}
-    .logo{font-size:24px;font-weight:800;color:#199bb8;margin-bottom:4px;letter-spacing:-0.5px}
+    .logo{font-size:24px;font-weight:800;color:#0B93A6;margin-bottom:4px;letter-spacing:-0.5px}
     .subtitle{color:#7fb3c8;font-size:13px;margin-bottom:20px}
     .client-box{background:#061020;border:1px solid #2a4a6b;border-radius:10px;padding:14px 16px;margin-bottom:20px;font-size:13px}
     .client-row{display:flex;gap:8px;padding:3px 0;color:#c8e6f0}
     .client-label{color:#5a8fa8;min-width:80px;flex-shrink:0}
     .client-value{color:#e8f4f8;word-break:break-all;font-family:monospace;font-size:12px}
-    .scope-box{background:#0a1628;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;margin-bottom:20px}
+    .scope-box{background:#0B1E28;border:1px solid #1e3a5f;border-radius:10px;padding:14px 16px;margin-bottom:20px}
     .scope-title{font-size:11px;color:#5a8fa8;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px}
     .scope-item{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;color:#c8e6f0}
-    .scope-item::before{content:"✓";color:#199bb8;font-weight:700;min-width:14px}
+    .scope-item::before{content:"✓";color:#0B93A6;font-weight:700;min-width:14px}
     label{display:block;font-size:12px;color:#7fb3c8;margin-bottom:7px;font-weight:500}
-    input[type=password]{width:100%;padding:12px 16px;background:#0a1628;border:1px solid #1e3a5f;border-radius:8px;color:#e8f4f8;font-size:15px;outline:none;transition:border-color 0.2s}
-    input[type=password]:focus{border-color:#199bb8;box-shadow:0 0 0 3px rgba(25,155,184,0.1)}
-    .btn{width:100%;padding:13px;background:#199bb8;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:background 0.2s}
+    input[type=password]{width:100%;padding:12px 16px;background:#0B1E28;border:1px solid #1e3a5f;border-radius:8px;color:#e8f4f8;font-size:15px;outline:none;transition:border-color 0.2s}
+    input[type=password]:focus{border-color:#0B93A6;box-shadow:0 0 0 3px rgba(11,147,166,0.1)}
+    .btn{width:100%;padding:13px;background:#0B93A6;border:none;border-radius:8px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:16px;transition:background 0.2s}
     .btn:hover{background:#1589a3}
     .err{background:#2d0a0a;border:1px solid #5c1a1a;border-radius:8px;padding:12px 14px;color:#f87171;font-size:13px;margin-bottom:14px}
     .warn{background:#1a1200;border:1px solid #4a3000;border-radius:8px;padding:10px 14px;color:#fbbf24;font-size:12px;margin-bottom:14px}

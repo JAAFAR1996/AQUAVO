@@ -1,6 +1,6 @@
 export function generateSsrMeta(requestPath: string): string {
   const BASE_URL = "https://www.aquavoiq.com";
-  const LOGO_URL = `${BASE_URL}/logo_aquavo.png`;
+  const LOGO_URL = `${BASE_URL}/brand/aquavo-v2-horizontal.png`;
   let jsonLdScripts: any[] = [];
 
   // Helper to generate script tags

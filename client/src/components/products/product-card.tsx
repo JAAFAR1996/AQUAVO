@@ -116,7 +116,7 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 <div className="absolute inset-0 animate-pulse bg-muted/60" />
               )}
               <img
-                src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
+                src={cardImage(product.thumbnail || product.image) || "/brand/aquavo-v2-icon.svg"}
                 alt={`صورة منتج ${product.name} من ${product.brand}`}
                 className={`absolute inset-0 w-full h-full object-cover select-none transition-[opacity,filter,transform] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 ${imgLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-md scale-105"}`}
                 loading={priority ? "eager" : "lazy"}
@@ -130,8 +130,8 @@ export const ProductCard = memo(function ProductCard({ product, onCompare, onQui
                 onLoad={() => setImgLoaded(true)}
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
-                  if (!target.src.endsWith("/logo_aquavo.png")) {
-                    target.src = "/logo_aquavo.png";
+                  if (!target.src.endsWith("/brand/aquavo-v2-icon.svg")) {
+                    target.src = "/brand/aquavo-v2-icon.svg";
                   }
                   setImgLoaded(true);
                 }}

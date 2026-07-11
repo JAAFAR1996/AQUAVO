@@ -135,7 +135,7 @@ export function FinanceCostAudit() {
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "6px 10px", borderRadius: 8, fontSize: 12,
-    background: "#010611", border: "1px solid #1e3a5f", color: "#e2e8f0",
+    background: "#0B1E28", border: "1px solid #1e3a5f", color: "#e2e8f0",
     outline: "none", boxSizing: "border-box",
   };
   const labelStyle: React.CSSProperties = { color: "#94a3b8", fontSize: 11, marginBottom: 4, display: "block" };
@@ -168,8 +168,8 @@ export function FinanceCostAudit() {
             <button key={f.key} onClick={() => setFilter(f.key)}
               style={{
                 padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                background: filter === f.key ? "#199bb8" : "#0d1f3c",
-                border: filter === f.key ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+                background: filter === f.key ? "#0B93A6" : "#0d1f3c",
+                border: filter === f.key ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
                 color: filter === f.key ? "#fff" : "#94a3b8",
               }}
             >{f.label}</button>
@@ -212,7 +212,7 @@ export function FinanceCostAudit() {
                     : <span style={{ color: "#ef4444" }}>غير مدخلة</span>}
                 </td>
                 <td style={{ ...td, color: r.firstDeliveredOrderDate ? "#e2e8f0" : "#64748b" }}>{fmt(r.firstDeliveredOrderDate)}</td>
-                <td style={{ ...td, color: r.deliveredOrderCount > 0 ? "#199bb8" : "#64748b" }}>{r.deliveredOrderCount.toLocaleString("ar-IQ")}</td>
+                <td style={{ ...td, color: r.deliveredOrderCount > 0 ? "#0B93A6" : "#64748b" }}>{r.deliveredOrderCount.toLocaleString("ar-IQ")}</td>
                 <td style={{ ...td, color: r.hasCostHistory ? "#22c55e" : "#64748b" }}>{fmt(r.earliestEffectiveFrom)}</td>
                 <td style={td}>
                   <span style={{
@@ -227,7 +227,7 @@ export function FinanceCostAudit() {
                     <button onClick={() => openBaselineFor(r.productId)}
                       style={{
                         padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                        background: "#0d1f3c", border: "1.5px solid #199bb8", color: "#199bb8",
+                        background: "#0d1f3c", border: "1.5px solid #0B93A6", color: "#0B93A6",
                       }}>
                       إضافة baseline
                     </button>
@@ -302,7 +302,7 @@ export function FinanceCostAudit() {
                     onClick={() => setConfirmPending(true)}
                     style={{
                       padding: "7px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                      background: "#199bb8", border: "none", color: "#fff",
+                      background: "#0B93A6", border: "none", color: "#fff",
                       opacity: (!form.effectiveFrom || !form.costPrice || parseFloat(form.costPrice) <= 0) ? 0.5 : 1,
                     }}>
                     مراجعة
@@ -311,7 +311,7 @@ export function FinanceCostAudit() {
               </>
             ) : (
               <>
-                <div style={{ background: "#010611", border: "1px solid #f59e0b40", borderRadius: 10, padding: 14, marginBottom: 16 }}>
+                <div style={{ background: "#0B1E28", border: "1px solid #f59e0b40", borderRadius: 10, padding: 14, marginBottom: 16 }}>
                   <div style={{ color: "#f59e0b", fontSize: 12, fontWeight: 600, marginBottom: 8 }}>تأكيد — هذا الإجراء سيُضيف سجل تاريخ كلفة دائم</div>
                   <div style={{ color: "#94a3b8", fontSize: 11, lineHeight: 1.7 }}>
                     <div>المنتج: <span style={{ color: "#e2e8f0" }}>{selectedProduct.name}</span></div>

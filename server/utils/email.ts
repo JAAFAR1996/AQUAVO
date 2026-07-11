@@ -105,7 +105,7 @@ export async function sendEmail(options: EmailOptions): Promise<boolean> {
 }
 
 export async function sendWelcomeEmail(email: string): Promise<boolean> {
-  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/logo_aquavo.png`;
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/brand/aquavo-v2-horizontal.png`;
   const html = `
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -214,7 +214,7 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
     ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
     : 0;
 
-  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/logo_aquavo.png`;
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/brand/aquavo-v2-horizontal.png`;
 
   const html = `
 <!DOCTYPE html>
@@ -331,7 +331,7 @@ export async function sendProductDiscountEmail(email: string, product: { name: s
 export async function sendPasswordResetEmail(email: string, resetToken: string, baseUrl: string): Promise<boolean> {
   const resetUrl = `${baseUrl}/reset-password?token=${resetToken}`;
   const userName = email.split('@')[0]; // Extract name from email
-  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/logo_aquavo.png`;
+  const logoUrl = `${process.env.VITE_PUBLIC_BASE_URL || 'https://www.aquavoiq.com'}/brand/aquavo-v2-horizontal.png`;
 
 
   const html = `

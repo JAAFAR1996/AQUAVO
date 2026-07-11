@@ -23,7 +23,7 @@ function getTemplate(): string {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
-const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
+const DEFAULT_IMAGE = `${BASE}/brand/aquavo-v2-horizontal.png`;
 const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
 const DEFAULT_DESC = "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.";
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
@@ -711,7 +711,9 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   }
 
   // Inject JSON-LD
-  result = result.replace(/__JSON_LD__/g, jsonLdScript);
+  result = result
+    .replace(/<!--__JSON_LD__-->/g, jsonLdScript)
+    .replace(/__JSON_LD__/g, jsonLdScript);
 
   return result;
 }

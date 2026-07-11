@@ -750,29 +750,29 @@ function buildGuideJsonLd(path: string, page: GuidePage, base: string, image: st
   ];
 }
 
-const PAGE_CSS = `:root{--bg:#0a1628;--card:#0f1f38;--fg:#eaf2f7;--muted:#b6c6d6;--primary:#199bb8;--accent:#ff7b5a;--line:rgba(255,255,255,.10)}
+const PAGE_CSS = `:root{--bg:#0B1E28;--card:#0f1f38;--fg:#eaf2f7;--muted:#b6c6d6;--primary:#0B93A6;--accent:#0B64A6;--line:rgba(255,255,255,.10)}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
 body{background:var(--bg);color:#eaf2f7;font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;line-height:1.85;font-size:17px}
 a{color:#56c6dd;text-decoration:none}a:hover{text-decoration:underline}
 .wrap{max-width:820px;margin:0 auto;padding:20px 18px 64px}
 header.site{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);max-width:820px;margin:0 auto}
-header.site .brand{font-family:'Changa',sans-serif;font-weight:900;font-size:22px;color:#fff}
+header.site .brand{font-family:'Cairo',sans-serif;font-weight:700;font-size:22px;color:#fff}
 header.site nav a{margin-inline-start:14px;color:var(--muted);font-size:15px}
 nav.crumb{font-size:14px;color:var(--muted);margin:18px 0 8px}nav.crumb a{color:var(--muted)}
-h1{font-family:'Changa',sans-serif;font-weight:900;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.25;margin:.2em 0 .5em;color:#fff}
-h2{font-family:'Changa',sans-serif;font-weight:800;font-size:1.32rem;margin:1.6em 0 .4em;color:#fff}
+h1{font-family:'Cairo',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.25;margin:.2em 0 .5em;color:#fff}
+h2{font-family:'Cairo',sans-serif;font-weight:700;font-size:1.32rem;margin:1.6em 0 .4em;color:#fff}
 h3{font-weight:700;font-size:1.08rem;margin:1.1em 0 .3em;color:#dcebf7;color:#dce9f2}
 p{margin:.5em 0;color:#dbe7f0}
 .answer{background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--primary);border-radius:12px;padding:16px 18px;margin:8px 0 6px;font-size:1.05rem;color:#eef5fa}
 .answer strong{color:var(--primary)}
 table{width:100%;border-collapse:collapse;margin:.8em 0 1.3em;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 th,td{border:1px solid var(--line);padding:10px 12px;text-align:right;vertical-align:top}
-th{color:#fff;background:rgba(25,155,184,.18);font-weight:800}
+th{color:#fff;background:rgba(11,147,166,.18);font-weight:800}
 td{color:#dbe7f0}
 ul.links{list-style:none;padding:0;margin:.4em 0}
 ul.links li{margin:.35em 0}ul.links li a{font-weight:600}
 .faq h3{border-top:1px solid var(--line);padding-top:.8em}
-.cta{margin-top:2em;background:linear-gradient(135deg,rgba(25,155,184,.16),rgba(255,123,90,.10));border:1px solid var(--line);border-radius:14px;padding:18px}
+.cta{margin-top:2em;background:linear-gradient(135deg,rgba(11,147,166,.16),rgba(255,123,90,.10));border:1px solid var(--line);border-radius:14px;padding:18px}
 .cta a.btn{display:inline-block;margin-top:.6em;background:var(--primary);color:#012;padding:10px 18px;border-radius:10px;font-weight:800}
 footer.site{border-top:1px solid var(--line);margin-top:40px;padding:22px 18px;color:var(--muted);font-size:14px;max-width:820px;margin-inline:auto}
 footer.site a{color:var(--muted)}`;
@@ -839,11 +839,11 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
 <meta name="twitter:title" content="${esc(page.title)}" />
 <meta name="twitter:description" content="${esc(page.description)}" />
 <meta name="twitter:image" content="${esc(image)}" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<meta name="theme-color" content="#199bb8" />
+<link rel="icon" type="image/png" sizes="512x512" href="/brand/aquavo-v2-favicon.png" />
+<meta name="theme-color" content="#0B93A6" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@800;900&display=swap&subset=arabic" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" />
 ${jsonLd}
 <style>${PAGE_CSS}</style>
 </head>
@@ -946,15 +946,15 @@ const HOME_FAQ: GuideFaq[] = [
   { q: "هل التوصيل داخل العراق؟", a: "نعم، التوصيل لكل المحافظات العراقية خلال 24 ساعة برسوم ثابتة 5,000 دينار ودفع عند الاستلام." },
 ];
 
-const HOME_SECTION_CSS = `#aquavo-guides{background:#0a1628;color:#dbe7f0;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right;line-height:1.85}
+const HOME_SECTION_CSS = `#aquavo-guides{background:#0B1E28;color:#dbe7f0;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right;line-height:1.85}
 #aquavo-guides .ag-wrap{max-width:1100px;margin:0 auto;padding:42px 18px 56px}
-#aquavo-guides h2{font-family:'Changa','Cairo',sans-serif;font-weight:800;font-size:1.5rem;color:#fff;margin:0 0 .5em}
+#aquavo-guides h2{font-family:'Cairo',sans-serif;font-weight:700;font-size:1.5rem;color:#fff;margin:0 0 .5em}
 #aquavo-guides .ag-intro{color:#c7d6e3;margin:.2em 0 1em}
-#aquavo-guides .ag-answer{background:#0f1f38;border:1px solid rgba(255,255,255,.10);border-inline-start:4px solid #199bb8;border-radius:12px;padding:14px 16px;margin:0 0 1.4em;color:#eef5fa}
-#aquavo-guides .ag-answer strong{color:#199bb8}
+#aquavo-guides .ag-answer{background:#0f1f38;border:1px solid rgba(255,255,255,.10);border-inline-start:4px solid #0B93A6;border-radius:12px;padding:14px 16px;margin:0 0 1.4em;color:#eef5fa}
+#aquavo-guides .ag-answer strong{color:#0B93A6}
 #aquavo-guides .ag-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:0 0 1.6em}
 #aquavo-guides .ag-grid a{display:block;background:#0f1f38;border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .2s}
-#aquavo-guides .ag-grid a:hover{border-color:#199bb8}
+#aquavo-guides .ag-grid a:hover{border-color:#0B93A6}
 #aquavo-guides .ag-grid strong{display:block;color:#fff;font-size:1.05rem;margin-bottom:.25em}
 #aquavo-guides .ag-grid span{display:block;color:#b6c6d6;font-size:.92rem}
 #aquavo-guides .ag-faq h3{font-weight:700;color:#eaf2f7;font-size:1.05rem;margin:1.1em 0 .25em;border-top:1px solid rgba(255,255,255,.08);padding-top:.9em}
@@ -1068,12 +1068,12 @@ const IMPORTANT_LINK_BLOCKED_PREFIXES = [
 
 const IMPORTANT_LINKS_CSS = `#aquavo-important-links{background:#071226;color:#cbd8e5;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right}
 #aquavo-important-links .ail-wrap{max-width:1100px;margin:0 auto;padding:22px 18px}
-#aquavo-important-links h2{font-family:'Changa','Cairo',sans-serif;font-size:1rem;line-height:1.4;color:#fff;margin:0 0 .75rem;font-weight:800}
+#aquavo-important-links h2{font-family:'Cairo',sans-serif;font-size:1rem;line-height:1.4;color:#fff;margin:0 0 .75rem;font-weight:700}
 #aquavo-important-links .ail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1rem}
 #aquavo-important-links h3{font-size:.9rem;line-height:1.4;color:#fff;margin:0 0 .55rem;font-weight:800}
 #aquavo-important-links nav{display:flex;flex-wrap:wrap;gap:.45rem}
 #aquavo-important-links a{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#dbe7f0;background:rgba(255,255,255,.04);padding:.45rem .7rem;text-decoration:none;font-size:.9rem;line-height:1.4}
-#aquavo-important-links a:hover{border-color:#199bb8;color:#fff;background:rgba(25,155,184,.14)}`;
+#aquavo-important-links a:hover{border-color:#0B93A6;color:#fff;background:rgba(11,147,166,.14)}`;
 
 export function shouldRenderImportantInternalLinks(pathname: string): boolean {
   const cleanPath = (pathname || "/").split("?")[0].replace(/\/+$/, "") || "/";
@@ -1167,11 +1167,11 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
 <meta name="twitter:title" content="${esc(title)}" />
 <meta name="twitter:description" content="${esc(description)}" />
 <meta name="twitter:image" content="${esc(image)}" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<meta name="theme-color" content="#199bb8" />
+<link rel="icon" type="image/png" sizes="512x512" href="/brand/aquavo-v2-favicon.png" />
+<meta name="theme-color" content="#0B93A6" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@800;900&display=swap&subset=arabic" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" />
 ${jsonLd}
 <style>${PAGE_CSS}
 ul.guide-index{list-style:none;padding:0;margin:1em 0}

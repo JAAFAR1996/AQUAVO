@@ -36,6 +36,13 @@
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
 
+  --color-aqv-primary: var(--aqv-primary);
+  --color-aqv-flowline: var(--aqv-flowline);
+  --color-aqv-dark: var(--aqv-bg-dark);
+  --color-aqv-proof: var(--aqv-bg-light);
+  --color-aqv-substrate: var(--aqv-substrate);
+  --color-aqv-warning: var(--aqv-warning);
+
   /* Chart Colors */
   --color-chart-1: hsl(var(--chart-1));
   --color-chart-2: hsl(var(--chart-2));
@@ -43,7 +50,9 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
-  --font-sans: "Cairo", sans-serif;
+  --font-sans: "Cairo", Tahoma, sans-serif;
+  --font-display: "Changa", "Cairo", Tahoma, sans-serif;
+  --font-interface: "Inter", "Segoe UI", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Animations */
@@ -168,74 +177,85 @@
 
 /* AQUAVO Default Theme = Dark (applied on :root AND .dark) */
 :root {
-  /* AQUAVO Dark Navy Background — Deep Ocean #0a1628 */
-  --background: 216 60% 10%;
-  --foreground: 210 20% 96%;
+  --aqv-primary: #0B93A6;
+  --aqv-primary-dark-shade: #075F6B;
+  --aqv-flowline: #0B64A6;
+  --aqv-bg-dark: #0B1E28;
+  --aqv-bg-light: #F6F4EF;
+  --aqv-white: #FFFFFF;
+  --aqv-text-dark: #232323;
+  --aqv-text-muted: #6B6B6B;
+  --aqv-substrate: #C9AE8C;
+  --aqv-warning: #C97A2E;
+  --aqv-border: #DDD8CE;
+
+  --background: 201 57% 10%;
+  --foreground: 0 0% 100%;
 
   /* Glassmorphism Variables */
   --card-bg: 0 0% 100% / 0.05;
   --card-border: 0 0% 100% / 0.1;
 
-  --card: 222 40% 10%;
-  --card-foreground: 210 20% 96%;
+  --card: 201 57% 10%;
+  --card-foreground: 0 0% 100%;
 
-  --popover: 222 40% 10%;
-  --popover-foreground: 210 20% 96%;
+  --popover: 201 57% 10%;
+  --popover-foreground: 0 0% 100%;
 
-  /* AQUAVO Brand Primary: #199bb8 */
-  --primary: 194 76% 41%;
+  --primary: 187 88% 35%;
   --primary-foreground: 0 0% 100%;
 
-  --secondary: 222 35% 16%;
-  --secondary-foreground: 210 20% 96%;
+  --secondary: 187 88% 35% / 0.12;
+  --secondary-foreground: 0 0% 100%;
 
-  --muted: 222 25% 22%;
-  --muted-foreground: 210 15% 60%;
+  --muted: 0 0% 100% / 0.08;
+  --muted-foreground: 0 0% 100% / 0.72;
 
-  /* AQUAVO Accent: #ff7b5a (Coral/Orange) */
-  --accent: 12 100% 67%;
+  --accent: 205 88% 35% / 0.18;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
 
-  --border: 0 0% 100% / 0.08;
-  --input: 222 35% 18%;
-  --ring: 194 76% 41%;
+  --border: 0 0% 100% / 0.14;
+  --input: 0 0% 100% / 0.08;
+  --ring: 187 88% 35%;
 
-  --radius: 1.5rem;
+  --radius: 0.75rem;
 
-  --chart-1: 194 76% 41%;
-  --chart-2: 12 100% 67%;
-  --chart-3: 222 40% 30%;
-  --chart-4: 45 85% 55%;
-  --chart-5: 280 60% 60%;
+  --chart-1: 187 88% 35%;
+  --chart-2: 205 88% 35%;
+  --chart-3: 33 32% 67%;
+  --chart-4: 29 64% 48%;
+  --chart-5: 0 0% 100%;
 
-  --font-heading: 'Changa', sans-serif;
-  --font-sans: 'Cairo', sans-serif;
+  --font-heading: 'Cairo', Tahoma, sans-serif;
+  --font-display: 'Changa', 'Cairo', Tahoma, sans-serif;
+  --font-sans: 'Cairo', Tahoma, sans-serif;
+  --font-interface: 'Inter', 'Segoe UI', Arial, sans-serif;
 }
 
 /* Dark class — same as :root */
 .dark {
-  --background: 222 47% 6%;
-  --foreground: 210 20% 96%;
-  --card: 222 40% 10%;
-  --card-foreground: 210 20% 96%;
-  --popover: 222 40% 10%;
-  --popover-foreground: 210 20% 96%;
-  --primary: 194 76% 41%;
+  --background: 201 57% 10%;
+  --foreground: 0 0% 100%;
+  --card: 201 57% 10%;
+  --card-foreground: 0 0% 100%;
+  --popover: 201 57% 10%;
+  --popover-foreground: 0 0% 100%;
+  --primary: 187 88% 35%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 222 35% 16%;
-  --secondary-foreground: 210 20% 96%;
-  --muted: 222 25% 22%;
-  --muted-foreground: 210 15% 60%;
-  --accent: 12 100% 67%;
+  --secondary: 187 88% 35% / 0.12;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 0 0% 100% / 0.08;
+  --muted-foreground: 0 0% 100% / 0.72;
+  --accent: 205 88% 35% / 0.18;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
-  --border: 0 0% 100% / 0.08;
-  --input: 222 35% 18%;
-  --ring: 194 76% 41%;
+  --border: 0 0% 100% / 0.14;
+  --input: 0 0% 100% / 0.08;
+  --ring: 187 88% 35%;
 }
 
 /* Light Theme — AQUAVO Clean White
@@ -243,25 +263,25 @@
    Uses !important-level specificity via html.light selector */
 html.light {
   color-scheme: light;
-  --background: 210 20% 98%;
-  --foreground: 222 47% 10%;
+  --background: 43 28% 95%;
+  --foreground: 0 0% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 222 47% 10%;
+  --card-foreground: 0 0% 14%;
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 10%;
-  --primary: 194 76% 38%;
+  --popover-foreground: 0 0% 14%;
+  --primary: 205 88% 35%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 210 15% 93%;
-  --secondary-foreground: 222 47% 10%;
-  --muted: 210 12% 94%;
-  --muted-foreground: 210 10% 42%;
-  --accent: 12 100% 60%;
-  --accent-foreground: 0 0% 100%;
+  --secondary: 187 88% 35% / 0.10;
+  --secondary-foreground: 0 0% 14%;
+  --muted: 40 21% 84% / 0.42;
+  --muted-foreground: 0 0% 42%;
+  --accent: 187 88% 35% / 0.12;
+  --accent-foreground: 0 0% 14%;
   --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 210 15% 85%;
-  --input: 210 15% 90%;
-  --ring: 194 76% 38%;
+  --border: 40 21% 84%;
+  --input: 40 21% 84%;
+  --ring: 205 88% 35%;
 }
 
 html.dark {
@@ -279,7 +299,6 @@ html.dark {
     text-align: right;
   }
 
-  /* Gen Z Typography */
   h1,
   h2,
   h3,
@@ -287,15 +306,13 @@ html.dark {
   h5,
   h6 {
     font-family: var(--font-heading);
-    font-weight: 800;
-    /* Extra Bold */
-    letter-spacing: -0.02em;
-    line-height: 1.1;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
   }
 
   h1 {
-    @apply text-5xl md:text-7xl lg:text-9xl;
-    /* Oversized */
+    @apply text-3xl md:text-4xl;
   }
 
   /* Keyboard Navigation & Accessibility Focus Styles */

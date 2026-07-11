@@ -219,7 +219,7 @@ export default function Home() {
               <div className="flex flex-wrap gap-4 justify-end mt-6">
                 <Button
                   size="lg"
-                  className="rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(25,155,184,0.4)] transition-all hover:scale-105 active:scale-95"
+                  className="rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(11,147,166,0.4)] transition-all hover:scale-105 active:scale-95"
                   onClick={() => setLocation("/products")}
                   data-tour="hero-cta"
                 >
@@ -271,7 +271,7 @@ export default function Home() {
                 <div key={product.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-border dark:hover:border-white/5" onClick={() => setLocation(`/products/${product.slug}`)}>
                   <div className="text-4xl font-black text-muted-foreground/20 dark:text-white/10 italic w-8 text-center group-hover:text-primary/50 transition-colors">#{idx + 1}</div>
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-muted/20 dark:bg-black/20">
-                    <img src={cardImage(product.images[0]) || "/logo_aquavo.png"} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" width={64} height={64} />
+                    <img src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" width={64} height={64} />
                   </div>
                   <div className="flex-1 text-right">
                     <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
@@ -311,7 +311,7 @@ export default function Home() {
             ) : (
               <div className="flex w-full items-center gap-4 relative z-10 cursor-pointer" onClick={() => setLocation(`/products/${featuredProduct.slug}`)}>
                 <div className="w-28 h-28 p-2 rounded-2xl bg-muted/20 dark:bg-white/5 border border-border dark:border-white/10 group-hover:scale-105 transition-transform duration-300">
-                  <img src={cardImage(featuredProduct.images[0]) || "/logo_aquavo.png"} alt={featuredProduct.name} className="w-full h-full object-contain" loading="lazy" decoding="async" width={112} height={112} />
+                  <img src={cardImage(featuredProduct.images[0]) || "/brand/aquavo-v2-icon.svg"} alt={featuredProduct.name} className="w-full h-full object-contain" loading="lazy" decoding="async" width={112} height={112} />
                 </div>
                 <div className="flex-1 text-right space-y-2">
                   <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>

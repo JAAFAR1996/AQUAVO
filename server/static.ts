@@ -119,7 +119,7 @@ function getPageMeta(requestPath: string): PageMeta {
 
 export function renderLocalFallbackHtml(template: string, requestPath: string) {
   const cleanPath = requestPath.replace(/\/+$/, "") || "/";
-  const defaultImage = `${BASE_SITE}/logo_aquavo.png`;
+  const defaultImage = `${BASE_SITE}/brand/aquavo-v2-horizontal.png`;
   if (cleanPath === "/guides") {
     return renderGuidesIndexHtml(BASE_SITE, defaultImage);
   }
@@ -136,8 +136,9 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     .replace(/__META_DESCRIPTION__/g, meta.description)
     .replace(/__META_KEYWORDS__/g, "مستلزمات أحواض الزينة العراق، AQUAVO، فلاتر، سخانات، أغذية أسماك")
     .replace(/__META_URL__/g, meta.url)
-    .replace(/__META_IMAGE__/g, "/logo_aquavo.png")
+    .replace(/__META_IMAGE__/g, "/brand/aquavo-v2-horizontal.png")
     .replace(/__META_OG_TYPE__/g, meta.ogType ?? "website")
+    .replace(/<!--__JSON_LD__-->/g, generateSsrMeta(requestPath))
     .replace(/__JSON_LD__/g, generateSsrMeta(requestPath));
 
   // Fix canonical tag — static.ts used localhost; now uses real URL
@@ -177,7 +178,7 @@ export function serveStatic(app: Express) {
 
   app.get(["/guides", "/guides/"], (_req, res) => {
     res.setHeader("Cache-Control", "public, max-age=3600");
-    res.type("html").send(renderGuidesIndexHtml(BASE_SITE, `${BASE_SITE}/logo_aquavo.png`));
+    res.type("html").send(renderGuidesIndexHtml(BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`));
   });
 
   const guideRoutes = Object.keys(GUIDE_CONTENT_PAGES).flatMap((guidePath) => [
@@ -191,7 +192,7 @@ export function serveStatic(app: Express) {
     if (!guidePage) return next();
 
     res.setHeader("Cache-Control", "public, max-age=3600");
-    res.type("html").send(renderGuideHtml(cleanPath, guidePage, BASE_SITE, `${BASE_SITE}/logo_aquavo.png`));
+    res.type("html").send(renderGuideHtml(cleanPath, guidePage, BASE_SITE, `${BASE_SITE}/brand/aquavo-v2-horizontal.png`));
   });
 
   app.use((req, res, next) => {

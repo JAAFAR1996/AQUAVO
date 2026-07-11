@@ -112,7 +112,7 @@ function ViewerFooter() {
 }
 
 const VIEWER_BG =
-  "bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)]";
+  "bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#0B1E28_0%,#0B1E28_54%,#06111f_100%)]";
 
 function ViewerShell({
   className,
@@ -126,7 +126,7 @@ function ViewerShell({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
+        "overflow-hidden rounded-lg border border-primary/20 bg-[#0B1E28] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
         className
       )}
       aria-label="عرض المنتج ثلاثي الأبعاد"
@@ -174,7 +174,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
           : "translate-y-2 scale-95 opacity-0"
       )}
     >
-      <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#010611]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
+      <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#0B1E28]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
         <svg
           className="h-4 w-4 shrink-0 animate-horizontal-bounce-reverse text-cyan-400"
           fill="none"
@@ -390,7 +390,7 @@ function ModelViewerInner({
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
-        <div className="relative z-10 mx-4 max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+        <div className="relative z-10 mx-4 max-w-sm rounded-lg border border-white/15 bg-[#0B1E28]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
           {MODEL_LOAD_ERROR_MESSAGE}
         </div>
       </div>
@@ -461,7 +461,7 @@ export const Product3DViewer = memo(function Product3DViewer({
           />
         )}
         <div className="relative z-10 flex flex-col items-center gap-2 text-white/50">
-          <p className="max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+          <p className="max-w-sm rounded-lg border border-white/15 bg-[#0B1E28]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
             {MODEL_LOAD_ERROR_MESSAGE}
           </p>
         </div>

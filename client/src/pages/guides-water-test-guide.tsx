@@ -317,34 +317,34 @@ export default function GuideWaterTestGuide() {
         </main>
 
         <style>{`
-          .wt-wrap { min-height: 100vh; background: #0a1628; color: #e2e8f0; font-family: 'Cairo','Segoe UI',system-ui,sans-serif; direction: rtl; }
-          .wt-bar { position: sticky; top:0; z-index:50; height:64px; background:rgba(10,22,40,0.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(25,155,184,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; }
-          .wt-brand { color:#199bb8; font-weight:800; letter-spacing:3px; font-size:1.1rem; text-decoration:none; }
+          .wt-wrap { min-height: 100vh; background: #0B1E28; color: #e2e8f0; font-family: 'Cairo','Segoe UI',system-ui,sans-serif; direction: rtl; }
+          .wt-bar { position: sticky; top:0; z-index:50; height:64px; background:rgba(10,22,40,0.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(11,147,166,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; }
+          .wt-brand { color:#0B93A6; font-weight:800; letter-spacing:3px; font-size:1.1rem; text-decoration:none; }
           .wt-nav { display:flex; gap:1rem; }
           .wt-nav-link { color:#94a3b8; font-size:0.82rem; text-decoration:none; transition:color 0.2s; }
-          .wt-nav-link:hover { color:#199bb8; }
+          .wt-nav-link:hover { color:#0B93A6; }
           .wt-main { width:100%; max-width:780px; margin:0 auto; padding:2rem 1.25rem 6rem; display:flex; flex-direction:column; gap:3rem; }
           .wt-breadcrumb { font-size:0.78rem; color:#64748b; display:flex; gap:0.4rem; flex-wrap:wrap; }
           .wt-breadcrumb a { color:#94a3b8; text-decoration:none; }
-          .wt-breadcrumb a:hover { color:#199bb8; }
+          .wt-breadcrumb a:hover { color:#0B93A6; }
           .wt-hero { text-align:center; }
-          .wt-badge { display:inline-block; border:1px solid rgba(25,155,184,0.35); color:#199bb8; font-size:0.7rem; font-weight:700; letter-spacing:1.5px; padding:4px 14px; border-radius:999px; margin-bottom:1.25rem; }
+          .wt-badge { display:inline-block; border:1px solid rgba(11,147,166,0.35); color:#0B93A6; font-size:0.7rem; font-weight:700; letter-spacing:1.5px; padding:4px 14px; border-radius:999px; margin-bottom:1.25rem; }
           .wt-h1 { font-size:clamp(1.5rem,5vw,2.4rem); font-weight:900; color:#f0f9ff; margin:0 0 1.25rem; line-height:1.2; }
-          .wt-answer-block { background:rgba(25,155,184,0.07); border:1px solid rgba(25,155,184,0.2); border-radius:12px; padding:1.25rem 1.5rem; text-align:right; margin-bottom:1rem; }
+          .wt-answer-block { background:rgba(11,147,166,0.07); border:1px solid rgba(11,147,166,0.2); border-radius:12px; padding:1.25rem 1.5rem; text-align:right; margin-bottom:1rem; }
           .wt-answer-text { font-size:0.97rem; color:#cbd5e1; line-height:1.8; margin:0; }
           .wt-meta { font-size:0.78rem; color:#475569; display:flex; gap:0.75rem; justify-content:center; }
           .wt-store-note { background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.15); border-radius:10px; padding:1rem 1.25rem; font-size:0.88rem; color:#94a3b8; line-height:1.7; }
           .wt-store-note strong { color:#ffd700; }
-          .wt-store-link { color:#199bb8; text-decoration:none; font-weight:600; }
+          .wt-store-link { color:#0B93A6; text-decoration:none; font-weight:600; }
           .wt-section { display:flex; flex-direction:column; gap:1rem; }
-          .wt-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.5rem; border-right:3px solid #199bb8; padding-right:0.75rem; }
+          .wt-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.5rem; border-right:3px solid #0B93A6; padding-right:0.75rem; }
           .wt-body { font-size:0.92rem; color:#94a3b8; line-height:1.8; margin:0; }
           .wt-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.5rem; }
           .wt-list li { font-size:0.9rem; color:#94a3b8; padding-right:1.25rem; position:relative; }
-          .wt-list li::before { content:'→'; position:absolute; right:0; color:#199bb8; }
+          .wt-list li::before { content:'→'; position:absolute; right:0; color:#0B93A6; }
           .wt-table-wrap { overflow-x:auto; }
           .wt-table { width:100%; border-collapse:collapse; font-size:0.84rem; min-width:600px; }
-          .wt-table th { background:rgba(25,155,184,0.12); color:#cbd5e1; padding:0.75rem 0.9rem; text-align:right; font-weight:700; border-bottom:1px solid rgba(25,155,184,0.2); white-space:nowrap; }
+          .wt-table th { background:rgba(11,147,166,0.12); color:#cbd5e1; padding:0.75rem 0.9rem; text-align:right; font-weight:700; border-bottom:1px solid rgba(11,147,166,0.2); white-space:nowrap; }
           .wt-table td { color:#94a3b8; padding:0.65rem 0.9rem; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; }
           .wt-table tr:last-child td { border-bottom:none; }
           .wt-table tr:hover td { background:rgba(255,255,255,0.02); }
@@ -360,18 +360,18 @@ export default function GuideWaterTestGuide() {
           .wt-scale-label { font-size:0.85rem; color:#94a3b8; }
           .wt-steps { padding: 0 0 0 1rem; margin:0; display:flex; flex-direction:column; gap:0.6rem; counter-reset:steps; list-style:none; }
           .wt-steps li { font-size:0.9rem; color:#94a3b8; padding-right:2rem; position:relative; counter-increment:steps; }
-          .wt-steps li::before { content:counter(steps); position:absolute; right:0; width:22px; height:22px; background:rgba(25,155,184,0.15); color:#199bb8; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
-          .wt-tip { background:rgba(25,155,184,0.07); border:1px solid rgba(25,155,184,0.2); border-radius:8px; padding:0.85rem 1rem; font-size:0.85rem; color:#7dd3fc; }
+          .wt-steps li::before { content:counter(steps); position:absolute; right:0; width:22px; height:22px; background:rgba(11,147,166,0.15); color:#0B93A6; border-radius:50%; font-size:0.75rem; font-weight:700; display:flex; align-items:center; justify-content:center; }
+          .wt-tip { background:rgba(11,147,166,0.07); border:1px solid rgba(11,147,166,0.2); border-radius:8px; padding:0.85rem 1rem; font-size:0.85rem; color:#7dd3fc; }
           .wt-when-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
           @media(max-width:560px){.wt-when-grid{grid-template-columns:1fr;}}
           .wt-when-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.9rem 1rem; }
           .wt-when-time { font-size:0.88rem; font-weight:700; color:#e2e8f0; margin-bottom:0.25rem; }
           .wt-when-reason { font-size:0.82rem; color:#64748b; }
           .wt-cta-section {}
-          .wt-cta-box { background:rgba(25,155,184,0.05); border:1px solid rgba(25,155,184,0.18); border-radius:14px; padding:2rem; text-align:center; }
+          .wt-cta-box { background:rgba(11,147,166,0.05); border:1px solid rgba(11,147,166,0.18); border-radius:14px; padding:2rem; text-align:center; }
           .wt-cta-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.6rem; }
           .wt-cta-body { font-size:0.9rem; color:#94a3b8; line-height:1.7; margin:0 0 1.5rem; }
-          .wt-cta-btn { display:inline-block; background:linear-gradient(135deg,#199bb8,#0e7490); color:#fff; font-weight:700; font-size:0.95rem; padding:0.85rem 2rem; border-radius:10px; text-decoration:none; transition:opacity 0.2s; }
+          .wt-cta-btn { display:inline-block; background:linear-gradient(135deg,#0B93A6,#0e7490); color:#fff; font-weight:700; font-size:0.95rem; padding:0.85rem 2rem; border-radius:10px; text-decoration:none; transition:opacity 0.2s; }
           .wt-cta-btn:hover{opacity:0.88;}
           .wt-faq-list { display:flex; flex-direction:column; gap:0.75rem; }
           .wt-faq-item { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07); border-radius:10px; overflow:hidden; }
@@ -381,7 +381,7 @@ export default function GuideWaterTestGuide() {
           .wt-related-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; }
           @media(max-width:560px){.wt-related-grid{grid-template-columns:1fr;}}
           .wt-related-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1rem; text-decoration:none; display:flex; gap:0.85rem; align-items:flex-start; transition:border-color 0.2s; }
-          .wt-related-card:hover{border-color:rgba(25,155,184,0.4);}
+          .wt-related-card:hover{border-color:rgba(11,147,166,0.4);}
           .wt-related-icon { font-size:1.5rem; flex-shrink:0; }
           .wt-related-title { font-size:0.9rem; font-weight:700; color:#e2e8f0; margin-bottom:0.2rem; }
           .wt-related-desc { font-size:0.8rem; color:#64748b; }

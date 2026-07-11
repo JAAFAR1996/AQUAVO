@@ -11,19 +11,19 @@ export default function AiDriftwoodExperiment() {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-bg-base, #0a1628)",
+        background: "var(--color-bg-base, #0B1E28)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         gap: "1.5rem",
         padding: "2rem",
-        fontFamily: "Changa, Cairo, sans-serif",
+        fontFamily: "Cairo, Tahoma, sans-serif",
         direction: "rtl",
         color: "#e2e8f0",
       }}
     >
-      <h1 style={{ fontSize: "2rem", color: "#199bb8", textAlign: "center" }}>
+      <h1 style={{ fontSize: "2rem", color: "#0B93A6", textAlign: "center" }}>
         تجربة الأخشاب الطبيعية
       </h1>
       <p style={{ fontSize: "1.1rem", opacity: 0.7, textAlign: "center", maxWidth: 480 }}>
@@ -33,7 +33,7 @@ export default function AiDriftwoodExperiment() {
         href="/products?category=decorations"
         style={{
           padding: "0.75rem 2rem",
-          background: "#199bb8",
+          background: "#0B93A6",
           color: "#fff",
           borderRadius: "0.5rem",
           textDecoration: "none",

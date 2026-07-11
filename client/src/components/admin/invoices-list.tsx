@@ -23,7 +23,7 @@ interface Invoice {
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
   draft:     { label: "مسودة",    color: "#94a3b8", bg: "#94a3b820" },
-  sent:      { label: "مُرسلة",   color: "#199bb8", bg: "#199bb820" },
+  sent:      { label: "مُرسلة",   color: "#0B93A6", bg: "#0B93A620" },
   confirmed: { label: "مقبولة ✅", color: "#22c55e", bg: "#22c55e20" },
   rejected:  { label: "مرفوضة",  color: "#ef4444", bg: "#ef444420" },
   completed: { label: "مكتملة",   color: "#a855f7", bg: "#a855f720" },
@@ -122,13 +122,13 @@ export default function InvoicesList() {
     statCard: (color: string) => ({ background: `${color}12`, border: `1px solid ${color}30`, borderRadius: 12, padding: "12px 16px", textAlign: "center" as const }),
     header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, flexWrap: "wrap" as const, gap: 12 },
     filterRow: { display: "flex", gap: 8, flexWrap: "wrap" as const },
-    filterBtn: (active: boolean) => ({ padding: "6px 14px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: active ? "1px solid #199bb8" : "1px solid rgba(255,255,255,0.1)", background: active ? "rgba(25,155,184,0.15)" : "transparent", color: active ? "#199bb8" : "#64748b" }),
+    filterBtn: (active: boolean) => ({ padding: "6px 14px", borderRadius: 999, fontSize: 12, fontWeight: 600, cursor: "pointer", border: active ? "1px solid #0B93A6" : "1px solid rgba(255,255,255,0.1)", background: active ? "rgba(11,147,166,0.15)" : "transparent", color: active ? "#0B93A6" : "#64748b" }),
     table: { width: "100%", borderCollapse: "collapse" as const },
     th: { textAlign: "right" as const, padding: "10px 12px", color: "#64748b", fontSize: 12, fontWeight: 600, borderBottom: "1px solid rgba(255,255,255,0.06)" },
     td: { padding: "12px", borderBottom: "1px solid rgba(255,255,255,0.04)", fontSize: 13, verticalAlign: "middle" as const },
     badge: (s: string) => ({ display: "inline-block", padding: "3px 10px", borderRadius: 999, fontSize: 11, fontWeight: 700, background: STATUS_MAP[s]?.bg ?? "#ffffff10", color: STATUS_MAP[s]?.color ?? "#e2e8f0" }),
     btn: (color: string) => ({ padding: "5px 10px", borderRadius: 7, fontSize: 12, fontWeight: 600, border: `1px solid ${color}40`, background: `${color}15`, color, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 4 }),
-    btnPrimary: { padding: "10px 20px", borderRadius: 12, background: "linear-gradient(135deg, #199bb8, #0d7d96)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 },
+    btnPrimary: { padding: "10px 20px", borderRadius: 12, background: "linear-gradient(135deg, #0B93A6, #075F6B)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6 },
   };
 
   return (
@@ -137,7 +137,7 @@ export default function InvoicesList() {
       <div style={s.statsRow}>
         {[
           { label: "الكل", value: stats.total ?? 0, color: "#e2e8f0", icon: <FileText size={16} /> },
-          { label: "مُرسلة", value: stats.sent ?? 0, color: "#199bb8", icon: <Clock size={16} /> },
+          { label: "مُرسلة", value: stats.sent ?? 0, color: "#0B93A6", icon: <Clock size={16} /> },
           { label: "مقبولة", value: stats.confirmed ?? 0, color: "#22c55e", icon: <CheckCircle2 size={16} /> },
           { label: "مرفوضة", value: stats.rejected ?? 0, color: "#ef4444", icon: <XCircle size={16} /> },
           { label: "مسودات", value: stats.draft ?? 0, color: "#94a3b8", icon: <TrendingUp size={16} /> },
@@ -203,7 +203,7 @@ export default function InvoicesList() {
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <td style={{ ...s.td, fontWeight: 700, color: "#199bb8" }}>{inv.invoiceNo}</td>
+                  <td style={{ ...s.td, fontWeight: 700, color: "#0B93A6" }}>{inv.invoiceNo}</td>
                   <td style={s.td}>{inv.customerName}</td>
                   <td style={{ ...s.td, direction: "ltr", color: "#94a3b8" }}>{inv.customerPhone}</td>
                   <td style={s.td}>{inv.customerCity || "—"}</td>
@@ -220,7 +220,7 @@ export default function InvoicesList() {
                       </button>
                       {/* إرسال (draft أو إعادة إرسال) */}
                       {(inv.status === "draft" || inv.status === "sent") && (
-                        <button style={s.btn("#199bb8")} onClick={() => handleSend(inv.id)} disabled={actionLoading === inv.id + "_send"}>
+                        <button style={s.btn("#0B93A6")} onClick={() => handleSend(inv.id)} disabled={actionLoading === inv.id + "_send"}>
                           <Send size={13} /> {inv.status === "sent" ? "إعادة إرسال" : "إرسال"}
                         </button>
                       )}

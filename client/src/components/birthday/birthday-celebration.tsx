@@ -11,7 +11,7 @@ interface BirthdayStatus {
   coupon?: { code: string; endDate?: string | null };
 }
 
-const BALLOON_COLORS = ["#199bb8", "#ff7b5a", "#ffd700", "#34d399", "#a78bfa"];
+const BALLOON_COLORS = ["#0B93A6", "#0B64A6", "#ffd700", "#34d399", "#a78bfa"];
 
 // Birthday gift card (2026): if today is the logged-in user's birthday, fire
 // confetti + balloons and reveal their one-time 10% coupon. Shows once per year
@@ -117,7 +117,7 @@ export function BirthdayCelebration() {
           </div>
 
           <motion.div
-            className="relative w-full max-w-md rounded-3xl border border-primary/30 bg-[#0a1628] p-8 text-center shadow-2xl shadow-primary/20"
+            className="relative w-full max-w-md rounded-3xl border border-primary/30 bg-[#0B1E28] p-8 text-center shadow-2xl shadow-primary/20"
             dir="rtl"
             role="dialog"
             aria-modal="true"

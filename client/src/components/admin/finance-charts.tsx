@@ -61,7 +61,7 @@ const EXPENSE_LABELS: Record<string, string> = {
   other: "أخرى",
 };
 
-const PIE_COLORS = ["#199bb8", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#64748b"];
+const PIE_COLORS = ["#0B93A6", "#f59e0b", "#22c55e", "#a855f7", "#ef4444", "#64748b"];
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -88,13 +88,13 @@ function errMsg(e: unknown) {
 
 const card: React.CSSProperties = {
   background: "#0d1f3c",
-  border: "1px solid #199bb820",
+  border: "1px solid #0B93A620",
   borderRadius: 12,
   padding: 18,
 };
 
 const sectionTitle: React.CSSProperties = {
-  color: "#199bb8",
+  color: "#0B93A6",
   fontSize: 13,
   fontWeight: 700,
   marginBottom: 14,
@@ -105,7 +105,7 @@ const axisStyle = { fill: "#64748b", fontSize: 11 };
 function tooltipStyle() {
   return {
     contentStyle: {
-      background: "#010611",
+      background: "#0B1E28",
       border: "1px solid #1e3a5f",
       borderRadius: 8,
       fontSize: 12,
@@ -177,7 +177,7 @@ export function FinanceCharts({ period }: { period: Period }) {
       {/* KPI row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 16 }}>
         <KpiCard label="الإيراد" value={report?.summary.revenue ?? 0} color="#22c55e" />
-        <KpiCard label="الربح الإجمالي" value={report?.summary.grossProfit ?? 0} color="#199bb8" />
+        <KpiCard label="الربح الإجمالي" value={report?.summary.grossProfit ?? 0} color="#0B93A6" />
         <KpiCard label="المصاريف" value={report?.summary.expensesTotal ?? 0} color="#f59e0b" />
         <KpiCard
           label="صافي الربح النهائي"
@@ -201,8 +201,8 @@ export function FinanceCharts({ period }: { period: Period }) {
                 <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="gNet" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#199bb8" stopOpacity={0.35} />
-                <stop offset="95%" stopColor="#199bb8" stopOpacity={0} />
+                <stop offset="5%" stopColor="#0B93A6" stopOpacity={0.35} />
+                <stop offset="95%" stopColor="#0B93A6" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" />
@@ -211,7 +211,7 @@ export function FinanceCharts({ period }: { period: Period }) {
             <Tooltip {...tt} formatter={(v: number) => fmt(v)} />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             <Area type="monotone" dataKey="revenue" name="الإيراد" stroke="#22c55e" fill="url(#gRev)" strokeWidth={2} />
-            <Area type="monotone" dataKey="netProfit" name="صافي الربح" stroke="#199bb8" fill="url(#gNet)" strokeWidth={2} />
+            <Area type="monotone" dataKey="netProfit" name="صافي الربح" stroke="#0B93A6" fill="url(#gNet)" strokeWidth={2} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -247,8 +247,8 @@ export function FinanceCharts({ period }: { period: Period }) {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e3a5f" horizontal={false} />
                 <XAxis type="number" tickFormatter={fmtCompact} tick={axisStyle} stroke="#1e3a5f" />
                 <YAxis type="category" dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} stroke="#1e3a5f" width={120} />
-                <Tooltip {...tt} formatter={(v: number) => fmt(v)} cursor={{ fill: "#199bb810" }} />
-                <Bar dataKey="grossProfit" name="ربح إجمالي" fill="#199bb8" radius={[0, 4, 4, 0]} />
+                <Tooltip {...tt} formatter={(v: number) => fmt(v)} cursor={{ fill: "#0B93A610" }} />
+                <Bar dataKey="grossProfit" name="ربح إجمالي" fill="#0B93A6" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}

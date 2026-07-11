@@ -47,7 +47,7 @@ function Card({
   label,
   value,
   sub,
-  color = "#199bb8",
+  color = "#0B93A6",
 }: {
   label: string;
   value: string;
@@ -55,7 +55,7 @@ function Card({
   color?: string;
 }) {
   return (
-    <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, padding: "14px 18px" }}>
+    <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, padding: "14px 18px" }}>
       <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6 }}>{label}</div>
       <div style={{ color, fontSize: 20, fontWeight: 700, lineHeight: 1.2 }}>{value}</div>
       {sub && <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{sub}</div>}
@@ -65,7 +65,7 @@ function Card({
 
 function SectionTitle({ title }: { title: string }) {
   return (
-    <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700, marginBottom: 10, marginTop: 24 }}>
+    <div style={{ color: "#0B93A6", fontSize: 13, fontWeight: 700, marginBottom: 10, marginTop: 24 }}>
       {title}
     </div>
   );
@@ -216,7 +216,7 @@ export function FinanceReport({ period }: { period: Period }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginBottom: 20 }}>
         <Card label="الإيرادات" value={fmt(s.revenue)} />
         <Card label="الربح الإجمالي" value={fmt(s.grossProfit)} sub={pct(s.grossMargin)} />
-        <Card label="الربح قبل الراجعات" value={s.costsComplete ? fmt(s.netProfitBeforeReturns) : "غير مكتمل"} color={s.costsComplete ? "#199bb8" : "#94a3b8"} />
+        <Card label="الربح قبل الراجعات" value={s.costsComplete ? fmt(s.netProfitBeforeReturns) : "غير مكتمل"} color={s.costsComplete ? "#0B93A6" : "#94a3b8"} />
         <Card label="خصم تسوية راجعات" value={fmt(s.salesReturnDeduction)} color={s.salesReturnDeduction > 0 ? "#f97316" : "#64748b"} sub="عكس إيراد — ليس خسارة منتج" />
         <Card label="خسائر راجعات فعلية" value={fmt(s.actualReturnLoss)} color={s.actualReturnLoss > 0 ? "#ef4444" : "#64748b"} sub={`${s.nonSellableReturnedCount} غير قابل للبيع`} />
         <Card label="الربح بعد الراجعات" value={s.costsComplete ? fmt(s.netProfitAfterReturns) : "غير مكتمل"} color={s.costsComplete ? profitColor(s.netProfitAfterReturns) : "#94a3b8"} sub={s.costsComplete ? pct(s.marginAfterReturns) : undefined} />
@@ -227,9 +227,9 @@ export function FinanceReport({ period }: { period: Period }) {
 
       {/* C) Profit Bridge */}
       <SectionTitle title="جسر الربح" />
-      <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, padding: "16px 20px", marginBottom: 20, maxWidth: 480 }}>
+      <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, padding: "16px 20px", marginBottom: 20, maxWidth: 480 }}>
         {[
-          { label: "الإيرادات", value: s.revenue, type: "total", color: "#199bb8" },
+          { label: "الإيرادات", value: s.revenue, type: "total", color: "#0B93A6" },
           { label: "كلفة البضاعة", value: -s.totalCogs, type: "sub", color: "#ef4444" },
           { label: "التغليف والكارتون", value: -s.totalPackaging, type: "sub", color: "#ef4444" },
           { label: "= الربح الإجمالي", value: s.grossProfit, type: "result", color: profitColor(s.grossProfit), badge: pct(s.grossMargin) },
@@ -250,7 +250,7 @@ export function FinanceReport({ period }: { period: Period }) {
             </span>
             <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {row.badge && (
-                <span style={{ background: "#199bb820", color: "#199bb8", fontSize: 10, padding: "1px 6px", borderRadius: 4 }}>{row.badge}</span>
+                <span style={{ background: "#0B93A620", color: "#0B93A6", fontSize: 10, padding: "1px 6px", borderRadius: 4 }}>{row.badge}</span>
               )}
               <span style={{ color: row.color, fontWeight: row.type === "result" ? 700 : 400, fontSize: row.type === "result" ? 14 : 12 }}>
                 {(!s.costsComplete && row.type === "result" && row.label !== "الإيرادات") ? "غير مكتمل" : fmt(row.value)}
@@ -265,7 +265,7 @@ export function FinanceReport({ period }: { period: Period }) {
         {/* Top by gross profit */}
         <div>
           <SectionTitle title="أفضل المنتجات ربحاً" />
-          <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden" }}>
             <TableWrapper>
               <thead>
                 <tr>
@@ -294,7 +294,7 @@ export function FinanceReport({ period }: { period: Period }) {
         {/* Weak margin */}
         <div>
           <SectionTitle title="أضعف المنتجات هامشاً" />
-          <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden" }}>
             <TableWrapper>
               <thead>
                 <tr>
@@ -325,7 +325,7 @@ export function FinanceReport({ period }: { period: Period }) {
         {/* Returned products */}
         <div>
           <SectionTitle title="المنتجات اللي عليها راجع" />
-          <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden" }}>
             <TableWrapper>
               <thead>
                 <tr>
@@ -354,7 +354,7 @@ export function FinanceReport({ period }: { period: Period }) {
         {/* Low stock */}
         <div>
           <SectionTitle title="منتجات مخزونها قليل أو نفد" />
-          <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden" }}>
+          <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden" }}>
             <TableWrapper>
               <thead>
                 <tr>
@@ -383,7 +383,7 @@ export function FinanceReport({ period }: { period: Period }) {
 
       {/* E) Expense Breakdown */}
       <SectionTitle title="تفصيل المصاريف" />
-      <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+      <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
         {report.expenses.byCategory.length === 0 ? (
           <div style={{ color: "#475569", fontSize: 12, padding: "16px 20px" }}>لا مصاريف مسجّلة لهذه الفترة</div>
         ) : (
@@ -415,7 +415,7 @@ export function FinanceReport({ period }: { period: Period }) {
 
       {/* F) Returns Breakdown */}
       <SectionTitle title="تفصيل الراجعات المعتمدة" />
-      <div style={{ background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
+      <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, overflow: "hidden", marginBottom: 20 }}>
         {report.returns.events.length === 0 ? (
           <div style={{ color: "#475569", fontSize: 12, padding: "16px 20px" }}>لا راجعات معتمدة لهذه الفترة</div>
         ) : (
@@ -435,7 +435,7 @@ export function FinanceReport({ period }: { period: Period }) {
             <tbody>
               {report.returns.events.map((e) => (
                 <tr key={e.id}>
-                  <TD color="#199bb8">{e.orderNumber ?? e.orderId.slice(0, 8) + "…"}</TD>
+                  <TD color="#0B93A6">{e.orderNumber ?? e.orderId.slice(0, 8) + "…"}</TD>
                   <TD>{RETURN_TYPE_LABELS[e.type] ?? e.type}</TD>
                   <TD color={e.restocked ? "#22c55e" : "#f59e0b"}>{e.restocked ? "نعم" : "لا"}</TD>
                   <TD color="#f97316">{e.settlementDeduction > 0 ? fmt(e.settlementDeduction) : "—"}</TD>
@@ -456,8 +456,8 @@ export function FinanceReport({ period }: { period: Period }) {
         <Card label="قيمة المخزون (بالكلفة)" value={fmt(report.inventory.inventoryValueAtCost)} />
         <Card label="إيراد محتمل من المخزون" value={fmt(report.inventory.potentialRevenueFromStock)} />
         <Card label="ربح محتمل من المخزون" value={fmt(report.inventory.potentialGrossProfitFromStock)} color="#22c55e" />
-        <Card label="منتجات مخزون منخفض" value={String(report.inventory.lowStockCount)} color={report.inventory.lowStockCount > 0 ? "#f97316" : "#199bb8"} />
-        <Card label="منتجات نفد مخزونها" value={String(report.inventory.outOfStockCount)} color={report.inventory.outOfStockCount > 0 ? "#ef4444" : "#199bb8"} />
+        <Card label="منتجات مخزون منخفض" value={String(report.inventory.lowStockCount)} color={report.inventory.lowStockCount > 0 ? "#f97316" : "#0B93A6"} />
+        <Card label="منتجات نفد مخزونها" value={String(report.inventory.outOfStockCount)} color={report.inventory.outOfStockCount > 0 ? "#ef4444" : "#0B93A6"} />
         <Card label="منتجات قريباً" value={String(report.inventory.comingSoonCount)} color="#64748b" />
       </div>
     </div>

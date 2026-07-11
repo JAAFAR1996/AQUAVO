@@ -365,8 +365,8 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
   // ── Styles ──────────────────────────────────────────────────────────────────
   const s = {
     overlay: { position: "fixed" as const, inset: 0, background: "rgba(0,0,0,0.85)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto" as const, padding: "24px 16px" },
-    modal:   { width: "100%", maxWidth: 720, background: "#0d1b2a", border: "1px solid rgba(25,155,184,0.2)", borderRadius: 20, overflow: "hidden", fontFamily: "'Cairo','Changa',sans-serif", direction: "rtl" as const, color: "#e2e8f0" },
-    header:  { background: "linear-gradient(135deg, #0a1628, #112240)", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(25,155,184,0.2)" },
+    modal:   { width: "100%", maxWidth: 720, background: "#0d1b2a", border: "1px solid rgba(11,147,166,0.2)", borderRadius: 20, overflow: "hidden", fontFamily: "'Cairo','Changa',sans-serif", direction: "rtl" as const, color: "#e2e8f0" },
+    header:  { background: "linear-gradient(135deg, #0B1E28, #112240)", padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(11,147,166,0.2)" },
     body:    { padding: "24px" },
     label:   { display: "block", fontSize: 13, color: "#94a3b8", marginBottom: 6, fontWeight: 600 },
     input:   { width: "100%", padding: "10px 14px", borderRadius: 10, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", fontSize: 14, outline: "none", boxSizing: "border-box" as const },
@@ -375,11 +375,11 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
     section: { marginBottom: 20 },
     divider: { borderTop: "1px solid rgba(255,255,255,0.06)", margin: "20px 0" },
     itemRow: { display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" },
-    btnPrimary: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #199bb8, #0d7d96)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
+    btnPrimary: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #0B93A6, #075F6B)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnSecondary: { padding: "12px 24px", borderRadius: 12, background: "rgba(255,255,255,0.05)", color: "#94a3b8", fontSize: 15, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
     btnGreen: { padding: "12px 24px", borderRadius: 12, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 15, fontWeight: 700, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8 },
-    searchDrop: { position: "absolute" as const, top: "calc(100% + 4px)", right: 0, left: 0, background: "#0d1e33", border: "1px solid rgba(25,155,184,0.35)", borderRadius: 12, zIndex: 50, maxHeight: 380, overflowY: "auto" as const, boxShadow: "0 20px 60px rgba(0,0,0,0.6)" },
-    total:   { background: "rgba(25,155,184,0.06)", borderRadius: 12, padding: "16px", border: "1px solid rgba(25,155,184,0.15)" },
+    searchDrop: { position: "absolute" as const, top: "calc(100% + 4px)", right: 0, left: 0, background: "#0d1e33", border: "1px solid rgba(11,147,166,0.35)", borderRadius: 12, zIndex: 50, maxHeight: 380, overflowY: "auto" as const, boxShadow: "0 20px 60px rgba(0,0,0,0.6)" },
+    total:   { background: "rgba(11,147,166,0.06)", borderRadius: 12, padding: "16px", border: "1px solid rgba(11,147,166,0.15)" },
   };
 
   // ── Success Screen ───────────────────────────────────────────────────────────
@@ -433,7 +433,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
         <div style={s.body}>
           {/* ── بيانات العميل ── */}
           <div style={s.section}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#199bb8", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0B93A6", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
               👤 بيانات العميل
             </div>
             <div style={s.grid2}>
@@ -443,8 +443,8 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                   ref={nameInputRef}
                   style={{
                     ...s.input,
-                    border: showNameDrop ? "1px solid rgba(25,155,184,0.6)" : "1px solid rgba(255,255,255,0.1)",
-                    boxShadow: showNameDrop ? "0 0 0 3px rgba(25,155,184,0.1)" : "none",
+                    border: showNameDrop ? "1px solid rgba(11,147,166,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: showNameDrop ? "0 0 0 3px rgba(11,147,166,0.1)" : "none",
                     borderRadius: showNameDrop ? "10px 10px 0 0" : 10,
                   }}
                   placeholder="أحمد محمد"
@@ -459,7 +459,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     ref={nameSuggestRef}
                     style={{
                       position: "absolute", top: "calc(100% + 0px)", right: 0, left: 0,
-                      background: "#0d1e33", border: "1px solid rgba(25,155,184,0.4)",
+                      background: "#0d1e33", border: "1px solid rgba(11,147,166,0.4)",
                       borderTop: "none", borderRadius: "0 0 10px 10px",
                       zIndex: 100, maxHeight: 240, overflowY: "auto",
                       boxShadow: "0 16px 40px rgba(0,0,0,0.6)",
@@ -475,7 +475,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                           display: "flex", flexDirection: "column", gap: 2,
                           transition: "background 0.15s",
                         }}
-                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.12)")}
+                        onMouseEnter={e => (e.currentTarget.style.background = "rgba(11,147,166,0.12)")}
                         onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                       >
                         <span style={{ fontWeight: 700, fontSize: 14, color: "#e2e8f0" }}>{c.name}</span>
@@ -516,7 +516,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
 
           {/* ── المنتجات ── */}
           <div style={s.section}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#199bb8", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: "#0B93A6", marginBottom: 14, display: "flex", alignItems: "center", gap: 6 }}>
               📦 المنتجات
             </div>
 
@@ -525,16 +525,16 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               <div style={{ position: "relative" }}>
                 {/* Search icon */}
                 {searching
-                  ? <Loader2 size={16} color="#199bb8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", animation: "spin 1s linear infinite" }} />
-                  : <Search size={16} color={dropdownOpen ? "#199bb8" : "#475569"} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
+                  ? <Loader2 size={16} color="#0B93A6" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", animation: "spin 1s linear infinite" }} />
+                  : <Search size={16} color={dropdownOpen ? "#0B93A6" : "#475569"} style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", transition: "color 0.2s" }} />
                 }
                 <input
                   ref={searchInputRef}
                   style={{
                     ...s.input,
                     paddingRight: 38,
-                    border: dropdownOpen ? "1px solid rgba(25,155,184,0.6)" : "1px solid rgba(255,255,255,0.1)",
-                    boxShadow: dropdownOpen ? "0 0 0 3px rgba(25,155,184,0.1)" : "none",
+                    border: dropdownOpen ? "1px solid rgba(11,147,166,0.6)" : "1px solid rgba(255,255,255,0.1)",
+                    boxShadow: dropdownOpen ? "0 0 0 3px rgba(11,147,166,0.1)" : "none",
                     transition: "border-color 0.2s, box-shadow 0.2s",
                     borderRadius: dropdownOpen && (searchResults.length > 0 || searching) ? "10px 10px 0 0" : 10,
                   }}
@@ -573,18 +573,18 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                           <div
                             style={{ padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
                             onClick={() => setExpandedProduct(isExpanded ? null : product.id)}
-                            onMouseEnter={e => (e.currentTarget.style.background = "rgba(25,155,184,0.07)")}
+                            onMouseEnter={e => (e.currentTarget.style.background = "rgba(11,147,166,0.07)")}
                             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                           >
                             {/* Thumbnail */}
                             {thumb
                               ? <img src={thumb} alt="" style={{ width: 36, height: 36, borderRadius: 6, objectFit: "cover", flexShrink: 0 }} />
-                              : <div style={{ width: 36, height: 36, borderRadius: 6, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#199bb8" /></div>
+                              : <div style={{ width: 36, height: 36, borderRadius: 6, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#0B93A6" /></div>
                             }
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <div style={{ fontSize: 13, fontWeight: 700, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
                               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-                                {catLabel && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(25,155,184,0.15)", color: "#199bb8" }}>{catLabel}</span>}
+                                {catLabel && <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(11,147,166,0.15)", color: "#0B93A6" }}>{catLabel}</span>}
                                 <span style={{ fontSize: 11, color: "#64748b" }}>{product.variants.length} خيار</span>
                               </div>
                             </div>
@@ -607,11 +607,11 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                                   justifyContent: "space-between",
                                   alignItems: "center",
                                   fontSize: 13,
-                                  background: isHighlighted ? "rgba(25,155,184,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
+                                  background: isHighlighted ? "rgba(11,147,166,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
                                   borderTop: "1px solid rgba(255,255,255,0.03)",
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.background = "rgba(25,155,184,0.12)"; setHighlightedIdx(globalIdx); }}
-                                onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(25,155,184,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"; }}
+                                onMouseEnter={e => { e.currentTarget.style.background = "rgba(11,147,166,0.12)"; setHighlightedIdx(globalIdx); }}
+                                onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(11,147,166,0.15)" : vi % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent"; }}
                                 onClick={() => addItem(product, v.id, v.label, v.price)}
                               >
                                 <span style={{ color: "#c8d8e8" }}>↳ {v.label}</span>
@@ -637,22 +637,22 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                           alignItems: "center",
                           gap: 10,
                           borderBottom: "1px solid rgba(255,255,255,0.04)",
-                          background: isHighlighted ? "rgba(25,155,184,0.15)" : "transparent",
+                          background: isHighlighted ? "rgba(11,147,166,0.15)" : "transparent",
                           transition: "background 0.1s",
                         }}
-                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(25,155,184,0.12)"; setHighlightedIdx(globalIdx); }}
-                        onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(25,155,184,0.15)" : "transparent"; }}
+                        onMouseEnter={e => { e.currentTarget.style.background = "rgba(11,147,166,0.12)"; setHighlightedIdx(globalIdx); }}
+                        onMouseLeave={e => { e.currentTarget.style.background = isHighlighted ? "rgba(11,147,166,0.15)" : "transparent"; }}
                         onClick={() => addItem(product)}
                       >
                         {/* Thumbnail */}
                         {thumb
                           ? <img src={thumb} alt="" style={{ width: 38, height: 38, borderRadius: 7, objectFit: "cover", flexShrink: 0 }} />
-                          : <div style={{ width: 38, height: 38, borderRadius: 7, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#199bb8" /></div>
+                          : <div style={{ width: 38, height: 38, borderRadius: 7, background: "#1a2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={14} color="#0B93A6" /></div>
                         }
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{product.name}</div>
                           {catLabel && (
-                            <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(25,155,184,0.15)", color: "#199bb8", marginTop: 2, display: "inline-block" }}>{catLabel}</span>
+                            <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(11,147,166,0.15)", color: "#0B93A6", marginTop: 2, display: "inline-block" }}>{catLabel}</span>
                           )}
                         </div>
                         <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{Number(product.price).toLocaleString("en-US")} د.ع</span>
@@ -690,7 +690,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                   <div key={idx} style={s.itemRow}>
                     {item.imageUrl
                       ? <img src={item.imageUrl} alt="" style={{ width: 44, height: 44, borderRadius: 8, objectFit: "cover", flexShrink: 0 }} />
-                      : <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1e2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={18} color="#199bb8" /></div>
+                      : <div style={{ width: 44, height: 44, borderRadius: 8, background: "#1e2a3a", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}><Package size={18} color="#0B93A6" /></div>
                     }
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 13, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.name}</div>
@@ -699,7 +699,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                     <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <button onClick={() => updateQuantity(idx, item.quantity - 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", cursor: "pointer" }}>-</button>
                       <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700 }}>{item.quantity}</span>
-                      <button onClick={() => updateQuantity(idx, item.quantity + 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(25,155,184,0.15)", border: "1px solid rgba(25,155,184,0.3)", color: "#199bb8", cursor: "pointer" }}>+</button>
+                      <button onClick={() => updateQuantity(idx, item.quantity + 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(11,147,166,0.15)", border: "1px solid rgba(11,147,166,0.3)", color: "#0B93A6", cursor: "pointer" }}>+</button>
                     </div>
                     <div style={{ color: "#ffd700", fontWeight: 700, minWidth: 90, textAlign: "left" as const, fontSize: 13 }}>
                       {item.total.toLocaleString("en-US")} د.ع
@@ -737,7 +737,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
               </div>
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, fontWeight: 800, marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
-              <span style={{ color: "#199bb8" }}>الإجمالي</span>
+              <span style={{ color: "#0B93A6" }}>الإجمالي</span>
               <span style={{ color: "#ffd700" }}>{total.toLocaleString("en-US")} د.ع</span>
             </div>
           </div>

@@ -283,7 +283,7 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
         {/* Label */}
         <span
           style={{
-            color: "#199bb8",
+            color: "#0B93A6",
             fontSize: 12,
             fontWeight: 700,
           }}
@@ -315,7 +315,7 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
       {/* Reason — the numbers */}
       <div
         style={{
-          background: "#010611",
+          background: "#0B1E28",
           border: "1px solid #1e3a5f",
           borderRadius: 8,
           padding: "8px 12px",
@@ -336,10 +336,10 @@ function RecommendationCard({ rec }: { rec: Recommendation }) {
           alignItems: "flex-start",
           gap: 8,
           fontSize: 12,
-          color: "#199bb8",
+          color: "#0B93A6",
         }}
       >
-        <span style={{ color: "#199bb8", fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>
+        <span style={{ color: "#0B93A6", fontSize: 10, fontWeight: 700, flexShrink: 0, marginTop: 1 }}>
           الإجراء المقترح:
         </span>
         <span style={{ color: "#cbd5e1" }}>{rec.action}</span>
@@ -443,7 +443,7 @@ export function FinanceRecommendations({ period }: { period: Period }) {
         }}
       >
         <div>
-          <div style={{ color: "#199bb8", fontSize: 14, fontWeight: 700 }}>
+          <div style={{ color: "#0B93A6", fontSize: 14, fontWeight: 700 }}>
             التوصيات المالية الذكية
           </div>
           <div style={{ color: "#64748b", fontSize: 11, marginTop: 2 }}>

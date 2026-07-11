@@ -419,7 +419,7 @@ async function runWeeklyEmailCampaign(): Promise<{
 
     // Step 2: Build the HTML email
     const baseUrl = process.env.VITE_PUBLIC_BASE_URL || "https://www.aquavoiq.com";
-    const logoUrl = `${baseUrl}/logo_aquavo.png`;
+    const logoUrl = `${baseUrl}/brand/aquavo-v2-horizontal.png`;
 
     const emailHtml = `
 <!DOCTYPE html>

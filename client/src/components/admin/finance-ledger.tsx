@@ -51,8 +51,8 @@ const TYPE_LABELS: Record<AccountType, string> = {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const S = {
-  card: { background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, padding: 18, marginBottom: 16 } as React.CSSProperties,
-  sectionTitle: { color: "#199bb8", fontSize: 13, fontWeight: 700, marginBottom: 12 } as React.CSSProperties,
+  card: { background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, padding: 18, marginBottom: 16 } as React.CSSProperties,
+  sectionTitle: { color: "#0B93A6", fontSize: 13, fontWeight: 700, marginBottom: 12 } as React.CSSProperties,
   th: { color: "#94a3b8", fontSize: 11, fontWeight: 600, padding: "8px 10px", borderBottom: "1px solid #1e3a5f", textAlign: "right" as const, whiteSpace: "nowrap" as const } as React.CSSProperties,
   thNum: { color: "#94a3b8", fontSize: 11, fontWeight: 600, padding: "8px 10px", borderBottom: "1px solid #1e3a5f", textAlign: "left" as const, whiteSpace: "nowrap" as const } as React.CSSProperties,
   td: { padding: "9px 10px", fontSize: 12, color: "#e2e8f0", borderBottom: "1px solid #0d1f3c" } as React.CSSProperties,
@@ -112,7 +112,7 @@ export function FinanceLedger({ period }: { period: Period }) {
         </div>
         <div style={{ ...S.card, marginBottom: 0 }}>
           <div style={{ color: "#94a3b8", fontSize: 11, marginBottom: 6 }}>عدد القيود</div>
-          <div style={{ color: "#199bb8", fontSize: 18, fontWeight: 700 }}>{counts.journalEntries}</div>
+          <div style={{ color: "#0B93A6", fontSize: 18, fontWeight: 700 }}>{counts.journalEntries}</div>
           <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>
             {counts.orders} طلب · {counts.expenses} مصروف · {counts.returns} راجع
           </div>
@@ -146,7 +146,7 @@ export function FinanceLedger({ period }: { period: Period }) {
                   </tr>
                 ))}
                 <tr style={{ borderTop: "2px solid #1e3a5f" }}>
-                  <td style={{ ...S.td, fontWeight: 700, color: "#199bb8" }} colSpan={2}>الإجمالي</td>
+                  <td style={{ ...S.td, fontWeight: 700, color: "#0B93A6" }} colSpan={2}>الإجمالي</td>
                   <td style={{ ...S.tdNum, fontWeight: 700, color: totals.balanced ? "#22c55e" : "#ef4444" }}>{fmt(totals.totalDebit)}</td>
                   <td style={{ ...S.tdNum, fontWeight: 700, color: totals.balanced ? "#22c55e" : "#ef4444" }}>{fmt(totals.totalCredit)}</td>
                 </tr>
@@ -162,7 +162,7 @@ export function FinanceLedger({ period }: { period: Period }) {
           <PLRow label="− مردودات المبيعات" value={-pl.salesReturns} />
           <PLRow label="صافي الإيراد" value={pl.netRevenue} strong />
           <PLRow label="− كلفة البضاعة المباعة" value={-pl.cogs} />
-          <PLRow label="مجمل الربح" value={pl.grossProfit} strong color="#199bb8" />
+          <PLRow label="مجمل الربح" value={pl.grossProfit} strong color="#0B93A6" />
           <PLRow label="− تكلفة الكراتين" value={-pl.packaging} />
           <PLRow label="− خسائر الراجعات" value={-pl.returnsLoss} />
           <PLRow label="− مصاريف تشغيلية" value={-pl.operatingExpenses} />

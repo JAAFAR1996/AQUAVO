@@ -32,7 +32,7 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
   create: { label: "إنشاء", color: "#22c55e" },
   update: { label: "تعديل", color: "#f59e0b" },
   delete: { label: "حذف", color: "#ef4444" },
-  status_change: { label: "تغيير حالة", color: "#199bb8" },
+  status_change: { label: "تغيير حالة", color: "#0B93A6" },
 };
 
 const FIELD_LABELS: Record<string, string> = {
@@ -79,7 +79,7 @@ function renderValue(v: unknown): string {
 const S = {
   card: {
     background: "#0d1f3c",
-    border: "1px solid #199bb820",
+    border: "1px solid #0B93A620",
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -101,14 +101,14 @@ const S = {
     verticalAlign: "top" as const,
   } as React.CSSProperties,
   sectionTitle: {
-    color: "#199bb8",
+    color: "#0B93A6",
     fontSize: 13,
     fontWeight: 700,
     marginBottom: 10,
   } as React.CSSProperties,
   infoBox: {
     background: "#0d1a2a",
-    border: "1px solid #199bb840",
+    border: "1px solid #0B93A640",
     color: "#cbd5e1",
     padding: "10px 14px",
     borderRadius: 8,
@@ -122,8 +122,8 @@ const S = {
     fontSize: 12,
     fontWeight: 600,
     cursor: "pointer",
-    background: active ? "#199bb8" : "#0d1f3c",
-    border: active ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+    background: active ? "#0B93A6" : "#0d1f3c",
+    border: active ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
     color: active ? "#fff" : "#94a3b8",
   }),
 };
@@ -153,7 +153,7 @@ export function FinanceAuditTrail() {
   return (
     <div dir="rtl">
       <div style={S.infoBox}>
-        <div style={{ fontWeight: 700, marginBottom: 4, color: "#199bb8" }}>سجل التدقيق المالي</div>
+        <div style={{ fontWeight: 700, marginBottom: 4, color: "#0B93A6" }}>سجل التدقيق المالي</div>
         <div>
           كل تعديل على أي رقم مالي (كلفة كارتونة، احتساب طلب، مصروف، تسوية، حالة إرجاع) يُسجَّل هنا
           بقيمته قبل وبعد، ومَن نفّذه، والسبب. السجل غير قابل للتعديل أو الحذف — لا يتغيّر أي رقم بصمت.

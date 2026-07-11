@@ -37,11 +37,11 @@ export function flyToCart(sourceEl: HTMLElement | null, imageUrl?: string): void
     borderRadius: "9999px",
     zIndex: "9999",
     pointerEvents: "none",
-    backgroundColor: "var(--primary, #199bb8)",
+    backgroundColor: "var(--primary, #0B93A6)",
     backgroundImage: imageUrl ? `url("${imageUrl}")` : "none",
     backgroundSize: "cover",
     backgroundPosition: "center",
-    boxShadow: "0 8px 24px rgba(25,155,184,0.4)",
+    boxShadow: "0 8px 24px rgba(11,147,166,0.4)",
     willChange: "transform, opacity",
   } as CSSStyleDeclaration);
   document.body.appendChild(flyer);

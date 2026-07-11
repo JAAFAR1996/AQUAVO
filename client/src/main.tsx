@@ -5,35 +5,6 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 initializeClientEnvSideEffects();
 
-function enableDeferredAppStyles() {
-  document.querySelectorAll<HTMLLinkElement>("link[data-app-css]").forEach((link) => {
-    link.media = "all";
-  });
-}
-
-function enableDeferredFonts() {
-  document.querySelectorAll<HTMLLinkElement>("link[data-deferred-font]").forEach((link) => {
-    link.media = "all";
-  });
-}
-
-// Flip deferred app CSS to active after first paint (allows critical shell to render first)
-requestAnimationFrame(() => enableDeferredAppStyles());
-
-const deferFontTimer = window.setTimeout(() => {
-  const requestIdleCallback = (window as any).requestIdleCallback as
-    | ((callback: () => void, options?: { timeout: number }) => number)
-    | undefined;
-
-  if (requestIdleCallback) {
-    requestIdleCallback(enableDeferredFonts, { timeout: 2500 });
-  } else {
-    enableDeferredFonts();
-  }
-}, 1500);
-
-window.addEventListener("pagehide", () => window.clearTimeout(deferFontTimer), { once: true });
-
 createRoot(document.getElementById("root")!).render(<App />);
 
 // WebMCP: Register site tools for AI agents

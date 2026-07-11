@@ -31,7 +31,7 @@ interface InvoiceData {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  sent:      { label: "بانتظار ردك",  color: "#199bb8", icon: <Clock className="w-6 h-6" /> },
+  sent:      { label: "بانتظار ردك",  color: "#0B93A6", icon: <Clock className="w-6 h-6" /> },
   confirmed: { label: "مقبولة ✅",     color: "#22c55e", icon: <CheckCircle2 className="w-6 h-6" /> },
   rejected:  { label: "مرفوضة",       color: "#ef4444", icon: <XCircle className="w-6 h-6" /> },
   cancelled: { label: "ملغاة",         color: "#6b7280", icon: <XCircle className="w-6 h-6" /> },
@@ -116,10 +116,10 @@ export default function InvoiceView() {
 
   // ── Styles ─────────────────────────────────────────────────────────────────
   const s = {
-    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: "'Cairo', 'Changa', sans-serif", padding: "16px 12px", direction: "rtl" as const },
+    page:    { minHeight: "100vh", background: "#0a0f1a", color: "#e2e8f0", fontFamily: "'Cairo', Tahoma, sans-serif", padding: "16px 12px", direction: "rtl" as const },
     card:    { maxWidth: 460, margin: "0 auto", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, overflow: "hidden" },
-    header:  { background: "linear-gradient(135deg, #0d1b2a 0%, #199bb820 100%)", padding: "24px 20px", textAlign: "center" as const, borderBottom: "1px solid rgba(25,155,184,0.2)" },
-    logo:    { fontSize: 24, fontWeight: 800, color: "#199bb8", letterSpacing: 3, marginBottom: 2 },
+    header:  { background: "linear-gradient(135deg, #0d1b2a 0%, #0B93A620 100%)", padding: "24px 20px", textAlign: "center" as const, borderBottom: "1px solid rgba(11,147,166,0.2)" },
+    logo:    { fontSize: 24, fontWeight: 800, color: "#0B93A6", letterSpacing: 3, marginBottom: 2 },
     invNo:   { color: "#94a3b8", fontSize: 12, marginTop: 4 },
     body:    { padding: "20px" },
     section: { marginBottom: 16 },
@@ -130,17 +130,17 @@ export default function InvoiceView() {
     itemImg: { width: 44, height: 44, borderRadius: 8, objectFit: "cover" as const, background: "#1e2a3a", flexShrink: 0 },
     itemName:{ flex: 1 },
     badge:   (color: string) => ({ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 12px", borderRadius: 999, background: `${color}20`, color, fontWeight: 700, fontSize: 13, border: `1px solid ${color}40` }),
-    total:   { background: "rgba(25,155,184,0.08)", borderRadius: 10, padding: "14px", border: "1px solid rgba(25,155,184,0.2)" },
+    total:   { background: "rgba(11,147,166,0.08)", borderRadius: 10, padding: "14px", border: "1px solid rgba(11,147,166,0.2)" },
     btnOk:   { width: "100%", padding: "14px", borderRadius: 10, background: "linear-gradient(135deg, #22c55e, #16a34a)", color: "#fff", fontSize: 16, fontWeight: 800, border: "none", cursor: "pointer", marginBottom: 8, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
     btnNo:   { width: "100%", padding: "12px", borderRadius: 10, background: "transparent", color: "#ef4444", fontSize: 15, fontWeight: 600, border: "1px solid #ef444440", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
     success: { textAlign: "center" as const, padding: "30px 20px" },
     rejected:{ textAlign: "center" as const, padding: "30px 20px" },
-    promoBox:{ background: "linear-gradient(145deg, rgba(25,155,184,0.05), rgba(255,215,0,0.05))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px", marginTop: "20px", display: "flex", gap: "10px", alignItems: "flex-start" }
+    promoBox:{ background: "linear-gradient(145deg, rgba(11,147,166,0.05), rgba(255,215,0,0.05))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px", marginTop: "20px", display: "flex", gap: "10px", alignItems: "flex-start" }
   };
 
   if (loading) return (
     <div style={{ ...s.page, display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <Loader2 className="animate-spin" style={{ color: "#199bb8" }} size={40} />
+      <Loader2 className="animate-spin" style={{ color: "#0B93A6" }} size={40} />
     </div>
   );
 
@@ -185,7 +185,7 @@ export default function InvoiceView() {
                 <div>
                   <div style={s.label}>المحافظة</div>
                   <div style={{ ...s.value, display: "flex", alignItems: "center", gap: 4 }}>
-                    <MapPin size={14} color="#199bb8" /> {invoice.customerCity}
+                    <MapPin size={14} color="#0B93A6" /> {invoice.customerCity}
                   </div>
                 </div>
               )}
@@ -197,7 +197,7 @@ export default function InvoiceView() {
           {/* المنتجات */}
           <div style={s.section}>
             <div style={{ ...s.label, fontSize: 14, marginBottom: 8, display: "flex", alignItems: "center", gap: 6 }}>
-              <Package size={16} color="#199bb8" /> المنتجات
+              <Package size={16} color="#0B93A6" /> المنتجات
             </div>
             {invoice.items.map((item, i) => (
               <div key={i} style={s.itemRow}>
@@ -205,7 +205,7 @@ export default function InvoiceView() {
                   <img src={item.imageUrl} alt={item.name} style={s.itemImg} />
                 ) : (
                   <div style={{ ...s.itemImg, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Package size={20} color="#199bb8" />
+                    <Package size={20} color="#0B93A6" />
                   </div>
                 )}
                 <div style={s.itemName}>
@@ -213,7 +213,7 @@ export default function InvoiceView() {
                   {item.variantLabel && <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 2 }}>{item.variantLabel}</div>}
                   <div style={{ color: "#64748b", fontSize: 12 }}>الكمية: {item.quantity} × {item.unitPrice.toLocaleString("en-US")} د.ع</div>
                 </div>
-                <div style={{ color: "#199bb8", fontWeight: 700, whiteSpace: "nowrap" }}>
+                <div style={{ color: "#0B93A6", fontWeight: 700, whiteSpace: "nowrap" }}>
                   {item.total.toLocaleString("en-US")} د.ع
                 </div>
               </div>
@@ -241,7 +241,7 @@ export default function InvoiceView() {
             ))}
             <div style={{ ...s.divider, margin: "10px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, fontWeight: 800 }}>
-              <span style={{ color: "#199bb8" }}>الإجمالي</span>
+              <span style={{ color: "#0B93A6" }}>الإجمالي</span>
               <span style={{ color: "#ffd700" }}>{invoice.total.toLocaleString("en-US")} د.ع</span>
             </div>
           </div>
@@ -309,11 +309,11 @@ export default function InvoiceView() {
             <div>
               <h4 style={{ color: "#ffd700", margin: "0 0 4px 0", fontSize: 13, fontWeight: 800 }}>رسالة من AQUAVO</h4>
               <p style={{ color: "#e2e8f0", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
-                لو قمت بإنشاء حساب والطلب مباشرة من موقعنا، لعاد إليك مبلغ <span style={{color: "#199bb8", fontWeight: 700}}>التقريب</span> كاش باك في محفظتك!
-                وأيضاً ستحصل على <span style={{color: "#199bb8", fontWeight: 700}}>نقاط ولاء</span> مع كل طلب، ترتقي بك في مستويات العضوية لتكسب 
+                لو قمت بإنشاء حساب والطلب مباشرة من موقعنا، لعاد إليك مبلغ <span style={{color: "#0B93A6", fontWeight: 700}}>التقريب</span> كاش باك في محفظتك!
+                وأيضاً ستحصل على <span style={{color: "#0B93A6", fontWeight: 700}}>نقاط ولاء</span> مع كل طلب، ترتقي بك في مستويات العضوية لتكسب
                 <span style={{color: "#22c55e", fontWeight: 700}}> خصومات دائمة</span> مع تجربة طلب أوضح وأسرع!
                 <br/>
-                <a href="/register" target="_blank" rel="noopener noreferrer" style={{ color: "#199bb8", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>سجل الآن واصنع حسابك بالموقع</a>
+                <a href="/register" target="_blank" rel="noopener noreferrer" style={{ color: "#0B93A6", textDecoration: "underline", display: "inline-block", marginTop: 8, fontWeight: 700 }}>سجل الآن واصنع حسابك بالموقع</a>
               </p>
             </div>
           </div>

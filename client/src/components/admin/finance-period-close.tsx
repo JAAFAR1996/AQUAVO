@@ -56,14 +56,14 @@ function closableMonths(closedKeys: Set<string>): { key: string; label: string }
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const S = {
-  card: { background: "#0d1f3c", border: "1px solid #199bb820", borderRadius: 12, padding: 18, marginBottom: 16 } as React.CSSProperties,
-  sectionTitle: { color: "#199bb8", fontSize: 13, fontWeight: 700, marginBottom: 12 } as React.CSSProperties,
+  card: { background: "#0d1f3c", border: "1px solid #0B93A620", borderRadius: 12, padding: 18, marginBottom: 16 } as React.CSSProperties,
+  sectionTitle: { color: "#0B93A6", fontSize: 13, fontWeight: 700, marginBottom: 12 } as React.CSSProperties,
   th: { color: "#94a3b8", fontSize: 11, fontWeight: 600, padding: "8px 10px", borderBottom: "1px solid #1e3a5f", textAlign: "right" as const, whiteSpace: "nowrap" as const } as React.CSSProperties,
   td: { padding: "10px 10px", fontSize: 12, color: "#e2e8f0", borderBottom: "1px solid #0d1f3c", verticalAlign: "top" as const } as React.CSSProperties,
-  btnPrimary: { background: "#199bb8", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer", fontSize: 13, fontWeight: 600 } as React.CSSProperties,
+  btnPrimary: { background: "#0B93A6", color: "#fff", border: "none", borderRadius: 8, padding: "8px 18px", cursor: "pointer", fontSize: 13, fontWeight: 600 } as React.CSSProperties,
   btnGhost: { background: "transparent", color: "#f59e0b", border: "1px solid #f59e0b40", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 600 } as React.CSSProperties,
-  select: { background: "#010611", border: "1px solid #1e3a5f", color: "#e2e8f0", borderRadius: 8, padding: "8px 10px", fontSize: 13 } as React.CSSProperties,
-  infoBox: { background: "#0d1a2a", border: "1px solid #199bb840", color: "#cbd5e1", padding: "10px 14px", borderRadius: 8, fontSize: 12, lineHeight: 1.7, marginBottom: 16 } as React.CSSProperties,
+  select: { background: "#0B1E28", border: "1px solid #1e3a5f", color: "#e2e8f0", borderRadius: 8, padding: "8px 10px", fontSize: 13 } as React.CSSProperties,
+  infoBox: { background: "#0d1a2a", border: "1px solid #0B93A640", color: "#cbd5e1", padding: "10px 14px", borderRadius: 8, fontSize: 12, lineHeight: 1.7, marginBottom: 16 } as React.CSSProperties,
 };
 
 // ── Main component ───────────────────────────────────────────────────────────
@@ -137,7 +137,7 @@ export function FinancePeriodClose() {
   return (
     <div dir="rtl">
       <div style={S.infoBox}>
-        <div style={{ fontWeight: 700, marginBottom: 4, color: "#199bb8" }}>إغلاق الفترات والمطابقة</div>
+        <div style={{ fontWeight: 700, marginBottom: 4, color: "#0B93A6" }}>إغلاق الفترات والمطابقة</div>
         <div>
           إغلاق الفترة يُجمّد أرقامها بشكل نهائي (snapshot). بعد الإغلاق، أي تعديل لاحق على طلب قديم
           يظهر هنا كـ <span style={{ color: "#f59e0b", fontWeight: 700 }}>انحراف</span> بين الرقم المجمّد والرقم المُعاد حسابه —

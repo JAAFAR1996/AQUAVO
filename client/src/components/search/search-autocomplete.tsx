@@ -295,7 +295,7 @@ export function SearchAutocomplete({
                                 >
                                     <div className="w-10 h-10 rounded bg-muted/50 overflow-hidden flex-shrink-0">
                                         <img
-                                            src={cardImage(result.image) || "/logo_aquavo.png"}
+                                            src={cardImage(result.image) || "/brand/aquavo-v2-icon.svg"}
                                             alt={result.name}
                                             className="w-full h-full object-contain"
                                             loading="lazy"

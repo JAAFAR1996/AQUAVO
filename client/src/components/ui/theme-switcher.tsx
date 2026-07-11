@@ -10,20 +10,20 @@ import {
 import { ThemeOption } from "@/types";
 
 export function ThemeSwitcher() {
-  // First-time visitors (no saved preference) default to LIGHT — not system.
+  // First-time visitors use AQUAVO Dark Authority; saved preferences still win.
   // Read synchronously so the dropdown label matches the theme the head bootstrap
   // script already applied, with no flicker/mismatch.
   const [theme, setTheme] = useState<ThemeOption>(() => {
     try {
-      return (localStorage.getItem("theme") as ThemeOption | null) || "light";
+      return (localStorage.getItem("theme") as ThemeOption | null) || "dark";
     } catch {
-      return "light";
+      return "dark";
     }
   });
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as ThemeOption | null;
-    const initialTheme = savedTheme || "light";
+    const initialTheme = savedTheme || "dark";
     setTheme(initialTheme);
     applyTheme(initialTheme);
   }, []);

@@ -121,7 +121,7 @@ function errMsg(e: unknown): string {
 
 const S = {
   input: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #1e3a5f",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -130,7 +130,7 @@ const S = {
     boxSizing: "border-box" as const,
   } as React.CSSProperties,
   inputErr: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #ef4444",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -158,12 +158,12 @@ const S = {
     padding: "8px 10px",
     fontSize: 12,
     color: "#e2e8f0",
-    borderBottom: "1px solid #0a1628",
+    borderBottom: "1px solid #0B1E28",
     verticalAlign: "top" as const,
     whiteSpace: "nowrap" as const,
   } as React.CSSProperties,
   btnPrimary: {
-    background: "#199bb8",
+    background: "#0B93A6",
     color: "#fff",
     border: "none",
     borderRadius: 8,
@@ -223,7 +223,7 @@ const S = {
 // ── KPI card ──────────────────────────────────────────────────────────────────
 
 function KpiCard({
-  label, value, color = "#199bb8", sub,
+  label, value, color = "#0B93A6", sub,
 }: {
   label: string; value: string | number; color?: string; sub?: string;
 }) {
@@ -521,7 +521,7 @@ export function FinanceReturnEvents() {
             gap: 10,
             marginBottom: 12,
           }}>
-            <KpiCard label="إجمالي الأحداث" value={summary.totalEvents} color="#199bb8" />
+            <KpiCard label="إجمالي الأحداث" value={summary.totalEvents} color="#0B93A6" />
             <KpiCard label="قيد المراجعة" value={summary.recordedEvents} color="#f59e0b" />
             <KpiCard label="معتمدة" value={summary.verifiedEvents} color="#22c55e" />
             <KpiCard label="مستبعدة" value={summary.disputedEvents} color="#6b7280" />
@@ -541,7 +541,7 @@ export function FinanceReturnEvents() {
 
           {/* Verified-only notice */}
           <div style={{
-            background: "#0a1628",
+            background: "#0B1E28",
             border: "1px solid #22c55e30",
             color: "#86efac",
             padding: "8px 14px",
@@ -769,7 +769,7 @@ export function FinanceReturnEvents() {
                           )
                         }
                         style={{
-                          background: "#010611",
+                          background: "#0B1E28",
                           border: `1px solid ${STATUS_COLORS[e.status]}60`,
                           color: STATUS_COLORS[e.status],
                           borderRadius: 6,

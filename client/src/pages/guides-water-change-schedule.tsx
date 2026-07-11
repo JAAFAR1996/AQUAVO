@@ -281,7 +281,7 @@ export default function GuideWaterChangeSchedule() {
         /* ── Base ── */
         .wc-wrap {
           min-height: 100vh;
-          background: #010611;
+          background: #0B1E28;
           color: #E8EDF2;
           font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
           direction: rtl;
@@ -295,13 +295,13 @@ export default function GuideWaterChangeSchedule() {
           height: 64px;
           background: rgba(1,6,17,0.96);
           backdrop-filter: blur(8px);
-          border-bottom: 1px solid rgba(25,155,184,0.25);
+          border-bottom: 1px solid rgba(11,147,166,0.25);
           display: flex;
           align-items: center;
           padding: 0 1rem;
         }
         .wc-brand {
-          color: #199BB8;
+          color: #0B93A6;
           font-weight: 700;
           letter-spacing: 4px;
           font-size: 1.1rem;
@@ -322,8 +322,8 @@ export default function GuideWaterChangeSchedule() {
         /* ── Badge ── */
         .wc-badge {
           display: inline-block;
-          border: 1px solid rgba(25,155,184,0.4);
-          color: #199BB8;
+          border: 1px solid rgba(11,147,166,0.4);
+          color: #0B93A6;
           font-size: 0.72rem;
           font-weight: 600;
           letter-spacing: 1px;
@@ -346,7 +346,7 @@ export default function GuideWaterChangeSchedule() {
         }
         .wc-sub {
           font-size: 1.05rem;
-          color: #199BB8;
+          color: #0B93A6;
           font-weight: 600;
           margin: 0 0 1rem;
         }
@@ -380,7 +380,7 @@ export default function GuideWaterChangeSchedule() {
         .wc-ripple {
           position: absolute;
           border-radius: 50%;
-          border: 2px solid rgba(25,155,184,0.45);
+          border: 2px solid rgba(11,147,166,0.45);
           animation: wc-ripple-expand 3s ease-out infinite;
         }
         .wc-ripple-1 {
@@ -392,13 +392,13 @@ export default function GuideWaterChangeSchedule() {
           width: 75%;
           height: 75%;
           animation-delay: 0.8s;
-          border-color: rgba(25,155,184,0.3);
+          border-color: rgba(11,147,166,0.3);
         }
         .wc-ripple-3 {
           width: 50%;
           height: 50%;
           animation-delay: 1.6s;
-          border-color: rgba(25,155,184,0.2);
+          border-color: rgba(11,147,166,0.2);
         }
         @keyframes wc-ripple-expand {
           0%   { transform: scale(0.85); opacity: 0.9; }
@@ -410,19 +410,19 @@ export default function GuideWaterChangeSchedule() {
           z-index: 2;
           width: 70px;
           height: 70px;
-          background: #0A1628;
-          border: 2px solid #199BB8;
+          background: #0B1E28;
+          border: 2px solid #0B93A6;
           border-radius: 50%;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
-          box-shadow: 0 0 24px rgba(25,155,184,0.25);
+          box-shadow: 0 0 24px rgba(11,147,166,0.25);
         }
         .wc-clock-pct {
           font-size: 1.15rem;
           font-weight: 800;
-          color: #199BB8;
+          color: #0B93A6;
           line-height: 1;
         }
         .wc-clock-label {
@@ -441,7 +441,7 @@ export default function GuideWaterChangeSchedule() {
           font-size: 1.3rem;
           font-weight: 700;
           color: #E8EDF2;
-          border-right: 3px solid #199BB8;
+          border-right: 3px solid #0B93A6;
           padding-right: 0.75rem;
           margin: 0;
         }
@@ -462,8 +462,8 @@ export default function GuideWaterChangeSchedule() {
           .wc-reason-grid { grid-template-columns: 1fr; }
         }
         .wc-reason-card {
-          background: #0A1628;
-          border: 1px solid rgba(25,155,184,0.18);
+          background: #0B1E28;
+          border: 1px solid rgba(11,147,166,0.18);
           border-radius: 12px;
           padding: 1rem;
           display: flex;
@@ -472,7 +472,7 @@ export default function GuideWaterChangeSchedule() {
         }
         .wc-reason-icon {
           font-size: 1.2rem;
-          color: #199BB8;
+          color: #0B93A6;
           margin-top: 2px;
           flex-shrink: 0;
           width: 24px;
@@ -501,13 +501,13 @@ export default function GuideWaterChangeSchedule() {
           .wc-schedule-grid { grid-template-columns: 1fr; }
         }
         .wc-sched-card {
-          background: #0A1628;
+          background: #0B1E28;
           border-radius: 14px;
           overflow: hidden;
-          border: 1px solid rgba(25,155,184,0.15);
+          border: 1px solid rgba(11,147,166,0.15);
         }
         .wc-sched-sm { border-top: 3px solid #F5A832; }
-        .wc-sched-md { border-top: 3px solid #199BB8; }
+        .wc-sched-md { border-top: 3px solid #0B93A6; }
         .wc-sched-lg { border-top: 3px solid #5BCBCB; }
         .wc-sched-header {
           padding: 0.875rem 1rem 0.5rem;
@@ -570,8 +570,8 @@ export default function GuideWaterChangeSchedule() {
           display: flex;
           gap: 0.75rem;
           align-items: flex-start;
-          background: #0A1628;
-          border: 1px solid rgba(25,155,184,0.12);
+          background: #0B1E28;
+          border: 1px solid rgba(11,147,166,0.12);
           border-radius: 12px;
           padding: 0.875rem;
         }
@@ -621,16 +621,16 @@ export default function GuideWaterChangeSchedule() {
           top: 40px;
           bottom: 0;
           width: 2px;
-          background: rgba(25,155,184,0.18);
+          background: rgba(11,147,166,0.18);
         }
         .wc-step-num {
           flex-shrink: 0;
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: #0A1628;
-          border: 2px solid #199BB8;
-          color: #199BB8;
+          background: #0B1E28;
+          border: 2px solid #0B93A6;
+          color: #0B93A6;
           font-size: 0.9rem;
           font-weight: 700;
           display: flex;
@@ -658,8 +658,8 @@ export default function GuideWaterChangeSchedule() {
           padding: 1rem 0;
         }
         .wc-cta-box {
-          background: linear-gradient(135deg, #0A1628 0%, #071020 100%);
-          border: 1px solid rgba(25,155,184,0.3);
+          background: linear-gradient(135deg, #0B1E28 0%, #071020 100%);
+          border: 1px solid rgba(11,147,166,0.3);
           border-radius: 18px;
           padding: 2rem 1.5rem;
           text-align: center;
@@ -682,8 +682,8 @@ export default function GuideWaterChangeSchedule() {
         }
         .wc-cta-btn {
           display: inline-block;
-          background: #199BB8;
-          color: #010611;
+          background: #0B93A6;
+          color: #0B1E28;
           font-weight: 700;
           font-size: 0.95rem;
           padding: 0.75rem 2rem;
@@ -691,7 +691,7 @@ export default function GuideWaterChangeSchedule() {
           text-decoration: none;
           transition: background 0.18s;
         }
-        .wc-cta-btn:hover { background: rgba(25,155,184,0.85); }
+        .wc-cta-btn:hover { background: rgba(11,147,166,0.85); }
       `}</style>
     </div>
   );

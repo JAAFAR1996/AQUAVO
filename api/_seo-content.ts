@@ -601,12 +601,12 @@ function linksFor(page: SeoContentPage): SeoLink[] {
 
 const SEO_CONTENT_CSS = `#aquavo-ssr-page-content{background:#08172b;color:#d7e4ee;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right;line-height:1.85}
 #aquavo-ssr-page-content .asc-wrap{max-width:1100px;margin:0 auto;padding:28px 18px}
-#aquavo-ssr-page-content h1{font-family:'Changa','Cairo',sans-serif;font-size:1.35rem;line-height:1.45;color:#fff;margin:0 0 .75rem;font-weight:800;letter-spacing:0}
+#aquavo-ssr-page-content h1{font-family:'Cairo',sans-serif;font-size:1.35rem;line-height:1.45;color:#fff;margin:0 0 .75rem;font-weight:700;letter-spacing:0}
 #aquavo-ssr-page-content p{margin:.45rem 0;color:#c8d8e6;font-size:.96rem}
 #aquavo-ssr-page-content strong{color:#fff}
 #aquavo-ssr-page-content nav{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
 #aquavo-ssr-page-content a{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e4f3f8;background:rgba(255,255,255,.04);padding:.42rem .7rem;text-decoration:none;font-size:.9rem;line-height:1.4}
-#aquavo-ssr-page-content a:hover{border-color:#199bb8;color:#fff;background:rgba(25,155,184,.14)}`;
+#aquavo-ssr-page-content a:hover{border-color:#0B93A6;color:#fff;background:rgba(11,147,166,.14)}`;
 
 export function renderAhrefsSsrContentSection(pathname: string): string {
   const page = SEO_CONTENT_PAGES[normalizeSeoPath(pathname)];

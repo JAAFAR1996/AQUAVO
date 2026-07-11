@@ -36,7 +36,7 @@ function formatDatetime(iso: string): string {
 const S = {
   card: {
     background: "#0d1f3c",
-    border: "1px solid #199bb820",
+    border: "1px solid #0B93A620",
     borderRadius: 12,
     padding: 20,
     marginBottom: 16,
@@ -48,7 +48,7 @@ const S = {
     display: "block",
   } as React.CSSProperties,
   input: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #1e3a5f",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -58,7 +58,7 @@ const S = {
     boxSizing: "border-box" as const,
   } as React.CSSProperties,
   inputError: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #ef4444",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -68,7 +68,7 @@ const S = {
     boxSizing: "border-box" as const,
   } as React.CSSProperties,
   btnPrimary: {
-    background: "#199bb8",
+    background: "#0B93A6",
     color: "#fff",
     border: "none",
     borderRadius: 8,
@@ -108,7 +108,7 @@ const S = {
     verticalAlign: "top" as const,
   } as React.CSSProperties,
   sectionTitle: {
-    color: "#199bb8",
+    color: "#0B93A6",
     fontSize: 13,
     fontWeight: 700,
     marginBottom: 10,
@@ -125,8 +125,8 @@ const S = {
   } as React.CSSProperties,
   costBadge: {
     display: "inline-block",
-    background: "#010611",
-    border: "1px solid #199bb820",
+    background: "#0B1E28",
+    border: "1px solid #0B93A620",
     color: "#e2e8f0",
     borderRadius: 6,
     padding: "2px 8px",
@@ -357,7 +357,7 @@ export function FinanceCostChanges() {
                       cursor: "pointer",
                       background: isSelected ? "#0d2a3f" : "transparent",
                       border: isSelected
-                        ? "1px solid #199bb840"
+                        ? "1px solid #0B93A640"
                         : "1px solid transparent",
                     }}
                   >
@@ -595,8 +595,8 @@ export function FinanceCostChanges() {
                             <span
                               style={{
                                 marginRight: 6,
-                                background: "#199bb820",
-                                color: "#199bb8",
+                                background: "#0B93A620",
+                                color: "#0B93A6",
                                 fontSize: 9,
                                 fontWeight: 700,
                                 padding: "1px 5px",

@@ -59,7 +59,7 @@ function buildPreview(p: Product, newCost: number): Preview {
 }
 
 const inp: React.CSSProperties = {
-  background: "#010611",
+  background: "#0B1E28",
   border: "1px solid #1e3a5f",
   color: "#e2e8f0",
   borderRadius: 6,
@@ -70,7 +70,7 @@ const inp: React.CSSProperties = {
 };
 
 const btn = (variant: "primary" | "ghost" | "danger", disabled = false): React.CSSProperties => ({
-  background: disabled ? "#1e3a5f" : variant === "primary" ? "#199bb8" : variant === "danger" ? "#7f1d1d" : "#0d1f3c",
+  background: disabled ? "#1e3a5f" : variant === "primary" ? "#0B93A6" : variant === "danger" ? "#7f1d1d" : "#0d1f3c",
   color: disabled ? "#64748b" : "#e2e8f0",
   border: `1px solid ${variant === "danger" ? "#ef444440" : "#1e3a5f"}`,
   borderRadius: 6,
@@ -278,8 +278,8 @@ export function FinanceProductCosts() {
                     <tr key={p.id + "-preview"} style={{ background: "#050e1a" }}>
                       <td colSpan={8} style={{ padding: "0 10px 10px" }}>
                         <div style={{
-                          background: preview.abovePrice ? "#1a0505" : "#0a1628",
-                          border: `1px solid ${preview.abovePrice ? "#ef444460" : "#199bb840"}`,
+                          background: preview.abovePrice ? "#1a0505" : "#0B1E28",
+                          border: `1px solid ${preview.abovePrice ? "#ef444460" : "#0B93A640"}`,
                           borderRadius: 8,
                           padding: "10px 16px",
                           display: "flex",
@@ -288,7 +288,7 @@ export function FinanceProductCosts() {
                           alignItems: "center",
                         }}>
                           <Cell label="الكلفة القديمة" value={preview.oldCost > 0 ? fmt(preview.oldCost) : "غير محدد"} />
-                          <span style={{ color: "#199bb8", fontSize: 18 }}>→</span>
+                          <span style={{ color: "#0B93A6", fontSize: 18 }}>→</span>
                           <Cell label="الكلفة الجديدة" value={fmt(preview.newCost)} color="#4ade80" />
                           <Cell
                             label="الفرق"
@@ -335,7 +335,7 @@ export function FinanceProductCosts() {
       )}
 
       <div style={{ marginTop: 20, padding: "10px 14px", background: "#0d1f3c", borderRadius: 8, border: "1px solid #1e3a5f", fontSize: 11, color: "#64748b" }}>
-        المعادلة: <span style={{ color: "#199bb8", fontWeight: 700 }}>الكلفة = (شراء$ × {EXCHANGE_RATE}) + شحن + خشب</span>
+        المعادلة: <span style={{ color: "#0B93A6", fontWeight: 700 }}>الكلفة = (شراء$ × {EXCHANGE_RATE}) + شحن + خشب</span>
         &nbsp;— هذا التبويب يغيّر <strong style={{ color: "#e2e8f0" }}>costPrice فقط</strong> ولا يمس price أبداً.
         كل تغيير يُسجَّل في سجل الكلف.
       </div>
