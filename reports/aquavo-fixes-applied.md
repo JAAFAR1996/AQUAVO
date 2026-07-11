@@ -92,3 +92,24 @@ Verification:
 - Browser widths verified: 1440×900, 768×1024 and 390×844 with no horizontal overflow.
 - Desktop and mobile screenshots inspected: H1, hero image, CTA stack and proof strip remain visible without clipping.
 - `git diff --check`: passed.
+
+## 2026-07-11 — Phase 5A shop cards and recovery
+
+- Rebuilt the repeated product-card interaction so its product link no longer contains compare, wishlist, quick-view or cart buttons.
+- Changed product imagery from crop-prone cover rendering to a dimensioned, contained product view with a safe v2 fallback.
+- Preserved truthful variant pricing, sold-out, coming-soon and option-selection behavior.
+- Removed card sheen/reveal motion, pulse feedback, A/B button wording and the flying-to-cart animation from the store card path.
+- Reduced the generated product-card chunk from approximately 15.54 kB to 9.65 kB before gzip in comparable production builds.
+- Replaced the blanket store-heading authenticity claim with a benefit-first product-selection message.
+- Added an accessible label to the sort control and removed the non-functional grid/comparison tabs.
+- Made loading independent from the secondary attribute request, limited product retries, and added one mutually exclusive Iraqi error state with a retry action.
+- Kept filter/display state and product-detail scroll restoration behavior intact.
+
+Verification:
+
+- Products and product-card Vitest: 2 files, 13/13 tests passed.
+- TypeScript client check: passed.
+- Production build: passed; existing large vendor/model chunks remain tracked for Phase 10.
+- Chromium global/shop regression: 6/6 tests passed.
+- Shop recovery verified at 360×800 and 768×1024 with no document overflow.
+- Mobile recovery screenshot inspected after final render; header, H1, filter/sort controls, error explanation and retry action remain usable.

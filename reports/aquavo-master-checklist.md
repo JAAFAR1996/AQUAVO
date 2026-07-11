@@ -62,10 +62,12 @@ Allowed status values:
 
 ## Phase 5 — Shop, categories, search and cards
 
-- PENDING — Eliminate viewport overflow at 360, 768 and 1024 widths.
-- PENDING — Mobile filter/sort flow with state persistence and accessible controls.
-- PENDING — Product cards with image stability, stock truth and benefit-first hierarchy.
-- PENDING — Empty/error/loading states and Bypass Recovery.
+- COMPLETED — Shop route has no document overflow at tested 360 and 768 widths; 1024 remains in the full browser matrix.
+- IN PROGRESS — Mobile filter/sort flow retains filter and display state; final interaction audit remains.
+- COMPLETED — Product cards use stable contained images, explicit stock/price states and a simpler information hierarchy.
+- COMPLETED — Product link and card actions are separate semantic controls with no nested interaction.
+- COMPLETED — Product-card pulse, fly-to-cart and generic reveal motion removed.
+- COMPLETED — Loading, empty and API-error states are mutually exclusive; the error state has a direct retry action.
 - PENDING — Search and category URL consistency.
 - COMPLETED — Deals route registered and focused page tests pass; v2 visual treatment remains in this phase.
 

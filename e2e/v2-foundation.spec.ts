@@ -65,3 +65,31 @@ test("footer exposes verified trust, legal and contact facts", async ({ page }) 
   await expect(footer.getByRole("link", { name: /وثيقة YEE/ })).toHaveAttribute("href", "/verify-certificate/yee");
   await expect(footer.getByText(/كي كارد|زين كاش/)).toHaveCount(0);
 });
+
+for (const viewport of [
+  { name: "shop-tablet", width: 768, height: 1024 },
+  { name: "shop-mobile", width: 360, height: 800 },
+]) {
+  test(`shop keeps a stable recovery path on ${viewport.name}`, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await page.goto("/products", { waitUntil: "domcontentloaded" });
+
+    const main = page.locator("main");
+    await expect(main.getByRole("heading", { level: 1, name: "جهّز حوضك على أساس واضح" })).toBeVisible();
+    await expect(main.getByRole("combobox", { name: "ترتيب المنتجات" })).toBeVisible();
+
+    const errorHeading = main.getByRole("heading", { name: "ما كدرنا نحمّل المنتجات" });
+    const firstProduct = main.locator('[data-tour="product-card-first"]');
+    await expect(errorHeading.or(firstProduct)).toBeVisible();
+
+    if (await errorHeading.isVisible()) {
+      await expect(main.getByRole("button", { name: "حاول مرة ثانية" })).toBeVisible();
+      await expect(main.getByRole("heading", { name: "لم يتم العثور على منتجات" })).toHaveCount(0);
+    } else {
+      await expect(firstProduct.locator("a button, button a")).toHaveCount(0);
+    }
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+  });
+}

@@ -77,4 +77,22 @@ describe('ProductCard Component', () => {
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', expect.stringContaining('premium-fish-food'));
     });
+
+    it('does not nest buttons inside the product link', () => {
+        const { container } = render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(container.querySelector('a button, button a')).not.toBeInTheDocument();
+    });
+
+    it('keeps the product image contained and dimensioned', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        expect(image).toHaveAttribute('width', '400');
+        expect(image).toHaveAttribute('height', '400');
+        expect(image).toHaveClass('object-contain');
+    });
+
+    it('uses a direct, calm add-to-cart label', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();
+    });
 });
