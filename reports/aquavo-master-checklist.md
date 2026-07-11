@@ -51,12 +51,14 @@ Allowed status values:
 
 ## Phase 4 — Homepage
 
-- PENDING — Controlled Waterline Hero.
-- PENDING — Clear Iraqi/Baghdadi premium value proposition.
-- PENDING — Proof-first trust strip.
-- PENDING — Category/product discovery with one idea per section.
-- PENDING — Practical education section and calm consultation CTA.
-- PENDING — Remove continuous pulse, glow, bubbles, mascot and generic entrance effects.
+- COMPLETED — Controlled Waterline Hero with stable in-flow content at desktop, tablet and mobile.
+- COMPLETED — Clear Iraqi/Baghdadi premium value proposition with one visible H1.
+- COMPLETED — Proof-first trust strip limited to verified delivery, COD, fee and support facts.
+- COMPLETED — API-independent category discovery plus optional real-data store picks.
+- COMPLETED — Practical education section and calm consultation CTA.
+- COMPLETED — Removed hero video, continuous pulse/glow, bubbles and generic entrance effects.
+- COMPLETED — Removed nested interactive controls from the homepage.
+- COMPLETED — Browser regression proves no horizontal overflow at 1440, 768 and 390 widths.
 
 ## Phase 5 — Shop, categories, search and cards
 

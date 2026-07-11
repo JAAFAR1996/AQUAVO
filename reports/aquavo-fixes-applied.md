@@ -69,3 +69,26 @@ Verification:
 - TypeScript client check: passed.
 - Production build: passed.
 - `git diff --check`: passed.
+
+## 2026-07-11 — Phase 4 homepage
+
+- Replaced the fragile absolute-positioned bento hero with the approved Controlled Waterline direction and normal document flow.
+- Added one visible, benefit-first H1 in natural Iraqi copy: equipment arranged around the aquarium's needs.
+- Replaced hard-selling and blanket authenticity language with calm product discovery and tank-selection actions.
+- Removed the delayed hero video, random bubbles, pulsing badge, glow loops and generic entrance motion.
+- Added a verified service strip for Iraq-wide 24-hour delivery, COD, 5,000 IQD delivery fee and 24/7 support.
+- Added stable category discovery that remains useful when the local/API product request is unavailable.
+- Kept real store picks optional: the section renders only when actual product data is returned and never leaves an empty panel.
+- Added an education-first guide section and a consultative contact action.
+- Removed nested links/buttons and preserved visible keyboard focus treatment.
+- Replaced the old unsupported `100% original`, direct-import and universal-testing homepage claims.
+
+Verification:
+
+- Homepage Vitest contract: 9/9 tests passed.
+- TypeScript client check: passed.
+- Production build: passed; existing bundle-size warnings remain tracked for the performance phase.
+- Chromium desktop/tablet/mobile plus footer regression: 4/4 tests passed.
+- Browser widths verified: 1440×900, 768×1024 and 390×844 with no horizontal overflow.
+- Desktop and mobile screenshots inspected: H1, hero image, CTA stack and proof strip remain visible without clipping.
+- `git diff --check`: passed.
