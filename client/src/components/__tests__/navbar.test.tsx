@@ -57,4 +57,20 @@ describe('Navbar Component', () => {
         const buttons = screen.queryAllByRole('button');
         expect(buttons.length).toBeGreaterThan(0);
     });
+
+    it('shows the focused primary navigation', () => {
+        render(<Navbar />, { wrapper: createWrapper() });
+
+        expect(screen.getByRole('link', { name: 'المتجر' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'اختار المناسب' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'أدلة AQUAVO' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'تتبع طلبك' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: 'منو AQUAVO' })).toBeInTheDocument();
+    });
+
+    it('does not nest links and buttons inside each other', () => {
+        const { container } = render(<Navbar />, { wrapper: createWrapper() });
+
+        expect(container.querySelector('a a, a button, button a, button button')).toBeNull();
+    });
 });

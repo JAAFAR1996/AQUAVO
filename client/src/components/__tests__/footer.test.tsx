@@ -39,4 +39,22 @@ describe('Footer Component', () => {
         const links = screen.queryAllByRole('link');
         expect(links.length).toBeGreaterThan(0);
     });
+
+    it('shows only verified service and legal facts', () => {
+        render(<Footer />);
+
+        expect(screen.getAllByText(/محل المنبع — AL NABEA SHOP/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/توصيل خلال 24 ساعة/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/الدفع عند الاستلام/).length).toBeGreaterThan(0);
+        expect(screen.getAllByText(/5,000 د.ع/).length).toBeGreaterThan(0);
+        expect(screen.getByRole('link', { name: /وثيقة YEE/ })).toHaveAttribute('href', '/verify-certificate/yee');
+        expect(screen.queryByText(/كي كارد|زين كاش/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/سمكة صغيرة.*غيّرت كل شي/)).not.toBeInTheDocument();
+    });
+
+    it('gives the newsletter field an accessible label', () => {
+        render(<Footer />);
+
+        expect(screen.getByRole('textbox', { name: 'تحديثات المنتجات والأدلة' })).toHaveAttribute('type', 'email');
+    });
 });

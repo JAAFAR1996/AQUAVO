@@ -46,3 +46,26 @@ Verification:
 - TypeScript client check: passed.
 - Production build: passed.
 - Active legacy identity reference scan: zero matches for the retired tokens/fonts/logo paths (archived documentation excluded).
+
+## 2026-07-11 — Phase 3 navigation and global trust
+
+- Replaced the multi-style navigation with one stable dark v2 header for desktop, tablet and mobile.
+- Reduced the primary navigation to the store, product-selection helper, AQUAVO guides, order tracking and company page.
+- Preserved search, account, wishlist, cart drawer, checkout handoff and invoice behavior.
+- Removed nested links/buttons; desktop and mobile keyboard paths now use one interactive element per action.
+- Added the Valve-Gate mobile menu with service facts and theme control inside the panel.
+- Rebuilt the footer around verified facts only: 24-hour Iraq-wide delivery, 5,000 IQD fee, COD, 24/7 support, contact details and checked/packed handling.
+- Added the legal relationship: `AQUAVO / محل المنبع / AL NABEA SHOP`.
+- Removed Qi Card/Zain Cash implications, the unsupported founder story, blanket authenticity percentages, direct-import and personal-testing claims from the global footer.
+- Kept the YEE document as a separate proof link from policies and the future AQUAVO warranty.
+- Added an accessible label and status/error messaging to the newsletter form.
+- Corrected standalone `/guides` navigation to perform a full document request instead of Wouter client interception.
+
+Verification:
+
+- Navbar/footer Vitest: 2 files, 11 tests passed.
+- Combined identity/global focused Vitest: 3 files, 14 tests passed.
+- Chromium desktop/tablet/mobile plus footer trust regression: 4/4 tests passed.
+- TypeScript client check: passed.
+- Production build: passed.
+- `git diff --check`: passed.

@@ -19,6 +19,17 @@ for (const viewport of viewports) {
     await expect(page.locator('img[src="/brand/aquavo-v2-horizontal.svg"]').first()).toBeVisible();
     await expect(page.locator("#loading-shell")).toHaveCount(0);
     await expect(page.getByText("__JSON_LD__", { exact: true })).toHaveCount(0);
+    await expect(page.locator("nav a button, nav button a, nav a a, nav button button")).toHaveCount(0);
+
+    if (viewport.name === "mobile") {
+      await page.getByRole("button", { name: "فتح القائمة الرئيسية" }).click();
+      await expect(page.getByRole("heading", { name: "القائمة الرئيسية" })).toBeVisible();
+      await expect(page.getByRole("link", { name: "المتجر" })).toBeVisible();
+      await page.keyboard.press("Escape");
+    } else if (viewport.name === "desktop") {
+      await expect(page.getByRole("link", { name: "المتجر", exact: true })).toBeVisible();
+      await expect(page.getByRole("link", { name: "أدلة AQUAVO", exact: true })).toBeVisible();
+    }
 
     const documentState = await page.evaluate(() => ({
       direction: document.documentElement.dir,
@@ -34,3 +45,17 @@ for (const viewport of viewports) {
     expect(pageErrors).toEqual([]);
   });
 }
+
+test("footer exposes verified trust, legal and contact facts", async ({ page }) => {
+  await page.goto("/about", { waitUntil: "domcontentloaded" });
+  const footer = page.getByRole("contentinfo");
+
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toBeVisible();
+  await expect(footer.getByText(/محل المنبع — AL NABEA SHOP/).first()).toBeVisible();
+  await expect(footer.getByText("طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام")).toBeVisible();
+  await expect(footer.getByText("أجور التوصيل الثابتة: 5,000 د.ع")).toBeVisible();
+  await expect(footer.getByRole("textbox", { name: "تحديثات المنتجات والأدلة" })).toBeVisible();
+  await expect(footer.getByRole("link", { name: /وثيقة YEE/ })).toHaveAttribute("href", "/verify-certificate/yee");
+  await expect(footer.getByText(/كي كارد|زين كاش/)).toHaveCount(0);
+});

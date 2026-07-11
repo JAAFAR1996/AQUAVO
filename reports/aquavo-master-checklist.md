@@ -40,13 +40,14 @@ Allowed status values:
 
 ## Phase 3 — Global trust and navigation
 
-- PENDING — One semantic desktop/mobile navigation model.
-- PENDING — Remove nested interactive elements and duplicate tab stops.
-- PENDING — Valve-Gate mobile menu interaction with keyboard and focus containment.
-- PENDING — Rebuild footer with legal operator `محل المنبع / AL NABEA SHOP`.
-- PENDING — Show verified support, COD, delivery time, delivery fee and contact details consistently.
-- PENDING — Label newsletter field and remove unsupported payment implications.
-- PENDING — Remove unverified or fabricated trust claims and founder story claims.
+- COMPLETED — One focused semantic desktop/mobile navigation model.
+- COMPLETED — Removed nested interactive elements and duplicate navigation tab stops.
+- COMPLETED — Valve-Gate mobile menu uses the accessible Sheet focus/keyboard model.
+- COMPLETED — Rebuilt footer with legal operator `محل المنبع / AL NABEA SHOP`.
+- COMPLETED — Shows verified support, COD, delivery time, delivery fee and contact details consistently.
+- COMPLETED — Newsletter field has a programmatic label; unsupported payment implications removed.
+- COMPLETED — Removed the fabricated founder story and unsupported blanket trust/direct-import/tested-by-us claims from the global footer.
+- COMPLETED — Standalone server-rendered guide links use document navigation instead of falling into the client 404 route.
 
 ## Phase 4 — Homepage
 
