@@ -29,6 +29,7 @@ import { PageTransition } from "@/components/ui/page-transition";
 // Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
 const Products = lazy(() => import("@/pages/products"));
+const Deals = lazy(() => import("@/pages/deals"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
@@ -248,8 +249,28 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/deals">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><Deals /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Aquarium Setup Wizard */}
       <Route path="/aquarium-wizard">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><AquariumWizard /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/tank-builder">
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>

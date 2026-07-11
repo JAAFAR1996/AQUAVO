@@ -361,7 +361,7 @@ export default function Products() {
     return displayedProducts.map((p, idx) => ({
       name: p.name,
       url: `https://www.aquavoiq.com/products/${p.slug}`,
-      image: p.imageUrls?.[0],
+      image: p.images[0] ?? p.image ?? p.thumbnail,
       price: p.price,
       description: p.description?.slice(0, 150),
       position: idx + 1,

@@ -3,8 +3,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
-import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown, renderHomeGuidesSection, renderImportantInternalLinksSection, shouldRenderImportantInternalLinks } from "./_guides-content.js";
-import { getSeoMetaOverride, renderAhrefsSsrContentSection } from "./_seo-content.js";
+import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
+import { getSeoMetaOverride } from "./_seo-content.js";
+import { isKnownSitePath } from "../shared/site-routes.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -23,7 +24,6 @@ function getTemplate(): string {
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
 const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="حوض زينة بتصميم مائي من AQUAVO" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
 const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
 const DEFAULT_DESC = "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.";
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
@@ -713,31 +713,6 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   // Inject JSON-LD
   result = result.replace(/__JSON_LD__/g, jsonLdScript);
 
-  const metaPath = meta.url.replace(BASE, "") || "/";
-  const ahrefsSeoShell = renderAhrefsSsrContentSection(metaPath);
-  const importantLinksShell = shouldRenderImportantInternalLinks(metaPath)
-    ? renderImportantInternalLinksSection()
-    : "";
-
-  if (metaPath === "/" || metaPath === "/ar") {
-    result = result.replace(
-      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
-      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
-    );
-    // Robust against root div attribute changes (e.g. dir="rtl"): inject the
-    // critical LCP shell before #root, and the visible, crawlable AQUAVO Guides
-    // + FAQ section after #root (real text in View Source — no clip/aria-hidden).
-    result = result.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE)}${importantLinksShell}`
-    );
-  } else if (ahrefsSeoShell || importantLinksShell) {
-    result = result.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${rootDiv}${ahrefsSeoShell}${importantLinksShell}`
-    );
-  }
-
   return result;
 }
 
@@ -836,6 +811,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const template = getTemplate();
     const meta = await resolveMetadata(pathname);
     const html = injectMeta(template, meta);
+    const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();
@@ -843,12 +819,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const md = generateMarkdown(meta, pathname);
       res.setHeader("Content-Type", "text/markdown; charset=utf-8");
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-      return res.status(200).send(md);
+      return res.status(status).send(md);
     }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return res.status(200).send(html);
+    return res.status(status).send(html);
   } catch (err) {
     console.error("SSR meta handler error:", err);
     // Fallback: serve template with defaults

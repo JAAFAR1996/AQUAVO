@@ -180,7 +180,7 @@ export async function sendWelcomeEmail(email: string): Promise<boolean> {
             
             <div class="contact">
                 <p>هل تحتاج إلى مساعدة؟ فريقنا هنا دائماً.</p>
-                <p>واتساب: 07747880678 | إيميل: info@aquavoiq.com</p>
+                <p>واتساب: 07747880673 | إيميل: info@aquavoiq.com</p>
             </div>
         </div>
     </div>

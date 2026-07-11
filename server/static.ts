@@ -7,11 +7,9 @@ import {
   GUIDE_CONTENT_PAGES,
   renderGuideHtml,
   renderGuidesIndexHtml,
-  renderHomeGuidesSection,
-  renderImportantInternalLinksSection,
-  shouldRenderImportantInternalLinks,
 } from "../api/_guides-content.js";
-import { getSeoMetaOverride, renderAhrefsSsrContentSection } from "../api/_seo-content.js";
+import { getSeoMetaOverride } from "../api/_seo-content.js";
+import { isKnownSitePath } from "../shared/site-routes.js";
 
 const PRECOMPRESSED_EXTENSIONS = new Set([
   ".css",
@@ -25,8 +23,6 @@ const PRECOMPRESSED_EXTENSIONS = new Set([
 ]);
 
 const IMAGE_EXTENSIONS_WITH_WEBP_FALLBACK = new Set([".jpg", ".jpeg", ".png"]);
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="حوض زينة بتصميم مائي من AQUAVO" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
-
 function resolveStaticAssetPath(root: string, requestPath: string) {
   try {
     const decodedPath = decodeURIComponent(requestPath);
@@ -149,27 +145,6 @@ export function renderLocalFallbackHtml(template: string, requestPath: string) {
     /<link rel="canonical" href="[^"]*"\s*\/>/,
     `<link rel="canonical" href="${meta.url}" />`
   );
-
-  const ahrefsSeoShell = renderAhrefsSsrContentSection(requestPath);
-  const importantLinksShell = shouldRenderImportantInternalLinks(requestPath)
-    ? renderImportantInternalLinksSection()
-    : "";
-
-  if (requestPath === "/" || requestPath === "/ar") {
-    html = html.replace(
-      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
-      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
-    );
-    html = html.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE_SITE)}${importantLinksShell}`
-    );
-  } else if (ahrefsSeoShell || importantLinksShell) {
-    html = html.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${rootDiv}${ahrefsSeoShell}${importantLinksShell}`
-    );
-  }
 
   return html;
 }
@@ -298,7 +273,8 @@ export function serveStatic(app: Express) {
       }
 
       const requestPath = (req.originalUrl || req.url || req.path).split("?")[0] || "/";
-      res.type("html").send(renderLocalFallbackHtml(template, requestPath));
+      const status = isKnownSitePath(requestPath, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
+      res.status(status).type("html").send(renderLocalFallbackHtml(template, requestPath));
     });
   });
 }
