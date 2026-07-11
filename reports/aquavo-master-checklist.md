@@ -68,7 +68,7 @@ Allowed status values:
 - COMPLETED — Product link and card actions are separate semantic controls with no nested interaction.
 - COMPLETED — Product-card pulse, fly-to-cart and generic reveal motion removed.
 - COMPLETED — Loading, empty and API-error states are mutually exclusive; the error state has a direct retry action.
-- PENDING — Search and category URL consistency.
+- IN PROGRESS — Homepage and global-search category URLs now share exact public API values; the legacy standalone `/search` page remains for the content-route phase.
 - COMPLETED — Deals route registered and focused page tests pass; v2 visual treatment remains in this phase.
 
 ## Phase 6 — Product detail, proof, certificate and warranty

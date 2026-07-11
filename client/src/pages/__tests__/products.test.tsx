@@ -97,8 +97,8 @@ describe('Products Page', () => {
         vi.clearAllMocks();
         vi.mocked(fetchProducts).mockResolvedValue({
             products: [
-                { id: '1', name: 'Test Fish Food', price: 15000, category: 'أطعمة', slug: 'test-fish-food' },
-                { id: '2', name: 'Test Filter', price: 50000, category: 'فلاتر', slug: 'test-filter' },
+                { id: '1', name: 'Test Fish Food', price: 15000, category: 'أطعمة', slug: 'test-fish-food', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 2 },
+                { id: '2', name: 'Test Filter', price: 50000, category: 'فلاتر', slug: 'test-filter', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 2 },
             ],
         });
     });

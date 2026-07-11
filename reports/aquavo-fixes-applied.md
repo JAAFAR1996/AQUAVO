@@ -113,3 +113,10 @@ Verification:
 - Chromium global/shop regression: 6/6 tests passed.
 - Shop recovery verified at 360×800 and 768×1024 with no document overflow.
 - Mobile recovery screenshot inspected after final render; header, H1, filter/sort controls, error explanation and retry action remain usable.
+
+Category URL follow-up:
+
+- Read the public, unauthenticated production `GET /api/products/attributes` endpoint on 2026-07-11 to avoid inventing category values; no customer/private data or production write was involved.
+- Added one shared category-link source for the homepage and global search.
+- Replaced non-existent/mismatched links such as `Heaters`, `Lighting`, `Food` and `Water Treatment` with exact returned categories including `التحكم بالحرارة`, `الإضاءة`, `طعام الأسماك` and `معالجة المياه`.
+- Added a contract test locking the seven shared category values to the verified public response.

@@ -24,6 +24,7 @@ import { MetaTags } from "@/components/seo/meta-tags";
 import { fetchTopSellingProducts } from "@/lib/api";
 import { cardImage } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
+import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
 const serviceFacts = [
   { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
@@ -36,31 +37,31 @@ const categories = [
   {
     title: "الفلاتر",
     description: "رتّب التنقية حسب حجم الحوض وطبيعة الاستخدام.",
-    href: "/products?category=filters",
+    href: SHOP_CATEGORY_LINKS.filters,
     icon: CircleGauge,
   },
   {
     title: "السخانات",
     description: "خيارات تثبيت الحرارة بمقاسات واستخدامات مختلفة.",
-    href: "/products?category=heaters",
+    href: SHOP_CATEGORY_LINKS.heaters,
     icon: Heater,
   },
   {
     title: "الإضاءة",
     description: "إضاءة مرتبة للرؤية والعرض اليومي للحوض.",
-    href: "/products?category=lighting",
+    href: SHOP_CATEGORY_LINKS.lighting,
     icon: Lightbulb,
   },
   {
     title: "معالجة المياه",
     description: "مستلزمات تساعدك تدير مي الحوض بشكل أوضح.",
-    href: "/products?category=water-treatment",
+    href: SHOP_CATEGORY_LINKS.waterTreatment,
     icon: Droplets,
   },
   {
     title: "الأغذية",
     description: "اختار الغذاء حسب النوع والحجم، مو حسب شكل العلبة.",
-    href: "/products?category=fish-food",
+    href: SHOP_CATEGORY_LINKS.food,
     icon: Utensils,
   },
   {

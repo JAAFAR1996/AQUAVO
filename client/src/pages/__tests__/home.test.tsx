@@ -103,7 +103,7 @@ describe('Home Page', () => {
     it('offers stable category and education discovery without API data', () => {
         render(<Home />, { wrapper: createWrapper() });
         expect(screen.getByRole('heading', { name: 'ابدأ من احتياج الحوض' })).toBeInTheDocument();
-        expect(screen.getByRole('link', { name: /الفلاتر/i })).toHaveAttribute('href', '/products?category=filters');
+        expect(screen.getByRole('link', { name: /الفلاتر/i })).toHaveAttribute('href', '/products?category=%D8%A7%D9%84%D9%81%D9%84%D8%AA%D8%B1%D8%A9%20%D9%88%D8%A7%D9%84%D8%AA%D9%86%D9%82%D9%8A%D8%A9');
         expect(screen.getByRole('heading', { name: 'المعلومة قبل القطعة' })).toBeInTheDocument();
         expect(screen.getByRole('link', { name: /شوف أدلة AQUAVO/i })).toHaveAttribute('href', '/guides');
     });
