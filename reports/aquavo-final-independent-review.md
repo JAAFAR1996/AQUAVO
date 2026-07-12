@@ -19,7 +19,7 @@ Current-state audit by the primary agent:
 - sensitive assignments in `.replit` are empty;
 - public URL and support-email values are not treated as secrets;
 - `script/inspect-gallery.ts` uses `process.env.DATABASE_URL`;
-- the script contains no `postgres://` or `postgresql://` literal;
+- the script contains no hardcoded database-connection URL scheme literal;
 - the v2 diff secret-pattern scan found zero matches.
 
 Disposition: current tracked files are scrubbed, but historical exposure remains a release blocker until credentials are rotated and Git-history treatment is authorized. No secret value was printed during this audit.
