@@ -1,7 +1,7 @@
-# AQUAVO Website v2 Master Checklist
+﻿# AQUAVO Website v2 Master Checklist
 
-Date started: 2026-07-11  
-Approved branch: `codex/aquavo-website-v2-20260711`  
+Date started: 2026-07-11
+Approved branch: `codex/aquavo-website-v2-20260711`
 Starting commit: `67ff987fcff9ef8c506d6312509652501fcc08fd`
 
 Allowed status values:
@@ -153,7 +153,7 @@ Allowed status values:
 ## Phases 12–14 — Verification and handoff
 
 - COMPLETED — Local browser regression: 90 route/viewport checks plus 8/8 v2 Chromium tests and 12 inspected homepage/store screenshots.
-- PENDING — Independent review by a separate agent/reviewer.
-- PENDING — Fix all accepted independent-review findings.
-- PENDING — Production readiness report.
+- COMPLETED — Independent review by a separate agent/reviewer.
+- BLOCKED — OWNER AUTHORIZATION REQUIRED — Accepted source/copy/schema findings fixed; historical credential rotation and Git-history treatment remain an external P0 release blocker.
+- COMPLETED — Production-readiness report created with a NOT READY TO PUSH OR DEPLOY decision.
 - COMPLETED — No deployment, push, production-data mutation, real order, message or DNS change.

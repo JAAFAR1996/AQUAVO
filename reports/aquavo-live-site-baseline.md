@@ -1,7 +1,7 @@
-# AQUAVO Live Site Baseline
+﻿# AQUAVO Live Site Baseline
 
-Audit date: 2026-07-11  
-Target: `https://www.aquavoiq.com`  
+Audit date: 2026-07-11
+Target: `https://www.aquavoiq.com`
 Method: read-only Chromium inspection, responsive screenshots, DOM/heading/overflow checks and browser performance observation. No orders or external messages were sent.
 
 ## Confirmed baseline findings
@@ -31,4 +31,3 @@ The figures above are baseline diagnostics, not Lighthouse scores. Fresh compara
 ## Phase 1 correction already verified locally
 
 The local implementation now keeps the React root as the only visible SPA body content, does not defer the application stylesheet, and does not add a timed loading overlay. Dedicated guide HTML remains supported as a separate server response.
-

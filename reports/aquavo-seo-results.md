@@ -1,4 +1,4 @@
-# AQUAVO SEO and Structured Data Results
+﻿# AQUAVO SEO and Structured Data Results
 
 Date: 2026-07-12
 

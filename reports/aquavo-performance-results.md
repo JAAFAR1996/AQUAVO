@@ -1,4 +1,4 @@
-# AQUAVO Performance Results
+﻿# AQUAVO Performance Results
 
 Date: 2026-07-12
 
@@ -23,7 +23,7 @@ These are local development measurements, not field data and not Lighthouse scor
 ## Remaining risks
 
 - Build still reports chunks over 500 kB, led by the model viewer around 991 kB minified and large PDF/chart/admin chunks.
-- The latest CSS bundle is about 363.94 kB before gzip (45.12 kB from Vite's gzip estimate); it remains a performance-review target.
+- The final post-review CSS bundle is about 364.19 kB before gzip (45.15 kB from Vite's gzip estimate); it remains a performance-review target.
 - The frontend-only dev run produces API/auth failures and cannot represent production network timing.
 - No real-user Core Web Vitals or deploy-preview Lighthouse data was available.
 

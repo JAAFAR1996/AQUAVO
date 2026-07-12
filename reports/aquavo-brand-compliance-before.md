@@ -1,4 +1,4 @@
-# AQUAVO Brand Compliance — Before
+﻿# AQUAVO Brand Compliance — Before
 
 Audit date: 2026-07-11
 
@@ -24,4 +24,3 @@ Audit date: 2026-07-11
 ## Compliance target
 
 The website must express a calm Iraqi premium equipment brand: dark authority surfaces, clean proof areas, precise cyan flow accents, short Baghdadi copy, evidence-first trust and no invented specifications, prices, reviews, urgency or authority claims.
-

@@ -51,6 +51,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "Organization",
         "@id": `${BASE}/#organization`,
         name: "AQUAVO",
+        legalName: "محل المنبع / AL NABEA SHOP",
         alternateName: ["أكوافو", "AQUAVO Iraq"],
         url: BASE,
         logo: {
@@ -60,7 +61,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           height: 512
         },
         description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكورات ومعالجات مياه. الدفع عند الاستلام، وتوصيل لكل العراق برسوم 5,000 د.ع.",
-        foundingDate: "2024",
         knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
         areaServed: {
           "@type": "Country",

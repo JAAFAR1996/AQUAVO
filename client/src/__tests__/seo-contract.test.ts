@@ -42,4 +42,10 @@ describe("AQUAVO discoverability contract", () => {
     expect(legacyDeck).toContain('name="robots" content="noindex, nofollow"');
     expect(legacyDeck).toContain("نسخة تاريخية غير معتمدة للنشر");
   });
+
+  it("publishes the approved legal operator in server-rendered organization data", () => {
+    const ssr = read("api/ssr-meta.ts");
+    expect(ssr).toContain('legalName: "محل المنبع / AL NABEA SHOP"');
+    expect(ssr).not.toContain('foundingDate: "2024"');
+  });
 });

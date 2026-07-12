@@ -532,15 +532,15 @@ export default function ProductDetails() {
                   <div className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
                     <div className="flex items-start gap-2">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span>هاي القطعة مو صورة تمثيلية؛ هذا نفس الشكل اللي تستلمه.</span>
+                      <span>هذا نموذج بصري يساعدك تفهم شكل القطعة؛ صور المنتج ومواصفاته المكتوبة هي المرجع للقطعة المعروضة.</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span>تقدر تلفها 3D وتشوف تفاصيلها من كل زاوية قبل الشراء.</span>
+                      <span>تگدر تلف النموذج 3D حتى تشوف الشكل العام من زوايا مختلفة.</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      <span>مناسبة للي يريد يضيف عمق وشخصية طبيعية لترتيب الحوض.</span>
+                      <span>راجع القياسات ومحتويات العبوة المكتوبة قبل ما تقرر إذا تناسب ترتيب حوضك.</span>
                     </div>
                   </div>
                 )}

@@ -1,4 +1,4 @@
-# AQUAVO Repository Audit — Before
+﻿# AQUAVO Repository Audit — Before
 
 Audit date: 2026-07-11
 
@@ -37,4 +37,3 @@ The repository is not a Next.js 15 application despite stale project-memory word
 - `pnpm install --frozen-lockfile`: passed.
 - `pnpm exec tsc -p tsconfig.json --noEmit --incremental false`: passed after the image mapping fix.
 - Focused regression tests: 3 passed.
-

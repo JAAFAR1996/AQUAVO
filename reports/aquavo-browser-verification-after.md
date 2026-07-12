@@ -1,4 +1,4 @@
-# AQUAVO Browser Verification After
+﻿# AQUAVO Browser Verification After
 
 Date: 2026-07-12
 

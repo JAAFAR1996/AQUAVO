@@ -1,4 +1,4 @@
-# AQUAVO Owner Decisions Remaining
+﻿# AQUAVO Owner Decisions Remaining
 
 ## Blocked — owner data required
 
@@ -22,3 +22,17 @@ Required data:
 - No live fish, animals or aquatic plants are sold.
 - No deployment, production data mutation, real order, external message or DNS change is authorized.
 
+## Release authorization required
+
+### Credential rotation and Git-history treatment
+
+Current tracked runtime files were rechecked without printing values: sensitive `.replit` assignments are empty and `script/inspect-gallery.ts` reads `process.env.DATABASE_URL`; no hardcoded database URL remains in that script. However, the pre-existing security audit documents credentials that were historically exposed in tracked content.
+
+Before any push or deployment, the owner must authorize and complete:
+
+- rotation/revocation of every historically exposed production credential;
+- verification that hosting environments use the rotated values;
+- a decision on Git-history rewrite versus repository replacement/secret-removal tooling;
+- coordinated force-push only if history rewrite is chosen.
+
+This work was not performed because it changes external production systems and repository history.

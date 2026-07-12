@@ -1,4 +1,4 @@
-# AQUAVO Fixes Applied
+﻿# AQUAVO Fixes Applied
 
 This is an append-only implementation ledger.
 
