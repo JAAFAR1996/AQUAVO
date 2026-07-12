@@ -88,12 +88,14 @@ Allowed status values:
 
 ## Phase 7 — Cart and checkout
 
-- PENDING — Circulation Loop Cart.
-- PENDING — Checkout Equalization and clear order totals.
-- PENDING — COD-only messaging.
-- PENDING — 5,000 IQD delivery fee and 24-hour Iraq-wide delivery truth.
-- PENDING — Input labels, validation, keyboard flow and error recovery.
-- PENDING — Closed Circuit Success without placing a real order.
+- COMPLETED — One cart drawer leads desktop and mobile into the same `/checkout` route; the duplicate desktop checkout/invoice branch was removed from navigation.
+- COMPLETED — Checkout Equalization prefers the server-authoritative rounded amount for analytics, local order stash and confirmation fallback.
+- COMPLETED — COD-only messaging is visible at information, summary and confirmation stages.
+- COMPLETED — 5,000 IQD delivery fee and 24-hour Iraq-wide delivery truth are sourced from shared constants.
+- COMPLETED — Input labels, `aria-invalid`, linked error descriptions, governorate keyboard/listbox flow and terms gating are covered.
+- COMPLETED — Removed checkout emoji, aggressive account upsell and blanket authenticity copy.
+- COMPLETED — Closed Circuit Success verified with a mocked server response; no real order or production mutation occurred.
+- COMPLETED — Browser invalid-data path proves no `POST /api/orders` request occurs before validation passes.
 
 ## Phase 8 — Content, calculators, policies and company pages
 

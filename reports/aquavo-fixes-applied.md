@@ -145,3 +145,25 @@ Verification:
 - Chromium foundation/shop/certificate regression: 7/7 tests passed.
 - Certificate desktop 1440×900 and mobile 390×844 screenshots inspected.
 - Keyboard viewer path verified: open, zoom to 125%, Escape close; store-back and PDF targets verified.
+
+## 2026-07-12 — Phase 7 cart and checkout equalization
+
+- Removed the split checkout behavior where desktop opened a separate dialog/invoice implementation while mobile used `/checkout`.
+- All cart checkout actions now close the drawer and enter the same tested checkout route.
+- Preserved cart quantity/remove controls and changed cart product media to stable, dimensioned contained images with a v2 fallback.
+- Added a server-total resolver that prefers authenticated loyalty `roundedTotal`, then order `roundedTotal`, then raw `total`, with the visible total as the final fallback.
+- Applied that authoritative amount to purchase analytics and the guest order stash instead of reporting the product subtotal as revenue.
+- Kept the order request price-free so the server remains the authority for product/variant price, stock, coupon, shipping and rounding.
+- Removed emoji, hard account-upsell language and the blanket authenticity claim from checkout.
+- Simplified pre-confirmation loyalty text so it does not invent a points award that may differ by membership tier.
+- Added programmatic error relationships for name, phone, governorate and address; the informational guest note no longer announces itself as an error alert.
+- Added missing accessible descriptions to the mobile menu and cart sheets.
+
+Verification:
+
+- Checkout, total resolver and navigation Vitest: 3 files, 13/13 tests passed after the final success-path addition.
+- Valid-data review stage verified: delivery details render, terms checkbox gates the final action and no request is made before confirmation.
+- Closed-circuit success used a mocked `201`-style response and verified redirect/stash behavior without a real order.
+- Chromium foundation/shop/certificate/checkout regression: 8/8 tests passed.
+- Browser checkout validation used a local guest cart and proved zero `POST /api/orders` calls for invalid data.
+- Mobile checkout had no document overflow at 390×844.

@@ -111,3 +111,34 @@ test("YEE proof document supports keyboard viewing and stays separate from warra
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
 });
+
+test("checkout shows one COD total and blocks invalid customer data without placing an order", async ({ page }) => {
+  const orderRequests: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/orders")) orderRequests.push(request.url());
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem("aquavo_cart-v2", JSON.stringify([{
+      id: "e2e-product-default",
+      productId: "e2e-product",
+      name: "فلتر اختبار",
+      price: 25000,
+      quantity: 1,
+      image: "/brand/aquavo-v2-icon.svg",
+      slug: "e2e-product",
+    }]));
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/checkout", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeVisible();
+  await expect(page.getByText("30,000 د.ع")).toBeVisible();
+  await expect(page.getByText("الدفع عند الاستلام", { exact: true }).first()).toBeVisible();
+  await page.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }).click();
+  await expect(page.getByText("الاسم مطلوب")).toBeVisible();
+  await expect(page.getByText("رقم الهاتف مطلوب")).toBeVisible();
+  await expect(page.getByText("يرجى اختيار المحافظة")).toBeVisible();
+  await expect(page.getByText("العنوان مطلوب")).toBeVisible();
+  expect(orderRequests).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
+});

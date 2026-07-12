@@ -1,7 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Phone, MapPin, AlertCircle, Sparkles, Search, ChevronDown } from "lucide-react";
+import { User, Phone, MapPin, AlertCircle, Search, ChevronDown } from "lucide-react";
 import { CustomerInfo, GOVERNORATES } from "./types";
 import { Link } from "wouter";
 import { useState, useRef, useEffect } from "react";
@@ -78,15 +77,14 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
         <div className="space-y-4 mt-4">
             {/* Guest Checkout Note - Only show if not logged in */}
             {isGuest && (
-                <Alert className="bg-primary/5 border-primary/20">
-                    <Sparkles className="h-4 w-4 text-primary" />
-                    <AlertDescription className="text-sm">
+                <div className="rounded-lg border border-primary/20 bg-primary/5 px-4 py-3 text-sm">
+                    <p>
                         <Link href="/login">
                             <span className="text-primary font-semibold hover:underline cursor-pointer">سجل دخولك</span>
                         </Link>
-                        {" "}لتصبح فرداً من عائلتنا وتتمتع بمزايا الولاء، أو أكمل كضيف عزيز.
-                    </AlertDescription>
-                </Alert>
+                        {" "}إذا عندك حساب، أو كمل معلومات التوصيل كضيف.
+                    </p>
+                </div>
             )}
 
             <div className="space-y-2">
@@ -101,9 +99,11 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     value={customerInfo.name}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                     className={errors.name ? 'border-red-500' : ''}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "name-error" : undefined}
                 />
                 {errors.name && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
+                    <p id="name-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {errors.name}
                     </p>
@@ -124,9 +124,11 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                     className={errors.phone ? 'border-red-500' : ''}
                     dir="ltr"
+                    aria-invalid={!!errors.phone}
+                    aria-describedby={errors.phone ? "phone-error" : undefined}
                 />
                 {errors.phone && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
+                    <p id="phone-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {errors.phone}
                     </p>
@@ -241,9 +243,11 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
                     className={errors.address ? 'border-red-500' : ''}
+                    aria-invalid={!!errors.address}
+                    aria-describedby={errors.address ? "address-error" : undefined}
                 />
                 {errors.address && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
+                    <p id="address-error" role="alert" className="text-sm text-red-500 flex items-center gap-1">
                         <AlertCircle className="h-3 w-3" />
                         {errors.address}
                     </p>

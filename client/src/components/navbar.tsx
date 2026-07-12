@@ -24,43 +24,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { CartSuggestions } from "@/components/cart/cart-suggestions";
 import { ShippingProgress } from "@/components/cart/shipping-progress";
 import { ThemeSwitcher } from "@/components/ui/theme-switcher";
 import { useAuth } from "@/contexts/auth-context";
-import { type CartItem, useCart } from "@/contexts/cart-context";
+import { useCart } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
-import { useDeviceDetection } from "@/hooks/use-device-detection";
-import { formatIQD, generateOrderNumber } from "@/lib/utils";
-import { stashOrder } from "@/lib/order-stash";
+import { formatIQD } from "@/lib/utils";
 import { trackCartOpen } from "@/lib/analytics";
 
 const GlobalSearch = lazy(() => import("@/components/search/global-search").then((module) => ({ default: module.GlobalSearch })));
-const CheckoutDialog = lazy(() => import("@/components/cart/checkout-dialog").then((module) => ({ default: module.CheckoutDialog })));
-const InvoiceDialog = lazy(() => import("@/components/cart/invoice-dialog").then((module) => ({ default: module.InvoiceDialog })));
-
-interface OrderData {
-  customerInfo: {
-    name: string;
-    phone: string;
-    address: string;
-    notes: string;
-    governorate?: string;
-  };
-  items: CartItem[];
-  total: number;
-  subtotal?: number;
-  deliveryFee?: number;
-  discount?: number;
-  roundedTotal?: number;
-  cashbackUsed?: number;
-  pointsEarned?: number;
-  cashbackEarned?: number;
-  status?: string;
-  orderNumber: string;
-  orderDate: Date;
-}
 
 const primaryLinks = [
   { href: "/products", label: "المتجر", icon: Package },
@@ -81,14 +55,10 @@ export default function Navbar() {
   const [location, setLocation] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
-  const [isInvoiceOpen, setIsInvoiceOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
-  const { items: cartItems, removeItem, updateQuantity, clearCart, totalItems, totalPrice } = useCart();
+  const { items: cartItems, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
-  const { isMobile } = useDeviceDetection();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -109,57 +79,6 @@ export default function Navbar() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  const handleCheckoutComplete = (
-    data: Omit<OrderData, "orderNumber" | "orderDate"> & { orderId?: string; orderNumber?: string },
-  ) => {
-    const newOrderData: OrderData = {
-      ...data,
-      orderNumber: data.orderNumber || generateOrderNumber(),
-      orderDate: new Date(),
-    };
-
-    setOrderData(newOrderData);
-    setIsCheckoutOpen(false);
-    setIsCartOpen(false);
-    clearCart();
-
-    if (data.orderId) {
-      stashOrder({
-        id: data.orderId,
-        orderNumber: newOrderData.orderNumber,
-        total: data.total,
-        status: data.status,
-        items: data.items.map((item) => ({
-          productId: item.productId || item.id,
-          productName: item.name,
-          quantity: item.quantity,
-          priceAtPurchase: item.price,
-          variantId: item.variantId,
-          variantLabel: item.variantLabel,
-          image: item.image,
-        })),
-        shippingAddress: data.customerInfo.address,
-        customerName: data.customerInfo.name,
-        customerPhone: data.customerInfo.phone,
-        shippingCost: data.deliveryFee,
-        discountTotal: data.discount,
-        createdAt: newOrderData.orderDate.toISOString(),
-        loyalty: {
-          pointsEarned: data.pointsEarned ?? 0,
-          cashbackEarned: data.cashbackEarned ?? 0,
-          cashbackUsed: data.cashbackUsed ?? 0,
-          roundedTotal: data.roundedTotal ?? data.total,
-          tier: "",
-          tierUpgraded: false,
-        },
-      });
-      setLocation(`/order-confirmation/${data.orderId}`);
-      return;
-    }
-
-    setIsInvoiceOpen(true);
-  };
 
   const openCart = (open: boolean) => {
     setIsCartOpen(open);
@@ -187,9 +106,10 @@ export default function Navbar() {
                 <Menu className="h-6 w-6" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-            <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-white/10 bg-[color:var(--aqv-bg-dark)] p-0">
-              <SheetHeader className="border-b border-white/10 px-5 py-5 text-right">
-                <SheetTitle className="text-white">القائمة الرئيسية</SheetTitle>
+              <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-white/10 bg-[color:var(--aqv-bg-dark)] p-0">
+                <SheetHeader className="border-b border-white/10 px-5 py-5 text-right">
+                  <SheetTitle className="text-white">القائمة الرئيسية</SheetTitle>
+                  <SheetDescription className="sr-only">روابط المتجر والأدلة وحسابك وخيارات العرض.</SheetDescription>
               </SheetHeader>
               <div className="flex h-full flex-col px-3 py-4">
                 <div className="space-y-1" aria-label="روابط الموقع">
@@ -385,6 +305,7 @@ export default function Navbar() {
                     <ShoppingCart className="h-5 w-5" aria-hidden="true" />
                     سلة التسوق
                   </SheetTitle>
+                  <SheetDescription className="sr-only">راجع المنتجات والكميات والمجموع، وبعدها كمل معلومات التوصيل.</SheetDescription>
                 </SheetHeader>
                 <div className="mt-6 flex h-[calc(100vh-180px)] flex-col">
                   {cartItems.length === 0 ? (
@@ -408,7 +329,7 @@ export default function Navbar() {
                       <div className="flex-1 space-y-3 overflow-auto pe-1">
                         {cartItems.map((item) => (
                           <div key={item.id} className="flex gap-3 rounded-lg border border-border bg-card p-3">
-                            <img src={item.image} alt={`صورة منتج ${item.name}`} className="h-16 w-16 rounded-md object-cover" loading="lazy" />
+                            <img src={item.image || "/brand/aquavo-v2-icon.svg"} alt={`صورة منتج ${item.name}`} className="h-16 w-16 rounded-md bg-white object-contain p-1" loading="lazy" width={64} height={64} />
                             <div className="min-w-0 flex-1">
                               <h4 className="truncate text-sm font-medium">{item.name}</h4>
                               {item.variantLabel && <p className="truncate text-xs text-muted-foreground">الخيار: {item.variantLabel}</p>}
@@ -444,11 +365,7 @@ export default function Navbar() {
                           size="lg"
                           onClick={() => {
                             setIsCartOpen(false);
-                            if (isMobile) {
-                              setLocation("/checkout");
-                            } else {
-                              window.setTimeout(() => setIsCheckoutOpen(true), 150);
-                            }
+                            setLocation("/checkout");
                           }}
                         >
                           كمل معلومات التوصيل
@@ -469,23 +386,6 @@ export default function Navbar() {
         </Suspense>
       )}
 
-      {isCheckoutOpen && (
-        <Suspense fallback={<div className="fixed inset-0 z-50 grid place-items-center bg-black/60 text-sm text-white">جاري تحميل معلومات التوصيل...</div>}>
-          <CheckoutDialog
-            open={isCheckoutOpen}
-            onOpenChange={setIsCheckoutOpen}
-            cartItems={cartItems}
-            cartTotal={totalPrice}
-            onCheckoutComplete={handleCheckoutComplete}
-          />
-        </Suspense>
-      )}
-
-      {isInvoiceOpen && (
-        <Suspense fallback={null}>
-          <InvoiceDialog open={isInvoiceOpen} onOpenChange={setIsInvoiceOpen} orderData={orderData} />
-        </Suspense>
-      )}
     </>
   );
 }

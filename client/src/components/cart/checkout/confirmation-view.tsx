@@ -60,9 +60,6 @@ export function ConfirmationView({
     const roundingDifference = roundedUp - Math.max(0, amountBeforeRounding);
     const finalAmount = roundingDifference > 0 ? roundedUp : Math.max(0, amountBeforeRounding);
 
-    // حساب النقاط المكتسبة
-    const estimatedPoints = Math.floor(Math.max(0, amountBeforeRounding) / 5000);
-
     return (
         <div className="space-y-4">
             {/* === معلومات العميل === */}
@@ -169,46 +166,16 @@ export function ConfirmationView({
                     </p>
                 )}
 
-                {isLoggedIn && (estimatedPoints > 0 || cashbackEarned > 0 || roundingDifference > 0) && (
+                {isLoggedIn && (cashbackEarned > 0 || roundingDifference > 0) && (
                     <div className="text-xs text-muted-foreground space-y-0.5 pt-1">
-                        <p className="font-medium text-foreground text-xs">ستكسب من هذا الطلب:</p>
-                        {estimatedPoints > 0 && (
-                            <p>• {estimatedPoints} نقطة ولاء (لترقية العضوية)</p>
-                        )}
+                        <p className="font-medium text-foreground text-xs">رصيد التقريب المتوقع:</p>
                         {(cashbackEarned > 0 || roundingDifference > 0) && (
-                            <p>• {cashbackEarned || roundingDifference} نقطة رصيد باقي ({formatIQD(cashbackEarned || roundingDifference)})</p>
+                            <p>{formatIQD(cashbackEarned || roundingDifference)}</p>
                         )}
                         <p className="flex items-center gap-1 text-muted-foreground/70">
                             <Lock className="w-3 h-3" />
                             تُفعّل بعد تأكيد الاستلام
                         </p>
-                    </div>
-                )}
-
-                {/* === مستخدم غير مسجل: رسالة تشجيعية === */}
-                {!isLoggedIn && roundingDifference > 0 && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-center space-y-1">
-                        <p className="text-xs font-semibold text-primary">💡 هل تعلم؟</p>
-                        <p className="text-xs text-muted-foreground">
-                            لو كنت مسجّل بالموقع، كان يرجعلك <span className="font-bold text-primary">{formatIQD(roundingDifference)}</span> كرصيد باقي تستخدمه بطلبك الجاي!
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                            + تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء لترقية عضويتك 🌟
-                        </p>
-                        <a href="/register" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
-                            سجّل الآن واستفاد!
-                        </a>
-                    </div>
-                )}
-                {!isLoggedIn && roundingDifference === 0 && estimatedPoints > 0 && (
-                    <div className="bg-primary/10 border border-primary/20 rounded-lg p-3 text-center space-y-1">
-                        <p className="text-xs font-semibold text-primary">💡 سجّل واكسب!</p>
-                        <p className="text-xs text-muted-foreground">
-                            لو كنت مسجّل، كنت تكسب <span className="font-bold text-primary">{estimatedPoints}</span> نقطة ولاء من هذا الطلب + رصيد باقي تستخدمه لاحقاً!
-                        </p>
-                        <a href="/register" className="inline-block text-xs text-primary underline underline-offset-2 font-medium hover:text-primary/80 mt-1">
-                            سجّل الآن مجاناً
-                        </a>
                     </div>
                 )}
 
@@ -218,7 +185,7 @@ export function ConfirmationView({
                         <Truck className="w-3.5 h-3.5" />
                         {getDeliveryEstimate()}
                     </span>
-                    <span>💰 الدفع عند الاستلام</span>
+                    <span>الدفع النقدي عند الاستلام</span>
                 </div>
             </div>
 

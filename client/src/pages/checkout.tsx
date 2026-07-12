@@ -12,6 +12,7 @@ import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
+import { resolveCheckoutTotal } from "@/lib/checkout-total";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -182,6 +183,7 @@ export default function CheckoutPage() {
       }
 
       const orderData = await response.json();
+      const confirmedTotal = resolveCheckoutTotal(orderData, grandTotal);
 
       // TikTok Pixel
       ttqPlaceAnOrder(
@@ -196,7 +198,7 @@ export default function CheckoutPage() {
       // Meta Pixel
       metaTrackPurchase({
         orderId: orderData.orderNumber || orderData.id || "unknown",
-        totalIQD: Number(orderData.total ?? grandTotal),
+        totalIQD: confirmedTotal,
         productIds: cartItems.map((i) => i.productId),
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         phone: customerInfo.phone,
@@ -204,7 +206,7 @@ export default function CheckoutPage() {
       // GA4
       trackPurchase({
         orderId: orderData.id || "unknown",
-        total: cartTotal,
+        total: confirmedTotal,
         items: cartItems.map((item) => ({
           id: item.productId,
           name: item.name,
@@ -228,7 +230,7 @@ export default function CheckoutPage() {
         stashOrder({
           id: orderData.id,
           orderNumber: orderData.orderNumber ?? orderData.id,
-          total: Number(orderData.total ?? grandTotal),
+          total: confirmedTotal,
           status: orderData.status,
           items: cartItems.map((item) => ({
             productId: item.productId,
@@ -249,7 +251,7 @@ export default function CheckoutPage() {
             pointsEarned: orderData.loyalty?.pointsEarned ?? 0,
             cashbackEarned: orderData.loyalty?.cashbackEarned ?? 0,
             cashbackUsed: orderData.loyalty?.cashbackUsed ?? 0,
-            roundedTotal: Number(orderData.loyalty?.roundedTotal ?? orderData.total ?? grandTotal),
+            roundedTotal: confirmedTotal,
             tier: "",
             tierUpgraded: false,
           },
@@ -440,7 +442,7 @@ export default function CheckoutPage() {
       {/* Mini footer — trust strip */}
       <footer className="container mx-auto px-4 max-w-lg py-6 mt-6 border-t border-border/40 text-center" dir="rtl">
         <p className="text-sm font-semibold text-foreground mb-1">AQUAVO</p>
-        <p className="text-xs text-muted-foreground mb-3">معدات أحواض أصلية لكل العراق — بغداد، العراق</p>
+        <p className="text-xs text-muted-foreground mb-3">AQUAVO — معدات أحواض بريميوم من بغداد لكل العراق</p>
         <div className="flex items-center justify-center gap-4 text-xs text-muted-foreground mb-3">
           <span>الدفع عند الاستلام</span>
           <span className="opacity-40">·</span>

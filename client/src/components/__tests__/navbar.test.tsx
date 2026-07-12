@@ -7,15 +7,24 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 import { NavbarPreferencesProvider } from '@/hooks/use-navbar-preferences';
 
+const mockSetLocation = vi.hoisted(() => vi.fn());
+
 vi.mock('wouter', () => ({
-    useLocation: () => ['/', vi.fn()],
+    useLocation: () => ['/', mockSetLocation],
     Link: ({ children, href }: { children: React.ReactNode; href: string }) => (
         <a href={href}>{children}</a>
     ),
 }));
 
 vi.mock('@/contexts/cart-context', () => ({
-    useCart: () => ({ items: [{ id: '1', quantity: 2 }], itemCount: 2 })
+    useCart: () => ({
+        items: [{ id: '1', productId: '1', name: 'فلتر اختبار', image: '/brand/aquavo-v2-icon.svg', price: 25000, quantity: 2 }],
+        totalItems: 2,
+        totalPrice: 50000,
+        removeItem: vi.fn(),
+        updateQuantity: vi.fn(),
+        clearCart: vi.fn(),
+    })
 }));
 
 vi.mock('@/contexts/auth-context', () => ({
@@ -72,5 +81,15 @@ describe('Navbar Component', () => {
         const { container } = render(<Navbar />, { wrapper: createWrapper() });
 
         expect(container.querySelector('a a, a button, button a, button button')).toBeNull();
+    });
+
+    it('uses the same checkout route on desktop', async () => {
+        const user = await import('@testing-library/user-event').then((module) => module.default.setup());
+        render(<Navbar />, { wrapper: createWrapper() });
+
+        await user.click(screen.getByRole('button', { name: /سلة المشتريات/ }));
+        await user.click(screen.getByRole('button', { name: 'كمل معلومات التوصيل' }));
+
+        expect(mockSetLocation).toHaveBeenCalledWith('/checkout');
     });
 });
