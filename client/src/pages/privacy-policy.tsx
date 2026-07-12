@@ -1,363 +1,73 @@
-import Navbar from "@/components/navbar";
+import { BarChart3, Database, Mail, MessageCircle, PackageCheck, ShieldCheck } from "lucide-react";
+
 import Footer from "@/components/footer";
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Shield,
-  Lock,
-  Eye,
-  Database,
-  UserCheck,
-  FileText,
-  Cookie,
-  Mail,
-  Phone,
-  MessageCircle,
-  ChevronLeft,
-  CheckCircle2
-} from "lucide-react";
-import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
+import Navbar from "@/components/navbar";
+import { MetaTags } from "@/components/seo/meta-tags";
+import { WHATSAPP_URL } from "@/lib/constants/shipping";
+
+const sections = [
+  {
+    icon: PackageCheck,
+    title: "بيانات الطلب والحساب",
+    text: "نجمع المعلومات اللي تدخلها حتى ننفذ طلبك أو ندير حسابك: الاسم، رقم الهاتف، البريد إذا قدمته، عنوان التوصيل، ومحتوى الطلب. الدفع نقداً عند الاستلام فقط، لذلك ما نخزن بيانات بطاقة دفع.",
+  },
+  {
+    icon: BarChart3,
+    title: "بيانات الاستخدام والتحليلات",
+    text: "قد نسجل معلومات تقنية مثل عنوان IP، نوع الجهاز والمتصفح، الصفحات والأحداث داخل الموقع. نستخدم خدمات قياس وأخطاء وإعلانات مثل Google Analytics وMeta Pixel وTikTok Pixel وMicrosoft Clarity وPostHog وSentry إذا كانت مفاتيحها مفعّلة.",
+  },
+  {
+    icon: Database,
+    title: "التخزين المحلي والكوكيز",
+    text: "الموقع يستخدم كوكيز جلسة وتخزين المتصفح لتسجيل الدخول، السلة، التفضيلات، حماية الطلب، ومنع تكرار بعض أحداث القياس. تگدر تمسحها من إعدادات متصفحك، بس بعض الوظائف قد تتوقف.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "المشاركة والحماية",
+    text: "نشارك الحد اللازم مع مزودي الاستضافة وقاعدة البيانات والتخزين والتوصيل والتحليلات وخدمات الأمان، أو عند وجود طلب قانوني ملزم. ما نستخدم معالج دفع إلكتروني حالياً. الوصول الإداري لازم يبقى محدوداً حسب الحاجة.",
+  },
+];
 
 export default function PrivacyPolicy() {
-  const dataTypes = [
-    {
-      icon: UserCheck,
-      title: "المعلومات الشخصية",
-      items: [
-        "الاسم الكامل",
-        "رقم الهاتف",
-        "البريد الإلكتروني",
-        "العنوان للتوصيل"
-      ]
-    },
-    {
-      icon: Database,
-      title: "معلومات الطلبات",
-      items: [
-        "سجل المشتريات",
-        "تفضيلات المنتجات",
-        "طرق الدفع المحفوظة",
-        "عناوين التوصيل"
-      ]
-    },
-    {
-      icon: Eye,
-      title: "معلومات التصفح",
-      items: [
-        "عنوان IP",
-        "نوع المتصفح",
-        "صفحات الزيارة",
-        "وقت التصفح"
-      ]
-    }
-  ];
-
-  const usageReasons = [
-    "معالجة وتنفيذ طلباتك بدقة وسرعة",
-    "تحسين تجربتك على الموقع وتخصيص المحتوى",
-    "إرسال إشعارات حول الطلبات والعروض الخاصة",
-    "تقديم خدمة عملاء أفضل وحل المشاكل",
-    "تحليل البيانات لتحسين منتجاتنا وخدماتنا",
-    "الحماية من الاحتيال والأنشطة المشبوهة"
-  ];
-
-  const protectionMeasures = [
-    {
-      icon: Lock,
-      title: "تشفير البيانات",
-      description: "جميع البيانات الحساسة محمية بتشفير SSL/TLS المتقدم"
-    },
-    {
-      icon: Shield,
-      title: "خوادم آمنة",
-      description: "بياناتك محفوظة على خوادم محمية بأحدث أنظمة الأمان"
-    },
-    {
-      icon: Database,
-      title: "نسخ احتياطية",
-      description: "نسخ احتياطية منتظمة لحماية بياناتك من الفقدان"
-    },
-    {
-      icon: UserCheck,
-      title: "وصول محدود",
-      description: "فقط الموظفون المصرح لهم يمكنهم الوصول لبياناتك"
-    }
-  ];
-
-  const userRights = [
-    "الحق في الوصول إلى بياناتك الشخصية ومراجعتها",
-    "الحق في تصحيح أو تحديث معلوماتك",
-    "الحق في حذف بياناتك (وفق الشروط القانونية)",
-    "الحق في سحب موافقتك على استخدام البيانات",
-    "الحق في تقييد معالجة بياناتك",
-    "الحق في نقل بياناتك إلى خدمة أخرى"
-  ];
-
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="privacy-policy-page">
+    <div className="min-h-screen bg-background text-foreground" dir="rtl" data-testid="privacy-policy-page">
+      <MetaTags title="سياسة الخصوصية" description="شنو يجمع موقع AQUAVO، ليش نستخدم البيانات، ومنو قد يستلم الحد اللازم منها لتنفيذ الطلب وتشغيل الموقع." />
       <Navbar />
+      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+        <header className="max-w-3xl">
+          <p className="text-sm font-bold text-primary">واضحة ومباشرة</p>
+          <h1 className="mt-3 text-4xl font-bold" data-testid="text-page-title">سياسة الخصوصية</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">
+            هاي الصفحة تشرح شنو نجمع من بياناتك وشنو نسوي بيها لما تستخدم aquavoiq.com أو تطلب من AQUAVO / محل المنبع.
+          </p>
+          <p className="mt-3 text-sm text-muted-foreground">آخر تحديث: 12 تموز 2026</p>
+        </header>
 
-      <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 right-20 w-64 h-64 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-20 w-48 h-48 bg-blue-500 rounded-full blur-3xl" />
+        <div className="mt-10 grid gap-4 md:grid-cols-2">
+          {sections.map((section) => (
+            <section key={section.title} className="rounded-2xl border border-border bg-card/55 p-6">
+              <section.icon className="h-7 w-7 text-primary" aria-hidden="true" />
+              <h2 className="mt-5 text-xl font-bold">{section.title}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">{section.text}</p>
+            </section>
+          ))}
         </div>
 
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Badge variant="outline" className="mb-4 border-primary/50 text-primary bg-primary/10 px-4 py-1 text-sm">
-              <Shield className="w-4 h-4 ml-2" />
-              خصوصيتك محمية
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6" data-testid="text-page-title">
-              سياسة الخصوصية
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              نحن ملتزمون بحماية خصوصيتك وأمان معلوماتك الشخصية. هذه السياسة توضح كيفية جمع واستخدام وحماية بياناتك.
-            </p>
-            <p className="text-sm text-muted-foreground mt-4">
-              آخر تحديث: 2 ديسمبر 2025
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
-      <main id="main-content" className="flex-1 py-16">
-        <div className="container mx-auto px-4">
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <ChevronLeft className="w-6 h-6 text-primary" />
-              البيانات التي نجمعها
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              {dataTypes.map((type) => (
-                <Card key={type.title} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mb-4">
-                      <type.icon className="w-7 h-7 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4">{type.title}</h3>
-                    <ul className="space-y-2">
-                      {type.items.map((item) => (
-                        <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </motion.section>
-
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <ChevronLeft className="w-6 h-6 text-primary" />
-              كيف نستخدم بياناتك
-            </h2>
-            <Card className="border-primary/20 bg-primary/5">
-              <CardContent className="p-6">
-                <ul className="grid md:grid-cols-2 gap-4">
-                  {usageReasons.map((reason) => (
-                    <li key={reason} className="flex items-start gap-3 p-3 bg-background rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-muted-foreground">{reason}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <ChevronLeft className="w-6 h-6 text-primary" />
-              كيف نحمي بياناتك
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {protectionMeasures.map((measure) => (
-                <Card key={measure.title} className="group hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                      <measure.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{measure.title}</h3>
-                    <p className="text-sm text-muted-foreground">{measure.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </motion.section>
-
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold mb-8 flex items-center gap-3">
-              <ChevronLeft className="w-6 h-6 text-primary" />
-              حقوقك كمستخدم
-            </h2>
-            <Card className="border-green-500/30 bg-green-500/5">
-              <CardContent className="p-6">
-                <ul className="space-y-3">
-                  {userRights.map((right) => (
-                    <li key={right} className="flex items-start gap-3 p-3 bg-background rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span>{right}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </motion.section>
-
-          <motion.section
-            className="mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-          >
-            <div className="grid md:grid-cols-2 gap-8">
-              <Card className="border-blue-500/30">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                      <Cookie className="w-5 h-5 text-blue-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold">ملفات تعريف الارتباط (Cookies)</h3>
-                  </div>
-                  <p className="text-muted-foreground mb-4">
-                    نستخدم ملفات تعريف الارتباط لتحسين تجربة التصفح وتذكر تفضيلاتك. يمكنك التحكم في إعدادات ملفات تعريف الارتباط من خلال متصفحك.
-                  </p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-500 mt-1">•</span>
-                      <span>ملفات ضرورية: مطلوبة لعمل الموقع</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-500 mt-1">•</span>
-                      <span>ملفات تحليلية: لفهم كيفية استخدام الموقع</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-blue-500 mt-1">•</span>
-                      <span>ملفات تسويقية: لعرض إعلانات مخصصة</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-
-              <Card className="border-amber-500/30">
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center">
-                      <FileText className="w-5 h-5 text-amber-500" />
-                    </div>
-                    <h3 className="text-2xl font-bold">مشاركة البيانات</h3>
-                  </div>
-                  <p className="text-muted-foreground mb-4">
-                    نحن لا نبيع أو نشارك معلوماتك الشخصية مع أطراف ثالثة إلا في الحالات التالية:
-                  </p>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-500 mt-1">•</span>
-                      <span>شركات الشحن لتوصيل طلباتك</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-500 mt-1">•</span>
-                      <span>معالجات الدفع لإتمام المعاملات</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-amber-500 mt-1">•</span>
-                      <span>عند الطلب القانوني من السلطات</span>
-                    </li>
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
-          </motion.section>
-
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-          >
-            <Card className="bg-gradient-to-l from-primary/10 to-blue-500/10 border-0">
-              <CardContent className="p-8">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4">تواصل معنا بخصوص خصوصيتك</h2>
-                  <p className="text-muted-foreground">
-                    إذا كان لديك أي أسئلة حول سياسة الخصوصية أو ترغب في ممارسة حقوقك، تواصل معنا
-                  </p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <a
-                    href={`tel:+${WHATSAPP_NUMBER}`}
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                  >
-                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                      <Phone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">اتصل بنا</p>
-                      <p className="text-sm text-muted-foreground" dir="ltr">+964 774 788 0673</p>
-                    </div>
-                  </a>
-                  <a
-                    href={WHATSAPP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                  >
-                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                      <MessageCircle className="w-6 h-6 text-green-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">واتساب</p>
-                      <p className="text-sm text-muted-foreground">رد سريع</p>
-                    </div>
-                  </a>
-                  <a
-                    href="mailto:info@aquavoiq.com"
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                  >
-                    <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                      <Mail className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">البريد الإلكتروني</p>
-                      <p className="text-sm text-muted-foreground">info@aquavoiq.com</p>
-                    </div>
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
-        </div>
+        <section className="mt-6 rounded-2xl border border-primary/25 bg-primary/5 p-6 sm:p-8">
+          <h2 className="text-2xl font-bold">استخدام البيانات وطلب المراجعة</h2>
+          <p className="mt-3 leading-7 text-muted-foreground">
+            نستخدم البيانات لتنفيذ الطلب، التوصيل، الدعم، أمان الموقع، قياس الأداء، وتحسين التجربة والتسويق. إذا تريد تسأل عن بياناتك أو تطلب تصحيحها أو حذف ما نكدر نحذفه بدون مخالفة التزامات تشغيلية أو قانونية، تواصل ويانه واذكر رقم الهاتف المرتبط بالطلب حتى نتحقق من الهوية.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-5 font-bold text-primary-foreground">
+              <MessageCircle className="h-4 w-4" aria-hidden="true" /> واتساب
+            </a>
+            <a href="mailto:info@aquavoiq.com" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-primary/35 px-5 font-bold text-primary">
+              <Mail className="h-4 w-4" aria-hidden="true" /> info@aquavoiq.com
+            </a>
+          </div>
+        </section>
       </main>
-
       <Footer />
     </div>
   );

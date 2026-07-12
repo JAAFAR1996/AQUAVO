@@ -185,3 +185,19 @@ Verification:
 - TypeScript check: passed.
 - Mobile Chromium smoke test: Contact, FAQ, Shipping, Return Policy, Why AQUAVO, Terms and Search returned HTTP 200 with one H1 and no horizontal overflow.
 - Local frontend-only browser run showed expected API/auth 404 console noise because the Express backend was not attached; no production request or mutation was performed.
+
+## 2026-07-12 — Phase 8B privacy and decision tools
+
+- Replaced the generic privacy template with a disclosure grounded in the code paths currently present in the repository.
+- Removed false references to stored payment methods and payment processors; AQUAVO currently uses cash on delivery only.
+- Disclosed session cookies, browser storage, order/account fields and conditionally configured analytics, advertising, behavior and error-monitoring providers.
+- Avoided presenting broad imported privacy rights as settled Iraqi law; the page provides a practical review, correction and deletion request channel subject to operational or legal retention needs.
+- Changed calculator promises from “precise” and “ideal” to estimates that must be checked against product instructions and the real tank state.
+- Removed emoji-based water status labels and replaced them with plain status text.
+- Confirmed `/tank-builder` is an intentional alias into the existing guided `/journey` experience, while the unsupported `/3d-tank-builder` URL remains removed.
+
+Verification:
+
+- Privacy and calculator Vitest: 3 files, 18/18 tests passed.
+- TypeScript check and diff whitespace check: passed.
+- Mobile Chromium: Privacy and Calculators returned HTTP 200 with one H1 and no horizontal overflow; the tank-builder alias reached the guided journey.

@@ -100,10 +100,10 @@ Allowed status values:
 ## Phase 8 — Content, calculators, policies and company pages
 
 - PENDING — Guides index and internal linking within React-owned pages.
-- PENDING — Calculators and aquarium setup tools.
-- PENDING — Tank-builder route decision and implementation.
+- COMPLETE — Calculators and aquarium setup tools reviewed; outputs framed as estimates and user-facing emoji removed from water status.
+- COMPLETE — `/tank-builder` intentionally resolves to the existing guided `/journey` setup flow; removed the invalid `/3d-tank-builder` promise from search.
 - COMPLETE — About, Why AQUAVO, Contact and FAQ truth alignment.
-- IN PROGRESS — Shipping, returns, privacy and terms consistency; customer-facing facts and warranty terms aligned, privacy remains in the final policy audit.
+- COMPLETE — Shipping, returns, privacy and terms consistency aligned with current implementation and approved business facts.
 - COMPLETE — Support shown as 24/7 without restrictive hours.
 - COMPLETE — Removed live-fish/plants commerce implications from core trust, search and AI sales guidance; educational fish-care content remains clearly non-commerce.
 

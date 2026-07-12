@@ -23,14 +23,14 @@ export default function Calculators() {
       <Navbar />
       <MetaTags
         title="حاسبات أحواض الأسماك"
-        description="أدوات دقيقة لحساب حجم الحوض والسخان والفلتر والملوحة وجداول الصيانة لأحواض الأسماك"
+        description="أدوات تقديرية تساعدك بحساب حجم الحوض والسخان والفلتر والملوحة وجدول الصيانة، مع مراجعة تعليمات المنتج وحالة الحوض."
         keywords={["حاسبة", "أحواض", "أسماك", "سخان", "فلتر", "صيانة"]}
       />
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
             <h1 className="text-4xl font-bold text-foreground">حاسبات أحواض الأسماك</h1>
-            <p className="text-xl text-muted-foreground">أدوات دقيقة لمساعدتك في الحفاظ على بيئة مثالية لأسماكك</p>
+            <p className="text-xl text-muted-foreground">تقديرات أولية تساعدك ترتب الاختيار؛ راجع تعليمات المنتج وقياسات حوضك قبل القرار.</p>
           </div>
 
           <Tabs defaultValue="tank" className="w-full">
@@ -96,14 +96,14 @@ export default function Calculators() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-right">حاسبة تكاثر الأسماك</CardTitle>
-                    <CardDescription className="text-right">أداة متقدمة لحساب الجداول الزمنية لتكاثر الأسماك ومراحل نمو الصغار.</CardDescription>
+                    <CardDescription className="text-right">أداة تعليمية لتقدير الجداول الزمنية العامة لتكاثر الأسماك ومراحل نمو الصغار.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6 text-right">
                     <div className="p-6 bg-primary/5 rounded-xl text-center space-y-4 border border-primary/10">
                       <Fish className="w-16 h-16 mx-auto text-primary opacity-80" />
                       <h3 className="text-2xl font-bold text-foreground">حاسبة التكاثر الشاملة</h3>
                       <p className="text-muted-foreground max-w-lg mx-auto">
-                        احصل على خطة زمنية دقيقة لدورة حياة أسماكك، من التزاوج إلى الفقس ونمو الصغار، مع نصائح التغذية لكل مرحلة وقائمة المستلزمات الضرورية.
+                        رتّب تقديراً زمنياً حسب النوع والبيانات اللي تدخلها، وراجعه مقابل مصادر العناية الموثوقة وحالة الحوض الفعلية.
                       </p>
                       <Link href="/fish-breeding-calculator">
                         <Button size="lg" className="mt-4 gap-2">

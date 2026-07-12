@@ -58,11 +58,12 @@ describe('Privacy Policy Page', () => {
     });
 
     describe('Content Sections', () => {
-        it('should contain privacy-related content', () => {
+        it('describes the implemented data flows without inventing payment storage', () => {
             render(<PrivacyPolicy />);
-            // Check for common privacy policy terms
-            const content = document.body.textContent;
-            expect(content).toBeTruthy();
+            expect(screen.getByText(/الدفع نقداً عند الاستلام فقط/)).toBeInTheDocument();
+            expect(screen.getByText(/Google Analytics وMeta Pixel وTikTok Pixel/)).toBeInTheDocument();
+            expect(screen.getByText(/كوكيز جلسة وتخزين المتصفح/)).toBeInTheDocument();
+            expect(screen.queryByText(/طرق الدفع المحفوظة|معالجات الدفع لإتمام المعاملات/)).not.toBeInTheDocument();
         });
     });
 

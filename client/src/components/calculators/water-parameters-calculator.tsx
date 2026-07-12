@@ -114,7 +114,7 @@ export function WaterParametersCalculator() {
 
             if (value >= range.min && value <= range.max) {
                 status = "safe";
-                message = "✅ ضمن النطاق المثالي";
+                message = "ضمن النطاق المرجعي";
             } else if (value < range.danger_low || value > range.danger_high) {
                 status = "danger";
                 if (value < range.danger_low) {
@@ -127,10 +127,10 @@ export function WaterParametersCalculator() {
             } else {
                 status = "warning";
                 if (value < range.min) {
-                    message = "⚠️ منخفض قليلاً";
+                    message = "منخفض قليلاً";
                     recommendation = getRecommendation(param.key, "low", waterType);
                 } else {
-                    message = "⚠️ مرتفع قليلاً";
+                    message = "مرتفع قليلاً";
                     recommendation = getRecommendation(param.key, "high", waterType);
                 }
             }
@@ -241,7 +241,7 @@ export function WaterParametersCalculator() {
                 <div className="flex justify-center">
                     <Tabs value={waterType} onValueChange={(v) => { setWaterType(v as "freshwater" | "saltwater"); setValues({}); setResults([]); }}>
                         <TabsList className="grid grid-cols-2 w-64">
-                            <TabsTrigger value="freshwater">🐟 مياه عذبة</TabsTrigger>
+                            <TabsTrigger value="freshwater">مياه عذبة</TabsTrigger>
                             <TabsTrigger value="saltwater">🐠 مياه مالحة</TabsTrigger>
                         </TabsList>
                     </Tabs>
@@ -302,8 +302,8 @@ export function WaterParametersCalculator() {
                                     {overallStatus === "danger" && <XCircle className="w-10 h-10 text-destructive" />}
                                 </div>
                                 <h3 className="text-xl font-bold">
-                                    {overallStatus === "safe" && "✅ جميع المعايير ممتازة!"}
-                                    {overallStatus === "warning" && "⚠️ بعض المعايير تحتاج انتباه"}
+                                    {overallStatus === "safe" && "القيم ضمن النطاقات المرجعية المختارة"}
+                                    {overallStatus === "warning" && "بعض القيم تحتاج مراجعة"}
                                     {overallStatus === "danger" && "🚨 تحذير! معايير خطيرة!"}
                                 </h3>
                             </CardContent>
