@@ -141,14 +141,14 @@ Allowed status values:
 
 ## Phase 11 — Extended production identity assets
 
-- PENDING — Create `16_Extended_Production_Assets_v2` outside the repository under the approved identity root.
-- PENDING — Preserve the archive and build source-to-destination mapping.
-- PENDING — Letterhead, quotation, contract and report.
-- PENDING — Two business cards, task memo, receipt and payment vouchers.
-- PENDING — A5, A4 and A3 envelopes; folder; legal stamp; badge; calendar; file labels.
-- PENDING — Facebook and LinkedIn covers; Story template; presentation; email signature; WhatsApp stickers.
-- PENDING — Editable sources plus PDF/PNG/WebP/print exports where applicable.
-- PENDING — Checksums and visual verification.
+- COMPLETED — Created `16_Extended_Production_Assets_v2` outside the repository under the approved identity root.
+- COMPLETED — Preserved the archive and created a 23-row source-to-destination migration manifest.
+- COMPLETED — Letterhead, quotation, work-contract template and report template.
+- COMPLETED — Two business cards, task memo, receipt and payment vouchers.
+- COMPLETED — A5, A4 and A3 envelopes; folder; legal-stamp template; badge; calendar; file labels.
+- COMPLETED — Facebook and LinkedIn covers; Story template; presentation HTML master; email signature; WhatsApp stickers.
+- COMPLETED — 23 editable HTML masters plus 23 PDF, 23 PNG and 23 WebP exports.
+- COMPLETED — 149 SHA-256 records, zero render resource failures, corrected crop pass, contact-sheet review and representative full-size inspection.
 
 ## Phases 12–14 — Verification and handoff
 
