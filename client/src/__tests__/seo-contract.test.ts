@@ -65,4 +65,12 @@ describe("AQUAVO discoverability contract", () => {
       expect(sitemap).not.toContain(`<loc>https://www.aquavoiq.com${invalidPath}</loc>`);
     }
   });
+
+  it("routes health checks to the application and keeps product schema factual", () => {
+    expect(read("vercel.json")).toContain('"source": "/health"');
+    const ssr = read("api/ssr-meta.ts");
+    expect(ssr).toContain('"@type": "BreadcrumbList"');
+    expect(ssr).toContain('...(p.brand ? { brand:');
+    expect(ssr).not.toContain('name: p.brand || "AQUAVO"');
+  });
 });

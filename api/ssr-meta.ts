@@ -508,22 +508,33 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: p.name,
-        description: desc,
-        image: primaryImage,
-        brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
-        offers: {
-          "@type": "Offer",
-          price: schemaPrice,
-          priceCurrency: p.currency || "IQD",
-          availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          url: `${BASE}/products/${p.slug}`,
-          seller: { "@type": "Organization", name: "AQUAVO" },
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          description: desc,
+          image: primaryImage,
+          ...(p.brand ? { brand: { "@type": "Brand", name: p.brand } } : {}),
+          offers: {
+            "@type": "Offer",
+            price: schemaPrice,
+            priceCurrency: p.currency || "IQD",
+            availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            url: `${BASE}/products/${p.slug}`,
+            seller: { "@type": "Organization", name: "AQUAVO" },
+          },
         },
-      },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+            { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
+            { "@type": "ListItem", position: 3, name: p.name, item: `${BASE}/products/${p.slug}` },
+          ],
+        },
+      ],
     };
   } catch (err) {
     console.error("SSR meta: product query error", err);
