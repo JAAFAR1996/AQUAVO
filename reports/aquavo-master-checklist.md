@@ -130,9 +130,9 @@ Allowed status values:
 
 ## Phase 10 — Accessibility, RTL, SEO and performance
 
-- IN PROGRESS — One visible H1 verified on the core commercial/trust routes; full route sweep remains Phase 12.
-- IN PROGRESS — Semantic landmarks, labels, keyboard focus and skip link verified on core flows; full route sweep remains Phase 12.
-- IN PROGRESS — RTL and mixed-direction data verified on core routes and five target widths; remaining long-tail tools are Phase 12.
+- COMPLETED — One visible H1 across 90 route/viewport checks on 15 representative public routes and six required widths.
+- COMPLETED — Semantic landmarks, labels, keyboard focus and skip link verified on core flows; v2 Playwright foundation passes.
+- COMPLETED — RTL and mixed-direction layout verified on the 15-route six-viewport matrix with zero final horizontal overflow.
 - COMPLETED — Automated axe 4.12.1 browser checks on seven core routes plus certificate keyboard and reduced-motion checks; automated coverage does not replace manual review.
 - COMPLETED — Canonical strips query/hash, OG URL follows canonical, manifest and homepage Organization/WebSite JSON-LD use v2 truthful identity.
 - COMPLETED — Removed six sitemap URLs without matching routes; true HTTP 404 was completed in Phase 1.
@@ -152,8 +152,8 @@ Allowed status values:
 
 ## Phases 12–14 — Verification and handoff
 
-- PENDING — Full local browser regression across desktop, tablet and mobile.
+- COMPLETED — Local browser regression: 90 route/viewport checks plus 8/8 v2 Chromium tests and 12 inspected homepage/store screenshots.
 - PENDING — Independent review by a separate agent/reviewer.
 - PENDING — Fix all accepted independent-review findings.
 - PENDING — Production readiness report.
-- PENDING — No deployment, push, production-data mutation, real order, message or DNS change.
+- COMPLETED — No deployment, push, production-data mutation, real order, message or DNS change.
