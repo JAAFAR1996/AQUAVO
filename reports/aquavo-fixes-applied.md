@@ -216,3 +216,18 @@ Verification:
 - TypeScript and diff whitespace checks: passed.
 - Chromium 390×844 normal motion: named Waterline and Proof animations present, one H1, no overflow.
 - Chromium 390×844 reduced motion: both animation names computed to `none`, one H1, no overflow.
+
+## 2026-07-12 — Post-audit performance and suite stabilization
+
+- Changed the product 3D experience from automatic library loading to an explicit customer-activated preview.
+- Kept the product poster visible before activation and added a clear data-saving explanation in natural Iraqi Arabic.
+- Added a component contract proving that no `model-viewer` element is created before activation and that activation creates the viewer.
+- Replaced slow per-character text entry in checkout integration tests with direct field changes while preserving real interaction coverage for governorate selection, review, acceptance and submission.
+- Applied the same focused test change to the legacy cart checkout path after the full suite exposed its equivalent timeout.
+
+Verification:
+
+- Affected 3D/cart/checkout set: 3 files, 21/21 tests passed.
+- Complete Vitest suite with four workers: passed with exit code 0.
+- TypeScript check: passed.
+- Production build: passed; model-viewer remains approximately 991 kB minified but is no longer on the automatic product-page request path.

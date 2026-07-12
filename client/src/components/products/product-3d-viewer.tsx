@@ -424,12 +424,13 @@ export const Product3DViewer = memo(function Product3DViewer({
   pieceCode,
   className,
 }: Product3DViewerProps) {
-  // If the library already resolved before mount (module-level preload), skip
-  // the async wait entirely — no spinner shown.
+  // Reuse the library if another activated viewer already loaded it this session.
+  const [activated, setActivated] = useState(false);
   const [libraryReady, setLibraryReady] = useState(() => modelViewerResolved);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    if (!activated) return;
     if (modelViewerResolved) return; // already done — nothing to wait for
     let cancelled = false;
     loadModelViewer()
@@ -442,7 +443,7 @@ export const Product3DViewer = memo(function Product3DViewer({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activated]);
 
   // Fallback: show a clear error instead of implying a working 3D view.
   const fallbackContent = (
@@ -468,6 +469,41 @@ export const Product3DViewer = memo(function Product3DViewer({
       </div>
     </ViewerShell>
   );
+
+  // Keep the heavy model-viewer library off the product-page critical path.
+  if (!activated) {
+    return (
+      <ViewerShell className={className} pieceCode={pieceCode}>
+        <div
+          className={cn(
+            "relative flex min-h-[320px] items-center justify-center overflow-hidden sm:min-h-[420px]",
+            VIEWER_BG
+          )}
+        >
+          {poster && (
+            <img
+              src={poster}
+              alt={productName}
+              className="absolute inset-0 h-full w-full object-contain opacity-70"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06111f]/90 via-[#06111f]/20 to-transparent" />
+          <div className="relative z-10 mt-auto flex w-full flex-col items-center gap-3 px-5 pb-7 pt-24 text-center">
+            <button
+              type="button"
+              onClick={() => setActivated(true)}
+              className="min-h-11 rounded-md border border-cyan-300/35 bg-cyan-400/15 px-5 py-2.5 text-sm font-semibold text-cyan-50 transition-colors hover:bg-cyan-400/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1E28]"
+            >
+              شغّل العرض ثلاثي الأبعاد
+            </button>
+            <p className="max-w-sm text-xs leading-5 text-white/70">
+              يتحمّل العرض عند الطلب حتى تبقى صفحة المنتج أسرع وتستهلك بيانات أقل.
+            </p>
+          </div>
+        </div>
+      </ViewerShell>
+    );
+  }
 
   // Library failed to load — show fallback with poster
   if (loadError) return fallbackContent;

@@ -470,13 +470,13 @@ describe('Variant display and checkout flow', () => {
       </QueryClientProvider>
     );
 
-    await user.type(screen.getByLabelText('الاسم الكامل'), 'أحمد');
-    await user.type(screen.getByLabelText('رقم الهاتف'), '07801234567');
+    fireEvent.change(screen.getByLabelText('الاسم الكامل'), { target: { value: 'أحمد' } });
+    fireEvent.change(screen.getByLabelText('رقم الهاتف'), { target: { value: '07801234567' } });
     // The governorate field is a searchable combobox (role="combobox"), not a
     // plain button — query it by its accessible name from the <Label>.
     await user.click(screen.getByRole('combobox', { name: /المحافظة/ }));
     await user.click(screen.getByText('بغداد'));
-    await user.type(screen.getByLabelText('العنوان'), 'المنصور');
+    fireEvent.change(screen.getByLabelText('العنوان'), { target: { value: 'المنصور' } });
 
     await user.click(screen.getByRole('button', { name: /متابعة للتأكيد/ }));
     expect(screen.getByText('الخيار: 1.5 متر')).toBeInTheDocument();

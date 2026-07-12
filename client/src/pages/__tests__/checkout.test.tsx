@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -59,11 +59,11 @@ describe("checkout page", () => {
     const user = userEvent.setup();
     render(<CheckoutPage />);
 
-    await user.type(screen.getByLabelText("الاسم الكامل"), "جعفر محمد");
-    await user.type(screen.getByLabelText("رقم الهاتف"), "07701234567");
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
-    await user.type(screen.getByLabelText("العنوان"), "الكرادة داخل قرب ساحة كهرمانة");
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
     await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
 
     expect(screen.getByRole("heading", { level: 1, name: "تأكيد الطلب" })).toBeInTheDocument();
@@ -85,11 +85,11 @@ describe("checkout page", () => {
     });
     render(<CheckoutPage />);
 
-    await user.type(screen.getByLabelText("الاسم الكامل"), "جعفر محمد");
-    await user.type(screen.getByLabelText("رقم الهاتف"), "07701234567");
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
     await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
     await user.click(screen.getByRole("option", { name: "بغداد" }));
-    await user.type(screen.getByLabelText("العنوان"), "الكرادة داخل قرب ساحة كهرمانة");
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
     await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));

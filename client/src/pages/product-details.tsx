@@ -351,7 +351,7 @@ export default function ProductDetails() {
 
                 {product3DMeta ? (
                   <>
-                    {/* 3D Viewer — يظهر مباشرة أول ما تفتح الصفحة */}
+                    {/* 3D Viewer — يحمل المكتبة الثقيلة بعد طلب الزبون */}
                     <Product3DViewer
                       src={product3DMeta.src}
                       poster={product3DMeta.poster}

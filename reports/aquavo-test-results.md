@@ -17,9 +17,9 @@ Date: 2026-07-12
 
 ## Full Vitest run
 
-The full run completed with two checkout timeouts under parallel suite load. Both timed-out tests passed immediately in the isolated checkout rerun (4/4 total), including the closed-circuit mocked success path. The full run also emitted existing non-fatal warnings for React `act(...)`, absent AI keys in test environment and query mocks returning undefined.
+The earlier full run exposed checkout test timeouts caused by per-character text entry under parallel suite load. The delivery form and legacy cart checkout tests now set text fields directly while retaining real user interactions for selects, checkboxes and submission controls.
 
-Classification: suite-level parallel timing instability, not a reproduced checkout regression. The full suite is not reported as green.
+The affected focused set passed 21/21. The complete Vitest suite then passed with exit code 0 using four workers. It still emits existing non-fatal warnings for React `act(...)`, absent AI keys in the test environment and incomplete query mocks.
 
 ## Playwright limits
 
@@ -29,4 +29,4 @@ Classification: suite-level parallel timing instability, not a reproduced checko
 
 ## Build warnings
 
-Build succeeds but warns about chunks over 500 kB. The largest recorded optional chunk is the model viewer at approximately 991 kB minified. This remains a production-readiness risk, not a build failure.
+Build succeeds but warns about chunks over 500 kB. The largest recorded optional chunk is the model viewer at approximately 991 kB minified; it is now downloaded only after explicit customer activation. Its size remains a performance risk, not a build failure.
