@@ -1,37 +1,39 @@
 # AQUAVO Approved Motion System
 
+Date: 2026-07-12
 Direction: Minimal Precision
 
-## Principles
+## Implemented primitives
 
-- Motion explains flow, state or proof; it is not decoration.
-- Default transitions are short, restrained and interruptible.
-- Layout geometry is stable before motion starts.
-- Every interaction has a no-motion equivalent under `prefers-reduced-motion: reduce`.
-- Opacity-only generic fade-up sections are not the site-wide pattern.
+| Primitive | Purpose | Motion | Reduced motion |
+|---|---|---|---|
+| Controlled Waterline | Brand-signature boundary on the homepage hero | 520 ms scale X, 1 px line | Static visible line |
+| Proof Window | Direct attention to evidence and real imagery | 360 ms, 6 px vertical settle plus opacity | Immediate final state |
+| Trust Seal | Establish the verified service promise block | 260 ms opacity only | Immediate final state |
+| Filter Chamber | Group filter and sort controls | Static 2 px FlowLine rail | Same static rail |
+| Evidence Anchor | Make proof interaction obvious to keyboard users | Focus outline only | Identical |
 
-## Approved concepts
+All animated content is visible in its final layout before motion. The implementation uses native CSS only and does not add JavaScript observers, layout measurement, GSAP, WebGL, Three.js, autoplay media, parallax or an endless decorative loop.
 
-| Concept | Intended use |
-|---|---|
-| Controlled Waterline Hero | One precise hero reveal tied to the headline/product plane |
-| FlowLine | Active navigation, filters and progress continuity |
-| Proof Window Lift | Certificate, warranty and evidence disclosure |
-| Circulation Loop Cart | Cart state and totals without flying-product theatrics |
-| Checkout Equalization | Order summary and validation state changes |
-| Trust Seal | Subtle proof confirmation, not pulsing or spinning |
-| Valve-Gate Menu | Mobile navigation opening/closing with focus control |
-| Filter Chamber | Filter groups and product facets |
-| Specimen Gallery | Product media selection |
-| Filtration Path | Step-by-step education and setup guidance |
-| Infinity Load | Bounded loading state with reduced-motion fallback |
-| Bypass Recovery | Empty/error recovery path |
-| Closed Circuit Success | Local checkout success state; never used to place a test production order |
-| Specification Channel | Product specifications disclosure |
-| Stability Gauge | Calculator or compatibility result stability |
-| Evidence Anchor | Scroll/focus movement to proof and policy content |
+## Accepted existing interaction patterns
 
-## Rejected patterns
+- Valve-Gate Menu uses the existing accessible sheet/drawer direction.
+- Product and certificate galleries keep direct controls and contained media.
+- Checkout validation and totals update immediately.
+- Loading uses dimension-stable skeletons.
+- Recovery uses one clear error state and retry action.
+- Order success remains gated by a confirmed server response.
 
-GSAP, Three.js, WebGL, video backgrounds, parallax, animated fish, bubbles, mascot loops, pulsing buttons, flying-to-cart effects and decorative continuous glow are rejected for this implementation because they conflict with performance, accessibility and AQUAVO’s calm premium positioning.
+## Rejected concepts
 
+- Circulation Loop Cart / flying product: harms transactional clarity and conflicts with the explicit prohibition.
+- Filtration Path Diagram: no verified universal process exists for the current mixed catalog.
+- Animated Specification Channel: would slow access to decision-critical facts.
+- Stability Gauge: would imply measured stability data AQUAVO does not possess.
+
+## Verification evidence
+
+- Motion unit contract: 3/3 tests passed.
+- Related homepage/store/certificate tests: 13/13 tests passed across the executed files.
+- Chromium at 390×844: one H1 and no horizontal overflow.
+- Browser media emulation proved `aquavo-waterline-enter` and `aquavo-proof-window` run with normal preference and compute to `animation-name: none` with reduced motion.

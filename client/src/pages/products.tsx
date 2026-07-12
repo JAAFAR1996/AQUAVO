@@ -377,7 +377,7 @@ export default function Products() {
         </div>
 
         {/* Filter Bar with Quick Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
+        <div className="aq-filter-chamber flex flex-col gap-2 ps-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
           <FilterBar
             filters={filters}
             onFiltersChange={setFilters}

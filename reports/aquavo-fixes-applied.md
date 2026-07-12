@@ -201,3 +201,18 @@ Verification:
 - Privacy and calculator Vitest: 3 files, 18/18 tests passed.
 - TypeScript check and diff whitespace check: passed.
 - Mobile Chromium: Privacy and Calculators returned HTTP 200 with one H1 and no horizontal overflow; the tank-builder alias reached the guided journey.
+
+## 2026-07-12 — Phase 9 Minimal Precision motion
+
+- Added five native-CSS AQUAVO primitives: Controlled Waterline, Proof Window, Trust Seal, Filter Chamber and Evidence Anchor.
+- Applied them only to the homepage hero/proof, verified service facts, store controls and YEE evidence interaction.
+- Added an explicit reduced-motion contract that removes animation while preserving the final FlowLine and every piece of information.
+- Rejected decorative or misleading motion including flying products, an unsupported filtration diagram and an unmeasured stability gauge.
+- Documented every approved motion concept as completed or rejected with technical justification in the master checklist and motion-system report.
+
+Verification:
+
+- Motion contract plus related store/certificate tests: 3 files reported, 13/13 tests passed; the requested nonexistent home test path was ignored by Vitest and is not counted.
+- TypeScript and diff whitespace checks: passed.
+- Chromium 390×844 normal motion: named Waterline and Proof animations present, one H1, no overflow.
+- Chromium 390×844 reduced motion: both animation names computed to `none`, one H1, no overflow.

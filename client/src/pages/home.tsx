@@ -116,7 +116,7 @@ export default function Home() {
       <Navbar />
 
       <main id="main-content" dir="rtl">
-        <section className="relative isolate overflow-hidden border-b border-white/10 bg-[#06141d] pt-24 sm:pt-28">
+        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-white/10 bg-[#06141d] pt-24 sm:pt-28">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
           <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
             <div className="order-2 text-right lg:order-1">
@@ -155,7 +155,7 @@ export default function Home() {
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#0b1e28] shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
+              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#0b1e28] shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
                 <img
                   src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
                   srcSet="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
@@ -185,7 +185,7 @@ export default function Home() {
         <section aria-label="معلومات الخدمة" className="border-b border-border/60 bg-card/35">
           <div className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border/50 sm:grid-cols-4">
             {serviceFacts.map(({ icon: Icon, title, detail }) => (
-              <div key={title} className="flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
+              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
                 <p className="text-sm font-bold">{title}</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>

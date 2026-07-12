@@ -60,7 +60,7 @@ function CertificateViewer({ open, onOpenChange }: { open: boolean; onOpenChange
             alt={CERTIFICATE_ALT}
             width={1240}
             height={1754}
-            className="mx-auto block h-auto max-w-none bg-white shadow-xl transition-transform duration-150"
+            className="aq-proof-window mx-auto block h-auto max-w-none bg-white shadow-xl transition-transform duration-150"
             style={{ width: `${Math.round(680 * zoom)}px` }}
           />
         </div>
@@ -125,7 +125,7 @@ export default function VerifyCertificate() {
             </div>
             <button
               type="button"
-              className="block w-full bg-[#e8ecee] p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
+              className="aq-evidence-anchor block w-full bg-[#e8ecee] p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary sm:p-6"
               onClick={() => setViewerOpen(true)}
               aria-label="افتح الشهادة بحجم أكبر"
             >
@@ -134,7 +134,7 @@ export default function VerifyCertificate() {
                 alt={CERTIFICATE_ALT}
                 width={1240}
                 height={1754}
-                className="mx-auto h-auto w-full max-w-2xl bg-white shadow-lg"
+                className="aq-proof-window mx-auto h-auto w-full max-w-2xl bg-white shadow-lg"
                 decoding="async"
               />
             </button>

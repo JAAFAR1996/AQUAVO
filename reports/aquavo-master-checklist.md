@@ -109,16 +109,22 @@ Allowed status values:
 
 ## Phase 9 — Minimal Precision motion
 
-- PENDING — FlowLine.
-- PENDING — Proof Window Lift.
-- PENDING — Trust Seal.
-- PENDING — Filter Chamber.
-- PENDING — Filtration Path.
-- PENDING — Infinity Load.
-- PENDING — Specification Channel.
-- PENDING — Stability Gauge.
-- PENDING — Evidence Anchor.
-- PENDING — `prefers-reduced-motion` equivalence.
+- COMPLETED — Controlled Waterline Hero / Page FlowLine: one 520 ms CSS line establishes reading direction without delaying content.
+- COMPLETED — Proof Window Lift: one 360 ms, 6 px proof reveal on the hero and verified certificate document.
+- COMPLETED — Trust Seal Entrance: opacity-only 260 ms entrance on the four verified service facts.
+- COMPLETED — Valve-Gate Menu: retained the accessible directional Radix sheet transition; no second custom animation layer.
+- COMPLETED — Filter Chamber: a static FlowLine rail groups filter/sort controls without layout movement.
+- COMPLETED — Specimen Gallery: retained the immediate, contained product/document gallery and existing keyboard controls; no cross-page shared-element dependency.
+- REJECTED — TECHNICAL JUSTIFICATION — Circulation Loop Cart / product-fly animation would add distraction and spatial ambiguity; immediate count/total feedback and the unified checkout route are safer.
+- COMPLETED — Checkout Equalization: state and validation feedback remain immediate, with no animation gating purchase controls.
+- REJECTED — TECHNICAL JUSTIFICATION — Filtration Path Diagram needs a verified technical process and product-specific content; a decorative diagram would fabricate meaning.
+- COMPLETED — Infinity Load Mark: existing dimension-stable skeleton/loading states retained; no endless decorative loop added.
+- COMPLETED — Bypass Recovery: single mutually exclusive recovery state with retry remains the low-motion fallback.
+- COMPLETED — Closed Circuit Success: existing order-success state is reached only after confirmed response; no real order was placed during verification.
+- COMPLETED — Specification Channel: stable specification hierarchy retained; animation rejected because it would delay product facts.
+- REJECTED — TECHNICAL JUSTIFICATION — Stability Gauge would imply measured product or tank stability data the store does not have.
+- COMPLETED — Evidence Anchor: high-contrast focus-visible anchor added to the certificate proof interaction.
+- COMPLETED — `prefers-reduced-motion` equivalence disables every new animation while preserving the FlowLine and all information.
 - REJECTED — TECHNICAL JUSTIFICATION — GSAP, Three.js, WebGL, video backgrounds, parallax, animated fish/bubbles/mascot, pulsing buttons and flying-to-cart effects conflict with approved direction, accessibility and performance goals.
 
 ## Phase 10 — Accessibility, RTL, SEO and performance
