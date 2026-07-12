@@ -1,470 +1,81 @@
-import Navbar from "@/components/navbar";
+import { Banknote, PackageCheck, ShieldCheck, Truck } from "lucide-react";
+import { Link } from "wouter";
+
 import Footer from "@/components/footer";
-import { MetaTags, FAQSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
-import { motion } from "framer-motion";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  HelpCircle,
-  Search,
-  Truck,
-  CreditCard,
-  RotateCcw,
-  Fish,
-  Package,
-  Shield,
-  Phone,
-  MessageCircle,
-  Mail,
-  Clock,
-  ChevronLeft,
-  type LucideIcon
-} from "lucide-react";
-import { useState } from "react";
-import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
+import Navbar from "@/components/navbar";
+import { BreadcrumbSchema, FAQSchema, MetaTags } from "@/components/seo/meta-tags";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
-interface FAQItem {
-  question: string;
-  answer: string;
-}
+const groups = [
+  {
+    title: "الطلب والتوصيل",
+    icon: Truck,
+    items: [
+      { question: "وين يوصل AQUAVO؟", answer: "نوصل لكل العراق خلال 24 ساعة، وأجرة التوصيل ثابتة 5,000 د.ع." },
+      { question: "شلون أدفع؟", answer: "الدفع نقداً عند الاستلام فقط. ماكو دفع إلكتروني مفعّل هسه." },
+      { question: "شلون أتتبع طلبي؟", answer: "استخدم صفحة تتبع الطلب برقم الطلب ورقم الهاتف. وإذا احتجت مساعدة، الدعم متوفر 24/7." },
+    ],
+  },
+  {
+    title: "المنتجات والاختيار",
+    icon: PackageCheck,
+    items: [
+      { question: "شنو يبيع AQUAVO؟", answer: "نبيع معدات ومستلزمات الأحواض مثل الفلاتر والسخانات والإضاءة والغذاء والديكور ومعالجة المياه. ما نبيع أسماك حية، كائنات حية، أو نباتات مائية حية." },
+      { question: "شلون أعرف القطعة تناسب حوضي؟", answer: "راجع المواصفات بصفحة المنتج، أو دز حجم الحوض ونوع الاستخدام حتى نرتبلك الخيار المناسب بدون تخمين." },
+      { question: "هل كل المنتجات عليها وثيقة YEE؟", answer: "لا. وثيقة YEE تخص منتجات YEE الموردة إلى AQUAVO العراق فقط، وما تشمل باقي العلامات تلقائياً." },
+    ],
+  },
+  {
+    title: "مشاكل الاستلام",
+    icon: ShieldCheck,
+    items: [
+      { question: "شنو أسوي إذا وصل المنتج تالف أو غلط؟", answer: "دز رقم الطلب وصور واضحة فور ما تلاحظ المشكلة. نراجع حالة الضرر أو النقص أو عدم المطابقة ونرتب الحل حسب السياسة." },
+      { question: "هل كل جهاز عليه ضمان 6 أشهر؟", answer: "لا. ضمان AQUAVO المحدود ينطبق فقط على منتج كهربائي معتمد ومذكور بوضوح بصفحة المنتج. إذا ما مذكور، لا تعتبر المنتج مشمول." },
+      { question: "منو مقدم ضمان AQUAVO؟", answer: "إذا المنتج معتمد ومشمول بوضوح، مقدم الضمان هو AQUAVO / محل المنبع / AL NABEA SHOP، مو شركة YEE تلقائياً." },
+    ],
+  },
+  {
+    title: "الدفع والفاتورة",
+    icon: Banknote,
+    items: [
+      { question: "هل السعر النهائي واضح؟", answer: "ملخص الطلب يعرض سعر المنتجات والخصم إن وجد وأجرة التوصيل والمبلغ الكلي قبل التأكيد." },
+      { question: "هل أقدر أشوف تفاصيل طلبي بعد التأكيد؟", answer: "نعم، صفحة تأكيد الطلب تعرض رقم الطلب والمنتجات والمبلغ وحالة الطلب." },
+    ],
+  },
+] as const;
 
-interface FAQCategory {
-  id: string;
-  title: string;
-  icon: LucideIcon;
-  color: string;
-  faqs: FAQItem[];
-}
+const questions = groups.flatMap((group) => group.items.map((item) => ({ question: item.question, answer: item.answer })));
 
 export default function FAQ() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
-
-  const categories: FAQCategory[] = [
-    {
-      id: "shipping",
-      title: "الشحن والتوصيل",
-      icon: Truck,
-      color: "text-blue-500 bg-blue-500/10",
-      faqs: [
-        {
-          question: "ما هي مناطق التوصيل المتاحة؟",
-          answer: "نوصل إلى جميع محافظات العراق الـ 18 خلال 24 ساعة."
-        },
-        {
-          question: "كم تكلفة التوصيل؟",
-          answer: "رسوم التوصيل 5,000 دينار لبغداد وكل المحافظات، والتوصيل خلال 24 ساعة."
-        },
-        {
-          question: "هل يمكن تتبع طلبي؟",
-          answer: "نعم! بمجرد شحن طلبك، ستتلقى رسالة نصية ورسالة واتساب تحتوي على رابط التتبع المباشر ورقم الشحنة."
-        },
-        {
-          question: "ماذا لو لم أكن متواجداً عند التوصيل؟",
-          answer: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته."
-        },
-        {
-          question: "شنو يبيع AQUAVO؟",
-          answer: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية."
-        }
-      ]
-    },
-    {
-      id: "payment",
-      title: "الدفع والفواتير",
-      icon: CreditCard,
-      color: "text-green-500 bg-green-500/10",
-      faqs: [
-        {
-          question: "ما هي طرق الدفع المتاحة؟",
-          answer: "الدفع نقداً عند الاستلام (COD) — الطريقة الأسهل والأكثر أماناً. طرق دفع إلكترونية إضافية قريباً."
-        },
-        {
-          question: "هل الدفع عند الاستلام متاح؟",
-          answer: "نعم! الدفع عند الاستلام متاح لجميع الطلبات. يمكنك فحص المنتج والتأكد من سلامته قبل الدفع."
-        },
-        {
-          question: "هل يمكنني الحصول على فاتورة؟",
-          answer: "نعم، نرسل فاتورة إلكترونية مع كل طلب عبر البريد الإلكتروني وواتساب. يمكنك أيضاً طلب فاتورة مطبوعة مع الطلب."
-        },
-        {
-          question: "هل توجد رسوم إضافية مخفية؟",
-          answer: "لا، السعر الذي تراه هو السعر النهائي. لا توجد رسوم خفية. رسوم التوصيل (إن وجدت) تظهر بوضوح قبل إتمام الطلب."
-        },
-        {
-          question: "هل توجد طرق دفع غير الدفع عند الاستلام؟",
-          answer: "حالياً الدفع نقداً عند الاستلام فقط. إذا فعّلنا أي طريقة دفع إضافية راح تظهر بشكل واضح بالموقع."
-        }
-      ]
-    },
-    {
-      id: "returns",
-      title: "الإرجاع والاستبدال",
-      icon: RotateCcw,
-      color: "text-amber-500 bg-amber-500/10",
-      faqs: [
-        {
-          question: "ما هي سياسة الإرجاع؟",
-          answer: "إذا وصلك منتج تالف أو خاطئ، أبلغنا خلال 48 ساعة مع صور واضحة وسنراجع الطلب للاستبدال حسب السياسة."
-        },
-        {
-          question: "كيف أطلب إرجاع منتج؟",
-          answer: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب المشكلة وصور واضحة للمنتج."
-        },
-        {
-          question: "متى أستلم المبلغ المسترد؟",
-          answer: "بعد مراجعة حالة الطلب، يتم التعامل معه حسب سياسة الاستبدال أو الاسترداد المعتمدة."
-        },
-        {
-          question: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟",
-          answer: "الاستبدال متاح للمنتج التالف أو المنتج الخاطئ بعد الإبلاغ خلال 48 ساعة ومراجعة الحالة."
-        },
-        {
-          question: "ماذا لو وصل المنتج تالفاً؟",
-          answer: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 48 ساعة. سنراجع الحالة ونرتب الاستبدال حسب السياسة."
-        }
-      ]
-    },
-    {
-      id: "fish-care",
-      title: "العناية بالأسماك",
-      icon: Fish,
-      color: "text-primary bg-primary/10",
-      faqs: [
-        {
-          question: "كيف أختار الحوض المناسب؟",
-          answer: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة."
-        },
-        {
-          question: "كم مرة يجب تغيير الماء؟",
-          answer: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض."
-        },
-        {
-          question: "ما هي درجة الحرارة المناسبة؟",
-          answer: "معظم الأسماك الاستوائية تحتاج 24-28 درجة مئوية. الأسماك الذهبية تفضل 18-24 درجة. تحقق من متطلبات كل نوع."
-        },
-        {
-          question: "كم مرة أطعم الأسماك؟",
-          answer: "مرتين يومياً بكمية تستهلكها الأسماك خلال 2-3 دقائق. الإفراط في التغذية أخطر من التقليل ويلوث الماء."
-        },
-        {
-          question: "لماذا تموت أسماكي رغم العناية بها؟",
-          answer: "الأسباب الشائعة: عدم تدوير الحوض قبل إضافة الأسماك، تغيير الماء بكميات كبيرة، أو اكتظاظ الحوض. تواصل معنا للتشخيص المجاني."
-        }
-      ]
-    },
-    {
-      id: "products",
-      title: "المنتجات والجودة",
-      icon: Package,
-      color: "text-purple-500 bg-purple-500/10",
-      faqs: [
-        {
-          question: "هل المنتجات أصلية؟",
-          answer: "نعم، جميع منتجاتنا أصلية 100% ومستوردة من الشركات المصنعة مباشرة. نوفر ضمان الأصالة على جميع المنتجات."
-        },
-        {
-          question: "هل يوجد ضمان على المعدات؟",
-          answer: "نعم، جميع المعدات الإلكترونية (فلاتر، مضخات، سخانات، إضاءة) مغطاة بضمان من 6 أشهر إلى سنتين حسب المنتج."
-        },
-        {
-          question: "هل توفرون كائنات حية؟",
-          answer: "لا. المتجر الإلكتروني متخصص بمعدات ومستلزمات الأحواض فقط."
-        },
-        {
-          question: "هل تتوفر منتجات للمبتدئين؟",
-          answer: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة ومعدات سهلة الاستخدام مع دليل عناية مجاني."
-        },
-        {
-          question: "هل يمكن طلب منتج غير متوفر؟",
-          answer: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة."
-        }
-      ]
-    },
-    {
-      id: "warranty",
-      title: "الضمان والدعم",
-      icon: Shield,
-      color: "text-rose-500 bg-rose-500/10",
-      faqs: [
-        {
-          question: "ما هي مدة الضمان؟",
-          answer: "الفلاتر والمضخات: سنة واحدة. السخانات والإضاءة LED: 6 أشهر. الأحواض: ضمان ضد التسريب لمدة سنة."
-        },
-        {
-          question: "ماذا يغطي الضمان؟",
-          answer: "الضمان يغطي عيوب التصنيع والأعطال غير الناتجة عن سوء الاستخدام. لا يشمل الأضرار الناتجة عن الكهرباء غير المستقرة."
-        },
-        {
-          question: "كيف أستفيد من الضمان؟",
-          answer: "احتفظ بفاتورة الشراء. عند حدوث مشكلة، تواصل معنا مع صور المنتج ورقم الفاتورة. سنوجهك للخطوات التالية."
-        },
-        {
-          question: "هل تقدمون دعماً فنياً؟",
-          answer: "نعم! نوفر دعماً فنياً مجانياً عبر واتساب والهاتف. كما نقدم زيارات منزلية للمساعدة في تركيب وصيانة الأحواض الكبيرة."
-        },
-        {
-          question: "هل تتوفر قطع غيار؟",
-          answer: "نعم، نوفر قطع غيار لمعظم المنتجات التي نبيعها. تواصل معنا مع موديل المنتج وسنخبرك بالتوفر والسعر."
-        }
-      ]
-    }
-  ];
-
-  const filteredCategories = categories.map(category => ({
-    ...category,
-    faqs: category.faqs.filter(
-      faq =>
-        faq.question.includes(searchQuery) ||
-        faq.answer.includes(searchQuery)
-    )
-  })).filter(category => searchQuery === "" || category.faqs.length > 0);
-
-  const popularQuestions = [
-    "ما هي طرق الدفع المتاحة؟",
-    "كم تكلفة التوصيل؟",
-    "ما هي سياسة الإرجاع؟",
-    "هل المنتجات أصلية؟"
-  ];
-
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="faq-page">
-      <MetaTags
-        title="الأسئلة الشائعة"
-        description="إجابات على أكثر الأسئلة شيوعاً حول تربية اسماك الزينة في العراق، العناية بالأحواض، التوصيل، والطلب من AQUAVO."
-        keywords={["اسئلة اسماك زينة", "اسئلة احواض سمك", "كيف اربي اسماك زينة", "متجر اسماك العراق"]}
-      />
-      <FAQSchema
-        questions={categories.flatMap(cat => cat.faqs.map(faq => ({ question: faq.question, answer: faq.answer })))}
-      />
-      <BreadcrumbSchema
-        items={[
-          { name: "الرئيسية", url: "https://www.aquavoiq.com" },
-          { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" },
-        ]}
-      />
+    <div className="min-h-screen bg-background text-foreground" data-testid="faq-page" dir="rtl">
+      <MetaTags title="الأسئلة الشائعة" description="أجوبة واضحة عن منتجات AQUAVO، التوصيل خلال 24 ساعة، أجرة 5,000 د.ع، الدفع عند الاستلام، ومشاكل الاستلام." />
+      <FAQSchema questions={questions} />
+      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" }]} />
       <Navbar />
-
-      <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 right-20 w-64 h-64 bg-primary rounded-full blur-3xl" />
-          <div className="absolute bottom-10 left-20 w-48 h-48 bg-purple-500 rounded-full blur-3xl" />
-        </div>
-
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <Badge variant="outline" className="mb-4 border-primary/50 text-primary bg-primary/10 px-4 py-1 text-sm">
-              <HelpCircle className="w-4 h-4 ml-2" />
-              مركز المساعدة
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold mb-6" data-testid="text-page-title">
-              الأسئلة الشائعة
-            </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              ابحث عن إجابات لأسئلتك أو تصفح الفئات للعثور على ما تحتاجه
-            </p>
-
-            <div className="max-w-xl mx-auto relative">
-              <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
-              <Input
-                type="text"
-                placeholder="ابحث في الأسئلة الشائعة..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pr-12 py-6 text-lg rounded-xl border-2 focus:border-primary"
-                data-testid="input-search-faq"
-              />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <main id="main-content" className="flex-1 py-16">
-        <div className="container mx-auto px-4">
-          {searchQuery === "" && (
-            <motion.section
-              className="mb-12"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
-                <Clock className="w-6 h-6 text-primary" />
-                الأسئلة الأكثر شيوعاً
-              </h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {popularQuestions.map((question) => (
-                  <button
-                    key={question}
-                    onClick={() => setSearchQuery(question.slice(0, 10))}
-                    className="p-4 text-right bg-muted/50 hover:bg-primary/10 rounded-xl transition-colors border hover:border-primary/30"
-                    data-testid={`button-popular-question-${question.slice(0, 15).replace(/\s+/g, '-')}`}
-                  >
-                    <span className="text-sm">{question}</span>
-                  </button>
+      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+        <header className="max-w-3xl">
+          <p className="text-sm font-bold text-primary">قبل ما تطلب</p>
+          <h1 className="mt-3 text-4xl font-bold" data-testid="text-page-title">أسئلة واضحة، أجوبة مباشرة</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">المعلومة اللي تهمك بدون وعود زايدة. وإذا حالتك خاصة، دز تفاصيل حوضك.</p>
+        </header>
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          {groups.map(({ title, icon: Icon, items }) => (
+            <section key={title} className="rounded-2xl border border-border bg-card/55 p-5">
+              <h2 className="flex items-center gap-3 text-xl font-bold"><Icon className="h-5 w-5 text-primary" aria-hidden="true" />{title}</h2>
+              <Accordion type="single" collapsible className="mt-4">
+                {items.map((item) => (
+                  <AccordionItem key={item.question} value={item.question}>
+                    <AccordionTrigger className="text-right">{item.question}</AccordionTrigger>
+                    <AccordionContent className="leading-7 text-muted-foreground">{item.answer}</AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
-            </motion.section>
-          )}
-
-          <div className="grid lg:grid-cols-4 gap-8">
-            <motion.aside
-              className="lg:col-span-1"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-            >
-              <div className="sticky top-24 space-y-2">
-                <h3 className="font-semibold mb-4 text-lg">الفئات</h3>
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(activeCategory === category.id ? null : category.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-colors text-right ${activeCategory === category.id
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
-                      }`}
-                    data-testid={`button-category-${category.id}`}
-                  >
-                    <div className={`p-2 rounded-lg ${activeCategory === category.id ? "bg-white/20" : category.color}`}>
-                      <category.icon className="w-4 h-4" />
-                    </div>
-                    <span className="font-medium">{category.title}</span>
-                    <Badge variant="secondary" className="mr-auto">
-                      {category.faqs.length}
-                    </Badge>
-                  </button>
-                ))}
-              </div>
-            </motion.aside>
-
-            <motion.div
-              className="lg:col-span-3 space-y-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-            >
-              {filteredCategories
-                .filter(category => !activeCategory || category.id === activeCategory)
-                .map((category) => (
-                  <Card key={category.id} className="overflow-hidden" data-testid={`card-faq-category-${category.id}`}>
-                    <div className={`p-4 border-b ${category.color}`}>
-                      <div className="flex items-center gap-3">
-                        <category.icon className="w-5 h-5" />
-                        <h2 className="text-xl font-bold">{category.title}</h2>
-                      </div>
-                    </div>
-                    <CardContent className="p-0">
-                      <Accordion type="single" collapsible className="w-full">
-                        {category.faqs.map((faq) => (
-                          <AccordionItem
-                            key={faq.question}
-                            value={`${category.id}-${faq.question}`}
-                            className="border-b last:border-0"
-                          >
-                            <AccordionTrigger
-                              className="px-6 py-4 text-right hover:bg-muted/50 [&[data-state=open]]:bg-muted/50"
-                              data-testid={`accordion-trigger-${category.id}-${faq.question.slice(0, 15).replace(/\s+/g, '-')}`}
-                            >
-                              <span className="font-medium">{faq.question}</span>
-                            </AccordionTrigger>
-                            <AccordionContent className="px-6 pb-4 text-muted-foreground leading-relaxed">
-                              {faq.answer}
-                            </AccordionContent>
-                          </AccordionItem>
-                        ))}
-                      </Accordion>
-                    </CardContent>
-                  </Card>
-                ))}
-
-              {filteredCategories.length === 0 && (
-                <Card className="p-12 text-center">
-                  <HelpCircle className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">لم نجد نتائج</h3>
-                  <p className="text-muted-foreground mb-4">جرب كلمات بحث مختلفة أو تصفح الفئات</p>
-                  <button
-                    onClick={() => setSearchQuery("")}
-                    className="text-primary hover:underline"
-                  >
-                    مسح البحث
-                  </button>
-                </Card>
-              )}
-            </motion.div>
-          </div>
-
-          <motion.section
-            className="mt-16"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Card className="bg-gradient-to-l from-primary/10 to-blue-500/10 border-0">
-              <CardContent className="p-8">
-                <div className="text-center mb-8">
-                  <h2 className="text-3xl font-bold mb-4">لم تجد إجابة لسؤالك؟</h2>
-                  <p className="text-muted-foreground">فريق الدعم جاهز لمساعدتك على مدار الساعة</p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-6">
-                  <a
-                    href={`tel:+${WHATSAPP_NUMBER}`}
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                    data-testid="link-contact-phone"
-                  >
-                    <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-                      <Phone className="w-6 h-6 text-primary" />
-                    </div>
-                    <div>
-                      <p className="font-medium">اتصل بنا</p>
-                      <p className="text-sm text-muted-foreground" dir="ltr">+964 774 788 0673</p>
-                    </div>
-                  </a>
-                  <a
-                    href={WHATSAPP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                    data-testid="link-contact-whatsapp"
-                  >
-                    <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500/30 transition-colors">
-                      <MessageCircle className="w-6 h-6 text-green-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">واتساب</p>
-                      <p className="text-sm text-muted-foreground">رد خلال دقائق</p>
-                    </div>
-                  </a>
-                  <a
-                    href="mailto:info@aquavoiq.com"
-                    className="flex items-center gap-4 p-4 bg-background/80 rounded-xl hover:bg-background transition-colors group"
-                    data-testid="link-contact-email"
-                  >
-                    <div className="w-12 h-12 bg-blue-500/20 rounded-full flex items-center justify-center group-hover:bg-blue-500/30 transition-colors">
-                      <Mail className="w-6 h-6 text-blue-500" />
-                    </div>
-                    <div>
-                      <p className="font-medium">البريد الإلكتروني</p>
-                      <p className="text-sm text-muted-foreground">info@aquavoiq.com</p>
-                    </div>
-                  </a>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.section>
+              </Accordion>
+            </section>
+          ))}
         </div>
+        <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">بعدك محتار؟ <Link href="/contact" className="font-bold text-primary hover:underline">تواصل ويانه</Link></div>
       </main>
-
       <Footer />
     </div>
   );

@@ -167,3 +167,21 @@ Verification:
 - Chromium foundation/shop/certificate/checkout regression: 8/8 tests passed.
 - Browser checkout validation used a local guest cart and proved zero `POST /api/orders` calls for invalid data.
 - Mobile checkout had no document overflow at 390×844.
+
+## 2026-07-12 — Phase 8A trust, company and policy alignment
+
+- Rebuilt Contact, FAQ, Shipping, Return Policy and Why AQUAVO around the approved business facts and calm Baghdadi voice.
+- Removed restrictive support hours, invented home visits, blanket authenticity/import claims and broad electronics warranty language.
+- Separated delivery damage or mismatch handling from the six-month limited warranty, which remains disabled by default unless a product page explicitly marks an approved electrical product as eligible.
+- Aligned Terms and product-detail issue guidance with the seven-day inspected manufacturing-defect path instead of the old 48-hour promise.
+- Corrected FAQ JSON-LD so search engines no longer receive invented tracking links, direct-import claims, two-year warranties, home visits or guaranteed special orders.
+- Corrected the AI sales context to cash on delivery only and excluded live organisms and live plants from the internal commerce catalog.
+- Removed the dead `/3d-tank-builder` result and the inaccurate “first fish store” description from site search.
+- Removed an unverified 2024 founding claim from visible About copy and structured metadata.
+
+Verification:
+
+- Trust, FAQ, Shipping, Return Policy, Terms and Search Vitest: 6 files, 27/27 tests passed.
+- TypeScript check: passed.
+- Mobile Chromium smoke test: Contact, FAQ, Shipping, Return Policy, Why AQUAVO, Terms and Search returned HTTP 200 with one H1 and no horizontal overflow.
+- Local frontend-only browser run showed expected API/auth 404 console noise because the Express backend was not attached; no production request or mutation was performed.

@@ -102,10 +102,10 @@ Allowed status values:
 - PENDING — Guides index and internal linking within React-owned pages.
 - PENDING — Calculators and aquarium setup tools.
 - PENDING — Tank-builder route decision and implementation.
-- PENDING — About, Why AQUAVO, Contact and FAQ truth alignment.
-- PENDING — Shipping, returns, privacy and terms consistency.
-- PENDING — Support shown as 24/7 without restrictive hours.
-- PENDING — Remove live-fish/plants commerce implications.
+- COMPLETE — About, Why AQUAVO, Contact and FAQ truth alignment.
+- IN PROGRESS — Shipping, returns, privacy and terms consistency; customer-facing facts and warranty terms aligned, privacy remains in the final policy audit.
+- COMPLETE — Support shown as 24/7 without restrictive hours.
+- COMPLETE — Removed live-fish/plants commerce implications from core trust, search and AI sales guidance; educational fish-care content remains clearly non-commerce.
 
 ## Phase 9 — Minimal Precision motion
 

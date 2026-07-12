@@ -872,7 +872,7 @@ export default function ProductDetails() {
                       <h3 className="font-semibold mb-2 text-right">سياسة الاستبدال</h3>
                       <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
                         <li>نستبدل المنتجات التالفة أو الخاطئة فقط</li>
-                        <li>أبلغنا خلال 48 ساعة من الاستلام مع صور للمنتج</li>
+                        <li>وثّق الحالة وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة</li>
                         <li>لا إرجاع لتغيير الرأي</li>
                         <li>تواصل معنا عبر واتساب للمطالبات</li>
                       </ul>

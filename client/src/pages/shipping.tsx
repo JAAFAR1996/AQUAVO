@@ -1,328 +1,53 @@
-import Navbar from "@/components/navbar";
+import { Banknote, Clock3, MapPinned, PackageCheck, Truck } from "lucide-react";
+import { Link } from "wouter";
+
 import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
+import { MetaTags } from "@/components/seo/meta-tags";
+import { DELIVERY_DAYS, DELIVERY_FEE } from "@/lib/constants/shipping";
 
-import { BackToTop } from "@/components/back-to-top";
-import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-    Truck,
-    MapPin,
-    Clock,
-    Phone,
-    CheckCircle,
-    Package,
-    Shield,
-    MessageCircle,
-    Info,
-    AlertCircle,
-} from "lucide-react";
-import { motion } from "framer-motion";
-
-interface ShippingZone {
-    region: string;
-    cities: string[];
-    price: string;
-    deliveryTime: string;
-    available: boolean;
-}
-
-const shippingZones: ShippingZone[] = [
-    {
-        region: "بغداد",
-        cities: ["جميع المناطق"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-    {
-        region: "المحافظات الوسطى",
-        cities: ["كربلاء", "النجف", "بابل", "الديوانية", "واسط"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-    {
-        region: "المحافظات الجنوبية",
-        cities: ["البصرة", "ذي قار", "ميسان", "المثنى"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-    {
-        region: "المحافظات الشمالية",
-        cities: ["نينوى", "صلاح الدين", "كركوك", "ديالى"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-    {
-        region: "إقليم كردستان",
-        cities: ["أربيل", "السليمانية", "دهوك"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-    {
-        region: "الأنبار",
-        cities: ["الرمادي", "الفلوجة", "هيت"],
-        price: `${DELIVERY_FEE.toLocaleString()} د.ع`,
-        deliveryTime: DELIVERY_DAYS,
-        available: true,
-    },
-];
-
-const features = [
-    {
-        icon: Package,
-        title: "تغليف آمن",
-        description: "نغلف كل منتج بعناية فائقة لضمان وصوله سليماً",
-    },
-    {
-        icon: Truck,
-        title: "تتبع الشحنة",
-        description: "تتبع طلبك لحظة بلحظة عبر رقم التتبع",
-    },
-    {
-        icon: Shield,
-        title: "ضمان الوصول",
-        description: "إذا وصل المنتج تالفاً، نستبدله فوراً مجاناً",
-    },
-    {
-        icon: Clock,
-        title: "توصيل خلال 24 ساعة",
-        description: "نوصل طلبك لكل العراق خلال 24 ساعة",
-    },
+const facts = [
+  { icon: Clock3, title: `خلال ${DELIVERY_DAYS}`, detail: "المدة المعتمدة لكل العراق" },
+  { icon: Truck, title: `${DELIVERY_FEE.toLocaleString()} د.ع`, detail: "أجرة توصيل ثابتة" },
+  { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
+  { icon: MapPinned, title: "كل العراق", detail: "بغداد وباقي المحافظات" },
 ];
 
 export default function Shipping() {
-    return (
-        <div className="min-h-screen flex flex-col bg-background">
-            <Navbar />
-
-            {/* Hero Section */}
-            <section className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-900 dark:via-purple-900 dark:to-pink-900 py-20 overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-10" />
-                <div className="container mx-auto px-4 relative z-10">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="max-w-3xl mx-auto text-center text-white"
-                    >
-                        <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full mb-6">
-                            <Truck className="h-5 w-5" />
-                            <span className="font-bold">التوصيل والشحن</span>
-                        </div>
-                        <h1 className="text-5xl md:text-6xl font-extrabold mb-4">
-                            معلومات التوصيل
-                        </h1>
-                        <p className="text-xl text-purple-100">
-                            نوصل لجميع محافظات العراق بأسرع وقت وأفضل سعر
-                        </p>
-                    </motion.div>
-                </div>
+  return (
+    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <MetaTags title="التوصيل لكل العراق" description="توصيل AQUAVO لكل العراق خلال 24 ساعة بأجرة ثابتة 5,000 د.ع والدفع نقداً عند الاستلام." />
+      <Navbar />
+      <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+        <header className="max-w-3xl">
+          <p className="text-sm font-bold text-primary">وعد توصيل واضح</p>
+          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">توصيل لكل العراق خلال 24 ساعة</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">أجرة التوصيل 5,000 د.ع، والدفع نقداً عند الاستلام. تشوف المبلغ كاملاً قبل تأكيد الطلب.</p>
+        </header>
+        <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {facts.map(({ icon: Icon, title, detail }) => (
+            <section key={title} className="rounded-2xl border border-border bg-card/55 p-5 text-center">
+              <Icon className="mx-auto h-6 w-6 text-primary" aria-hidden="true" />
+              <h2 className="mt-4 text-lg font-bold">{title}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
             </section>
-
-            <main id="main-content" className="flex-1 py-12">
-                <div className="container mx-auto px-4">
-                    {/* Features */}
-                    <div className="grid md:grid-cols-4 gap-6 mb-12">
-                        {features.map((feature, index) => (
-                            <motion.div
-                                key={feature.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                            >
-                                <Card className="text-center h-full hover:shadow-lg transition-shadow">
-                                    <CardContent className="p-6">
-                                        <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <feature.icon className="w-7 h-7 text-primary" />
-                                        </div>
-                                        <h3 className="font-bold mb-2">{feature.title}</h3>
-                                        <p className="text-sm text-muted-foreground">{feature.description}</p>
-                                    </CardContent>
-                                </Card>
-                            </motion.div>
-                        ))}
-                    </div>
-
-                    {/* Shipping Zones Table */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <Card className="mb-12">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <MapPin className="w-5 h-5 text-primary" />
-                                    مناطق التوصيل والأسعار
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="overflow-x-auto">
-                                    <table role="table" className="w-full">
-                                        <caption className="sr-only">مناطق التوصيل والأسعار في العراق</caption>
-                                        <thead>
-                                            <tr className="border-b bg-muted/50">
-                                                <th scope="col" className="text-right p-4 font-bold">المنطقة</th>
-                                                <th scope="col" className="text-right p-4 font-bold">المدن المشمولة</th>
-                                                <th scope="col" className="text-right p-4 font-bold">سعر التوصيل</th>
-                                                <th scope="col" className="text-right p-4 font-bold">مدة التوصيل</th>
-                                                <th scope="col" className="text-right p-4 font-bold">الحالة</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {shippingZones.map((zone, index) => (
-                                                <tr key={zone.region} className="border-b hover:bg-muted/30 transition-colors">
-                                                    <td className="p-4 font-semibold">{zone.region}</td>
-                                                    <td className="p-4 text-muted-foreground text-sm">
-                                                        {zone.cities.join("، ")}
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <Badge variant="secondary" className="font-bold">
-                                                            {zone.price}
-                                                        </Badge>
-                                                    </td>
-                                                    <td className="p-4">
-                                                        <span className="flex items-center gap-1 text-sm">
-                                                            <Clock className="w-4 h-4 text-muted-foreground" />
-                                                            {zone.deliveryTime}
-                                                        </span>
-                                                    </td>
-                                                    <td className="p-4">
-                                                        {zone.available ? (
-                                                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                                                <CheckCircle className="w-3 h-3 ml-1" />
-                                                                متاح
-                                                            </Badge>
-                                                        ) : (
-                                                            <Badge variant="destructive">غير متاح</Badge>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-
-                    {/* Important Notes */}
-                    <div className="grid md:grid-cols-2 gap-6 mb-12">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.4 }}
-                        >
-                            <Card className="h-full">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-lg">
-                                        <Info className="w-5 h-5 text-blue-500" />
-                                        معلومات مهمة
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-3 text-sm">
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>الدفع عند الاستلام متاح لجميع المناطق</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>نتواصل معك قبل الشحن لتأكيد العنوان</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>نتواصل قبل الوصول بـ30 دقيقة</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <CheckCircle className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                            <span>يمكنك تتبع طلبك من صفحة تتبع الطلب</span>
-                                        </li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.5 }}
-                        >
-                            <Card className="h-full border-amber-200 bg-amber-50 dark:bg-amber-950/30 dark:border-amber-800">
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2 text-lg text-amber-800 dark:text-amber-300">
-                                        <AlertCircle className="w-5 h-5" />
-                                        ملاحظات خاصة
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <ul className="space-y-3 text-sm text-amber-900 dark:text-amber-200">
-                                        <li className="flex items-start gap-2">
-                                            <span className="font-bold">•</span>
-                                            <span>المنتجات الكبيرة أو القابلة للكسر: تتطلب تنسيقاً خاصاً للشحن. تواصل معنا أولاً.</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="font-bold">•</span>
-                                            <span>الأحواض الكبيرة (+100 لتر): قد تحتاج ترتيباً خاصاً للنقل.</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="font-bold">•</span>
-                                            <span>المناطق النائية: قد تستغرق وقتاً إضافياً بسيطاً.</span>
-                                        </li>
-                                        <li className="flex items-start gap-2">
-                                            <span className="font-bold">•</span>
-                                            <span>أيام الجمعة والعطل الرسمية: لا يتم الشحن.</span>
-                                        </li>
-                                    </ul>
-                                </CardContent>
-                            </Card>
-                        </motion.div>
-                    </div>
-
-                    {/* Contact CTA */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.6 }}
-                    >
-                        <Card className="bg-gradient-to-br from-primary/10 to-purple-500/10 border-0">
-                            <CardContent className="p-8 text-center">
-                                <h2 className="text-2xl font-bold mb-3">عندك استفسار عن التوصيل؟</h2>
-                                <p className="text-muted-foreground mb-6">
-                                    فريقنا جاهز للإجابة على أي سؤال
-                                </p>
-                                <div className="flex flex-wrap gap-4 justify-center">
-                                    <a href={`${WHATSAPP_URL}?text=${encodeURIComponent("مرحباً، عندي استفسار عن التوصيل")}`} target="_blank" rel="noopener noreferrer">
-                                        <Button size="lg" className="gap-2">
-                                            <MessageCircle className="w-5 h-5" />
-                                            تواصل عبر واتساب
-                                        </Button>
-                                    </a>
-                                    <a href={`tel:+${WHATSAPP_NUMBER}`}>
-                                        <Button size="lg" variant="outline" className="gap-2">
-                                            <Phone className="w-5 h-5" />
-                                            اتصل بنا
-                                        </Button>
-                                    </a>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                </div>
-            </main>
-
-
-            <BackToTop />
-            <Footer />
+          ))}
         </div>
-    );
+        <section className="mt-10 rounded-2xl border border-border bg-card/55 p-6 sm:p-8">
+          <div className="flex items-start gap-4">
+            <PackageCheck className="mt-1 h-6 w-6 shrink-0 text-primary" aria-hidden="true" />
+            <div>
+              <h2 className="text-2xl font-bold">قبل ما يطلع الطلب</h2>
+              <p className="mt-3 leading-7 text-muted-foreground">نراجع بيانات الطلب والعنوان. إذا عندك ملاحظة عن الوصول أو القطعة القابلة للكسر، اكتبها بحقل الملاحظات حتى تبقى مرتبطة بالطلب.</p>
+            </div>
+          </div>
+        </section>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Link href="/order-tracking" className="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">تتبع طلبك</Link>
+          <Link href="/contact" className="inline-flex min-h-11 items-center rounded-full border border-border px-6 text-sm font-bold hover:border-primary/50">اسأل عن التوصيل</Link>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }

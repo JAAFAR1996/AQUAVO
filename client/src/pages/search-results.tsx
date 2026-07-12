@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { SearchIcon, X, FileText, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, searchProducts } from "@/lib/api";
+import { searchProducts } from "@/lib/api";
 import { ProductCard } from "@/components/products/product-card";
 import { FishCard } from "@/components/fish/fish-card";
 import { FishDetailModal } from "@/components/fish/fish-detail-modal";
@@ -41,7 +41,7 @@ const SITE_PAGES: PageResult[] = [
   {
     id: "home",
     title: "الرئيسية",
-    description: "المتجر الإلكتروني الأول لأسماك الزينة في العراق",
+    description: "متجر عراقي لمعدات ومستلزمات الأحواض البريميوم",
     url: "/",
     keywords: ["home", "main", "store", "shop"]
   },
@@ -65,13 +65,6 @@ const SITE_PAGES: PageResult[] = [
     description: "نظام ذكي لتشخيص أمراض الأسماك واقتراح العلاج",
     url: "/fish-health-diagnosis",
     keywords: ["doctor", "health", "disease", "sick", "cure"]
-  },
-  {
-    id: "tank-builder",
-    title: "بناء الحوض",
-    description: "صمم حوض أحلامك بتقنية ثلاثية الأبعاد",
-    url: "/3d-tank-builder",
-    keywords: ["tank", "aquarium", "build", "3d", "setup"]
   },
   {
     id: "gallery",
