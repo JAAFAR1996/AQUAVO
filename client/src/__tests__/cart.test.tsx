@@ -32,6 +32,7 @@ vi.mock('@/lib/meta-pixel', () => ({
 
 vi.mock('@/lib/analytics', () => ({
   trackBeginCheckout: vi.fn(),
+  trackAddShippingInfo: vi.fn(),
   trackPurchase: vi.fn(),
   trackAddToCart: vi.fn(),
 }));

@@ -21,7 +21,11 @@ vi.mock("@/contexts/cart-context", () => ({
 vi.mock("@/hooks/use-toast", () => ({ useToast: () => ({ toast: vi.fn() }) }));
 vi.mock("@/lib/tiktok-pixel", () => ({ ttqInitiateCheckout: vi.fn(), ttqAddPaymentInfo: vi.fn(), ttqPlaceAnOrder: vi.fn() }));
 vi.mock("@/lib/meta-pixel", () => ({ metaTrackInitiateCheckout: vi.fn(), metaTrackPurchase: vi.fn() }));
-vi.mock("@/lib/analytics", () => ({ trackBeginCheckout: vi.fn(), trackPurchase: vi.fn() }));
+vi.mock("@/lib/analytics", () => ({
+  trackBeginCheckout: vi.fn(),
+  trackAddShippingInfo: vi.fn(),
+  trackPurchase: vi.fn(),
+}));
 
 import CheckoutPage from "../checkout";
 

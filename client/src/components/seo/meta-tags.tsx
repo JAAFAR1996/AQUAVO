@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { isTrackingAllowed } from "@/lib/tracking-environment";
 import DOMPurify from 'isomorphic-dompurify';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -53,6 +54,8 @@ export function MetaTags({
     noIndex = false,
 }: MetaTagsProps) {
     useEffect(() => {
+        const productionOrigin = "https://www.aquavoiq.com";
+        const isPreview = !isTrackingAllowed();
         // Update title - proper format for SEO
         const fullTitle = `${title} | AQUAVO لمعدات الأحواض | العراق`;
         document.title = fullTitle;
@@ -82,7 +85,7 @@ export function MetaTags({
 
         // Basic meta tags
         setMetaTag("description", description.slice(0, 160)); // Limit to 160 chars
-        setMetaTag("robots", noIndex ? "noindex, nofollow" : "index, follow");
+        setMetaTag("robots", noIndex || isPreview ? "noindex, nofollow" : "index, follow");
 
         // Keywords (if provided)
         if (keywords.length > 0) {
@@ -90,8 +93,8 @@ export function MetaTags({
         }
 
         // Canonical URL (important for duplicate content)
-        const currentUrl = typeof window !== "undefined" ? new URL(window.location.href) : null;
-        const canonical = canonicalUrl || url || (currentUrl ? `${currentUrl.origin}${currentUrl.pathname}` : "");
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
+        const canonical = canonicalUrl || url || `${productionOrigin}${currentPath}`;
         if (canonical) {
             setLinkTag("canonical", canonical);
         }

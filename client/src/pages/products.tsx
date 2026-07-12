@@ -18,6 +18,7 @@ import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
 import { BackToTop } from "@/components/back-to-top";
 import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
+import { trackViewItemList } from "@/lib/analytics";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -196,6 +197,20 @@ export default function Products() {
   const displayedProducts = useMemo(() => {
     return finalProducts.slice(0, displayCount);
   }, [finalProducts, displayCount]);
+
+  const trackedListSignature = useRef("");
+  useEffect(() => {
+    const signature = displayedProducts.map((product) => product.id).join(",");
+    if (!signature || signature === trackedListSignature.current) return;
+    trackedListSignature.current = signature;
+    trackViewItemList(displayedProducts.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      category: product.category,
+    })), initialCategory ? `products:${initialCategory}` : "products");
+  }, [displayedProducts, initialCategory]);
 
   const hasMore = displayCount < finalProducts.length;
 

@@ -15,7 +15,9 @@ export function createSystemRouter(): RouterType {
         try {
             const products = await storage.getProducts();
             const baseUrl = "https://www.aquavoiq.com";
-            const today = new Date().toISOString().split('T')[0];
+            // Static content last changed with the verified AQUAVO V2 release.
+            // Do not manufacture a fresh lastmod date on every sitemap request.
+            const staticContentLastmod = "2026-07-12";
 
             // Static pages with priority and changefreq for crawl budget optimisation
             const staticPages: { loc: string; priority: string; changefreq: string }[] = [
@@ -42,7 +44,6 @@ export function createSystemRouter(): RouterType {
                 { loc: "/why-aquavo",          priority: "0.6", changefreq: "monthly" },
                 { loc: "/shipping",            priority: "0.6", changefreq: "monthly" },
                 { loc: "/return-policy",       priority: "0.5", changefreq: "monthly" },
-                { loc: "/invest",              priority: "0.5", changefreq: "monthly" },
                 { loc: "/terms",               priority: "0.4", changefreq: "yearly" },
                 { loc: "/privacy-policy",      priority: "0.4", changefreq: "yearly" },
             ];
@@ -57,13 +58,8 @@ export function createSystemRouter(): RouterType {
                 "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
                 // New SEO/AEO pages — 2026 (target topics with low visibility score)
                 "/guides/new-aquarium-setup-iraq",
-                "/guides/aquarium-filter-guide",
-                "/guides/aquarium-heater-guide",
                 "/guides/aquarium-water-test-guide",
                 "/guides/aquarium-decor-stones-guide",
-                "/guides/water-conditioner-guide",
-                "/guides/aquarium-weekly-maintenance",
-                "/guides/beginner-aquarium-mistakes",
             ];
 
             // Image sitemap namespace for Google visual search + AI image indexing
@@ -71,17 +67,17 @@ export function createSystemRouter(): RouterType {
 
             // Static pages
             staticPages.forEach(({ loc, priority, changefreq }) => {
-                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${staticContentLastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
             });
 
             // Guide pages (0.7 priority — rich AEO content)
             guidePages.forEach(loc => {
-                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${staticContentLastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
             });
 
             // Products — with image sitemap extension for visual AI search
             products.forEach(p => {
-                const updated = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : today;
+                const updated = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : staticContentLastmod;
                 // Collect up to 3 images per product
                 const images: string[] = [];
                 try {
@@ -113,7 +109,7 @@ export function createSystemRouter(): RouterType {
                         .where(eq(blogPosts.status, "published"))
                         .orderBy(desc(blogPosts.publishedAt));
                     posts.forEach(p => {
-                        const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : today;
+                        const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : staticContentLastmod;
                         xml += `\n  <url>\n    <loc>${baseUrl}/blog/${p.slug}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
                     });
                 } catch { /* blog table might not exist yet */ }

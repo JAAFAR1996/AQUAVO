@@ -57,6 +57,7 @@ export interface IStorage {
         customerInfo: any,
         couponCode?: string,
         loyaltyOptions?: { useCashback?: boolean; cashbackToUse?: number },
+        idempotencyKey?: string,
     ): Promise<Order>;
     seedProductsIfNeeded(): Promise<void>;
     // Sales analytics

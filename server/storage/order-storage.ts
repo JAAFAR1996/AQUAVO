@@ -183,6 +183,7 @@ export class OrderStorage {
         customerInfo: any,
         couponCode?: string,
         loyaltyOptions: CreateOrderLoyaltyOptions = {},
+        idempotencyKey?: string,
     ): Promise<OrderWithLoyalty> {
         const db = this.ensureDb();
         if (!userId && loyaltyOptions.useCashback && Number(loyaltyOptions.cashbackToUse ?? 0) > 0) {
@@ -324,6 +325,7 @@ export class OrderStorage {
 
             // 6. Create Order — store enriched items with product names and prices
             const [newOrder] = await tx.insert(orders).values({
+                ...(idempotencyKey ? { id: idempotencyKey } : {}),
                 orderNumber: orderNumber,
                 userId: userId ? userId : undefined,
                 items: orderItemsData,

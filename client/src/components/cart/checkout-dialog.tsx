@@ -9,8 +9,9 @@ import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
-import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
+import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { phTrackInitiateCheckout, phTrackPurchase } from "@/lib/posthog";
+import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
 
 // Sub-components
 import { CustomerInfo, GOVERNORATES } from "./checkout/types";
@@ -204,6 +205,12 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
 
   const handleContinue = () => {
     if (validateInfo()) {
+      trackAddShippingInfo(cartItems.map(item => ({
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })), cartTotal);
       // TikTok Pixel: AddPaymentInfo when user proceeds to confirm
       ttqAddPaymentInfo(
         cartItems.map(item => ({
@@ -229,11 +236,18 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         address: `${governorateLabel || customerInfo.governorate} - ${customerInfo.address}`,
       };
 
+      const cartSignature = JSON.stringify({
+        items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+        couponCode: appliedCoupon?.code ?? null,
+        cashbackToUse: loyaltyData.cashbackToUse,
+      });
+      const idempotencyKey = getOrderIdempotencyKey(cartSignature);
       const response = await fetch("/api/orders", {
         method: "POST",
         credentials: "include",
         headers: addCsrfHeader({
           "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
         }),
         body: JSON.stringify({
           customerInfo: submittedCustomerInfo,
@@ -299,6 +313,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
         orderId: orderData.id,
         orderNumber: orderData.orderNumber ?? orderData.id
       });
+      clearOrderIdempotencyKey();
 
       clearCart();
       setStep('info');

@@ -44,6 +44,8 @@ export const createOrderSchema = z.object({
     cashbackToUse: z.number().int().min(0).optional().default(0),
 });
 
+const idempotencyKeySchema = z.string().uuid();
+
 export function calculateActualCashbackUsed({
     useCashback,
     requestedCashback,
@@ -117,6 +119,28 @@ export function createOrderRouter(): RouterType {
 
             const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
 
+            const rawIdempotencyKey = req.get("Idempotency-Key");
+            const parsedIdempotencyKey = rawIdempotencyKey
+                ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
+                : null;
+            if (parsedIdempotencyKey && !parsedIdempotencyKey.success) {
+                res.status(400).json({ message: "Invalid Idempotency-Key header" });
+                return;
+            }
+            const idempotencyKey = parsedIdempotencyKey?.success
+                ? parsedIdempotencyKey.data
+                : undefined;
+
+            // A repeated request returns the already committed order and skips every
+            // inventory, coupon, loyalty, notification, and analytics side effect.
+            if (idempotencyKey) {
+                const existingOrder = await storage.getOrder(idempotencyKey);
+                if (existingOrder) {
+                    res.status(200).json(existingOrder);
+                    return;
+                }
+            }
+
             if (!userId && useCashback && cashbackToUse > 0) {
                 res.status(400).json({
                     message: "Cashback redemption requires a logged-in customer",
@@ -130,6 +154,7 @@ export function createOrderRouter(): RouterType {
                 customerInfo,
                 couponCode,
                 { useCashback, cashbackToUse },
+                idempotencyKey,
             );
 
             // 📝 Store client IP with order for rejection tracking
@@ -281,6 +306,17 @@ export function createOrderRouter(): RouterType {
 
             res.status(201).json(response);
         } catch (err: any) {
+            const rawIdempotencyKey = req.get("Idempotency-Key");
+            const parsedIdempotencyKey = rawIdempotencyKey
+                ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
+                : null;
+            if (parsedIdempotencyKey?.success) {
+                const existingOrder = await storage.getOrder(parsedIdempotencyKey.data);
+                if (existingOrder) {
+                    res.status(200).json(existingOrder);
+                    return;
+                }
+            }
             // Convert known validation errors to 400 (stock issues surface the
             // clean Arabic message produced by order-storage).
             if (err.message?.includes('not found') ||

@@ -48,4 +48,21 @@ describe("AQUAVO discoverability contract", () => {
     expect(ssr).toContain('legalName: "محل المنبع / AL NABEA SHOP"');
     expect(ssr).not.toContain('foundingDate: "2024"');
   });
+
+  it("keeps the runtime sitemap truthful and free of noindex or nonexistent routes", () => {
+    const system = read("server/routes/system.ts");
+    const sitemap = read("client/public/sitemap.xml");
+    expect(system).toContain('const staticContentLastmod = "2026-07-12"');
+    expect(system).not.toContain("const today = new Date()");
+    for (const invalidPath of [
+      "/invest",
+      "/guides/aquarium-filter-guide",
+      "/guides/aquarium-heater-guide",
+      "/guides/aquarium-weekly-maintenance",
+      "/guides/beginner-aquarium-mistakes",
+    ]) {
+      expect(system).not.toContain(`loc: "${invalidPath}"`);
+      expect(sitemap).not.toContain(`<loc>https://www.aquavoiq.com${invalidPath}</loc>`);
+    }
+  });
 });

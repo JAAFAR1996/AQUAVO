@@ -14,8 +14,8 @@ describe("MetaTags canonical URLs", () => {
     render(<MetaTags title="المتجر" />);
 
     await waitFor(() => {
-      expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", `${window.location.origin}/products`);
-      expect(document.querySelector('meta[property="og:url"]')).toHaveAttribute("content", `${window.location.origin}/products`);
+      expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", "https://www.aquavoiq.com/products");
+      expect(document.querySelector('meta[property="og:url"]')).toHaveAttribute("content", "https://www.aquavoiq.com/products");
     });
   });
 });

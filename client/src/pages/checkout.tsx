@@ -8,11 +8,12 @@ import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
 import { ttqInitiateCheckout, ttqAddPaymentInfo, ttqPlaceAnOrder } from "@/lib/tiktok-pixel";
 import { metaTrackInitiateCheckout, metaTrackPurchase } from "@/lib/meta-pixel";
-import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
+import { trackAddShippingInfo, trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 import { BAGHDAD_SHIPPING, OTHER_GOVERNORATES_SHIPPING, WHATSAPP_URL, DELIVERY_DAYS } from "@/lib/constants/shipping";
 import { ArrowRight, ShoppingCart, MessageCircle, Instagram } from "lucide-react";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { resolveCheckoutTotal } from "@/lib/checkout-total";
+import { clearOrderIdempotencyKey, getOrderIdempotencyKey } from "@/lib/order-idempotency";
 
 import { stashOrder } from "@/lib/order-stash";
 import { CustomerInfo, GOVERNORATES } from "@/components/cart/checkout/types";
@@ -136,6 +137,12 @@ export default function CheckoutPage() {
 
   const handleContinue = () => {
     if (validateInfo()) {
+      trackAddShippingInfo(cartItems.map((item) => ({
+        id: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      })), cartTotal);
       ttqAddPaymentInfo(
         cartItems.map((item) => ({
           id: item.productId,
@@ -154,9 +161,18 @@ export default function CheckoutPage() {
     if (!agreed) return;
     setIsSubmitting(true);
     try {
+      const cartSignature = JSON.stringify({
+        items: cartItems.map(({ productId, variantId, quantity }) => ({ productId, variantId, quantity })),
+        couponCode: appliedCoupon?.code ?? null,
+        cashbackToUse: loyaltyData.cashbackToUse,
+      });
+      const idempotencyKey = getOrderIdempotencyKey(cartSignature);
       const response = await fetch("/api/orders", {
         method: "POST",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
+        headers: addCsrfHeader({
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        }),
         credentials: "include",
         body: JSON.stringify({
           customerInfo: {
@@ -222,6 +238,7 @@ export default function CheckoutPage() {
       // step "success" first so the empty-cart redirect effect doesn't bounce us
       // home once clearCart() empties the cart.
       setStep("success");
+      clearOrderIdempotencyKey();
 
       if (orderData.id) {
         // Stash the full order so the confirmation page shows a complete invoice

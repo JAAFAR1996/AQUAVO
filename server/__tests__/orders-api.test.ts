@@ -910,4 +910,18 @@ describe('OrderStorage.createOrderSecure', () => {
         expect(source).toContain(".catch(err => console.error('[AQUAVO Loyalty Notifications] Failed:', err));");
         expect(source).toContain('catch (refErr)');
     });
+
+    it('uses the idempotency key as the transactional order id and skips duplicate side effects', () => {
+        const routeSource = readFileSync(resolve(process.cwd(), 'server/routes/orders.ts'), 'utf8');
+        const storageSource = readFileSync(resolve(process.cwd(), 'server/storage/order-storage.ts'), 'utf8');
+        const duplicateLookupIndex = routeSource.indexOf('await storage.getOrder(idempotencyKey)');
+        const createOrderIndex = routeSource.indexOf('await storage.createOrderSecure');
+        const notificationIndex = routeSource.indexOf('sendOrderNotification', createOrderIndex);
+
+        expect(duplicateLookupIndex).toBeGreaterThan(-1);
+        expect(duplicateLookupIndex).toBeLessThan(createOrderIndex);
+        expect(notificationIndex).toBeGreaterThan(createOrderIndex);
+        expect(routeSource).toContain('idempotencyKeySchema = z.string().uuid()');
+        expect(storageSource).toContain('...(idempotencyKey ? { id: idempotencyKey } : {})');
+    });
 });

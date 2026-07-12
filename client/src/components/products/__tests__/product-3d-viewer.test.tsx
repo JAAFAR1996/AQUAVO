@@ -24,5 +24,13 @@ describe("Product3DViewer", () => {
     await waitFor(() => {
       expect(container.querySelector("model-viewer")).not.toBeNull();
     });
+
+    const viewer = container.querySelector("model-viewer");
+    expect(viewer).toHaveAttribute("camera-controls");
+    expect(viewer).toHaveAttribute("touch-action", "pan-y");
+    expect(screen.getByRole("button", { name: "رجّع العرض للبداية" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "قرّب العرض" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "بعّد العرض" })).toBeInTheDocument();
+    expect(screen.getByText(/النموذج توضيحي/)).toBeInTheDocument();
   });
 });

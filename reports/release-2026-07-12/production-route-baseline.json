@@ -1,0 +1,115 @@
+[
+    {
+        "url":  "https://www.aquavoiq.com/",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+        "h1Count":  1,
+        "structuredDataTypes":  [
+                                    "Organization",
+                                    "ImageObject",
+                                    "Country",
+                                    "ContactPoint",
+                                    "OpeningHoursSpecification",
+                                    "PostalAddress",
+                                    "WebSite",
+                                    "SearchAction"
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/products",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/products",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "مستلزمات أحواض الزينة في العراق | AQUAVO",
+        "h1Count":  1,
+        "structuredDataTypes":  [
+                                    "CollectionPage",
+                                    "WebSite",
+                                    "ItemList",
+                                    "ListItem",
+                                    "BreadcrumbList"
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/products/aquavo-driftwood-dw-01",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/products/aquavo-driftwood-dw-01",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "خشب ديكور للأحواض — قطعة DW-01 - AQUAVO | AQUAVO",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+                                    "Product",
+                                    "Brand",
+                                    "Offer",
+                                    "Organization"
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/cart",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/cart",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/checkout",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/checkout",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/verify-certificate/yee",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/verify-certificate/yee",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/robots.txt",
+        "status":  200,
+        "canonical":  "",
+        "robots":  "",
+        "title":  "",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/sitemap.xml",
+        "status":  200,
+        "canonical":  "",
+        "robots":  "",
+        "title":  "",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    },
+    {
+        "url":  "https://www.aquavoiq.com/definitely-not-a-real-route-release-20260712",
+        "status":  200,
+        "canonical":  "https://www.aquavoiq.com/definitely-not-a-real-route-release-20260712",
+        "robots":  "index, follow, max-image-preview:large",
+        "title":  "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية",
+        "h1Count":  0,
+        "structuredDataTypes":  [
+
+                                ]
+    }
+]

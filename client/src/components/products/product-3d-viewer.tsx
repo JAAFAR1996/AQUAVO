@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
   jumpCameraToGoal?: () => void;
+  getCameraOrbit?: () => { theta: number; phi: number; radius: number };
 };
 
 interface Product3DViewerProps {
@@ -106,7 +107,7 @@ function ViewerHeader({ pieceCode }: { pieceCode?: string }) {
 function ViewerFooter() {
   return (
     <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-      هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
+      النموذج توضيحي حتى تشوف الشكل من زوايا مختلفة. صور المنتج والقياسات والتغليف والمواصفات المكتوبة هي المرجع الأساسي قبل الشراء.
     </div>
   );
 }
@@ -143,23 +144,6 @@ function ViewerShell({
    CSS keyframes (inserted once)
    ────────────────────────────────────────────────────────── */
 
-const ANIMATION_CSS = `
-  @keyframes horizontal-bounce {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(3px); }
-  }
-  @keyframes horizontal-bounce-reverse {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-3px); }
-  }
-  .animate-horizontal-bounce {
-    animation: horizontal-bounce 1.5s infinite ease-in-out;
-  }
-  .animate-horizontal-bounce-reverse {
-    animation: horizontal-bounce-reverse 1.5s infinite ease-in-out;
-  }
-`;
-
 /* ──────────────────────────────────────────────────────────
    Drag overlay hint
    ────────────────────────────────────────────────────────── */
@@ -176,7 +160,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
     >
       <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#0B1E28]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
         <svg
-          className="h-4 w-4 shrink-0 animate-horizontal-bounce-reverse text-cyan-400"
+          className="h-4 w-4 shrink-0 text-cyan-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -185,7 +169,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         <svg
-          className="h-5 w-5 shrink-0 animate-pulse text-white/95"
+          className="h-5 w-5 shrink-0 text-white/95"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -200,7 +184,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
           اسحب يمين أو يسار حتى تشوف القطعة من كل زاوية
         </p>
         <svg
-          className="h-4 w-4 shrink-0 animate-horizontal-bounce text-cyan-400"
+          className="h-4 w-4 shrink-0 text-cyan-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -230,6 +214,26 @@ function ModelViewerInner({
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
   const [viewerError, setViewerError] = useState(false);
+
+  const resetView = () => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    setShowOverlay(false);
+    viewer.setAttribute("camera-orbit", "145deg 71deg 118%");
+    viewer.jumpCameraToGoal?.();
+  };
+
+  const adjustZoom = (factor: number) => {
+    const viewer = viewerRef.current;
+    const orbit = viewer?.getCameraOrbit?.();
+    if (!viewer || !orbit) return;
+    setShowOverlay(false);
+    viewer.setAttribute(
+      "camera-orbit",
+      `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius * factor}m`
+    );
+    viewer.jumpCameraToGoal?.();
+  };
 
   // Cache-bust the GLB URL
   const busterSrc = src
@@ -284,10 +288,6 @@ function ModelViewerInner({
     const baseTheta = 145;
     const basePhi = 71;
     const baseRadius = 118;
-    const orbitAmplitude = 4.0;
-    const orbitCycleMs = 4000;
-    let animationFrame: number | undefined;
-    let hasUserInteracted = false;
     let overlayTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const formatOrbit = (theta: number) =>
@@ -302,47 +302,22 @@ function ModelViewerInner({
       }
     };
 
-    const stopMotion = () => {
-      hasUserInteracted = true;
+    const acknowledgeInteraction = () => {
       setShowOverlay(false);
       if (overlayTimeout) {
         clearTimeout(overlayTimeout);
         overlayTimeout = undefined;
       }
-      if (animationFrame !== undefined) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = undefined;
-      }
-    };
-
-    const animate = (timestamp: number) => {
-      if (hasUserInteracted) {
-        animationFrame = undefined;
-        return;
-      }
-      const progress = (timestamp % orbitCycleMs) / orbitCycleMs;
-      const theta = baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
-      jumpTo(theta);
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    const startMotion = () => {
-      if (hasUserInteracted || animationFrame !== undefined) return;
-      jumpTo(baseTheta);
-      animationFrame = requestAnimationFrame(animate);
-      if (!overlayTimeout) {
-        overlayTimeout = setTimeout(stopMotion, 6000);
-      }
     };
 
     const handleLoad = () => {
       jumpTo(baseTheta);
-      startMotion();
+      overlayTimeout = setTimeout(acknowledgeInteraction, 6000);
     };
 
     const handleCameraChange = (event: Event) => {
       const ce = event as CustomEvent<{ source: string }>;
-      if (ce.detail?.source === "user-interaction") stopMotion();
+      if (ce.detail?.source === "user-interaction") acknowledgeInteraction();
     };
 
     const handleError = (event: Event) => {
@@ -354,19 +329,21 @@ function ModelViewerInner({
     viewer.addEventListener("load", handleLoad);
     viewer.addEventListener("camera-change", handleCameraChange);
     viewer.addEventListener("error", handleError);
+    viewer.addEventListener("pointerdown", acknowledgeInteraction);
+    viewer.addEventListener("wheel", acknowledgeInteraction);
 
     jumpTo(baseTheta);
-    startMotion();
 
     if (viewer.loaded) handleLoad();
 
     return () => {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
       if (overlayTimeout) clearTimeout(overlayTimeout);
       try {
         viewer!.removeEventListener("load", handleLoad);
         viewer!.removeEventListener("camera-change", handleCameraChange);
         viewer!.removeEventListener("error", handleError);
+        viewer!.removeEventListener("pointerdown", acknowledgeInteraction);
+        viewer!.removeEventListener("wheel", acknowledgeInteraction);
         container.removeChild(viewer!);
       } catch {
         /* already removed */
@@ -407,8 +384,33 @@ function ModelViewerInner({
       {/* model-viewer gets appended here imperatively */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      <style dangerouslySetInnerHTML={{ __html: ANIMATION_CSS }} />
       <DragOverlay visible={showOverlay} />
+      <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2" dir="rtl">
+        <button
+          type="button"
+          onClick={resetView}
+          className="min-h-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-xs font-semibold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="رجّع العرض للبداية"
+        >
+          رجّع العرض
+        </button>
+        <button
+          type="button"
+          onClick={() => adjustZoom(0.82)}
+          className="min-h-11 min-w-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-sm font-bold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="قرّب العرض"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={() => adjustZoom(1.18)}
+          className="min-h-11 min-w-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-sm font-bold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="بعّد العرض"
+        >
+          −
+        </button>
+      </div>
     </div>
   );
 }

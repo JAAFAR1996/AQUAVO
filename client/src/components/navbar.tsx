@@ -82,7 +82,12 @@ export default function Navbar() {
 
   const openCart = (open: boolean) => {
     setIsCartOpen(open);
-    if (open) trackCartOpen();
+    if (open) trackCartOpen(cartItems.map((item) => ({
+      id: item.productId,
+      name: item.name,
+      price: item.price,
+      quantity: item.quantity,
+    })), totalPrice);
   };
 
   return (

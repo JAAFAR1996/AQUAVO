@@ -220,7 +220,7 @@ export default function Footer() {
           </section>
         </div>
 
-        <div className="flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 border-t border-white/10 py-6 text-xs text-white/65 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} AQUAVO / محل المنبع — AL NABEA SHOP</p>
           <p>طريقة الدفع المتوفرة هسه: الدفع النقدي عند الاستلام</p>
           <p>أجور التوصيل الثابتة: 5,000 د.ع</p>

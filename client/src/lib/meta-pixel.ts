@@ -1,6 +1,7 @@
 // FILE: client/src/lib/meta-pixel.ts
 // AQUAVO — Meta Pixel + Conversions API client helper
 // Hybrid tracking: Browser Pixel + Server-side CAPI with event deduplication
+import { isTrackingAllowed } from "./tracking-environment";
 
 declare global {
   interface Window {
@@ -13,7 +14,7 @@ const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID;
 
 // ─── Initialize Pixel ────────────────────────────────────────────────────────
 export function initMetaPixel() {
-  if (typeof window === "undefined" || !PIXEL_ID) return;
+  if (!isTrackingAllowed() || !PIXEL_ID) return;
   if (typeof window.fbq === "function") return; // already loaded
 
   // Inject fbq stub (official Meta pattern)
@@ -68,7 +69,7 @@ function getFbCookies() {
 
 // ─── Check if Pixel is available ─────────────────────────────────────────────
 function isPixelReady(): boolean {
-  return typeof window !== "undefined" && !!window.fbq && !!PIXEL_ID;
+  return isTrackingAllowed() && !!window.fbq && !!PIXEL_ID;
 }
 
 // ─── Standard E-Commerce Events ─────────────────────────────────────────────
@@ -311,6 +312,7 @@ interface CAPIPayload {
 }
 
 function sendCAPI(payload: CAPIPayload) {
+  if (!isTrackingAllowed()) return;
   // Don't send if no pixel is configured
   if (!PIXEL_ID) return;
 

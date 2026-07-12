@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { cardImage } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
+import { trackSelectItem } from "@/lib/analytics";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -102,6 +103,13 @@ export const ProductCard = memo(function ProductCard({
 
       <Link
         href={`/products/${product.slug}`}
+        onClick={() => trackSelectItem({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: 1,
+          category: product.category,
+        })}
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
