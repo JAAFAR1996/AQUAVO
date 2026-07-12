@@ -42,7 +42,7 @@ interface MetaTagsProps {
  */
 export function MetaTags({
     title,
-    description = "AQUAVO - معدات أحواض أصلية وبريميوم في العراق — توصيل لكل المحافظات",
+    description = "AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم — توصيل لكل العراق ودفع نقداً عند الاستلام.",
     keywords = [],
     image = LOGO_URL,
     url,
@@ -54,7 +54,7 @@ export function MetaTags({
 }: MetaTagsProps) {
     useEffect(() => {
         // Update title - proper format for SEO
-        const fullTitle = `${title} | AQUAVO - معدات أحواض أصلية | العراق`;
+        const fullTitle = `${title} | AQUAVO لمعدات الأحواض | العراق`;
         document.title = fullTitle;
 
         // Helper to set meta tag
@@ -90,7 +90,8 @@ export function MetaTags({
         }
 
         // Canonical URL (important for duplicate content)
-        const canonical = canonicalUrl || url || (typeof window !== "undefined" ? window.location.href : "");
+        const currentUrl = typeof window !== "undefined" ? new URL(window.location.href) : null;
+        const canonical = canonicalUrl || url || (currentUrl ? `${currentUrl.origin}${currentUrl.pathname}` : "");
         if (canonical) {
             setLinkTag("canonical", canonical);
         }
@@ -101,7 +102,7 @@ export function MetaTags({
         setMetaTag("og:image", image, true);
         setMetaTag("og:image:alt", title, true);
         setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
-        if (url) setMetaTag("og:url", url, true);
+        if (canonical) setMetaTag("og:url", canonical, true);
         setMetaTag("og:site_name", "AQUAVO", true);
         setMetaTag("og:locale", "ar_IQ", true);
 
@@ -285,7 +286,7 @@ export function OrganizationSchema() {
             width: 512,
             height: 512,
         },
-        description: "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. نوفر الفلاتر، السخانات، الأغذية، الديكورات، ومعالجات المياه. الدفع عند الاستلام مع توصيل لجميع محافظات العراق بـ 5,000 دينار.",
+        description: "براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم. الدفع نقداً عند الاستلام مع توصيل لكل العراق بـ 5,000 دينار.",
         areaServed: [
             {
                 "@type": "Country",
@@ -453,7 +454,7 @@ export function WebsiteSchema() {
         name: "AQUAVO",
         alternateName: "AQUAVO Store",
         url: BASE_URL,
-        description: "أكبر متجر إلكتروني متخصص في معدات أحواض الأسماك في العراق — توصيل لكل المحافظات خلال 24 ساعة",
+        description: "براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم — توصيل لكل العراق خلال 24 ساعة.",
         inLanguage: "ar-IQ",
         potentialAction: {
             "@type": "SearchAction",

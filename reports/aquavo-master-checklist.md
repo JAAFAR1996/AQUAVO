@@ -81,10 +81,11 @@ Allowed status values:
 - COMPLETED — Removed the invented `YEE-AQ-2026-VERIFIED` identifier and remote image fallback.
 - COMPLETED — AQUAVO warranty eligibility remains disabled by default; no product was marked eligible.
 - BLOCKED — OWNER DATA REQUIRED — Explicit list of electrical product IDs eligible for the proposed six-month limited warranty.
-- PENDING — Eligible-item warranty starts on confirmed delivery date.
-- PENDING — First seven calendar days: replacement after inspection confirms manufacturing defect.
-- PENDING — Day 8 through month 6: repair, replacement, then refund/customer-approved alternative if impossible.
-- PENDING — Non-warranty items retain delivery, damage, missing-item and conformity policies.
+- BLOCKED — OWNER DATA REQUIRED — Exact eligible product IDs/SKUs; eligibility remains disabled by default.
+- COMPLETED — Eligible-item policy starts on confirmed delivery date once an approved SKU is enabled.
+- COMPLETED — First seven calendar days policy: replacement after inspection confirms manufacturing defect.
+- COMPLETED — Day 8 through month 6 policy: repair, replacement, then refund/customer-approved alternative if impossible.
+- COMPLETED — Non-warranty items retain delivery, damage, missing-item and conformity policies.
 
 ## Phase 7 — Cart and checkout
 
@@ -129,14 +130,14 @@ Allowed status values:
 
 ## Phase 10 — Accessibility, RTL, SEO and performance
 
-- PENDING — One visible H1 per routed page.
-- PENDING — Semantic landmarks, labels, keyboard focus and skip link.
-- PENDING — RTL layout and mixed-direction data review.
-- PENDING — Automated axe/Playwright checks plus manual keyboard checks.
-- PENDING — Canonical, OG, manifest and JSON-LD v2 identity.
-- PENDING — Route/sitemap/canonical parity and true 404 HTTP status.
-- PENDING — Responsive image dimensions and stable skeletons.
-- PENDING — Fresh CLS/LCP/performance evidence.
+- IN PROGRESS — One visible H1 verified on the core commercial/trust routes; full route sweep remains Phase 12.
+- IN PROGRESS — Semantic landmarks, labels, keyboard focus and skip link verified on core flows; full route sweep remains Phase 12.
+- IN PROGRESS — RTL and mixed-direction data verified on core routes and five target widths; remaining long-tail tools are Phase 12.
+- COMPLETED — Automated axe 4.12.1 browser checks on seven core routes plus certificate keyboard and reduced-motion checks; automated coverage does not replace manual review.
+- COMPLETED — Canonical strips query/hash, OG URL follows canonical, manifest and homepage Organization/WebSite JSON-LD use v2 truthful identity.
+- COMPLETED — Removed six sitemap URLs without matching routes; true HTTP 404 was completed in Phase 1.
+- COMPLETED — Core commerce images have dimensions/contained behavior and store skeletons remain dimension-stable.
+- COMPLETED — Fresh local Chromium CLS/LCP evidence recorded with explicit non-production limitations; no Lighthouse score invented.
 
 ## Phase 11 — Extended production identity assets
 
