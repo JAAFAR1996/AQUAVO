@@ -4,6 +4,7 @@
  */
 
 import rateLimit from 'express-rate-limit';
+import * as Sentry from '@sentry/node';
 
 /**
  * Authentication rate limiter
@@ -68,6 +69,24 @@ export const orderLimiter = rateLimit({
     },
     standardHeaders: true,
     legacyHeaders: false,
+});
+
+/** Public order tracking brute-force protection with a PII-free alert. */
+export const orderTrackingLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipSuccessfulRequests: true,
+    handler: (_req, res) => {
+        Sentry.captureMessage('Order tracking rate limit exceeded', {
+            level: 'warning',
+            tags: { security_event: 'order_tracking_enumeration' },
+        });
+        res.status(429).json({
+            message: 'تعذر التحقق من الطلب. تأكد من المعلومات وحاول لاحقاً.',
+        });
+    },
 });
 
 /**

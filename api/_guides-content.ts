@@ -165,7 +165,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
     },
     breadcrumb: [
       { label: "الرئيسية", href: "/" },
-      { label: "اختيار الفلتر", href: "/guides/aquarium-filter-guide" },
+      { label: "اختيار الفلتر", href: "/guides/filter-choice" },
     ],
   },
 
@@ -229,7 +229,7 @@ export const GUIDE_CONTENT_PAGES: Record<string, GuidePage> = {
     },
     breadcrumb: [
       { label: "الرئيسية", href: "/" },
-      { label: "اختيار السخان", href: "/guides/aquarium-heater-guide" },
+      { label: "اختيار السخان", href: "/guides/heater-choice" },
     ],
   },
 
@@ -910,8 +910,8 @@ export interface GuideIndexItem {
 }
 export const GUIDE_INDEX_ITEMS: GuideIndexItem[] = [
   { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض زينة جديد في العراق", blurb: "خطوات ترتيب المعدات وملء الحوض وتدوير الماء قبل إضافة الأسماك." },
-  { href: "/guides/aquarium-filter-guide", label: "كيف تختار فلتر مناسب", blurb: "أنواع الفلاتر والقوة المناسبة حسب حجم الحوض ونوع الأسماك." },
-  { href: "/guides/aquarium-heater-guide", label: "كيف تختار سخان (هيتر)", blurb: "حساب الواط المناسب لحجم الحوض والتثبيت الآمن لثبات الحرارة." },
+  { href: "/guides/filter-choice", label: "كيف تختار فلتر مناسب", blurb: "أنواع الفلاتر والقوة المناسبة حسب حجم الحوض وطبيعة الاستخدام." },
+  { href: "/guides/heater-choice", label: "كيف تختار سخان (هيتر)", blurb: "حساب الواط المناسب لحجم الحوض والتثبيت الآمن لثبات الحرارة." },
   { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض", blurb: "معنى الأمونيا والنتريت والنترات وpH وكيف تتصرف عند ارتفاعها." },
   { href: "/guides/water-conditioner-guide", label: "مزيل الكلور وأهميته", blurb: "ليش معالجة ماء الحنفية ضرورية قبل إضافته للحوض." },
   { href: "/guides/aquarium-weekly-maintenance", label: "جدول صيانة أسبوعي", blurb: "مهام بسيطة أسبوعية تحافظ على ماء مستقر وأسماك صحية." },
@@ -991,8 +991,8 @@ const IMPORTANT_INTERNAL_LINK_GROUPS = [
     links: [
       { href: "/guides", label: "كل الأدلة" },
       { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
-      { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
-      { href: "/guides/aquarium-heater-guide", label: "اختيار السخان" },
+      { href: "/guides/filter-choice", label: "اختيار الفلتر" },
+      { href: "/guides/heater-choice", label: "اختيار السخان" },
       { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
       { href: "/guides/aquarium-decor-stones-guide", label: "ديكور وأحجار الحوض" },
       { href: "/guides/filter-media", label: "ميديا الفلتر" },

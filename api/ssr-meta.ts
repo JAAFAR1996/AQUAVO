@@ -29,14 +29,29 @@ const DEFAULT_DESC = "AQUAVO متجر عراقي لمعدات ومستلزمات
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
 
 // ─── Static page metadata ───────────────────────────────────────────────────
-interface PageMeta {
+export interface PageMeta {
   title: string;
   description: string;
   keywords?: string;
   ogType?: string;
   ogTitle?: string;
   jsonLd?: object | object[];
+  notFound?: boolean;
 }
+
+const PRODUCT_CATEGORY_ITEMS = [
+  { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
+  { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
+  { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
+  { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
+  { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
+  { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
+  { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
+  { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
+  { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
+  { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
+  { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
+] as const;
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
@@ -130,20 +145,8 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         name: "فئات منتجات AQUAVO",
         description: "جميع فئات مستلزمات أحواض الزينة المتوفرة في العراق",
         url: `${BASE}/products`,
-        numberOfItems: 12,
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
-          { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
-          { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
-          { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
-          { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
-          { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
-          { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
-          { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
-          { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
-          { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
-          { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
-        ],
+        numberOfItems: PRODUCT_CATEGORY_ITEMS.length,
+        itemListElement: PRODUCT_CATEGORY_ITEMS,
       },
       {
         "@context": "https://schema.org",
@@ -476,6 +479,65 @@ for (const g of GUIDE_META) {
 }
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
+interface ProductDescriptionInput {
+  name: string;
+  brand?: string | null;
+  description?: string | null;
+  specifications?: Record<string, unknown> | null;
+}
+
+function includesTerm(value: string, term: string): boolean {
+  return value.toLocaleLowerCase("en").includes(term.trim().toLocaleLowerCase("en"));
+}
+
+function factualProductLabel(product: ProductDescriptionInput): string {
+  const details: string[] = [product.name.trim()];
+  const brand = product.brand?.trim();
+  if (brand && !includesTerm(product.name, brand)) details.push(brand);
+
+  const specs = product.specifications ?? {};
+  const modelOrSize = ["model", "Model", "الموديل", "size", "Size", "الحجم"]
+    .map((key) => specs[key])
+    .find((value) => typeof value === "string" || typeof value === "number");
+  if (modelOrSize != null && !includesTerm(details.join(" "), String(modelOrSize))) {
+    details.push(String(modelOrSize).trim());
+  }
+  return details.filter(Boolean).join(" ");
+}
+
+function productDescriptionFallback(product: ProductDescriptionInput): string {
+  return `${factualProductLabel(product)} من معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO. راجع تفاصيل المنتج لاختيار ما يناسب احتياج حوضك.`;
+}
+
+/** Build a concise snippet from complete factual sentences; never cut a sentence mid-way. */
+export function buildProductMetaDescription(product: ProductDescriptionInput): string {
+  const normalized = (product.description ?? "").replace(/\s+/g, " ").trim();
+  if (!normalized || /(?:\.{2,}|…)$/.test(normalized)) return productDescriptionFallback(product);
+
+  const completeSentences = normalized.match(/[^.!؟]+[.!؟]+/g)?.map((sentence) => sentence.trim()) ?? [];
+  if (completeSentences.length === 0) {
+    return normalized.length <= 155 ? `${normalized}.` : productDescriptionFallback(product);
+  }
+
+  let result = "";
+  for (const sentence of completeSentences) {
+    const candidate = result ? `${result} ${sentence}` : sentence;
+    if (candidate.length > 160) break;
+    result = candidate;
+  }
+  return result || productDescriptionFallback(product);
+}
+
+/** Append the site name exactly once and avoid repeating a product brand already in its name. */
+export function buildProductMetaTitle(name: string, brand?: string | null): string {
+  const cleanName = name.replace(/\s*[|\-–—]\s*AQUAVO\s*$/i, "").trim();
+  const cleanBrand = brand?.trim();
+  const productTitle = cleanBrand && !includesTerm(cleanName, cleanBrand)
+    ? `${cleanName} - ${cleanBrand}`
+    : cleanName;
+  return `${productTitle} | AQUAVO`;
+}
+
 async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
@@ -495,15 +557,16 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;
     const schemaPrice = defaultVariant?.price ?? p.price;
     const inStock = p.hasVariants && defaultVariant ? stock > 0 && variantStock > 0 : stock > 0;
-    const rawDesc = p.description
-      || `تسوق ${p.name} من AQUAVO في العراق. توصيل لكل العراق خلال 24 ساعة.`;
-    const desc = rawDesc.length > 158
-      ? rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155) || 155) + "..."
-      : rawDesc;
+    const desc = buildProductMetaDescription({
+      name: p.name,
+      brand: p.brand,
+      description: p.description,
+      specifications: p.specifications,
+    });
     const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
     const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
     return {
-      title: `${p.name}${p.brand ? ` - ${p.brand}` : ""} | AQUAVO`,
+      title: buildProductMetaTitle(p.name, p.brand),
       description: desc,
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
@@ -593,9 +656,19 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
 }
 
 // ─── Resolve metadata for any path ──────────────────────────────────────────
-async function resolveMetadata(pathname: string): Promise<PageMeta & { url: string; image: string }> {
+async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
+
+  if (notFound) {
+    return {
+      title: "الصفحة غير موجودة | AQUAVO",
+      description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
+      url: `${BASE}${cleanPath}`,
+      image: DEFAULT_IMAGE,
+      notFound: true,
+    };
+  }
 
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
@@ -660,7 +733,7 @@ function safeJsonLd(obj: object): string {
 }
 
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
-function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
+export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
   if (meta.jsonLd) {
     if (Array.isArray(meta.jsonLd)) {
@@ -696,6 +769,17 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     );
   }
 
+  if (meta.notFound) {
+    result = result
+      .replace(/\s*<link\b[^>]*\brel=["']canonical["'][^>]*>/gi, "")
+      .replace(/\s*<meta\b[^>]*\bproperty=["']og:[^"']+["'][^>]*>/gi, "")
+      .replace(/\s*<meta\b[^>]*\bname=["']twitter:[^"']+["'][^>]*>/gi, "")
+      .replace(
+        /<meta\b[^>]*\bname=["']robots["'][^>]*>/i,
+        '<meta name="robots" content="noindex, follow">'
+      );
+  }
+
   // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
@@ -710,14 +794,19 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   result = result.replace(/<link rel="preconnect"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
   result = result.replace(/<link rel="dns-prefetch"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
 
-  // Performance: for product pages, replace hero preload with product image preload
+  // Route-aware LCP preload: home hero, product primary image, or none.
+  const imagePreloadPattern = /<link\b(?=[^>]*\brel=["']preload["'])(?=[^>]*\bas=["']image["'])[^>]*>\s*/gi;
+  result = result.replace(imagePreloadPattern, "");
   const isProductPage = meta.ogType === 'product' && meta.image && meta.image !== DEFAULT_IMAGE;
+  const isHomePage = !meta.notFound && new URL(meta.url, BASE).pathname === "/";
+  let imagePreload = "";
   if (isProductPage) {
-    // Replace hero image preload with product LCP image preload
-    result = result.replace(
-      /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
-      `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`
-    );
+    imagePreload = `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`;
+  } else if (isHomePage) {
+    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 66vw">`;
+  }
+  if (imagePreload) {
+    result = result.replace("<!-- Open Graph / Facebook -->", `${imagePreload}\n\n  <!-- Open Graph / Facebook -->`);
   }
 
   // Inject JSON-LD
@@ -764,12 +853,7 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
     lines.push(`- \`GET /api/products?search={query}\` — Search products`);
     lines.push(`- \`GET /api/fish\` — Fish species database`);
     lines.push(`- \`GET /api/blog\` — Blog articles`);
-    lines.push(`- \`GET /api/orders/track/{orderNumber}\` — Track an order\n`);
     lines.push(`## Agent Discovery\n`);
-    lines.push(`- [API Catalog](${BASE}/.well-known/api-catalog) (RFC 9727)`);
-    lines.push(`- [MCP Server Card](${BASE}/.well-known/mcp/server-card.json)`);
-    lines.push(`- [Agent Skills](${BASE}/.well-known/agent-skills/index.json)`);
-    lines.push(`- [ACP](${BASE}/.well-known/acp.json)\n`);
     lines.push(`## Contact\n`);
     lines.push(`- Phone: +964 774 788 0673`);
     lines.push(`- Website: ${BASE}`);
@@ -821,9 +905,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const template = getTemplate();
-    const meta = await resolveMetadata(pathname);
-    const html = injectMeta(template, meta);
     const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
+    const meta = await resolveMetadata(pathname, status === 404);
+    const html = injectMeta(template, meta);
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
     const acceptHeader = (req.headers.accept || "").toLowerCase();

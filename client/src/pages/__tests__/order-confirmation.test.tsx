@@ -5,6 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 vi.mock('wouter', () => ({
     useLocation: () => ['/order-confirmation', vi.fn()],
@@ -40,15 +42,16 @@ vi.mock('framer-motion', () => ({
     },
 }));
 
-vi.mock('canvas-confetti', () => ({
-    default: vi.fn(),
-}));
-
 import OrderConfirmation from '../order-confirmation';
 
 const createWrapper = () => {
     const queryClient = new QueryClient({
-        defaultOptions: { queries: { retry: false } },
+        defaultOptions: {
+            queries: {
+                retry: false,
+                queryFn: async () => null,
+            },
+        },
     });
     return ({ children }: { children: React.ReactNode }) => (
         <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -88,6 +91,20 @@ describe('Order Confirmation Page', () => {
             render(<OrderConfirmation />, { wrapper: createWrapper() });
             // Check for main content area as order details are dynamically loaded
             expect(screen.getByRole('main')).toBeInTheDocument();
+        });
+
+        it('directs unverified cross-device links to the secure tracking flow', () => {
+            render(<OrderConfirmation />, { wrapper: createWrapper() });
+            expect(screen.getByRole('link', { name: 'روح لتتبع الطلب الآمن' }))
+                .toHaveAttribute('href', '/order-tracking');
+        });
+
+        it('does not call the legacy order-number-only tracking endpoint', () => {
+            const source = readFileSync(
+                join(process.cwd(), 'client/src/pages/order-confirmation.tsx'),
+                'utf8',
+            );
+            expect(source).not.toContain('/api/orders/track/');
         });
     });
 

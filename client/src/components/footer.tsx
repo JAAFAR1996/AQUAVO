@@ -26,7 +26,7 @@ const shopLinks = [
 const learningLinks = [
   { href: "/guides", label: "كل الأدلة" },
   { href: "/guides/new-aquarium-setup-iraq", label: "تجهيز حوض جديد" },
-  { href: "/guides/aquarium-filter-guide", label: "اختيار الفلتر" },
+  { href: "/guides/filter-choice", label: "اختيار الفلتر" },
   { href: "/guides/aquarium-water-test-guide", label: "فحص ماء الحوض" },
 ];
 

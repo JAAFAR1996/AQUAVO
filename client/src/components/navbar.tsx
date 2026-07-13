@@ -93,7 +93,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className="sticky top-0 z-50 w-full border-b border-white/10 bg-[color:var(--aqv-bg-dark)]/95 backdrop-blur-md"
+        className="aq-site-header sticky top-0 z-50 w-full border-b border-white/10 bg-[color:var(--aqv-bg-dark)]/95 backdrop-blur-md"
         aria-label="التنقل الرئيسي"
         dir="rtl"
       >

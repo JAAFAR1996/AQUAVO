@@ -3,15 +3,15 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { db } from "../db.js";
-import { blogPosts } from "../../shared/schema.js";
-import { eq, desc } from "drizzle-orm";
+import { blogPosts, products as productTable } from "../../shared/schema.js";
+import { eq, desc, isNull } from "drizzle-orm";
 
 export function createSystemRouter(): RouterType {
     const router = Router();
 
     // ─── Sitemap (GEO/AEO 2026 Enhanced) ───────────────────────────────────────
     // Includes: priority, changefreq, image:image sitemap extension for AI crawlers
-    router.get("/sitemap.xml", async (req: Request, res: Response): Promise<void> => {
+    router.get("/sitemap-legacy.xml", async (req: Request, res: Response): Promise<void> => {
         try {
             const products = await storage.getProducts();
             const baseUrl = "https://www.aquavoiq.com";
@@ -126,6 +126,79 @@ export function createSystemRouter(): RouterType {
     });
 
     // Robots.txt — serve the comprehensive static file instead of inline text
+    const sitemapBaseUrl = "https://www.aquavoiq.com";
+    const sitemapLastmod = "2026-07-13";
+    const escapeXml = (value: string): string => value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    const publicSitemapPages = [
+        "/", "/products", "/guides", "/deals", "/blog", "/faq",
+        "/beginner-guide", "/about", "/why-aquavo", "/shipping",
+        "/return-policy", "/terms", "/privacy-policy", "/contact",
+    ];
+    const publicGuidePages = [
+        "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule",
+        "/guides/feeding-table", "/guides/quarantine", "/guides/algae-control",
+        "/guides/aquarium-salt", "/guides/white-scale", "/guides/5-mistakes",
+        "/guides/essential-tools", "/guides/filter-media", "/guides/eco-friendly",
+        "/guides/fish-hiding", "/guides/happy-fish-signs", "/guides/temperature-guide",
+        "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
+        "/guides/new-aquarium-setup-iraq", "/guides/aquarium-water-test-guide",
+        "/guides/aquarium-decor-stones-guide",
+    ];
+    const sendUrlSet = (res: Response, entries: string, includeImages = false): void => {
+        const imageNamespace = includeImages ? '\n xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : "";
+        res.header("Content-Type", "application/xml; charset=utf-8");
+        res.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+        res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}>${entries}\n</urlset>`);
+    };
+
+    router.get("/sitemap.xml", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/xml; charset=utf-8");
+        res.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+        res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-pages.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-products.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-guides.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+</sitemapindex>`);
+    });
+    router.get("/sitemap-pages.xml", (_req: Request, res: Response): void => {
+        sendUrlSet(res, publicSitemapPages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));
+    });
+    router.get("/sitemap-guides.xml", (_req: Request, res: Response): void => {
+        sendUrlSet(res, publicGuidePages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));
+    });
+    router.get("/sitemap-products.xml", async (_req: Request, res: Response): Promise<void> => {
+        try {
+            if (!db) throw new Error("Database unavailable");
+            const sitemapProducts = await db.select({
+                slug: productTable.slug,
+                name: productTable.name,
+                images: productTable.images,
+                updatedAt: productTable.updatedAt,
+                deletedAt: productTable.deletedAt,
+            }).from(productTable).where(isNull(productTable.deletedAt));
+            const entries = sitemapProducts
+                .filter((product) => !product.deletedAt && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
+                .map((product) => {
+                    const updated = product.updatedAt ? new Date(product.updatedAt).toISOString().slice(0, 10) : sitemapLastmod;
+                    const primaryImage = Array.isArray(product.images)
+                        ? product.images.find((image) => typeof image === "string" && image.length > 0)
+                        : undefined;
+                    const imageUrl = primaryImage ? (primaryImage.startsWith("http") ? primaryImage : `${sitemapBaseUrl}${primaryImage}`) : undefined;
+                    const image = imageUrl ? `\n    <image:image><image:loc>${escapeXml(imageUrl)}</image:loc><image:title>${escapeXml(product.name)}</image:title></image:image>` : "";
+                    return `\n  <url><loc>${sitemapBaseUrl}/products/${escapeXml(product.slug)}</loc><lastmod>${updated}</lastmod>${image}\n  </url>`;
+                }).join("");
+            sendUrlSet(res, entries, true);
+        } catch (error) {
+            console.error("[Sitemap] Product sitemap generation failed", error instanceof Error ? error.name : "unknown");
+            res.status(500).send("Error generating product sitemap");
+        }
+    });
+
     router.get("/robots.txt", async (req: Request, res: Response): Promise<void> => {
         try {
             const fs = await import("fs/promises");
@@ -148,6 +221,22 @@ export function createSystemRouter(): RouterType {
     // ─── .well-known Endpoints (Agent Readiness) ─────────────
 
     // API Catalog (RFC 9727)
+    // These discovery documents previously advertised incomplete or broken public
+    // integrations. Keep their legacy implementations below for rollback, but stop
+    // publishing them until each protocol is production-ready and independently tested.
+    router.get([
+        "/.well-known/api-catalog",
+        "/.well-known/openapi.json",
+        "/.well-known/mcp/server-card.json",
+        "/.well-known/mcp/server-cards.json",
+        "/.well-known/mcp.json",
+        "/.well-known/agent-skills/index.json",
+        "/.well-known/skills/index.json",
+        "/.well-known/acp.json",
+    ], (_req: Request, res: Response): void => {
+        res.status(410).json({ error: "Discovery document unavailable" });
+    });
+
     router.get("/.well-known/api-catalog", (_req: Request, res: Response): void => {
         res.header("Content-Type", "application/linkset+json");
         res.json({

@@ -35,6 +35,7 @@ interface MetaTagsProps {
     currency?: string;
     canonicalUrl?: string;
     noIndex?: boolean;
+    notFound?: boolean;
 }
 
 /**
@@ -52,12 +53,15 @@ export function MetaTags({
     currency = "IQD",
     canonicalUrl,
     noIndex = false,
+    notFound = false,
 }: MetaTagsProps) {
     useEffect(() => {
         const productionOrigin = "https://www.aquavoiq.com";
         const isPreview = !isTrackingAllowed();
         // Update title - proper format for SEO
-        const fullTitle = `${title} | AQUAVO لمعدات الأحواض | العراق`;
+        const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
+            ? title
+            : `${title} | AQUAVO لمعدات الأحواض | العراق`;
         document.title = fullTitle;
 
         // Helper to set meta tag
@@ -83,9 +87,13 @@ export function MetaTags({
             link.setAttribute("href", href);
         };
 
+        const removeSocialMetadata = () => {
+            document.head.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]').forEach((node) => node.remove());
+        };
+
         // Basic meta tags
         setMetaTag("description", description.slice(0, 160)); // Limit to 160 chars
-        setMetaTag("robots", noIndex || isPreview ? "noindex, nofollow" : "index, follow");
+        setMetaTag("robots", notFound ? "noindex, follow" : noIndex || isPreview ? "noindex, nofollow" : "index, follow");
 
         // Keywords (if provided)
         if (keywords.length > 0) {
@@ -95,26 +103,32 @@ export function MetaTags({
         // Canonical URL (important for duplicate content)
         const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
         const canonical = canonicalUrl || url || `${productionOrigin}${currentPath}`;
-        if (canonical) {
+        if (notFound) {
+            document.head.querySelectorAll('link[rel="canonical"]').forEach((node) => node.remove());
+        } else if (canonical) {
             setLinkTag("canonical", canonical);
         }
 
         // Open Graph
-        setMetaTag("og:title", title, true);
-        setMetaTag("og:description", description.slice(0, 200), true);
-        setMetaTag("og:image", image, true);
-        setMetaTag("og:image:alt", title, true);
-        setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
-        if (canonical) setMetaTag("og:url", canonical, true);
-        setMetaTag("og:site_name", "AQUAVO", true);
-        setMetaTag("og:locale", "ar_IQ", true);
+        if (notFound) {
+            removeSocialMetadata();
+        } else {
+            setMetaTag("og:title", title, true);
+            setMetaTag("og:description", description.slice(0, 200), true);
+            setMetaTag("og:image", image, true);
+            setMetaTag("og:image:alt", title, true);
+            setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
+            if (canonical) setMetaTag("og:url", canonical, true);
+            setMetaTag("og:site_name", "AQUAVO", true);
+            setMetaTag("og:locale", "ar_IQ", true);
 
-        // Twitter Card
-        setMetaTag("twitter:card", "summary_large_image");
-        setMetaTag("twitter:title", title);
-        setMetaTag("twitter:description", description.slice(0, 200));
-        setMetaTag("twitter:image", image);
-        setMetaTag("twitter:site", "@aquavoiq");
+            // Twitter Card
+            setMetaTag("twitter:card", "summary_large_image");
+            setMetaTag("twitter:title", title);
+            setMetaTag("twitter:description", description.slice(0, 200));
+            setMetaTag("twitter:image", image);
+            setMetaTag("twitter:site", "@aquavoiq");
+        }
 
         // Product specific (for e-commerce)
         if (type === "product" && price) {
@@ -123,7 +137,7 @@ export function MetaTags({
         }
 
         // Cleanup not needed as we want tags to persist
-    }, [title, description, keywords, image, url, type, price, currency, canonicalUrl, noIndex]);
+    }, [title, description, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound]);
 
     return null;
 }

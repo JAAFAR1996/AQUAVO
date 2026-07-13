@@ -73,4 +73,37 @@ describe("AQUAVO discoverability contract", () => {
     expect(ssr).toContain('...(p.brand ? { brand:');
     expect(ssr).not.toContain('name: p.brand || "AQUAVO"');
   });
+
+  it("publishes a product sitemap architecture and disables unready discovery claims", () => {
+    const system = read("server/routes/system.ts");
+    const vercel = read("vercel.json");
+    const server = read("server/index.ts");
+    expect(system).toContain('router.get("/sitemap-products.xml"');
+    expect(system).toContain(".from(productTable).where(isNull(productTable.deletedAt))");
+    expect(system).toContain("!product.deletedAt");
+    expect(vercel).toContain('"source": "/sitemap-products.xml"');
+    expect(system).toContain('res.status(410).json({ error: "Discovery document unavailable" })');
+    expect(vercel).not.toContain('rel=\\"mcp-server-card\\"');
+    expect(server).not.toContain('rel="mcp-server-card"');
+    expect(vercel).toContain("form-action 'self'");
+    expect(vercel).not.toContain("form-action 'self' https://");
+  });
+
+  it("keeps minimal precision motion bounded and reduced-motion safe", () => {
+    const css = read("client/src/index.css");
+    const home = read("client/src/pages/home.tsx");
+    const reveal = read("client/src/components/motion/precision-reveal.tsx");
+    expect(css).toContain("--aq-motion-standard: 190ms");
+    expect(css).toContain("@media (prefers-reduced-motion: reduce)");
+    expect(css).not.toContain("animation: infinite");
+    expect(home).toContain("<PrecisionReveal");
+    expect(reveal).toContain("observer.disconnect()");
+    expect(reveal).toContain('data-motion-ready={motionReady ? "true" : "false"}');
+  });
+
+  it("never explains SSR or crawling implementation details to customers", () => {
+    const content = read("api/_seo-content.ts");
+    expect(content).not.toMatch(/داخل HTML من السيرفر|قبل تحميل JavaScript|محركات البحث|روابط داخلية مفيدة/);
+    expect(content).toContain("خلّ القرار مبني على حجم الحوض");
+  });
 });

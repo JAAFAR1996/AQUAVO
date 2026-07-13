@@ -5,7 +5,7 @@ import { MetaTags } from "../meta-tags";
 
 afterEach(() => {
   cleanup();
-  document.head.querySelectorAll('link[rel="canonical"], meta[property="og:url"]').forEach((node) => node.remove());
+  document.head.querySelectorAll('link[rel="canonical"], meta[property^="og:"], meta[name^="twitter:"], meta[name="robots"]').forEach((node) => node.remove());
 });
 
 describe("MetaTags canonical URLs", () => {
@@ -16,6 +16,19 @@ describe("MetaTags canonical URLs", () => {
     await waitFor(() => {
       expect(document.querySelector('link[rel="canonical"]')).toHaveAttribute("href", "https://www.aquavoiq.com/products");
       expect(document.querySelector('meta[property="og:url"]')).toHaveAttribute("content", "https://www.aquavoiq.com/products");
+    });
+  });
+
+  it("keeps a 404 noindex, follow without canonical or social metadata after hydration", async () => {
+    document.head.insertAdjacentHTML("beforeend", '<link rel="canonical" href="https://www.aquavoiq.com/unknown"><meta property="og:url" content="https://www.aquavoiq.com/unknown"><meta name="twitter:title" content="Unknown">');
+    render(<MetaTags title="الصفحة غير موجودة | AQUAVO" noIndex notFound />);
+
+    await waitFor(() => {
+      expect(document.title).toBe("الصفحة غير موجودة | AQUAVO");
+      expect(document.querySelector('meta[name="robots"]')).toHaveAttribute("content", "noindex, follow");
+      expect(document.querySelector('link[rel="canonical"]')).toBeNull();
+      expect(document.querySelector('meta[property^="og:"]')).toBeNull();
+      expect(document.querySelector('meta[name^="twitter:"]')).toBeNull();
     });
   });
 });

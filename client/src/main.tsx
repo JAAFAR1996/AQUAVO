@@ -48,16 +48,21 @@ if (typeof navigator !== "undefined" && "modelContext" in navigator) {
           },
           {
             name: "track-order",
-            description: "Track an AQUAVO order by order number. Returns order status and estimated delivery.",
+            description: "Track an AQUAVO order using its order number and the last four customer phone digits.",
             inputSchema: {
               type: "object",
               properties: {
-                orderNumber: { type: "string", description: "Order number (e.g., FW-260424-0001)" }
+                orderNumber: { type: "string", description: "Order number (e.g., FW-260424-0001)" },
+                phoneLast4: { type: "string", description: "Last four digits of the phone used for the order" }
               },
-              required: ["orderNumber"]
+              required: ["orderNumber", "phoneLast4"]
             },
-            execute: async (input: any) => {
-              const res = await fetch(`/api/orders/track/${input.orderNumber}`);
+            execute: async (input: { orderNumber: string; phoneLast4: string }) => {
+              const res = await fetch(`/api/orders/track/${encodeURIComponent(input.orderNumber)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phoneLast4: input.phoneLast4 }),
+              });
               return await res.json();
             }
           }

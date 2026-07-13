@@ -11,10 +11,7 @@ import {
   Truck,
   CheckCircle2,
   Clock,
-  MapPin,
   Phone,
-  MessageCircle,
-  Mail,
   ShoppingBag,
   PackageCheck,
   Home,
@@ -37,19 +34,19 @@ interface OrderDetails {
   orderDate: string;
   estimatedDelivery: string;
   status: string;
-  customerName: string;
-  shippingAddress: string;
-  phone: string;
   courier: string;
   trackingNumber: string;
-  shippingMethod: string;
-  items: {
-    name: string;
-    quantity: number;
-    price: string;
-    image: string;
-  }[];
   timeline: OrderStatus[];
+}
+
+function normalizeLastFourInput(value: string): string {
+  const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+  const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
+  return value
+    .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
+    .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)))
+    .replace(/\D/g, "")
+    .slice(0, 4);
 }
 
 export default function OrderTracking() {
@@ -64,55 +61,35 @@ export default function OrderTracking() {
     setError("");
     setOrderDetails(null);
 
-    if (!orderNumber.trim()) {
-      setError("الرجاء إدخال رقم الطلب");
+    if (!orderNumber.trim() || !/^\d{4}$/.test(phoneNumber.trim())) {
+      setError("أدخل رقم الطلب وآخر 4 أرقام من رقم الهاتف المستخدم بالطلب");
       return;
     }
 
     setIsSearching(true);
 
     try {
-      const response = await fetch(`/api/orders/track/${orderNumber}`, { credentials: "include" });
+      const response = await fetch(`/api/orders/track/${encodeURIComponent(orderNumber.trim())}`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneLast4: phoneNumber.trim() }),
+      });
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error("لم يتم العثور على الطلب. يرجى التحقق من الرقم.");
-        }
-        throw new Error("حدث خطأ أثناء البحث عن الطلب.");
+        throw new Error("تعذر التحقق من الطلب. تأكد من المعلومات وحاول مرة ثانية.");
       }
 
       const data = await response.json();
 
-      // Type-safe parsing of shippingAddress (can be string or object)
-      let shippingInfo: { name?: string; address?: string; phone?: string } = {};
-      if (typeof data.shippingAddress === 'string') {
-        try {
-          shippingInfo = JSON.parse(data.shippingAddress);
-        } catch {
-          shippingInfo = { address: data.shippingAddress };
-        }
-      } else if (data.shippingAddress && typeof data.shippingAddress === 'object') {
-        shippingInfo = data.shippingAddress;
-      }
-
       const mappedOrder: OrderDetails = {
-        orderNumber: data.orderNumber || data.id,
+        orderNumber: data.orderNumber,
         orderDate: new Date(data.createdAt).toLocaleDateString("ar-IQ"),
         estimatedDelivery: data.estimatedDelivery
           ? new Date(data.estimatedDelivery).toLocaleDateString("ar-IQ", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
           : "قريباً",
         status: data.status,
-        customerName: shippingInfo.name || "عميل",
-        shippingAddress: shippingInfo.address || "العنوان غير متوفر",
-        phone: shippingInfo.phone || "",
         courier: "خدمة التوصيل",
         trackingNumber: "---",
-        shippingMethod: "قياسي",
-        items: data.items.map((item: { name: string; quantity: number; price: number | string; imageUrl?: string }) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price + " د.ع",
-          image: item.imageUrl || "/images/placeholder-fish.png"
-        })) || [],
         timeline: [
           {
             id: "ordered",
@@ -179,7 +156,7 @@ export default function OrderTracking() {
               تتبع طلبك
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-              أدخل رقم طلبك لمعرفة حالة الشحنة ووقت التسليم المتوقع
+              أدخل رقم الطلب وآخر 4 أرقام من رقم الهاتف المستخدم بالطلب
             </p>
           </motion.div>
         </div>
@@ -195,11 +172,12 @@ export default function OrderTracking() {
             <Card className="p-6">
               <form onSubmit={handleSearch} className="space-y-6">
                 <div className="space-y-3">
-                  <label className="text-base font-medium text-foreground/80">رقم الطلب</label>
+                  <label htmlFor="order-number" className="text-base font-medium text-foreground/80">رقم الطلب</label>
                   <div className="relative group">
                     <Package className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
                     <Input
                       type="text"
+                      id="order-number"
                       placeholder="مثال: ORD-X1Y2Z3"
                       value={orderNumber}
                       onChange={(e) => setOrderNumber(e.target.value)}
@@ -210,14 +188,19 @@ export default function OrderTracking() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-base font-medium text-foreground/80">رقم الهاتف (اختياري)</label>
+                  <label htmlFor="phone-last-four" className="text-base font-medium text-foreground/80">آخر 4 أرقام من رقم الهاتف</label>
                   <div className="relative group">
                     <Phone className="absolute right-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5 group-focus-within:text-primary transition-colors" />
                     <Input
                       type="tel"
-                      placeholder="للتحقق الإضافي"
+                      id="phone-last-four"
+                      placeholder="مثال: 0673"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => setPhoneNumber(normalizeLastFourInput(e.target.value))}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      maxLength={4}
+                      required
                       className="pr-12 py-5 border-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-all shadow-sm"
                       dir="ltr"
                       data-testid="input-phone-number"
@@ -256,6 +239,9 @@ export default function OrderTracking() {
               <div className="mt-6 pt-6 border-t space-y-3">
                 <p className="text-sm text-muted-foreground text-center">
                   ستجد رقم الطلب في رسالة التأكيد التي وصلتك عبر واتساب
+                </p>
+                <p className="text-xs text-muted-foreground text-center">
+                  إذا طلبك قديم وما كدرت تتحقق، تواصل ويانا حتى نساعدك بدون كشف معلوماتك.
                 </p>
               </div>
             </Card>
@@ -313,35 +299,6 @@ export default function OrderTracking() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <ShoppingBag className="w-5 h-5 text-primary" />
-                        محتويات الطلب
-                      </h3>
-                      <div className="space-y-4">
-                        {orderDetails.items.map((item) => (
-                          <div
-                            key={item.name}
-                            className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg"
-                          >
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="w-16 h-16 object-cover rounded-md border bg-background"
-                            />
-                            <div className="flex-1">
-                              <h4 className="font-medium">{item.name}</h4>
-                              <p className="text-sm text-muted-foreground">الكمية: {item.quantity}</p>
-                            </div>
-                            {item.price && !item.price.startsWith("undefined") && (
-                              <p className="font-semibold">{item.price}</p>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
 
                 <div className="space-y-6">
@@ -368,27 +325,6 @@ export default function OrderTracking() {
                     </CardContent>
                   </Card>
 
-                  <Card>
-                    <CardContent className="p-6">
-                      <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-primary" />
-                        عنوان التوصيل
-                      </h3>
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <Home className="w-5 h-5 text-muted-foreground" />
-                          <div>
-                            <p className="font-medium">{orderDetails.customerName}</p>
-                            <p className="text-sm text-muted-foreground">{orderDetails.shippingAddress}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <Phone className="w-5 h-5 text-muted-foreground" />
-                          <p className="text-sm" dir="ltr">{orderDetails.phone}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
                 </div>
               </div>
             </motion.div>

@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CheckCircle2, Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, Calendar, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
-import confetti from "canvas-confetti";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -55,102 +54,28 @@ const getDeliveryEstimate = () => {
     return `خلال ${DELIVERY_DAYS}`;
 };
 
-// Public tracking endpoint shape (PII-safe). Maps into the OrderData used by the
-// confirmation UI; per-item prices and customer info are intentionally absent.
-interface TrackOrderData {
-    id: string;
-    orderNumber?: string;
-    status?: string;
-    total?: number | string;
-    createdAt?: string;
-    items?: Array<{ name?: string; quantity: number }>;
-}
-
-function mapTrackToOrder(track: unknown): OrderData | undefined {
-    const t = track as TrackOrderData | undefined;
-    if (!t || !t.id) return undefined;
-    return {
-        id: t.id,
-        orderNumber: t.orderNumber,
-        status: t.status,
-        total: Number(t.total) || 0,
-        createdAt: t.createdAt,
-        items: (t.items || []).map(item => ({
-            productId: "",
-            productName: item.name,
-            quantity: item.quantity,
-            // priceAtPurchase intentionally omitted — not exposed by the public endpoint
-        })),
-    };
-}
-
 export default function OrderConfirmation() {
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
 
-    // Trigger confetti on mount — skipped when the user prefers reduced motion
-    useEffect(() => {
-        if (typeof window !== "undefined" &&
-            window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-            return;
-        }
-        const duration = 3000;
-        const end = Date.now() + duration;
-        let rafId: number;
-
-        const frame = () => {
-            confetti({
-                particleCount: 2,
-                angle: 60,
-                spread: 55,
-                origin: { x: 0 },
-                colors: ["#22c55e", "#10b981", "#34d399"]
-            });
-            confetti({
-                particleCount: 2,
-                angle: 120,
-                spread: 55,
-                origin: { x: 1 },
-                colors: ["#22c55e", "#10b981", "#34d399"]
-            });
-
-            if (Date.now() < end) {
-                rafId = requestAnimationFrame(frame);
-            }
-        };
-        rafId = requestAnimationFrame(frame);
-        return () => cancelAnimationFrame(rafId);
-    }, []);
-
-    // Primary: full order (authenticated owner). retry:false so a guest's 401
-    // settles quickly and we can fall back to the public tracking endpoint.
+    // Primary: full order for the authenticated owner. Guests can use the
+    // stashed post-checkout payload on this device or the verified tracking flow.
     const { data: order, isLoading } = useQuery({
         queryKey: [`/api/orders/${orderId}`],
         enabled: !!orderId,
         retry: false,
     });
 
-    // Freshest, complete source for the customer who just checked out — written
-    // at purchase time. Critical for guests, whose authed order endpoint 401s and
-    // whose public tracking fallback omits prices. Read once per orderId.
+    // Freshest complete source for the guest who just checked out, read once.
     const stashed = useMemo(() => readStashedOrder(orderId) as OrderData | undefined, [orderId]);
 
-    // Fallback for guests with no stash (e.g. opened the link on another device):
-    // the PII-safe public tracking endpoint. Returns a reduced shape (no per-item
-    // price / customer info) but a real confirmation instead of an empty page.
-    const needsFallback = !!orderId && !isLoading && !order && !stashed;
-    const { data: trackOrder, isLoading: trackLoading } = useQuery({
-        queryKey: [`/api/orders/track/${orderId}`],
-        enabled: needsFallback,
-        retry: false,
-    });
+    // A link opened on another device has no trusted local order payload. Do not
+    // fetch by predictable order number or render a synthetic confirmation;
+    // direct the customer to the two-verifier tracking flow instead.
+    const orderData = (order as OrderData | undefined) ?? stashed;
+    const loading = isLoading;
 
-    const orderData = (order as OrderData | undefined) ?? stashed ?? mapTrackToOrder(trackOrder);
-    const loading = isLoading || (needsFallback && trackLoading);
-
-    // Fire Purchase pixels only from the authoritative authed order (has real
-    // product IDs + prices). Guest fallback skips this — the Purchase already
-    // fired at checkout submit and is deduped by orderId in the pixel helpers.
+    // Fire Purchase pixels only from the authoritative authenticated order.
     useEffect(() => {
         const full = order as OrderData | undefined;
         if (full && full.items && full.items.length > 0) {
@@ -199,10 +124,33 @@ export default function OrderConfirmation() {
 
     if (!orderData && !loading) {
         return (
-            <ConfirmationContent
-                orderId={orderId || "unknown"}
-                orderData={null}
-            />
+            <div className="min-h-screen flex flex-col bg-background">
+                <MetaTags
+                    title="تحقق من حالة الطلب"
+                    description="لخصوصيتك، استخدم رقم الطلب وآخر أربعة أرقام من الهاتف للتحقق من الحالة."
+                    noIndex
+                />
+                <Navbar />
+                <main className="flex flex-1 items-center justify-center px-4 py-12">
+                    <Card className="w-full max-w-lg border-t-4 border-t-primary">
+                        <CardHeader className="text-center">
+                            <CardTitle>نحتاج نتحقق من الطلب</CardTitle>
+                            <CardDescription>
+                                إذا فتحت الرابط بجهاز ثاني، استخدم رقم الطلب وآخر 4 أرقام من الهاتف حتى نحافظ على معلوماتك.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-3">
+                            <Button asChild className="min-h-11">
+                                <Link href="/order-tracking">روح لتتبع الطلب الآمن</Link>
+                            </Button>
+                            <Button asChild variant="outline" className="min-h-11">
+                                <Link href="/products">ارجع للمنتجات</Link>
+                            </Button>
+                        </CardContent>
+                    </Card>
+                </main>
+                <Footer />
+            </div>
         );
     }
 

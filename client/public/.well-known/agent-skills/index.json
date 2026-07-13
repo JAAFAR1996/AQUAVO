@@ -17,7 +17,7 @@
     },
     {
       "name": "track-order",
-      "description": "Track an AQUAVO order by order number. Returns order status, estimated delivery, and item details.",
+      "description": "Track an AQUAVO order using its number and the last four customer phone digits.",
       "type": "skill-md",
       "url": "https://www.aquavoiq.com/.well-known/agent-skills/track-order/SKILL.md",
       "digest": "sha256:"
