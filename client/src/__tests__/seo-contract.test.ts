@@ -5,15 +5,13 @@ import { describe, expect, it } from "vitest";
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("AQUAVO discoverability contract", () => {
-  it("keeps every static sitemap URL on a real public route", () => {
-    const app = read("client/src/App.tsx");
+  it("publishes a static sitemap index that Vercel cannot shadow with a legacy urlset", () => {
     const sitemap = read("client/public/sitemap.xml");
-    const routes = new Set(Array.from(app.matchAll(/<Route path="([^"]+)"/g)).map((match) => match[1]));
-    const paths = Array.from(sitemap.matchAll(/<loc>https:\/\/www\.aquavoiq\.com([^<]*)<\/loc>/g))
-      .map((match) => match[1] || "/")
-      .filter((path) => !path.includes(":"));
-
-    expect(paths.filter((path) => !routes.has(path))).toEqual([]);
+    expect(sitemap).toContain("<sitemapindex");
+    expect(sitemap).not.toContain("<urlset");
+    expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-pages.xml");
+    expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-products.xml");
+    expect(sitemap).toContain("https://www.aquavoiq.com/sitemap-guides.xml");
   });
 
   it("does not publish retired business claims to AI crawlers", () => {
