@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -81,6 +81,10 @@ describe("AQUAVO discoverability contract", () => {
     expect(system).toContain("!product.deletedAt");
     expect(vercel).toContain('"source": "/sitemap-products.xml"');
     expect(system).toContain('res.status(410).json({ error: "Discovery document unavailable" })');
+    expect(system).not.toContain('digest: "sha256:"');
+    expect(existsSync(resolve(process.cwd(), "client/public/.well-known/mcp/server-card.json"))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), "client/public/.well-known/agent-skills/index.json"))).toBe(false);
+    expect(existsSync(resolve(process.cwd(), "client/public/.well-known/acp.json"))).toBe(false);
     expect(vercel).not.toContain('rel=\\"mcp-server-card\\"');
     expect(server).not.toContain('rel="mcp-server-card"');
     expect(vercel).toContain("form-action 'self'");
