@@ -67,13 +67,13 @@ export const ProductCard = memo(function ProductCard({
           <CompareButton
             productId={product.id}
             variant="icon"
-            className="h-9 w-9 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
           />
           <WishlistButton
             product={product}
             variant="icon"
             size="icon"
-            className="h-9 w-9 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
           />
           {onQuickView ? (
             <Button
@@ -89,12 +89,12 @@ export const ProductCard = memo(function ProductCard({
           ) : null}
         </div>
 
-        <div className="flex flex-col items-end gap-1" aria-hidden="true">
+        <div className="flex flex-col items-end gap-1">
           {product.isNew ? <Badge className="bg-primary text-primary-foreground">جديد</Badge> : null}
           {product.isBestSeller ? <Badge variant="secondary">الأكثر مبيعاً</Badge> : null}
           {product.ecoFriendly ? (
             <Badge variant="outline" className="gap-1 border-primary/25 bg-background/90 text-primary">
-              <Leaf className="h-3 w-3" />
+              <Leaf className="h-3 w-3" aria-hidden="true" />
               صديق للبيئة
             </Badge>
           ) : null}

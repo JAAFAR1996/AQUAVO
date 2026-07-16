@@ -147,9 +147,11 @@ export function CompareButton({
                 size="icon"
                 className={cn("h-9 w-9 transition-all", inCompare && "bg-primary scale-110", className)}
                 onClick={handleToggle}
+                aria-label={inCompare ? "إزالة من المقارنة" : "إضافة للمقارنة"}
+                aria-pressed={inCompare}
                 title={inCompare ? "إزالة من المقارنة" : "إضافة للمقارنة"}
             >
-                <Scale className="w-4 h-4" />
+                <Scale className="w-4 h-4" aria-hidden="true" />
             </Button>
         );
     }

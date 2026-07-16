@@ -95,4 +95,48 @@ describe('ProductCard Component', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
         expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();
     });
+
+    // ---- Phase D: product-status accessibility ----
+
+    it('exposes meaningful status badges to the accessibility tree (not aria-hidden)', () => {
+        const product = { ...mockProduct, isNew: true, isBestSeller: true, ecoFriendly: true };
+        render(<ProductCard product={product} />, { wrapper: createWrapper() });
+
+        for (const status of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+            const el = screen.getByText(status);
+            expect(el).toBeInTheDocument();
+            // No ancestor removes it from the accessibility tree.
+            expect(el.closest('[aria-hidden="true"]')).toBeNull();
+        }
+    });
+
+    it('keeps the decorative eco badge icon out of the accessibility tree', () => {
+        const product = { ...mockProduct, ecoFriendly: true };
+        render(<ProductCard product={product} />, { wrapper: createWrapper() });
+        const ecoBadge = screen.getByText('صديق للبيئة').closest('span, div');
+        const icon = ecoBadge?.querySelector('svg');
+        expect(icon).not.toBeNull();
+        expect(icon).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    // ---- Phase D: compare / wishlist accessible names + touch targets ----
+
+    it('gives the compare control an Arabic accessible name', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: 'إضافة للمقارنة' })).toBeInTheDocument();
+    });
+
+    it('gives the wishlist control an Arabic accessible name', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ })).toBeInTheDocument();
+    });
+
+    it('sizes the compare and wishlist controls to a 44px touch target at every breakpoint', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const compare = screen.getByRole('button', { name: 'إضافة للمقارنة' });
+        const wishlist = screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ });
+        for (const control of [compare, wishlist]) {
+            expect(control).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+        }
+    });
 });
