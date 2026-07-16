@@ -312,9 +312,9 @@ export default function Navbar() {
                   </SheetTitle>
                   <SheetDescription className="sr-only">راجع المنتجات والكميات والمجموع، وبعدها كمل معلومات التوصيل.</SheetDescription>
                 </SheetHeader>
-                <div className="mt-6 flex h-[calc(100vh-180px)] flex-col">
+                <div className="mt-6 flex h-[calc(100vh-180px)] flex-col" aria-live="polite" aria-atomic="false">
                   {cartItems.length === 0 ? (
-                    <div className="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground">
+                    <div className="flex flex-1 flex-col items-center justify-center text-center text-muted-foreground" role="status">
                       <ShoppingCart className="mb-4 h-14 w-14 opacity-20" aria-hidden="true" />
                       <p className="text-lg font-medium text-foreground">السلة فارغة</p>
                       <p className="mt-1 max-w-64 text-sm">شوف المنتجات واختار القطعة حسب حجم حوضك.</p>
@@ -331,39 +331,44 @@ export default function Navbar() {
                       <div className="mb-4">
                         <ShippingProgress />
                       </div>
-                      <div className="flex-1 space-y-3 overflow-auto pe-1">
+                      <ul className="flex-1 space-y-3 overflow-auto pe-1" aria-label="المنتجات في السلة">
                         {cartItems.map((item) => (
-                          <div key={item.id} className="flex gap-3 rounded-lg border border-border bg-card p-3">
-                            <img src={item.image || "/brand/aquavo-v2-icon.svg"} alt={`صورة منتج ${item.name}`} className="h-16 w-16 rounded-md bg-white object-contain p-1" loading="lazy" width={64} height={64} />
+                          <li
+                            key={item.id}
+                            className="flex gap-3 rounded-lg border border-border bg-card p-3"
+                            aria-label={`${item.name}${item.variantLabel ? `، الخيار ${item.variantLabel}` : ""}، الكمية ${item.quantity}، السعر ${formatIQD(item.price)}`}
+                          >
+                            <img src={item.image || "/brand/aquavo-v2-icon.svg"} alt="" aria-hidden="true" className="h-16 w-16 rounded-md bg-white object-contain p-1" loading="lazy" width={64} height={64} />
                             <div className="min-w-0 flex-1">
                               <h4 className="truncate text-sm font-medium">{item.name}</h4>
                               {item.variantLabel && <p className="truncate text-xs text-muted-foreground">الخيار: {item.variantLabel}</p>}
                               <p className="mt-1 font-bold text-white">{formatIQD(item.price)}</p>
                               <div className="mt-2 flex items-center justify-between">
-                                <div className="flex items-center gap-1" aria-label={`كمية ${item.name}`}>
-                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={`تقليل كمية ${item.name}`}>
-                                    −
+                                <div className="flex items-center gap-1" role="group" aria-label={`كمية ${item.name}`}>
+                                  <Button variant="outline" size="icon" className="h-11 w-11 md:h-11 md:w-11" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={`تقليل كمية ${item.name}`}>
+                                    <span aria-hidden="true">−</span>
                                   </Button>
-                                  <span className="w-6 text-center text-sm font-semibold">{item.quantity}</span>
-                                  <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={`زيادة كمية ${item.name}`}>
-                                    +
+                                  <span className="w-6 text-center text-sm font-semibold" aria-hidden="true">{item.quantity}</span>
+                                  <span className="sr-only">الكمية: {item.quantity}</span>
+                                  <Button variant="outline" size="icon" className="h-11 w-11 md:h-11 md:w-11" onClick={() => updateQuantity(item.id, item.quantity + 1)} aria-label={`زيادة كمية ${item.name}`}>
+                                    <span aria-hidden="true">+</span>
                                   </Button>
                                 </div>
-                                <Button variant="ghost" size="icon" className="h-9 w-9 text-destructive" onClick={() => removeItem(item.id)} aria-label={`إزالة ${item.name} من السلة`}>
+                                <Button variant="ghost" size="icon" className="h-11 w-11 md:h-11 md:w-11 text-destructive" onClick={() => removeItem(item.id)} aria-label={`إزالة ${item.name} من السلة`}>
                                   <Trash2 className="h-4 w-4" aria-hidden="true" />
                                 </Button>
                               </div>
                             </div>
-                          </div>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                       <Separator className="my-4" />
                       <CartSuggestions />
                       <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium">المجموع</span>
-                          <span className="text-xl font-bold text-white">{formatIQD(totalPrice)}</span>
-                        </div>
+                        <dl className="flex items-center justify-between">
+                          <dt className="font-medium">المجموع</dt>
+                          <dd className="text-xl font-bold text-white" aria-live="polite">{formatIQD(totalPrice)}</dd>
+                        </dl>
                         <Button
                           type="button"
                           className="w-full"
