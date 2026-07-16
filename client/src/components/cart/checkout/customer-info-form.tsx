@@ -96,10 +96,12 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     id="name"
                     data-clarity-mask="True"
                     placeholder="أدخل اسمك الكامل"
+                    autoComplete="name"
                     value={customerInfo.name}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, name: e.target.value })}
                     className={errors.name ? 'border-red-500' : ''}
                     aria-invalid={!!errors.name}
+                    aria-required="true"
                     aria-describedby={errors.name ? "name-error" : undefined}
                 />
                 {errors.name && (
@@ -118,13 +120,16 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                 <Input
                     id="phone"
                     type="tel"
+                    inputMode="tel"
                     data-clarity-mask="True"
                     placeholder="07801234567"
+                    autoComplete="tel"
                     value={customerInfo.phone}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, phone: e.target.value })}
                     className={errors.phone ? 'border-red-500' : ''}
                     dir="ltr"
                     aria-invalid={!!errors.phone}
+                    aria-required="true"
                     aria-describedby={errors.phone ? "phone-error" : undefined}
                 />
                 {errors.phone && (
@@ -152,6 +157,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                         aria-haspopup="listbox"
                         aria-controls="governorate-listbox"
                         aria-invalid={!!errors.governorate}
+                        aria-required="true"
                         aria-describedby={errors.governorate ? "governorate-error" : undefined}
                         onClick={() => { setGovOpen(prev => !prev); setGovSearch(""); }}
                         onKeyDown={(e) => {
@@ -240,10 +246,12 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     id="address"
                     data-clarity-mask="True"
                     placeholder="المنطقة، الشارع، أقرب نقطة دالة..."
+                    autoComplete="street-address"
                     value={customerInfo.address}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, address: e.target.value })}
                     className={errors.address ? 'border-red-500' : ''}
                     aria-invalid={!!errors.address}
+                    aria-required="true"
                     aria-describedby={errors.address ? "address-error" : undefined}
                 />
                 {errors.address && (
@@ -260,6 +268,7 @@ export function CustomerInfoForm({ customerInfo, setCustomerInfo, errors, isGues
                     id="notes"
                     data-clarity-mask="True"
                     placeholder="أي ملاحظات للتوصيل..."
+                    autoComplete="off"
                     value={customerInfo.notes}
                     onChange={(e) => setCustomerInfo({ ...customerInfo, notes: e.target.value })}
                 />

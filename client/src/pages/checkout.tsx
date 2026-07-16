@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
@@ -103,10 +103,12 @@ export default function CheckoutPage() {
 
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [formErrorSummary, setFormErrorSummary] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [couponDiscount, setCouponDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
     type: string;
@@ -123,6 +125,10 @@ export default function CheckoutPage() {
     return iraqiPhoneRegex.test(cleanPhone);
   };
 
+  // Order the fields appear in the form so focus moves to the first invalid
+  // one, top to bottom, regardless of which rule failed.
+  const FIELD_ORDER = ["name", "phone", "governorate", "address"] as const;
+
   const validateInfo = (): boolean => {
     const newErrors: Record<string, string> = {};
     if (!customerInfo.name.trim()) newErrors.name = "الاسم مطلوب";
@@ -132,6 +138,21 @@ export default function CheckoutPage() {
     if (!customerInfo.governorate) newErrors.governorate = "يرجى اختيار المحافظة";
     if (!customerInfo.address.trim()) newErrors.address = "العنوان مطلوب";
     setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      setFormErrorSummary(`فيه ${Object.keys(newErrors).length} حقول تحتاج تصحيح`);
+      const firstInvalidField = FIELD_ORDER.find((field) => newErrors[field]);
+      if (firstInvalidField) {
+        // Wait a tick so the error markup (and aria-describedby) is in the DOM
+        // before we move focus to it.
+        requestAnimationFrame(() => {
+          document.getElementById(firstInvalidField)?.focus();
+        });
+      }
+    } else {
+      setFormErrorSummary("");
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -158,7 +179,9 @@ export default function CheckoutPage() {
   };
 
   const handleConfirmOrder = async () => {
-    if (!agreed) return;
+    // Guard against double-submission: a second click/Enter while the first
+    // request is still in flight must never fire a second POST.
+    if (!agreed || isSubmitting) return;
     setIsSubmitting(true);
     try {
       const cartSignature = JSON.stringify({
@@ -294,6 +317,24 @@ export default function CheckoutPage() {
     window.scrollTo(0, 0);
   };
 
+  // Move focus to the current step's heading whenever the step changes, so
+  // keyboard and screen-reader users land on the new content instead of
+  // staying wherever their focus happened to be on the previous step.
+  const stepHeadingRef = useRef<HTMLHeadingElement>(null);
+  const successHeadingRef = useRef<HTMLHeadingElement>(null);
+  const isFirstStepRender = useRef(true);
+  useEffect(() => {
+    if (isFirstStepRender.current) {
+      isFirstStepRender.current = false;
+      return;
+    }
+    if (step === "success") {
+      successHeadingRef.current?.focus();
+    } else {
+      stepHeadingRef.current?.focus();
+    }
+  }, [step]);
+
   const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
   const isFreeShipping = appliedCoupon?.type === "free_shipping";
   const deliveryFee = isFreeShipping ? 0 : baseDeliveryFee;
@@ -301,12 +342,14 @@ export default function CheckoutPage() {
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
   const applyCoupon = async () => {
+    if (isApplyingCoupon) return;
+    const code = couponCode.toUpperCase().trim();
+    if (!code) return;
     setCouponError("");
     setCouponSuccess("");
     setAppliedCoupon(null);
     setCouponDiscount(0);
-    const code = couponCode.toUpperCase().trim();
-    if (!code) return;
+    setIsApplyingCoupon(true);
     try {
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
@@ -340,6 +383,8 @@ export default function CheckoutPage() {
     } catch (error) {
       console.error("Coupon error:", error);
       setCouponError("حدث خطأ أثناء التحقق من الكوبون");
+    } finally {
+      setIsApplyingCoupon(false);
     }
   };
 
@@ -355,7 +400,7 @@ export default function CheckoutPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold">تم استلام طلبك بنجاح</h1>
+            <h1 ref={successHeadingRef} tabIndex={-1} className="text-2xl font-bold outline-none">تم استلام طلبك بنجاح</h1>
             <p className="text-muted-foreground">رقم الطلب: <span className="font-mono font-bold text-foreground">{orderResult.orderNumber}</span></p>
             <p className="text-sm text-muted-foreground">سنتواصل معك قريباً لتأكيد الطلب</p>
             <a
@@ -368,7 +413,7 @@ export default function CheckoutPage() {
             </a>
             <div>
               <Button variant="outline" onClick={() => setLocation("/")} className="gap-2">
-                <ArrowRight className="w-4 h-4 rotate-180" />
+                <ArrowRight className="w-4 h-4" aria-hidden="true" />
                 العودة للرئيسية
               </Button>
             </div>
@@ -386,10 +431,10 @@ export default function CheckoutPage() {
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="gap-2">
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
             رجوع
           </Button>
-          <h1 className="text-lg font-bold">{step === "info" ? "إتمام الطلب" : "تأكيد الطلب"}</h1>
+          <h1 ref={stepHeadingRef} tabIndex={-1} className="text-lg font-bold outline-none">{step === "info" ? "إتمام الطلب" : "تأكيد الطلب"}</h1>
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <ShoppingCart className="w-4 h-4" />
             {cartItems.length}
@@ -414,6 +459,7 @@ export default function CheckoutPage() {
               applyCoupon={applyCoupon}
               couponError={couponError}
               couponSuccess={couponSuccess}
+              isApplying={isApplyingCoupon}
             />
 
             {user && (
@@ -436,6 +482,9 @@ export default function CheckoutPage() {
               isLoggedIn={!!user}
             />
 
+            <p className="sr-only" aria-live="assertive" aria-atomic="true">
+              {formErrorSummary}
+            </p>
             <Button onClick={handleContinue} className="w-full h-12 text-base font-semibold" size="lg">
               الدفع عند الاستلام — تأكيد طلبي
             </Button>

@@ -59,6 +59,38 @@ describe("checkout page", () => {
     expect(screen.getByRole("heading", { level: 1, name: "إتمام الطلب" })).toBeInTheDocument();
   });
 
+  it("moves focus to the first invalid field on a failed submit", async () => {
+    const user = userEvent.setup();
+    render(<CheckoutPage />);
+
+    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+
+    expect(await screen.findByLabelText("الاسم الكامل")).toHaveFocus();
+  });
+
+  it("moves focus to phone when only the name field is filled in", async () => {
+    const user = userEvent.setup();
+    render(<CheckoutPage />);
+
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+
+    expect(await screen.findByLabelText("رقم الهاتف")).toHaveFocus();
+  });
+
+  it("marks invalid fields with aria-invalid and links them to their error text", async () => {
+    const user = userEvent.setup();
+    render(<CheckoutPage />);
+
+    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+
+    const nameInput = screen.getByLabelText("الاسم الكامل");
+    expect(nameInput).toHaveAttribute("aria-invalid", "true");
+    const describedBy = nameInput.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy!)).toHaveTextContent("الاسم مطلوب");
+  });
+
   it("reviews valid delivery data before enabling the final order action", async () => {
     const user = userEvent.setup();
     render(<CheckoutPage />);
@@ -106,6 +138,41 @@ describe("checkout page", () => {
     expect(body.items[0]).not.toHaveProperty("price");
     expect(mockClearCart).toHaveBeenCalledTimes(1);
     expect(mockSetLocation).toHaveBeenCalledWith("/order-confirmation/order-test");
+  });
+
+  it("disables the confirm button and blocks a second click while the order request is in flight", async () => {
+    const user = userEvent.setup();
+    let resolveFetch!: (value: unknown) => void;
+    mockFetch.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFetch = resolve;
+      })
+    );
+    render(<CheckoutPage />);
+
+    fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
+    fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });
+    await user.click(screen.getByRole("combobox", { name: "المحافظة" }));
+    await user.click(screen.getByRole("option", { name: "بغداد" }));
+    fireEvent.change(screen.getByLabelText("العنوان"), { target: { value: "الكرادة داخل قرب ساحة كهرمانة" } });
+    await user.click(screen.getByRole("button", { name: "الدفع عند الاستلام — تأكيد طلبي" }));
+    await user.click(screen.getByRole("checkbox"));
+
+    const confirmButton = screen.getByRole("button", { name: "تأكيد الطلب" });
+    await user.click(confirmButton);
+
+    // Button must go busy/disabled immediately so a second click (or Enter
+    // repeat) cannot fire a second POST while the first is still pending.
+    expect(await screen.findByRole("button", { name: "جاري المعالجة..." })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "جاري المعالجة..." }));
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+
+    resolveFetch({
+      ok: true,
+      json: async () => ({ id: "order-busy-test", orderNumber: "FH-BUSY", roundedTotal: 30000, shippingCost: 5000, discountTotal: 0, status: "pending" }),
+    });
+    expect(await screen.findByRole("heading", { level: 1, name: "تم استلام طلبك بنجاح" })).toBeInTheDocument();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it("applies a valid free_shipping coupon: delivery fee shows as free and the total drops by the delivery fee", async () => {

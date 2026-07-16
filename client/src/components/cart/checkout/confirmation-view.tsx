@@ -108,8 +108,8 @@ export function ConfirmationView({
             </div>
 
             {/* === ملخص الفاتورة === */}
-            <div className="border border-border/60 rounded-lg p-4 space-y-2">
-                <h4 className="text-sm font-semibold">ملخص الفاتورة</h4>
+            <section className="border border-border/60 rounded-lg p-4 space-y-2" aria-labelledby="invoice-summary-heading">
+                <h4 id="invoice-summary-heading" className="text-sm font-semibold">ملخص الفاتورة</h4>
 
                 {/* المجموع الفرعي */}
                 <div className="flex justify-between text-sm">
@@ -154,7 +154,7 @@ export function ConfirmationView({
                 <Separator />
 
                 {/* المبلغ النهائي */}
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center" role="status" aria-live="polite" aria-atomic="true">
                     <span className="font-semibold">المبلغ الكلي</span>
                     <span className="text-xl font-bold text-primary">{formatIQD(finalAmount)}</span>
                 </div>
@@ -187,7 +187,7 @@ export function ConfirmationView({
                     </span>
                     <span>الدفع النقدي عند الاستلام</span>
                 </div>
-            </div>
+            </section>
 
             {/* === الموافقة على الشروط === */}
             <div className="flex items-start gap-3 py-2">
@@ -214,7 +214,7 @@ export function ConfirmationView({
 
             {/* === الأزرار === */}
             <div className="flex gap-3">
-                <Button variant="outline" onClick={handleBack} className="flex-1 h-12">
+                <Button variant="outline" onClick={handleBack} className="flex-1 h-12" disabled={isSubmitting} aria-disabled={isSubmitting}>
                     تعديل البيانات
                 </Button>
                 <Button
@@ -222,10 +222,15 @@ export function ConfirmationView({
                     className="flex-1 h-12 text-base font-semibold"
                     size="lg"
                     disabled={!agreed || isSubmitting}
+                    aria-disabled={!agreed || isSubmitting}
+                    aria-busy={isSubmitting}
                 >
                     {isSubmitting ? "جاري المعالجة..." : "تأكيد الطلب"}
                 </Button>
             </div>
+            <p className="sr-only" role="status" aria-live="polite">
+                {isSubmitting ? "جاري إرسال طلبك، الرجاء الانتظار..." : ""}
+            </p>
         </div>
     );
 }

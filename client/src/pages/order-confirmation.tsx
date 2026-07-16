@@ -105,7 +105,7 @@ export default function OrderConfirmation() {
             <div className="min-h-screen flex flex-col bg-background">
                 <Navbar />
                 <main className="flex-1 flex items-center justify-center p-4">
-                    <Card className="w-full max-w-md">
+                    <Card className="w-full max-w-md" role="status" aria-live="polite" aria-label="جار تحميل تفاصيل الطلب">
                         <CardContent className="p-8 space-y-4 text-center">
                             <Skeleton className="h-20 w-20 rounded-full mx-auto" />
                             <Skeleton className="h-8 w-48 mx-auto" />
@@ -134,7 +134,7 @@ export default function OrderConfirmation() {
                 <main className="flex flex-1 items-center justify-center px-4 py-12">
                     <Card className="w-full max-w-lg border-t-4 border-t-primary">
                         <CardHeader className="text-center">
-                            <CardTitle>نحتاج نتحقق من الطلب</CardTitle>
+                            <CardTitle role="heading" aria-level={1}>نحتاج نتحقق من الطلب</CardTitle>
                             <CardDescription>
                                 إذا فتحت الرابط بجهاز ثاني، استخدم رقم الطلب وآخر 4 أرقام من الهاتف حتى نحافظ على معلوماتك.
                             </CardDescription>
@@ -247,16 +247,20 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                     className="w-full max-w-lg"
                 >
                     <Card className="border-t-4 border-t-green-500 shadow-xl overflow-hidden">
-                        <CardHeader className="text-center bg-green-50/50 dark:bg-green-950/20 pb-6 pt-8">
+                        <CardHeader
+                            className="text-center bg-green-50/50 dark:bg-green-950/20 pb-6 pt-8"
+                            role="status"
+                            aria-live="polite"
+                        >
                             <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                                 className="mx-auto w-20 h-20 bg-green-100 dark:bg-green-900/40 rounded-full flex items-center justify-center mb-3"
                             >
-                                <CheckCircle2 className="w-10 h-10 text-green-600" />
+                                <CheckCircle2 className="w-10 h-10 text-green-600" aria-hidden="true" />
                             </motion.div>
-                            <CardTitle className="text-2xl font-bold text-green-800 dark:text-green-300">شكراً لطلبك!</CardTitle>
+                            <CardTitle role="heading" aria-level={1} className="text-2xl font-bold text-green-800 dark:text-green-300">شكراً لطلبك!</CardTitle>
                             <CardDescription className="text-base text-green-700 dark:text-green-400 font-medium mt-1">
                                 تم استلام طلبك بنجاح
                             </CardDescription>

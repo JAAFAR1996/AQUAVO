@@ -123,5 +123,13 @@ describe('Order Confirmation Page', () => {
             const headings = screen.queryAllByRole('heading');
             expect(headings.length).toBeGreaterThanOrEqual(0);
         });
+
+        it('exposes a single level-1 heading for the tracking-fallback state', () => {
+            // With no stashed order and an unauthenticated fetch, the page renders
+            // the "verify your order" fallback card — its CardTitle must still
+            // read as an actual page heading, not an unlabeled div.
+            render(<OrderConfirmation />, { wrapper: createWrapper() });
+            expect(screen.getByRole('heading', { level: 1, name: 'نحتاج نتحقق من الطلب' })).toBeInTheDocument();
+        });
     });
 });
