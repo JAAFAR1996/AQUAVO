@@ -59,11 +59,8 @@
   --animate-wave: wave 2s ease-in-out infinite;
   --animate-float: float 6s ease-in-out infinite;
   --animate-pulse-glow: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  --animate-rise: rise 4s ease-in infinite;
-  --animate-fish-swim: fish-swim 15s linear infinite;
   --animate-luxury-fade: luxury-fade 0.8s ease-out forwards;
   --animate-slow-zoom: slow-zoom 20s ease-in-out infinite alternate;
-  --animate-water-ripple: water-ripple 1s ease-out forwards;
 }
 
 /* Keyframes */
@@ -105,42 +102,6 @@
   }
 }
 
-@keyframes rise {
-  0% {
-    transform: translateY(100%) scale(0.5);
-    opacity: 0;
-  }
-
-  50% {
-    opacity: 0.8;
-  }
-
-  100% {
-    transform: translateY(-20%) scale(1);
-    opacity: 0;
-  }
-}
-
-@keyframes fish-swim {
-  0% {
-    transform: translateX(-100%) translateY(0);
-    opacity: 0;
-  }
-
-  20% {
-    opacity: 1;
-  }
-
-  80% {
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateX(100vw) translateY(-20px);
-    opacity: 0;
-  }
-}
-
 @keyframes luxury-fade {
   0% {
     opacity: 0;
@@ -160,18 +121,6 @@
 
   100% {
     transform: scale(1.05);
-  }
-}
-
-@keyframes water-ripple {
-  0% {
-    transform: scale(0);
-    opacity: 0.5;
-  }
-
-  100% {
-    transform: scale(2);
-    opacity: 0;
   }
 }
 
@@ -202,6 +151,9 @@
   --popover: 201 57% 10%;
   --popover-foreground: 0 0% 100%;
 
+  /* HSL equivalent of --aqv-primary (#0B93A6 = hsl(187.35 87.57% 34.7%), rounded).
+     Kept as a separate bare H/S/L triplet because --color-primary consumes it
+     via hsl(var(--primary)); do not diverge this from --aqv-primary. */
   --primary: 187 88% 35%;
   --primary-foreground: 0 0% 100%;
 
@@ -433,10 +385,6 @@ html.dark {
     animation: wave 3s ease-in-out infinite;
   }
 
-  .water-ripple {
-    animation: water-ripple 1s ease-out forwards;
-  }
-
   .slow-zoom {
     animation: slow-zoom 20s ease-in-out infinite alternate;
   }
@@ -518,10 +466,6 @@ html.dark {
     background-size: 200% 100%;
   }
 
-  /* Pulse glow for CTAs */
-  .pulse-glow-cta {
-    animation: pulse-glow-cta 2s ease-in-out infinite;
-  }
 }
 
 /* Additional Keyframes for new animations */
@@ -595,29 +539,6 @@ html.dark {
 }
 .press:active {
   transform: scale(0.97);
-}
-
-/* Luxury "sheen" sweep across a card on hover — pure CSS, GPU-only.
-   Apply to a `position: relative; overflow: hidden` container. */
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .card-sheen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      105deg,
-      transparent 30%,
-      hsla(0, 0%, 100%, 0.13) 48%,
-      transparent 66%
-    );
-    transform: translateX(-120%);
-    transition: transform 650ms var(--ease-snappy);
-    pointer-events: none;
-    z-index: 4;
-  }
-  .card-sheen:hover::after {
-    transform: translateX(120%);
-  }
 }
 
 /* Navbar gains depth as the page scrolls — zero-JS via scroll-timeline.
@@ -708,18 +629,6 @@ html.dark {
 
   to {
     background-position: -200% 0;
-  }
-}
-
-@keyframes pulse-glow-cta {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 hsla(var(--primary) / 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 20px 4px hsla(var(--primary) / 0.2);
   }
 }
 
@@ -1028,87 +937,6 @@ input[type="email"],
   position: relative !important;
 }
 
-/* Style 1: Glassmorphism (زجاجي) - Purple tinted glass */
-.navbar-glassmorphism {
-  background: linear-gradient(135deg,
-      hsla(280, 80%, 40%, 0.3) 0%,
-      hsla(200, 80%, 50%, 0.3) 100%) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  border-bottom: 3px solid hsla(280, 80%, 60%, 0.5) !important;
-  box-shadow: 0 8px 32px hsla(280, 80%, 50%, 0.3) !important;
-}
-
-/* Style 2: Micro-interactions (تفاعلي) - Cyan accent with bounce */
-.navbar-micro-interactions {
-  background: linear-gradient(180deg,
-      hsla(180, 80%, 30%, 0.95) 0%,
-      hsla(180, 80%, 20%, 0.98) 100%) !important;
-  border-bottom: 4px solid hsl(180, 80%, 50%) !important;
-  box-shadow: 0 4px 20px hsla(180, 80%, 50%, 0.4) !important;
-}
-
-.navbar-micro-interactions .nav-link {
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
-}
-
-.navbar-micro-interactions .nav-link:hover {
-  transform: scale(1.15) translateY(-3px) !important;
-  color: hsl(180, 80%, 60%) !important;
-}
-
-/* Style 3: Ultra-minimal (بسيط) - Clean with no effects */
-.navbar-ultra-minimal {
-  background: var(--color-background) !important;
-  backdrop-filter: none !important;
-  border-bottom: none !important;
-  box-shadow: none !important;
-  padding: 2rem 3rem !important;
-}
-
-.navbar-ultra-minimal .nav-link {
-  opacity: 0.5 !important;
-  transition: opacity 0.3s ease !important;
-}
-
-.navbar-ultra-minimal .nav-link:hover {
-  opacity: 1 !important;
-}
-
-/* Style 4: AI-Personalized (ذكي) - Default with gradient glow */
-.navbar-ai-personalized {
-  background: linear-gradient(180deg,
-      hsla(var(--background) / 0.95) 0%,
-      hsla(var(--background) / 0.85) 100%) !important;
-  backdrop-filter: blur(16px) !important;
-  border-bottom: 1px solid hsla(var(--primary) / 0.3) !important;
-  box-shadow: 0 4px 16px hsla(var(--primary) / 0.1) !important;
-}
-
-/* Style 5: Device-Adaptive (متكيف) - Orange accent */
-.navbar-device-adaptive {
-  background: linear-gradient(180deg,
-      hsla(30, 70%, 25%, 0.95) 0%,
-      hsla(30, 70%, 15%, 0.98) 100%) !important;
-  border-bottom: 4px solid hsl(30, 80%, 50%) !important;
-  box-shadow: 0 4px 16px hsla(30, 80%, 50%, 0.4) !important;
-}
-
-/* Style 6: Immersive (غامر) - Nearly invisible navbar */
-.navbar-immersive {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  border: none !important;
-  box-shadow: none !important;
-  opacity: 0.5 !important;
-}
-
-.navbar-immersive:hover {
-  opacity: 1 !important;
-  background: hsla(var(--background) / 0.8) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
 /* Visual indicator strip on left side for each style */
 .navbar-2025::after {
   content: '';
@@ -1119,30 +947,6 @@ input[type="email"],
   height: 100%;
   pointer-events: none;
   z-index: 100;
-}
-
-.navbar-glassmorphism::after {
-  background: linear-gradient(180deg, hsl(280, 80%, 60%), hsl(200, 80%, 50%)) !important;
-}
-
-.navbar-micro-interactions::after {
-  background: hsl(180, 80%, 50%) !important;
-}
-
-.navbar-ultra-minimal::after {
-  background: transparent !important;
-}
-
-.navbar-ai-personalized::after {
-  background: hsla(var(--primary) / 0.5) !important;
-}
-
-.navbar-device-adaptive::after {
-  background: hsl(30, 80%, 50%) !important;
-}
-
-.navbar-immersive::after {
-  background: hsla(0, 0%, 100%, 0.3) !important;
 }
 
 /* AQUAVO v2 — Minimal Precision motion language */
@@ -1169,7 +973,7 @@ input[type="email"],
   height: 1px;
   pointer-events: none;
   transform-origin: right center;
-  background: linear-gradient(90deg, transparent, #0b64a6 28%, #0b93a6 72%, transparent);
+  background: linear-gradient(90deg, transparent, var(--aqv-flowline) 28%, var(--aqv-primary) 72%, transparent);
   animation: aquavo-waterline-enter 520ms cubic-bezier(.2,.7,.2,1) both;
 }
 
@@ -1185,12 +989,12 @@ input[type="email"],
   bottom: 20%;
   width: 2px;
   border-radius: 999px;
-  background: #0b93a6;
+  background: var(--aqv-primary);
   opacity: .55;
   pointer-events: none;
 }
 
-.aq-evidence-anchor:focus-visible { outline: 2px solid #0b93a6; outline-offset: 4px; }
+.aq-evidence-anchor:focus-visible { outline: 2px solid var(--aqv-primary); outline-offset: 4px; }
 
 @media (prefers-reduced-motion: reduce) {
   .aq-waterline-hero::after,
