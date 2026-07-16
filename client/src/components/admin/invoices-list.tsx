@@ -207,7 +207,7 @@ export default function InvoicesList() {
                   <td style={s.td}>{inv.customerName}</td>
                   <td style={{ ...s.td, direction: "ltr", color: "#94a3b8" }}>{inv.customerPhone}</td>
                   <td style={s.td}>{inv.customerCity || "—"}</td>
-                  <td style={{ ...s.td, color: "#ffd700", fontWeight: 700 }}>{Number(inv.total).toLocaleString("en-US")} د.ع</td>
+                  <td style={{ ...s.td, color: "var(--aqv-warning)", fontWeight: 700 }}>{Number(inv.total).toLocaleString("en-US")} د.ع</td>
                   <td style={s.td}><span style={s.badge(inv.status)}>{STATUS_MAP[inv.status]?.label ?? inv.status}</span></td>
                   <td style={{ ...s.td, color: "#64748b", fontSize: 12 }}>
                     {new Date(inv.createdAt).toLocaleDateString("ar-IQ")}

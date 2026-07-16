@@ -333,8 +333,8 @@ export default function GuideWaterTestGuide() {
           .wt-answer-block { background:rgba(11,147,166,0.07); border:1px solid rgba(11,147,166,0.2); border-radius:12px; padding:1.25rem 1.5rem; text-align:right; margin-bottom:1rem; }
           .wt-answer-text { font-size:0.97rem; color:#cbd5e1; line-height:1.8; margin:0; }
           .wt-meta { font-size:0.78rem; color:#475569; display:flex; gap:0.75rem; justify-content:center; }
-          .wt-store-note { background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.15); border-radius:10px; padding:1rem 1.25rem; font-size:0.88rem; color:#94a3b8; line-height:1.7; }
-          .wt-store-note strong { color:#ffd700; }
+          .wt-store-note { background:rgba(201,122,46,0.05); border:1px solid rgba(201,122,46,0.15); border-radius:10px; padding:1rem 1.25rem; font-size:0.88rem; color:#94a3b8; line-height:1.7; }
+          .wt-store-note strong { color:var(--aqv-warning); }
           .wt-store-link { color:#0B93A6; text-decoration:none; font-weight:600; }
           .wt-section { display:flex; flex-direction:column; gap:1rem; }
           .wt-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.5rem; border-right:3px solid #0B93A6; padding-right:0.75rem; }

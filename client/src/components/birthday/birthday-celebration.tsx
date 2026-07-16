@@ -11,7 +11,7 @@ interface BirthdayStatus {
   coupon?: { code: string; endDate?: string | null };
 }
 
-const BALLOON_COLORS = ["#0B93A6", "#0B64A6", "#ffd700", "#34d399", "#a78bfa"];
+const BALLOON_COLORS = ["#0B93A6", "#0B64A6", "#C97A2E", "#34d399", "#a78bfa"];
 
 // Birthday gift card (2026): if today is the logged-in user's birthday, fire
 // confetti + balloons and reveal their one-time 10% coupon. Shows once per year

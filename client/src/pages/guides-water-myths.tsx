@@ -438,7 +438,7 @@ export default function GuideWaterMyths() {
         .g-meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
         .g-meta-row span{font-size:12px;color:#6a8fa8;background:rgba(255,255,255,.04);padding:4px 10px;border-radius:6px}
         .g-pdf-tag{font-size:12px;padding:4px 10px;border-radius:6px;font-weight:600}
-        .g-draft{background:rgba(255,215,0,.08);color:rgba(255,215,0,.6)}
+        .g-draft{background:rgba(201,122,46,.08);color:rgba(201,122,46,.6)}
         .g-ready{background:rgba(11,147,166,.12);color:#0B93A6}
         .g-disclaimer{font-size:12px;color:rgba(255,255,255,.28);border-right:2px solid rgba(255,255,255,.08);padding-right:10px;line-height:1.6}
         .g-section{margin-bottom:52px}
@@ -449,7 +449,7 @@ export default function GuideWaterMyths() {
         .g-cause-num-big{font-size:32px;font-weight:900;color:rgba(11,147,166,.3);line-height:1;flex-shrink:0}
         .g-myth-badge{display:inline-block;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;letter-spacing:.4px;margin-bottom:14px}
         .g-myth-false{background:rgba(255,80,60,.08);color:rgba(255,100,80,.8);border:1px solid rgba(255,80,60,.2)}
-        .g-myth-partial{background:rgba(255,215,0,.07);color:rgba(255,200,60,.8);border:1px solid rgba(255,200,60,.2)}
+        .g-myth-partial{background:rgba(201,122,46,.07);color:rgba(214,148,74,.8);border:1px solid rgba(214,148,74,.2)}
         .g-cause-block{background:rgba(10,22,40,.5);border:1px solid rgba(11,147,166,.1);border-radius:12px;padding:18px 20px;margin-bottom:16px}
         .g-cause-sub{font-size:13px;font-weight:700;color:#0B93A6;letter-spacing:.5px;margin-bottom:8px}
         .g-cause-block p{font-size:14px;color:#9ab5c8;line-height:1.8}
@@ -485,7 +485,7 @@ export default function GuideWaterMyths() {
         .g-dont-items{display:flex;flex-wrap:wrap;gap:8px}
         .g-dont-chip{background:rgba(255,100,60,.05);color:rgba(255,140,120,.8);border:1px solid rgba(255,100,60,.15);border-radius:20px;padding:5px 12px;font-size:12px}
         .g-info-note{background:rgba(11,147,166,.06);border-right:3px solid rgba(11,147,166,.5);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13px;color:#8acad8;line-height:1.6;margin-bottom:14px}
-        .g-important-note{background:rgba(255,215,0,.05);border-right:3px solid rgba(255,215,0,.4);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13px;color:#c8b060;line-height:1.6;margin-top:14px}
+        .g-important-note{background:rgba(201,122,46,.05);border-right:3px solid rgba(201,122,46,.4);border-radius:0 10px 10px 0;padding:12px 16px;font-size:13px;color:#C97A2E;line-height:1.6;margin-top:14px}
         .g-mistakes{display:flex;flex-direction:column;gap:10px}
         .g-mistake{background:rgba(10,22,40,.5);border:1px solid rgba(255,100,60,.1);border-radius:12px;padding:16px 18px}
         .g-check-item{border-color:rgba(11,147,166,.15)!important}
@@ -497,10 +497,10 @@ export default function GuideWaterMyths() {
         .g-send-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
         .g-send-card{border-radius:12px;padding:16px}
         .g-send-visual{background:rgba(11,147,166,.06);border:1px solid rgba(11,147,166,.2)}
-        .g-send-info{background:rgba(255,215,0,.04);border:1px solid rgba(255,215,0,.15)}
+        .g-send-info{background:rgba(201,122,46,.04);border:1px solid rgba(201,122,46,.15)}
         .g-send-behavior{background:rgba(255,100,60,.04);border:1px solid rgba(255,100,60,.15)}
         .g-send-card-title{font-size:12px;font-weight:700;color:#0B93A6;letter-spacing:.5px;margin-bottom:10px}
-        .g-send-info .g-send-card-title{color:rgba(255,215,0,.7)}
+        .g-send-info .g-send-card-title{color:rgba(201,122,46,.7)}
         .g-send-behavior .g-send-card-title{color:#ff6c47}
         .g-send-list-inner{list-style:none;display:flex;flex-direction:column;gap:7px}
         .g-send-list-inner li{font-size:12px;color:#8aa8bc;line-height:1.5;padding-right:12px;position:relative}

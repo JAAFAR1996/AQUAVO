@@ -286,7 +286,7 @@ export default function AccountingPanel() {
               <KpiCard label="طلبات موصّلة" value={String(summary.deliveredCount)} color="#22c55e" />
               <KpiCard label="طلبات ملغاة / مرفوضة" value={String(summary.cancelledCount)} color="#ef4444" />
               <KpiCard label="نسبة RTO (إرجاع)" value={`${summary.rtoRate}%`} color={summary.rtoRate > 20 ? "#ef4444" : "#f59e0b"} />
-              <KpiCard label="متوسط قيمة الطلب" value={fmt(summary.aov)} color="#ffd700" />
+              <KpiCard label="متوسط قيمة الطلب" value={fmt(summary.aov)} color="var(--aqv-warning)" />
             </div>
             {!summary.costsComplete && (
               <div style={{ marginTop: 10, background: "#f59e0b15", border: "1px solid #f59e0b40", borderRadius: 8, padding: "8px 14px", color: "#fcd34d", fontSize: 12 }}>

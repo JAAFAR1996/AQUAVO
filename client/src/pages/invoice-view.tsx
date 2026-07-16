@@ -135,7 +135,7 @@ export default function InvoiceView() {
     btnNo:   { width: "100%", padding: "12px", borderRadius: 10, background: "transparent", color: "#ef4444", fontSize: 15, fontWeight: 600, border: "1px solid #ef444440", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 },
     success: { textAlign: "center" as const, padding: "30px 20px" },
     rejected:{ textAlign: "center" as const, padding: "30px 20px" },
-    promoBox:{ background: "linear-gradient(145deg, rgba(11,147,166,0.05), rgba(255,215,0,0.05))", border: "1px solid rgba(255,215,0,0.2)", borderRadius: 12, padding: "14px", marginTop: "20px", display: "flex", gap: "10px", alignItems: "flex-start" }
+    promoBox:{ background: "linear-gradient(145deg, rgba(11,147,166,0.05), rgba(201,122,46,0.05))", border: "1px solid rgba(201,122,46,0.2)", borderRadius: 12, padding: "14px", marginTop: "20px", display: "flex", gap: "10px", alignItems: "flex-start" }
   };
 
   if (loading) return (
@@ -242,7 +242,7 @@ export default function InvoiceView() {
             <div style={{ ...s.divider, margin: "10px 0" }} />
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, fontWeight: 800 }}>
               <span style={{ color: "#0B93A6" }}>الإجمالي</span>
-              <span style={{ color: "#ffd700" }}>{invoice.total.toLocaleString("en-US")} د.ع</span>
+              <span style={{ color: "var(--aqv-warning)" }}>{invoice.total.toLocaleString("en-US")} د.ع</span>
             </div>
           </div>
 
@@ -304,10 +304,10 @@ export default function InvoiceView() {
           {/* Promo Box */}
           <div style={s.promoBox}>
             <div style={{ flexShrink: 0, marginTop: 2 }}>
-              <Sparkles color="#ffd700" size={24} />
+              <Sparkles color="#C97A2E" size={24} />
             </div>
             <div>
-              <h4 style={{ color: "#ffd700", margin: "0 0 4px 0", fontSize: 13, fontWeight: 800 }}>رسالة من AQUAVO</h4>
+              <h4 style={{ color: "var(--aqv-warning)", margin: "0 0 4px 0", fontSize: 13, fontWeight: 800 }}>رسالة من AQUAVO</h4>
               <p style={{ color: "#e2e8f0", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
                 لو قمت بإنشاء حساب والطلب مباشرة من موقعنا، لعاد إليك مبلغ <span style={{color: "#0B93A6", fontWeight: 700}}>التقريب</span> كاش باك في محفظتك!
                 وأيضاً ستحصل على <span style={{color: "#0B93A6", fontWeight: 700}}>نقاط ولاء</span> مع كل طلب، ترتقي بك في مستويات العضوية لتكسب

@@ -256,7 +256,7 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
             height: "38vw",
             top: "35%",
             right: "22%",
-            background: "radial-gradient(ellipse, rgba(255,215,0,.14) 0%, transparent 68%)",
+            background: "radial-gradient(ellipse, rgba(201,122,46,.14) 0%, transparent 68%)",
             borderRadius: "50%",
             animation: "aq-aurora-3 13s ease-in-out 1.5s infinite",
           }}

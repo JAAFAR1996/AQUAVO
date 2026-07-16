@@ -615,7 +615,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                                 onClick={() => addItem(product, v.id, v.label, v.price)}
                               >
                                 <span style={{ color: "#c8d8e8" }}>↳ {v.label}</span>
-                                <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 13 }}>{v.price.toLocaleString("en-US")} د.ع</span>
+                                <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13 }}>{v.price.toLocaleString("en-US")} د.ع</span>
                               </div>
                             );
                           })}
@@ -655,7 +655,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                             <span style={{ fontSize: 10, padding: "1px 6px", borderRadius: 4, background: "rgba(11,147,166,0.15)", color: "#0B93A6", marginTop: 2, display: "inline-block" }}>{catLabel}</span>
                           )}
                         </div>
-                        <span style={{ color: "#ffd700", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{Number(product.price).toLocaleString("en-US")} د.ع</span>
+                        <span style={{ color: "var(--aqv-warning)", fontWeight: 700, fontSize: 13, flexShrink: 0 }}>{Number(product.price).toLocaleString("en-US")} د.ع</span>
                       </div>
                     );
                   })}
@@ -701,7 +701,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
                       <span style={{ minWidth: 24, textAlign: "center", fontWeight: 700 }}>{item.quantity}</span>
                       <button onClick={() => updateQuantity(idx, item.quantity + 1)} style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(11,147,166,0.15)", border: "1px solid rgba(11,147,166,0.3)", color: "#0B93A6", cursor: "pointer" }}>+</button>
                     </div>
-                    <div style={{ color: "#ffd700", fontWeight: 700, minWidth: 90, textAlign: "left" as const, fontSize: 13 }}>
+                    <div style={{ color: "var(--aqv-warning)", fontWeight: 700, minWidth: 90, textAlign: "left" as const, fontSize: 13 }}>
                       {item.total.toLocaleString("en-US")} د.ع
                     </div>
                     <button onClick={() => removeItem(idx)} style={{ background: "none", border: "none", color: "#ef4444", cursor: "pointer", padding: 4 }}><Trash2 size={16} /></button>
@@ -738,7 +738,7 @@ export default function ManualInvoiceCreator({ onClose, onSaved }: ManualInvoice
             ))}
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 20, fontWeight: 800, marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
               <span style={{ color: "#0B93A6" }}>الإجمالي</span>
-              <span style={{ color: "#ffd700" }}>{total.toLocaleString("en-US")} د.ع</span>
+              <span style={{ color: "var(--aqv-warning)" }}>{total.toLocaleString("en-US")} د.ع</span>
             </div>
           </div>
 

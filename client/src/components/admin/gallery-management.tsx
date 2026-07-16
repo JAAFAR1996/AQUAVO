@@ -162,12 +162,12 @@ export function GalleryManagement() {
   return (
     <div className="space-y-6">
       {/* Prize Management */}
-      <Card className="bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border-yellow-500/30">
+      <Card className="bg-gradient-to-r from-[var(--aqv-warning)]/10 to-[var(--aqv-warning)]/10 border-[var(--aqv-warning)]/30">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-yellow-500" />
+                <Trophy className="h-5 w-5 text-[var(--aqv-warning)]" />
                 الجائزة الحالية
               </h3>
               {currentPrize && (
@@ -177,10 +177,10 @@ export function GalleryManagement() {
                   {currentPrize.discountCode && (
                     <p className="flex items-center gap-2">
                       <Tag className="h-4 w-4" />
-                      <span className="font-mono bg-yellow-500/20 px-2 py-0.5 rounded">
+                      <span className="font-mono bg-[var(--aqv-warning)]/20 px-2 py-0.5 rounded">
                         {currentPrize.discountCode}
                       </span>
-                      <Badge className="bg-yellow-500">{currentPrize.discountPercentage}%</Badge>
+                      <Badge className="bg-[var(--aqv-warning)]">{currentPrize.discountPercentage}%</Badge>
                     </p>
                   )}
                 </div>
@@ -245,10 +245,10 @@ export function GalleryManagement() {
 
       {/* Current Winner */}
       {winner && (
-        <Card className="border-yellow-500/50">
+        <Card className="border-[var(--aqv-warning)]/50">
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <Crown className="h-5 w-5 text-yellow-500" />
+              <Crown className="h-5 w-5 text-[var(--aqv-warning)]" />
               <h3 className="text-lg font-bold">الفائز الحالي</h3>
             </div>
 
@@ -264,7 +264,7 @@ export function GalleryManagement() {
                 <p><span className="font-semibold">الهاتف:</span> {winner.customerPhone}</p>
                 {winner.tankSize && <p><span className="font-semibold">حجم الحوض:</span> {winner.tankSize}</p>}
                 <p><span className="font-semibold">الإعجابات:</span> <Heart className="inline h-4 w-4 text-red-500" /> {winner.likes}</p>
-                <Badge className="bg-yellow-500">{winner.prize}</Badge>
+                <Badge className="bg-[var(--aqv-warning)]">{winner.prize}</Badge>
               </div>
             </div>
           </CardContent>
@@ -319,7 +319,7 @@ export function GalleryManagement() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                    className="w-full border-[var(--aqv-warning)] text-[var(--aqv-warning)] hover:bg-[var(--aqv-warning)]/10"
                     onClick={() => setWinnerMutation.mutate(submission.id)}
                   >
                     <Crown className="h-4 w-4 mr-1" />
@@ -354,7 +354,7 @@ export function GalleryManagement() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="w-full mt-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                    className="w-full mt-2 border-[var(--aqv-warning)] text-[var(--aqv-warning)] hover:bg-[var(--aqv-warning)]/10"
                     onClick={() => setWinnerMutation.mutate(submission.id)}
                   >
                     <Crown className="h-3 w-3 mr-1" />

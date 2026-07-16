@@ -243,7 +243,7 @@ export default function TemperatureGuide() {
             transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
             className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
             style={{
-              background: "linear-gradient(135deg, rgba(11,147,166,0.3), rgba(255,123,90,0.2))",
+              background: "linear-gradient(135deg, rgba(11,147,166,0.3), rgba(11,100,166,0.2))",
               border: "1px solid rgba(11,147,166,0.4)",
               boxShadow: "0 0 40px rgba(11,147,166,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
             }}
@@ -372,8 +372,8 @@ export default function TemperatureGuide() {
             transition={{ duration: 0.7 }}
             className="rounded-3xl p-6"
             style={{
-              background: "linear-gradient(135deg, rgba(255,123,90,0.08), rgba(11,147,166,0.06))",
-              border: "1px solid rgba(255,123,90,0.15)",
+              background: "linear-gradient(135deg, rgba(11,100,166,0.08), rgba(11,147,166,0.06))",
+              border: "1px solid rgba(11,100,166,0.15)",
             }}
           >
             <h3 className="text-lg font-black text-white/90 mb-4 flex items-center gap-2">
