@@ -43,12 +43,12 @@ export function EmbeddedVariantSelector({
         <div className="space-y-3" dir="rtl">
             {/* Header */}
             <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="font-semibold text-sm">{title}</span>
+                <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
+                <span className="font-semibold text-sm" id="embedded-variant-title">{title}</span>
             </div>
 
             {/* Variants as compact buttons */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="embedded-variant-title">
                 {sortedVariants.map((variant) => {
                     const isSelected = variant.id === selectedVariantId;
                     const inStock = variant.stock > 0;
@@ -56,11 +56,15 @@ export function EmbeddedVariantSelector({
                     return (
                         <button
                             key={variant.id}
+                            type="button"
                             onClick={() => onVariantSelect(variant)}
                             disabled={!inStock}
+                            aria-pressed={isSelected}
+                            aria-label={!inStock ? `${variant.label}، غير متوفر` : variant.label}
                             className={cn(
-                                "relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
+                                "relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 min-h-11",
                                 "border-2 hover:shadow-sm",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                 isSelected
                                     ? "border-primary bg-primary text-primary-foreground shadow-sm"
                                     : "border-muted bg-background hover:border-primary/50",
@@ -69,7 +73,7 @@ export function EmbeddedVariantSelector({
                         >
                             {/* Selection checkmark */}
                             {isSelected && (
-                                <Check className="inline w-3 h-3 ml-1" />
+                                <Check className="inline w-3 h-3 ml-1" aria-hidden="true" />
                             )}
                             {variant.label}
                         </button>
@@ -78,8 +82,8 @@ export function EmbeddedVariantSelector({
             </div>
 
             {/* Price display */}
-            <div className="flex items-center gap-2 pt-2">
-                <Tag className="w-4 h-4 text-muted-foreground" />
+            <div className="flex items-center gap-2 pt-2" aria-live="polite">
+                <Tag className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                 <span className="text-sm text-muted-foreground">السعر:</span>
                 <span className="font-bold text-primary">
                     {Number(selectedVariant.price).toLocaleString('en-US')} د.ع
@@ -100,7 +104,7 @@ export function EmbeddedVariantSelector({
             <div className="flex items-center gap-2 text-sm">
                 {selectedVariant.stock > 0 ? (
                     <>
-                        <Check className="w-4 h-4 text-green-500" />
+                        <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                         <span className="text-green-600 dark:text-green-400">
                             متوفر ({selectedVariant.stock} قطعة)
                         </span>
@@ -126,17 +130,21 @@ export function EmbeddedVariantSelectorCompact({
     }
 
     return (
-        <div className="flex flex-wrap gap-2" dir="rtl">
+        <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات المنتج">
             {variants.map((variant) => {
                 const isSelected = variant.id === selectedVariantId;
 
                 return (
                     <button
                         key={variant.id}
+                        type="button"
                         onClick={() => onVariantSelect(variant)}
                         disabled={variant.stock <= 0}
+                        aria-pressed={isSelected}
+                        aria-label={variant.stock <= 0 ? `${variant.label}، غير متوفر` : variant.label}
                         className={cn(
-                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all min-h-11",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             isSelected
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground",

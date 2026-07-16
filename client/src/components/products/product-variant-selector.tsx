@@ -91,12 +91,16 @@ export function ProductVariantSelector({
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent" dir="rtl">
             <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                    <Icon className="w-5 h-5 text-primary" />
-                    {title}
+                    <Icon className="w-5 h-5 text-primary" aria-hidden="true" />
+                    <span id="legacy-variant-title">{title}</span>
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div
+                    className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"
+                    role="group"
+                    aria-labelledby="legacy-variant-title"
+                >
                     {sortedVariants.map((variant) => {
                         const isSelected = variant.id === currentProduct.id;
                         const label = getVariantLabel(variant);
@@ -110,9 +114,12 @@ export function ProductVariantSelector({
                             <Link
                                 key={variant.id}
                                 href={`/products/${variant.slug}`}
+                                aria-current={isSelected ? "page" : undefined}
+                                aria-label={`${label}${tankSize ? `، ${tankSize}` : ""}، ${price.toLocaleString()} د.ع${!inStock ? "، غير متوفر" : ""}`}
                                 className={cn(
                                     "block relative rounded-xl border-2 p-4 transition-all duration-200",
                                     "hover:border-primary/50 hover:shadow-md",
+                                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                     "min-h-[140px] flex flex-col items-center justify-center",
                                     isSelected
                                         ? "border-primary bg-primary/10 shadow-sm"
@@ -123,7 +130,7 @@ export function ProductVariantSelector({
                                 {/* علامة الاختيار */}
                                 {isSelected && (
                                     <div className="absolute top-2 left-2 w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                                        <Check className="w-3 h-3 text-primary-foreground" />
+                                        <Check className="w-3 h-3 text-primary-foreground" aria-hidden="true" />
                                     </div>
                                 )}
 
@@ -140,7 +147,7 @@ export function ProductVariantSelector({
                                 {/* قياس الحوض */}
                                 {tankSize && (
                                     <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground mb-2">
-                                        <Ruler className="w-3 h-3" />
+                                        <Ruler className="w-3 h-3" aria-hidden="true" />
                                         <span>{tankSize}</span>
                                     </div>
                                 )}
@@ -155,7 +162,7 @@ export function ProductVariantSelector({
 
                                 {/* حالة المخزون */}
                                 {!inStock && (
-                                    <Badge variant="secondary" className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px]">
+                                    <Badge variant="secondary" className="absolute bottom-2 left-1/2 -translate-x-1/2 text-[10px]" aria-hidden="true">
                                         غير متوفر
                                     </Badge>
                                 )}
@@ -209,7 +216,7 @@ export function ProductVariantSelectorCompact({
     };
 
     return (
-        <div className="flex flex-wrap gap-2" dir="rtl">
+        <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات الحجم">
             {variants.map((variant) => {
                 const isSelected = variant.id === currentProduct.id;
                 const label = getVariantLabel(variant);
@@ -218,8 +225,10 @@ export function ProductVariantSelectorCompact({
                     <Link
                         key={variant.id}
                         href={`/products/${variant.slug}`}
+                        aria-current={isSelected ? "page" : undefined}
                         className={cn(
-                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all",
+                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all min-h-11 inline-flex items-center",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                             isSelected
                                 ? "bg-primary text-primary-foreground"
                                 : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground"

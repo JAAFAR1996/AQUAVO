@@ -9,10 +9,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatNumber, formatPrice } from "@/lib/format";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock } from "lucide-react";
+import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { useCart } from "@/contexts/cart-context";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -74,6 +74,7 @@ export default function ProductDetails() {
   const { toast } = useToast();
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
@@ -184,15 +185,21 @@ export default function ProductDetails() {
       // addItem validates stock against the server and fires AddToCart analytics
       // (Meta/TikTok/GA/PostHog) ONLY on success — and shows the Arabic error toast
       // itself when blocked. Gate the success UI on the result.
+      if (isAddingToCart) return;
+      setIsAddingToCart(true);
       void (async () => {
-        const ok = await addItem(productToAdd, quantity);
-        if (!ok) return;
-        setIsAddedToCart(true);
-        toast({
-          title: "تمت الإضافة",
-          description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${displayName} انضاف للسلة.`,
-        });
-        setTimeout(() => setIsAddedToCart(false), 2000);
+        try {
+          const ok = await addItem(productToAdd, quantity);
+          if (!ok) return;
+          setIsAddedToCart(true);
+          toast({
+            title: "تمت الإضافة",
+            description: `${quantity > 1 ? `${quantity} قطع من ` : ""}${displayName} انضاف للسلة.`,
+          });
+          setTimeout(() => setIsAddedToCart(false), 2000);
+        } finally {
+          setIsAddingToCart(false);
+        }
       })();
     }
   };
@@ -344,7 +351,7 @@ export default function ProductDetails() {
                   {product.isBestSeller && <Badge className="bg-amber-500 shadow-lg">الأكثر مبيعاً</Badge>}
                   {product.ecoFriendly && (
                     <Badge variant="secondary" className="bg-green-100 text-green-700 gap-1 shadow-lg">
-                      <Leaf className="w-3 h-3" /> صديق للبيئة
+                      <Leaf className="w-3 h-3" aria-hidden="true" /> صديق للبيئة
                     </Badge>
                   )}
                 </div>
@@ -418,10 +425,11 @@ export default function ProductDetails() {
                 {/* Rating — hide if no reviews */}
                 {product.reviewCount > 0 && (
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="flex text-amber-400">
+                  <div className="flex text-amber-400" role="img" aria-label={`تقييم ${product.rating} من 5`}>
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
+                        aria-hidden="true"
                         className={`w-5 h-5 ${i < Math.floor(product.rating) ? "fill-current" : ""}`}
                       />
                     ))}
@@ -483,17 +491,17 @@ export default function ProductDetails() {
                 )}
 
                 {/* Stock Status */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-4" role="status">
                   {displayStock > 0 ? (
                     <>
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-green-600 dark:text-green-400">
                         متوفر ({formatNumber(displayStock)} قطعة)
                       </span>
                     </>
                   ) : (
                     <>
-                      <Package className="w-4 h-4 text-red-500" />
+                      <Package className="w-4 h-4 text-red-500" aria-hidden="true" />
                       <span className="text-sm font-medium text-red-600 dark:text-red-400">
                         غير متوفر حالياً
                       </span>
@@ -501,17 +509,26 @@ export default function ProductDetails() {
                   )}
                 </div>
 
-                {/* Shipping Info */}
-                <div className="flex flex-col gap-1 mb-4 p-3 rounded-lg bg-muted/30 border border-border/50">
-                  <div className="flex items-center gap-2 text-sm">
-                    <Truck className="w-4 h-4 text-primary" />
-                    <span className="font-medium">التوصيل: 5,000 د.ع لكل العراق</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="w-4 h-4" />
-                    <span>يوصل خلال 24 ساعة</span>
-                  </div>
-                </div>
+                {/* Purchase confidence — real, verifiable facts only (Cash on
+                    Delivery, flat shipping fee, 24/7 support), surfaced right
+                    above the quantity/CTA controls. */}
+                <ul
+                  className="flex flex-col gap-1 mb-4 p-3 rounded-lg bg-muted/30 border border-border/50 list-none"
+                  aria-label="معلومات الشراء والثقة"
+                >
+                  <li className="flex items-center gap-2 text-sm">
+                    <Truck className="w-4 h-4 text-primary" aria-hidden="true" />
+                    <span className="font-medium">التوصيل: {DELIVERY_FEE.toLocaleString()} د.ع لكل العراق</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Clock className="w-4 h-4" aria-hidden="true" />
+                    <span>يوصل خلال {DELIVERY_DAYS}</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Banknote className="w-4 h-4" aria-hidden="true" />
+                    <span>الدفع عند الاستلام فقط</span>
+                  </li>
+                </ul>
 
                 {/* Description — progressive disclosure for long text */}
                 <div className="text-muted-foreground text-sm leading-relaxed mb-6" style={{ whiteSpace: 'pre-line' }}>
@@ -529,48 +546,58 @@ export default function ProductDetails() {
                 </div>
 
                 {product3DMeta && (
-                  <div className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm">
-                    <div className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <ul className="mb-6 grid gap-2 rounded-lg border border-primary/20 bg-primary/5 p-3 text-sm list-none">
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                       <span>هذا نموذج بصري يساعدك تفهم شكل القطعة؛ صور المنتج ومواصفاته المكتوبة هي المرجع للقطعة المعروضة.</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                       <span>تگدر تلف النموذج 3D حتى تشوف الشكل العام من زوايا مختلفة.</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
                       <span>راجع القياسات ومحتويات العبوة المكتوبة قبل ما تقرر إذا تناسب ترتيب حوضك.</span>
-                    </div>
-                  </div>
+                    </li>
+                  </ul>
                 )}
 
                 {/* Quantity & Add to Cart */}
                 {hasPrice && displayStock > 0 && (
                   <div className="space-y-4 mb-6">
                     <div className="flex items-center gap-4">
-                      <label className="text-sm font-medium">الكمية:</label>
-                      <div className="flex items-center border rounded-lg">
+                      <span className="text-sm font-medium" id="quantity-label">الكمية:</span>
+                      <div
+                        className="flex items-center border rounded-lg"
+                        role="group"
+                        aria-labelledby="quantity-label"
+                      >
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 rounded-r-lg rounded-l-none"
+                          className="h-11 w-11 rounded-r-lg rounded-l-none"
                           onClick={() => handleQuantityChange(-1)}
                           disabled={quantity <= 1}
                           aria-label="تقليل الكمية"
                         >
-                          -
+                          <span aria-hidden="true">-</span>
                         </Button>
-                        <span className="w-12 text-center font-semibold">{quantity}</span>
+                        <span
+                          className="w-12 text-center font-semibold"
+                          aria-live="polite"
+                          aria-atomic="true"
+                        >
+                          {quantity}
+                        </span>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-10 w-10 rounded-l-lg rounded-r-none"
+                          className="h-11 w-11 rounded-l-lg rounded-r-none"
                           onClick={() => handleQuantityChange(1)}
                           disabled={quantity >= displayStock}
                           aria-label="زيادة الكمية"
                         >
-                          +
+                          <span aria-hidden="true">+</span>
                         </Button>
                       </div>
                     </div>
@@ -582,15 +609,23 @@ export default function ProductDetails() {
                         className={`flex-1 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
                           }`}
                         onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                        aria-disabled={isAddingToCart}
+                        aria-busy={isAddingToCart}
                       >
-                        {isAddedToCart ? (
+                        {isAddingToCart ? (
                           <>
-                            <Check className="w-5 h-5" />
+                            <Loader2 className="w-5 h-5 animate-spin" aria-hidden="true" />
+                            جاري الإضافة...
+                          </>
+                        ) : isAddedToCart ? (
+                          <>
+                            <Check className="w-5 h-5" aria-hidden="true" />
                             تمت الإضافة!
                           </>
                         ) : (
                           <>
-                            <ShoppingCart className="w-5 h-5" />
+                            <ShoppingCart className="w-5 h-5" aria-hidden="true" />
                             أضف إلى السلة
                           </>
                         )}
@@ -607,21 +642,21 @@ export default function ProductDetails() {
                         className="h-11 px-4"
                       />
                       <Button size="lg" variant="outline" onClick={handleShare} aria-label="مشاركة المنتج">
-                        <Share2 className="w-5 h-5" />
+                        <Share2 className="w-5 h-5" aria-hidden="true" />
                       </Button>
                     </div>
-                    {/* WhatsApp CTA — secondary */}
+                    {/* WhatsApp CTA — secondary; also carries the 24/7 support trust signal */}
                     <a
                       href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أسأل عن ${product.name} ${window.location.href}`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center justify-center gap-2 w-full h-10 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 text-sm font-medium transition-colors"
+                      className="flex items-center justify-center gap-2 w-full h-11 rounded-md border border-green-600/30 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 text-sm font-medium transition-colors"
                       onClick={() => {
                         import("@/lib/analytics").then(m => m.trackWhatsAppClick("product", product.name));
                         phTrackWhatsAppClick({ sourcePage: "product", productName: product.name });
                       }}
                     >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.624-1.467A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.57-5.913-1.652l-.424-.252-2.744.871.876-2.67-.276-.44A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.625.846 5.059 2.284 7.034L.789 23.492l4.624-1.467A11.96 11.96 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.75c-2.115 0-4.142-.57-5.913-1.652l-.424-.252-2.744.871.876-2.67-.276-.44A9.72 9.72 0 012.25 12 9.75 9.75 0 0112 2.25 9.75 9.75 0 0121.75 12 9.75 9.75 0 0112 21.75z"/></svg>
                       دعم AQUAVO متوفر 24/7
                     </a>
                   </div>
@@ -629,14 +664,14 @@ export default function ProductDetails() {
 
                 {/* Out of Stock Button */}
                 {!hasPrice && (
-                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled>
-                    <Package className="w-5 h-5" />
+                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled aria-disabled="true">
+                    <Package className="w-5 h-5" aria-hidden="true" />
                     قريباً
                   </Button>
                 )}
                 {hasPrice && displayStock <= 0 && (
-                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled>
-                    <Package className="w-5 h-5" />
+                  <Button size="lg" variant="outline" className="w-full gap-2 h-12 mb-6" disabled aria-disabled="true">
+                    <Package className="w-5 h-5" aria-hidden="true" />
                     غير متوفر حالياً
                   </Button>
                 )}
@@ -647,16 +682,16 @@ export default function ProductDetails() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <Truck className="w-5 h-5 text-primary" />
+                          <Truck className="w-5 h-5 text-primary" aria-hidden="true" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">توصيل خلال 24 ساعة</p>
+                          <p className="text-sm font-medium">توصيل خلال {DELIVERY_DAYS}</p>
                           <p className="text-xs text-muted-foreground">لكل العراق</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <RotateCcw className="w-5 h-5 text-primary" />
+                          <RotateCcw className="w-5 h-5 text-primary" aria-hidden="true" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">استبدال المعيب</p>
@@ -665,7 +700,7 @@ export default function ProductDetails() {
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="bg-primary/10 p-2 rounded-full">
-                          <Shield className="w-5 h-5 text-primary" />
+                          <Shield className="w-5 h-5 text-primary" aria-hidden="true" />
                         </div>
                         <div>
                           <p className="text-sm font-medium">
@@ -684,16 +719,16 @@ export default function ProductDetails() {
                 {product?.brand?.toLowerCase() === 'yee' && (
                   <Link href="/verify-certificate/yee" className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer">
                     <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-5 h-5 text-yellow-600" />
+                      <FileText className="w-5 h-5 text-yellow-600" aria-hidden="true" />
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-1">
                         وثيقة أصالة منتجات YEE
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
                       </p>
                       <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">صادرة من Weifang Yipin إلى AQUAVO العراق — شوف الوثيقة</p>
                     </div>
-                    <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" />
+                    <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" aria-hidden="true" />
                   </Link>
                 )}
               </div>
@@ -712,17 +747,17 @@ export default function ProductDetails() {
               <TabsContent value="benefits" className="mt-6">
                 <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-primary">
-                      <Leaf className="w-5 h-5" />
+                    <h2 className="flex items-center gap-2 text-primary font-semibold leading-none tracking-tight">
+                      <Leaf className="w-5 h-5" aria-hidden="true" />
                       لماذا تختار هذا المنتج؟
-                    </CardTitle>
+                    </h2>
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-4">
                         <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
                           <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <ShieldCheck className="w-5 h-5 text-green-600" />
+                            <ShieldCheck className="w-5 h-5 text-green-600" aria-hidden="true" />
                           </div>
                           <div>
                             <h3 className="font-bold text-sm">
@@ -739,7 +774,7 @@ export default function ProductDetails() {
                         {product.reviewCount > 0 && (
                           <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
                             <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Star className="w-5 h-5 text-blue-600" />
+                              <Star className="w-5 h-5 text-blue-600" aria-hidden="true" />
                             </div>
                             <div>
                               <h3 className="font-bold text-sm">تقييم عالي</h3>
@@ -749,7 +784,7 @@ export default function ProductDetails() {
                         )}
                         <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
                           <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Truck className="w-5 h-5 text-amber-600" />
+                            <Truck className="w-5 h-5 text-amber-600" aria-hidden="true" />
                           </div>
                           <div>
                             <h3 className="font-bold text-sm">توصيل خلال 24 ساعة</h3>
@@ -780,10 +815,10 @@ export default function ProductDetails() {
               <TabsContent value="specs" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Info className="w-5 h-5" />
+                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                      <Info className="w-5 h-5" aria-hidden="true" />
                       المواصفات التفصيلية
-                    </CardTitle>
+                    </h2>
                   </CardHeader>
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
@@ -826,10 +861,10 @@ export default function ProductDetails() {
               <TabsContent value="reviews" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                      <Star className="w-5 h-5 fill-amber-400 text-amber-400" aria-hidden="true" />
                       تقييمات العملاء
-                    </CardTitle>
+                    </h2>
                   </CardHeader>
                   <CardContent className="space-y-6">
 
@@ -843,7 +878,7 @@ export default function ProductDetails() {
                     </div>
 
                     <Alert className="bg-blue-50 border-blue-200">
-                      <Info className="h-4 w-4 text-blue-600" />
+                      <Info className="h-4 w-4 text-blue-600" aria-hidden="true" />
                       <AlertDescription className="text-sm text-blue-900">
                         اشتريت هذا المنتج؟ شاركنا تجربتك لمساعدة العملاء الآخرين!
                       </AlertDescription>
@@ -855,10 +890,10 @@ export default function ProductDetails() {
               <TabsContent value="shipping" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Truck className="w-5 h-5" />
+                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                      <Truck className="w-5 h-5" aria-hidden="true" />
                       معلومات الشحن والإرجاع
-                    </CardTitle>
+                    </h2>
                   </CardHeader>
                   <CardContent className="space-y-4" dir="rtl">
                     <div>
@@ -884,10 +919,10 @@ export default function ProductDetails() {
               <TabsContent value="usage" className="mt-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
+                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+                      <Shield className="w-5 h-5" aria-hidden="true" />
                       إرشادات الاستخدام والأمان
-                    </CardTitle>
+                    </h2>
                   </CardHeader>
                   <CardContent className="space-y-4" dir="rtl">
                     <div>

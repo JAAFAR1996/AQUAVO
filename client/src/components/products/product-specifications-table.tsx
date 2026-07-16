@@ -124,8 +124,8 @@ export function ProductSpecificationsTable({
         <Card className={cn("overflow-hidden", className)} dir="rtl">
             <CardHeader className="bg-gradient-to-br from-primary/5 to-transparent pb-4">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                    <Settings className="w-5 h-5 text-primary" />
-                    المواصفات التقنية
+                    <Settings className="w-5 h-5 text-primary" aria-hidden="true" />
+                    <span>المواصفات التقنية</span>
                     {category && (
                         <Badge variant="secondary" className="mr-2 text-xs">
                             {category}
@@ -134,7 +134,9 @@ export function ProductSpecificationsTable({
                 </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-                <div className="divide-y">
+                {/* Key/value specs — a description list, not decorative rows,
+                    so screen readers announce each spec as a term/value pair. */}
+                <dl className="divide-y m-0">
                     {specs.map((spec) => {
                         const IconComponent = getIcon(spec.label);
 
@@ -145,21 +147,21 @@ export function ProductSpecificationsTable({
                                     "flex items-center justify-between p-4 transition-colors"
                                 )}
                             >
-                                <div className="flex items-center gap-3">
+                                <dt className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                                        <IconComponent className="w-4 h-4 text-primary" />
+                                        <IconComponent className="w-4 h-4 text-primary" aria-hidden="true" />
                                     </div>
                                     <span className="font-medium text-sm text-muted-foreground">
                                         {spec.label}
                                     </span>
-                                </div>
-                                <span className="font-semibold text-sm text-right max-w-[50%]">
+                                </dt>
+                                <dd className="font-semibold text-sm text-right max-w-[50%] m-0">
                                     {spec.value}
-                                </span>
+                                </dd>
                             </div>
                         );
                     })}
-                </div>
+                </dl>
             </CardContent>
         </Card>
     );
@@ -178,7 +180,7 @@ export function ProductSpecificationsCompact({
     }
 
     return (
-        <div className={cn("grid grid-cols-2 gap-3", className)}>
+        <dl className={cn("grid grid-cols-2 gap-3 m-0", className)}>
             {specs.map((spec) => {
                 const IconComponent = getIcon(spec.label);
 
@@ -187,18 +189,18 @@ export function ProductSpecificationsCompact({
                         key={spec.label}
                         className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg"
                     >
-                        <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
+                        <IconComponent className="w-4 h-4 text-primary flex-shrink-0" aria-hidden="true" />
                         <div className="min-w-0">
-                            <div className="text-[10px] text-muted-foreground truncate">
+                            <dt className="text-[10px] text-muted-foreground truncate">
                                 {spec.label}
-                            </div>
-                            <div className="text-xs font-semibold truncate">
+                            </dt>
+                            <dd className="text-xs font-semibold truncate m-0">
                                 {spec.value}
-                            </div>
+                            </dd>
                         </div>
                     </div>
                 );
             })}
-        </div>
+        </dl>
     );
 }

@@ -230,4 +230,52 @@ describe('Product Details Page', () => {
         expect(screen.queryByText(/ضمان الجودة/i)).not.toBeInTheDocument();
         expect(screen.getByText('معلومات المنتج')).toBeInTheDocument();
     });
+
+    // ---- Phase E: purchase confidence + CTA accessibility ----
+
+    it('surfaces Cash on Delivery, flat shipping fee, and 24/7 support near the CTA', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByText(/الدفع عند الاستلام فقط/)).toBeInTheDocument();
+        expect(screen.getByText(/5,000 د.ع/)).toBeInTheDocument();
+        expect(screen.getByText(/دعم AQUAVO متوفر 24\/7/)).toBeInTheDocument();
+    });
+
+    it('never implies a payment gateway or live fish/plants are sold', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.queryByText(/بطاقة ائتمان|فيزا|ماستركارد/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/أسماك حية|نباتات مائية/)).not.toBeInTheDocument();
+    });
+
+    it('exposes the add-to-cart button as busy while the request is pending', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+        let resolveAdd: (ok: boolean) => void = () => { };
+        mockAddItem.mockImplementation(
+            () => new Promise<boolean>((resolve) => { resolveAdd = resolve; })
+        );
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        const mainCta = await screen.findByRole('button', { name: 'أضف إلى السلة' });
+
+        await user.click(mainCta);
+
+        expect(await screen.findByRole('button', { name: /جاري الإضافة/ })).toHaveAttribute('aria-busy', 'true');
+
+        resolveAdd(true);
+
+        await waitFor(() => {
+            expect(screen.queryByRole('button', { name: /جاري الإضافة/ })).not.toBeInTheDocument();
+        });
+    });
+
+    it('groups the quantity stepper under an accessible label and announces changes', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByRole('group', { name: 'الكمية:' })).toBeInTheDocument();
+        expect(screen.getByText('1')).toHaveAttribute('aria-live', 'polite');
+    });
 });
