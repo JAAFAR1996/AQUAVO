@@ -295,8 +295,8 @@ export default function CheckoutPage() {
   };
 
   const baseDeliveryFee = customerInfo.governorate === "baghdad" ? BAGHDAD_SHIPPING : OTHER_GOVERNORATES_SHIPPING;
-  const deliveryFee = baseDeliveryFee;
-  const isFreeShipping = false;
+  const isFreeShipping = appliedCoupon?.type === "free_shipping";
+  const deliveryFee = isFreeShipping ? 0 : baseDeliveryFee;
   const discount = couponDiscount + loyaltyData.pointsDiscount;
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
@@ -330,8 +330,12 @@ export default function CheckoutPage() {
         const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
         setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
+      } else if (coupon.type === "free_shipping") {
+        setAppliedCoupon(coupon);
+        setCouponDiscount(0);
+        setCouponSuccess("تم تطبيق شحن مجاني");
       } else {
-        setCouponError("التوصيل ثابت 5,000 د.ع لبغداد وكل المحافظات خلال 24 ساعة");
+        setCouponError("نوع الكوبون غير مدعوم حالياً");
       }
     } catch (error) {
       console.error("Coupon error:", error);

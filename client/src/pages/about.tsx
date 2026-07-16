@@ -234,7 +234,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>السبت - الخميس: 9 صباحاً - 9 مساءً</span>
+                  <span>الدعم متوفر 24/7 عبر واتساب والهاتف</span>
                 </div>
               </div>
             </div>

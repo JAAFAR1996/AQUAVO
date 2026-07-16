@@ -461,20 +461,5 @@ export function createUserRouter(): RouterType {
         }
     });
 
-    // Validate Coupon Public
-    router.post("/coupons/validate", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const { code, totalAmount } = req.body;
-            const coupon = await storage.getCouponByCode(code);
-            if (!coupon) {
-                res.status(404).json({ message: "Invalid" });
-                return;
-            }
-            res.json(coupon);
-        } catch (err) {
-            next(err);
-        }
-    });
-
     return router;
 }

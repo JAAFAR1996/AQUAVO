@@ -50,6 +50,11 @@ export function createCouponRouter(): RouterType {
                 return;
             }
 
+            if (coupon.maxUses !== null && coupon.maxUses !== undefined && (coupon.usedCount ?? 0) >= coupon.maxUses) {
+                res.status(400).json({ message: "تم استخدام هذا الكوبون بالكامل" });
+                return;
+            }
+
             res.json(coupon);
         } catch (error) {
             console.error("Coupon validation error:", error);
