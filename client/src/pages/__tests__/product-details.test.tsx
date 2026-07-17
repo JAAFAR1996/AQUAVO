@@ -278,4 +278,55 @@ describe('Product Details Page', () => {
         expect(screen.getByRole('group', { name: 'الكمية:' })).toBeInTheDocument();
         expect(screen.getByText('1')).toHaveAttribute('aria-live', 'polite');
     });
+
+    // ---- WCAG 44x44 touch target regression: quantity stepper must stay 44x44 at desktop widths ----
+
+    it('keeps the quantity decrease control at 44x44 on both mobile and desktop breakpoints', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const decreaseButton = screen.getByRole('button', { name: 'تقليل الكمية' });
+        expect(decreaseButton).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+    });
+
+    it('keeps the quantity increase control at 44x44 on both mobile and desktop breakpoints', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const increaseButton = screen.getByRole('button', { name: 'زيادة الكمية' });
+        expect(increaseButton).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+    });
+
+    it('disables the decrease control at the minimum quantity and keeps the increase control enabled', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByRole('button', { name: 'تقليل الكمية' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'زيادة الكمية' })).not.toBeDisabled();
+        expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    it('increments and decrements the quantity via the stepper controls', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const decreaseButton = screen.getByRole('button', { name: 'تقليل الكمية' });
+        const increaseButton = screen.getByRole('button', { name: 'زيادة الكمية' });
+
+        await user.click(increaseButton);
+        expect(screen.getByText('2')).toBeInTheDocument();
+
+        await user.click(increaseButton);
+        expect(screen.getByText('3')).toBeInTheDocument();
+
+        await user.click(decreaseButton);
+        expect(screen.getByText('2')).toBeInTheDocument();
+        expect(decreaseButton).not.toBeDisabled();
+
+        await user.click(decreaseButton);
+        expect(screen.getByText('1')).toBeInTheDocument();
+        expect(decreaseButton).toBeDisabled();
+    });
 });

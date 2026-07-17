@@ -149,7 +149,7 @@ export function ProductImageGallery({
                             <Button
                                 variant="secondary"
                                 size="icon"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11 md:h-11 md:w-11"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handlePrevious();
@@ -161,7 +161,7 @@ export function ProductImageGallery({
                             <Button
                                 variant="secondary"
                                 size="icon"
-                                className="absolute left-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11 md:h-11 md:w-11"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleNext();
@@ -248,7 +248,7 @@ export function ProductImageGallery({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
+                            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 h-11 w-11 md:h-11 md:w-11"
                             onClick={() => setLightboxOpen(false)}
                             aria-label="إغلاق معرض الصور"
                         >
@@ -278,7 +278,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handlePrevious}
                                     aria-label="الصورة السابقة"
                                 >
@@ -287,7 +287,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handleNext}
                                     aria-label="الصورة التالية"
                                 >

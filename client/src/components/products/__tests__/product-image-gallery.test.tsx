@@ -76,4 +76,54 @@ describe("ProductImageGallery", () => {
         render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
         expect(screen.getByRole("img", { name: "فلتر اختبار - صورة 1" })).toBeInTheDocument();
     });
+
+    // WCAG 44x44 touch-target regression: the shared `size="icon"` Button
+    // variant collapses to 36x36 at the md breakpoint unless an explicit
+    // md: override is added (tailwind-merge treats md: as a separate merge
+    // group). These assertions pin each control's intended size at desktop
+    // so the collapse can't silently reappear.
+    it("keeps the main-image previous/next controls at 44x44 at desktop (md:)", () => {
+        render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        const previous = screen.getByRole("button", { name: "الصورة السابقة" });
+        const next = screen.getByRole("button", { name: "الصورة التالية" });
+        expect(previous).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
+        expect(next).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
+    });
+
+    it("keeps the lightbox close control at 44x44 at desktop (md:)", () => {
+        render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
+        const close = screen.getByRole("button", { name: "إغلاق معرض الصور" });
+        expect(close).toHaveClass("h-11", "w-11", "md:h-11", "md:w-11");
+    });
+
+    it("keeps the lightbox previous/next controls at 48x48 (not collapsed to 44/36) at desktop", () => {
+        render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
+        const buttons = screen.getAllByRole("button", { name: "الصورة السابقة" });
+        const previous = buttons[buttons.length - 1];
+        const nextButtons = screen.getAllByRole("button", { name: "الصورة التالية" });
+        const next = nextButtons[nextButtons.length - 1];
+        expect(previous).toHaveClass("w-12", "h-12", "md:h-12", "md:w-12");
+        expect(next).toHaveClass("w-12", "h-12", "md:h-12", "md:w-12");
+    });
+
+    it("navigates within the lightbox using the previous/next controls", () => {
+        render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
+        const nextButtons = screen.getAllByRole("button", { name: "الصورة التالية" });
+        const lightboxNext = nextButtons[nextButtons.length - 1];
+        fireEvent.click(lightboxNext);
+        expect(screen.getByRole("img", { name: "فلتر اختبار" })).toBeInTheDocument();
+    });
+
+    it("marks decorative chevron/close icons as aria-hidden", () => {
+        const { container } = render(<ProductImageGallery images={images} productName="فلتر اختبار" />);
+        fireEvent.click(screen.getAllByRole("img", { name: /فلتر اختبار/ })[0]);
+        const hiddenIcons = container.querySelectorAll('svg[aria-hidden="true"]');
+        expect(hiddenIcons.length).toBeGreaterThan(0);
+        hiddenIcons.forEach((icon) => {
+            expect(icon).toHaveAttribute("aria-hidden", "true");
+        });
+    });
 });

@@ -575,7 +575,7 @@ export default function ProductDetails() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-11 w-11 rounded-r-lg rounded-l-none"
+                          className="h-11 w-11 md:h-11 md:w-11 rounded-r-lg rounded-l-none"
                           onClick={() => handleQuantityChange(-1)}
                           disabled={quantity <= 1}
                           aria-label="تقليل الكمية"
@@ -592,7 +592,7 @@ export default function ProductDetails() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-11 w-11 rounded-l-lg rounded-r-none"
+                          className="h-11 w-11 md:h-11 md:w-11 rounded-l-lg rounded-r-none"
                           onClick={() => handleQuantityChange(1)}
                           disabled={quantity >= displayStock}
                           aria-label="زيادة الكمية"
