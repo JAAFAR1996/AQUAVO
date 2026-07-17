@@ -67,4 +67,53 @@ describe('FilterBar quick-filter chips', () => {
         expect(next.priceRange).toEqual([1000, 5000]);
         expect(next.categories).toEqual(['فلاتر']);
     });
+
+    it('activates a chip via keyboard (Enter) same as a click', async () => {
+        const user = userEvent.setup();
+        const { onFiltersChange } = renderBar(baseFilters({ tags: [] }));
+        const chip = screen.getByRole('button', { name: 'جديد' });
+        chip.focus();
+        await user.keyboard('{Enter}');
+        expect(onFiltersChange).toHaveBeenCalledTimes(1);
+        expect(onFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ tags: expect.arrayContaining(['جديد']) })
+        );
+    });
+
+    it('activates a chip via keyboard (Space) same as a click', async () => {
+        const user = userEvent.setup();
+        const { onFiltersChange } = renderBar(baseFilters({ tags: [] }));
+        const chip = screen.getByRole('button', { name: 'جديد' });
+        chip.focus();
+        await user.keyboard(' ');
+        expect(onFiltersChange).toHaveBeenCalledTimes(1);
+        expect(onFiltersChange).toHaveBeenCalledWith(
+            expect.objectContaining({ tags: expect.arrayContaining(['جديد']) })
+        );
+    });
+});
+
+describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', () => {
+    it('gives every quick-filter chip a >=44px min-height class', () => {
+        renderBar(baseFilters());
+        for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+            expect(screen.getByRole('button', { name })).toHaveClass('min-h-11');
+        }
+    });
+
+    it('gives the الفلاتر trigger button a >=44px min-height class', () => {
+        renderBar(baseFilters());
+        expect(screen.getByRole('button', { name: /الفلاتر/ })).toHaveClass('min-h-11');
+    });
+
+    it('gives the السعر trigger button a >=44px min-height class', () => {
+        renderBar(baseFilters());
+        expect(screen.getByRole('button', { name: /السعر/ })).toHaveClass('min-h-11');
+    });
+
+    it('does not leave h-auto overriding the touch-target min-height on the trigger buttons', () => {
+        renderBar(baseFilters());
+        expect(screen.getByRole('button', { name: /الفلاتر/ })).not.toHaveClass('h-auto');
+        expect(screen.getByRole('button', { name: /السعر/ })).not.toHaveClass('h-auto');
+    });
 });

@@ -55,7 +55,7 @@ function QuickFilterChip({
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                "inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium",
+                "inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 rounded-full text-xs sm:text-sm font-medium",
                 "border transition-all duration-200",
                 "hover:shadow-md active:scale-95",
                 colorClasses[color]
@@ -111,7 +111,7 @@ export function FilterBar({
                 variant="outline"
                 onClick={onOpenFilterModal}
                 className={cn(
-                    "relative rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm",
+                    "relative rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 text-xs sm:text-sm",
                     "hover:shadow-md transition-all",
                     activeFiltersCount > 0 && "border-primary bg-primary/5"
                 )}
@@ -133,7 +133,7 @@ export function FilterBar({
                     <Button
                         variant="outline"
                         className={cn(
-                            "rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm",
+                            "rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 text-xs sm:text-sm",
                             "hover:shadow-md transition-all",
                             isPriceActive && "border-primary bg-primary/5"
                         )}
