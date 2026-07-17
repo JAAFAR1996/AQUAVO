@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { thumbImage } from "@/lib/cloudinary";
 import {
     Table,
     TableBody,
@@ -280,9 +281,11 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                                 className="relative flex-shrink-0 w-[4.25rem] h-[4.25rem]"
                                             >
                                                 <img
-                                                    src={product.image || product.thumbnail}
+                                                    src={thumbImage(product.image || product.thumbnail)}
                                                     alt={product.name}
                                                     className="w-full h-full object-contain rounded-xl border bg-background"
+                                                    loading="lazy"
+                                                    decoding="async"
                                                 />
                                                 <button
                                                     onClick={() => removeFromCompare(product.id)}
@@ -323,11 +326,13 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
                                     {comparedProducts.slice(0, 3).map((product, i) => (
                                         <img
                                             key={product.id}
-                                            src={product.image || product.thumbnail}
+                                            src={thumbImage(product.image || product.thumbnail)}
                                             alt=""
                                             aria-hidden="true"
                                             className="w-9 h-9 rounded-full border-2 border-card object-cover bg-background"
                                             style={{ marginInlineStart: i === 0 ? 0 : "-12px", zIndex: 3 - i }}
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     ))}
                                 </span>
@@ -419,9 +424,11 @@ export function ProductComparisonTable({
                                     )}
                                     <div className="text-center">
                                         <img
-                                            src={product.image || product.thumbnail}
+                                            src={thumbImage(product.image || product.thumbnail)}
                                             alt={product.name}
                                             className="w-24 h-24 object-contain mx-auto mb-2"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                         <Link href={`/products/${product.slug}`}>
                                             <span className="font-medium hover:text-primary line-clamp-2">

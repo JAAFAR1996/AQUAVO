@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { phTrackSearch } from "@/lib/posthog";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
+import { thumbImage } from "@/lib/cloudinary";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -361,7 +362,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 >
                   {result.type === "product" && result.image && (
                     <img
-                      src={result.image}
+                      src={thumbImage(result.image)}
                       alt={result.title}
                       loading="lazy"
                       decoding="async"

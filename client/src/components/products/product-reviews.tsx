@@ -18,6 +18,7 @@ import {
   ImagePlus,
   X
 } from "lucide-react";
+import { thumbImage, lightboxImage } from "@/lib/cloudinary";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -617,17 +618,20 @@ export function ProductReviews({ productId, productName }: ProductReviewsProps) 
                                   <DialogTrigger asChild>
                                     <div className="relative w-16 h-16 rounded-lg overflow-hidden cursor-pointer group">
                                       <img
-                                        src={img}
+                                        src={thumbImage(img)}
                                         alt={`صورة المراجعة`}
                                         className="object-cover w-full h-full transition-transform group-hover:scale-110"
+                                        loading="lazy"
+                                        decoding="async"
                                       />
                                     </div>
                                   </DialogTrigger>
                                   <DialogContent className="max-w-3xl border-none bg-transparent shadow-none p-0">
                                     <img
-                                      src={img}
+                                      src={lightboxImage(img)}
                                       alt={`صورة المراجعة`}
                                       className="rounded-lg w-full h-auto max-h-[80vh] object-contain"
+                                      decoding="async"
                                     />
                                   </DialogContent>
                                 </Dialog>

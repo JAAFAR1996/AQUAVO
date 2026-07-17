@@ -3,6 +3,7 @@ import { useCart } from "@/contexts/cart-context";
 import { fetchCartSuggestions } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Sparkles } from "lucide-react";
+import { thumbImage } from "@/lib/cloudinary";
 import type { Product } from "@/types";
 
 export function CartSuggestions() {
@@ -33,10 +34,16 @@ export function CartSuggestions() {
           >
             <div className="w-full h-16 rounded-md overflow-hidden bg-background mb-1.5">
               <img
-                src={product.images?.[0] || product.thumbnail}
+                src={thumbImage(product.images?.[0] || product.thumbnail) || "/brand/aquavo-v2-icon.svg"}
                 alt={product.name}
                 className="w-full h-full object-contain p-1"
                 loading="lazy"
+                decoding="async"
+                width={120}
+                height={120}
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/brand/aquavo-v2-icon.svg";
+                }}
               />
             </div>
             <h5 className="text-[11px] font-medium text-right line-clamp-2 leading-tight mb-1">

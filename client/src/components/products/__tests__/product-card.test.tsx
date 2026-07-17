@@ -91,6 +91,37 @@ describe('ProductCard Component', () => {
         expect(image).toHaveClass('object-contain');
     });
 
+    // ---- Phase H: responsive image delivery ----
+
+    it('omits srcSet/sizes for local (non-Cloudinary) product images', () => {
+        // mockProduct images are local /images/... paths — only one
+        // pre-generated size exists for these, so there is nothing for a
+        // srcset to pick between.
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        expect(image).not.toHaveAttribute('srcset');
+        expect(image).not.toHaveAttribute('sizes');
+    });
+
+    it('serves a responsive srcSet + sizes for Cloudinary-hosted product images', () => {
+        const cloudinaryProduct = {
+            ...mockProduct,
+            thumbnail: 'https://res.cloudinary.com/demo/image/upload/v1/fish-food.jpg',
+            image: 'https://res.cloudinary.com/demo/image/upload/v1/fish-food.jpg',
+        };
+        render(<ProductCard product={cloudinaryProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        const srcSet = image.getAttribute('srcset') ?? '';
+        expect(srcSet).toContain('300w');
+        expect(srcSet).toContain('400w');
+        expect(srcSet).toContain('600w');
+        expect(srcSet).toContain('800w');
+        expect(image).toHaveAttribute(
+            'sizes',
+            '(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw'
+        );
+    });
+
     it('uses a direct, calm add-to-cart label', () => {
         render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
         expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();

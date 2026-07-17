@@ -10,7 +10,7 @@ import { DifficultyBadge } from "@/components/ui/difficulty-badge";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
-import { cardImage } from "@/lib/cloudinary";
+import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
 import type { Product } from "@/types";
@@ -58,7 +58,12 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  const imageSrc = cardImage(product.thumbnail || product.image) || "/brand/aquavo-v2-icon.svg";
+  const rawImage = product.thumbnail || product.image;
+  const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
+  // Only Cloudinary-hosted images have multiple pre-generated widths to pick
+  // from; local assets ship a single fixed-size variant, so srcSet stays
+  // undefined for those and the browser just uses `imageSrc`.
+  const imageSrcSet = cardImageSrcSet(rawImage);
 
   return (
     <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/60 text-right transition-colors hover:border-primary/50">
@@ -117,6 +122,8 @@ export const ProductCard = memo(function ProductCard({
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/45" aria-hidden="true" /> : null}
           <img
             src={imageSrc}
+            srcSet={imageSrcSet}
+            sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
             alt={`صورة منتج ${product.name}`}
             className={`h-full w-full select-none object-contain p-3 transition-opacity duration-200 sm:p-5 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
             loading={priority ? "eager" : "lazy"}

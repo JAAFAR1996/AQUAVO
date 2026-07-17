@@ -23,7 +23,7 @@ import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
-import { cardImage } from "@/lib/cloudinary";
+import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
@@ -248,6 +248,8 @@ export default function Home() {
                     <div className="aspect-square bg-white p-3 sm:p-5">
                       <img
                         src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
+                        srcSet={cardImageSrcSet(product.images[0])}
+                        sizes="(max-width: 1023px) 50vw, 25vw"
                         alt={product.name}
                         width={360}
                         height={360}

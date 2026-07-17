@@ -3,7 +3,7 @@ import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { detailImage, thumbImage, lightboxImage } from "@/lib/cloudinary";
+import { detailImage, detailImageSrcSet, thumbImage, lightboxImage } from "@/lib/cloudinary";
 
 interface ProductImageGalleryProps {
     images: string[];
@@ -103,6 +103,8 @@ export function ProductImageGallery({
                         <>
                             <img
                                 src={detailImage(currentImage)}
+                                srcSet={detailImageSrcSet(currentImage)}
+                                sizes="(max-width: 512px) 100vw, 512px"
                                 alt={`${productName} - صورة ${selectedIndex + 1}`}
                                 className={cn(
                                     "w-full h-full object-contain transition-transform duration-300 p-4 select-none",

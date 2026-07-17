@@ -15,6 +15,7 @@ import { useCart } from "@/contexts/cart-context";
 import { useToast } from "@/hooks/use-toast";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { Link } from "wouter";
+import { detailImage, thumbImage } from "@/lib/cloudinary";
 
 interface QuickViewModalProps {
     product: Product | null;
@@ -80,9 +81,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                         {/* Main Image */}
                         <div className="aspect-square flex items-center justify-center">
                             <img
-                                src={images[selectedImage]}
+                                src={detailImage(images[selectedImage])}
                                 alt={product.name}
                                 className="max-w-full max-h-full object-contain"
+                                loading="eager"
+                                decoding="async"
                             />
                         </div>
 
@@ -99,9 +102,11 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
                                             }`}
                                     >
                                         <img
-                                            src={img}
+                                            src={thumbImage(img)}
                                             alt={`${product.name} - صورة ${images.indexOf(img) + 1}`}
                                             className="w-full h-full object-contain"
+                                            loading="lazy"
+                                            decoding="async"
                                         />
                                     </button>
                                 ))}
