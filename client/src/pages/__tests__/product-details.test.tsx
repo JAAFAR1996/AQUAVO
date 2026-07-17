@@ -329,4 +329,43 @@ describe('Product Details Page', () => {
         expect(screen.getByText('1')).toBeInTheDocument();
         expect(decreaseButton).toBeDisabled();
     });
+
+    // ---- Tablet (768px) horizontal-overflow regression ----
+    // scrollWidth 970 > clientWidth 753 was caused by the main gallery/info
+    // grid activating two columns at `md` (768px), before there was room for
+    // both columns. The fix defers the two-column layout to `lg` (desktop).
+
+    it('does not activate the main gallery/info grid at the tablet (md) breakpoint', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const mainGrid = container.querySelector('.grid.gap-12');
+        expect(mainGrid).toBeInTheDocument();
+        expect(mainGrid).not.toHaveClass('md:grid-cols-2');
+    });
+
+    it('activates the main gallery/info grid at the desktop (lg) breakpoint', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const mainGrid = container.querySelector('.grid.gap-12');
+        expect(mainGrid).toBeInTheDocument();
+        expect(mainGrid).toHaveClass('lg:grid-cols-2');
+    });
+
+    it('does not hide tablet overflow behind overflow-x-hidden on the PDP container', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(container.querySelector('.overflow-x-hidden')).not.toBeInTheDocument();
+    });
+
+    it('keeps the PDP h1, main landmark, variant selector, and Add-to-Cart button present', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
+        expect(screen.getByRole('main')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '1.7 متر' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).toBeInTheDocument();
+    });
 });

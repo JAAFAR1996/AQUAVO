@@ -342,7 +342,7 @@ export default function ProductDetails() {
               </div>
             )}
 
-            <div className="grid md:grid-cols-2 gap-12">
+            <div className="grid lg:grid-cols-2 gap-12">
               {/* Product Image Gallery with Zoom */}
               <div className="relative">
                 {/* Product Badges */}
