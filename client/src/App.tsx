@@ -1,5 +1,6 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { lazy, Suspense, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 import { PageLoader, AppInitLoader } from "@/components/ui/loaders";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -989,6 +990,12 @@ function AppShell() {
   }, []);
 
   return (
+    // reducedMotion="user" makes every framer-motion component in the tree
+    // (page reveals, product showcases, wishlist/cart micro-interactions,
+    // notifications, etc.) automatically honour the OS "reduce motion"
+    // setting — no per-component edits needed. Purely CSS-driven motion is
+    // covered separately by the global rule in client/src/index.css.
+    <MotionConfig reducedMotion="user">
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
@@ -1070,6 +1077,7 @@ function AppShell() {
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </MotionConfig>
   );
 }
 

@@ -1,4 +1,5 @@
 import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
 interface PrecisionRevealProps {
   children: ReactNode;
@@ -11,11 +12,12 @@ export function PrecisionReveal({ children, className = "", stagger = false }: P
   const elementRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   const [motionReady, setMotionReady] = useState(false);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element || visible) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reducedMotion) {
       setVisible(true);
       return;
     }
@@ -29,7 +31,7 @@ export function PrecisionReveal({ children, className = "", stagger = false }: P
 
     observer.observe(element);
     return () => observer.disconnect();
-  }, [visible]);
+  }, [visible, reducedMotion]);
 
   return (
     <div

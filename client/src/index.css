@@ -682,17 +682,10 @@ html.dark {
 /* Mobile Performance Optimization */
 @layer utilities {
 
-  /* Reduce motion for accessibility */
-  @media (prefers-reduced-motion: reduce) {
-
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-    }
-  }
+  /* Reduce motion for accessibility — see the single global
+     `@media (prefers-reduced-motion: reduce)` rule further down this file
+     (search "Reduce motion for accessibility") for the actual override; kept
+     as one rule so there's exactly one place to audit/update it. */
 
   /* GPU acceleration for smooth scrolling */
   .smooth-scroll {
