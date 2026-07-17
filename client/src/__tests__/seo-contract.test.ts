@@ -27,8 +27,17 @@ describe("AQUAVO discoverability contract", () => {
     expect(meta).toContain("AQUAVO لمعدات الأحواض | العراق");
     expect(meta).not.toContain("معدات أحواض أصلية | العراق");
     expect(meta).not.toContain("أكبر متجر إلكتروني");
-    expect(read("client/src/pages/home.tsx")).toContain("<OrganizationSchema />");
-    expect(read("client/src/pages/home.tsx")).toContain("<WebsiteSchema />");
+  });
+
+  it("does not duplicate Organization/WebSite structured data on the client (SSR already owns it)", () => {
+    const home = read("client/src/pages/home.tsx");
+    // ssr-meta.ts already injects Organization + WebSite JSON-LD for "/" server-side
+    // (see STATIC_PAGES["/"].jsonLd). Rendering them again client-side would duplicate
+    // the entities in the hydrated document, so home.tsx must not import or render them.
+    expect(home).not.toContain("OrganizationSchema");
+    expect(home).not.toContain("WebsiteSchema");
+    expect(home).not.toContain("<OrganizationSchema />");
+    expect(home).not.toContain("<WebsiteSchema />");
   });
 
   it("does not expose unverified investor projections as current facts", () => {

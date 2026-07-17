@@ -25,7 +25,7 @@ import {
 import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
-import { MetaTags, OrganizationSchema, WebsiteSchema } from "@/components/seo/meta-tags";
+import { MetaTags } from "@/components/seo/meta-tags";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
@@ -149,8 +149,6 @@ export default function Home() {
         title="معدات أحواض بريميوم بالعراق"
         description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام وتوصيل لكل العراق."
       />
-      <OrganizationSchema />
-      <WebsiteSchema />
 
       <Navbar />
 

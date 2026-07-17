@@ -1,5 +1,41 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { describe, expect, it, vi } from "vitest";
+
+// A fake Neon Pool so PDP SSR tests can exercise the real `getProductMeta()` DB
+// path without a live database. Must be mocked before `../../api/ssr-meta` is
+// imported (vi.mock calls are hoisted by vitest, so this is safe even though
+// it appears above the import below).
+const FAKE_PRODUCT_ROW = {
+  id: "1",
+  name: "فلتر اختبار YEE",
+  description: "فلتر تجريبي للاختبار فقط.",
+  price: "15000",
+  currency: "IQD",
+  brand: "YEE",
+  category: "filters",
+  images: ["/images/products/test-filter.webp"],
+  thumbnail: null,
+  slug: "test-filter",
+  specifications: {},
+  stock: 5,
+  variants: [],
+  hasVariants: false,
+};
+
+vi.mock("@neondatabase/serverless", () => ({
+  neonConfig: {},
+  Pool: vi.fn().mockImplementation(function FakePool() {
+    return {
+      query: vi.fn(async (sql: string) => {
+        if (sql.includes("FROM products")) return { rows: [FAKE_PRODUCT_ROW] };
+        return { rows: [] };
+      }),
+    };
+  }),
+}));
+
+process.env.DATABASE_URL ||= "postgres://test-user:test-pass@localhost:5432/test-db";
+
 import handler, {
   buildProductMetaDescription,
   buildProductMetaTitle,
@@ -115,5 +151,54 @@ describe("SEO metadata contracts", () => {
     expect(product).not.toContain("iwagumi_aquascape");
     expect(other).not.toMatch(/rel="preload"[^>]*as="image"/);
     expect(other).not.toContain("iwagumi_aquascape");
+  });
+});
+
+// ─── Structured-data deduplication contract ────────────────────────────────
+// SSR (this file) is the canonical owner of Organization/WebSite (home) and
+// Product/BreadcrumbList (PDP) JSON-LD. Client components must not render a
+// second copy of these — see client/src/__tests__/seo-contract.test.ts for the
+// assertion that home.tsx no longer imports OrganizationSchema/WebsiteSchema.
+function jsonLdEntities(html: string): Array<{ "@type"?: string; [key: string]: unknown }> {
+  return [...html.matchAll(/<script type="application\/ld\+json">([^<]+)<\/script>/g)].map(
+    (match) => JSON.parse(match[1]) as { "@type"?: string; [key: string]: unknown }
+  );
+}
+
+describe("structured data deduplication contract", () => {
+  it("emits exactly one Organization and one WebSite entity for the home page", async () => {
+    const html = await render("/");
+    const entities = jsonLdEntities(html);
+    expect(entities.filter((e) => e["@type"] === "Organization")).toHaveLength(1);
+    expect(entities.filter((e) => e["@type"] === "WebSite")).toHaveLength(1);
+  });
+
+  it("emits exactly one Product and one BreadcrumbList entity for a product detail page", async () => {
+    const html = await render("/products/test-filter");
+    const entities = jsonLdEntities(html);
+    const products = entities.filter((e) => e["@type"] === "Product");
+    const breadcrumbs = entities.filter((e) => e["@type"] === "BreadcrumbList");
+    expect(products).toHaveLength(1);
+    expect(breadcrumbs).toHaveLength(1);
+    // Sanity: the Product entity actually carries the DB-sourced price/availability/image
+    // (SSR must be a complete owner before the client copy can be safely removed).
+    expect(products[0]).toMatchObject({
+      name: FAKE_PRODUCT_ROW.name,
+      image: expect.stringContaining(FAKE_PRODUCT_ROW.images[0]),
+      offers: expect.objectContaining({
+        price: FAKE_PRODUCT_ROW.price,
+        priceCurrency: FAKE_PRODUCT_ROW.currency,
+        availability: "https://schema.org/InStock",
+      }),
+    });
+  });
+
+  it("does not emit a Product entity for non-product routes", async () => {
+    const home = jsonLdEntities(await render("/"));
+    const shipping = jsonLdEntities(await render("/shipping"));
+    const products = jsonLdEntities(await render("/products"));
+    expect(home.some((e) => e["@type"] === "Product")).toBe(false);
+    expect(shipping.some((e) => e["@type"] === "Product")).toBe(false);
+    expect(products.some((e) => e["@type"] === "Product")).toBe(false);
   });
 });
