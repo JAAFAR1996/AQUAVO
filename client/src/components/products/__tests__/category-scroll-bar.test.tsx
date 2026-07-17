@@ -17,8 +17,8 @@
  * rejected brand token is introduced, and that category-toggle behaviour is
  * unchanged.
  */
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, afterEach } from 'vitest';
+import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CategoryScrollBar } from '../category-scroll-bar';
 
@@ -143,5 +143,139 @@ describe('CategoryScrollBar rendering + behaviour (contrast fix must not regress
         const allButtons = screen.getAllByRole('button', { name: 'الكل' });
         await user.click(allButtons[0]);
         expect(onCategoryToggle).toHaveBeenCalledWith('فلاتر');
+    });
+});
+
+/**
+ * Accessible-name tests for the desktop arrow-scroll icon buttons.
+ *
+ * axe flagged both icon-only scroll buttons (containing only a Chevron icon,
+ * no text) as `button-name` violations (critical). Each now gets a distinct
+ * aria-label whose wording is tied to the REAL effect of the scroll() call it
+ * triggers, not to the icon shape or button position (both of which are
+ * mirrored/inverted under the RTL scrollBy sign convention used here).
+ *
+ * Verified direction mapping (see scroll() in category-scroll-bar.tsx):
+ *   scroll("left")  -> scrollBy left delta that always moves scrollLeft
+ *                      TOWARD 0 (the start), in both RTL (-max..0) and LTR
+ *                      (0..max) ranges -> reveals EARLIER categories.
+ *   scroll("right") -> scrollBy left delta that always moves scrollLeft
+ *                      AWAY FROM 0 (toward the far end) -> reveals LATER
+ *                      categories.
+ * This holds independent of document.dir, so the two aria-labels below are
+ * fixed to "السابقة" (earlier/previous) for the scroll("left") button and
+ * "التالية" (next/later) for the scroll("right") button.
+ */
+describe('CategoryScrollBar desktop arrow-scroll buttons (a11y: button-name)', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    // jsdom reports scrollWidth/clientWidth as 0 by default, so the arrows
+    // (which are conditionally rendered based on scroll position vs size)
+    // never appear unless we simulate an overflowing, partially-scrolled
+    // container. This mocks the layout metrics on the scrollable row so both
+    // showLeftArrow and showRightArrow become true, then fires the "resize"
+    // listener the component itself attaches to recompute their visibility.
+    function renderWithBothArrowsVisible() {
+        // jsdom's layout engine always reports 0 for scrollWidth/clientWidth,
+        // so the real getters must be replaced (not just shadowed with an
+        // own-property after mount) BEFORE the component's effect runs, or
+        // checkScrollPosition() computes against all-zero metrics and both
+        // arrows stay hidden.
+        vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(1000);
+        vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300);
+        vi.spyOn(HTMLElement.prototype, 'scrollLeft', 'get').mockReturnValue(100);
+
+        const utils = render(<CategoryScrollBar {...baseProps()} />);
+        // Two elements share the `.overflow-x-auto` class: the mobile chip
+        // row (index 0) and the desktop pill row (index 1, inside the
+        // `hidden sm:block` wrapper) which owns the arrow buttons.
+        const scrollContainer = utils.container.querySelectorAll(
+            '.overflow-x-auto'
+        )[1] as HTMLElement;
+        expect(scrollContainer).toBeTruthy();
+
+        // Trigger a recompute now that the mocked metrics are in place (the
+        // component's own "resize" listener calls checkScrollPosition()).
+        act(() => {
+            window.dispatchEvent(new Event('resize'));
+        });
+
+        return { ...utils, scrollContainer };
+    }
+
+    it('gives both icon-only scroll buttons a non-empty accessible name', () => {
+        renderWithBothArrowsVisible();
+        const earlierBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' });
+        const laterBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' });
+        expect(earlierBtn).toBeInTheDocument();
+        expect(laterBtn).toBeInTheDocument();
+    });
+
+    it('gives the two scroll buttons distinct accessible names', () => {
+        renderWithBothArrowsVisible();
+        const earlierBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' });
+        const laterBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' });
+        expect(earlierBtn.getAttribute('aria-label')).not.toBe(laterBtn.getAttribute('aria-label'));
+    });
+
+    it('labels the scroll("left") button as revealing earlier categories', () => {
+        renderWithBothArrowsVisible();
+        const earlierBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' });
+        // scroll("left") is wired to the ChevronRight icon rendered at the
+        // right-0 edge (showLeftArrow branch) in the component source.
+        expect(earlierBtn.querySelector('svg')).toBeTruthy();
+    });
+
+    it('labels the scroll("right") button as revealing later categories', () => {
+        renderWithBothArrowsVisible();
+        const laterBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' });
+        // scroll("right") is wired to the ChevronLeft icon rendered at the
+        // left-0 edge (showRightArrow branch) in the component source.
+        expect(laterBtn.querySelector('svg')).toBeTruthy();
+    });
+
+    it('marks the decorative chevron icons as aria-hidden', () => {
+        renderWithBothArrowsVisible();
+        const earlierBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' });
+        const laterBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' });
+        expect(earlierBtn.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+        expect(laterBtn.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('activates the earlier-categories scroll handler via click (keyboard-equivalent activation)', async () => {
+        const user = userEvent.setup();
+        const { scrollContainer } = renderWithBothArrowsVisible();
+        const scrollBySpy = vi.fn();
+        scrollContainer.scrollBy = scrollBySpy;
+
+        const earlierBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' });
+        earlierBtn.focus();
+        await user.keyboard('{Enter}');
+        expect(scrollBySpy).toHaveBeenCalledTimes(1);
+
+        await user.keyboard(' ');
+        expect(scrollBySpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('activates the later-categories scroll handler via click (keyboard-equivalent activation)', async () => {
+        const user = userEvent.setup();
+        const { scrollContainer } = renderWithBothArrowsVisible();
+        const scrollBySpy = vi.fn();
+        scrollContainer.scrollBy = scrollBySpy;
+
+        const laterBtn = screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' });
+        laterBtn.focus();
+        await user.keyboard('{Enter}');
+        expect(scrollBySpy).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not render the desktop arrow buttons when the row does not overflow (unchanged conditional render)', () => {
+        // Default jsdom layout metrics (scrollWidth === clientWidth === 0)
+        // mean showLeftArrow/showRightArrow both stay false on mount.
+        render(<CategoryScrollBar {...baseProps()} />);
+        expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeNull();
+        expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeNull();
     });
 });

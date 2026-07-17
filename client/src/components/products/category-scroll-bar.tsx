@@ -281,10 +281,11 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="التمرير لعرض الفئات السابقة"
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("left")}
                         >
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
                 )}
@@ -294,10 +295,11 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="التمرير لعرض الفئات التالية"
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("right")}
                         >
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
                 )}
