@@ -101,6 +101,18 @@ export class VetRAG {
   async searchKnowledge(querySymptoms: string[], topN: number = 3): Promise<KnowledgeChunk[]> {
     const query = querySymptoms.join(" ");
 
+    // Lazily kick off embeddings initialization on FIRST real use (non-blocking).
+    // Previously this ran unconditionally at module load (server startup), which
+    // burned Gemini API quota/time on every boot — including serverless cold
+    // starts — even when no diagnostic/visual-AI feature was ever used.
+    // initialize() itself guards against duplicate concurrent runs via
+    // isInitialized/initPromise, so this is safe to call from every request.
+    if (!this.isInitialized && !this.initPromise) {
+      this.initialize().catch(err => {
+        console.error("[VetRAG] Background init failed:", err);
+      });
+    }
+
     // Try semantic search first
     if (this.isInitialized && this.embeddingsCache.length > 0) {
       try {
@@ -190,10 +202,8 @@ ${sections.join("\n\n")}
   }
 }
 
-// Singleton instance
+// Singleton instance.
+// NOTE: initialization is intentionally NOT started here — see searchKnowledge()
+// for the lazy, first-use trigger. This avoids eager embedding generation
+// (network calls to Gemini) at server/module import time.
 export const vetRAG = new VetRAG();
-
-// Start initialization in background (non-blocking)
-vetRAG.initialize().catch(err => {
-  console.error("[VetRAG] Background init failed:", err);
-});
