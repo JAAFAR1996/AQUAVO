@@ -803,7 +803,7 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
   if (isProductPage) {
     imagePreload = `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`;
   } else if (isHomePage) {
-    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 66vw">`;
+    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
   }
   if (imagePreload) {
     result = result.replace("<!-- Open Graph / Facebook -->", `${imagePreload}\n\n  <!-- Open Graph / Facebook -->`);
