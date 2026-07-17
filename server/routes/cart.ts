@@ -122,6 +122,12 @@ export function createCartRouter(): RouterType {
                 res.json(item);
             }
         } catch (err) {
+            // Stock conflicts → 409 with the clean Arabic message (no English leak),
+            // matching the POST / handler above.
+            if (err instanceof Error && isStockError(err.message)) {
+                res.status(409).json({ message: err.message, code: "OUT_OF_STOCK" });
+                return;
+            }
             next(err);
         }
     });

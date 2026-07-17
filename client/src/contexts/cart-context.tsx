@@ -38,6 +38,13 @@ export interface CartItem {
   slug: string;
   variantId?: string;
   variantLabel?: string;
+  /**
+   * Known available stock for this exact line (variant stock when this is a
+   * variant, base-product stock otherwise). `undefined` means "unknown" —
+   * the client never invents a cap and defers enforcement to the server,
+   * matching the existing addItem() semantics.
+   */
+  stock?: number;
 }
 
 // Type for server cart item response
@@ -54,6 +61,8 @@ interface ServerCartItem {
     thumbnail?: string;
     images?: string[];
     slug: string;
+    stock?: number | string | null;
+    variants?: Array<{ id: string; stock?: number | string | null }> | null;
   };
   quantity: number;
 }
@@ -101,8 +110,30 @@ const getCartVariantMeta = (product: Product | ProductWithCartVariant) => {
   };
 };
 
+// Resolves the KNOWN stock cap for a server-sourced cart line: variant stock
+// when the line has a variant, base-product stock otherwise. Returns
+// `undefined` when the source value is missing/non-numeric — "unknown" defers
+// enforcement to the server rather than inventing a limit.
+const resolveServerCartItemStock = (
+  product: ServerCartItem["product"],
+  variantId: string | undefined
+): number | undefined => {
+  if (variantId && Array.isArray(product.variants)) {
+    const variant = product.variants.find((v) => v.id === variantId);
+    if (variant && variant.stock != null && Number.isFinite(Number(variant.stock))) {
+      return Number(variant.stock);
+    }
+    return undefined;
+  }
+  if (product.stock != null && Number.isFinite(Number(product.stock))) {
+    return Number(product.stock);
+  }
+  return undefined;
+};
+
 const mapServerCartItem = (item: ServerCartItem): CartItem => {
   const variantLabel = item.variantLabel || undefined;
+  const variantId = item.variantId || undefined;
   return {
     id: item.id,
     productId: item.productId,
@@ -111,8 +142,9 @@ const mapServerCartItem = (item: ServerCartItem): CartItem => {
     quantity: item.quantity,
     image: item.product.thumbnail || item.product.images?.[0] || '',
     slug: item.product.slug,
-    variantId: item.variantId || undefined,
+    variantId,
     variantLabel,
+    stock: resolveServerCartItemStock(item.product, variantId),
   };
 };
 
@@ -336,6 +368,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       : (product.stock ?? null);
     const stockKnown = rawStock != null && Number.isFinite(Number(rawStock));
     const available = stockKnown ? Number(rawStock) : Infinity;
+    // Cap stored on the cart line itself so later quantity increments (e.g. the
+    // "+" button in the cart drawer) can enforce it without re-deriving stock.
+    const itemStock = stockKnown ? Number(rawStock) : undefined;
     const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
 
     if (stockKnown && available <= 0) {
@@ -359,7 +394,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItem) {
         newItems = prev.map((item) =>
           item.id === cartItemId
-            ? { ...item, quantity: item.quantity + quantity }
+            ? { ...item, quantity: item.quantity + quantity, stock: itemStock }
             : item
         );
       } else {
@@ -373,6 +408,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           slug: product.slug,
           variantId: variantId ?? undefined,
           variantLabel,
+          stock: itemStock,
         };
         newItems = [...prev, newItem];
       }
@@ -547,6 +583,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
       quantity = 1;
     }
 
+    // Enforce the KNOWN stock cap client-side (variant stock for variant
+    // lines, base-product stock otherwise) so the "+" control can't push the
+    // quantity past what we know is available. Unknown stock (undefined)
+    // means we never saw a stock number for this line — defer entirely to
+    // the server, which remains the final authority either way.
+    const currentItem = items.find((item) => item.id === id);
+    const knownStock = currentItem?.stock;
+    if (knownStock != null && Number.isFinite(knownStock) && quantity > knownStock) {
+      toast({
+        title: "غير متوفر",
+        description: knownStock <= 0 ? "نفذت الكمية" : "وصلت للكمية المتوفرة",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Store old quantity for potential rollback
     let oldQuantity = 0;
 
@@ -603,7 +655,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return newItems;
       });
     }
-  }, [user, removeItem]);
+  }, [user, removeItem, items]);
 
   const refetchCart = useCallback(async () => {
     if (!user) return;

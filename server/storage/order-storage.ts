@@ -591,6 +591,32 @@ export class OrderStorage {
 
     async updateCartItem(userId: string, itemId: string, quantity: number): Promise<CartItem> {
         const db = this.ensureDb();
+
+        // Validate the requested quantity against current stock before
+        // writing it — variant stock when this line is a variant, base-product
+        // stock otherwise. Mirrors the same source-of-truth check already done
+        // in addToCart()/createOrderSecure() so a client can never bypass the
+        // add-to-cart cap by requesting a bump via PUT.
+        const [existing] = await db.select().from(cartItems)
+            .where(and(eq(cartItems.userId, userId), eq(cartItems.id, itemId)));
+
+        if (existing) {
+            const [product] = await db.select().from(products)
+                .where(eq(products.id, existing.productId));
+
+            if (product) {
+                let effectiveStock = Number(product.stock ?? 0);
+                if (existing.variantId && Array.isArray((product as any).variants)) {
+                    const selected = ((product as any).variants as ProductVariant[])
+                        .find((v) => v.id === existing.variantId);
+                    if (selected) effectiveStock = Number(selected.stock ?? 0);
+                }
+                if (effectiveStock < quantity) {
+                    throw new Error(STOCK_ERROR_INSUFFICIENT);
+                }
+            }
+        }
+
         const [updated] = await db.update(cartItems)
             .set({ quantity })
             .where(and(eq(cartItems.userId, userId), eq(cartItems.id, itemId)))

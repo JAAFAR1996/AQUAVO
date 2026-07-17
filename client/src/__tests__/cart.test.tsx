@@ -208,6 +208,69 @@ describe('Shopping Cart Hook', () => {
     expect(result.current.items).toHaveLength(1);
   });
 
+  it('should not exceed known base-product stock when updating quantity', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    const cartItemId = `${mockProduct.id}-default`;
+
+    act(() => {
+      result.current.addItem(mockProduct, 1); // stock is 5
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // Requesting more than the known stock must be blocked — quantity stays put.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 10);
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // A value within stock still succeeds.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 5);
+    });
+    expect(result.current.items[0].quantity).toBe(5);
+  });
+
+  it('should not exceed known variant stock when updating quantity', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    const variantProduct = {
+      ...mockProduct,
+      id: 'prod-variant',
+      // Matches the "Small" variant's price — the PDP always passes the
+      // selected variant's price on the product object itself.
+      price: 22000,
+      hasVariants: true,
+      variants: [
+        { id: 'small', label: 'Small', price: 22000, stock: 2 },
+        { id: 'large', label: 'Large', price: 35000, stock: 20 },
+      ],
+      _variantId: 'small',
+      _variantLabel: 'Small',
+    } as typeof mockProduct & {
+      hasVariants: boolean;
+      variants: { id: string; label: string; price: number; stock: number }[];
+      _variantId: string;
+      _variantLabel: string;
+    };
+
+    act(() => {
+      result.current.addItem(variantProduct, 1);
+    });
+    const cartItemId = result.current.items[0].id;
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // Variant stock (2) must cap the line — must NOT fall back to unrelated stock pools.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 10);
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    act(() => {
+      result.current.updateQuantity(cartItemId, 2);
+    });
+    expect(result.current.items[0].quantity).toBe(2);
+  });
+
   it('should increase quantity when adding same product', () => {
     const { result } = renderHook(() => useCart(), { wrapper });
 
