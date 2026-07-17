@@ -263,7 +263,9 @@ export function CategoryScrollBar({
                             <span className="text-[11px] font-medium leading-none whitespace-nowrap">
                                 {config.label}
                                 {totalCount > 0 && !isSelected && (
-                                    <span className="mr-0.5 opacity-60">({totalCount})</span>
+                                    <span className="mr-0.5 rounded-full bg-[#0B1E28] px-1 py-px text-[#F6F4EF]">
+                                        ({totalCount})
+                                    </span>
                                 )}
                             </span>
                         </button>
@@ -340,7 +342,7 @@ export function CategoryScrollBar({
                                 {totalCount > 0 && (
                                     <span className={cn(
                                         "text-[11px] px-1.5 py-0.5 rounded-full font-medium",
-                                        isSelected ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
+                                        isSelected ? "bg-[#075F6B] text-[#F6F4EF]" : "bg-[#0B1E28] text-[#F6F4EF]"
                                     )}>
                                         {totalCount}
                                     </span>
