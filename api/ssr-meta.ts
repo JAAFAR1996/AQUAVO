@@ -801,7 +801,8 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
   const isHomePage = !meta.notFound && new URL(meta.url, BASE).pathname === "/";
   let imagePreload = "";
   if (isProductPage) {
-    imagePreload = `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`;
+    const preloadImage = escapeHtml(safeHttpUrl(toDetailPreloadImage(meta.image), DEFAULT_IMAGE));
+    imagePreload = `<link rel="preload" as="image" href="${preloadImage}" fetchpriority="high">`;
   } else if (isHomePage) {
     imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
   }
@@ -819,6 +820,26 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Mirrors the exact Cloudinary transform the PDP main image uses
+// (client/src/lib/cloudinary.ts `detailImage`: width 800, height 800,
+// quality auto:good, format auto, crop limit) so the SSR LCP preload targets
+// the SAME asset the rendered <img> requests — otherwise the browser fetches
+// both the raw and the transformed URL and the preload goes unused.
+//
+// `detailImage` itself cannot be imported here: it composes
+// `preferLocalWebp`, which reads `window.location.origin` and would throw
+// in this Node/Vercel serverless runtime, and the `@/*` client path alias
+// isn't wired into api/tsconfig.json. Non-Cloudinary (local) URLs are
+// returned unchanged, matching `optimizeCloudinaryUrl`'s own fallback.
+function toDetailPreloadImage(url: string): string {
+  if (!url.includes("res.cloudinary.com")) return url;
+  // Don't double-transform an already-transformed URL.
+  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
+    return url;
+  }
+  return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_800,h_800,c_limit/");
 }
 
 // Only allow http(s) URLs into href/src/content attributes; reject javascript:/data: etc.

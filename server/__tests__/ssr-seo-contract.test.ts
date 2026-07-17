@@ -98,7 +98,7 @@ describe("SEO metadata contracts", () => {
     const product = injectMeta(PRELOAD_TEMPLATE, {
       ...base,
       url: "https://www.aquavoiq.com/products/yee-filter",
-      image: "https://res.cloudinary.com/aquavo/product.webp",
+      image: "https://res.cloudinary.com/aquavo/image/upload/v1/product.webp",
       ogType: "product",
     });
     const other = injectMeta(PRELOAD_TEMPLATE, { ...base, url: "https://www.aquavoiq.com/shipping" });
@@ -106,7 +106,12 @@ describe("SEO metadata contracts", () => {
     expect(home.match(/rel="preload"[^>]*as="image"/g)).toHaveLength(1);
     expect(home).toContain("iwagumi_aquascape");
     expect(product.match(/rel="preload"[^>]*as="image"/g)).toHaveLength(1);
-    expect(product).toContain('href="https://res.cloudinary.com/aquavo/product.webp"');
+    // The preload must target the SAME transformed asset the PDP <img> renders
+    // (client/src/lib/cloudinary.ts `detailImage`), not the raw original.
+    expect(product).toContain(
+      'href="https://res.cloudinary.com/aquavo/image/upload/f_auto,q_auto:good,w_800,h_800,c_limit/v1/product.webp"'
+    );
+    expect(product).not.toContain('href="https://res.cloudinary.com/aquavo/image/upload/v1/product.webp"');
     expect(product).not.toContain("iwagumi_aquascape");
     expect(other).not.toMatch(/rel="preload"[^>]*as="image"/);
     expect(other).not.toContain("iwagumi_aquascape");
