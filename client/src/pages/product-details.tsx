@@ -31,7 +31,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
-import { MetaTags, ProductSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { fetchFrequentlyBoughtTogether, fetchSimilarProducts, fetchTrendingProducts } from "@/lib/recommendations";
 import { ProductCard } from "@/components/products/product-card";
 import { ttqViewContent } from "@/lib/tiktok-pixel";
@@ -277,12 +277,6 @@ export default function ProductDetails() {
   const reviewCount = product.reviewCount || 0;
   const inStock = displayStock > 0;
 
-  const breadcrumbItems = [
-    { name: "الرئيسية", url: "https://www.aquavoiq.com/" },
-    { name: "المنتجات", url: "https://www.aquavoiq.com/products" },
-    { name: product.name, url: `https://www.aquavoiq.com/products/${product.slug}` }
-  ];
-
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <MetaTags
@@ -292,19 +286,6 @@ export default function ProductDetails() {
         type="product"
         price={product.price}
       />
-
-      <ProductSchema
-        name={product.name}
-        description={product.description || ""}
-        image={product.image || product.thumbnail || ""}
-        price={displayPrice}
-        brand={product.brand}
-        inStock={inStock}
-        rating={productRating}
-        reviewCount={reviewCount}
-      />
-
-      <BreadcrumbSchema items={breadcrumbItems} />
 
       <Navbar />
       <main id="main-content" className="flex-1 py-8 md:py-12" dir="rtl">
