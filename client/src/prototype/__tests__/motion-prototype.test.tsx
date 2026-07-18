@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import {
   MotionPrototypeProvider,
   PrototypeControl,
@@ -44,19 +45,19 @@ describe("motion prototype isolation", () => {
         <PrototypeControl />
       </MotionPrototypeProvider>
     );
-    expect(screen.queryByText("Motion Prototype")).toBeNull();
-    expect(screen.queryByText("Original")).toBeNull();
+    expect(screen.queryByText("الحركة التجريبية")).toBeNull();
+    expect(screen.queryByText("الأصلي")).toBeNull();
   });
 
-  it("shows Original/Motion toggle on a preview domain, Original active by default", () => {
+  it("shows Arabic Original/Motion toggle on a preview domain, Original active by default", () => {
     setHostname("aquavo-preview.vercel.app");
     render(
       <MotionPrototypeProvider>
         <PrototypeControl />
       </MotionPrototypeProvider>
     );
-    const original = screen.getByRole("button", { name: "Original" });
-    const motion = screen.getByRole("button", { name: "Motion Prototype" });
+    const original = screen.getByRole("button", { name: "الأصلي" });
+    const motion = screen.getByRole("button", { name: "الحركة التجريبية" });
     expect(original).toHaveAttribute("aria-pressed", "true");
     expect(motion).toHaveAttribute("aria-pressed", "false");
   });
@@ -67,5 +68,15 @@ describe("motion prototype checkout demo route", () => {
     render(<MotionPrototypeCheckout />);
     expect(screen.getByText("نسخة تجريبية — لا يتم إنشاء طلب حقيقي")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /ابدأ العرض/ })).toBeInTheDocument();
+  });
+
+  it("lets the user choose which demo products are packed", async () => {
+    const user = userEvent.setup();
+    render(<MotionPrototypeCheckout />);
+    // three selected by default
+    expect(screen.getByText("المختار: 3 منتج")).toBeInTheDocument();
+    // add a currently-unselected product
+    await user.click(screen.getByRole("button", { name: /غذاء أسماك/ }));
+    expect(screen.getByText("المختار: 4 منتج")).toBeInTheDocument();
   });
 });

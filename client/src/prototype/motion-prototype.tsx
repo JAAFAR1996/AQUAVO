@@ -101,7 +101,7 @@ export function PrototypeControl() {
             !enabled ? "bg-primary text-white" : "text-foreground hover:bg-foreground/5"
           }`}
         >
-          Original
+          الأصلي
         </button>
         <button
           type="button"
@@ -111,7 +111,7 @@ export function PrototypeControl() {
             enabled ? "bg-primary text-white" : "text-foreground hover:bg-foreground/5"
           }`}
         >
-          Motion Prototype
+          الحركة التجريبية
         </button>
       </div>
     </div>

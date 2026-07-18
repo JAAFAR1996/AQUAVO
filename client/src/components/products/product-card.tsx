@@ -1,4 +1,5 @@
 import { memo, useRef, useState, type MouseEvent } from "react";
+import { flushSync } from "react-dom";
 import { Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -82,7 +83,13 @@ export const ProductCard = memo(function ProductCard({
     if (!motionActive || typeof doc.startViewTransition !== "function") return; // default <Link> navigation
     event.preventDefault();
     if (imgRef.current) imgRef.current.style.viewTransitionName = PRODUCT_VT_NAME;
-    const transition = doc.startViewTransition(() => setLocation(`/products/${product.slug}`));
+    // flushSync forces the route change to apply synchronously INSIDE the
+    // transition callback, so the very first click both navigates and captures
+    // the new view correctly (without it, React batches the update and the
+    // first transition captures the old DOM / the click appears to do nothing).
+    const transition = doc.startViewTransition(() => {
+      flushSync(() => setLocation(`/products/${product.slug}`));
+    });
     transition.finished.finally(() => {
       if (imgRef.current) imgRef.current.style.viewTransitionName = "";
     });
