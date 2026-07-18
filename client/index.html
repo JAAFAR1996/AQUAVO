@@ -6,23 +6,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5, user-scalable=yes" />
 
   <!-- Theme bootstrap (runs before first paint — prevents flash + sets first-visit default).
-       First-time visitors (no saved preference) default to AQUAVO Dark Authority.
-       A returning visitor's explicit choice (light/dark/system) is read from localStorage and respected. -->
+       First-time visitors (no saved preference) default to Light. If reading the saved
+       preference fails, the fallback is also Light. A returning visitor's explicit choice
+       (light/dark/system) is read from localStorage and respected. -->
   <script>
     (function () {
+      var el = document.documentElement;
+      var resolved = 'light'; /* first-time visitor + failure fallback default */
       try {
         var t = localStorage.getItem('theme');
-        var resolved;
         if (t === 'dark') resolved = 'dark';
         else if (t === 'light') resolved = 'light';
         else if (t === 'system') resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-        else resolved = 'dark'; /* first-time visitor default */
-        var el = document.documentElement;
-        el.classList.remove('dark', 'light');
-        el.classList.add(resolved);
       } catch (e) {
-        document.documentElement.classList.add('dark');
+        resolved = 'light';
       }
+      el.classList.remove('dark', 'light');
+      el.classList.add(resolved);
     })();
   </script>
 

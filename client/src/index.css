@@ -1078,3 +1078,52 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
   [role="button"] { transition-duration: 1ms !important; transform: none !important; }
   html:focus-within { scroll-behavior: auto; }
 }
+
+/* =====================================================================
+   AQUAVO — GLOBAL MOTION REMOVAL
+   The site must contain no visible animation or transition motion for ANY
+   user (not gated on prefers-reduced-motion). Durations are zeroed rather
+   than removed so that forwards/one-shot keyframes still apply their END
+   state instantly (nothing is left stuck at opacity:0 or off-screen).
+   Hover states may still change colour — only movement (scale/translate)
+   and animated motion are removed.
+   ===================================================================== */
+*, *::before, *::after {
+  animation-duration: 0.001ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+/* Remove hover/active "grow" (Tailwind scale utilities use these vars). */
+*:hover, *:focus, *:focus-visible, *:active {
+  --tw-scale-x: 1 !important;
+  --tw-scale-y: 1 !important;
+}
+/* Remove lift/press translate movement (color-only hovers keep working). */
+.aq-interactive-card:hover,
+.aq-interactive-card:active,
+.aq-interactive-card:hover .aq-product-image,
+button:active,
+[role="button"]:active {
+  transform: none !important;
+}
+/* Scroll-reveal + hero entrance content is always shown, never animated in. */
+.aq-precision-reveal,
+.aq-precision-stagger > *,
+.aq-hero-title,
+.aq-hero-support,
+.aq-hero-actions {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+.aq-site-header { animation: none !important; }
+.aq-waterline-hero::after,
+.aq-proof-window,
+.aq-trust-seal {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}

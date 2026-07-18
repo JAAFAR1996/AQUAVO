@@ -153,18 +153,18 @@ export default function Home() {
       <Navbar />
 
       <main id="main-content" dir="rtl">
-        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-white/10 bg-[#06141d] pt-24 sm:pt-28">
+        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-[#DDD8CE] bg-[#F6F4EF] pt-24 sm:pt-28">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
           <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
             <div className="aq-hero-copy order-2 text-right lg:order-1">
-              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-bold text-white sm:text-sm">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/25 bg-[#0B93A6]/10 px-4 py-2 text-xs font-bold text-[#0B93A6] sm:text-sm">
                 <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
                 براند عراقي متخصص بمعدات ومستلزمات أحواض الزينة
               </p>
-              <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-white sm:text-5xl lg:text-[3.55rem]">
+              <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-[#0B1E28] sm:text-5xl lg:text-[3.55rem]">
                 معدات حوضك، مرتبة على احتياجك
               </h1>
-              <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-white/72 sm:text-lg">
+              <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-[#0B1E28]/70 sm:text-lg">
                 نساعدك تختار الفلتر والسخان والإضاءة وباقي التجهيز حسب حوضك، بمعلومات واضحة وبدون زحمة خيارات.
               </p>
 
@@ -179,20 +179,20 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/tank-builder"
-                  className={`${linkButton} border border-white/20 bg-white/[0.06] text-white hover:bg-white/10`}
+                  className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}
                 >
                   اختار حسب حوضك
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
 
-              <p className="mt-6 text-sm leading-6 text-white/55">
+              <p className="mt-6 text-sm leading-6 text-[#0B1E28]/55">
                 عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.
               </p>
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#0b1e28] shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
+              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-[#DDD8CE] bg-white shadow-[0_20px_60px_rgba(11,30,40,0.12)]">
                 <img
                   src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
                   srcSet="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
@@ -204,10 +204,10 @@ export default function Home() {
                   alt="حوض عرض مائي مرتب بإضاءة هادئة"
                   className="aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#071821]/90 to-transparent" />
-                <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-[#071821]/80 px-4 py-3 text-white backdrop-blur-md sm:inset-x-7 sm:bottom-7">
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-white/80 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-4 rounded-2xl border border-[#DDD8CE] bg-white/90 px-4 py-3 text-[#0B1E28] backdrop-blur-md sm:inset-x-7 sm:bottom-7">
                   <div>
-                    <p className="text-xs text-white/55">طريقة AQUAVO</p>
+                    <p className="text-xs text-[#0B1E28]/60">طريقة AQUAVO</p>
                     <p className="mt-1 text-sm font-bold sm:text-base">الحوض أولاً، القطعة بعدها</p>
                   </div>
                   <img src="/brand/aquavo-v2-icon.svg" alt="" aria-hidden="true" className="h-9 w-9" />
@@ -219,13 +219,13 @@ export default function Home() {
           <div aria-hidden="true" className="h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
         </section>
 
-        <section aria-label="ضمانات المتجر" className="border-b border-white/10 bg-[#06141d]">
-          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
+        <section aria-label="ضمانات المتجر" className="border-b border-[#DDD8CE] bg-[#F6F4EF]">
+          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-[#DDD8CE] sm:grid-cols-4">
             {serviceFacts.map(({ icon: Icon, title, detail }) => (
-              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-[#06141d] px-4 py-5 text-center sm:min-h-32">
+              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-[#F6F4EF] px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
-                <p className="text-sm font-bold text-white">{title}</p>
-                <p className="mt-1 text-xs leading-5 text-white/60">{detail}</p>
+                <p className="text-sm font-bold text-[#0B1E28]">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-[#0B1E28]/60">{detail}</p>
               </div>
             ))}
           </PrecisionReveal>

@@ -94,7 +94,7 @@ export default function Navbar() {
   return (
     <>
       <nav
-        className="aq-site-header sticky top-0 z-50 w-full border-b border-white/10 bg-[color:var(--aqv-bg-dark)]/95 backdrop-blur-md"
+        className="aq-site-header sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md"
         aria-label="التنقل الرئيسي"
         dir="rtl"
       >
@@ -112,9 +112,9 @@ export default function Navbar() {
                 <Menu className="h-6 w-6" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-              <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-white/10 bg-[color:var(--aqv-bg-dark)] p-0">
-                <SheetHeader className="border-b border-white/10 px-5 py-5 text-right">
-                  <SheetTitle className="text-white">القائمة الرئيسية</SheetTitle>
+              <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-border bg-background p-0">
+                <SheetHeader className="border-b border-border px-5 py-5 text-right">
+                  <SheetTitle className="text-foreground">القائمة الرئيسية</SheetTitle>
                   <SheetDescription className="sr-only">روابط المتجر والأدلة وحسابك وخيارات العرض.</SheetDescription>
               </SheetHeader>
               <div className="flex h-full flex-col px-3 py-4">
@@ -123,7 +123,7 @@ export default function Navbar() {
                     const Icon = link.icon;
                     const active = location === link.href;
                     const linkClassName = `flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                      active ? "bg-primary/15 text-white" : "text-white/75 hover:bg-white/5 hover:text-white"
+                      active ? "bg-primary/15 text-primary" : "text-foreground/75 hover:bg-foreground/5 hover:text-foreground"
                     }`;
                     const content = (
                       <>
@@ -153,16 +153,16 @@ export default function Navbar() {
                   })}
                 </div>
 
-                <div className="mt-5 border-t border-white/10 pt-5">
-                  <p className="px-3 text-xs leading-6 text-white/60">
+                <div className="mt-5 border-t border-border pt-5">
+                  <p className="px-3 text-xs leading-6 text-muted-foreground">
                     توصيل خلال 24 ساعة لكل العراق
                     <br />
                     الدفع عند الاستلام — التوصيل 5,000 د.ع
                   </p>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between border-t border-white/10 px-3 py-5">
-                  <span className="text-sm text-white/70">المظهر</span>
+                <div className="mt-auto flex items-center justify-between border-t border-border px-3 py-5">
+                  <span className="text-sm text-foreground/70">المظهر</span>
                   <ThemeSwitcher />
                 </div>
               </div>
@@ -183,7 +183,7 @@ export default function Navbar() {
             {primaryLinks.map((link) => {
               const active = location === link.href;
               const linkClassName = `relative rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
-                active ? "text-white" : "text-white/65 hover:text-white"
+                active ? "text-foreground" : "text-foreground/65 hover:text-foreground"
               }`;
               const content = (
                 <>
@@ -212,12 +212,12 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="hidden min-h-10 min-w-48 items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 text-sm text-white/60 transition-colors hover:border-primary/45 hover:text-white lg:flex"
+              className="hidden min-h-10 min-w-48 items-center gap-2 rounded-lg border border-border bg-foreground/5 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/45 hover:text-foreground lg:flex"
               aria-label="البحث عن منتج (Ctrl+K)"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
               <span>ابحث عن منتج...</span>
-              <kbd className="ms-auto rounded border border-white/10 px-1.5 py-0.5 font-interface text-[10px]">Ctrl K</kbd>
+              <kbd className="ms-auto rounded border border-border px-1.5 py-0.5 font-interface text-[10px]">Ctrl K</kbd>
             </button>
 
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="البحث" onClick={() => setIsSearchOpen(true)}>
@@ -234,7 +234,7 @@ export default function Navbar() {
                   <Button variant="ghost" size="icon" className="hidden rounded-full sm:inline-flex" aria-label="قائمة الحساب الشخصي">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={undefined} alt={user.fullName || user.email} />
-                      <AvatarFallback className="bg-primary/15 text-white">
+                      <AvatarFallback className="bg-primary/15 text-primary">
                         {(user.fullName || user.email).charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -268,7 +268,7 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-medium text-white/70 hover:bg-white/5 hover:text-white sm:inline-flex"
+                className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-medium text-foreground/70 hover:bg-foreground/5 hover:text-foreground sm:inline-flex"
                 aria-label="تسجيل الدخول"
               >
                 <User className="h-5 w-5 xl:hidden" aria-hidden="true" />
@@ -278,7 +278,7 @@ export default function Navbar() {
 
             <Link
               href="/wishlist"
-              className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-white/70 hover:bg-white/5 hover:text-white sm:inline-flex"
+              className="relative hidden h-10 w-10 items-center justify-center rounded-lg text-foreground/70 hover:bg-foreground/5 hover:text-foreground sm:inline-flex"
               aria-label={`المفضلة${wishlistCount > 0 ? ` - ${wishlistCount} منتج` : " - فارغة"}`}
             >
               <Heart className="h-5 w-5" aria-hidden="true" />
@@ -294,7 +294,7 @@ export default function Navbar() {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="relative border-white/20 bg-transparent"
+                  className="relative border-border bg-transparent"
                   aria-label={`سلة المشتريات${totalItems > 0 ? ` - ${totalItems} منتج` : " - فارغة"}`}
                 >
                   <ShoppingCart className="h-5 w-5" aria-hidden="true" />
@@ -305,7 +305,7 @@ export default function Navbar() {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-md border-white/10 bg-background sm:w-[420px]">
+              <SheetContent side="left" className="w-full max-w-md border-border bg-background sm:w-[420px]">
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2">
                     <ShoppingCart className="h-5 w-5" aria-hidden="true" />
@@ -322,7 +322,7 @@ export default function Navbar() {
                       <Link
                         href="/products"
                         onClick={() => setIsCartOpen(false)}
-                        className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-primary/40 px-4 text-sm font-bold text-white hover:bg-primary/10"
+                        className="mt-4 inline-flex min-h-11 items-center rounded-lg border border-primary/40 px-4 text-sm font-bold text-primary hover:bg-primary/10"
                       >
                         شوف المنتجات
                       </Link>
@@ -343,7 +343,7 @@ export default function Navbar() {
                             <div className="min-w-0 flex-1">
                               <h4 className="truncate text-sm font-medium">{item.name}</h4>
                               {item.variantLabel && <p className="truncate text-xs text-muted-foreground">الخيار: {item.variantLabel}</p>}
-                              <p className="mt-1 font-bold text-white">{formatIQD(item.price)}</p>
+                              <p className="mt-1 font-bold text-foreground">{formatIQD(item.price)}</p>
                               <div className="mt-2 flex items-center justify-between">
                                 <div className="flex items-center gap-1" role="group" aria-label={`كمية ${item.name}`}>
                                   <Button variant="outline" size="icon" className="h-11 w-11 md:h-11 md:w-11" onClick={() => updateQuantity(item.id, item.quantity - 1)} aria-label={`تقليل كمية ${item.name}`}>
@@ -368,7 +368,7 @@ export default function Navbar() {
                       <div className="space-y-3">
                         <dl className="flex items-center justify-between">
                           <dt className="font-medium">المجموع</dt>
-                          <dd className="text-xl font-bold text-white" aria-live="polite">{formatIQD(totalPrice)}</dd>
+                          <dd className="text-xl font-bold text-foreground" aria-live="polite">{formatIQD(totalPrice)}</dd>
                         </dl>
                         <Button
                           type="button"
