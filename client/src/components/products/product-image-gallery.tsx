@@ -4,18 +4,24 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { detailImage, detailImageSrcSet, thumbImage, lightboxImage } from "@/lib/cloudinary";
-import { useMotionPrototype } from "@/prototype/motion-prototype";
 
 interface ProductImageGalleryProps {
     images: string[];
     productName: string;
     className?: string;
+    /**
+     * Preview prototype only: unique view-transition-name for the main hero
+     * image, so a card → PDP shared-image transition can target it. Inert
+     * (undefined) in the normal experience.
+     */
+    heroTransitionName?: string;
 }
 
 export function ProductImageGallery({
     images,
     productName,
     className,
+    heroTransitionName,
 }: ProductImageGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [imageFailed, setImageFailed] = useState(false);
@@ -23,7 +29,6 @@ export function ProductImageGallery({
     const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const imageRef = useRef<HTMLDivElement>(null);
-    const { motionActive } = useMotionPrototype();
 
     // Ensure we have at least one image
     const galleryImages = images && images.length > 0 ? images.filter(img => img && img.length > 0) : [];
@@ -112,10 +117,11 @@ export function ProductImageGallery({
                                     "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
                                     isZoomed && "scale-110"
                                 )}
+                                data-aqv-hero={selectedIndex === 0 ? heroTransitionName || undefined : undefined}
                                 style={{
-                                    // Preview prototype: match the card image so
+                                    // Preview prototype: unique per-product name so
                                     // native View Transitions morph card → PDP hero.
-                                    viewTransitionName: motionActive && selectedIndex === 0 ? "aqv-product-hero" : undefined,
+                                    viewTransitionName: selectedIndex === 0 ? heroTransitionName : undefined,
                                     ...(isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}),
                                 }}
                                 loading="eager"

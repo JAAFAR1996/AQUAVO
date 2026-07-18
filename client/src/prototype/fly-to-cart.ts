@@ -3,13 +3,12 @@ import { prefersReducedMotion } from "./motion-prototype";
 /**
  * Product-to-Cart capture (Preview prototype).
  *
- * Clones the real product image, lifts + shrinks it, and sends it along a
- * short curved path into the cart icon, drawing one thin AQUAVO FlowLine
- * behind it and giving the cart a single reaction on arrival.
- *
- * Uses the Web Animations API (element.animate) so it runs independently of
- * the global CSS no-motion backstop. Never opens the cart and never touches
- * cart business logic — the caller updates the cart normally.
+ * Clones ONLY the real product image and sends it along a short curved path
+ * into the cart icon, then gives the cart one small reaction. There is no
+ * FlowLine, trail, bubbles or decorative path. The temporary clone is always
+ * removed afterward (on finish or cancel). Uses the Web Animations API so it
+ * runs independently of the global CSS no-motion backstop. Never opens the
+ * cart and never touches cart business logic — the caller updates the cart.
  */
 export function flyProductToCart(sourceImg: HTMLElement | null): void {
   if (typeof window === "undefined" || !sourceImg) return;
@@ -39,10 +38,10 @@ export function flyProductToCart(sourceImg: HTMLElement | null): void {
   // Curved path: apex lifts up and eases toward the cart at the midpoint.
   const midX = dx * 0.55;
   const midY = dy * 0.5 - Math.max(60, Math.abs(dx) * 0.28);
+  const endScale = endSize / startSize;
 
-  // --- flying clone ---
-  const clone = document.createElement("div");
   const src = (sourceImg as HTMLImageElement).currentSrc || (sourceImg as HTMLImageElement).src || "";
+  const clone = document.createElement("div");
   Object.assign(clone.style, {
     position: "fixed",
     left: `${startX}px`,
@@ -58,27 +57,12 @@ export function flyProductToCart(sourceImg: HTMLElement | null): void {
   } as CSSStyleDeclaration);
   document.body.appendChild(clone);
 
-  // --- thin FlowLine behind the clone ---
-  const dist = Math.hypot(dx, dy);
-  const angle = (Math.atan2(dy, dx) * 180) / Math.PI;
-  const line = document.createElement("div");
-  Object.assign(line.style, {
-    position: "fixed",
-    left: `${startX + startSize / 2}px`,
-    top: `${startY + startSize / 2}px`,
-    width: `${dist}px`,
-    height: "2px",
-    transformOrigin: "0 50%",
-    transform: `rotate(${angle}deg)`,
-    background: "linear-gradient(90deg, rgba(11,147,166,0) 0%, rgba(11,147,166,0.55) 60%, rgba(11,147,166,0) 100%)",
-    borderRadius: "2px",
-    zIndex: "2147481900",
-    pointerEvents: "none",
-    opacity: "0",
-  } as CSSStyleDeclaration);
-  document.body.appendChild(line);
-
-  const endScale = endSize / startSize;
+  let cleanedUp = false;
+  const cleanup = () => {
+    if (cleanedUp) return;
+    cleanedUp = true;
+    clone.remove();
+  };
 
   const cloneAnim = clone.animate(
     [
@@ -89,35 +73,20 @@ export function flyProductToCart(sourceImg: HTMLElement | null): void {
     { duration: 620, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" }
   );
 
-  line.animate(
-    [
-      { opacity: 0, offset: 0 },
-      { opacity: 0.9, offset: 0.35 },
-      { opacity: 0, offset: 1 },
-    ],
-    { duration: 500, easing: "ease-out", fill: "forwards" }
-  );
-
   cloneAnim.onfinish = () => {
-    clone.remove();
-    line.remove();
+    cleanup();
     bumpCart(cart);
   };
-  cloneAnim.oncancel = () => {
-    clone.remove();
-    line.remove();
-  };
+  cloneAnim.oncancel = cleanup;
+  // Safety net: never leave a clone behind even if the animation events don't fire.
+  window.setTimeout(cleanup, 1200);
 }
 
 /** Single, short reaction on the cart icon (WAAPI, backstop-independent). */
 function bumpCart(cart: HTMLElement): void {
   if (prefersReducedMotion()) return;
   cart.animate(
-    [
-      { transform: "scale(1)" },
-      { transform: "scale(1.22)" },
-      { transform: "scale(1)" },
-    ],
+    [{ transform: "scale(1)" }, { transform: "scale(1.22)" }, { transform: "scale(1)" }],
     { duration: 300, easing: "cubic-bezier(.34,1.56,.64,1)" }
   );
 }

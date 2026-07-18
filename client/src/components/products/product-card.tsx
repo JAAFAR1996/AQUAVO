@@ -1,5 +1,4 @@
 import { memo, useRef, useState, type MouseEvent } from "react";
-import { flushSync } from "react-dom";
 import { Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -16,9 +15,13 @@ import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
 import { useMotionPrototype } from "@/prototype/motion-prototype";
 import { flyProductToCart } from "@/prototype/fly-to-cart";
+import {
+  navigateCardToProduct,
+  prefetchProductDestination,
+  supportsViewTransitions,
+} from "@/prototype/card-transition";
+import { prefersReducedMotion } from "@/prototype/motion-prototype";
 import type { Product } from "@/types";
-
-const PRODUCT_VT_NAME = "aqv-product-hero";
 
 interface ProductCardProps {
   product: Product;
@@ -39,6 +42,13 @@ export const ProductCard = memo(function ProductCard({
   const [imgLoaded, setImgLoaded] = useState(false);
   const { motionActive } = useMotionPrototype();
   const imgRef = useRef<HTMLImageElement>(null);
+  const navLockRef = useRef(false);
+
+  // Preview prototype: warm the PDP data + hero image before the click so the
+  // first (cold) click can run the shared-image transition reliably.
+  const prefetchDestination = () => {
+    if (motionActive) prefetchProductDestination(product.slug, product.thumbnail || product.image);
+  };
 
   const variantPrices = product.hasVariants && product.variants?.length
     ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
@@ -69,8 +79,9 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  // Preview prototype: Card-to-Product continuity via native View Transitions.
-  // Immediate static navigation fallback when unsupported or disabled.
+  // Preview prototype: Card-to-Product continuity via native View Transitions,
+  // reliable on the first (cold) click. Immediate navigation fallback when the
+  // API is unsupported, motion is off, or the user prefers reduced motion.
   const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {
     trackSelectItem({
       id: product.id,
@@ -79,19 +90,18 @@ export const ProductCard = memo(function ProductCard({
       quantity: 1,
       category: product.category,
     });
-    const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
-    if (!motionActive || typeof doc.startViewTransition !== "function") return; // default <Link> navigation
+    // Let the default <Link> navigate immediately on the non-motion paths.
+    if (!motionActive || !supportsViewTransitions() || prefersReducedMotion()) return;
     event.preventDefault();
-    if (imgRef.current) imgRef.current.style.viewTransitionName = PRODUCT_VT_NAME;
-    // flushSync forces the route change to apply synchronously INSIDE the
-    // transition callback, so the very first click both navigates and captures
-    // the new view correctly (without it, React batches the update and the
-    // first transition captures the old DOM / the click appears to do nothing).
-    const transition = doc.startViewTransition(() => {
-      flushSync(() => setLocation(`/products/${product.slug}`));
-    });
-    transition.finished.finally(() => {
-      if (imgRef.current) imgRef.current.style.viewTransitionName = "";
+    if (navLockRef.current) return; // lock out duplicate clicks / navigation
+    navLockRef.current = true;
+    void navigateCardToProduct({
+      slug: product.slug,
+      sourceImg: imgRef.current,
+      navigate: () => setLocation(`/products/${product.slug}`),
+      motionActive,
+    }).finally(() => {
+      navLockRef.current = false;
     });
   };
 
@@ -146,6 +156,9 @@ export const ProductCard = memo(function ProductCard({
       <Link
         href={`/products/${product.slug}`}
         onClick={handleCardNavigate}
+        onPointerEnter={prefetchDestination}
+        onPointerDown={prefetchDestination}
+        onFocus={prefetchDestination}
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
