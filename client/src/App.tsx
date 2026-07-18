@@ -10,6 +10,8 @@ import { CartProvider } from "@/contexts/cart-context";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { AuthProvider } from "@/contexts/auth-context";
 import { RequireAdmin } from "@/components/auth/require-admin";
+import { FlowGateProvider } from "@/lib/motion/flow-gate-context";
+import { FlowGateControl } from "@/components/motion/flow-gate-control";
 // Lazy-load heavy effects that read DOM geometry and cause forced reflows
 const ScrollProgress = lazy(() => import("@/components/effects/scroll-progress").then(m => ({ default: m.ScrollProgress })));
 const FloatingActionButton = lazy(() => import("@/components/effects/floating-action-button").then(m => ({ default: m.FloatingActionButton })));
@@ -1004,6 +1006,7 @@ function AppShell() {
             <ComparisonProvider>
               <NavbarPreferencesProvider>
                 <TooltipProvider>
+                <FlowGateProvider>
                   {shouldLoadHostedAnalytics && (
                     <IdleMount timeout={4500}>
                       <Suspense fallback={null}>
@@ -1057,6 +1060,7 @@ function AppShell() {
                     </IdleMount>
                   )}
                   <Router />
+                  <FlowGateControl />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
                       <DeferredOnboardingTour />
@@ -1069,6 +1073,7 @@ function AppShell() {
                       </Suspense>
                     </IdleMount>
                   )}
+                </FlowGateProvider>
                 </TooltipProvider>
               </NavbarPreferencesProvider>
             </ComparisonProvider>
