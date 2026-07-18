@@ -1,4 +1,4 @@
-import { memo, useState, type MouseEvent } from "react";
+import { memo, useRef, useState, type MouseEvent } from "react";
 import { Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -13,7 +13,11 @@ import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
+import { useMotionPrototype } from "@/prototype/motion-prototype";
+import { flyProductToCart } from "@/prototype/fly-to-cart";
 import type { Product } from "@/types";
+
+const PRODUCT_VT_NAME = "aqv-product-hero";
 
 interface ProductCardProps {
   product: Product;
@@ -32,6 +36,8 @@ export const ProductCard = memo(function ProductCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
+  const { motionActive } = useMotionPrototype();
+  const imgRef = useRef<HTMLImageElement>(null);
 
   const variantPrices = product.hasVariants && product.variants?.length
     ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
@@ -52,9 +58,33 @@ export const ProductCard = memo(function ProductCard({
     const added = await addItem(product);
     if (!added) return;
 
+    // Preview prototype: fly a clone of the product image into the cart icon.
+    // Does not open the cart or change cart logic.
+    if (motionActive) flyProductToCart(imgRef.current);
+
     toast({
       title: "تمت الإضافة",
       description: `${product.name} انضاف للسلة.`,
+    });
+  };
+
+  // Preview prototype: Card-to-Product continuity via native View Transitions.
+  // Immediate static navigation fallback when unsupported or disabled.
+  const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {
+    trackSelectItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      category: product.category,
+    });
+    const doc = document as Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+    if (!motionActive || typeof doc.startViewTransition !== "function") return; // default <Link> navigation
+    event.preventDefault();
+    if (imgRef.current) imgRef.current.style.viewTransitionName = PRODUCT_VT_NAME;
+    const transition = doc.startViewTransition(() => setLocation(`/products/${product.slug}`));
+    transition.finished.finally(() => {
+      if (imgRef.current) imgRef.current.style.viewTransitionName = "";
     });
   };
 
@@ -108,19 +138,14 @@ export const ProductCard = memo(function ProductCard({
 
       <Link
         href={`/products/${product.slug}`}
-        onClick={() => trackSelectItem({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          category: product.category,
-        })}
+        onClick={handleCardNavigate}
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
         <div className="relative aspect-square overflow-hidden bg-card" data-protected="true">
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/45" aria-hidden="true" /> : null}
           <img
+            ref={imgRef}
             src={imageSrc}
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}

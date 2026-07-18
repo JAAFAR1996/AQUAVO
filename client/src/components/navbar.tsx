@@ -295,6 +295,7 @@ export default function Navbar() {
                   variant="outline"
                   size="icon"
                   className="relative border-border bg-transparent"
+                  data-aqv-cart-target
                   aria-label={`سلة المشتريات${totalItems > 0 ? ` - ${totalItems} منتج` : " - فارغة"}`}
                 >
                   <ShoppingCart className="h-5 w-5" aria-hidden="true" />

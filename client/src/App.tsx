@@ -24,6 +24,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
+import { MotionPrototypeProvider, PrototypeControl } from "@/prototype/motion-prototype";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTransition } from "@/components/ui/page-transition";
 
@@ -34,6 +35,8 @@ const Deals = lazy(() => import("@/pages/deals"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
+// PREVIEW-ONLY experimental motion prototype (never merged to main).
+const MotionPrototypeCheckout = lazy(() => import("@/pages/motion-prototype-checkout"));
 const Journey = lazy(() => import("@/pages/journey"));
 const AdminDashboard = lazy(() => import("@/pages/admin-dashboard"));
 const FishBreedingCalculator = lazy(() => import("@/pages/fish-breeding-calculator"));
@@ -960,6 +963,10 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/motion-prototype/checkout-confirmation">
+        {() => (<Suspense fallback={<PageLoader />}><MotionPrototypeCheckout /></Suspense>)}
+      </Route>
+
       <Route>
         {() => (<Suspense fallback={<PageLoader />}><NotFound /></Suspense>)}
       </Route>
@@ -996,6 +1003,7 @@ function AppShell() {
     // setting — no per-component edits needed. Purely CSS-driven motion is
     // covered separately by the global rule in client/src/index.css.
     <MotionConfig reducedMotion="always" transition={{ duration: 0 }}>
+    <MotionPrototypeProvider>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
@@ -1057,6 +1065,7 @@ function AppShell() {
                     </IdleMount>
                   )}
                   <Router />
+                  <PrototypeControl />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
                       <DeferredOnboardingTour />
@@ -1077,6 +1086,7 @@ function AppShell() {
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </MotionPrototypeProvider>
     </MotionConfig>
   );
 }

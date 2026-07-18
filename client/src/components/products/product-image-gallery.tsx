@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { detailImage, detailImageSrcSet, thumbImage, lightboxImage } from "@/lib/cloudinary";
+import { useMotionPrototype } from "@/prototype/motion-prototype";
 
 interface ProductImageGalleryProps {
     images: string[];
@@ -22,6 +23,7 @@ export function ProductImageGallery({
     const [zoomPosition, setZoomPosition] = useState({ x: 50, y: 50 });
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const imageRef = useRef<HTMLDivElement>(null);
+    const { motionActive } = useMotionPrototype();
 
     // Ensure we have at least one image
     const galleryImages = images && images.length > 0 ? images.filter(img => img && img.length > 0) : [];
@@ -110,9 +112,12 @@ export function ProductImageGallery({
                                     "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
                                     isZoomed && "scale-110"
                                 )}
-                                style={isZoomed ? {
-                                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
-                                } : undefined}
+                                style={{
+                                    // Preview prototype: match the card image so
+                                    // native View Transitions morph card → PDP hero.
+                                    viewTransitionName: motionActive && selectedIndex === 0 ? "aqv-product-hero" : undefined,
+                                    ...(isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}),
+                                }}
                                 loading="eager"
                                 decoding="async"
                                 fetchPriority="high"
