@@ -87,19 +87,25 @@ function logoRect(): { x: number; y: number; size: number } {
 }
 
 /**
- * Readiness = the destination page's own <main id="main-content"> has mounted.
- * The Suspense fallback (PageLoader) does not render that landmark, so its
- * presence is a reliable "real page is here" signal. Resolves early or on cap.
+ * Readiness = the route-level Suspense fallback (PageLoader, marked
+ * [data-aqv-loader]) is not on screen. This works for every eligible section
+ * regardless of whether it renders a <main id="main-content"> landmark: a page
+ * that resolves synchronously never shows the loader (ready at once → fast
+ * path), while a lazy chunk shows it until the code + first render land. Resolves
+ * early or on the cap (after which the reveal happens anyway). We wait one frame
+ * first so the swap has committed its fallback.
  */
 function waitForDestinationReady(capMs: number): Promise<void> {
   const deadline = performance.now() + capMs;
   return new Promise<void>((resolve) => {
+    let frames = 0;
     const check = () => {
-      if (document.getElementById("main-content")) return resolve();
+      frames += 1;
+      // Require at least two frames so a just-committed loader is observed.
+      if (frames >= 2 && !document.querySelector("[data-aqv-loader]")) return resolve();
       if (performance.now() > deadline) return resolve();
       requestAnimationFrame(check);
     };
-    // Give React a tick to unmount the old landmark first.
     requestAnimationFrame(check);
   });
 }

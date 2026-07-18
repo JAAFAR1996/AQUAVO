@@ -84,7 +84,6 @@ describe("runFlowGate animated path", () => {
       expect(leftoverCount()).toBe(0);
     } finally {
       HTMLElement.prototype.animate = originalAnimate;
-      // @ts-expect-error restore
       window.CSS = originalCSS;
     }
   });
