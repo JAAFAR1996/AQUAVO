@@ -12,7 +12,7 @@ on:
 
 env:
   NODE_VERSION: 20.11.0
-  PNPM_VERSION: 9.1.0
+  PNPM_VERSION: 10.0.0
 
 jobs:
   # ==================== VALIDATE RELEASE ====================
