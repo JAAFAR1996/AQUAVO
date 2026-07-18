@@ -97,7 +97,7 @@ const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
             "maintenance", "الصيانة والتنظيف", "تنظيف",
             "cleaning", "clean",
         ],
-        color: "text-slate-400",
+        color: "text-muted-foreground dark:text-slate-400",
     },
     "إكسسوارات": {
         label: "إكسسوارات",
@@ -245,7 +245,7 @@ export function CategoryScrollBar({
                     className={cn(
                         "flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all min-w-[56px]",
                         allSelected
-                            ? "bg-primary text-white border-primary shadow-sm"
+                            ? "bg-primary text-foreground dark:text-white border-primary shadow-sm"
                             : "bg-muted/50 border-border/40 text-muted-foreground"
                     )}
                 >
@@ -263,7 +263,7 @@ export function CategoryScrollBar({
                             className={cn(
                                 "flex-shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl border transition-all min-w-[56px]",
                                 isSelected
-                                    ? "bg-primary text-white border-primary shadow-sm"
+                                    ? "bg-primary text-foreground dark:text-white border-primary shadow-sm"
                                     : "bg-muted/50 border-border/40 text-muted-foreground"
                             )}
                         >
@@ -271,7 +271,7 @@ export function CategoryScrollBar({
                             <span className="text-[11px] font-medium leading-[1.4] whitespace-nowrap">
                                 {config.label}
                                 {totalCount > 0 && !isSelected && (
-                                    <span className="mr-0.5 rounded-full bg-[#0B1E28] px-1 py-px text-[#F6F4EF]">
+                                    <span className="mr-0.5 rounded-full bg-card dark:bg-[#0B1E28] px-1 py-px text-foreground dark:text-[#F6F4EF]">
                                         ({totalCount})
                                     </span>
                                 )}
@@ -323,7 +323,7 @@ export function CategoryScrollBar({
                         className={cn(
                             "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                             allSelected
-                                ? "bg-primary text-white border-primary shadow-md"
+                                ? "bg-primary text-foreground dark:text-white border-primary shadow-md"
                                 : "bg-muted/40 border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                         )}
                     >
@@ -343,16 +343,16 @@ export function CategoryScrollBar({
                                 className={cn(
                                     "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                                     isSelected
-                                        ? "bg-primary text-white border-primary shadow-md"
+                                        ? "bg-primary text-foreground dark:text-white border-primary shadow-md"
                                         : "bg-muted/40 border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
                                 )}
                             >
-                                <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-white" : config.color)} />
+                                <Icon className={cn("w-3.5 h-3.5", isSelected ? "text-foreground dark:text-white" : config.color)} />
                                 <span>{config.label}</span>
                                 {totalCount > 0 && (
                                     <span className={cn(
                                         "text-[11px] px-1.5 py-0.5 rounded-full font-medium",
-                                        isSelected ? "bg-[#075F6B] text-[#F6F4EF]" : "bg-[#0B1E28] text-[#F6F4EF]"
+                                        isSelected ? "bg-[#075F6B] text-[#F6F4EF]" : "bg-card dark:bg-[#0B1E28] text-foreground dark:text-[#F6F4EF]"
                                     )}>
                                         {totalCount}
                                     </span>

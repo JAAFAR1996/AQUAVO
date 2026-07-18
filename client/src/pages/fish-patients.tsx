@@ -190,7 +190,7 @@ export default function FishPatients() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-foreground dark:text-white">
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 max-w-5xl" dir="rtl">
@@ -203,7 +203,7 @@ export default function FishPatients() {
           <h1 className="text-4xl font-black mb-3 bg-gradient-to-r from-white to-cyan-200 bg-clip-text text-transparent">
             🐟 سجل أسماكي
           </h1>
-          <p className="text-slate-400 text-lg">سجّل أسماكك وتابع صحتها — Dr. AQUAVO يتذكر كل شيء!</p>
+          <p className="text-muted-foreground dark:text-slate-400 text-lg">سجّل أسماكك وتابع صحتها — Dr. AQUAVO يتذكر كل شيء!</p>
         </div>
 
         {/* ── Follow-Up Alerts ── */}
@@ -226,12 +226,12 @@ export default function FishPatients() {
                   }`}
                 >
                   <div>
-                    <p className="font-bold text-white">
+                    <p className="font-bold text-foreground dark:text-white">
                       {fu.isOverdue ? "🚨" : fu.daysUntil <= 2 ? "⚠️" : "📅"} {fu.fishName}
-                      {fu.species && <span className="text-slate-400 text-sm mr-2">({fu.species})</span>}
+                      {fu.species && <span className="text-muted-foreground dark:text-slate-400 text-sm mr-2">({fu.species})</span>}
                     </p>
-                    <p className="text-sm text-slate-300">{fu.diagnosis}</p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-sm text-muted-foreground dark:text-slate-300">{fu.diagnosis}</p>
+                    <p className="text-xs text-muted-foreground dark:text-slate-400 mt-1">
                       {fu.isOverdue
                         ? `متأخرة بـ ${Math.abs(fu.daysUntil)} يوم!`
                         : fu.daysUntil === 0
@@ -243,7 +243,7 @@ export default function FishPatients() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      className="bg-cyan-600 hover:bg-cyan-500 text-white text-xs"
+                      className="bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white text-xs"
                       onClick={() => navigate("/fish-health-diagnosis")}
                     >
                       🔬 فحص جديد
@@ -278,7 +278,7 @@ export default function FishPatients() {
         {loading && !error && (
           <div className="text-center py-16">
             <div className="w-12 h-12 border-4 border-cyan-500/30 border-t-cyan-500 rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-slate-400">جاري التحميل...</p>
+            <p className="text-muted-foreground dark:text-slate-400">جاري التحميل...</p>
           </div>
         )}
 
@@ -287,14 +287,14 @@ export default function FishPatients() {
           <div>
             <Button
               variant="ghost"
-              className="text-slate-400 hover:text-white mb-4"
+              className="text-muted-foreground dark:text-slate-400 hover:text-white mb-4"
               onClick={() => { setSelectedFish(null); setRecords([]); }}
             >
               <ChevronLeft className="w-4 h-4 ml-1" /> رجوع للقائمة
             </Button>
 
             {/* Fish Info Card */}
-            <Card className="bg-slate-800/50 border-slate-700/50 mb-6">
+            <Card className="bg-card dark:bg-slate-800/50 border-border dark:border-slate-700/50 mb-6">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -302,8 +302,8 @@ export default function FishPatients() {
                       <Fish className="w-8 h-8 text-cyan-400" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl text-white">{selectedFish.name}</CardTitle>
-                      <CardDescription className="text-slate-400">
+                      <CardTitle className="text-2xl text-foreground dark:text-white">{selectedFish.name}</CardTitle>
+                      <CardDescription className="text-muted-foreground dark:text-slate-400">
                         {selectedFish.species && `${selectedFish.species}`}
                         {selectedFish.age && ` • ${selectedFish.age}`}
                         {selectedFish.gender && ` • ${selectedFish.gender}`}
@@ -317,7 +317,7 @@ export default function FishPatients() {
               </CardHeader>
               {(selectedFish.tankSize || selectedFish.waterType || selectedFish.notes) && (
                 <CardContent className="pt-0">
-                  <div className="flex gap-4 flex-wrap text-sm text-slate-400">
+                  <div className="flex gap-4 flex-wrap text-sm text-muted-foreground dark:text-slate-400">
                     {selectedFish.tankSize && <span className="flex items-center gap-1"><Droplets className="w-3.5 h-3.5" /> {selectedFish.tankSize}</span>}
                     {selectedFish.waterType && <span className="flex items-center gap-1"><Thermometer className="w-3.5 h-3.5" /> {selectedFish.waterType}</span>}
                   </div>
@@ -333,7 +333,7 @@ export default function FishPatients() {
             </h3>
 
             {records.length === 0 ? (
-              <div className="text-center py-12 bg-slate-800/30 rounded-xl border border-slate-700/30">
+              <div className="text-center py-12 bg-card dark:bg-slate-800/30 rounded-xl border border-border dark:border-slate-700/30">
                 <Stethoscope className="w-12 h-12 text-slate-600 mx-auto mb-3" />
                 <p className="text-slate-500">لا يوجد سجلات طبية بعد</p>
                 <Button className="bg-cyan-600 hover:bg-cyan-500 mt-4" onClick={() => navigate("/fish-health-diagnosis")}>
@@ -351,10 +351,10 @@ export default function FishPatients() {
                     <div key={rec.id} className="relative">
                       {/* Timeline line */}
                       {i < records.length - 1 && (
-                        <div className="absolute top-12 right-5 w-0.5 h-full bg-slate-700/50" />
+                        <div className="absolute top-12 right-5 w-0.5 h-full bg-muted dark:bg-slate-700/50" />
                       )}
 
-                      <Card className="bg-slate-800/40 border-slate-700/40 hover:border-cyan-500/20 transition-colors">
+                      <Card className="bg-card dark:bg-slate-800/40 border-border dark:border-slate-700/40 hover:border-cyan-500/20 transition-colors">
                         <CardContent className="p-5">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ export default function FishPatients() {
                                 {i + 1}
                               </div>
                               <div>
-                                <p className="font-bold text-white text-lg">
+                                <p className="font-bold text-foreground dark:text-white text-lg">
                                   {rec.arabicDiagnosis || rec.diagnosis || "فحص عام"}
                                 </p>
                                 <p className="text-xs text-slate-500">{date}</p>
@@ -375,7 +375,7 @@ export default function FishPatients() {
                                 </Badge>
                               )}
                               {rec.confidence && (
-                                <Badge className="bg-slate-700/50 text-slate-300 text-xs">
+                                <Badge className="bg-muted dark:bg-slate-700/50 text-muted-foreground dark:text-slate-300 text-xs">
                                   {(parseFloat(rec.confidence) * 100).toFixed(0)}%
                                 </Badge>
                               )}
@@ -388,7 +388,7 @@ export default function FishPatients() {
                               <p className="text-xs text-slate-500 mb-1">الأعراض:</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {rec.symptoms.map((s, j) => (
-                                  <span key={j} className="text-xs bg-slate-700/50 px-2 py-0.5 rounded text-slate-300">{s}</span>
+                                  <span key={j} className="text-xs bg-muted dark:bg-slate-700/50 px-2 py-0.5 rounded text-muted-foreground dark:text-slate-300">{s}</span>
                                 ))}
                               </div>
                             </div>
@@ -398,7 +398,7 @@ export default function FishPatients() {
                           {rec.treatment && rec.treatment.length > 0 && (
                             <div className="mb-3">
                               <p className="text-xs text-slate-500 mb-1">العلاج:</p>
-                              <ul className="text-sm text-slate-300 list-disc list-inside space-y-0.5">
+                              <ul className="text-sm text-muted-foreground dark:text-slate-300 list-disc list-inside space-y-0.5">
                                 {rec.treatment.slice(0, 3).map((t, j) => (
                                   <li key={j}>{t}</li>
                                 ))}
@@ -407,7 +407,7 @@ export default function FishPatients() {
                           )}
 
                           {/* Outcome + Follow-up */}
-                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-700/30">
+                          <div className="flex items-center justify-between mt-3 pt-3 border-t border-border dark:border-slate-700/30">
                             <div className="flex gap-3">
                               {outcome && (
                                 <span className={`text-sm font-medium ${outcome.color}`}>{outcome.text}</span>
@@ -444,7 +444,7 @@ export default function FishPatients() {
                   أسماكي ({patients.filter(p => p.isActive).length})
                 </h2>
                 <Button
-                  className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white gap-2"
+                  className="bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-foreground dark:text-white gap-2"
                   onClick={() => setShowAddForm(true)}
                 >
                   <Plus className="w-4 h-4" /> سجّل سمكة جديدة
@@ -453,10 +453,10 @@ export default function FishPatients() {
 
               {/* Add Form */}
               {showAddForm && (
-                <Card className="bg-slate-800/60 border-cyan-500/20 mb-6">
+                <Card className="bg-card dark:bg-slate-800/60 border-cyan-500/20 mb-6">
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle className="text-white text-lg">🐟 سجّل سمكة جديدة</CardTitle>
+                      <CardTitle className="text-foreground dark:text-white text-lg">🐟 سجّل سمكة جديدة</CardTitle>
                       <Button variant="ghost" size="sm" onClick={() => setShowAddForm(false)}>
                         <X className="w-4 h-4" />
                       </Button>
@@ -466,35 +466,35 @@ export default function FishPatients() {
                     <form onSubmit={handleAddFish} className="space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">اسم السمكة *</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">اسم السمكة *</label>
                           <input
                             name="name"
                             required
                             placeholder='مثال: "نيمو"'
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">النوع</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">النوع</label>
                           <input
                             name="species"
                             placeholder="مثال: Betta, Guppy..."
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">العمر</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">العمر</label>
                           <input
                             name="age"
                             placeholder="مثال: 6 أشهر"
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">الجنس</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">الجنس</label>
                           <select
                             name="gender"
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white focus:border-cyan-500/50 focus:outline-none"
                           >
                             <option value="">غير محدد</option>
                             <option value="ذكر">ذكر</option>
@@ -502,18 +502,18 @@ export default function FishPatients() {
                           </select>
                         </div>
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">حجم الحوض</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">حجم الحوض</label>
                           <input
                             name="tankSize"
                             placeholder="مثال: 60 لتر"
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
                           />
                         </div>
                         <div>
-                          <label className="text-sm text-slate-300 mb-1 block">نوع الماء</label>
+                          <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">نوع الماء</label>
                           <select
                             name="waterType"
-                            className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white focus:border-cyan-500/50 focus:outline-none"
+                            className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white focus:border-cyan-500/50 focus:outline-none"
                           >
                             <option value="">غير محدد</option>
                             <option value="عذبة">عذبة (Freshwater)</option>
@@ -523,15 +523,15 @@ export default function FishPatients() {
                         </div>
                       </div>
                       <div>
-                        <label className="text-sm text-slate-300 mb-1 block">ملاحظات</label>
+                        <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1 block">ملاحظات</label>
                         <textarea
                           name="notes"
                           rows={2}
                           placeholder="أي ملاحظة عن سمكتك..."
-                          className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none resize-none"
+                          className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none resize-none"
                         />
                       </div>
-                      <Button type="submit" className="w-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-bold py-2.5">
+                      <Button type="submit" className="w-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-foreground dark:text-white font-bold py-2.5">
                         ✅ سجّل السمكة
                       </Button>
                     </form>
@@ -541,12 +541,12 @@ export default function FishPatients() {
 
               {/* Fish Grid */}
               {patients.filter(p => p.isActive).length === 0 ? (
-                <div className="text-center py-16 bg-slate-800/20 rounded-2xl border border-slate-700/30">
+                <div className="text-center py-16 bg-card dark:bg-slate-800/20 rounded-2xl border border-border dark:border-slate-700/30">
                   <Fish className="w-20 h-20 text-slate-700 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-slate-400 mb-2">لا يوجد أسماك مسجلة بعد</h3>
+                  <h3 className="text-xl font-bold text-muted-foreground dark:text-slate-400 mb-2">لا يوجد أسماك مسجلة بعد</h3>
                   <p className="text-slate-500 mb-6">سجّل أول سمكة وابدأ تتابع صحتها!</p>
                   <Button
-                    className="bg-gradient-to-r from-cyan-600 to-teal-600 text-white gap-2"
+                    className="bg-gradient-to-r from-cyan-600 to-teal-600 text-foreground dark:text-white gap-2"
                     onClick={() => setShowAddForm(true)}
                   >
                     <Plus className="w-4 h-4" /> سجّل أول سمكة
@@ -557,7 +557,7 @@ export default function FishPatients() {
                   {patients.filter(p => p.isActive).map(fish => (
                     <Card
                       key={fish.id}
-                      className="bg-slate-800/40 border-slate-700/40 hover:border-cyan-500/30 cursor-pointer transition-all group hover:shadow-lg hover:shadow-cyan-500/5"
+                      className="bg-card dark:bg-slate-800/40 border-border dark:border-slate-700/40 hover:border-cyan-500/30 cursor-pointer transition-all group hover:shadow-lg hover:shadow-cyan-500/5"
                       onClick={() => fetchRecords(fish.id)}
                     >
                       <CardContent className="p-5">
@@ -566,14 +566,14 @@ export default function FishPatients() {
                             <Fish className="w-7 h-7 text-cyan-400" />
                           </div>
                           <div>
-                            <h3 className="font-bold text-white text-lg group-hover:text-cyan-300 transition-colors">{fish.name}</h3>
-                            <p className="text-sm text-slate-400">{fish.species || "نوع غير محدد"}</p>
+                            <h3 className="font-bold text-foreground dark:text-white text-lg group-hover:text-cyan-300 transition-colors">{fish.name}</h3>
+                            <p className="text-sm text-muted-foreground dark:text-slate-400">{fish.species || "نوع غير محدد"}</p>
                           </div>
                         </div>
 
                         <Separator className="opacity-20 mb-3" />
 
-                        <div className="flex flex-wrap gap-2 text-xs text-slate-400">
+                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground dark:text-slate-400">
                           {fish.age && <span>📅 {fish.age}</span>}
                           {fish.gender && <span>👤 {fish.gender}</span>}
                           {fish.tankSize && <span>🐠 {fish.tankSize}</span>}
@@ -593,7 +593,7 @@ export default function FishPatients() {
               <div className="mt-10 text-center">
                 <Separator className="opacity-20 mb-6" />
                 <Button
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white gap-2 text-lg py-6 px-8"
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-foreground dark:text-white gap-2 text-lg py-6 px-8"
                   onClick={() => navigate("/fish-health-diagnosis")}
                 >
                   <Stethoscope className="w-5 h-5" /> فحص سمكة بالذكاء الاصطناعي 🤖

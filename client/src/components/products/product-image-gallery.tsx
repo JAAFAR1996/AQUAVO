@@ -96,7 +96,7 @@ export function ProductImageGallery({
                 >
                     {/* Main Image */}
                     {galleryImages.length === 0 || imageFailed ? (
-                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
+                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-card dark:bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
                             <span className="text-sm text-muted-foreground/80 font-medium font-cairo">الصورة غير متوفرة</span>
                         </div>
                     ) : (
@@ -133,7 +133,7 @@ export function ProductImageGallery({
 
                             {/* Zoom Icon Indicator */}
                             <div className={cn(
-                                "absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-opacity",
+                                "absolute bottom-4 right-4 bg-black/60 text-foreground dark:text-white px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-opacity",
                                 isZoomed ? "opacity-0" : "opacity-100"
                             )}>
                                 <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />
@@ -178,7 +178,7 @@ export function ProductImageGallery({
                     {/* Image Counter */}
                     {galleryImages.length > 1 && !imageFailed && (
                         <div
-                            className="absolute top-4 left-4 bg-black/60 text-white px-2 py-1 rounded-full text-xs"
+                            className="absolute top-4 left-4 bg-black/60 text-foreground dark:text-white px-2 py-1 rounded-full text-xs"
                             aria-live="polite"
                         >
                             {selectedIndex + 1} / {galleryImages.length}
@@ -250,7 +250,7 @@ export function ProductImageGallery({
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 h-11 w-11 md:h-11 md:w-11"
+                            className="absolute top-4 right-4 z-50 text-foreground dark:text-white hover:bg-white/20 h-11 w-11 md:h-11 md:w-11"
                             onClick={() => setLightboxOpen(false)}
                             aria-label="إغلاق معرض الصور"
                         >
@@ -259,7 +259,7 @@ export function ProductImageGallery({
 
                         {/* Main Image */}
                         {imageFailed || galleryImages.length === 0 ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none text-white">
+                            <div className="w-full h-full flex flex-col items-center justify-center p-6 text-center select-none text-foreground dark:text-white">
                                 <span className="text-lg font-medium font-cairo">الصورة غير متوفرة</span>
                             </div>
                         ) : (
@@ -280,7 +280,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground dark:text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handlePrevious}
                                     aria-label="الصورة السابقة"
                                 >
@@ -289,7 +289,7 @@ export function ProductImageGallery({
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground dark:text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handleNext}
                                     aria-label="الصورة التالية"
                                 >

@@ -16,11 +16,11 @@ const pages = [
 
 export default function Guide5Mistakes() {
   return (
-    <div className="min-h-screen bg-[#0B1E28] text-white" dir="rtl">
+    <div className="min-h-screen bg-card dark:bg-[#0B1E28] text-foreground dark:text-white" dir="rtl">
       {/* Sticky top bar */}
       <header
         style={{ backdropFilter: "blur(8px)" }}
-        className="sticky top-0 z-50 h-16 bg-[#0B1E28]/96 border-b border-[#0B93A6]/35 flex items-center justify-between px-4"
+        className="sticky top-0 z-50 h-16 bg-card dark:bg-[#0B1E28]/96 border-b border-[#0B93A6]/35 flex items-center justify-between px-4"
       >
         <a href="/" className="text-[#0B93A6] font-bold tracking-[4px] text-lg">
           AQUAVO
@@ -59,7 +59,7 @@ export default function Guide5Mistakes() {
             decoding="async"
             width={720}
             height={1018}
-            className="block w-full h-auto mb-4 last:mb-0 rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.45)] bg-[#0B1E28]"
+            className="block w-full h-auto mb-4 last:mb-0 rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.45)] bg-card dark:bg-[#0B1E28]"
           />
         ))}
       </main>

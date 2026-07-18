@@ -1078,3 +1078,37 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
   [role="button"] { transition-duration: 1ms !important; transform: none !important; }
   html:focus-within { scroll-behavior: auto; }
 }
+
+/* =====================================================================
+   AQUAVO — global motion backstop (minimal safety rule).
+   Visible motion is removed in component code: framer-motion is disabled
+   globally via <MotionConfig reducedMotion="always" transition={{duration:0}}>
+   and the always-on animation surfaces (page transition, scroll reveal,
+   loaders, wishlist, floating button) were rewritten to be static. This rule
+   is only a backstop so any remaining utility/third-party animation stays
+   invisible: keyframe animations are frozen at their end state, transitions
+   are limited to instantaneous colour/opacity/shadow changes (never
+   transform/size, so nothing moves), and hover "grow" is neutralised.
+   Colour-only hover states still work.
+   ===================================================================== */
+*, *::before, *::after {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+/* Neutralise hover/active "grow" (Tailwind scale utilities use these vars). */
+*:hover, *:focus, *:focus-visible, *:active {
+  --tw-scale-x: 1 !important;
+  --tw-scale-y: 1 !important;
+}
+/* Any residual entrance surfaces render immediately, at rest, fully visible. */
+.aq-hero-title, .aq-hero-support, .aq-hero-actions,
+.aq-site-header,
+.aq-waterline-hero::after, .aq-proof-window, .aq-trust-seal {
+  animation: none !important;
+  opacity: 1 !important;
+}

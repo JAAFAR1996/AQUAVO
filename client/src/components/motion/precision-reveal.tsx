@@ -1,46 +1,17 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
-import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { type ReactNode } from "react";
 
 interface PrecisionRevealProps {
   children: ReactNode;
   className?: string;
+  /** Retained for call-site API compatibility; no longer applies any motion. */
   stagger?: boolean;
 }
 
-/** One-shot, viewport-triggered entrance for meaningful page sections only. */
-export function PrecisionReveal({ children, className = "", stagger = false }: PrecisionRevealProps) {
-  const elementRef = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
-  const [motionReady, setMotionReady] = useState(false);
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const element = elementRef.current;
-    if (!element || visible) return;
-    if (reducedMotion) {
-      setVisible(true);
-      return;
-    }
-    setMotionReady(true);
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      setVisible(true);
-      observer.disconnect();
-    }, { rootMargin: "0px 0px -8%", threshold: 0.08 });
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [visible, reducedMotion]);
-
-  return (
-    <div
-      ref={elementRef}
-      className={`aq-precision-reveal${stagger ? " aq-precision-stagger" : ""} ${className}`.trim()}
-      data-visible={visible ? "true" : "false"}
-      data-motion-ready={motionReady ? "true" : "false"}
-    >
-      {children}
-    </div>
-  );
+/**
+ * Static section wrapper. Entrance/viewport-triggered motion has been removed
+ * site-wide, so content renders immediately with no animation, no scroll
+ * observer and no visibility toggling.
+ */
+export function PrecisionReveal({ children, className = "" }: PrecisionRevealProps) {
+  return <div className={className}>{children}</div>;
 }

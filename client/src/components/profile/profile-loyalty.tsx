@@ -468,9 +468,9 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                                 <div className={`w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-full flex items-center justify-center mb-2 ${isCurrentTier ? tier.iconBg : isAchieved ? "bg-green-500" : "bg-muted"
                                     }`}>
                                     {isAchieved && !isCurrentTier ? (
-                                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                                        <CheckCircle className="w-5 h-5 sm:w-6 sm:h-6 text-foreground dark:text-white" />
                                     ) : (
-                                        <TierIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${isCurrentTier || isAchieved ? "text-white" : "text-muted-foreground"}`} />
+                                        <TierIcon className={`w-5 h-5 sm:w-6 sm:h-6 ${isCurrentTier || isAchieved ? "text-foreground dark:text-white" : "text-muted-foreground"}`} />
                                     )}
                                 </div>
                                 <p className={`font-semibold text-xs sm:text-sm ${isCurrentTier ? "text-primary" : ""}`}>
@@ -594,7 +594,7 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                                         ch.completed ? "bg-green-500" : "bg-muted"
                                     }`}>
                                         {ch.completed ? (
-                                            <CheckCircle className="w-4 h-4 text-white" />
+                                            <CheckCircle className="w-4 h-4 text-foreground dark:text-white" />
                                         ) : (
                                             <Target className="w-4 h-4 text-muted-foreground" />
                                         )}

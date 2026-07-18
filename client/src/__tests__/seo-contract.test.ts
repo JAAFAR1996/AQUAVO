@@ -104,12 +104,14 @@ describe("AQUAVO discoverability contract", () => {
     const css = read("client/src/index.css");
     const home = read("client/src/pages/home.tsx");
     const reveal = read("client/src/components/motion/precision-reveal.tsx");
-    expect(css).toContain("--aq-motion-standard: 190ms");
     expect(css).toContain("@media (prefers-reduced-motion: reduce)");
     expect(css).not.toContain("animation: infinite");
     expect(home).toContain("<PrecisionReveal");
-    expect(reveal).toContain("observer.disconnect()");
-    expect(reveal).toContain('data-motion-ready={motionReady ? "true" : "false"}');
+    // Entrance/viewport motion has been removed: the reveal wrapper is now a
+    // static passthrough — no IntersectionObserver, no data-motion toggling.
+    expect(reveal).not.toContain("IntersectionObserver");
+    expect(reveal).not.toContain("observer.disconnect()");
+    expect(reveal).not.toContain("data-motion-ready");
   });
 
   it("never explains SSR or crawling implementation details to customers", () => {

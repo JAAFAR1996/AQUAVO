@@ -995,7 +995,7 @@ function AppShell() {
     // notifications, etc.) automatically honour the OS "reduce motion"
     // setting — no per-component edits needed. Purely CSS-driven motion is
     // covered separately by the global rule in client/src/index.css.
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion="always" transition={{ duration: 0 }}>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>

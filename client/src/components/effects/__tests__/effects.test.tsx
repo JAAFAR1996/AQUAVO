@@ -87,64 +87,41 @@ describe('FloatingActionButton', () => {
         window.scrollTo = originalScrollTo;
     });
 
-    it('should render the FAB container', () => {
+    // Motion removed: the button is not rendered until scrolled past the
+    // threshold (no opacity fade/translate), then appears instantly.
+    async function scrollPastThreshold() {
+        await act(async () => {
+            Object.defineProperty(window, 'scrollY', { value: 400 });
+            fireEvent.scroll(window);
+        });
+    }
+
+    it('renders nothing until scrolled past the threshold', () => {
         const { container } = render(<FloatingActionButton />);
+        expect(container.firstChild).toBeNull();
+        expect(screen.queryByTestId('button')).toBeNull();
+    });
+
+    it('appears after scrolling, with fixed LTR positioning', async () => {
+        const { container } = render(<FloatingActionButton />);
+        await scrollPastThreshold();
         expect(container.firstChild).toBeInTheDocument();
-    });
-
-    it('should have fixed positioning', () => {
-        const { container } = render(<FloatingActionButton />);
         expect(container.firstChild).toHaveClass('fixed');
-    });
-
-    it('should be hidden initially when not scrolled', () => {
-        const { container } = render(<FloatingActionButton />);
-        const button = screen.getByTestId('button');
-        expect(button).toHaveClass('opacity-0');
-    });
-
-    it('should show button after scrolling past threshold', async () => {
-        render(<FloatingActionButton />);
-
-        await act(async () => {
-            Object.defineProperty(window, 'scrollY', { value: 400 });
-            fireEvent.scroll(window);
-        });
-
-        const button = screen.getByTestId('button');
-        expect(button).toHaveClass('opacity-100');
-    });
-
-    it('should call scrollTo when clicked', async () => {
-        render(<FloatingActionButton />);
-
-        // First show the button
-        await act(async () => {
-            Object.defineProperty(window, 'scrollY', { value: 400 });
-            fireEvent.scroll(window);
-        });
-
-        const button = screen.getByTestId('button');
-        fireEvent.click(button);
-
-        expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
-    });
-
-    it('should have aria-label for accessibility', () => {
-        render(<FloatingActionButton />);
-        const button = screen.getByLabelText('Scroll to top');
-        expect(button).toBeInTheDocument();
-    });
-
-    it('should have LTR direction', () => {
-        const { container } = render(<FloatingActionButton />);
         expect(container.firstChild).toHaveAttribute('dir', 'ltr');
     });
 
-    it('should have rounded button', () => {
+    it('calls scrollTo with instant (auto) behavior when clicked', async () => {
         render(<FloatingActionButton />);
-        const button = screen.getByTestId('button');
-        expect(button).toHaveClass('rounded-full');
+        await scrollPastThreshold();
+        fireEvent.click(screen.getByTestId('button'));
+        expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'auto' });
+    });
+
+    it('has an accessible label and a rounded button', async () => {
+        render(<FloatingActionButton />);
+        await scrollPastThreshold();
+        expect(screen.getByLabelText('Scroll to top')).toBeInTheDocument();
+        expect(screen.getByTestId('button')).toHaveClass('rounded-full');
     });
 });
 

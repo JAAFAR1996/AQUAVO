@@ -20,7 +20,9 @@ describe("document shell", () => {
     expect(html).toContain('/brand/aquavo-v2-favicon.png');
     expect(html).toContain("family=Inter");
     expect(html).not.toContain("Outfit");
-    expect(html).toContain("else resolved = 'dark'");
+    // First-time visitors and read failures default to Light (no dark flash).
+    expect(html).toContain("var resolved = 'light'");
+    expect(html).not.toContain("else resolved = 'dark'");
     expect(css).toContain("--aqv-primary: #0B93A6");
     expect(css).toContain("--aqv-bg-dark: #0B1E28");
     expect(css).toContain("--aqv-bg-light: #F6F4EF");
