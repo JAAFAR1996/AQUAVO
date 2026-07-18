@@ -279,3 +279,65 @@ describe('CategoryScrollBar desktop arrow-scroll buttons (a11y: button-name)', (
         expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeNull();
     });
 });
+
+/**
+ * RTL scroll-arrow visibility regression tests.
+ *
+ * Bug: checkScrollPosition()'s RTL branch had showRightArrow/showLeftArrow
+ * swapped. In RTL, scrollLeft uses the negative-scrollLeft convention:
+ * scrollLeft=0 is the START (first/rightmost category) and
+ * scrollLeft=-(scrollWidth-clientWidth) is the END (last/leftmost category).
+ * At the start, the actionable arrow is "التالية" (next, scroll("right")) —
+ * pre-fix, it was hidden and the no-op "السابقة" (previous) showed instead.
+ * At the end, the reverse should hold. These tests set document.dir="rtl"
+ * and drive the scroll container through both boundaries to assert the
+ * correct (not the inverted) arrow is visible at each edge.
+ */
+describe('CategoryScrollBar RTL scroll-arrow visibility (checkScrollPosition)', () => {
+    const originalDir = document.documentElement.dir;
+
+    afterEach(() => {
+        document.documentElement.dir = originalDir;
+        vi.restoreAllMocks();
+    });
+
+    function renderRTLWithScrollLeft(scrollLeft: number, scrollWidth = 1000, clientWidth = 300) {
+        document.documentElement.dir = 'rtl';
+        vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(scrollWidth);
+        vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(clientWidth);
+        vi.spyOn(HTMLElement.prototype, 'scrollLeft', 'get').mockReturnValue(scrollLeft);
+
+        const utils = render(<CategoryScrollBar {...baseProps()} />);
+        act(() => {
+            window.dispatchEvent(new Event('resize'));
+        });
+        return utils;
+    }
+
+    it('at the RTL start (scrollLeft=0), shows the actionable "التالية" (next) arrow, not the no-op "السابقة"', () => {
+        renderRTLWithScrollLeft(0);
+        expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeNull();
+    });
+
+    it('at the RTL true end (scrollLeft=-(scrollWidth-clientWidth)), shows "السابقة" (previous), not "التالية"', () => {
+        renderRTLWithScrollLeft(-(1000 - 300));
+        expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeNull();
+    });
+
+    it('at the RTL true end with subpixel rounding noise, still hides "التالية" (tolerance guards against false positives)', () => {
+        // Browsers can report a fractional scrollLeft a hair short of the exact
+        // computed end (e.g. -1773.33 vs a computed -1774). Without a tolerance
+        // buffer this used to make both arrows appear simultaneously.
+        renderRTLWithScrollLeft(-999.5, 1000, 300);
+        expect(screen.queryByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeNull();
+        expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeInTheDocument();
+    });
+
+    it('in the RTL middle of the strip, shows both arrows (both directions actionable)', () => {
+        renderRTLWithScrollLeft(-350, 1000, 300);
+        expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات التالية' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeInTheDocument();
+    });
+});

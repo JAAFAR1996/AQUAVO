@@ -188,8 +188,16 @@ export function CategoryScrollBar({
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
         const isRTL = document.documentElement.dir === "rtl";
         if (isRTL) {
-            setShowRightArrow(scrollLeft < 0);
-            setShowLeftArrow(scrollLeft > -(scrollWidth - clientWidth));
+            // RTL uses the negative-scrollLeft convention: scrollLeft=0 is the start
+            // (first category, rightmost visually) and scrollLeft=-(scrollWidth-clientWidth)
+            // is the end (last category, leftmost visually).
+            // "التالية" (next, showRightArrow, scroll("right")) should be actionable
+            // whenever we're not yet at the end — a 10px tolerance absorbs subpixel
+            // rounding so it doesn't falsely show once the true end is reached.
+            setShowRightArrow(scrollLeft > -(scrollWidth - clientWidth - 10));
+            // "السابقة" (previous, showLeftArrow, scroll("left")) should be actionable
+            // whenever we're not at the start.
+            setShowLeftArrow(scrollLeft < 0);
         } else {
             setShowLeftArrow(scrollLeft > 0);
             setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
@@ -242,7 +250,7 @@ export function CategoryScrollBar({
                     )}
                 >
                     <LayoutGrid className="w-4 h-4" />
-                    <span className="text-[11px] font-medium leading-none">الكل</span>
+                    <span className="text-[11px] font-medium leading-[1.4]">الكل</span>
                 </button>
 
                 {organizedCategories.map(({ key, config, rawCategories, totalCount }) => {
@@ -260,7 +268,7 @@ export function CategoryScrollBar({
                             )}
                         >
                             <Icon className={cn("w-4 h-4", !isSelected && config.color)} />
-                            <span className="text-[11px] font-medium leading-none whitespace-nowrap">
+                            <span className="text-[11px] font-medium leading-[1.4] whitespace-nowrap">
                                 {config.label}
                                 {totalCount > 0 && !isSelected && (
                                     <span className="mr-0.5 rounded-full bg-[#0B1E28] px-1 py-px text-[#F6F4EF]">
