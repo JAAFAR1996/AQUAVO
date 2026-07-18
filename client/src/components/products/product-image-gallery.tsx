@@ -9,12 +9,19 @@ interface ProductImageGalleryProps {
     images: string[];
     productName: string;
     className?: string;
+    /**
+     * Preview prototype only: unique view-transition-name for the main hero
+     * image, so a card → PDP shared-image transition can target it. Inert
+     * (undefined) in the normal experience.
+     */
+    heroTransitionName?: string;
 }
 
 export function ProductImageGallery({
     images,
     productName,
     className,
+    heroTransitionName,
 }: ProductImageGalleryProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [imageFailed, setImageFailed] = useState(false);
@@ -110,9 +117,13 @@ export function ProductImageGallery({
                                     "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
                                     isZoomed && "scale-110"
                                 )}
-                                style={isZoomed ? {
-                                    transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%`
-                                } : undefined}
+                                data-aqv-hero={selectedIndex === 0 ? heroTransitionName || undefined : undefined}
+                                style={{
+                                    // Preview prototype: unique per-product name so
+                                    // native View Transitions morph card → PDP hero.
+                                    viewTransitionName: selectedIndex === 0 ? heroTransitionName : undefined,
+                                    ...(isZoomed ? { transformOrigin: `${zoomPosition.x}% ${zoomPosition.y}%` } : {}),
+                                }}
                                 loading="eager"
                                 decoding="async"
                                 fetchPriority="high"

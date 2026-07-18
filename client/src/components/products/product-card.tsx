@@ -1,4 +1,4 @@
-import { memo, useState, type MouseEvent } from "react";
+import { memo, useRef, useState, type MouseEvent } from "react";
 import { Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
@@ -13,6 +13,13 @@ import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
+import { flyProductToCart } from "@/lib/motion/fly-to-cart";
+import {
+  navigateCardToProduct,
+  prefetchProductDestination,
+  supportsViewTransitions,
+} from "@/lib/motion/card-transition";
+import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -32,6 +39,16 @@ export const ProductCard = memo(function ProductCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
+  // Motion is the normal experience; only reduced-motion users opt out.
+  const motionActive = !prefersReducedMotion();
+  const imgRef = useRef<HTMLImageElement>(null);
+  const navLockRef = useRef(false);
+
+  // Warm the PDP data + hero image before the click so the first (cold) click
+  // can run the shared-image transition reliably.
+  const prefetchDestination = () => {
+    prefetchProductDestination(product.slug, product.thumbnail || product.image);
+  };
 
   const variantPrices = product.hasVariants && product.variants?.length
     ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
@@ -52,9 +69,39 @@ export const ProductCard = memo(function ProductCard({
     const added = await addItem(product);
     if (!added) return;
 
+    // Fly a clone of the product image into the cart icon (reduced-motion safe).
+    // Does not open the cart or change cart logic.
+    if (motionActive) flyProductToCart(imgRef.current);
+
     toast({
       title: "تمت الإضافة",
       description: `${product.name} انضاف للسلة.`,
+    });
+  };
+
+  // Card-to-Product continuity via native View Transitions,
+  // reliable on the first (cold) click. Immediate navigation fallback when the
+  // API is unsupported, motion is off, or the user prefers reduced motion.
+  const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {
+    trackSelectItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      category: product.category,
+    });
+    // Let the default <Link> navigate immediately on the non-motion paths.
+    if (!motionActive || !supportsViewTransitions() || prefersReducedMotion()) return;
+    event.preventDefault();
+    if (navLockRef.current) return; // lock out duplicate clicks / navigation
+    navLockRef.current = true;
+    void navigateCardToProduct({
+      slug: product.slug,
+      sourceImg: imgRef.current,
+      navigate: () => setLocation(`/products/${product.slug}`),
+      motionActive,
+    }).finally(() => {
+      navLockRef.current = false;
     });
   };
 
@@ -108,19 +155,17 @@ export const ProductCard = memo(function ProductCard({
 
       <Link
         href={`/products/${product.slug}`}
-        onClick={() => trackSelectItem({
-          id: product.id,
-          name: product.name,
-          price: product.price,
-          quantity: 1,
-          category: product.category,
-        })}
+        onClick={handleCardNavigate}
+        onPointerEnter={prefetchDestination}
+        onPointerDown={prefetchDestination}
+        onFocus={prefetchDestination}
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
         <div className="relative aspect-square overflow-hidden bg-card" data-protected="true">
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/45" aria-hidden="true" /> : null}
           <img
+            ref={imgRef}
             src={imageSrc}
             srcSet={imageSrcSet}
             sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
