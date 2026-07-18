@@ -18,7 +18,7 @@ export function ShippingProgress({ compact = false }: ShippingProgressProps) {
     <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
       <p className="text-sm text-muted-foreground">
         رسوم التوصيل{" "}
-        <span className="font-semibold text-[#0B93A6]">
+        <span className="font-semibold text-primary">
           {formatIQD(DELIVERY_FEE)}
         </span>{" "}
         لبغداد وكل المحافظات خلال {DELIVERY_DAYS}.

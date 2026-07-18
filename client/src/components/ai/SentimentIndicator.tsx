@@ -88,7 +88,7 @@ export default function SentimentIndicator({
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+    <div className="bg-card rounded-lg shadow-md p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
           تحليل المشاعر

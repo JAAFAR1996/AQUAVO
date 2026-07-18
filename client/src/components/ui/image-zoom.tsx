@@ -183,7 +183,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
             <div className="absolute top-4 right-4 flex gap-2 z-10">
                 <button
                     onClick={(e) => { e.stopPropagation(); setScale(s => Math.min(5, s + 0.5)); }}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                    className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
                     aria-label="تكبير"
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); setScale(s => Math.max(0.5, s - 0.5)); }}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                    className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
                     aria-label="تصغير"
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -201,7 +201,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); resetZoom(); }}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                    className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
                     aria-label="إعادة تعيين"
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -210,7 +210,7 @@ export function ImageZoomModal({ src, alt, isOpen, onClose }: ImageZoomModalProp
                 </button>
                 <button
                     onClick={onClose}
-                    className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-colors"
+                    className="p-2 bg-card/20 hover:bg-white/30 rounded-full transition-colors"
                     aria-label="إغلاق"
                 >
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">

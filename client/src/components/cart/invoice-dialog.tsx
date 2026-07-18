@@ -269,7 +269,7 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
           <div className="invoice-header bg-gradient-to-br from-primary via-primary to-blue-600 text-primary-foreground p-6 rounded-t-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+                <div className="bg-card/20 p-2 rounded-lg backdrop-blur-sm">
                   <img src="/brand/aquavo-v2-icon.svg" alt="AQUAVO" className="h-10 w-10 object-contain" />
                 </div>
                 <div>
@@ -278,7 +278,7 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
                 </div>
               </div>
               <div className="text-left">
-                <div className="invoice-number-box bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                <div className="invoice-number-box bg-card/20 backdrop-blur-sm rounded-lg px-4 py-2">
                   <p className="text-xs opacity-80">رقم الطلب</p>
                   <p className="font-mono font-bold text-sm">{shortOrderNumber}</p>
                 </div>

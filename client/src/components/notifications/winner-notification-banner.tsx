@@ -77,7 +77,7 @@ export function WinnerNotificationBanner() {
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                         {/* Message Section */}
                         <div className="flex items-center gap-3 flex-1 min-w-0">
-                            <div className="flex-shrink-0 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <div className="flex-shrink-0 w-10 h-10 bg-card/20 rounded-full flex items-center justify-center">
                                 <Trophy className="w-5 h-5" />
                             </div>
                             <div className="min-w-0">
@@ -92,7 +92,7 @@ export function WinnerNotificationBanner() {
 
                         {/* Coupon Code Section */}
                         <div className="flex items-center gap-2 flex-shrink-0">
-                            <div className="flex items-center gap-2 bg-white/20 rounded-lg px-3 py-1.5">
+                            <div className="flex items-center gap-2 bg-card/20 rounded-lg px-3 py-1.5">
                                 <Gift className="w-4 h-4 flex-shrink-0" />
                                 <code className="font-mono font-bold text-sm tracking-wide">
                                     {winningSubmission.couponCode}

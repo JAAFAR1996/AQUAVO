@@ -366,7 +366,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                       alt={result.title}
                       loading="lazy"
                       decoding="async"
-                      className="w-12 h-12 object-contain rounded-md bg-white shrink-0"
+                      className="w-12 h-12 object-contain rounded-md bg-card shrink-0"
                     />
                   )}
                   {result.type === "page" && (

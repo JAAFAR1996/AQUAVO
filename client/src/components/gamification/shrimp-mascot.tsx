@@ -136,7 +136,7 @@ export function ShrimpMascot({
             <div
                 className={cn(
                     "absolute -bottom-16 left-1/2 -translate-x-1/2 whitespace-nowrap",
-                    "bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-lg",
+                    "bg-card dark:bg-gray-800 px-3 py-2 rounded-lg shadow-lg",
                     "text-xs font-medium text-gray-700 dark:text-gray-200",
                     "border border-gray-200 dark:border-gray-600",
                     "opacity-0 group-hover:opacity-100",

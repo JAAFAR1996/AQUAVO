@@ -86,7 +86,7 @@ function FilterPill({
                     variant="secondary"
                     className={cn(
                         "h-5 px-1.5 text-[10px] font-bold rounded-full",
-                        selected ? "bg-white/20 text-inherit" : "bg-muted"
+                        selected ? "bg-card/20 text-inherit" : "bg-muted"
                     )}
                 >
                     {count}

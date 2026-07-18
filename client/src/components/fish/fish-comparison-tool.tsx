@@ -243,7 +243,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                             <img
                                 src={fish.image}
                                 alt={fish.arabicName}
-                                className="w-8 h-8 rounded-full object-contain bg-white"
+                                className="w-8 h-8 rounded-full object-contain bg-card"
                             />
                             <span className="font-medium text-sm">{fish.arabicName}</span>
                         </div>
@@ -290,7 +290,7 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                                     <img
                                                         src={fish.image}
                                                         alt={fish.arabicName}
-                                                        className="w-12 h-12 rounded-lg object-contain bg-white"
+                                                        className="w-12 h-12 rounded-lg object-contain bg-card"
                                                     />
                                                     <div className="flex-1 text-right">
                                                         <p className="font-medium">{fish.arabicName}</p>
@@ -342,12 +342,12 @@ export function FishComparisonTool({ className }: FishComparisonToolProps) {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <div className="flex items-center gap-2">
-                                                <img src={fish1.image} alt="" className="w-8 h-8 rounded-full object-contain bg-white" />
+                                                <img src={fish1.image} alt="" className="w-8 h-8 rounded-full object-contain bg-card" />
                                                 <span className="font-medium text-sm">{fish1.arabicName}</span>
                                             </div>
                                             {getCompatibilityIcon(result.level)}
                                             <div className="flex items-center gap-2">
-                                                <img src={fish2.image} alt="" className="w-8 h-8 rounded-full object-contain bg-white" />
+                                                <img src={fish2.image} alt="" className="w-8 h-8 rounded-full object-contain bg-card" />
                                                 <span className="font-medium text-sm">{fish2.arabicName}</span>
                                             </div>
                                         </div>

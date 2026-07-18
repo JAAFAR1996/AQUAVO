@@ -50,7 +50,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
             className="w-full lg:w-1/2 relative group perspective-1000"
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-3xl -rotate-3 scale-95 group-hover:rotate-0 transition-transform duration-700 ease-out blur-xl opacity-50" />
-            <div className="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden bg-white dark:bg-slate-900 group-hover:shadow-primary/20 transition-all duration-500">
+            <div className="relative w-full aspect-square rounded-3xl shadow-2xl overflow-hidden bg-card dark:bg-slate-900 group-hover:shadow-primary/20 transition-all duration-500">
               <img
                 src={product.thumbnail || product.image || product.images?.[0] || '/placeholder-product.svg'}
                 alt={product.name}
@@ -64,7 +64,7 @@ export function ProductOfTheWeek({ product }: ProductOfTheWeekProps) {
                 }}
               />
             </div>
-            <div className="absolute -bottom-6 -right-6 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-xl animate-float hidden md:block">
+            <div className="absolute -bottom-6 -right-6 bg-card dark:bg-slate-800 p-4 rounded-2xl shadow-xl animate-float hidden md:block">
               <div className="flex items-center gap-2">
                 <span className={`flex h-3 w-3 rounded-full ${isInStock ? 'bg-green-500' : 'bg-red-500'}`}></span>
                 <span className="text-sm font-bold">{isInStock ? 'متوفر في المخزن' : 'غير متوفر'}</span>

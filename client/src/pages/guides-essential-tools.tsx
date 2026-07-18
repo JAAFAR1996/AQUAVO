@@ -25,7 +25,7 @@ export default function GuideEssentialTools() {
                 href={PDF_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-[#E8EDF2] border border-[#0B93A6]/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
+                className="flex items-center gap-1.5 text-[#E8EDF2] border border-primary/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
               >
                 <span className="hidden sm:inline">فتح PDF</span>
                 <ExternalLink className="w-4 h-4" />
@@ -33,7 +33,7 @@ export default function GuideEssentialTools() {
               <a
                 href={PDF_URL}
                 download="aquavo-essential-tools-guide.pdf"
-                className="flex items-center gap-1.5 bg-[#0B93A6] text-[#0B1E28] hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
+                className="flex items-center gap-1.5 bg-primary text-foreground hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
               >
                 <span>تحميل PDF</span>
                 <Download className="w-4 h-4" />

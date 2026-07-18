@@ -231,7 +231,7 @@ export function ProfileLoyalty({ loyaltyPoints: fallbackPoints, loyaltyTier: fal
                         )}
 
                         {/* Total Value */}
-                        <div className="bg-white/50 dark:bg-white/5 rounded-lg px-4 py-2 mb-4">
+                        <div className="bg-card/50 dark:bg-white/5 rounded-lg px-4 py-2 mb-4">
                             <p className="text-sm font-semibold">
                                 إجمالي القيمة: <span className="text-primary">{formatIQD(balance?.totalValueIQD ?? 0)}</span>
                             </p>

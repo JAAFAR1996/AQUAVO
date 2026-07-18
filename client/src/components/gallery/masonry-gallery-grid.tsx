@@ -89,7 +89,7 @@ export function MasonryGalleryGrid() {
                   <div
                     className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]"
                   >
-                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-white/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 text-white font-medium flex items-center gap-2">
+                    <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300 bg-card/10 backdrop-blur-md px-6 py-3 rounded-full border border-white/20 text-white font-medium flex items-center gap-2">
                       <Info className="w-5 h-5" />
                       <span>عرض التفاصيل</span>
                     </div>
