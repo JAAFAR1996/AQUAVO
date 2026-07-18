@@ -16,6 +16,8 @@ import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+import { OrderPackingReveal, type PackItem } from "@/components/checkout/order-packing-reveal";
+import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 
 // Proper interface for order data
 interface OrderItem {
@@ -75,6 +77,21 @@ export default function OrderConfirmation() {
     const orderData = (order as OrderData | undefined) ?? stashed;
     const loading = isLoading;
 
+    // One-time "Pack–Seal–Confirm" reveal on the real successful-order screen.
+    // Purely visual: the order already exists; this never creates/mutates it.
+    // Runs once per order (sessionStorage-guarded so a refresh does not replay),
+    // using the real ordered items + quantities, then reveals the static
+    // confirmation. Skipped for reduced-motion / no items (handled in-component).
+    const [packingDone, setPackingDone] = useState(false);
+    const packItems = useMemo<PackItem[]>(
+        () => (orderData?.items ?? []).map((it) => ({ name: it.productName || "", image: it.image || "", quantity: it.quantity })),
+        [orderData]
+    );
+    const alreadyPacked = useMemo(() => {
+        try { return !!orderId && sessionStorage.getItem(`aqv-packed-${orderId}`) === "1"; } catch { return false; }
+    }, [orderId]);
+    const showReveal = !!orderData && !loading && !packingDone && !alreadyPacked && packItems.length > 0 && !prefersReducedMotion();
+
     // Fire Purchase pixels only from the authoritative authenticated order.
     useEffect(() => {
         const full = order as OrderData | undefined;
@@ -116,6 +133,25 @@ export default function OrderConfirmation() {
                             </div>
                         </CardContent>
                     </Card>
+                </main>
+                <Footer />
+            </div>
+        );
+    }
+
+    if (showReveal) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background">
+                <MetaTags title="تم استلام طلبك" noIndex />
+                <Navbar />
+                <main className="flex flex-1 items-center justify-center px-4 py-12">
+                    <OrderPackingReveal
+                        items={packItems}
+                        onComplete={() => {
+                            try { if (orderId) sessionStorage.setItem(`aqv-packed-${orderId}`, "1"); } catch { /* ignore */ }
+                            setPackingDone(true);
+                        }}
+                    />
                 </main>
                 <Footer />
             </div>

@@ -33,13 +33,6 @@ describe("checkout page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.stubGlobal("fetch", mockFetch);
-    // The success screen shows a one-time packing reveal before the static
-    // confirmation; reduced-motion takes the immediate-confirmation path, which
-    // is what these order-path assertions exercise.
-    vi.stubGlobal(
-      "matchMedia",
-      (q: string) => ({ matches: /reduce/.test(q), media: q, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} }) as unknown as MediaQueryList
-    );
   });
 
   it("shows COD, the fixed delivery fee and the visible total", () => {
