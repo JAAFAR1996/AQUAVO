@@ -129,6 +129,14 @@ jobs:
         run: pnpm install --prefer-offline
         timeout-minutes: 10
 
+      # SSR suites import api/ssr-meta.ts, which imports the build-generated,
+      # gitignored api/_html-template.ts. This job runs in a fresh filesystem
+      # and does not share artifacts with the Build job, so it must generate
+      # the template itself before Vitest loads the SSR test files.
+      - name: 🏗️ Build (generate SSR template)
+        run: pnpm run build
+        timeout-minutes: 10
+
       - name: 🧪 Run unit tests (Vitest)
         run: pnpm run test --run
         env:

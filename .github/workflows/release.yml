@@ -53,6 +53,12 @@ jobs:
       - name: 🔍 Type check
         run: pnpm run check
 
+      # SSR suites import api/ssr-meta.ts, which imports the build-generated,
+      # gitignored api/_html-template.ts. Generate it before Vitest loads the
+      # SSR test files (this job does not share a filesystem with build-release).
+      - name: 🏗️ Build (generate SSR template)
+        run: pnpm run build
+
       - name: 🧪 Run tests
         run: pnpm run test --run
 
