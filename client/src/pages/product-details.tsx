@@ -20,8 +20,7 @@ import { CompareButton } from "@/components/products/product-comparison";
 import { useToast } from "@/hooks/use-toast";
 import { ProductReviews } from "@/components/products/product-reviews";
 import { ProductImageGallery } from "@/components/products/product-image-gallery";
-import { useMotionPrototype } from "@/prototype/motion-prototype";
-import { productTransitionName } from "@/prototype/card-transition";
+import { productTransitionName } from "@/lib/motion/card-transition";
 import { Product3DViewer } from "@/components/products/product-3d-viewer";
 import { ExplodedProductView } from "@/components/products/exploded-product-view";
 import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
@@ -79,10 +78,9 @@ export default function ProductDetails() {
   const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
-  // Preview prototype: unique hero name so a card → PDP shared-image transition
-  // can target this product's main image. Inert in the normal experience.
-  const { motionActive } = useMotionPrototype();
-  const heroTransitionName = motionActive && slug ? productTransitionName(slug) : undefined;
+  // Unique hero name so a card → PDP shared-image transition can target this
+  // product's main image. Inert unless a view transition is actually running.
+  const heroTransitionName = slug ? productTransitionName(slug) : undefined;
 
   const { data: product, isLoading, isError } = useQuery({
     queryKey: ["product", slug],

@@ -1,8 +1,6 @@
 const STATIC_SITE_PATHS = new Set([
   "/",
   "/ar",
-  // PREVIEW-ONLY experimental motion prototype route (never merged to main).
-  "/motion-prototype/checkout-confirmation",
   "/products",
   "/deals",
   "/tank-builder",

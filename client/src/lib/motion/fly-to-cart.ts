@@ -1,7 +1,7 @@
-import { prefersReducedMotion } from "./motion-prototype";
+import { prefersReducedMotion } from "./reduced-motion";
 
 /**
- * Product-to-Cart capture (Preview prototype).
+ * Product-to-Cart capture
  *
  * Clones ONLY the real product image and sends it along a short curved path
  * into the cart icon, then gives the cart one small reaction. There is no

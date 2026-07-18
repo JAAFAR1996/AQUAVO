@@ -2,10 +2,10 @@ import { flushSync } from "react-dom";
 import { queryClient } from "@/lib/queryClient";
 import { fetchProductBySlug } from "@/lib/api";
 import { detailImage } from "@/lib/cloudinary";
-import { prefersReducedMotion } from "./motion-prototype";
+import { prefersReducedMotion } from "./reduced-motion";
 
 /**
- * Card-to-Product continuity (Preview prototype).
+ * Card-to-Product continuity
  *
  * Follows the official same-document View Transitions guidance:
  * - Each product gets a UNIQUE view-transition-name (per slug). MDN: "if two

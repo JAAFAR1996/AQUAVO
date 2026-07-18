@@ -21,6 +21,7 @@ import { CustomerInfoForm } from "@/components/cart/checkout/customer-info-form"
 import { CouponSection } from "@/components/cart/checkout/coupon-section";
 import { OrderSummary } from "@/components/cart/checkout/order-summary";
 import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
+import { OrderPackingReveal, type PackItem } from "@/components/checkout/order-packing-reveal";
 import { CheckoutLoyaltySection } from "@/components/cart/checkout/loyalty-section";
 
 export default function CheckoutPage() {
@@ -39,6 +40,11 @@ export default function CheckoutPage() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderResult, setOrderResult] = useState<{ orderId: string; orderNumber: string } | null>(null);
+  // Ordered line items captured at success time (before the cart is cleared),
+  // used only for the visual Pack–Seal–Confirm reveal. `packingDone` gates the
+  // one-time reveal so the static confirmation shows afterward.
+  const [orderedItems, setOrderedItems] = useState<PackItem[]>([]);
+  const [packingDone, setPackingDone] = useState(false);
 
   const [loyaltyData, setLoyaltyData] = useState({
     usePoints: false,
@@ -258,6 +264,12 @@ export default function CheckoutPage() {
         orderId: orderData.id,
         orderNumber: orderData.orderNumber ?? orderData.id,
       });
+      // Snapshot the ordered items (real image + quantity) for the packing
+      // reveal, captured BEFORE clearCart() empties the cart.
+      setOrderedItems(
+        cartItems.map((item) => ({ name: item.name, image: item.image, quantity: item.quantity }))
+      );
+      setPackingDone(false);
       // step "success" first so the empty-cart redirect effect doesn't bounce us
       // home once clearCart() empties the cart.
       setStep("success");
@@ -390,6 +402,19 @@ export default function CheckoutPage() {
 
   // Success page
   if (step === "success" && orderResult) {
+    // Show the one-time packing reveal first (order already created); it always
+    // resolves to the static confirmation below (immediately for reduced motion,
+    // no items, or any failure). It never submits or mutates the order.
+    if (!packingDone && orderedItems.length > 0) {
+      return (
+        <div className="min-h-screen bg-background flex flex-col" dir="rtl">
+          <MetaTags title="تم الطلب بنجاح" noIndex />
+          <div className="flex-1 flex items-center justify-center p-6">
+            <OrderPackingReveal items={orderedItems} onComplete={() => setPackingDone(true)} />
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-background flex flex-col" dir="rtl">
         <MetaTags title="تم الطلب بنجاح" noIndex />

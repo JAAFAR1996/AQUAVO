@@ -13,14 +13,13 @@ import { useToast } from "@/hooks/use-toast";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { trackSelectItem } from "@/lib/analytics";
-import { useMotionPrototype } from "@/prototype/motion-prototype";
-import { flyProductToCart } from "@/prototype/fly-to-cart";
+import { flyProductToCart } from "@/lib/motion/fly-to-cart";
 import {
   navigateCardToProduct,
   prefetchProductDestination,
   supportsViewTransitions,
-} from "@/prototype/card-transition";
-import { prefersReducedMotion } from "@/prototype/motion-prototype";
+} from "@/lib/motion/card-transition";
+import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 import type { Product } from "@/types";
 
 interface ProductCardProps {
@@ -40,14 +39,15 @@ export const ProductCard = memo(function ProductCard({
   const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const { motionActive } = useMotionPrototype();
+  // Motion is the normal experience; only reduced-motion users opt out.
+  const motionActive = !prefersReducedMotion();
   const imgRef = useRef<HTMLImageElement>(null);
   const navLockRef = useRef(false);
 
-  // Preview prototype: warm the PDP data + hero image before the click so the
-  // first (cold) click can run the shared-image transition reliably.
+  // Warm the PDP data + hero image before the click so the first (cold) click
+  // can run the shared-image transition reliably.
   const prefetchDestination = () => {
-    if (motionActive) prefetchProductDestination(product.slug, product.thumbnail || product.image);
+    prefetchProductDestination(product.slug, product.thumbnail || product.image);
   };
 
   const variantPrices = product.hasVariants && product.variants?.length
@@ -69,7 +69,7 @@ export const ProductCard = memo(function ProductCard({
     const added = await addItem(product);
     if (!added) return;
 
-    // Preview prototype: fly a clone of the product image into the cart icon.
+    // Fly a clone of the product image into the cart icon (reduced-motion safe).
     // Does not open the cart or change cart logic.
     if (motionActive) flyProductToCart(imgRef.current);
 
@@ -79,7 +79,7 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  // Preview prototype: Card-to-Product continuity via native View Transitions,
+  // Card-to-Product continuity via native View Transitions,
   // reliable on the first (cold) click. Immediate navigation fallback when the
   // API is unsupported, motion is off, or the user prefers reduced motion.
   const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {

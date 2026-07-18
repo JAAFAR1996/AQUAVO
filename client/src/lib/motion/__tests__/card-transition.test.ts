@@ -1,5 +1,5 @@
 /**
- * PREVIEW-ONLY Card-to-Product transition: first-click reliability tests.
+ * Production Card-to-Product transition: first-click reliability tests.
  * Proves: one click → exactly one navigation (no second click), duplicate calls
  * are safe, unsupported browsers navigate immediately, a failed/throwing
  * transition still reaches the PDP, and the temporary transition name is cleaned.
