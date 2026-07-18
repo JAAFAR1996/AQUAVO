@@ -321,7 +321,7 @@ export function CategoryScrollBar({
                     <button
                         onClick={clearAll}
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0",
+                            "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                             allSelected
                                 ? "bg-primary text-white border-primary shadow-md"
                                 : "bg-muted/40 border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
@@ -341,7 +341,7 @@ export function CategoryScrollBar({
                                 key={key}
                                 onClick={() => toggleGroup(rawCategories)}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0",
+                                    "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                                     isSelected
                                         ? "bg-primary text-white border-primary shadow-md"
                                         : "bg-muted/40 border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"

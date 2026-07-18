@@ -150,4 +150,11 @@ describe('Products Page', () => {
         expect(screen.getByRole('button', { name: 'حاول مرة ثانية' })).toBeInTheDocument();
         expect(screen.queryByRole('heading', { name: 'لم يتم العثور على منتجات' })).not.toBeInTheDocument();
     });
+
+    it('gives the sort SelectTrigger a 44px touch target (h-11) instead of the old h-10 (40px)', async () => {
+        render(<Products />, { wrapper: createWrapper() });
+        const sortTrigger = await screen.findByLabelText('ترتيب المنتجات');
+        expect(sortTrigger.className).toContain('h-11');
+        expect(sortTrigger.className).not.toMatch(/\bh-10\b/);
+    });
 });

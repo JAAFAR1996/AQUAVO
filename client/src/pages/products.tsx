@@ -407,7 +407,7 @@ export default function Products() {
             <div className="flex items-center gap-1 sm:gap-2">
               <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                <SelectTrigger aria-label="ترتيب المنتجات" className="h-10 w-[140px] text-xs sm:w-[170px] sm:text-sm">
+                <SelectTrigger aria-label="ترتيب المنتجات" className="h-11 w-[140px] text-xs sm:w-[170px] sm:text-sm">
                   <SelectValue placeholder="ترتيب حسب" />
                 </SelectTrigger>
                 <SelectContent>

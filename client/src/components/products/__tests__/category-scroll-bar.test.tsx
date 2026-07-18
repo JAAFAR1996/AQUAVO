@@ -341,3 +341,75 @@ describe('CategoryScrollBar RTL scroll-arrow visibility (checkScrollPosition)', 
         expect(screen.getByRole('button', { name: 'التمرير لعرض الفئات السابقة' })).toBeInTheDocument();
     });
 });
+
+/**
+ * Desktop touch-target height regression tests.
+ *
+ * A browser-verified audit found two desktop/tablet controls resolving
+ * below the 44px WCAG 2.5.5 / mobile-HIG touch-target minimum:
+ *   - the desktop category-strip pills (clearAll "الكل" + each per-category
+ *     toggleGroup button), which had no min-height and measured ~37.64px
+ *     from `px-4 py-2 text-sm` alone.
+ * The fix adds `min-h-11` (44px) to each complete desktop pill button,
+ * leaving the mobile chip strip (already 53px), content-aware width,
+ * containment, badge contrast, and selection/toggle behavior untouched.
+ */
+describe('CategoryScrollBar desktop pills — touch target height (>=44px)', () => {
+    it('gives the desktop clearAll ("الكل") button min-h-11', () => {
+        render(<CategoryScrollBar {...baseProps()} />);
+        const allButtons = screen.getAllByRole('button', { name: 'الكل' });
+        // Mobile chip renders first in DOM order, desktop pill second.
+        expect(allButtons.length).toBeGreaterThanOrEqual(2);
+        const desktopAllButton = allButtons[allButtons.length - 1];
+        expect(desktopAllButton.className).toContain('min-h-11');
+    });
+
+    it('gives every desktop per-category pill button min-h-11', () => {
+        render(<CategoryScrollBar {...baseProps()} />);
+        const filterButtons = screen.getAllByRole('button', { name: /فلاتر/ });
+        expect(filterButtons.length).toBeGreaterThanOrEqual(2);
+        expect(filterButtons[filterButtons.length - 1].className).toContain('min-h-11');
+
+        const heaterButtons = screen.getAllByRole('button', { name: /سخانات/ });
+        expect(heaterButtons.length).toBeGreaterThanOrEqual(2);
+        expect(heaterButtons[heaterButtons.length - 1].className).toContain('min-h-11');
+    });
+
+    it('does not add min-h-11 to the mobile chip buttons (mobile strip unchanged)', () => {
+        render(<CategoryScrollBar {...baseProps()} />);
+        const filterButtons = screen.getAllByRole('button', { name: /فلاتر/ });
+        const mobileFilterButton = filterButtons[0];
+        expect(mobileFilterButton.className).not.toContain('min-h-11');
+    });
+
+    it('preserves content-aware width and containment (whitespace-nowrap, flex-shrink-0) on desktop pills', () => {
+        render(<CategoryScrollBar {...baseProps()} />);
+        const filterButtons = screen.getAllByRole('button', { name: /فلاتر/ });
+        const desktopFilterButton = filterButtons[filterButtons.length - 1];
+        expect(desktopFilterButton.className).toContain('whitespace-nowrap');
+        expect(desktopFilterButton.className).toContain('flex-shrink-0');
+        expect(desktopFilterButton.className).not.toMatch(/\bw-\[\d/);
+    });
+
+    it('still fires onCategoryToggle for the desktop per-category pill click (toggleGroup unchanged)', async () => {
+        const user = userEvent.setup();
+        const onCategoryToggle = vi.fn();
+        render(<CategoryScrollBar {...baseProps({ onCategoryToggle })} />);
+        const filterButtons = screen.getAllByRole('button', { name: /فلاتر/ });
+        await user.click(filterButtons[filterButtons.length - 1]);
+        expect(onCategoryToggle).toHaveBeenCalledWith('فلاتر');
+    });
+
+    it('still fires onCategoryToggle for the desktop clearAll click (clearAll unchanged)', async () => {
+        const user = userEvent.setup();
+        const onCategoryToggle = vi.fn();
+        render(
+            <CategoryScrollBar
+                {...baseProps({ selectedCategories: ['فلاتر'], onCategoryToggle })}
+            />
+        );
+        const allButtons = screen.getAllByRole('button', { name: 'الكل' });
+        await user.click(allButtons[allButtons.length - 1]);
+        expect(onCategoryToggle).toHaveBeenCalledWith('فلاتر');
+    });
+});
