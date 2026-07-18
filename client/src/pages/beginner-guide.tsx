@@ -295,7 +295,7 @@ function Scene({
           background: `rgba(${s.rgb},0.25)`, border: `1px solid rgba(${s.rgb},0.5)`,
           color: `rgb(${s.rgb})`, boxShadow: `0 0 20px rgba(${s.rgb},0.28)`,
         }}>{s.step}</div>
-        <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+        <span className="text-foreground dark:text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
         <div className="flex-1 h-px" style={{ background: `linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
       </motion.div>
 
@@ -328,7 +328,7 @@ function Scene({
       {/* Scroll cue */}
       {idx < 2 && (
         <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-          transition={{ delay: 0.9 }} className="flex flex-col items-center gap-0.5 mt-8 mb-2 text-white/15">
+          transition={{ delay: 0.9 }} className="flex flex-col items-center gap-0.5 mt-8 mb-2 text-foreground dark:text-white/15">
           {[0,1].map(i => (
             <motion.div key={i} animate={{ y:[0,5,0], opacity:[0.35,0.9,0.35] }}
               transition={{ duration:1.6, repeat:Infinity, delay:i*0.22, ease:"easeInOut" }}>
@@ -422,7 +422,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
             style={{ background:`rgba(${s.rgb},0.25)`, border:`1px solid rgba(${s.rgb},0.5)`, color:`rgb(${s.rgb})`, boxShadow:`0 0 20px rgba(${s.rgb},0.28)` }}>
             04
           </div>
-          <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+          <span className="text-foreground dark:text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
           <div className="flex-1 h-px" style={{ background:`linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
         </div>
 
@@ -521,7 +521,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                 {/* Up arrows hint */}
                 <motion.div animate={{ y:[0,-5,0], opacity:[0.25,0.75,0.25] }}
                   transition={{ duration:1.4, repeat:Infinity }}
-                  className="flex flex-col items-center gap-1 text-white/25">
+                  className="flex flex-col items-center gap-1 text-foreground dark:text-white/25">
                   {[0,1].map(i => (
                     <ChevronDown key={i} size={13} style={{ transform:"rotate(180deg)", marginTop:i?-8:0, opacity:i?0.5:1 }} />
                   ))}
@@ -544,7 +544,7 @@ function BacteriaZone({ onComplete }: { onComplete: () => void }) {
                     <h3 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-cyan-300">
                       الماي صار حي! 🌊
                     </h3>
-                    <p className="text-sm text-gray-300 mt-2 font-medium leading-relaxed">النظام البيولوجي يعمل الآن</p>
+                    <p className="text-sm text-muted-foreground dark:text-gray-300 mt-2 font-medium leading-relaxed">النظام البيولوجي يعمل الآن</p>
                     <motion.p initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:0.9 }}
                       className="text-xs mt-1.5 font-medium" style={{ color:`rgba(${SCENES[4].rgb},0.8)` }}>
                       يتم فتح الخطوة الأخيرة…
@@ -582,7 +582,7 @@ function FinalScene() {
           style={{ background:`rgba(${s.rgb},0.25)`, border:`1px solid rgba(${s.rgb},0.5)`, color:`rgb(${s.rgb})`, boxShadow:`0 0 20px rgba(${s.rgb},0.28)` }}>
           05
         </div>
-        <span className="text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
+        <span className="text-foreground dark:text-white/45 text-xs font-semibold tracking-[0.22em] uppercase">{s.label}</span>
         <div className="flex-1 h-px" style={{ background:`linear-gradient(to left, transparent, rgba(${s.rgb},0.3))` }} />
       </motion.div>
 
@@ -610,7 +610,7 @@ function FinalScene() {
               }}>
               مبروك! حوضك جاهز 🎉
             </motion.div>
-            <p className="text-sm text-gray-400 font-medium">حوضك الآن يعيش — تسوق الباقي من AQUAVO</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400 font-medium">حوضك الآن يعيش — تسوق الباقي من AQUAVO</p>
           </Glass>
         </motion.div>
 
@@ -618,7 +618,7 @@ function FinalScene() {
         <motion.div {...fadeUp(3)}>
           <Link href="/">
             <button onClick={() => { vib(20); playBubble(); }}
-              className="w-full font-black py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+              className="w-full font-black py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
               style={{
                 background:`linear-gradient(135deg, rgba(${SCENES[3].rgb},0.9), rgba(${s.rgb},0.7))`,
                 boxShadow:`0 0 50px rgba(${SCENES[3].rgb},0.35), inset 0 1px 0 rgba(255,255,255,0.2)`,
@@ -633,7 +633,7 @@ function FinalScene() {
         {/* WhatsApp */}
         <motion.div {...fadeUp(4)}>
           <button onClick={() => { vib(20); playBubble(); window.open(WHATSAPP_URL,"_blank"); }}
-            className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+            className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
             style={{
               background:"rgba(255,255,255,0.05)", backdropFilter:"blur(20px)",
               border:"1px solid rgba(255,255,255,0.12)",
@@ -645,7 +645,7 @@ function FinalScene() {
         </motion.div>
 
         <motion.p {...fadeUp(5)}
-          className="text-center text-white/12 text-xs pt-3 font-medium tracking-widest uppercase">
+          className="text-center text-foreground dark:text-white/12 text-xs pt-3 font-medium tracking-widest uppercase">
           AQUAVO — أول تجربة حوض بالذكاء الاصطناعي في العراق
         </motion.p>
       </div>
@@ -689,7 +689,7 @@ function Hero() {
           <span className="text-cyan-300/35 text-xs">· AQUAVO 2026</span>
         </motion.div>
 
-        <h1 className="text-4xl font-black text-white mb-3 leading-[1.1] tracking-tight">
+        <h1 className="text-4xl font-black text-foreground dark:text-white mb-3 leading-[1.1] tracking-tight">
           من{" "}
           <span className="relative inline-block">
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-cyan-400">الصفر</span>
@@ -701,13 +701,13 @@ function Hero() {
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7FFF00] to-cyan-300">يحيا</span>
         </h1>
 
-        <p className="text-gray-400 text-sm font-medium max-w-[255px] mx-auto leading-relaxed">
+        <p className="text-muted-foreground dark:text-gray-400 text-sm font-medium max-w-[255px] mx-auto leading-relaxed">
           5 خطوات تفاعلية — نزّل للأسفل واتبع الرحلة
         </p>
       </motion.div>
 
       <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:1.5 }}
-        className="mt-12 flex flex-col items-center gap-1.5 text-white/20 relative z-10">
+        className="mt-12 flex flex-col items-center gap-1.5 text-foreground dark:text-white/20 relative z-10">
         <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل للبدء</span>
         <motion.div animate={{ y:[0,8,0] }} transition={{ duration:1.9, repeat:Infinity, ease:"easeInOut" }}>
           <ChevronDown size={20} />
@@ -742,7 +742,7 @@ export default function BeginnerGuide() {
         url="https://www.aquavoiq.com/beginner-guide"
         canonicalUrl="https://www.aquavoiq.com/beginner-guide"
       />
-    <div className="relative bg-[#0B1E28] text-white min-h-screen w-full" dir="rtl">
+    <div className="relative bg-card dark:bg-[#0B1E28] text-foreground dark:text-white min-h-screen w-full" dir="rtl">
       {/* Layers */}
       <AmbientBg idx={activeIdx} />
       <FloatingBubbles />

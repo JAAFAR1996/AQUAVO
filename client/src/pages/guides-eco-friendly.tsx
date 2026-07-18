@@ -21,7 +21,7 @@ export default function EcoFriendlyGuide() {
 
       <main id="main-content" className="flex-1">
         {/* Hero Section */}
-        <section className="relative py-24 bg-gradient-to-br from-teal-900 via-slate-900 to-black overflow-hidden text-white">
+        <section className="relative py-24 bg-gradient-to-br from-teal-900 via-slate-900 to-black overflow-hidden text-foreground dark:text-white">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1533240217992-0b7012301f29?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-20" />
           <div className="container mx-auto px-4 relative z-10 text-center">
             <motion.div
@@ -36,7 +36,7 @@ export default function EcoFriendlyGuide() {
               <h1 className="text-4xl md:text-7xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-teal-200 to-white">
                 فن العناية بالحوض
               </h1>
-              <p className="text-xl text-slate-300 max-w-2xl mx-auto leading-relaxed">
+              <p className="text-xl text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto leading-relaxed">
                 دليلك المتكامل لتحويل حوضك من مجرد زجاج وماء إلى نظام بيئي مزدهر ومستدام.
                 نغطي الأساسيات، الصيانة، وحل المشاكل.
               </p>
@@ -281,7 +281,7 @@ export default function EcoFriendlyGuide() {
                     نحن نوفر قسماً خاصاً للمنتجات المستدامة والصديقة للبيئة.
                   </p>
                   <Link href="/products?eco=true">
-                    <Button className="bg-green-600 hover:bg-green-700 text-white w-full">تصفح المنتجات الخضراء</Button>
+                    <Button className="bg-green-600 hover:bg-green-700 text-foreground dark:text-white w-full">تصفح المنتجات الخضراء</Button>
                   </Link>
                 </div>
               </div>
@@ -290,15 +290,15 @@ export default function EcoFriendlyGuide() {
         </section>
 
         {/* Final CTA */}
-        <section className="py-20 bg-slate-900 text-white text-center">
+        <section className="py-20 bg-background dark:bg-slate-900 text-foreground dark:text-white text-center">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold mb-6">تحتاج مساعدة إضافية؟</h2>
-            <p className="text-slate-300 max-w-2xl mx-auto mb-8">
+            <p className="text-muted-foreground dark:text-slate-300 max-w-2xl mx-auto mb-8">
               فريقنا من الخبراء جاهز للإجابة على جميع استفساراتك حول العناية بالحوض.
             </p>
             <div className="flex justify-center gap-4">
               <Link href="/faq">
-                <Button variant="outline" className="border-slate-700 hover:bg-slate-800">الأسئلة الشائعة</Button>
+                <Button variant="outline" className="border-border dark:border-slate-700 hover:bg-slate-800">الأسئلة الشائعة</Button>
               </Link>
               <Link href="/faq">
                 <Button className="bg-teal-600 hover:bg-teal-700">تواصل معنا</Button>

@@ -117,7 +117,7 @@ export function BirthdayCelebration() {
           </div>
 
           <motion.div
-            className="relative w-full max-w-md rounded-3xl border border-primary/30 bg-[#0B1E28] p-8 text-center shadow-2xl shadow-primary/20"
+            className="relative w-full max-w-md rounded-3xl border border-primary/30 bg-card dark:bg-[#0B1E28] p-8 text-center shadow-2xl shadow-primary/20"
             dir="rtl"
             role="dialog"
             aria-modal="true"
@@ -130,7 +130,7 @@ export function BirthdayCelebration() {
           >
             <button
               onClick={() => setOpen(false)}
-              className="absolute top-4 left-4 text-white/40 hover:text-white/80 transition-colors press"
+              className="absolute top-4 left-4 text-foreground dark:text-white/40 hover:text-white/80 transition-colors press"
               aria-label="إغلاق"
             >
               <X className="w-5 h-5" />
@@ -142,13 +142,13 @@ export function BirthdayCelebration() {
               transition={{ ...springSnappy, delay: 0.15 }}
               className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent shadow-lg"
             >
-              <Cake className="h-10 w-10 text-white" />
+              <Cake className="h-10 w-10 text-foreground dark:text-white" />
             </motion.div>
 
-            <h2 className="mb-2 text-3xl font-extrabold text-white">
+            <h2 className="mb-2 text-3xl font-extrabold text-foreground dark:text-white">
               عيد ميلاد سعيد{firstName ? ` يا ${firstName}` : ""}! 🎉
             </h2>
-            <p className="mb-6 text-white/60 leading-relaxed">
+            <p className="mb-6 text-foreground dark:text-white/60 leading-relaxed">
               من كل قلبنا بـ AQUAVO — هديتنا إلك خصم{" "}
               <span className="font-bold text-primary">{discount}%</span> على طلبك،
               صالح لمدة أسبوعين.
@@ -159,7 +159,7 @@ export function BirthdayCelebration() {
                 onClick={copyCode}
                 className="press group mb-5 flex w-full items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-primary/50 bg-primary/10 px-5 py-4"
               >
-                <span className="font-mono text-xl font-bold tracking-wider text-white">{code}</span>
+                <span className="font-mono text-xl font-bold tracking-wider text-foreground dark:text-white">{code}</span>
                 <span className="flex items-center gap-1.5 text-sm font-bold text-primary">
                   {copied ? (
                     <>

@@ -159,3 +159,5 @@ env.prod
 .env.production
 .env.vercel
 .env.vercel.production
+playwright-report/
+reports/screenshots/

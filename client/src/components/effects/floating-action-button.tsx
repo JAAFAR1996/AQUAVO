@@ -16,20 +16,18 @@ export function FloatingActionButton() {
   }, []);
 
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Instant jump — no smooth-scroll animation.
+    window.scrollTo({ top: 0, behavior: "auto" });
   };
+
+  if (!showScrollTop) return null;
 
   return (
     <div className="fixed bottom-8 left-8 flex flex-col gap-3 z-40" dir="ltr">
-      {/* Scroll to Top Button */}
+      {/* Scroll to Top Button (appears instantly, no motion) */}
       <Button
         size="icon"
-        className={cn(
-          "h-12 w-12 rounded-full shadow-lg transition-all duration-300",
-          showScrollTop
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-4 pointer-events-none"
-        )}
+        className={cn("h-12 w-12 rounded-full shadow-lg")}
         onClick={scrollToTop}
         aria-label="Scroll to top"
       >

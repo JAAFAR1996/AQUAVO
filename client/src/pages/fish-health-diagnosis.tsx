@@ -606,7 +606,7 @@ export default function FishHealthDiagnosis() {
                     />
                     {diagnosis?.imageQuality && (
                       <div className="absolute top-3 left-3">
-                        <Badge className={`${diagnosis.imageQuality.score >= 7 ? 'bg-green-500' : diagnosis.imageQuality.score >= 4 ? 'bg-yellow-500' : 'bg-red-500'} text-white shadow-lg`}>
+                        <Badge className={`${diagnosis.imageQuality.score >= 7 ? 'bg-green-500' : diagnosis.imageQuality.score >= 4 ? 'bg-yellow-500' : 'bg-red-500'} text-foreground dark:text-white shadow-lg`}>
                           جودة الصورة: {diagnosis.imageQuality.score}/10
                         </Badge>
                       </div>
@@ -738,7 +738,7 @@ export default function FishHealthDiagnosis() {
                             key={step.id}
                             className={`flex items-center gap-3 text-sm transition-all duration-500 ${isActive ? 'text-primary font-semibold scale-105' : isComplete ? 'text-green-600' : 'text-muted-foreground opacity-50'}`}
                           >
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${isComplete ? 'bg-green-500 text-white' : isActive ? 'bg-primary text-white animate-pulse' : 'bg-muted'}`}>
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${isComplete ? 'bg-green-500 text-foreground dark:text-white' : isActive ? 'bg-primary text-foreground dark:text-white animate-pulse' : 'bg-muted'}`}>
                               {isComplete ? <CheckCircle className="h-4 w-4" /> : <StepIcon className="h-4 w-4" />}
                             </div>
                             <span>{step.label}</span>
@@ -762,7 +762,7 @@ export default function FishHealthDiagnosis() {
                     <Button
                       onClick={analyzeFish}
                       disabled={isAnalyzing}
-                      className="gap-2 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg"
+                      className="gap-2 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-foreground dark:text-white shadow-lg"
                     >
                       {isAnalyzing ? (
                         <>
@@ -826,23 +826,23 @@ export default function FishHealthDiagnosis() {
 
                     {/* ── Species Identification ── */}
                     {diagnosis.speciesIdentification && (
-                      <div className="p-5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl border border-slate-600/30 shadow-xl backdrop-blur-sm">
-                        <div className="flex items-center justify-between mb-4 border-b border-slate-600/30 pb-3">
+                      <div className="p-5 bg-gradient-to-br from-slate-800/80 to-slate-900/80 rounded-2xl border border-border dark:border-slate-600/30 shadow-xl backdrop-blur-sm">
+                        <div className="flex items-center justify-between mb-4 border-b border-border dark:border-slate-600/30 pb-3">
                           <div className="flex items-center gap-2">
                             <Fish className="h-5 w-5 text-cyan-400" />
-                            <span className="font-bold text-base text-slate-200">نوع السمكة</span>
+                            <span className="font-bold text-base text-foreground dark:text-slate-200">نوع السمكة</span>
                           </div>
                           <Badge variant="outline" className="text-sm font-bold bg-cyan-500/10 text-cyan-300 border-cyan-500/30 px-3 py-1">
                             ثقة {Math.round(diagnosis.speciesIdentification.confidence * 100)}%
                           </Badge>
                         </div>
                         <div className="text-center space-y-2 mb-4">
-                          <p className="font-black text-2xl text-white tracking-wide">{diagnosis.speciesIdentification.commonName}</p>
-                          <p className="text-sm text-slate-400 italic font-mono">{diagnosis.speciesIdentification.scientificName}</p>
+                          <p className="font-black text-2xl text-foreground dark:text-white tracking-wide">{diagnosis.speciesIdentification.commonName}</p>
+                          <p className="text-sm text-muted-foreground dark:text-slate-400 italic font-mono">{diagnosis.speciesIdentification.scientificName}</p>
                         </div>
                         <div className="flex gap-2 mt-3 flex-wrap justify-center">
-                          <Badge className="text-sm bg-slate-700/60 text-slate-200 border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.family}</Badge>
-                          <Badge className="text-sm bg-slate-700/60 text-slate-200 border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.waterType}</Badge>
+                          <Badge className="text-sm bg-muted dark:bg-slate-700/60 text-foreground dark:text-slate-200 border-border dark:border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.family}</Badge>
+                          <Badge className="text-sm bg-muted dark:bg-slate-700/60 text-foreground dark:text-slate-200 border-border dark:border-slate-600/40 px-3 py-1">{diagnosis.speciesIdentification.waterType}</Badge>
                         </div>
                         {diagnosis.speciesIdentification.knownVulnerabilities?.length > 0 && (
                           <p className="text-sm text-amber-400/90 mt-3 text-center">
@@ -856,33 +856,33 @@ export default function FishHealthDiagnosis() {
                     <div className="text-center space-y-4 mt-8 mb-4">
                       <div className="inline-flex flex-col items-center justify-center gap-3">
                         <h3 className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-100 to-slate-300 leading-relaxed pb-1">{diagnosis.arabicName}</h3>
-                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-white text-base px-5 py-2 shadow-lg font-bold tracking-wide ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
+                        <Badge className={`${urgencyConfig[diagnosis.urgency].color} text-foreground dark:text-white text-base px-5 py-2 shadow-lg font-bold tracking-wide ${diagnosis.urgency === 'critical' ? 'animate-pulse' : ''}`}>
                           {urgencyConfig[diagnosis.urgency].text}
                         </Badge>
                       </div>
                       <div className="flex items-center justify-center gap-3 flex-wrap">
-                        <p className="text-base border border-slate-600/40 px-4 py-1.5 rounded-full text-slate-300 bg-slate-800/50 shadow-sm font-medium">{diagnosis.disease}</p>
+                        <p className="text-base border border-border dark:border-slate-600/40 px-4 py-1.5 rounded-full text-muted-foreground dark:text-slate-300 bg-card dark:bg-slate-800/50 shadow-sm font-medium">{diagnosis.disease}</p>
                         {diagnosis.category && categoryLabels[diagnosis.category] && (
                           <Badge variant="secondary" className="text-sm px-3 py-1">
                             {categoryLabels[diagnosis.category].label}
                           </Badge>
                         )}
                         {diagnosis.pathogen && (
-                          <Badge variant="outline" className="text-sm font-mono bg-slate-800/50 px-3 py-1">
+                          <Badge variant="outline" className="text-sm font-mono bg-card dark:bg-slate-800/50 px-3 py-1">
                             {diagnosis.pathogen}
                           </Badge>
                         )}
                       </div>
                       {/* Confidence bar */}
                       <div className="flex items-center gap-3 mt-4 max-w-md mx-auto">
-                        <span className="text-base text-slate-400 shrink-0 font-medium">الدقة:</span>
-                        <div className="flex-1 bg-slate-700/50 rounded-full h-3.5 overflow-hidden">
+                        <span className="text-base text-muted-foreground dark:text-slate-400 shrink-0 font-medium">الدقة:</span>
+                        <div className="flex-1 bg-muted dark:bg-slate-700/50 rounded-full h-3.5 overflow-hidden">
                           <div
                             className={`h-full rounded-full bg-gradient-to-r ${urgencyConfig[diagnosis.urgency].gradient} transition-all duration-1000`}
                             style={{ width: `${diagnosis.confidence}%` }}
                           />
                         </div>
-                        <span className="text-lg font-black shrink-0 text-white">{diagnosis.confidence}%</span>
+                        <span className="text-lg font-black shrink-0 text-foreground dark:text-white">{diagnosis.confidence}%</span>
                       </div>
                     </div>
 
@@ -890,12 +890,12 @@ export default function FishHealthDiagnosis() {
                     {diagnosis.diagnosis && (
                       <>
                         <Separator className="opacity-30" />
-                        <div className={`p-5 rounded-2xl shadow-lg bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-slate-600/30`}>
-                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                        <div className={`p-5 rounded-2xl shadow-lg bg-gradient-to-br from-slate-800/60 to-slate-900/60 border border-border dark:border-slate-600/30`}>
+                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                             <Target className="h-5 w-5 text-cyan-400" />
                             تفسير التشخيص:
                           </h4>
-                          <p className="text-base leading-9 text-slate-200 font-medium text-justify">{diagnosis.diagnosis}</p>
+                          <p className="text-base leading-9 text-foreground dark:text-slate-200 font-medium text-justify">{diagnosis.diagnosis}</p>
                         </div>
                       </>
                     )}
@@ -904,7 +904,7 @@ export default function FishHealthDiagnosis() {
 
                     {/* ── Symptoms ── */}
                     <div>
-                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                         <Activity className="h-5 w-5 text-red-400" />
                         الأعراض المكتشفة:
                       </h4>
@@ -912,7 +912,7 @@ export default function FishHealthDiagnosis() {
                         {diagnosis.symptoms.map((symptom, i) => (
                           <li key={i} className="flex items-start gap-3 text-base">
                             <span className="text-red-400 mt-0.5 shrink-0 text-lg">•</span>
-                            <span className="text-slate-200 leading-relaxed">{symptom}</span>
+                            <span className="text-foreground dark:text-slate-200 leading-relaxed">{symptom}</span>
                           </li>
                         ))}
                       </ul>
@@ -963,7 +963,7 @@ export default function FishHealthDiagnosis() {
 
                     {/* ── Treatment ── */}
                     <div>
-                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                      <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                         <Pill className="h-5 w-5 text-emerald-400" />
                         العلاج:
                       </h4>
@@ -971,7 +971,7 @@ export default function FishHealthDiagnosis() {
                         {diagnosis.treatment.map((step, i) => (
                           <li key={i} className="flex items-start gap-3 text-base">
                             <Badge className="shrink-0 w-7 h-7 flex items-center justify-center p-0 text-sm bg-emerald-500/20 text-emerald-300 border-emerald-500/30 font-bold">{i + 1}</Badge>
-                            <span className="text-slate-200 leading-relaxed">{step}</span>
+                            <span className="text-foreground dark:text-slate-200 leading-relaxed">{step}</span>
                           </li>
                         ))}
                       </ol>
@@ -1182,7 +1182,7 @@ export default function FishHealthDiagnosis() {
                               {diagnosis.prognosis.followUpDate && (
                                 <div className="p-4 bg-cyan-500/10 rounded-xl border border-cyan-500/20 mt-2">
                                   <p className="text-base font-bold text-cyan-300">
-                                    📅 موعد إعادة التقييم: <span className="text-white">{diagnosis.prognosis.followUpDate}</span>
+                                    📅 موعد إعادة التقييم: <span className="text-foreground dark:text-white">{diagnosis.prognosis.followUpDate}</span>
                                   </p>
                                   {diagnosis.followUpReminder && (
                                     <p className="text-sm text-cyan-200/80 mt-2 leading-relaxed">{diagnosis.followUpReminder}</p>
@@ -1200,7 +1200,7 @@ export default function FishHealthDiagnosis() {
                       <>
                         <Separator className="opacity-30" />
                         <div>
-                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-white">
+                          <h4 className="font-black mb-4 flex items-center gap-2 text-lg text-foreground dark:text-white">
                             <Shield className="h-5 w-5 text-teal-400" />
                             الوقاية:
                           </h4>
@@ -1208,7 +1208,7 @@ export default function FishHealthDiagnosis() {
                             {diagnosis.prevention.map((tip, i) => (
                               <li key={i} className="flex items-start gap-3 text-base">
                                 <CheckCircle className="h-5 w-5 text-teal-400 mt-0.5 shrink-0" />
-                                <span className="text-slate-200 leading-relaxed">{tip}</span>
+                                <span className="text-foreground dark:text-slate-200 leading-relaxed">{tip}</span>
                               </li>
                             ))}
                           </ul>
@@ -1221,10 +1221,10 @@ export default function FishHealthDiagnosis() {
                       <>
                         <Separator className="opacity-30" />
                         <div className="p-5 bg-gradient-to-br from-cyan-500/10 to-purple-500/10 rounded-2xl border border-cyan-500/20 shadow-lg">
-                          <h4 className="font-black mb-3 flex items-center gap-2 text-lg text-white">
+                          <h4 className="font-black mb-3 flex items-center gap-2 text-lg text-foreground dark:text-white">
                             📊 هل التشخيص صحيح؟
                           </h4>
-                          <p className="text-sm text-slate-300 mb-4">
+                          <p className="text-sm text-muted-foreground dark:text-slate-300 mb-4">
                             ملاحظاتك تساعد Dr. AQUAVO يصير أذكى مع كل حالة
                           </p>
                           <div className="flex gap-2 mb-4">
@@ -1241,7 +1241,7 @@ export default function FishHealthDiagnosis() {
                                   setFeedbackSent(true);
                                 } catch { /* ignore */ }
                               }}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-foreground dark:text-white gap-1.5 text-sm"
                             >
                               <CheckCircle className="h-4 w-4" /> ✅ صحيح
                             </Button>
@@ -1257,36 +1257,36 @@ export default function FishHealthDiagnosis() {
 
                           {/* ── Correction Form (slides open) ── */}
                           {expandedSections.correction && (
-                            <div className="space-y-4 p-4 bg-slate-800/40 rounded-xl border border-slate-600/30 mt-2">
-                              <h5 className="text-base font-bold text-white flex items-center gap-2">
+                            <div className="space-y-4 p-4 bg-card dark:bg-slate-800/40 rounded-xl border border-border dark:border-slate-600/30 mt-2">
+                              <h5 className="text-base font-bold text-foreground dark:text-white flex items-center gap-2">
                                 ✏️ ساعدنا نصحح:
                               </h5>
 
                               {/* Correct Disease */}
                               <div>
-                                <label className="text-sm text-slate-300 mb-1.5 block">التشخيص الصحيح (اختياري):</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">التشخيص الصحيح (اختياري):</label>
                                 <input
                                   type="text"
                                   placeholder="مثال: حمل، استسقاء، فطريات..."
-                                  className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+                                  className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
                                   id="correction-disease"
                                 />
                               </div>
 
                               {/* Notes */}
                               <div>
-                                <label className="text-sm text-slate-300 mb-1.5 block">ملاحظاتك (اختياري):</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-1.5 block">ملاحظاتك (اختياري):</label>
                                 <textarea
                                   placeholder="شنو اللي غلط بالتشخيص؟ شنو لاحظت انت؟"
                                   rows={3}
-                                  className="w-full bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 resize-none"
+                                  className="w-full bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none focus:ring-1 focus:ring-cyan-500/30 resize-none"
                                   id="correction-notes"
                                 />
                               </div>
 
                               {/* Treatment Effectiveness */}
                               <div>
-                                <label className="text-sm text-slate-300 mb-2 block">هل العلاج المقترح نفع؟</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">هل العلاج المقترح نفع؟</label>
                                 <div className="flex gap-2">
                                   <Button
                                     size="sm"
@@ -1296,7 +1296,7 @@ export default function FishHealthDiagnosis() {
                                       document.getElementById('treatment-yes')?.classList.add('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
                                       document.getElementById('treatment-no')?.classList.remove('bg-red-500/20', 'border-red-500/50', 'text-red-300');
                                     }}
-                                    className="text-sm border-slate-600/40 text-slate-300 hover:bg-emerald-500/20"
+                                    className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-300 hover:bg-emerald-500/20"
                                   >
                                     ✅ نعم نفع
                                   </Button>
@@ -1308,14 +1308,14 @@ export default function FishHealthDiagnosis() {
                                       document.getElementById('treatment-no')?.classList.add('bg-red-500/20', 'border-red-500/50', 'text-red-300');
                                       document.getElementById('treatment-yes')?.classList.remove('bg-emerald-500/20', 'border-emerald-500/50', 'text-emerald-300');
                                     }}
-                                    className="text-sm border-slate-600/40 text-slate-300 hover:bg-red-500/10"
+                                    className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-300 hover:bg-red-500/10"
                                   >
                                     ❌ ما نفع
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="text-sm border-slate-600/40 text-slate-400 hover:bg-slate-700/50"
+                                    className="text-sm border-border dark:border-slate-600/40 text-muted-foreground dark:text-slate-400 hover:bg-slate-700/50"
                                   >
                                     🤷 ما جربت
                                   </Button>
@@ -1324,7 +1324,7 @@ export default function FishHealthDiagnosis() {
 
                               {/* Rating */}
                               <div>
-                                <label className="text-sm text-slate-300 mb-2 block">تقييمك العام لتجربة التشخيص:</label>
+                                <label className="text-sm text-muted-foreground dark:text-slate-300 mb-2 block">تقييمك العام لتجربة التشخيص:</label>
                                 <div className="flex gap-1.5" id="rating-stars">
                                   {[1, 2, 3, 4, 5].map(star => (
                                     <button
@@ -1350,7 +1350,7 @@ export default function FishHealthDiagnosis() {
 
                               {/* Submit */}
                               <Button
-                                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold py-2.5 text-base shadow-lg"
+                                className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-foreground dark:text-white font-bold py-2.5 text-base shadow-lg"
                                 onClick={async () => {
                                   const correctDisease = (document.getElementById('correction-disease') as HTMLInputElement)?.value || undefined;
                                   const notes = (document.getElementById('correction-notes') as HTMLTextAreaElement)?.value || undefined;
@@ -1412,9 +1412,9 @@ export default function FishHealthDiagnosis() {
               <div className="p-6 rounded-2xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/20 text-center">
                 <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
                 <h3 className="text-lg font-bold text-emerald-300 mb-1">✅ تم حفظ التشخيص بسجل "{savedToFish}"!</h3>
-                <p className="text-sm text-slate-400">Dr. AQUAVO سوف يذكرك بموعد المتابعة 📅</p>
+                <p className="text-sm text-muted-foreground dark:text-slate-400">Dr. AQUAVO سوف يذكرك بموعد المتابعة 📅</p>
                 <Button
-                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 text-white gap-2"
+                  className="mt-4 bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white gap-2"
                   onClick={() => window.location.href = '/fish-patients'}
                 >
                   <Fish className="w-4 h-4" /> شوف السجل الطبي
@@ -1423,7 +1423,7 @@ export default function FishHealthDiagnosis() {
             ) : showSaveToFish ? (
               /* ── Fish selection modal ── */
               <div className="p-6 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-slate-800/50 to-teal-500/10 border border-cyan-500/20">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <h3 className="text-lg font-bold text-foreground dark:text-white mb-4 flex items-center gap-2">
                   <Fish className="w-5 h-5 text-cyan-400" />
                   احفظ التشخيص لأي سمكة؟
                 </h3>
@@ -1434,15 +1434,15 @@ export default function FishHealthDiagnosis() {
                       <button
                         key={fish.id}
                         disabled={savingToFish}
-                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-700/40 border border-slate-600/30 hover:border-cyan-500/40 hover:bg-slate-700/60 transition-all text-right"
+                        className="w-full flex items-center gap-3 p-3 rounded-xl bg-muted dark:bg-slate-700/40 border border-border dark:border-slate-600/30 hover:border-cyan-500/40 hover:bg-slate-700/60 transition-all text-right"
                         onClick={() => saveDiagnosisToFishRecord(fish.id)}
                       >
                         <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center">
                           <Fish className="w-5 h-5 text-cyan-400" />
                         </div>
                         <div className="flex-1">
-                          <p className="font-bold text-white">{fish.name}</p>
-                          {fish.species && <p className="text-xs text-slate-400">{fish.species}</p>}
+                          <p className="font-bold text-foreground dark:text-white">{fish.name}</p>
+                          {fish.species && <p className="text-xs text-muted-foreground dark:text-slate-400">{fish.species}</p>}
                         </div>
                         <ChevronRight className="w-4 h-4 text-slate-500" />
                       </button>
@@ -1456,11 +1456,11 @@ export default function FishHealthDiagnosis() {
                     placeholder="أو سجّل سمكة جديدة..."
                     value={newFishName}
                     onChange={e => setNewFishName(e.target.value)}
-                    className="flex-1 bg-slate-700/50 border border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
+                    className="flex-1 bg-muted dark:bg-slate-700/50 border border-border dark:border-slate-600/40 rounded-lg px-3 py-2.5 text-sm text-foreground dark:text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:outline-none"
                   />
                   <Button
                     disabled={!newFishName.trim() || savingToFish}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white text-sm"
+                    className="bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white text-sm"
                     onClick={registerAndSave}
                   >
                     {savingToFish ? "⏳" : "✅ سجّل واحفظ"}
@@ -1489,10 +1489,10 @@ export default function FishHealthDiagnosis() {
                       <Heart className="w-7 h-7 text-cyan-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-cyan-300 transition-colors">
+                      <h3 className="text-lg font-bold text-foreground dark:text-white group-hover:text-cyan-300 transition-colors">
                         📋 احفظ التشخيص بسجل سمكتك!
                       </h3>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground dark:text-slate-400">
                         سجّل سمكتك — Dr. AQUAVO يتذكر التاريخ الطبي ويذكرك بالمتابعة!
                       </p>
                     </div>
@@ -1518,10 +1518,10 @@ export default function FishHealthDiagnosis() {
                       <Zap className="w-7 h-7 text-purple-400" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-white group-hover:text-purple-300 transition-colors">
+                      <h3 className="text-lg font-bold text-foreground dark:text-white group-hover:text-purple-300 transition-colors">
                         ⚗️ محكمة الألف سيناريو
                       </h3>
-                      <p className="text-sm text-slate-400">
+                      <p className="text-sm text-muted-foreground dark:text-slate-400">
                         1000 محاكاة موازية — شوف نسبة نجاح كل طريقة علاج بالأرقام
                       </p>
                     </div>
@@ -1532,7 +1532,7 @@ export default function FishHealthDiagnosis() {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <h3 className="text-lg font-bold text-foreground dark:text-white flex items-center gap-2">
                     <Zap className="h-5 w-5 text-purple-400" />
                     محكمة الألف سيناريو
                   </h3>
@@ -1553,7 +1553,7 @@ export default function FishHealthDiagnosis() {
                     </div>
                     <div>
                       <p className="text-purple-300 font-bold animate-pulse">جاري تشغيل 1000 سيناريو...</p>
-                      <p className="text-xs text-slate-400 mt-1">الذكاء الاصطناعي يحاكي كل طريقة علاج على سمكتك</p>
+                      <p className="text-xs text-muted-foreground dark:text-slate-400 mt-1">الذكاء الاصطناعي يحاكي كل طريقة علاج على سمكتك</p>
                     </div>
                   </div>
                 )}
@@ -1570,10 +1570,10 @@ export default function FishHealthDiagnosis() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm text-purple-300 font-semibold">نتائج {thousandResult.totalSimulations?.toLocaleString() || "1,000"} سيناريو</p>
-                        <p className="text-xs text-slate-400 mt-0.5">{thousandResult.patientProfile}</p>
+                        <p className="text-xs text-muted-foreground dark:text-slate-400 mt-0.5">{thousandResult.patientProfile}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-xs text-slate-400">الاستعجالية</p>
+                        <p className="text-xs text-muted-foreground dark:text-slate-400">الاستعجالية</p>
                         <p className="text-sm font-bold text-amber-300">{thousandResult.recommendation?.urgency}</p>
                       </div>
                     </div>
@@ -1581,15 +1581,15 @@ export default function FishHealthDiagnosis() {
                     {/* Treatments ranked */}
                     <div className="space-y-2">
                       {thousandResult.treatments?.sort((a: any, b: any) => b.successRate - a.successRate).map((t: any, i: number) => (
-                        <div key={t.id || i} className={`p-4 rounded-xl border transition-all ${thousandResult.recommendation?.primaryTreatmentId === t.id ? "bg-purple-500/15 border-purple-500/40" : "bg-slate-800/40 border-slate-700/50"}`}>
+                        <div key={t.id || i} className={`p-4 rounded-xl border transition-all ${thousandResult.recommendation?.primaryTreatmentId === t.id ? "bg-purple-500/15 border-purple-500/40" : "bg-card dark:bg-slate-800/40 border-border dark:border-slate-700/50"}`}>
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <div className="flex items-center gap-2">
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-slate-400 text-black" : i === 2 ? "bg-amber-700 text-white" : "bg-slate-700 text-slate-300"}`}>
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${i === 0 ? "bg-yellow-500 text-black" : i === 1 ? "bg-slate-400 text-black" : i === 2 ? "bg-amber-700 text-foreground dark:text-white" : "bg-muted dark:bg-slate-700 text-muted-foreground dark:text-slate-300"}`}>
                                 {i + 1}
                               </span>
                               <div>
-                                <p className="font-bold text-sm text-white">{t.name}</p>
-                                <p className="text-[10px] text-slate-400 italic">{t.nameEn}</p>
+                                <p className="font-bold text-sm text-foreground dark:text-white">{t.name}</p>
+                                <p className="text-[10px] text-muted-foreground dark:text-slate-400 italic">{t.nameEn}</p>
                               </div>
                             </div>
                             <div className="text-right shrink-0">
@@ -1601,7 +1601,7 @@ export default function FishHealthDiagnosis() {
                           </div>
 
                           {/* Success bar */}
-                          <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden mb-3">
+                          <div className="h-1.5 bg-muted dark:bg-slate-700 rounded-full overflow-hidden mb-3">
                             <div
                               className={`h-full rounded-full ${t.successRate >= 70 ? "bg-emerald-500" : t.successRate >= 50 ? "bg-amber-500" : "bg-red-500"}`}
                               style={{ width: `${t.successRate}%`, transition: "width 1s ease" }}
@@ -1610,25 +1610,25 @@ export default function FishHealthDiagnosis() {
 
                           <div className="grid grid-cols-3 gap-2 text-xs mb-3">
                             <div className="text-center">
-                              <p className="text-slate-400">الشفاء</p>
-                              <p className="font-bold text-slate-200">{t.avgRecoveryDays} يوم</p>
+                              <p className="text-muted-foreground dark:text-slate-400">الشفاء</p>
+                              <p className="font-bold text-foreground dark:text-slate-200">{t.avgRecoveryDays} يوم</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-slate-400">الخطورة</p>
+                              <p className="text-muted-foreground dark:text-slate-400">الخطورة</p>
                               <p className={`font-bold ${t.riskLevel === "low" ? "text-emerald-400" : t.riskLevel === "medium" ? "text-amber-400" : "text-red-400"}`}>
                                 {t.riskLevel === "low" ? "منخفضة" : t.riskLevel === "medium" ? "متوسطة" : "عالية"}
                               </p>
                             </div>
                             <div className="text-center">
-                              <p className="text-slate-400">التكلفة</p>
-                              <p className="font-bold text-slate-200">{t.costRangeIQD}</p>
+                              <p className="text-muted-foreground dark:text-slate-400">التكلفة</p>
+                              <p className="font-bold text-foreground dark:text-slate-200">{t.costRangeIQD}</p>
                             </div>
                           </div>
 
                           {t.steps?.length > 0 && (
                             <div className="space-y-1">
                               {t.steps.slice(0, 3).map((step: string, j: number) => (
-                                <p key={j} className="text-xs text-slate-300 flex gap-1.5">
+                                <p key={j} className="text-xs text-muted-foreground dark:text-slate-300 flex gap-1.5">
                                   <span className="text-purple-400 shrink-0">{j + 1}.</span>{step}
                                 </p>
                               ))}
@@ -1670,7 +1670,7 @@ export default function FishHealthDiagnosis() {
                 <Card key={cat.category} className="hover:shadow-xl transition-all duration-300 group overflow-hidden">
                   <CardHeader className="pb-3">
                     <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${cat.color} flex items-center justify-center mb-3 shadow-lg group-hover:scale-110 transition-transform`}>
-                      <CatIcon className="h-6 w-6 text-white" />
+                      <CatIcon className="h-6 w-6 text-foreground dark:text-white" />
                     </div>
                     <CardTitle className="text-lg">{cat.category}</CardTitle>
                     <CardDescription className="text-xs">{cat.categoryEn}</CardDescription>
@@ -1680,7 +1680,7 @@ export default function FishHealthDiagnosis() {
                       {cat.diseases.map((disease) => (
                         <div key={disease.name} className="flex items-center justify-between gap-2">
                           <span className="text-xs">{disease.name}</span>
-                          <Badge className={`${urgencyConfig[disease.urgency].color} text-white text-[10px] px-1.5 py-0`}>
+                          <Badge className={`${urgencyConfig[disease.urgency].color} text-foreground dark:text-white text-[10px] px-1.5 py-0`}>
                             {urgencyConfig[disease.urgency].text}
                           </Badge>
                         </div>

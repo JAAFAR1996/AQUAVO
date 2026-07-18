@@ -1080,50 +1080,35 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
 }
 
 /* =====================================================================
-   AQUAVO — GLOBAL MOTION REMOVAL
-   The site must contain no visible animation or transition motion for ANY
-   user (not gated on prefers-reduced-motion). Durations are zeroed rather
-   than removed so that forwards/one-shot keyframes still apply their END
-   state instantly (nothing is left stuck at opacity:0 or off-screen).
-   Hover states may still change colour — only movement (scale/translate)
-   and animated motion are removed.
+   AQUAVO — global motion backstop (minimal safety rule).
+   Visible motion is removed in component code: framer-motion is disabled
+   globally via <MotionConfig reducedMotion="always" transition={{duration:0}}>
+   and the always-on animation surfaces (page transition, scroll reveal,
+   loaders, wishlist, floating button) were rewritten to be static. This rule
+   is only a backstop so any remaining utility/third-party animation stays
+   invisible: keyframe animations are frozen at their end state, transitions
+   are limited to instantaneous colour/opacity/shadow changes (never
+   transform/size, so nothing moves), and hover "grow" is neutralised.
+   Colour-only hover states still work.
    ===================================================================== */
 *, *::before, *::after {
-  animation-duration: 0.001ms !important;
+  animation-duration: 0s !important;
   animation-delay: 0s !important;
   animation-iteration-count: 1 !important;
-  transition-duration: 0.001ms !important;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow !important;
+  transition-duration: 0s !important;
   transition-delay: 0s !important;
   scroll-behavior: auto !important;
 }
-/* Remove hover/active "grow" (Tailwind scale utilities use these vars). */
+/* Neutralise hover/active "grow" (Tailwind scale utilities use these vars). */
 *:hover, *:focus, *:focus-visible, *:active {
   --tw-scale-x: 1 !important;
   --tw-scale-y: 1 !important;
 }
-/* Remove lift/press translate movement (color-only hovers keep working). */
-.aq-interactive-card:hover,
-.aq-interactive-card:active,
-.aq-interactive-card:hover .aq-product-image,
-button:active,
-[role="button"]:active {
-  transform: none !important;
-}
-/* Scroll-reveal + hero entrance content is always shown, never animated in. */
-.aq-precision-reveal,
-.aq-precision-stagger > *,
-.aq-hero-title,
-.aq-hero-support,
-.aq-hero-actions {
+/* Any residual entrance surfaces render immediately, at rest, fully visible. */
+.aq-hero-title, .aq-hero-support, .aq-hero-actions,
+.aq-site-header,
+.aq-waterline-hero::after, .aq-proof-window, .aq-trust-seal {
   animation: none !important;
   opacity: 1 !important;
-  transform: none !important;
-}
-.aq-site-header { animation: none !important; }
-.aq-waterline-hero::after,
-.aq-proof-window,
-.aq-trust-seal {
-  animation: none !important;
-  opacity: 1 !important;
-  transform: none !important;
 }

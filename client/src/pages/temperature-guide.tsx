@@ -115,8 +115,8 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
           {/* Name row */}
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-white/90 text-sm font-bold truncate">{fish.name}</span>
-              <span className="text-white/25 text-[10px] hidden sm:inline">{fish.nameEn}</span>
+              <span className="text-foreground dark:text-white/90 text-sm font-bold truncate">{fish.name}</span>
+              <span className="text-foreground dark:text-white/25 text-[10px] hidden sm:inline">{fish.nameEn}</span>
             </div>
             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0" style={{
               background: `${diffColor}15`, color: diffColor, border: `1px solid ${diffColor}30`,
@@ -199,7 +199,7 @@ export default function TemperatureGuide() {
   };
 
   return (
-    <div className="relative bg-[#0B1E28] text-white min-h-screen w-full" dir="rtl">
+    <div className="relative bg-card dark:bg-[#0B1E28] text-foreground dark:text-white min-h-screen w-full" dir="rtl">
       <FloatingBubbles />
 
       {/* Noise grain */}
@@ -268,7 +268,7 @@ export default function TemperatureGuide() {
           <motion.p
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}
-            className="text-gray-400 text-sm font-medium text-center max-w-xs leading-relaxed mb-8"
+            className="text-muted-foreground dark:text-gray-400 text-sm font-medium text-center max-w-xs leading-relaxed mb-8"
           >
             12 نوع سمك شائع بالعراق مع درجة الحرارة المثالية، الحد الأدنى والأقصى، ومستوى الصعوبة
           </motion.p>
@@ -278,7 +278,7 @@ export default function TemperatureGuide() {
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
             onClick={handleDownload}
-            className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-white transition-all active:scale-[0.97]"
+            className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-foreground dark:text-white transition-all active:scale-[0.97]"
             style={{
               background: "linear-gradient(135deg, rgba(11,147,166,0.9), rgba(13,122,148,0.9))",
               boxShadow: "0 0 40px rgba(11,147,166,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
@@ -294,7 +294,7 @@ export default function TemperatureGuide() {
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
             transition={{ delay: 1.2 }}
-            className="mt-12 flex flex-col items-center gap-1 text-white/15"
+            className="mt-12 flex flex-col items-center gap-1 text-foreground dark:text-white/15"
           >
             <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل لتشوف الجدول</span>
             <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
@@ -323,13 +323,13 @@ export default function TemperatureGuide() {
                 style={{ background: "rgba(11,147,166,0.2)", border: "1px solid rgba(11,147,166,0.4)" }}>
                 <Thermometer size={16} className="text-cyan-400" />
               </div>
-              <h2 className="text-lg font-black text-white">جدول الحرارة التفاعلي</h2>
+              <h2 className="text-lg font-black text-foreground dark:text-white">جدول الحرارة التفاعلي</h2>
             </div>
 
             {/* Scale header */}
             <div className="relative h-6 mb-2">
               {[18, 20, 22, 24, 26, 28, 30, 32, 34].map(t => (
-                <span key={t} className="absolute text-[9px] text-white/25 font-bold -translate-x-1/2"
+                <span key={t} className="absolute text-[9px] text-foreground dark:text-white/25 font-bold -translate-x-1/2"
                   style={{ left: `${((t - 18) / 16) * 100}%` }}>
                   {t}°C
                 </span>
@@ -352,12 +352,12 @@ export default function TemperatureGuide() {
               ].map(l => (
                 <div key={l.label} className="flex items-center gap-1.5">
                   <div className="w-2 h-2 rounded-full" style={{ background: l.color }} />
-                  <span className="text-xs text-white/40 font-medium">{l.label}</span>
+                  <span className="text-xs text-foreground dark:text-white/40 font-medium">{l.label}</span>
                 </div>
               ))}
               <div className="flex items-center gap-1.5">
                 <div className="w-3 h-0.5 rounded-full bg-cyan-400" />
-                <span className="text-xs text-white/40 font-medium">الدرجة المثالية</span>
+                <span className="text-xs text-foreground dark:text-white/40 font-medium">الدرجة المثالية</span>
               </div>
             </div>
           </motion.div>
@@ -376,11 +376,11 @@ export default function TemperatureGuide() {
               border: "1px solid rgba(11,100,166,0.15)",
             }}
           >
-            <h3 className="text-lg font-black text-white/90 mb-4 flex items-center gap-2">
+            <h3 className="text-lg font-black text-foreground dark:text-white/90 mb-4 flex items-center gap-2">
               <Shield size={18} className="text-[#0B64A6]" />
               نصائح ذهبية للحرارة
             </h3>
-            <div className="space-y-3 text-sm text-white/60 font-medium leading-relaxed">
+            <div className="space-y-3 text-sm text-foreground dark:text-white/60 font-medium leading-relaxed">
               <p>1. تذبذب الحرارة أخطر من الحرارة الثابتة — حتى لو كانت عالية شوية.</p>
               <p>2. فرق 3 درجات بين الليل والنهار يكفي يقتل أسماكك.</p>
               <p>3. السخان القزاز ممكن يطق بالصيف — استخدم ستيل.</p>
@@ -401,7 +401,7 @@ export default function TemperatureGuide() {
           >
             {/* Shop heaters */}
             <Link href="/products">
-              <button className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+              <button className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
                 style={{
                   background: "linear-gradient(135deg, rgba(11,147,166,0.9), rgba(13,122,148,0.8))",
                   boxShadow: "0 0 40px rgba(11,147,166,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
@@ -415,7 +415,7 @@ export default function TemperatureGuide() {
             {/* WhatsApp */}
             <button
               onClick={() => window.open(WHATSAPP_URL, "_blank")}
-              className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
+              className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-foreground dark:text-white"
               style={{
                 background: "rgba(255,255,255,0.05)", backdropFilter: "blur(20px)",
                 border: "1px solid rgba(255,255,255,0.1)",
@@ -426,7 +426,7 @@ export default function TemperatureGuide() {
             </button>
 
             {/* Brand */}
-            <p className="text-center text-white/10 text-xs pt-4 font-medium tracking-widest uppercase">
+            <p className="text-center text-foreground dark:text-white/10 text-xs pt-4 font-medium tracking-widest uppercase">
               AQUAVO — خبراء أحواض السمك في العراق
             </p>
           </motion.div>
