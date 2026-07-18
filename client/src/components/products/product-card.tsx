@@ -118,7 +118,7 @@ export const ProductCard = memo(function ProductCard({
         aria-label={`عرض تفاصيل ${product.name}`}
         className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
       >
-        <div className="relative aspect-square overflow-hidden bg-white" data-protected="true">
+        <div className="relative aspect-square overflow-hidden bg-card" data-protected="true">
           {!imgLoaded ? <div className="absolute inset-0 bg-muted/45" aria-hidden="true" /> : null}
           <img
             src={imageSrc}

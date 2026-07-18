@@ -339,7 +339,7 @@ export default function Navbar() {
                             className="flex gap-3 rounded-lg border border-border bg-card p-3"
                             aria-label={`${item.name}${item.variantLabel ? `، الخيار ${item.variantLabel}` : ""}، الكمية ${item.quantity}، السعر ${formatIQD(item.price)}`}
                           >
-                            <img src={thumbImage(item.image) || "/brand/aquavo-v2-icon.svg"} alt="" aria-hidden="true" className="h-16 w-16 rounded-md bg-white object-contain p-1" loading="lazy" decoding="async" width={64} height={64} />
+                            <img src={thumbImage(item.image) || "/brand/aquavo-v2-icon.svg"} alt="" aria-hidden="true" className="h-16 w-16 rounded-md bg-card object-contain p-1" loading="lazy" decoding="async" width={64} height={64} />
                             <div className="min-w-0 flex-1">
                               <h4 className="truncate text-sm font-medium">{item.name}</h4>
                               {item.variantLabel && <p className="truncate text-xs text-muted-foreground">الخيار: {item.variantLabel}</p>}

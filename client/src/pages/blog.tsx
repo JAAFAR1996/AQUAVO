@@ -119,7 +119,7 @@ export default function Blog() {
                                 <span className="font-bold text-base">{cat.name}</span>
                                 <Badge
                                     variant="secondary"
-                                    className={`mr-2 ml-1 rounded-full px-2 ${cat.name === "الكل" ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+                                    className={`mr-2 ml-1 rounded-full px-2 ${cat.name === "الكل" ? "bg-card/20 text-white" : "bg-muted text-muted-foreground"
                                         }`}
                                 >
                                     {cat.count}
@@ -163,7 +163,7 @@ export default function Blog() {
                                             </p>
                                             <div className="flex items-center gap-6 mt-4 text-white/80 font-medium">
                                                 <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                                    <div className="w-8 h-8 rounded-full bg-card/20 flex items-center justify-center backdrop-blur-sm">
                                                         <User className="w-4 h-4" />
                                                     </div>
                                                     {featuredPost.author}
@@ -248,9 +248,9 @@ export default function Blog() {
                                                 type="email"
                                                 required
                                                 placeholder="بريدك الإلكتروني"
-                                                className="w-full px-4 py-3 rounded-xl bg-white/20 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
+                                                className="w-full px-4 py-3 rounded-xl bg-card/20 border border-white/30 text-white placeholder:text-white/70 focus:outline-none focus:ring-2 focus:ring-white/50 backdrop-blur-sm"
                                             />
-                                            <Button type="submit" className="w-full bg-white text-primary hover:bg-white/90 rounded-xl font-bold shadow-lg">
+                                            <Button type="submit" className="w-full bg-card text-primary hover:bg-white/90 rounded-xl font-bold shadow-lg">
                                                 اشترك الآن
                                             </Button>
                                         </div>

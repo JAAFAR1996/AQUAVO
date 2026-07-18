@@ -58,7 +58,7 @@ export default function EcoFriendlyGuide() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center gap-3 hover:scale-105 transition-transform cursor-default"
+                className="bg-card dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-2xl shadow-lg flex flex-col items-center justify-center text-center gap-3 hover:scale-105 transition-transform cursor-default"
               >
                 <div className={`p-3 rounded-full ${item.bg}`}>
                   <item.icon className={`w-6 h-6 ${item.color}`} />

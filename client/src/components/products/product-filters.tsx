@@ -97,7 +97,7 @@ function FilterChip({
           className={cn(
             "h-5 px-1.5 text-[10px] font-bold rounded-md transition-colors",
             selected
-              ? "bg-white/20 text-white"
+              ? "bg-card/20 text-white"
               : "bg-primary/10 text-primary"
           )}
         >
@@ -424,7 +424,7 @@ export function ProductFilters({
               <SlidersHorizontal className="w-5 h-5 ml-2" />
               الفلاتر
               {activeFiltersCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-white text-primary border-2 border-primary font-bold animate-bounce">
+                <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-card text-primary border-2 border-primary font-bold animate-bounce">
                   {activeFiltersCount}
                 </Badge>
               )}

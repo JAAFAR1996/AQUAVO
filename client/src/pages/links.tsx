@@ -233,7 +233,7 @@ function LinkCard({
         transition-all duration-500 cursor-pointer
         ${link.featured
           ? 'bg-gradient-to-r ' + link.color + ' shadow-[0_8px_32px_rgba(0,0,0,0.2)] ' + link.glow
-          : 'bg-white/[0.03] hover:bg-white/[0.08] backdrop-blur-[24px] border border-white/[0.08] hover:border-white/[0.2] shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
+          : 'bg-card/[0.03] hover:bg-white/[0.08] backdrop-blur-[24px] border border-white/[0.08] hover:border-white/[0.2] shadow-[0_4px_24px_rgba(0,0,0,0.1)]'
         }
       `}
     >
@@ -246,7 +246,7 @@ function LinkCard({
           flex-shrink-0 w-12 h-12 rounded-[14px] flex items-center justify-center
           transition-all duration-500 group-hover:scale-110 group-hover:rotate-3
           ${link.featured
-            ? 'bg-white/20'
+            ? 'bg-card/20'
             : 'bg-gradient-to-br ' + link.color + ' shadow-inner'
           }
         `}>
@@ -274,7 +274,7 @@ function LinkCard({
         {/* Minimalist Arrow */}
         <div className={`
           flex items-center justify-center w-8 h-8 rounded-full transition-all duration-300
-          ${link.featured ? 'bg-white/10 text-white' : 'bg-white/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white group-hover:-translate-x-1'}
+          ${link.featured ? 'bg-card/10 text-white' : 'bg-card/5 text-slate-400 group-hover:bg-white/10 group-hover:text-white group-hover:-translate-x-1'}
         `}>
           <ChevronLeft className="w-4 h-4 ml-0.5" />
         </div>

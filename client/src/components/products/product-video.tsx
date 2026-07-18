@@ -46,7 +46,7 @@ export function ProductVideo({ videoUrl, thumbnailUrl, className }: ProductVideo
       
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         {!isPlaying && (
-          <div className="bg-white/20 backdrop-blur-sm p-4 rounded-full border border-white/30">
+          <div className="bg-card/20 backdrop-blur-sm p-4 rounded-full border border-white/30">
             <Play className="w-8 h-8 text-white fill-white" />
           </div>
         )}

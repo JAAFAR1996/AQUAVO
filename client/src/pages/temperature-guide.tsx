@@ -143,7 +143,7 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
           </div>
 
           {/* Visual bar */}
-          <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
+          <div className="relative h-2 bg-card/5 rounded-full overflow-hidden">
             <motion.div
               initial={{ scaleX: 0 }}
               animate={isInView ? { scaleX: 1 } : {}}

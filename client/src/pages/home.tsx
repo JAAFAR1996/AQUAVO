@@ -153,18 +153,18 @@ export default function Home() {
       <Navbar />
 
       <main id="main-content" dir="rtl">
-        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-[#DDD8CE] bg-[#F6F4EF] pt-24 sm:pt-28">
+        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-24 sm:pt-28">
           <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
           <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
             <div className="aq-hero-copy order-2 text-right lg:order-1">
-              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#0B93A6]/25 bg-[#0B93A6]/10 px-4 py-2 text-xs font-bold text-[#0B93A6] sm:text-sm">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-bold text-primary sm:text-sm">
                 <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
                 براند عراقي متخصص بمعدات ومستلزمات أحواض الزينة
               </p>
-              <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-[#0B1E28] sm:text-5xl lg:text-[3.55rem]">
+              <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-foreground sm:text-5xl lg:text-[3.55rem]">
                 معدات حوضك، مرتبة على احتياجك
               </h1>
-              <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-[#0B1E28]/70 sm:text-lg">
+              <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-foreground/70 sm:text-lg">
                 نساعدك تختار الفلتر والسخان والإضاءة وباقي التجهيز حسب حوضك، بمعلومات واضحة وبدون زحمة خيارات.
               </p>
 
@@ -179,20 +179,20 @@ export default function Home() {
                 </Link>
                 <Link
                   href="/tank-builder"
-                  className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}
+                  className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}
                 >
                   اختار حسب حوضك
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
 
-              <p className="mt-6 text-sm leading-6 text-[#0B1E28]/55">
+              <p className="mt-6 text-sm leading-6 text-foreground/55">
                 عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.
               </p>
             </div>
 
             <div className="order-1 lg:order-2">
-              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-[#DDD8CE] bg-white shadow-[0_20px_60px_rgba(11,30,40,0.12)]">
+              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_20px_60px_rgba(11,30,40,0.12)]">
                 <img
                   src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
                   srcSet="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
@@ -204,10 +204,10 @@ export default function Home() {
                   alt="حوض عرض مائي مرتب بإضاءة هادئة"
                   className="aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
                 />
-                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-white/80 to-transparent" />
-                <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-4 rounded-2xl border border-[#DDD8CE] bg-white/90 px-4 py-3 text-[#0B1E28] backdrop-blur-md sm:inset-x-7 sm:bottom-7">
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background/80 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-4 rounded-2xl border border-border bg-card/90 px-4 py-3 text-foreground backdrop-blur-md sm:inset-x-7 sm:bottom-7">
                   <div>
-                    <p className="text-xs text-[#0B1E28]/60">طريقة AQUAVO</p>
+                    <p className="text-xs text-foreground/60">طريقة AQUAVO</p>
                     <p className="mt-1 text-sm font-bold sm:text-base">الحوض أولاً، القطعة بعدها</p>
                   </div>
                   <img src="/brand/aquavo-v2-icon.svg" alt="" aria-hidden="true" className="h-9 w-9" />
@@ -219,24 +219,24 @@ export default function Home() {
           <div aria-hidden="true" className="h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
         </section>
 
-        <section aria-label="ضمانات المتجر" className="border-b border-[#DDD8CE] bg-[#F6F4EF]">
-          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-[#DDD8CE] sm:grid-cols-4">
+        <section aria-label="ضمانات المتجر" className="border-b border-border bg-background">
+          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
             {serviceFacts.map(({ icon: Icon, title, detail }) => (
-              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-[#F6F4EF] px-4 py-5 text-center sm:min-h-32">
+              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
-                <p className="text-sm font-bold text-[#0B1E28]">{title}</p>
-                <p className="mt-1 text-xs leading-5 text-[#0B1E28]/60">{detail}</p>
+                <p className="text-sm font-bold text-foreground">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
               </div>
             ))}
           </PrecisionReveal>
         </section>
 
-        <section className="bg-[#F6F4EF]">
+        <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-2xl">
-            <p className="text-sm font-bold text-[#0B93A6]">اختيار أسرع، زحمة أقل</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">ابدأ من احتياج الحوض</h2>
-            <p className="mt-4 leading-7 text-[#6B6B6B]">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
+            <p className="text-sm font-bold text-primary">اختيار أسرع، زحمة أقل</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">ابدأ من احتياج الحوض</h2>
+            <p className="mt-4 leading-7 text-muted-foreground">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
           </div>
 
           <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -244,17 +244,17 @@ export default function Home() {
               <Link
                 key={title}
                 href={href}
-                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-[#DDD8CE] bg-white p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B93A6]/10 text-[#0B93A6]">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span>
-                  <span className="flex items-center gap-2 text-lg font-bold text-[#232323]">
+                  <span className="flex items-center gap-2 text-lg font-bold text-foreground">
                     {title}
-                    <ArrowLeft className="h-4 w-4 text-[#6B6B6B] transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
+                    <ArrowLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
                   </span>
-                  <span className="mt-2 block text-sm leading-6 text-[#6B6B6B]">{description}</span>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
                 </span>
               </Link>
             ))}
@@ -262,36 +262,36 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
-        <section className="border-y border-[#DDD8CE] bg-white">
+        <section className="border-y border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-[#0B93A6]">من المتجر</p>
-                <h2 className="mt-2 text-3xl font-bold text-[#232323]">اختيارات متوفرة هسه</h2>
+                <p className="text-sm font-bold text-primary">من المتجر</p>
+                <h2 className="mt-2 text-3xl font-bold text-foreground">اختيارات متوفرة هسه</h2>
               </div>
-              <Link href="/products" className="text-sm font-bold text-[#0B93A6] hover:underline">شوف كل المنتجات</Link>
+              <Link href="/products" className="text-sm font-bold text-primary hover:underline">شوف كل المنتجات</Link>
             </div>
 
             {isStorePicksLoading ? (
               <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label="جاري تحميل الاختيارات">
                 {Array.from({ length: 4 }).map((_, index) => (
-                  <div key={index} className="overflow-hidden rounded-2xl border border-[#DDD8CE] bg-white">
-                    <div className="aspect-square animate-pulse bg-[#EDEAE1] motion-reduce:animate-none" />
+                  <div key={index} className="overflow-hidden rounded-2xl border border-border bg-card">
+                    <div className="aspect-square animate-pulse bg-muted motion-reduce:animate-none" />
                     <div className="space-y-2 p-4">
-                      <div className="h-4 w-3/4 animate-pulse rounded bg-[#EDEAE1] motion-reduce:animate-none" />
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-[#EDEAE1] motion-reduce:animate-none" />
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted motion-reduce:animate-none" />
                     </div>
                   </div>
                 ))}
                 <span className="sr-only">جاري تحميل الاختيارات المختارة</span>
               </div>
             ) : isStorePicksError ? (
-              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] px-6 py-12 text-center">
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
                 <AlertTriangle className="h-6 w-6 text-[#C97A2E]" aria-hidden="true" />
-                <p className="max-w-md text-sm leading-6 text-[#6B6B6B]">
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">
                   تعذر علينا تحميل الاختيارات المختارة هسه. تكدر تشوف كل المنتجات مباشرة.
                 </p>
-                <Link href="/products" className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
                   شوف كل المنتجات
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -302,9 +302,9 @@ export default function Home() {
                   <Link
                     key={product.id}
                     href={`/products/${product.slug}`}
-                    className="aq-interactive-card overflow-hidden rounded-2xl border border-[#DDD8CE] bg-white hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="aq-interactive-card overflow-hidden rounded-2xl border border-border bg-card hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   >
-                    <div className="aspect-square bg-white p-3 sm:p-5">
+                    <div className="aspect-square bg-card p-3 sm:p-5">
                       <img
                         src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
                         srcSet={cardImageSrcSet(product.images[0])}
@@ -318,8 +318,8 @@ export default function Home() {
                       />
                     </div>
                     <div className="p-4">
-                      <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-[#232323]">{product.name}</h3>
-                      <p className="mt-2 text-sm font-bold text-[#0B93A6]">
+                      <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-foreground">{product.name}</h3>
+                      <p className="mt-2 text-sm font-bold text-primary">
                         {(product.price ?? 0) > 0 ? formatPrice(product.price ?? 0) : "شوف التفاصيل"}
                       </p>
                     </div>
@@ -327,12 +327,12 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] px-6 py-12 text-center">
-                <PackageSearch className="h-6 w-6 text-[#0B93A6]" aria-hidden="true" />
-                <p className="max-w-md text-sm leading-6 text-[#6B6B6B]">
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-border bg-background px-6 py-12 text-center">
+                <PackageSearch className="h-6 w-6 text-primary" aria-hidden="true" />
+                <p className="max-w-md text-sm leading-6 text-muted-foreground">
                   الاختيارات المميزة مو متوفرة هسه. تكدر تتصفح كل المنتجات المتوفرة بالمتجر.
                 </p>
-                <Link href="/products" className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+                <Link href="/products" className={`${linkButton} border border-primary/40 text-primary hover:bg-[#0B93A6]/10`}>
                   شوف كل المنتجات
                   <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                 </Link>
@@ -341,18 +341,18 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
-        <section className="bg-[#F6F4EF]">
+        <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">
             <div>
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B93A6]/10 text-[#0B93A6]">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                 <BookOpen className="h-6 w-6" aria-hidden="true" />
               </span>
-              <p className="mt-6 text-sm font-bold text-[#0B93A6]">AQUAVO يوضحلك السبب</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">المعلومة قبل القطعة</h2>
-              <p className="mt-4 max-w-xl leading-7 text-[#6B6B6B]">
+              <p className="mt-6 text-sm font-bold text-primary">AQUAVO يوضحلك السبب</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">المعلومة قبل القطعة</h2>
+              <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
                 هدفنا تعرف شتحتاج وليش تحتاجه. الأدلة مرتبة حتى تقلل التخمين وتختار على أساس واضح.
               </p>
-              <a href="/guides" className={`${linkButton} mt-7 border border-[#0B93A6]/35 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+              <a href="/guides" className={`${linkButton} mt-7 border border-primary/35 text-primary hover:bg-[#0B93A6]/10`}>
                 شوف أدلة AQUAVO
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" />
               </a>
@@ -363,12 +363,12 @@ export default function Home() {
                 <Link
                   key={guide.href}
                   href={guide.href}
-                  className="aq-interactive-card group flex min-h-56 flex-col rounded-2xl border border-[#DDD8CE] bg-white p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="aq-interactive-card group flex min-h-56 flex-col rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
-                  <span className="text-xs font-bold text-[#0B93A6]">{guide.eyebrow}</span>
-                  <h3 className="mt-4 text-lg font-bold leading-7 text-[#232323]">{guide.title}</h3>
-                  <p className="mt-3 text-sm leading-6 text-[#6B6B6B]">{guide.description}</p>
-                  <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-[#0B93A6]">
+                  <span className="text-xs font-bold text-primary">{guide.eyebrow}</span>
+                  <h3 className="mt-4 text-lg font-bold leading-7 text-foreground">{guide.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">{guide.description}</p>
+                  <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-primary">
                     افتح الدليل
                     <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
                   </span>
@@ -378,36 +378,36 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
-        <section className="border-t border-[#DDD8CE] bg-white">
+        <section className="border-t border-border bg-card">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
             <div className="max-w-2xl">
-              <p className="text-sm font-bold text-[#0B93A6]">ليش AQUAVO</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
+              <p className="text-sm font-bold text-primary">ليش AQUAVO</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
             </div>
 
             <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {valuePoints.map(({ icon: Icon, title, description }) => (
                 <div
                   key={title}
-                  className="rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] p-5"
+                  className="rounded-2xl border border-border bg-background p-5"
                 >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B93A6]/10 text-[#0B93A6]">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                     <Icon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <h3 className="mt-4 text-base font-bold leading-6 text-[#232323]">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">{description}</p>
+                  <h3 className="mt-4 text-base font-bold leading-6 text-foreground">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
                 </div>
               ))}
             </div>
           </PrecisionReveal>
         </section>
 
-        <section className="border-t border-white/10 bg-[#071821] text-white">
+        <section className="border-t border-border bg-muted text-foreground">
           <PrecisionReveal className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
             <div>
-              <p className="text-sm font-bold text-white/80">بعدك مو متأكد؟</p>
+              <p className="text-sm font-bold text-foreground/80">بعدك مو متأكد؟</p>
               <h2 className="mt-2 text-2xl font-bold sm:text-3xl">دز حجم حوضك ونرتبلك المناسب</h2>
-              <p className="mt-3 text-sm leading-6 text-white/60">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
             </div>
             <Link href="/contact" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
               احچي ويانه

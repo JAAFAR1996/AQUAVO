@@ -60,7 +60,7 @@ function CertificateViewer({ open, onOpenChange }: { open: boolean; onOpenChange
             alt={CERTIFICATE_ALT}
             width={1240}
             height={1754}
-            className="aq-proof-window mx-auto block h-auto max-w-none bg-white shadow-xl transition-transform duration-150"
+            className="aq-proof-window mx-auto block h-auto max-w-none bg-card shadow-xl transition-transform duration-150"
             style={{ width: `${Math.round(680 * zoom)}px` }}
           />
         </div>
@@ -134,7 +134,7 @@ export default function VerifyCertificate() {
                 alt={CERTIFICATE_ALT}
                 width={1240}
                 height={1754}
-                className="aq-proof-window mx-auto h-auto w-full max-w-2xl bg-white shadow-lg"
+                className="aq-proof-window mx-auto h-auto w-full max-w-2xl bg-card shadow-lg"
                 decoding="async"
               />
             </button>

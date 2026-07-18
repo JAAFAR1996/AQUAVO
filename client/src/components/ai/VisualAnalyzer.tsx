@@ -173,7 +173,7 @@ export default function VisualAnalyzer() {
       </div>
 
       {/* Image Input */}
-      <div className="bg-white rounded-xl shadow-md p-8">
+      <div className="bg-card rounded-xl shadow-md p-8">
         <div className="flex items-center justify-center mb-6">
           <button
             onClick={() => setUseUrl(!useUrl)}
@@ -283,7 +283,7 @@ export default function VisualAnalyzer() {
 
       {/* Analysis Results */}
       {analysisResult && (
-        <div className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+        <div className="bg-card rounded-xl shadow-lg p-8 space-y-6">
           <div className="flex items-center gap-3 mb-6">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
             <h2 className="text-2xl font-bold text-gray-900">

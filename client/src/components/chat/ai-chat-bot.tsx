@@ -575,7 +575,7 @@ export function AIChatBot() {
                             <CardHeader className="p-3 bg-gradient-to-r from-primary via-cyan-500 to-blue-600 text-white flex-shrink-0">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <div className="p-1.5 bg-white/20 rounded-lg">
+                                        <div className="p-1.5 bg-card/20 rounded-lg">
                                             <Fish className="w-5 h-5" />
                                         </div>
                                         <div>
@@ -587,7 +587,7 @@ export function AIChatBot() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <Badge variant="secondary" className="text-xs gap-1 bg-white/20 text-white border-none">
+                                        <Badge variant="secondary" className="text-xs gap-1 bg-card/20 text-white border-none">
                                             <Sparkles className="w-3 h-3" />
                                             AI
                                         </Badge>

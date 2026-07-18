@@ -195,7 +195,7 @@ function ScrollBar() {
           @keyframes aqBar { from{transform:scaleX(0)} to{transform:scaleX(1)} }
         }
       `}</style>
-      <div className="fixed top-0 left-0 right-0 h-[3px] bg-white/5 z-50">
+      <div className="fixed top-0 left-0 right-0 h-[3px] bg-card/5 z-50">
         <div className="aq-bar h-full w-full" style={{
           background:"linear-gradient(90deg,#22d3ee,#7FFF00,#22d3ee)",
           boxShadow:"0 0 10px rgba(34,211,238,0.8)",

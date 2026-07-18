@@ -247,7 +247,7 @@ export default function CulturalTwin() {
                         <span>توافق الحوض</span>
                         <span>{event.dailyEvent.harmonyPercent}%</span>
                       </div>
-                      <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <div className="h-2 bg-card/10 rounded-full overflow-hidden">
                         <div
                           className="h-full rounded-full bg-gradient-to-r from-cyan-500 to-teal-400 transition-all duration-1000"
                           style={{ width: `${event.dailyEvent.harmonyPercent}%` }}

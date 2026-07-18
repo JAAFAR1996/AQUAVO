@@ -146,7 +146,7 @@ export default function FishEncyclopedia() {
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/asfalt-light.png')] opacity-10" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl mx-auto text-center text-white">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="inline-flex items-center gap-2 bg-card/20 backdrop-blur-md border border-white/30 px-6 py-2 rounded-full mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
               <BookOpen className="h-5 w-5" />
               <span className="font-bold">موسوعة الأسماك الشاملة</span>
             </div>

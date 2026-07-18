@@ -736,7 +736,7 @@ export default function ProductDetails() {
                   <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
+                        <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
                           <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                             <ShieldCheck className="w-5 h-5 text-green-600" aria-hidden="true" />
                           </div>
@@ -753,7 +753,7 @@ export default function ProductDetails() {
                         </div>
                         {/* Only show rating if there are reviews */}
                         {product.reviewCount > 0 && (
-                          <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
+                          <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
                             <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                               <Star className="w-5 h-5 text-blue-600" aria-hidden="true" />
                             </div>
@@ -763,7 +763,7 @@ export default function ProductDetails() {
                             </div>
                           </div>
                         )}
-                        <div className="flex items-start gap-3 p-3 bg-white dark:bg-slate-900 rounded-lg border">
+                        <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
                           <div className="w-10 h-10 bg-amber-500/10 rounded-full flex items-center justify-center flex-shrink-0">
                             <Truck className="w-5 h-5 text-amber-600" aria-hidden="true" />
                           </div>

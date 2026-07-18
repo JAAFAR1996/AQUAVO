@@ -871,7 +871,7 @@ export default function FishBreedingCalculator() {
       {species && timeline && (
         <div
           id="pdf-export-container"
-          className="fixed left-[-9999px] top-[-9999px] w-[794px] bg-white text-slate-950 font-sans p-8 pointer-events-none opacity-0"
+          className="fixed left-[-9999px] top-[-9999px] w-[794px] bg-card text-slate-950 font-sans p-8 pointer-events-none opacity-0"
           style={{ direction: 'rtl', zIndex: -100 }}
         >
           {/* Background Logo Watermark */}
@@ -978,10 +978,10 @@ export default function FishBreedingCalculator() {
                     <div key={i} className="relative">
                       {/* Dot */}
                       <div className={`absolute -right-[43px] top-1 w-6 h-6 rounded-full border-4 border-white shadow-sm flex items-center justify-center ${event.color.replace('bg-', 'bg-').replace('/10', '')} text-white`} style={{ backgroundColor: event.color.includes('pink') ? '#ec4899' : event.color.includes('blue') ? '#3b82f6' : event.color.includes('green') ? '#22c55e' : '#a855f7' }}>
-                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                        <div className="w-2 h-2 bg-card rounded-full"></div>
                       </div>
 
-                      <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                      <div className="bg-card p-4 rounded-xl border border-slate-100 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
                           <h4 className="font-bold text-lg text-slate-900">{event.eventAr}</h4>
                           <span className="px-3 py-1 bg-slate-100 rounded-full text-sm font-bold text-slate-600 font-mono" dir="ltr">
@@ -1013,7 +1013,7 @@ export default function FishBreedingCalculator() {
                       </div>
                       <div>
                         <h3 className="font-bold text-lg text-slate-900">{stage.stageAr}</h3>
-                        <span className="text-xs text-slate-500 bg-white px-2 py-1 rounded border border-slate-100">{stage.size}</span>
+                        <span className="text-xs text-slate-500 bg-card px-2 py-1 rounded border border-slate-100">{stage.size}</span>
                       </div>
                     </div>
                     <div className="space-y-3 text-sm">

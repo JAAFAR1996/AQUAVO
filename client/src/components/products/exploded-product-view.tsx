@@ -41,7 +41,7 @@ export function ExplodedProductView({ product }: ExplodedProductViewProps) {
                         "absolute w-8 h-8 rounded-full flex items-center justify-center shadow-lg border-2 transition-colors z-20",
                         selectedPart?.id === part.id
                             ? "bg-primary border-primary text-black"
-                            : "bg-white/10 border-white/30 text-white hover:bg-primary/80 hover:border-primary"
+                            : "bg-card/10 border-white/30 text-white hover:bg-primary/80 hover:border-primary"
                     )}
                     style={{
                         left: `${part.x}%`,
@@ -70,7 +70,7 @@ export function ExplodedProductView({ product }: ExplodedProductViewProps) {
                         className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-black/80 backdrop-blur-xl border border-white/10 p-4 rounded-2xl z-30"
                     >
                         <div className="flex gap-4">
-                            <div className="w-16 h-16 bg-white/10 rounded-xl overflow-hidden flex-shrink-0">
+                            <div className="w-16 h-16 bg-card/10 rounded-xl overflow-hidden flex-shrink-0">
                                 {/* Fallback to product image if part image fails or is generic */}
                                 <img
                                     src={thumbImage(selectedPart.imageUrl || product.image)}
