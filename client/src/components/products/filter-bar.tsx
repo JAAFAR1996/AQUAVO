@@ -51,16 +51,18 @@ function QuickFilterChip({
 
     return (
         <button
+            type="button"
             onClick={onClick}
+            aria-pressed={selected}
             className={cn(
-                "inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium",
+                "inline-flex flex-shrink-0 items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 rounded-full text-xs sm:text-sm font-medium",
                 "border transition-all duration-200",
                 "hover:shadow-md active:scale-95",
                 colorClasses[color]
             )}
         >
-            <Icon className="w-4 h-4" />
-            <span>{label}</span>
+            <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+            <span className="whitespace-nowrap">{label}</span>
         </button>
     );
 }
@@ -109,16 +111,16 @@ export function FilterBar({
                 variant="outline"
                 onClick={onOpenFilterModal}
                 className={cn(
-                    "relative rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm",
+                    "relative flex-shrink-0 rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 text-xs sm:text-sm",
                     "hover:shadow-md transition-all",
                     activeFiltersCount > 0 && "border-primary bg-primary/5"
                 )}
             >
-                <SlidersHorizontal className="w-4 h-4" />
-                <span>الفلاتر</span>
+                <SlidersHorizontal className="w-4 h-4 flex-shrink-0" />
+                <span className="whitespace-nowrap">الفلاتر</span>
                 {activeFiltersCount > 0 && (
                     <Badge
-                        className="h-5 w-5 p-0 flex items-center justify-center rounded-full bg-primary text-white text-xs font-bold"
+                        className="h-5 w-5 p-0 flex flex-shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold"
                     >
                         {activeFiltersCount}
                     </Badge>
@@ -131,15 +133,15 @@ export function FilterBar({
                     <Button
                         variant="outline"
                         className={cn(
-                            "rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 h-auto text-xs sm:text-sm",
+                            "flex-shrink-0 rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 text-xs sm:text-sm",
                             "hover:shadow-md transition-all",
                             isPriceActive && "border-primary bg-primary/5"
                         )}
                     >
-                        <DollarSign className="w-4 h-4" />
-                        <span>السعر</span>
+                        <DollarSign className="w-4 h-4 flex-shrink-0" />
+                        <span className="whitespace-nowrap">السعر</span>
                         <ChevronDown className={cn(
-                            "w-4 h-4 transition-transform",
+                            "w-4 h-4 flex-shrink-0 transition-transform",
                             priceDropdownOpen && "rotate-180"
                         )} />
                     </Button>
@@ -182,7 +184,7 @@ export function FilterBar({
             </DropdownMenu>
 
             {/* Divider */}
-            <div className="h-8 w-px bg-border mx-1" />
+            <div className="h-8 w-px flex-shrink-0 bg-border mx-1" />
 
             {/* Quick Filters */}
             <QuickFilterChip

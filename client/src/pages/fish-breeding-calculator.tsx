@@ -877,7 +877,7 @@ export default function FishBreedingCalculator() {
           {/* Background Logo Watermark */}
           <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
             <img
-              src={`${import.meta.env.BASE_URL}logo_aquavo_icon.png`}
+              src={`${import.meta.env.BASE_URL}brand/aquavo-v2-icon.svg`}
               alt="Watermark"
               className="w-[600px] h-auto object-contain grayscale"
             />
@@ -896,7 +896,7 @@ export default function FishBreedingCalculator() {
                 </div>
               </div>
               <img
-                src={`${import.meta.env.BASE_URL}logo_aquavo.png`}
+                src={`${import.meta.env.BASE_URL}brand/aquavo-v2-horizontal.svg`}
                 alt="AQUAVO"
                 className="h-24 w-auto object-contain"
               />

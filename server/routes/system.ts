@@ -3,19 +3,21 @@ import { Router } from "express";
 import { storage } from "../storage/index.js";
 import { requireAdmin } from "../middleware/auth.js";
 import { db } from "../db.js";
-import { blogPosts } from "../../shared/schema.js";
-import { eq, desc } from "drizzle-orm";
+import { blogPosts, products as productTable } from "../../shared/schema.js";
+import { eq, desc, isNull } from "drizzle-orm";
 
 export function createSystemRouter(): RouterType {
     const router = Router();
 
     // ─── Sitemap (GEO/AEO 2026 Enhanced) ───────────────────────────────────────
     // Includes: priority, changefreq, image:image sitemap extension for AI crawlers
-    router.get("/sitemap.xml", async (req: Request, res: Response): Promise<void> => {
+    router.get("/sitemap-legacy.xml", async (req: Request, res: Response): Promise<void> => {
         try {
             const products = await storage.getProducts();
             const baseUrl = "https://www.aquavoiq.com";
-            const today = new Date().toISOString().split('T')[0];
+            // Static content last changed with the verified AQUAVO V2 release.
+            // Do not manufacture a fresh lastmod date on every sitemap request.
+            const staticContentLastmod = "2026-07-12";
 
             // Static pages with priority and changefreq for crawl budget optimisation
             const staticPages: { loc: string; priority: string; changefreq: string }[] = [
@@ -42,7 +44,6 @@ export function createSystemRouter(): RouterType {
                 { loc: "/why-aquavo",          priority: "0.6", changefreq: "monthly" },
                 { loc: "/shipping",            priority: "0.6", changefreq: "monthly" },
                 { loc: "/return-policy",       priority: "0.5", changefreq: "monthly" },
-                { loc: "/invest",              priority: "0.5", changefreq: "monthly" },
                 { loc: "/terms",               priority: "0.4", changefreq: "yearly" },
                 { loc: "/privacy-policy",      priority: "0.4", changefreq: "yearly" },
             ];
@@ -57,13 +58,8 @@ export function createSystemRouter(): RouterType {
                 "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
                 // New SEO/AEO pages — 2026 (target topics with low visibility score)
                 "/guides/new-aquarium-setup-iraq",
-                "/guides/aquarium-filter-guide",
-                "/guides/aquarium-heater-guide",
                 "/guides/aquarium-water-test-guide",
                 "/guides/aquarium-decor-stones-guide",
-                "/guides/water-conditioner-guide",
-                "/guides/aquarium-weekly-maintenance",
-                "/guides/beginner-aquarium-mistakes",
             ];
 
             // Image sitemap namespace for Google visual search + AI image indexing
@@ -71,17 +67,17 @@ export function createSystemRouter(): RouterType {
 
             // Static pages
             staticPages.forEach(({ loc, priority, changefreq }) => {
-                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${staticContentLastmod}</lastmod>\n    <changefreq>${changefreq}</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
             });
 
             // Guide pages (0.7 priority — rich AEO content)
             guidePages.forEach(loc => {
-                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
+                xml += `\n  <url>\n    <loc>${baseUrl}${loc}</loc>\n    <lastmod>${staticContentLastmod}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
             });
 
             // Products — with image sitemap extension for visual AI search
             products.forEach(p => {
-                const updated = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : today;
+                const updated = p.updatedAt ? new Date(p.updatedAt).toISOString().split('T')[0] : staticContentLastmod;
                 // Collect up to 3 images per product
                 const images: string[] = [];
                 try {
@@ -113,7 +109,7 @@ export function createSystemRouter(): RouterType {
                         .where(eq(blogPosts.status, "published"))
                         .orderBy(desc(blogPosts.publishedAt));
                     posts.forEach(p => {
-                        const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : today;
+                        const date = p.publishedAt ? new Date(p.publishedAt).toISOString().split('T')[0] : staticContentLastmod;
                         xml += `\n  <url>\n    <loc>${baseUrl}/blog/${p.slug}</loc>\n    <lastmod>${date}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>`;
                     });
                 } catch { /* blog table might not exist yet */ }
@@ -130,6 +126,79 @@ export function createSystemRouter(): RouterType {
     });
 
     // Robots.txt — serve the comprehensive static file instead of inline text
+    const sitemapBaseUrl = "https://www.aquavoiq.com";
+    const sitemapLastmod = "2026-07-13";
+    const escapeXml = (value: string): string => value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+    const publicSitemapPages = [
+        "/", "/products", "/guides", "/deals", "/blog", "/faq",
+        "/beginner-guide", "/about", "/why-aquavo", "/shipping",
+        "/return-policy", "/terms", "/privacy-policy", "/contact",
+    ];
+    const publicGuidePages = [
+        "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule",
+        "/guides/feeding-table", "/guides/quarantine", "/guides/algae-control",
+        "/guides/aquarium-salt", "/guides/white-scale", "/guides/5-mistakes",
+        "/guides/essential-tools", "/guides/filter-media", "/guides/eco-friendly",
+        "/guides/fish-hiding", "/guides/happy-fish-signs", "/guides/temperature-guide",
+        "/guides/treatment-basics", "/guides/water-myths", "/guides/tank-rescue-plan",
+        "/guides/new-aquarium-setup-iraq", "/guides/aquarium-water-test-guide",
+        "/guides/aquarium-decor-stones-guide",
+    ];
+    const sendUrlSet = (res: Response, entries: string, includeImages = false): void => {
+        const imageNamespace = includeImages ? '\n xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' : "";
+        res.header("Content-Type", "application/xml; charset=utf-8");
+        res.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+        res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"${imageNamespace}>${entries}\n</urlset>`);
+    };
+
+    router.get("/sitemap.xml", (_req: Request, res: Response): void => {
+        res.header("Content-Type", "application/xml; charset=utf-8");
+        res.header("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
+        res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-pages.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-products.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+  <sitemap><loc>${sitemapBaseUrl}/sitemap-guides.xml</loc><lastmod>${sitemapLastmod}</lastmod></sitemap>
+</sitemapindex>`);
+    });
+    router.get("/sitemap-pages.xml", (_req: Request, res: Response): void => {
+        sendUrlSet(res, publicSitemapPages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));
+    });
+    router.get("/sitemap-guides.xml", (_req: Request, res: Response): void => {
+        sendUrlSet(res, publicGuidePages.map((path) => `\n  <url><loc>${sitemapBaseUrl}${path}</loc><lastmod>${sitemapLastmod}</lastmod></url>`).join(""));
+    });
+    router.get("/sitemap-products.xml", async (_req: Request, res: Response): Promise<void> => {
+        try {
+            if (!db) throw new Error("Database unavailable");
+            const sitemapProducts = await db.select({
+                slug: productTable.slug,
+                name: productTable.name,
+                images: productTable.images,
+                updatedAt: productTable.updatedAt,
+                deletedAt: productTable.deletedAt,
+            }).from(productTable).where(isNull(productTable.deletedAt));
+            const entries = sitemapProducts
+                .filter((product) => !product.deletedAt && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
+                .map((product) => {
+                    const updated = product.updatedAt ? new Date(product.updatedAt).toISOString().slice(0, 10) : sitemapLastmod;
+                    const primaryImage = Array.isArray(product.images)
+                        ? product.images.find((image) => typeof image === "string" && image.length > 0)
+                        : undefined;
+                    const imageUrl = primaryImage ? (primaryImage.startsWith("http") ? primaryImage : `${sitemapBaseUrl}${primaryImage}`) : undefined;
+                    const image = imageUrl ? `\n    <image:image><image:loc>${escapeXml(imageUrl)}</image:loc><image:title>${escapeXml(product.name)}</image:title></image:image>` : "";
+                    return `\n  <url><loc>${sitemapBaseUrl}/products/${escapeXml(product.slug)}</loc><lastmod>${updated}</lastmod>${image}\n  </url>`;
+                }).join("");
+            sendUrlSet(res, entries, true);
+        } catch (error) {
+            console.error("[Sitemap] Product sitemap generation failed", error instanceof Error ? error.name : "unknown");
+            res.status(500).send("Error generating product sitemap");
+        }
+    });
+
     router.get("/robots.txt", async (req: Request, res: Response): Promise<void> => {
         try {
             const fs = await import("fs/promises");
@@ -152,121 +221,20 @@ export function createSystemRouter(): RouterType {
     // ─── .well-known Endpoints (Agent Readiness) ─────────────
 
     // API Catalog (RFC 9727)
-    router.get("/.well-known/api-catalog", (_req: Request, res: Response): void => {
-        res.header("Content-Type", "application/linkset+json");
-        res.json({
-            linkset: [{
-                anchor: "https://www.aquavoiq.com/api",
-                "service-desc": [{ href: "https://www.aquavoiq.com/.well-known/openapi.json", type: "application/json" }],
-                "service-doc": [{ href: "https://www.aquavoiq.com/", type: "text/html" }],
-                status: [{ href: "https://www.aquavoiq.com/health", type: "application/json" }]
-            }]
-        });
-    });
-
-    // MCP Server Card (SEP-2127)
-    router.get("/.well-known/mcp/server-card.json", (_req: Request, res: Response): void => {
-        const baseUrl = (process.env.AQUAVO_BASE_URL ?? "https://www.aquavoiq.com").replace(/\/$/, "");
-        res.header("Content-Type", "application/json");
-        res.json({
-            serverInfo: {
-                name: "AQUAVO",
-                version: "2.0.0",
-                description: "AQUAVO MCP server for Iraq's premium aquarium equipment store. Provides authenticated read/write tools, resources, and prompts for site operations."
-            },
-            transport: { type: "streamable_http", endpoint: `${baseUrl}/api/mcp` },
-            auth: {
-                type: "oauth2_bearer_or_static_bearer",
-                protectedResourceMetadata: `${baseUrl}/.well-known/oauth-protected-resource`,
-                scopes: ["mcp", "mcp:read", "mcp:write"]
-            },
-            capabilities: {
-                tools: {
-                    description: "Products, inventory, orders, customers, dashboard, reviews, coupons, expenses, and controlled write actions."
-                },
-                resources: {
-                    description: "Site overview, data sources, brand rules, and readable database table resources with sensitive fields redacted."
-                },
-                prompts: {
-                    description: "AQUAVO operating prompts for inventory audits, product page improvement, order follow-up, and growth audit."
-                }
-            }
-        });
-    });
-
-    // Also support the plural and flat paths that scanners check
-    router.get("/.well-known/mcp/server-cards.json", (_req: Request, res: Response): void => {
-        res.redirect(301, "/.well-known/mcp/server-card.json");
-    });
-    router.get("/.well-known/mcp.json", (_req: Request, res: Response): void => {
-        res.redirect(301, "/.well-known/mcp/server-card.json");
-    });
-
-    // Agent Skills Discovery Index (v0.2.0)
-    router.get("/.well-known/agent-skills/index.json", (_req: Request, res: Response): void => {
-        res.header("Content-Type", "application/json");
-        res.json({
-            "$schema": "https://agentskills.io/schemas/v0.2.0/index.json",
-            skills: [
-                { name: "browse-products", description: "Browse and search AQUAVO aquarium products catalog including filters, heaters, air pumps, decorations, fish food, and more. Returns product listings with prices in Iraqi Dinar (IQD).", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/browse-products/SKILL.md", digest: "sha256:" },
-                { name: "fish-encyclopedia", description: "Access comprehensive fish species database with care guides, compatibility info, tank requirements, and breeding tips.", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/fish-encyclopedia/SKILL.md", digest: "sha256:" },
-                { name: "track-order", description: "Track an AQUAVO order by order number. Returns order status, estimated delivery, and item details.", type: "skill-md", url: "https://www.aquavoiq.com/.well-known/agent-skills/track-order/SKILL.md", digest: "sha256:" }
-            ]
-        });
-    });
-
-    // Legacy agent-skills path
-    router.get("/.well-known/skills/index.json", (_req: Request, res: Response): void => {
-        res.redirect(301, "/.well-known/agent-skills/index.json");
-    });
-
-    // ACP - Agentic Commerce Protocol (spec: https://agenticcommerce.dev)
-    router.get("/.well-known/acp.json", (_req: Request, res: Response): void => {
-        res.header("Content-Type", "application/json");
-        res.json({
-            protocol: {
-                name: "acp",
-                version: "1.0"
-            },
-            api_base_url: "https://www.aquavoiq.com/api",
-            transports: ["https"],
-            capabilities: {
-                services: [
-                    {
-                        name: "product-catalog",
-                        description: "Browse and search aquarium products",
-                        endpoint: "/api/products"
-                    },
-                    {
-                        name: "order-tracking",
-                        description: "Track order status by order number",
-                        endpoint: "/api/orders/track/{orderNumber}"
-                    },
-                    {
-                        name: "fish-encyclopedia",
-                        description: "Fish species database with care guides",
-                        endpoint: "/api/fish"
-                    }
-                ]
-            },
-            merchant: {
-                name: "AQUAVO",
-                description: "Iraq's premier aquarium supplies and fish care e-commerce platform",
-                url: "https://www.aquavoiq.com",
-                logo: "https://www.aquavoiq.com/logo_aquavo_icon.png",
-                country: "IQ",
-                currency: "IQD",
-                language: "ar"
-            },
-            payment: { methods: ["cash_on_delivery"], currency: "IQD" },
-            shipping: {
-                zones: [
-                    { name: "Baghdad", delivery_time: "within 24 hours", cost: 5000 },
-                    { name: "All Iraqi governorates", delivery_time: "within 24 hours", cost: 5000 }
-                ]
-            },
-            contact: { phone: "+964 774 788 0673", website: "https://www.aquavoiq.com" }
-        });
+    // These discovery documents previously advertised incomplete or broken public
+    // integrations. Keep their legacy implementations below for rollback, but stop
+    // publishing them until each protocol is production-ready and independently tested.
+    router.get([
+        "/.well-known/api-catalog",
+        "/.well-known/openapi.json",
+        "/.well-known/mcp/server-card.json",
+        "/.well-known/mcp/server-cards.json",
+        "/.well-known/mcp.json",
+        "/.well-known/agent-skills/index.json",
+        "/.well-known/skills/index.json",
+        "/.well-known/acp.json",
+    ], (_req: Request, res: Response): void => {
+        res.status(410).json({ error: "Discovery document unavailable" });
     });
 
     // UCP - Universal Commerce Protocol (prevent soft-404)

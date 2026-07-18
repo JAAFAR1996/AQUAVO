@@ -32,6 +32,7 @@ vi.mock('@/lib/meta-pixel', () => ({
 
 vi.mock('@/lib/analytics', () => ({
   trackBeginCheckout: vi.fn(),
+  trackAddShippingInfo: vi.fn(),
   trackPurchase: vi.fn(),
   trackAddToCart: vi.fn(),
 }));
@@ -205,6 +206,69 @@ describe('Shopping Cart Hook', () => {
     });
     expect(ok).toBe(true);
     expect(result.current.items).toHaveLength(1);
+  });
+
+  it('should not exceed known base-product stock when updating quantity', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    const cartItemId = `${mockProduct.id}-default`;
+
+    act(() => {
+      result.current.addItem(mockProduct, 1); // stock is 5
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // Requesting more than the known stock must be blocked — quantity stays put.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 10);
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // A value within stock still succeeds.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 5);
+    });
+    expect(result.current.items[0].quantity).toBe(5);
+  });
+
+  it('should not exceed known variant stock when updating quantity', async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+
+    const variantProduct = {
+      ...mockProduct,
+      id: 'prod-variant',
+      // Matches the "Small" variant's price — the PDP always passes the
+      // selected variant's price on the product object itself.
+      price: 22000,
+      hasVariants: true,
+      variants: [
+        { id: 'small', label: 'Small', price: 22000, stock: 2 },
+        { id: 'large', label: 'Large', price: 35000, stock: 20 },
+      ],
+      _variantId: 'small',
+      _variantLabel: 'Small',
+    } as typeof mockProduct & {
+      hasVariants: boolean;
+      variants: { id: string; label: string; price: number; stock: number }[];
+      _variantId: string;
+      _variantLabel: string;
+    };
+
+    act(() => {
+      result.current.addItem(variantProduct, 1);
+    });
+    const cartItemId = result.current.items[0].id;
+    expect(result.current.items[0].quantity).toBe(1);
+
+    // Variant stock (2) must cap the line — must NOT fall back to unrelated stock pools.
+    act(() => {
+      result.current.updateQuantity(cartItemId, 10);
+    });
+    expect(result.current.items[0].quantity).toBe(1);
+
+    act(() => {
+      result.current.updateQuantity(cartItemId, 2);
+    });
+    expect(result.current.items[0].quantity).toBe(2);
   });
 
   it('should increase quantity when adding same product', () => {
@@ -470,13 +534,13 @@ describe('Variant display and checkout flow', () => {
       </QueryClientProvider>
     );
 
-    await user.type(screen.getByLabelText('الاسم الكامل'), 'أحمد');
-    await user.type(screen.getByLabelText('رقم الهاتف'), '07801234567');
+    fireEvent.change(screen.getByLabelText('الاسم الكامل'), { target: { value: 'أحمد' } });
+    fireEvent.change(screen.getByLabelText('رقم الهاتف'), { target: { value: '07801234567' } });
     // The governorate field is a searchable combobox (role="combobox"), not a
     // plain button — query it by its accessible name from the <Label>.
     await user.click(screen.getByRole('combobox', { name: /المحافظة/ }));
     await user.click(screen.getByText('بغداد'));
-    await user.type(screen.getByLabelText('العنوان'), 'المنصور');
+    fireEvent.change(screen.getByLabelText('العنوان'), { target: { value: 'المنصور' } });
 
     await user.click(screen.getByRole('button', { name: /متابعة للتأكيد/ }));
     expect(screen.getByText('الخيار: 1.5 متر')).toBeInTheDocument();

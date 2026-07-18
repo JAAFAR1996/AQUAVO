@@ -9,6 +9,7 @@ const router = Router();
 
 const PIXEL_ID = process.env.META_PIXEL_ID;
 const ACCESS_TOKEN = process.env.META_CAPI_TOKEN;
+const GRAPH_API_VERSION = process.env.META_GRAPH_API_VERSION || "v21.0";
 const TEST_CODE = process.env.META_TEST_EVENT_CODE; // Only for testing — remove in production
 
 // ─── Hash helper (Meta requires SHA-256 for PII) ────────────────────────────
@@ -34,11 +35,16 @@ router.get("/status", (_req: Request, res: Response) => {
     pixelIdSet: !!PIXEL_ID,
     tokenSet: !!ACCESS_TOKEN,
     testCodeSet: !!TEST_CODE,
+    graphApiVersion: GRAPH_API_VERSION,
+    previewDisabled: process.env.VERCEL_ENV === "preview",
   });
 });
 
 // ─── POST /api/capi/event ─────────────────────────────────────────────────────
 router.post("/event", async (req: Request, res: Response) => {
+  if (process.env.VERCEL_ENV === "preview") {
+    return res.json({ ok: true, skipped: true, reason: "preview" });
+  }
   if (!PIXEL_ID || !ACCESS_TOKEN) {
     console.warn("[CAPI] META_PIXEL_ID or META_CAPI_TOKEN not configured — skipping");
     return res.json({ ok: true, skipped: true });
@@ -88,7 +94,7 @@ router.post("/event", async (req: Request, res: Response) => {
 
     if (custom_data) event.custom_data = custom_data;
 
-    const url = `https://graph.facebook.com/v21.0/${PIXEL_ID}/events`;
+    const url = `https://graph.facebook.com/${GRAPH_API_VERSION}/${PIXEL_ID}/events`;
 
     const graphBody: Record<string, unknown> = {
       data: [event],
@@ -106,7 +112,16 @@ router.post("/event", async (req: Request, res: Response) => {
     const metaData = await metaRes.json() as Record<string, unknown>;
 
     if (!metaRes.ok) {
-      console.error("[CAPI] Meta API error — status:", metaRes.status);
+      const metaError = metaData.error && typeof metaData.error === "object"
+        ? metaData.error as Record<string, unknown>
+        : {};
+      // Log identifiers only: never the response message, payload, token, phone, IP, or cookies.
+      console.error("[CAPI] Meta API error", {
+        status: metaRes.status,
+        type: typeof metaError.type === "string" ? metaError.type : undefined,
+        code: typeof metaError.code === "number" ? metaError.code : undefined,
+        subcode: typeof metaError.error_subcode === "number" ? metaError.error_subcode : undefined,
+      });
       return res.status(200).json({ ok: false, meta_status: metaRes.status });
     }
 

@@ -1,5 +1,6 @@
 import { Switch, Route, Redirect, useLocation } from "wouter";
 import { lazy, Suspense, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 import { PageLoader, AppInitLoader } from "@/components/ui/loaders";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -29,6 +30,7 @@ import { PageTransition } from "@/components/ui/page-transition";
 // Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
 const Products = lazy(() => import("@/pages/products"));
+const Deals = lazy(() => import("@/pages/deals"));
 
 // Lazy load ALL non-critical pages for better performance (code splitting)
 const NotFound = lazy(() => import("@/pages/404"));
@@ -248,8 +250,28 @@ function Router() {
         )}
       </Route>
 
+      <Route path="/deals">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><Deals /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Aquarium Setup Wizard */}
       <Route path="/aquarium-wizard">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PageTransition><AquariumWizard /></PageTransition>
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
+      <Route path="/tank-builder">
         {() => (
           <ErrorBoundary>
             <Suspense fallback={<PageLoader />}>
@@ -968,6 +990,12 @@ function AppShell() {
   }, []);
 
   return (
+    // reducedMotion="user" makes every framer-motion component in the tree
+    // (page reveals, product showcases, wishlist/cart micro-interactions,
+    // notifications, etc.) automatically honour the OS "reduce motion"
+    // setting — no per-component edits needed. Purely CSS-driven motion is
+    // covered separately by the global rule in client/src/index.css.
+    <MotionConfig reducedMotion="user">
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <CartProvider>
@@ -1049,6 +1077,7 @@ function AppShell() {
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
+    </MotionConfig>
   );
 }
 

@@ -5,35 +5,6 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 initializeClientEnvSideEffects();
 
-function enableDeferredAppStyles() {
-  document.querySelectorAll<HTMLLinkElement>("link[data-app-css]").forEach((link) => {
-    link.media = "all";
-  });
-}
-
-function enableDeferredFonts() {
-  document.querySelectorAll<HTMLLinkElement>("link[data-deferred-font]").forEach((link) => {
-    link.media = "all";
-  });
-}
-
-// Flip deferred app CSS to active after first paint (allows critical shell to render first)
-requestAnimationFrame(() => enableDeferredAppStyles());
-
-const deferFontTimer = window.setTimeout(() => {
-  const requestIdleCallback = (window as any).requestIdleCallback as
-    | ((callback: () => void, options?: { timeout: number }) => number)
-    | undefined;
-
-  if (requestIdleCallback) {
-    requestIdleCallback(enableDeferredFonts, { timeout: 2500 });
-  } else {
-    enableDeferredFonts();
-  }
-}, 1500);
-
-window.addEventListener("pagehide", () => window.clearTimeout(deferFontTimer), { once: true });
-
 createRoot(document.getElementById("root")!).render(<App />);
 
 // WebMCP: Register site tools for AI agents
@@ -77,16 +48,21 @@ if (typeof navigator !== "undefined" && "modelContext" in navigator) {
           },
           {
             name: "track-order",
-            description: "Track an AQUAVO order by order number. Returns order status and estimated delivery.",
+            description: "Track an AQUAVO order using its order number and the last four customer phone digits.",
             inputSchema: {
               type: "object",
               properties: {
-                orderNumber: { type: "string", description: "Order number (e.g., FW-260424-0001)" }
+                orderNumber: { type: "string", description: "Order number (e.g., FW-260424-0001)" },
+                phoneLast4: { type: "string", description: "Last four digits of the phone used for the order" }
               },
-              required: ["orderNumber"]
+              required: ["orderNumber", "phoneLast4"]
             },
-            execute: async (input: any) => {
-              const res = await fetch(`/api/orders/track/${input.orderNumber}`);
+            execute: async (input: { orderNumber: string; phoneLast4: string }) => {
+              const res = await fetch(`/api/orders/track/${encodeURIComponent(input.orderNumber)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ phoneLast4: input.phoneLast4 }),
+              });
               return await res.json();
             }
           }

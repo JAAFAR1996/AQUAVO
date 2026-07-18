@@ -1,9 +1,10 @@
 import { useEffect } from "react";
+import { isTrackingAllowed } from "@/lib/tracking-environment";
 import DOMPurify from 'isomorphic-dompurify';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const BASE_URL = "https://www.aquavoiq.com";
-const LOGO_URL = `${BASE_URL}/logo_aquavo.png`;
+const LOGO_URL = `${BASE_URL}/brand/aquavo-v2-horizontal.png`;
 
 /**
  * Sanitizes string values for schema.org JSON-LD to prevent XSS
@@ -34,6 +35,7 @@ interface MetaTagsProps {
     currency?: string;
     canonicalUrl?: string;
     noIndex?: boolean;
+    notFound?: boolean;
 }
 
 /**
@@ -42,7 +44,7 @@ interface MetaTagsProps {
  */
 export function MetaTags({
     title,
-    description = "AQUAVO - معدات أحواض أصلية وبريميوم في العراق — توصيل لكل المحافظات",
+    description = "AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم — توصيل لكل العراق ودفع نقداً عند الاستلام.",
     keywords = [],
     image = LOGO_URL,
     url,
@@ -51,10 +53,15 @@ export function MetaTags({
     currency = "IQD",
     canonicalUrl,
     noIndex = false,
+    notFound = false,
 }: MetaTagsProps) {
     useEffect(() => {
+        const productionOrigin = "https://www.aquavoiq.com";
+        const isPreview = !isTrackingAllowed();
         // Update title - proper format for SEO
-        const fullTitle = `${title} | AQUAVO - معدات أحواض أصلية | العراق`;
+        const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
+            ? title
+            : `${title} | AQUAVO لمعدات الأحواض | العراق`;
         document.title = fullTitle;
 
         // Helper to set meta tag
@@ -80,9 +87,13 @@ export function MetaTags({
             link.setAttribute("href", href);
         };
 
+        const removeSocialMetadata = () => {
+            document.head.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]').forEach((node) => node.remove());
+        };
+
         // Basic meta tags
         setMetaTag("description", description.slice(0, 160)); // Limit to 160 chars
-        setMetaTag("robots", noIndex ? "noindex, nofollow" : "index, follow");
+        setMetaTag("robots", notFound ? "noindex, follow" : noIndex || isPreview ? "noindex, nofollow" : "index, follow");
 
         // Keywords (if provided)
         if (keywords.length > 0) {
@@ -90,27 +101,34 @@ export function MetaTags({
         }
 
         // Canonical URL (important for duplicate content)
-        const canonical = canonicalUrl || url || (typeof window !== "undefined" ? window.location.href : "");
-        if (canonical) {
+        const currentPath = typeof window !== "undefined" ? window.location.pathname : "/";
+        const canonical = canonicalUrl || url || `${productionOrigin}${currentPath}`;
+        if (notFound) {
+            document.head.querySelectorAll('link[rel="canonical"]').forEach((node) => node.remove());
+        } else if (canonical) {
             setLinkTag("canonical", canonical);
         }
 
         // Open Graph
-        setMetaTag("og:title", title, true);
-        setMetaTag("og:description", description.slice(0, 200), true);
-        setMetaTag("og:image", image, true);
-        setMetaTag("og:image:alt", title, true);
-        setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
-        if (url) setMetaTag("og:url", url, true);
-        setMetaTag("og:site_name", "AQUAVO", true);
-        setMetaTag("og:locale", "ar_IQ", true);
+        if (notFound) {
+            removeSocialMetadata();
+        } else {
+            setMetaTag("og:title", title, true);
+            setMetaTag("og:description", description.slice(0, 200), true);
+            setMetaTag("og:image", image, true);
+            setMetaTag("og:image:alt", title, true);
+            setMetaTag("og:type", type === "product" ? "product" : type === "article" ? "article" : "website", true);
+            if (canonical) setMetaTag("og:url", canonical, true);
+            setMetaTag("og:site_name", "AQUAVO", true);
+            setMetaTag("og:locale", "ar_IQ", true);
 
-        // Twitter Card
-        setMetaTag("twitter:card", "summary_large_image");
-        setMetaTag("twitter:title", title);
-        setMetaTag("twitter:description", description.slice(0, 200));
-        setMetaTag("twitter:image", image);
-        setMetaTag("twitter:site", "@aquavoiq");
+            // Twitter Card
+            setMetaTag("twitter:card", "summary_large_image");
+            setMetaTag("twitter:title", title);
+            setMetaTag("twitter:description", description.slice(0, 200));
+            setMetaTag("twitter:image", image);
+            setMetaTag("twitter:site", "@aquavoiq");
+        }
 
         // Product specific (for e-commerce)
         if (type === "product" && price) {
@@ -119,7 +137,7 @@ export function MetaTags({
         }
 
         // Cleanup not needed as we want tags to persist
-    }, [title, description, keywords, image, url, type, price, currency, canonicalUrl, noIndex]);
+    }, [title, description, keywords, image, url, type, price, currency, canonicalUrl, noIndex, notFound]);
 
     return null;
 }
@@ -285,7 +303,7 @@ export function OrganizationSchema() {
             width: 512,
             height: 512,
         },
-        description: "متجر إلكتروني عراقي متخصص في مستلزمات ومعدات أحواض الزينة الأصلية. نوفر الفلاتر، السخانات، الأغذية، الديكورات، ومعالجات المياه. الدفع عند الاستلام مع توصيل لجميع محافظات العراق بـ 5,000 دينار.",
+        description: "براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم. الدفع نقداً عند الاستلام مع توصيل لكل العراق بـ 5,000 دينار.",
         areaServed: [
             {
                 "@type": "Country",
@@ -453,7 +471,7 @@ export function WebsiteSchema() {
         name: "AQUAVO",
         alternateName: "AQUAVO Store",
         url: BASE_URL,
-        description: "أكبر متجر إلكتروني متخصص في معدات أحواض الأسماك في العراق — توصيل لكل المحافظات خلال 24 ساعة",
+        description: "براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم — توصيل لكل العراق خلال 24 ساعة.",
         inLanguage: "ar-IQ",
         potentialAction: {
             "@type": "SearchAction",

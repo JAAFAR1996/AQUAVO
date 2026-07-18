@@ -1,420 +1,424 @@
-import { useState, useMemo, useRef, useEffect, lazy, Suspense, type ReactNode } from "react";
-import Navbar from "@/components/navbar";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Trophy, Crown, Sparkles, Package, Truck, Banknote, Headphones, BookOpen } from "lucide-react";
-import { Link, useLocation } from "wouter";
-
 import { useQuery } from "@tanstack/react-query";
-import { fetchTopSellingProducts } from "@/lib/api";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatPrice } from "@/lib/format";
-import { cardImage } from "@/lib/cloudinary";
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Banknote,
+  BookOpen,
+  Boxes,
+  CircleGauge,
+  Droplets,
+  FileSearch,
+  GraduationCap,
+  Headphones,
+  Heater,
+  LayoutGrid,
+  Lightbulb,
+  ListChecks,
+  PackageCheck,
+  PackageSearch,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  Truck,
+  Utensils,
+} from "lucide-react";
+import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
-import { WaveDivider } from "@/components/ui/wave-divider";
-import { BubblesOverlay } from "@/components/home/bubbles-overlay";
+import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
+import { PrecisionReveal } from "@/components/motion/precision-reveal";
+import { fetchTopSellingProducts } from "@/lib/api";
+import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
+import { formatPrice } from "@/lib/format";
+import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
-// Lazy-load below-fold heavy components (reduces initial bundle by ~50KB)
-const PersonalizedSection = lazy(() => import("@/components/home/personalized-section").then(m => ({ default: m.PersonalizedSection })));
-const Testimonials = lazy(() => import("@/components/home/testimonials").then(m => ({ default: m.Testimonials })));
-const AquascapeStyles = lazy(() => import("@/components/home/aquascape-styles").then(m => ({ default: m.AquascapeStyles })));
-const Footer = lazy(() => import("@/components/footer"));
-
-
-// Hero images for rotation on page refresh
-const HERO_IMAGES = [
-  "/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp", // Iwagumi Style
+const serviceFacts = [
+  { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
+  { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
+  { icon: PackageCheck, title: "أجرة توصيل ثابتة", detail: "5,000 د.ع" },
+  { icon: Headphones, title: "دعم 24/7", detail: "نساعدك تختار المناسب" },
 ];
 
-// Lazy hero video: shows poster immediately, loads video after delay
-function LazyHeroVideo({ poster }: { poster: string }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [shouldLoad, setShouldLoad] = useState(false);
+const categories = [
+  {
+    title: "الفلاتر",
+    description: "رتّب التنقية حسب حجم الحوض وطبيعة الاستخدام.",
+    href: SHOP_CATEGORY_LINKS.filters,
+    icon: CircleGauge,
+  },
+  {
+    title: "السخانات",
+    description: "خيارات تثبيت الحرارة بمقاسات واستخدامات مختلفة.",
+    href: SHOP_CATEGORY_LINKS.heaters,
+    icon: Heater,
+  },
+  {
+    title: "الإضاءة",
+    description: "إضاءة مرتبة للرؤية والعرض اليومي للحوض.",
+    href: SHOP_CATEGORY_LINKS.lighting,
+    icon: Lightbulb,
+  },
+  {
+    title: "معالجة المياه",
+    description: "مستلزمات تساعدك تدير مي الحوض بشكل أوضح.",
+    href: SHOP_CATEGORY_LINKS.waterTreatment,
+    icon: Droplets,
+  },
+  {
+    title: "الأغذية",
+    description: "اختار الغذاء حسب النوع والحجم، مو حسب شكل العلبة.",
+    href: SHOP_CATEGORY_LINKS.food,
+    icon: Utensils,
+  },
+  {
+    title: "الأحواض والمستلزمات",
+    description: "الأساسيات اللي تحتاجها حتى ترتب تجهيزك من البداية.",
+    href: "/products",
+    icon: Boxes,
+  },
+];
 
-  useEffect(() => {
-    const connection = (navigator as any).connection;
-    const savesData = Boolean(connection?.saveData);
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    if (savesData || reducedMotion || coarsePointer) return;
+const valuePoints = [
+  {
+    icon: Target,
+    title: "تخصص فعلي، مو خلطة عامة",
+    description: "نشتغل بس على معدات ومستلزمات أحواض الزينة، حتى المعلومة والاختيار يكونون أدق.",
+  },
+  {
+    icon: LayoutGrid,
+    title: "تسوق مرتب حسب الاستخدام",
+    description: "الأقسام مبوبة حسب وظيفة القطعة، حتى ما تضيع وقتك بين خيارات مالها علاقة بحاجتك.",
+  },
+  {
+    icon: FileSearch,
+    title: "معلومة واضحة قبل القرار",
+    description: "كل قسم وياه شرح يفهمك شنو يسوي المنتج ومتى تحتاجه فعلاً.",
+  },
+  {
+    icon: ListChecks,
+    title: "اختيار أوضح بين البدائل",
+    description: "نرتّب البدائل المتقاربة حتى تقارن على أساس واضح، مو بس على الشكل أو السعر.",
+  },
+  {
+    icon: GraduationCap,
+    title: "دعم تعليمي مستمر",
+    description: "أدلة عملية عن حوض المياه العذبة بالعراق نحدثها باستمرار حسب الأسئلة الشائعة.",
+  },
+];
 
-    const load = () => setShouldLoad(true);
-    let idleId: number | undefined;
-    const timer = window.setTimeout(() => {
-      idleId = (window as any).requestIdleCallback?.(load, { timeout: 2000 });
-      if (!idleId) load();
-    }, 12000);
+const guides = [
+  {
+    eyebrow: "اختيار الفلتر",
+    title: "مو كل فلتر يناسب كل حوض",
+    description: "دليل عملي يوضح شنو تراجع قبل ما تختار نظام التنقية.",
+    href: "/guides/filter-choice",
+  },
+  {
+    eyebrow: "بداية مرتبة",
+    title: "تجهيز الحوض الجديد خطوة بخطوة",
+    description: "رتّب الأساسيات بدون شراء قطع ما تحتاجها.",
+    href: "/guides/new-aquarium-setup-iraq",
+  },
+  {
+    eyebrow: "ثبات الحرارة",
+    title: "شلون تختار السخان المناسب؟",
+    description: "افهم العوامل المهمة قبل اختيار قدرة السخان.",
+    href: "/guides/heater-choice",
+  },
+];
 
-    return () => {
-      window.clearTimeout(timer);
-      if (idleId) (window as any).cancelIdleCallback(idleId);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (shouldLoad && videoRef.current) {
-      videoRef.current.load();
-      videoRef.current.play().catch(() => {});
-    }
-  }, [shouldLoad]);
-
-  if (!shouldLoad) return null;
-
-  return (
-    <video
-      ref={videoRef}
-      autoPlay
-      loop
-      muted
-      playsInline
-      preload="none"
-      width={960}
-      height={540}
-      className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105 z-[1]"
-      style={{ objectFit: 'cover', objectPosition: 'center' }}
-      poster={poster}
-    >
-      <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.webm" type="video/webm" />
-      <source src="/images/hero/Aquarium_Animation_Request_Fulfilled.mp4" type="video/mp4" />
-    </video>
-  );
-}
-
-function DeferredRender({
-  children,
-  className,
-  minHeight = 1,
-}: {
-  children: ReactNode;
-  className?: string;
-  minHeight?: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [shouldRender, setShouldRender] = useState(false);
-
-  useEffect(() => {
-    if (shouldRender) return;
-    const element = ref.current;
-    if (!element) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        setShouldRender(true);
-        observer.disconnect();
-      },
-      { rootMargin: "0px 0px 120px 0px" }
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [shouldRender]);
-
-  return (
-    <div ref={ref} className={className} style={!shouldRender ? { minHeight } : undefined}>
-      {shouldRender ? children : null}
-    </div>
-  );
-}
-
-function DeferredMount({ children, timeout = 12000 }: { children: ReactNode; timeout?: number }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const mount = () => setMounted(true);
-    let idleId: number | undefined;
-    const timer = window.setTimeout(() => {
-      idleId = (window as any).requestIdleCallback?.(mount, { timeout: 2000 });
-      if (!idleId) mount();
-    }, timeout);
-
-    return () => {
-      window.clearTimeout(timer);
-      if (idleId) (window as any).cancelIdleCallback(idleId);
-    };
-  }, [timeout]);
-
-  return mounted ? <>{children}</> : null;
-}
+const linkButton =
+  "inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background";
 
 export default function Home() {
-  const [, setLocation] = useLocation();
-  const [shouldFetchSales] = useState(true);
-
-  // Random hero image selection on page load
-  const heroImage = useMemo(() => {
-    const randomIndex = Math.floor(Math.random() * HERO_IMAGES.length);
-    return HERO_IMAGES[randomIndex];
-  }, []);
-
-
-  // Fetch Top Selling Data (Dynamic based on sales)
-  const { data: salesData, isLoading: salesIsLoading } = useQuery({
+  const { data: salesData, isLoading: isStorePicksLoading, isError: isStorePicksError } = useQuery({
     queryKey: ["products", "top-selling"],
     queryFn: fetchTopSellingProducts,
-    enabled: shouldFetchSales,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
-  const featuredProduct = salesData?.productOfWeek;
-  const bestSellers = salesData?.bestSellers ?? [];
-  const hasRealSales = salesData?.hasRealSales ?? false;
-  const salesPending = !shouldFetchSales || salesIsLoading;
+  const storePicks = salesData?.bestSellers?.slice(0, 4) ?? [];
+  const hasStorePicks = storePicks.length > 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300 overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <MetaTags
-        title="الرئيسية"
-        description="AQUAVO - معدات وإكسسوارات أحواض أصلية في العراق — الدفع عند الاستلام، توصيل لكل العراق خلال 24 ساعة بـ 5,000 د.ع"
+        title="معدات أحواض بريميوم بالعراق"
+        description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام وتوصيل لكل العراق."
       />
-
-
 
       <Navbar />
 
-      <main id="main-content" className="container mx-auto px-4 pt-24 pb-12 flex-grow z-10 relative" dir="rtl">
-        {/* Bento Grid Layout - Gen Z Style */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6">
-
-          {/* 1. Hero & Video Section (Wide Box: 8 cols, 2 rows) */}
-          <div className="lg:col-span-8 lg:row-span-2 rounded-2xl overflow-hidden relative group shadow-2xl shadow-primary/10 border border-white/10 bg-black min-h-[280px] md:min-h-[400px] lg:min-h-[500px] animate-in fade-in duration-700">
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-500 z-10" />
-            {/* Hero poster as LCP element */}
-            <img
-              src={heroImage}
-              srcSet={`${heroImage.replace('.webp', '-640.webp')} 640w, ${heroImage} 1024w`}
-              alt="حوض أسماك بتصميم إيواغومي احترافي"
-              className="absolute inset-0 w-full h-full object-cover"
-              fetchPriority="high"
-              decoding="async"
-              width={1024}
-              height={1024}
-              sizes="(max-width: 1024px) 100vw, 66vw"
-            />
-            {/* Video loads lazily after poster is visible */}
-            <LazyHeroVideo poster={heroImage} />
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-accent/10 to-transparent opacity-60"></div>
-
-            {/* Calm aquatic bubbles drifting up over the hero */}
-            <BubblesOverlay />
-
-            {/* Overlay Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12 z-20 text-right">
-              <div className="inline-flex items-center gap-2 bg-primary px-4 py-1 rounded-full text-white font-extrabold mb-4 text-sm md:text-base animate-pulse-glow">
-                <span className="uppercase tracking-widest">أصلي 100%</span>
-                <Crown className="w-4 h-4" />
-              </div>
-              <h1 className="text-3xl md:text-6xl lg:text-7xl font-extrabold text-white leading-none drop-shadow-[0_0_15px_rgba(0,0,0,0.5)] mb-4">
-                معدات <span className="text-primary text-stroke-sm">أحواض</span> <br />
-                أصلية <span className="text-accent">لكل العراق</span>.
+      <main id="main-content" dir="rtl">
+        <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-white/10 bg-[#06141d] pt-24 sm:pt-28">
+          <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_78%_22%,rgba(11,147,166,0.2),transparent_34%),radial-gradient(circle_at_18%_70%,rgba(11,100,166,0.14),transparent_30%)]" />
+          <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-8 sm:px-6 sm:pb-16 lg:grid-cols-[1.02fr_0.98fr] lg:gap-16 lg:px-8 lg:pb-20 lg:pt-12">
+            <div className="aq-hero-copy order-2 text-right lg:order-1">
+              <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-xs font-bold text-white sm:text-sm">
+                <ShieldCheck className="h-4 w-4 text-primary" aria-hidden="true" />
+                براند عراقي متخصص بمعدات ومستلزمات أحواض الزينة
+              </p>
+              <h1 className="aq-hero-title max-w-3xl font-display text-[2.55rem] font-bold leading-[1.12] text-white sm:text-5xl lg:text-[3.55rem]">
+                معدات حوضك، مرتبة على احتياجك
               </h1>
-              <p className="text-white/60 text-sm md:text-base font-medium mb-1 drop-shadow tracking-wide">
-                فلاتر ـ سخانات ـ أغذية ـ أحواض ـ معالجات مياه
-              </p>
-              <p className="text-white/80 text-base md:text-xl font-medium mb-2 drop-shadow">
-                الدفع عند الاستلام — توصيل لكل العراق خلال 24 ساعة — توصيل ثابت 5,000 د.ع
+              <p className="aq-hero-support mt-6 max-w-2xl text-base leading-8 text-white/72 sm:text-lg">
+                نساعدك تختار الفلتر والسخان والإضاءة وباقي التجهيز حسب حوضك، بمعلومات واضحة وبدون زحمة خيارات.
               </p>
 
-              <div className="flex flex-wrap gap-4 justify-end mt-6">
-                <Button
-                  size="lg"
-                  className="rounded-full bg-primary text-white hover:bg-primary/90 font-bold text-lg px-8 py-6 h-auto shadow-[0_0_20px_rgba(25,155,184,0.4)] transition-all hover:scale-105 active:scale-95"
-                  onClick={() => setLocation("/products")}
+              <div className="aq-hero-actions mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link
+                  href="/products"
+                  className={`${linkButton} bg-primary text-white hover:bg-primary/90`}
                   data-tour="hero-cta"
                 >
-                  تصفح المنتجات <ArrowRight className="mr-2 w-5 h-5 rotate-180" />
-                </Button>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white font-bold text-lg px-8 py-6 h-auto backdrop-blur-sm transition-all hover:scale-105 active:scale-95"
+                  شوف المنتجات
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link
+                  href="/tank-builder"
+                  className={`${linkButton} border border-white/20 bg-white/[0.06] text-white hover:bg-white/10`}
                 >
-                  <a href="/guides">
-                    أدلة AQUAVO للمبتدئين <BookOpen className="mr-2 w-5 h-5" />
-                  </a>
-                </Button>
-                {/* Play button removed */}
+                  اختار حسب حوضك
+                  <Sparkles className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+
+              <p className="mt-6 text-sm leading-6 text-white/55">
+                عندك حوض ومحتار؟ دز حجمه ونرتبلك المناسب.
+              </p>
+            </div>
+
+            <div className="order-1 lg:order-2">
+              <div className="aq-proof-window relative mx-auto max-w-2xl overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#0b1e28] shadow-[0_28px_80px_rgba(0,0,0,0.34)]">
+                <img
+                  src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
+                  srcSet="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
+                  sizes="(max-width: 1024px) 100vw, 48vw"
+                  width={1024}
+                  height={1024}
+                  fetchPriority="high"
+                  decoding="async"
+                  alt="حوض عرض مائي مرتب بإضاءة هادئة"
+                  className="aspect-[4/3] w-full object-cover sm:aspect-[16/11]"
+                />
+                <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#071821]/90 to-transparent" />
+                <div className="absolute inset-x-5 bottom-5 flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-[#071821]/80 px-4 py-3 text-white backdrop-blur-md sm:inset-x-7 sm:bottom-7">
+                  <div>
+                    <p className="text-xs text-white/55">طريقة AQUAVO</p>
+                    <p className="mt-1 text-sm font-bold sm:text-base">الحوض أولاً، القطعة بعدها</p>
+                  </div>
+                  <img src="/brand/aquavo-v2-icon.svg" alt="" aria-hidden="true" className="h-9 w-9" />
+                </div>
               </div>
             </div>
           </div>
 
+          <div aria-hidden="true" className="h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
+        </section>
 
-          {/* 2. Best Sellers List (Tall Box: 4 cols, 3 rows) */}
-          <div className="lg:col-span-4 lg:row-span-3 rounded-[2.5rem] bg-card/80 dark:bg-white/5 border border-border dark:border-white/10 backdrop-blur-xl p-6 flex flex-col shadow-xl overflow-hidden relative min-h-[600px]">
-            <div className="flex justify-between items-center mb-6 z-10 relative">
-              <Link href="/products?sort=best-selling">
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">المزيد</Button>
+        <section aria-label="ضمانات المتجر" className="border-b border-white/10 bg-[#06141d]">
+          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-white/10 sm:grid-cols-4">
+            {serviceFacts.map(({ icon: Icon, title, detail }) => (
+              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-[#06141d] px-4 py-5 text-center sm:min-h-32">
+                <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
+                <p className="text-sm font-bold text-white">{title}</p>
+                <p className="mt-1 text-xs leading-5 text-white/60">{detail}</p>
+              </div>
+            ))}
+          </PrecisionReveal>
+        </section>
+
+        <section className="bg-[#F6F4EF]">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold text-[#0B93A6]">اختيار أسرع، زحمة أقل</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">ابدأ من احتياج الحوض</h2>
+            <p className="mt-4 leading-7 text-[#6B6B6B]">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
+          </div>
+
+          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map(({ title, description, href, icon: Icon }) => (
+              <Link
+                key={title}
+                href={href}
+                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-[#DDD8CE] bg-white p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#0B93A6]/10 text-[#0B93A6]">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="flex items-center gap-2 text-lg font-bold text-[#232323]">
+                    {title}
+                    <ArrowLeft className="h-4 w-4 text-[#6B6B6B] transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
+                  </span>
+                  <span className="mt-2 block text-sm leading-6 text-[#6B6B6B]">{description}</span>
+                </span>
               </Link>
-              <h2 className="text-2xl font-bold flex items-center gap-2 text-foreground dark:text-white">
-                {hasRealSales ? (
-                  <>الأكثر مبيعاً <Trophy className="w-6 h-6 text-yellow-500" /></>
-                ) : (
-                  <>اختيارات AQUAVO <Sparkles className="w-6 h-6 text-primary animate-pulse" /></>
-                )}
-              </h2>
+            ))}
+          </div>
+          </PrecisionReveal>
+        </section>
+
+        <section className="border-y border-[#DDD8CE] bg-white">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-sm font-bold text-[#0B93A6]">من المتجر</p>
+                <h2 className="mt-2 text-3xl font-bold text-[#232323]">اختيارات متوفرة هسه</h2>
+              </div>
+              <Link href="/products" className="text-sm font-bold text-[#0B93A6] hover:underline">شوف كل المنتجات</Link>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar -mr-2 pl-2 z-10 relative">
-              {salesPending ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex gap-4 items-center">
-                    <Skeleton className="w-16 h-16 rounded-xl bg-muted/20 dark:bg-white/10" />
-                    <div className="space-y-2 flex-1">
-                      <Skeleton className="h-4 w-full bg-muted/20 dark:bg-white/10" />
-                      <Skeleton className="h-3 w-12 bg-muted/20 dark:bg-white/10" />
+            {isStorePicksLoading ? (
+              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4" role="status" aria-label="جاري تحميل الاختيارات">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="overflow-hidden rounded-2xl border border-[#DDD8CE] bg-white">
+                    <div className="aspect-square animate-pulse bg-[#EDEAE1] motion-reduce:animate-none" />
+                    <div className="space-y-2 p-4">
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-[#EDEAE1] motion-reduce:animate-none" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-[#EDEAE1] motion-reduce:animate-none" />
                     </div>
                   </div>
-                ))
-              ) : bestSellers.slice(0, 6).map((product, idx) => (
-                <div key={product.id} className="group flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 dark:hover:bg-white/10 transition-colors cursor-pointer border border-transparent hover:border-border dark:hover:border-white/5" onClick={() => setLocation(`/products/${product.slug}`)}>
-                  <div className="text-4xl font-black text-muted-foreground/20 dark:text-white/10 italic w-8 text-center group-hover:text-primary/50 transition-colors">#{idx + 1}</div>
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-muted/20 dark:bg-black/20">
-                    <img src={cardImage(product.images[0]) || "/logo_aquavo.png"} alt={product.name} className="w-full h-full object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" loading="lazy" decoding="async" width={64} height={64} />
-                  </div>
-                  <div className="flex-1 text-right">
-                    <h3 className="font-bold text-foreground dark:text-gray-100 line-clamp-1 group-hover:text-primary transition-colors">{product.name}</h3>
-                    <div className="flex items-center justify-end gap-2 text-sm">
-                      {(product.price ?? 0) > 0 ? (
-                        <>
-                          <span className="font-bold text-primary text-xs">{formatPrice(product.price!)}</span>
-                          {product.originalPrice && product.originalPrice > product.price && (
-                            <span className="text-[10px] text-muted-foreground line-through mr-1">{formatPrice(product.originalPrice)}</span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="font-bold text-muted-foreground text-xs">قريباً</span>
-                      )}
+                ))}
+                <span className="sr-only">جاري تحميل الاختيارات المختارة</span>
+              </div>
+            ) : isStorePicksError ? (
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] px-6 py-12 text-center">
+                <AlertTriangle className="h-6 w-6 text-[#C97A2E]" aria-hidden="true" />
+                <p className="max-w-md text-sm leading-6 text-[#6B6B6B]">
+                  تعذر علينا تحميل الاختيارات المختارة هسه. تكدر تشوف كل المنتجات مباشرة.
+                </p>
+                <Link href="/products" className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+                  شوف كل المنتجات
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            ) : hasStorePicks ? (
+              <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                {storePicks.map((product) => (
+                  <Link
+                    key={product.id}
+                    href={`/products/${product.slug}`}
+                    className="aq-interactive-card overflow-hidden rounded-2xl border border-[#DDD8CE] bg-white hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <div className="aspect-square bg-white p-3 sm:p-5">
+                      <img
+                        src={cardImage(product.images[0]) || "/brand/aquavo-v2-icon.svg"}
+                        srcSet={cardImageSrcSet(product.images[0])}
+                        sizes="(max-width: 1023px) 50vw, 25vw"
+                        alt={product.name}
+                        width={360}
+                        height={360}
+                        loading="lazy"
+                        decoding="async"
+                        className="aq-product-image h-full w-full object-contain"
+                      />
                     </div>
-                  </div>
+                    <div className="p-4">
+                      <h3 className="line-clamp-2 min-h-11 text-sm font-bold leading-6 text-[#232323]">{product.name}</h3>
+                      <p className="mt-2 text-sm font-bold text-[#0B93A6]">
+                        {(product.price ?? 0) > 0 ? formatPrice(product.price ?? 0) : "شوف التفاصيل"}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] px-6 py-12 text-center">
+                <PackageSearch className="h-6 w-6 text-[#0B93A6]" aria-hidden="true" />
+                <p className="max-w-md text-sm leading-6 text-[#6B6B6B]">
+                  الاختيارات المميزة مو متوفرة هسه. تكدر تتصفح كل المنتجات المتوفرة بالمتجر.
+                </p>
+                <Link href="/products" className={`${linkButton} border border-[#0B93A6]/40 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+                  شوف كل المنتجات
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            )}
+          </PrecisionReveal>
+        </section>
+
+        <section className="bg-[#F6F4EF]">
+          <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">
+            <div>
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0B93A6]/10 text-[#0B93A6]">
+                <BookOpen className="h-6 w-6" aria-hidden="true" />
+              </span>
+              <p className="mt-6 text-sm font-bold text-[#0B93A6]">AQUAVO يوضحلك السبب</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">المعلومة قبل القطعة</h2>
+              <p className="mt-4 max-w-xl leading-7 text-[#6B6B6B]">
+                هدفنا تعرف شتحتاج وليش تحتاجه. الأدلة مرتبة حتى تقلل التخمين وتختار على أساس واضح.
+              </p>
+              <a href="/guides" className={`${linkButton} mt-7 border border-[#0B93A6]/35 text-[#0B93A6] hover:bg-[#0B93A6]/10`}>
+                شوف أدلة AQUAVO
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </a>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-3">
+              {guides.map((guide) => (
+                <Link
+                  key={guide.href}
+                  href={guide.href}
+                  className="aq-interactive-card group flex min-h-56 flex-col rounded-2xl border border-[#DDD8CE] bg-white p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <span className="text-xs font-bold text-[#0B93A6]">{guide.eyebrow}</span>
+                  <h3 className="mt-4 text-lg font-bold leading-7 text-[#232323]">{guide.title}</h3>
+                  <p className="mt-3 text-sm leading-6 text-[#6B6B6B]">{guide.description}</p>
+                  <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-[#0B93A6]">
+                    افتح الدليل
+                    <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </PrecisionReveal>
+        </section>
+
+        <section className="border-t border-[#DDD8CE] bg-white">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="text-sm font-bold text-[#0B93A6]">ليش AQUAVO</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-[#232323] sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
+            </div>
+
+            <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {valuePoints.map(({ icon: Icon, title, description }) => (
+                <div
+                  key={title}
+                  className="rounded-2xl border border-[#DDD8CE] bg-[#F6F4EF] p-5"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#0B93A6]/10 text-[#0B93A6]">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold leading-6 text-[#232323]">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-[#6B6B6B]">{description}</p>
                 </div>
               ))}
             </div>
+          </PrecisionReveal>
+        </section>
 
-
-            {/* Decoration */}
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-          </div>
-
-          {/* 3. Product of the Day (Small Box: 4 cols, 1 row) */}
-          <div className="lg:col-span-4 lg:row-span-1 rounded-[2.5rem] bg-card dark:bg-[#0a0f1c] border border-border dark:border-border/50 p-6 flex relative overflow-hidden group hover:border-primary/50 transition-colors min-h-[180px]">
-            <div className="absolute top-0 right-0 bg-accent text-white px-4 py-1 rounded-bl-2xl font-bold text-sm shadow-lg z-10">صفقة الأسبوع</div>
-            {salesPending || !featuredProduct ? (
-              <div className="flex w-full gap-4">
-                <Skeleton className="w-24 h-24 rounded-2xl" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-6 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                </div>
-              </div>
-            ) : (
-              <div className="flex w-full items-center gap-4 relative z-10 cursor-pointer" onClick={() => setLocation(`/products/${featuredProduct.slug}`)}>
-                <div className="w-28 h-28 p-2 rounded-2xl bg-muted/20 dark:bg-white/5 border border-border dark:border-white/10 group-hover:scale-105 transition-transform duration-300">
-                  <img src={cardImage(featuredProduct.images[0]) || "/logo_aquavo.png"} alt={featuredProduct.name} className="w-full h-full object-contain" loading="lazy" decoding="async" width={112} height={112} />
-                </div>
-                <div className="flex-1 text-right space-y-2">
-                  <h3 className="text-xl font-bold leading-tight text-foreground dark:text-white">{featuredProduct.name}</h3>
-                  <div className="flex gap-2 justify-end items-baseline">
-                    {(featuredProduct.price ?? 0) > 0 ? (
-                      <>
-                        <span className="text-2xl font-black text-primary">{formatPrice(featuredProduct.price!)}</span>
-                        {featuredProduct.originalPrice && featuredProduct.originalPrice > featuredProduct.price && (
-                          <span className="text-sm text-muted-foreground line-through">{formatPrice(featuredProduct.originalPrice)}</span>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-2xl font-black text-muted-foreground">قريباً</span>
-                    )}
-                  </div>
-
-                  <Button size="sm" className="w-full bg-secondary hover:bg-secondary/80 dark:bg-white/10 dark:hover:bg-white/20 border border-border dark:border-white/10 text-foreground dark:text-white text-xs h-8">
-                    أضف للسلة +
-                  </Button>
-                </div>
-              </div>
-            )}
-            {/* Background Glow */}
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-accent/10 dark:bg-accent/20 rounded-full blur-[50px] group-hover:bg-accent/20 dark:group-hover:bg-accent/30 transition-colors" />
-          </div>
-
-
-
-          {/* 5. Additional Promo / Categories (Spanning bottom if needed or separate section) */}
-          {/* We have 8 cols for Row 3 covered (4 for Product, 4 for CTA).
-              Wait, Hero is Width 8, Rows 1-2.
-              Best Sellers is Width 4, Rows 1-3.
-              We need to fill Width 8 in Row 3!
-              Product of Day (4) + CTA (4) = 8.
-              So Product of Day is Col 1-4, CTA is Col 5-8.
-              This perfectly fills the grid.
-          */}
-        </div>
-
-        {/* Trust Signals Bar */}
-        <div className="mt-8 flex flex-wrap justify-center gap-6 md:gap-10 py-4 px-6 rounded-2xl bg-card/50 border border-border/50 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Package className="w-4 h-4 text-primary" />
-            <span>منتجات أصلية</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Truck className="w-4 h-4 text-primary" />
-            <span>توصيل لكل العراق خلال 24 ساعة</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Banknote className="w-4 h-4 text-primary" />
-            <span>الدفع عند الاستلام</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Headphones className="w-4 h-4 text-primary" />
-            <span>دعم 24/7</span>
-          </div>
-        </div>
-
-        {/* AI Personalized Recommendations */}
-        <DeferredRender className="content-visibility-auto" minHeight={320}>
-          <Suspense fallback={<div className="mt-16 min-h-80" />}>
-            <PersonalizedSection />
-          </Suspense>
-        </DeferredRender>
-
-        {/* Categories Marquee / Quick Links */}
-        <div className="mt-12 py-8 overflow-hidden relative">
-          <div className="flex gap-4 animate-wave-scroll whitespace-nowrap">
-            {/* Add category pills later */}
-          </div>
-        </div>
+        <section className="border-t border-white/10 bg-[#071821] text-white">
+          <PrecisionReveal className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+            <div>
+              <p className="text-sm font-bold text-white/80">بعدك مو متأكد؟</p>
+              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">دز حجم حوضك ونرتبلك المناسب</h2>
+              <p className="mt-3 text-sm leading-6 text-white/60">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
+            </div>
+            <Link href="/contact" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
+              احچي ويانه
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </PrecisionReveal>
+        </section>
       </main>
 
-      <WaveDivider className="-mt-12 z-0 relative opacity-50" />
-
-      {/* Keep the rest of the sections but style them better later? 
-          For now, I'll keep the Masonry Gallery and Testimonials but maybe hide the old 'Features' and regular 'Best Sellers' since we have them in Bento.
-      */}
-
-      {/* Customer Testimonials - lazy loaded */}
-      <DeferredRender className="content-visibility-auto" minHeight={420}>
-        <Suspense fallback={<div className="py-20" />}>
-          <Testimonials />
-        </Suspense>
-      </DeferredRender>
-
-      {/* Existing Sections Refined - lazy loaded */}
-      <DeferredRender className="content-visibility-auto" minHeight={640}>
-        <Suspense fallback={<div className="py-20" />}>
-          <AquascapeStyles />
-        </Suspense>
-      </DeferredRender>
-
-      <DeferredMount>
-        <BackToTop />
-      </DeferredMount>
-
-      <DeferredRender className="content-visibility-auto" minHeight={720}>
-        <Suspense fallback={<div className="min-h-[720px]" />}>
-          <Footer />
-        </Suspense>
-      </DeferredRender>
+      <Footer />
+      <BackToTop />
     </div>
   );
 }

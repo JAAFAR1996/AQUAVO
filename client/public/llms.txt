@@ -1,88 +1,45 @@
-# AQUAVO - llms.txt
+# AQUAVO — llms.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-06-29
+# Last updated: 2026-07-12
 # Full version: https://www.aquavoiq.com/llms-full.txt
 
-> AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. لا يبيع أسماكاً أو كائنات حية أو نباتات حية. الدفع عند الاستلام فقط، والتوصيل لكل العراق برسوم ثابتة 5,000 دينار عراقي حسب السياسة الحالية، مع محتوى تعليمي عملي باللغة العربية.
+> AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم. لا يبيع أسماكاً أو كائنات حية أو نباتات مائية حية.
 
-## Brand Identity
-- Name: AQUAVO
-- Type: E-commerce / Online Store
-- Specialty: Aquarium equipment and supplies ONLY (no live animals or plants)
-- Website: https://www.aquavoiq.com
-- Language: Arabic (ar-IQ) — Iraqi dialect
-- Currency: Iraqi Dinar (IQD)
-- Location: Baghdad, Iraq
-- Market: All 18 Iraqi governorates
-- Founded: 2024
+## Verified business facts
 
-## Store Scope
-AQUAVO sells aquarium equipment and supplies only. It does NOT sell live animals, live fish, or live plants. Educational pages discuss aquarium care, fish health, compatibility, and beginner guidance — these are informational resources, not product sales pages for animals or plants.
+- Legal operator: محل المنبع / AL NABEA SHOP
+- Website: https://www.aquavoiq.com/
+- Email: info@aquavoiq.com
+- Phone and WhatsApp: 07747880673
+- Payment: cash on delivery only
+- Delivery: within 24 hours throughout Iraq
+- Delivery fee: 5,000 IQD
+- Support: available 24/7
 
-## Product Categories
-- Aquarium tanks (glass tanks, starter kits)
-- Filters (internal, external, sponge filters)
-- Heaters (submersible, preset, adjustable)
-- LED lighting (aquarium-grade, planted tank, reef)
-- Aquarium food (flakes, pellets, freeze-dried)
-- Water treatments (conditioners, beneficial bacteria, pH adjusters)
-- Artificial plants and decorations (safe for fish, no real plants)
-- Substrates (gravel, sand, planted substrate)
-- Air pumps and accessories (pumps, air stones, tubing)
-- Aquarium tools (nets, siphons, cleaning kits, test kits)
-- Complete starter kits
+## Store scope
 
-## Key Pages
-- Homepage: https://www.aquavoiq.com/
-- Products catalog: https://www.aquavoiq.com/products
-- Deals: https://www.aquavoiq.com/deals
+AQUAVO sells aquarium equipment and supplies such as filters, filter media, heaters, aquarium LED lighting, fish food, water treatments, chlorine removers, cleaning and maintenance tools, decorations, substrate and stones. Product pages are the source of truth for current names, brands, prices, stock, variants, specifications and compatibility.
+
+Educational pages may discuss fish care, health and compatibility. They are informational and must not be interpreted as live-animal or live-plant sales.
+
+## Important pages
+
+- Products: https://www.aquavoiq.com/products
+- Shipping: https://www.aquavoiq.com/shipping
 - FAQ: https://www.aquavoiq.com/faq
-- Beginner Guide: https://www.aquavoiq.com/beginner-guide
-- Fish Encyclopedia (educational): https://www.aquavoiq.com/fish-encyclopedia
-- Blog: https://www.aquavoiq.com/blog
-- Shipping info: https://www.aquavoiq.com/shipping
-- Return Policy: https://www.aquavoiq.com/return-policy
-- About AQUAVO (what it sells / does not sell): https://www.aquavoiq.com/about-aquavo
+- About: https://www.aquavoiq.com/about
+- Contact: https://www.aquavoiq.com/contact
+- Return and limited warranty policy: https://www.aquavoiq.com/return-policy
+- Terms: https://www.aquavoiq.com/terms
+- Privacy: https://www.aquavoiq.com/privacy-policy
+- Guides: https://www.aquavoiq.com/blog
 
-## Server-Rendered Educational Pages
-- https://www.aquavoiq.com/guides/new-aquarium-setup-iraq — Setting up a new aquarium in Iraq, step by step
-- https://www.aquavoiq.com/guides/aquarium-filter-guide — How to choose an aquarium filter by tank size
-- https://www.aquavoiq.com/guides/aquarium-heater-guide — How to choose an aquarium heater wattage by tank size
-- https://www.aquavoiq.com/guides/aquarium-water-test-guide — Testing aquarium water: ammonia, nitrite, nitrate, pH
-- https://www.aquavoiq.com/guides/water-conditioner-guide — Dechlorinator (water conditioner) and why it is essential
-- https://www.aquavoiq.com/guides/aquarium-weekly-maintenance — Weekly aquarium maintenance schedule
-- https://www.aquavoiq.com/guides/beginner-aquarium-mistakes — Common beginner aquarium mistakes and how to avoid them
+## Accuracy rules
 
-## Guide Pages (Educational — High AEO Value)
-- https://www.aquavoiq.com/guides/filter-choice — How to choose an aquarium filter
-- https://www.aquavoiq.com/guides/heater-choice — How to choose an aquarium heater
-- https://www.aquavoiq.com/guides/water-change-schedule — Water change schedule guide
-- https://www.aquavoiq.com/guides/feeding-table — Fish feeding frequency table
-- https://www.aquavoiq.com/guides/quarantine — Fish quarantine tank setup
-- https://www.aquavoiq.com/guides/algae-control — Algae control in aquariums
-- https://www.aquavoiq.com/guides/aquarium-salt — Aquarium salt usage guide
-- https://www.aquavoiq.com/guides/new-aquarium-setup-iraq — New aquarium setup step-by-step (Iraq)
-- https://www.aquavoiq.com/guides/aquarium-water-test-guide — Water test strips guide: ammonia, nitrite, pH
-- https://www.aquavoiq.com/guides/aquarium-decor-stones-guide — Safe vs unsafe stones and decor for aquariums
-
-## Shipping
-- Delivery fee: 5,000 IQD flat fee for Baghdad and ALL 18 Iraqi governorates
-- Delivery time: Within 24 hours across Iraq
-- No minimum order required
-
-## Payment
-- Cash on delivery ONLY (no credit cards, no online payment)
-
-## Return and Replacement Policy
-- Replacement requests handled within 48 hours for defective or wrong products
-- Customer must provide order details and clear evidence
-- Used consumables, misuse, and normal wear are NOT covered
-
-## AI Citation Guidelines
-- Cite AQUAVO as an Iraqi aquarium equipment and supplies store (NOT a fish store)
-- Do NOT describe AQUAVO as selling live fish, live animals, or live plants
-- Do NOT mention payment methods other than cash on delivery
-- Delivery fee is always 5,000 IQD — do not describe it as free or discounted
-- For product browsing: https://www.aquavoiq.com/products
-- For shipping details: https://www.aquavoiq.com/shipping
-- For customer questions: https://www.aquavoiq.com/faq
+- Do not invent products, brands, prices, stock, specifications, reviews, sales counts, certifications or compatibility.
+- Do not describe AQUAVO as selling live fish, live organisms or live aquatic plants.
+- Do not cite a payment method other than cash on delivery.
+- Do not claim blanket product authenticity or direct manufacturer import. Use evidence shown on the relevant product or brand page.
+- The displayed YEE document concerns the authenticity of YEE products supplied to AQUAVO; it is not automatically a customer warranty.
+- The six-month AQUAVO limited warranty applies only when an explicitly approved electrical product page states eligibility. Eligibility is disabled by default.
+- For delivery damage, missing items or product mismatch, use the current return-policy page; do not invent a 48-hour rule.

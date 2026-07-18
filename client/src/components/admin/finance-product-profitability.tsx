@@ -185,7 +185,7 @@ export function FinanceProductProfitability({ period }: Props) {
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12, marginBottom: 20 }}>
         {[
-          { label: "إجمالي الإيراد", value: fmt(kpis.totalRevenue), color: "#199bb8" },
+          { label: "إجمالي الإيراد", value: fmt(kpis.totalRevenue), color: "#0B93A6" },
           { label: "إجمالي الربح الخام", value: fmt(kpis.totalGrossProfit), color: "#22c55e" },
           { label: "متوسط الهامش الخام", value: pct(kpis.avgGrossMargin), color: "#22c55e" },
           { label: "قيمة المخزون بالكلفة", value: fmt(kpis.totalInventoryAtCost), color: "#6366f1" },
@@ -215,8 +215,8 @@ export function FinanceProductProfitability({ period }: Props) {
               onClick={() => setFilter(f.key)}
               style={{
                 padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: "pointer",
-                background: filter === f.key ? "#199bb8" : "#0d1f3c",
-                border: filter === f.key ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+                background: filter === f.key ? "#0B93A6" : "#0d1f3c",
+                border: filter === f.key ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
                 color: filter === f.key ? "#fff" : "#94a3b8",
               }}
             >
@@ -285,7 +285,7 @@ export function FinanceProductProfitability({ period }: Props) {
                           onClick={() => openDrill(p.productId)}
                           title="تدقيق — اعرف أي طلبات ساهمت في هذا الرقم"
                           style={{
-                            background: drillProductId === p.productId ? "#199bb840" : "#0d1f3c",
+                            background: drillProductId === p.productId ? "#0B93A640" : "#0d1f3c",
                             border: "1px solid #1e3a5f",
                             color: "#64748b",
                             borderRadius: 4,
@@ -299,7 +299,7 @@ export function FinanceProductProfitability({ period }: Props) {
                       )}
                     </span>
                   </td>
-                  <td style={{ ...td, color: "#199bb8" }}>{p.revenue > 0 ? fmt(Math.round(p.revenue)) : "—"}</td>
+                  <td style={{ ...td, color: "#0B93A6" }}>{p.revenue > 0 ? fmt(Math.round(p.revenue)) : "—"}</td>
                   <td style={{ ...td, color: p.grossProfit > 0 ? "#22c55e" : p.grossProfit < 0 ? "#ef4444" : "#64748b" }}>
                     {p.revenue > 0 ? fmt(Math.round(p.grossProfit)) : "—"}
                   </td>
@@ -347,12 +347,12 @@ export function FinanceProductProfitability({ period }: Props) {
                     <td colSpan={14} style={{ padding: "0 0 12px 0", background: "#010f22" }}>
                       <div style={{
                         margin: "0 12px",
-                        background: "#0a1628",
-                        border: "1px solid #199bb840",
+                        background: "#0B1E28",
+                        border: "1px solid #0B93A640",
                         borderRadius: 8,
                         padding: "12px 16px",
                       }}>
-                        <div style={{ color: "#199bb8", fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
+                        <div style={{ color: "#0B93A6", fontSize: 11, fontWeight: 700, marginBottom: 8 }}>
                           تدقيق مبيعات {p.name} — {p.unitsSold} وحدة
                           {drillLoading && <span style={{ color: "#64748b", fontWeight: 400, marginRight: 8 }}>(جاري التحميل...)</span>}
                         </div>
@@ -408,7 +408,7 @@ export function FinanceProductProfitability({ period }: Props) {
                             <tbody>
                               {drillData.orders.map((o, i) => (
                                 <tr key={i} style={{ borderBottom: "1px solid #1e3a5f20", opacity: o.counted ? 1 : 0.5 }}>
-                                  <td style={{ padding: "4px 8px", color: "#199bb8" }}>{o.orderNumber ?? o.orderId.slice(0, 8) + "…"}</td>
+                                  <td style={{ padding: "4px 8px", color: "#0B93A6" }}>{o.orderNumber ?? o.orderId.slice(0, 8) + "…"}</td>
                                   <td style={{ padding: "4px 8px", color: "#94a3b8" }}>{o.orderStatus}</td>
                                   <td style={{ padding: "4px 8px", color: "#c4b5fd" }}>{o.variantLabel ?? o.variantId ?? "—"}</td>
                                   <td style={{ padding: "4px 8px", color: "#e2e8f0", fontWeight: 700 }}>{o.qty}</td>

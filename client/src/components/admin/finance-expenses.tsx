@@ -82,7 +82,7 @@ const RECURRING_LABELS: Record<"monthly" | "weekly" | "yearly", string> = {
 const S = {
   card: {
     background: "#0d1f3c",
-    border: "1px solid #199bb820",
+    border: "1px solid #0B93A620",
     borderRadius: 12,
     padding: 20,
     marginBottom: 20,
@@ -94,7 +94,7 @@ const S = {
     display: "block",
   } as React.CSSProperties,
   input: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #1e3a5f",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -104,7 +104,7 @@ const S = {
     boxSizing: "border-box",
   } as React.CSSProperties,
   select: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #1e3a5f",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -114,7 +114,7 @@ const S = {
     boxSizing: "border-box",
   } as React.CSSProperties,
   btnPrimary: {
-    background: "#199bb8",
+    background: "#0B93A6",
     color: "#fff",
     border: "none",
     borderRadius: 8,
@@ -353,7 +353,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
                 <span
                   key={c.category}
                   style={{
-                    background: "#010611",
+                    background: "#0B1E28",
                     border: "1px solid #1e3a5f",
                     borderRadius: 6,
                     padding: "3px 10px",
@@ -373,7 +373,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
       {/* Add / Edit form */}
       {showForm && (
         <div style={S.card}>
-          <div style={{ color: "#199bb8", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
+          <div style={{ color: "#0B93A6", fontSize: 13, fontWeight: 700, marginBottom: 16 }}>
             {editingId ? "تعديل المصروف" : "إضافة مصروف جديد"}
           </div>
 
@@ -441,7 +441,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
                 id="isRecurring"
                 checked={form.isRecurring}
                 onChange={e => setForm(f => ({ ...f, isRecurring: e.target.checked, recurringPeriod: e.target.checked ? f.recurringPeriod : "" }))}
-                style={{ accentColor: "#199bb8", width: 14, height: 14 }}
+                style={{ accentColor: "#0B93A6", width: 14, height: 14 }}
               />
               <label htmlFor="isRecurring" style={{ color: "#94a3b8", fontSize: 12, cursor: "pointer" }}>
                 مصروف متكرر
@@ -529,7 +529,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
                       <td style={S.td}>
                         <span
                           style={{
-                            background: "#010611",
+                            background: "#0B1E28",
                             border: "1px solid #1e3a5f",
                             borderRadius: 5,
                             padding: "2px 8px",
@@ -548,7 +548,7 @@ export function FinanceExpenses({ period }: { period: Period }) {
                       </td>
                       <td style={{ ...S.td, textAlign: "center" }}>
                         {expense.isRecurring ? (
-                          <span style={{ color: "#199bb8", fontSize: 11 }}>نعم</span>
+                          <span style={{ color: "#0B93A6", fontSize: 11 }}>نعم</span>
                         ) : (
                           <span style={{ color: "#1e3a5f", fontSize: 11 }}>لا</span>
                         )}
@@ -563,8 +563,8 @@ export function FinanceExpenses({ period }: { period: Period }) {
                           <button
                             style={{
                               background: "transparent",
-                              color: "#199bb8",
-                              border: "1px solid #199bb840",
+                              color: "#0B93A6",
+                              border: "1px solid #0B93A640",
                               borderRadius: 8,
                               padding: "4px 10px",
                               cursor: "pointer",

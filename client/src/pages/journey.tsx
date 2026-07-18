@@ -158,7 +158,7 @@ export default function JourneyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background" ref={topRef}>
+    <div className="min-h-screen overflow-x-hidden bg-background" ref={topRef}>
       <MetaTags
         title="رحلتي مع الحوض"
         description="خطط لإعداد حوضك المثالي خطوة بخطوة مع دليل AQUAVO التفاعلي - من اختيار الحوض حتى إضافة الأسماك"

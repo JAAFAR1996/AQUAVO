@@ -1,12 +1,12 @@
 {
     "name": "AQUAVO - مستلزمات أحواض الزينة",
     "short_name": "AQUAVO",
-    "description": "AQUAVO - وجهتك الأولى لمعدات وتقنيات أحواض الزينة في العراق",
+    "description": "AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم",
     "start_url": "/",
     "display": "standalone",
     "orientation": "portrait-primary",
-    "theme_color": "#199bb8",
-    "background_color": "#0a1628",
+    "theme_color": "#0B93A6",
+    "background_color": "#0B1E28",
     "dir": "rtl",
     "lang": "ar",
     "categories": [
@@ -15,22 +15,10 @@
     ],
     "icons": [
         {
-            "src": "/favicon.png",
-            "sizes": "128x128",
-            "type": "image/png",
-            "purpose": "any"
-        },
-        {
-            "src": "/logo_aquavo_icon.png",
-            "sizes": "192x192",
-            "type": "image/png",
-            "purpose": "maskable any"
-        },
-        {
-            "src": "/logo_aquavo.png",
+            "src": "/brand/aquavo-v2-favicon.png",
             "sizes": "512x512",
             "type": "image/png",
-            "purpose": "any"
+            "purpose": "any maskable"
         }
     ],
     "shortcuts": [
@@ -44,7 +32,7 @@
             "name": "تتبع طلبي",
             "short_name": "تتبع الطلب",
             "description": "تتبع حالة طلبك",
-            "url": "/track"
+            "url": "/order-tracking"
         },
         {
             "name": "قائمة الرغبات",

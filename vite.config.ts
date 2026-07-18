@@ -43,14 +43,6 @@ const getVendorChunkName = (id: string): string | null => {
   if (includesPackage("framer-motion")) return "vendor-animation";
 
   if (
-    includesPackage("recharts") ||
-    includesPackage("recharts-scale") ||
-    moduleId.includes("/node_modules/d3-")
-  ) {
-    return "vendor-charts";
-  }
-
-  if (
     [
       "@tanstack/react-query",
       "date-fns",

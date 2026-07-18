@@ -77,4 +77,97 @@ describe('ProductCard Component', () => {
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', expect.stringContaining('premium-fish-food'));
     });
+
+    it('does not nest buttons inside the product link', () => {
+        const { container } = render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(container.querySelector('a button, button a')).not.toBeInTheDocument();
+    });
+
+    it('keeps the product image contained and dimensioned', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        expect(image).toHaveAttribute('width', '400');
+        expect(image).toHaveAttribute('height', '400');
+        expect(image).toHaveClass('object-contain');
+    });
+
+    // ---- Phase H: responsive image delivery ----
+
+    it('omits srcSet/sizes for local (non-Cloudinary) product images', () => {
+        // mockProduct images are local /images/... paths — only one
+        // pre-generated size exists for these, so there is nothing for a
+        // srcset to pick between.
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        expect(image).not.toHaveAttribute('srcset');
+        expect(image).not.toHaveAttribute('sizes');
+    });
+
+    it('serves a responsive srcSet + sizes for Cloudinary-hosted product images', () => {
+        const cloudinaryProduct = {
+            ...mockProduct,
+            thumbnail: 'https://res.cloudinary.com/demo/image/upload/v1/fish-food.jpg',
+            image: 'https://res.cloudinary.com/demo/image/upload/v1/fish-food.jpg',
+        };
+        render(<ProductCard product={cloudinaryProduct} />, { wrapper: createWrapper() });
+        const image = screen.getByRole('img', { name: /Premium Fish Food/ });
+        const srcSet = image.getAttribute('srcset') ?? '';
+        expect(srcSet).toContain('300w');
+        expect(srcSet).toContain('400w');
+        expect(srcSet).toContain('600w');
+        expect(srcSet).toContain('800w');
+        expect(image).toHaveAttribute(
+            'sizes',
+            '(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw'
+        );
+    });
+
+    it('uses a direct, calm add-to-cart label', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /أضف Premium Fish Food إلى سلة المشتريات/ })).toBeEnabled();
+    });
+
+    // ---- Phase D: product-status accessibility ----
+
+    it('exposes meaningful status badges to the accessibility tree (not aria-hidden)', () => {
+        const product = { ...mockProduct, isNew: true, isBestSeller: true, ecoFriendly: true };
+        render(<ProductCard product={product} />, { wrapper: createWrapper() });
+
+        for (const status of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
+            const el = screen.getByText(status);
+            expect(el).toBeInTheDocument();
+            // No ancestor removes it from the accessibility tree.
+            expect(el.closest('[aria-hidden="true"]')).toBeNull();
+        }
+    });
+
+    it('keeps the decorative eco badge icon out of the accessibility tree', () => {
+        const product = { ...mockProduct, ecoFriendly: true };
+        render(<ProductCard product={product} />, { wrapper: createWrapper() });
+        const ecoBadge = screen.getByText('صديق للبيئة').closest('span, div');
+        const icon = ecoBadge?.querySelector('svg');
+        expect(icon).not.toBeNull();
+        expect(icon).toHaveAttribute('aria-hidden', 'true');
+    });
+
+    // ---- Phase D: compare / wishlist accessible names + touch targets ----
+
+    it('gives the compare control an Arabic accessible name', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: 'إضافة للمقارنة' })).toBeInTheDocument();
+    });
+
+    it('gives the wishlist control an Arabic accessible name', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        expect(screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ })).toBeInTheDocument();
+    });
+
+    it('sizes the compare and wishlist controls to a 44px touch target at every breakpoint', () => {
+        render(<ProductCard product={mockProduct} />, { wrapper: createWrapper() });
+        const compare = screen.getByRole('button', { name: 'إضافة للمقارنة' });
+        const wishlist = screen.getByRole('button', { name: /إضافة Premium Fish Food للمفضلة/ });
+        for (const control of [compare, wishlist]) {
+            expect(control).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+        }
+    });
 });

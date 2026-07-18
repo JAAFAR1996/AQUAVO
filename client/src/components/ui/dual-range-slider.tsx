@@ -75,6 +75,8 @@ const DualRangeSlider = React.forwardRef<
 
                     {/* Min Thumb */}
                     <SliderPrimitive.Thumb
+                        aria-label="الحد الأدنى للسعر"
+                        aria-valuetext={formatValue(value[0])}
                         className={cn(
                             "block h-6 w-6 rounded-full shadow-lg transition-all duration-200",
                             "bg-gradient-to-br from-primary to-accent",
@@ -89,6 +91,8 @@ const DualRangeSlider = React.forwardRef<
 
                     {/* Max Thumb */}
                     <SliderPrimitive.Thumb
+                        aria-label="الحد الأقصى للسعر"
+                        aria-valuetext={formatValue(value[1])}
                         className={cn(
                             "block h-6 w-6 rounded-full shadow-lg transition-all duration-200",
                             "bg-gradient-to-br from-primary to-accent",

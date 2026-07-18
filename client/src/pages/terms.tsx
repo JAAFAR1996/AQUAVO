@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
+import { MetaTags } from "@/components/seo/meta-tags";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -58,11 +59,11 @@ export default function Terms() {
       icon: Shield,
       title: "الضمان",
       content: [
-         "المعدات الإلكترونية (فلاتر، مضخات، إضاءة) مضمونة حسب سياسة الشركة المصنعة",
+         "الضمان المحدود لمدة 6 أشهر يخص فقط المنتج الكهربائي الذي تذكر صفحته بوضوح أنه مشمول",
          "الضمان لا يشمل الأضرار الناتجة عن سوء الاستخدام أو التركيب الخاطئ",
          "يجب الاحتفاظ بفاتورة الشراء للاستفادة من الضمان",
          "المواد الاستهلاكية (أعلاف، مكملات) غير قابلة للاسترجاع بعد الفتح",
-         "الاستبدال متاح خلال 48 ساعة في حال وجود عيب مصنعي"
+         "خلال أول 7 أيام تقويمية يُستبدل المنتج المشمول بعد فحص يثبت عيب التصنيع؛ وبعدها يكون الإصلاح ثم الاستبدال حسب السياسة"
       ]
     }
   ];
@@ -94,6 +95,7 @@ export default function Terms() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="terms-page">
+      <MetaTags title="الشروط والأحكام" description="شروط الطلب والدفع نقداً عند الاستلام والتوصيل والضمان المحدود لدى AQUAVO / محل المنبع." />
       <Navbar />
 
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">

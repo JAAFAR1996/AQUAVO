@@ -109,3 +109,50 @@ export function lightboxImage(url: string | null | undefined): string {
     format: "auto",
   });
 }
+
+/**
+ * Builds a `srcset` descriptor string across several widths for a Cloudinary
+ * URL, so the browser can pick the smallest image that satisfies the actual
+ * rendered size instead of always downloading the single fixed-size variant.
+ *
+ * Returns `undefined` for local/non-Cloudinary assets — those only ship one
+ * pre-generated size today, so there is nothing to build a srcset from and
+ * callers should omit the `srcSet` attribute rather than pass a single-entry
+ * string (which would be equivalent to no srcset at all, but noisier).
+ */
+function buildCloudinarySrcSet(
+  url: string | null | undefined,
+  widths: number[],
+  options: Omit<ImageOptions, "width" | "height">
+): string | undefined {
+  if (!url || typeof url !== "string") return undefined;
+  if (!url.includes("res.cloudinary.com")) return undefined;
+  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
+    return undefined;
+  }
+
+  // Both cardImage and detailImage transform to a square (width === height),
+  // so each srcset entry mirrors that 1:1 aspect at its own size.
+  return widths
+    .map((width) => `${optimizeCloudinaryUrl(url, { ...options, width, height: width })} ${width}w`)
+    .join(", ");
+}
+
+/** Responsive srcset companion to `cardImage` — 300/400/600/800px variants. */
+export function cardImageSrcSet(url: string | null | undefined): string | undefined {
+  return buildCloudinarySrcSet(url, [300, 400, 600, 800], {
+    quality: "auto",
+    format: "auto",
+    crop: "pad",
+    background: "auto",
+  });
+}
+
+/** Responsive srcset companion to `detailImage` — 400/600/800/1200px variants. */
+export function detailImageSrcSet(url: string | null | undefined): string | undefined {
+  return buildCloudinarySrcSet(url, [400, 600, 800, 1200], {
+    quality: "auto:good",
+    format: "auto",
+    crop: "limit",
+  });
+}

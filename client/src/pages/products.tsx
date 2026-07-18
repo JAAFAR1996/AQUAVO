@@ -4,23 +4,21 @@ import { useInView } from "@/hooks/use-in-view";
 import { useLocation } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
-import { AlertCircle, ArrowUpDown, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUpDown, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
-import { useComparison } from "@/contexts/comparison-context";
 import { ProductCard } from "@/components/products/product-card";
 import { CategoryScrollBar } from "@/components/products/category-scroll-bar";
 import { FilterBar } from "@/components/products/filter-bar";
 import type { FilterState } from "@/components/products/filter-modal";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts, fetchProductAttributes, fetchPersonalizedOrder } from "@/lib/api";
 import { ProductCardSkeleton } from "@/components/ui/loading-skeleton";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { BackToTop } from "@/components/back-to-top";
 import { useAuth } from "@/contexts/auth-context";
 import type { Product } from "@/types";
+import { trackViewItemList } from "@/lib/analytics";
 
 const FilterModal = lazy(() => import("@/components/products/filter-modal").then(m => ({ default: m.FilterModal })));
 const QuickViewModal = lazy(() => import("@/components/products/quick-view-modal").then(m => ({ default: m.QuickViewModal })));
@@ -38,7 +36,7 @@ export default function Products() {
   const isRecommendedView = searchParams.get("recommended") === "1";
 
   // Fetch dynamic attributes (categories, brands, price range)
-  const { data: attributes, isLoading: isAttributesLoading } = useQuery({
+  const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
     staleTime: 1000 * 60 * 10, // Cache for 10 minutes
@@ -74,9 +72,6 @@ export default function Products() {
 
   // Ref to track whether we've already done the initial scroll restoration
   const scrollRestored = useRef(false);
-
-  // Comparison - user-initiated
-  const { compareIds, addToCompare, removeFromCompare } = useComparison();
 
   // Update filters when URL params change
   useEffect(() => {
@@ -148,10 +143,12 @@ export default function Products() {
   }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
 
   // Fetch products with backend filtering
-  const { data, isLoading: isProductsLoading, isError } = useQuery({
+  const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 1,
+    retryDelay: 500,
   });
 
   const products = data?.products ?? [];
@@ -201,38 +198,21 @@ export default function Products() {
     return finalProducts.slice(0, displayCount);
   }, [finalProducts, displayCount]);
 
-  const hasMore = displayCount < finalProducts.length;
-
-  // Reveal product cards as they scroll into view — one shared IntersectionObserver
-  // (works on every browser incl. mobile Safari; cheap; unobserves after reveal).
+  const trackedListSignature = useRef("");
   useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    const els = Array.from(
-      document.querySelectorAll<HTMLElement>(".reveal-on-scroll:not(.reveal-in)")
-    );
-    if (els.length === 0) return;
-    els.forEach((el) => el.classList.add("reveal-armed"));
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) {
-            e.target.classList.add("reveal-in");
-            io.unobserve(e.target);
-          }
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.05 }
-    );
-    els.forEach((el) => io.observe(el));
-    // Safety: reveal everything after 1.2s in case the observer never fires.
-    const fallback = window.setTimeout(() => {
-      els.forEach((el) => el.classList.add("reveal-in"));
-    }, 1200);
-    return () => {
-      io.disconnect();
-      window.clearTimeout(fallback);
-    };
-  }, [displayedProducts.length]);
+    const signature = displayedProducts.map((product) => product.id).join(",");
+    if (!signature || signature === trackedListSignature.current) return;
+    trackedListSignature.current = signature;
+    trackViewItemList(displayedProducts.map((product) => ({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+      category: product.category,
+    })), initialCategory ? `products:${initialCategory}` : "products");
+  }, [displayedProducts, initialCategory]);
+
+  const hasMore = displayCount < finalProducts.length;
 
   // Restore scroll position when coming back from product detail page
   useEffect(() => {
@@ -300,7 +280,7 @@ export default function Products() {
     if (sentinelInView && hasMore) loadMore();
   }, [sentinelInView, hasMore]);
 
-  const isLoading = isAttributesLoading || isProductsLoading;
+  const isLoading = isProductsLoading;
 
   // Calculate category counts from ALL products (not filtered)
   const categoryCounts = useMemo(() => {
@@ -361,7 +341,7 @@ export default function Products() {
     return displayedProducts.map((p, idx) => ({
       name: p.name,
       url: `https://www.aquavoiq.com/products/${p.slug}`,
-      image: p.imageUrls?.[0],
+      image: p.images[0] ?? p.image ?? p.thumbnail,
       price: p.price,
       description: p.description?.slice(0, 150),
       position: idx + 1,
@@ -371,8 +351,8 @@ export default function Products() {
   return (
     <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
-        title="معدات أحواض أصلية لكل العراق"
-        description="منتجات أصلية لتجهيز حوضك بثقة — توصيل خلال 24 ساعة لكل العراق."
+        title="متجر معدات الأحواض"
+        description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام وتوصيل لكل العراق."
       />
       <BreadcrumbSchema items={breadcrumbItems} />
       {itemListItems.length > 0 && (
@@ -383,11 +363,11 @@ export default function Products() {
       )}
       <Navbar />
 
-      <main id="main-content" className="flex-1 container mx-auto px-3 sm:px-4 py-4 sm:py-8" dir="rtl">
+      <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-24 sm:px-4 sm:pt-28" dir="rtl">
         {/* Header */}
         <div className="text-center space-y-1 sm:space-y-2 mb-5 sm:mb-6">
-          <h1 className="text-2xl sm:text-4xl font-bold text-foreground">معدات أحواض أصلية لكل العراق</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">اختار القسم المناسب لحوضك، وشوف المنتجات المتوفرة مباشرة.</p>
+          <h1 className="text-2xl font-bold text-foreground sm:text-4xl">جهّز حوضك على أساس واضح</h1>
+          <p className="text-sm text-muted-foreground sm:text-base">اختار القسم، رتّب النتائج، وشوف المعلومات المتوفرة قبل ما تقرر.</p>
         </div>
 
         {/* Recommended banner — shown when arriving from a notification */}
@@ -412,7 +392,7 @@ export default function Products() {
         </div>
 
         {/* Filter Bar with Quick Filters */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
+        <div className="aq-filter-chamber flex flex-col gap-2 ps-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
           <FilterBar
             filters={filters}
             onFiltersChange={setFilters}
@@ -424,17 +404,10 @@ export default function Products() {
 
           {/* Sort & View Toggle */}
           <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
-            <Tabs defaultValue="grid" className="hidden sm:block">
-              <TabsList className="h-9">
-                <TabsTrigger value="grid" className="text-xs">الشبكة</TabsTrigger>
-                <TabsTrigger value="compare" className="text-xs">المقارنة</TabsTrigger>
-              </TabsList>
-            </Tabs>
-
             <div className="flex items-center gap-1 sm:gap-2">
               <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
-                <SelectTrigger className="w-[120px] sm:w-[160px] h-8 sm:h-9 text-xs sm:text-sm">
+                <SelectTrigger aria-label="ترتيب المنتجات" className="h-11 w-[140px] text-xs sm:w-[170px] sm:text-sm">
                   <SelectValue placeholder="ترتيب حسب" />
                 </SelectTrigger>
                 <SelectContent>
@@ -451,7 +424,7 @@ export default function Products() {
         </div>
 
         {/* Results Count */}
-        {!isLoading && (
+        {!isLoading && !isError && (
           <div className="mb-6 text-sm text-muted-foreground flex items-center gap-2 justify-between">
             {finalProducts.length > 0 ? (
               <span>عرض <strong>{displayedProducts.length}</strong> من <strong>{finalProducts.length}</strong> منتج</span>
@@ -474,18 +447,31 @@ export default function Products() {
           </div>
         )}
 
-        {!isLoading && (
+        {isError ? (
+          <section className="rounded-2xl border border-destructive/30 bg-destructive/5 px-5 py-12 text-center" aria-live="polite">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+              <AlertCircle className="h-7 w-7" aria-hidden="true" />
+            </span>
+            <h2 className="mt-5 text-xl font-bold">ما كدرنا نحمّل المنتجات</h2>
+            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+              ممكن الاتصال انقطع مؤقتاً. جرّب مرة ثانية، وإذا استمرت المشكلة تواصل ويانه.
+            </p>
+            <Button type="button" variant="outline" className="mt-6 min-h-11" onClick={() => void refetchProducts()}>
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              حاول مرة ثانية
+            </Button>
+          </section>
+        ) : !isLoading ? (
           <>
             {finalProducts.length > 0 ? (
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
                   {displayedProducts.map((product, index) => (
-                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full reveal-on-scroll">
+                    <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full min-w-0">
                       <ProductCard
                         product={product}
                         priority={index < 8}
                         onQuickView={(p) => setQuickViewProduct(p)}
-                        onCompare={(p) => addToCompare(p.id)}
                       />
                     </div>
                   ))}
@@ -535,17 +521,7 @@ export default function Products() {
               </div>
             )}
           </>
-        )}
-
-        {isError && (
-          <Alert variant="destructive" className="mt-6">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>خطأ في تحميل المنتجات</AlertTitle>
-            <AlertDescription>
-              تعذر تحميل المنتجات. يرجى المحاولة مرة أخرى لاحقاً.
-            </AlertDescription>
-          </Alert>
-        )}
+        ) : null}
       </main>
 
 

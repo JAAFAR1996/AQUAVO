@@ -396,31 +396,31 @@ export default function GuideDecorStonesGuide() {
         </main>
 
         <style>{`
-          .dc-wrap { min-height:100vh; background:#0a1628; color:#e2e8f0; font-family:'Cairo','Segoe UI',system-ui,sans-serif; direction:rtl; }
-          .dc-bar { position:sticky; top:0; z-index:50; height:64px; background:rgba(10,22,40,0.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(25,155,184,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; }
-          .dc-brand { color:#199bb8; font-weight:800; letter-spacing:3px; font-size:1.1rem; text-decoration:none; }
+          .dc-wrap { min-height:100vh; background:#0B1E28; color:#e2e8f0; font-family:'Cairo','Segoe UI',system-ui,sans-serif; direction:rtl; }
+          .dc-bar { position:sticky; top:0; z-index:50; height:64px; background:rgba(10,22,40,0.96); backdrop-filter:blur(10px); border-bottom:1px solid rgba(11,147,166,0.2); display:flex; align-items:center; justify-content:space-between; padding:0 1.5rem; }
+          .dc-brand { color:#0B93A6; font-weight:800; letter-spacing:3px; font-size:1.1rem; text-decoration:none; }
           .dc-nav { display:flex; gap:1rem; }
           .dc-nav-link { color:#94a3b8; font-size:0.82rem; text-decoration:none; transition:color 0.2s; }
-          .dc-nav-link:hover { color:#199bb8; }
+          .dc-nav-link:hover { color:#0B93A6; }
           .dc-main { width:100%; max-width:760px; margin:0 auto; padding:2rem 1.25rem 6rem; display:flex; flex-direction:column; gap:3rem; }
           .dc-breadcrumb { font-size:0.78rem; color:#64748b; display:flex; gap:0.4rem; flex-wrap:wrap; }
           .dc-breadcrumb a { color:#94a3b8; text-decoration:none; }
-          .dc-breadcrumb a:hover { color:#199bb8; }
+          .dc-breadcrumb a:hover { color:#0B93A6; }
           .dc-hero { text-align:center; }
-          .dc-badge { display:inline-block; border:1px solid rgba(25,155,184,0.35); color:#199bb8; font-size:0.7rem; font-weight:700; letter-spacing:1.5px; padding:4px 14px; border-radius:999px; margin-bottom:1.25rem; }
+          .dc-badge { display:inline-block; border:1px solid rgba(11,147,166,0.35); color:#0B93A6; font-size:0.7rem; font-weight:700; letter-spacing:1.5px; padding:4px 14px; border-radius:999px; margin-bottom:1.25rem; }
           .dc-h1 { font-size:clamp(1.5rem,5vw,2.4rem); font-weight:900; color:#f0f9ff; margin:0 0 1.25rem; line-height:1.2; }
-          .dc-answer-block { background:rgba(25,155,184,0.07); border:1px solid rgba(25,155,184,0.2); border-radius:12px; padding:1.25rem 1.5rem; text-align:right; margin-bottom:1rem; }
+          .dc-answer-block { background:rgba(11,147,166,0.07); border:1px solid rgba(11,147,166,0.2); border-radius:12px; padding:1.25rem 1.5rem; text-align:right; margin-bottom:1rem; }
           .dc-answer-text { font-size:0.97rem; color:#cbd5e1; line-height:1.8; margin:0; }
           .dc-meta { font-size:0.78rem; color:#475569; display:flex; gap:0.75rem; justify-content:center; }
-          .dc-store-note { background:rgba(255,215,0,0.05); border:1px solid rgba(255,215,0,0.15); border-radius:10px; padding:1rem 1.25rem; font-size:0.88rem; color:#94a3b8; line-height:1.7; }
-          .dc-store-note strong { color:#ffd700; }
-          .dc-store-link { color:#199bb8; text-decoration:none; font-weight:600; }
+          .dc-store-note { background:rgba(201,122,46,0.05); border:1px solid rgba(201,122,46,0.15); border-radius:10px; padding:1rem 1.25rem; font-size:0.88rem; color:#94a3b8; line-height:1.7; }
+          .dc-store-note strong { color:var(--aqv-warning); }
+          .dc-store-link { color:#0B93A6; text-decoration:none; font-weight:600; }
           .dc-section { display:flex; flex-direction:column; gap:1rem; }
-          .dc-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.5rem; border-right:3px solid #199bb8; padding-right:0.75rem; }
+          .dc-title { font-size:1.2rem; font-weight:800; color:#e2e8f0; margin:0 0 0.5rem; border-right:3px solid #0B93A6; padding-right:0.75rem; }
           .dc-body { font-size:0.92rem; color:#94a3b8; line-height:1.8; margin:0; }
           .dc-test-steps { display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem; }
           .dc-test-step { display:flex; gap:0.85rem; align-items:center; font-size:0.9rem; color:#94a3b8; }
-          .dc-step-num { min-width:28px; height:28px; border-radius:50%; background:rgba(25,155,184,0.12); color:#199bb8; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; }
+          .dc-step-num { min-width:28px; height:28px; border-radius:50%; background:rgba(11,147,166,0.12); color:#0B93A6; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; }
           .dc-results { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; }
           @media(max-width:500px){.dc-results{grid-template-columns:1fr;}}
           .dc-result-safe { background:rgba(34,197,94,0.05); border:1px solid rgba(34,197,94,0.2); border-radius:10px; padding:1rem; display:flex; gap:0.85rem; align-items:flex-start; }
@@ -431,7 +431,7 @@ export default function GuideDecorStonesGuide() {
           .dc-result-safe p,.dc-result-danger p { font-size:0.82rem; color:#94a3b8; margin:0; }
           .dc-table-wrap { overflow-x:auto; }
           .dc-table { width:100%; border-collapse:collapse; font-size:0.84rem; min-width:580px; }
-          .dc-table th { background:rgba(25,155,184,0.12); color:#cbd5e1; padding:0.75rem 0.9rem; text-align:right; font-weight:700; border-bottom:1px solid rgba(25,155,184,0.2); }
+          .dc-table th { background:rgba(11,147,166,0.12); color:#cbd5e1; padding:0.75rem 0.9rem; text-align:right; font-weight:700; border-bottom:1px solid rgba(11,147,166,0.2); }
           .dc-table td { color:#94a3b8; padding:0.65rem 0.9rem; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:top; }
           .dc-table tr:last-child td { border-bottom:none; }
           .dc-safe { color:#86efac; font-weight:700; }
@@ -441,28 +441,28 @@ export default function GuideDecorStonesGuide() {
           .dc-wood-num { min-width:28px; height:28px; border-radius:50%; background:rgba(180,120,60,0.15); color:#d4a257; display:flex; align-items:center; justify-content:center; font-size:0.8rem; font-weight:700; flex-shrink:0; }
           .dc-wood-step strong { display:block; color:#e2e8f0; font-size:0.9rem; margin-bottom:0.2rem; }
           .dc-wood-step p { font-size:0.83rem; color:#64748b; margin:0; line-height:1.5; }
-          .dc-tip { background:rgba(25,155,184,0.07); border:1px solid rgba(25,155,184,0.2); border-radius:8px; padding:0.85rem 1rem; font-size:0.85rem; color:#7dd3fc; }
+          .dc-tip { background:rgba(11,147,166,0.07); border:1px solid rgba(11,147,166,0.2); border-radius:8px; padding:0.85rem 1rem; font-size:0.85rem; color:#7dd3fc; }
           .dc-compare { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
           @media(max-width:500px){.dc-compare{grid-template-columns:1fr;}}
           .dc-compare-col { border-radius:12px; padding:1.25rem; }
-          .dc-natural { background:rgba(25,155,184,0.04); border:1px solid rgba(25,155,184,0.15); }
+          .dc-natural { background:rgba(11,147,166,0.04); border:1px solid rgba(11,147,166,0.15); }
           .dc-artificial { background:rgba(148,163,184,0.04); border:1px solid rgba(148,163,184,0.12); }
           .dc-compare-title { font-size:0.88rem; font-weight:700; color:#e2e8f0; margin-bottom:0.75rem; }
           .dc-compare-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.4rem; }
           .dc-compare-list li { font-size:0.83rem; color:#94a3b8; padding-right:1rem; position:relative; }
-          .dc-compare-list li::before { content:'•'; position:absolute; right:0; color:#199bb8; }
+          .dc-compare-list li::before { content:'•'; position:absolute; right:0; color:#0B93A6; }
           .dc-tips-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; }
           @media(max-width:500px){.dc-tips-grid{grid-template-columns:1fr;}}
           .dc-tip-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:0.85rem 1rem; display:flex; gap:0.75rem; align-items:flex-start; }
           .dc-tip-icon { font-size:1.2rem; flex-shrink:0; }
           .dc-tip-text { font-size:0.83rem; color:#94a3b8; line-height:1.5; }
-          .dc-aquavo-cta { background:rgba(25,155,184,0.04); border:1px solid rgba(25,155,184,0.15); border-radius:14px; padding:1.5rem; }
+          .dc-aquavo-cta { background:rgba(11,147,166,0.04); border:1px solid rgba(11,147,166,0.15); border-radius:14px; padding:1.5rem; }
           .dc-prod-list { display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1.5rem; }
           .dc-prod-item { display:flex; gap:0.85rem; align-items:flex-start; }
           .dc-prod-icon { font-size:1.3rem; flex-shrink:0; margin-top:2px; }
           .dc-prod-item strong { display:block; color:#e2e8f0; font-size:0.9rem; margin-bottom:0.15rem; }
           .dc-prod-item p { font-size:0.82rem; color:#64748b; margin:0; }
-          .dc-cta-btn { display:inline-block; background:linear-gradient(135deg,#199bb8,#0e7490); color:#fff; font-weight:700; font-size:0.95rem; padding:0.85rem 2rem; border-radius:10px; text-decoration:none; transition:opacity 0.2s; }
+          .dc-cta-btn { display:inline-block; background:linear-gradient(135deg,#0B93A6,#0e7490); color:#fff; font-weight:700; font-size:0.95rem; padding:0.85rem 2rem; border-radius:10px; text-decoration:none; transition:opacity 0.2s; }
           .dc-cta-btn:hover{opacity:0.88;}
           .dc-cta-note { font-size:0.8rem; color:#64748b; margin-top:0.5rem; }
           .dc-faq-list { display:flex; flex-direction:column; gap:0.75rem; }
@@ -473,7 +473,7 @@ export default function GuideDecorStonesGuide() {
           .dc-related-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; }
           @media(max-width:560px){.dc-related-grid{grid-template-columns:1fr;}}
           .dc-related-card { background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:1rem; text-decoration:none; display:flex; gap:0.85rem; align-items:flex-start; transition:border-color 0.2s; }
-          .dc-related-card:hover{border-color:rgba(25,155,184,0.4);}
+          .dc-related-card:hover{border-color:rgba(11,147,166,0.4);}
           .dc-related-icon { font-size:1.5rem; flex-shrink:0; }
           .dc-related-title { font-size:0.9rem; font-weight:700; color:#e2e8f0; margin-bottom:0.2rem; }
           .dc-related-desc { font-size:0.8rem; color:#64748b; }

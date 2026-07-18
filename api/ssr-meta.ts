@@ -3,8 +3,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Pool, neonConfig } from "@neondatabase/serverless";
 import ws from "ws";
 import { HTML_TEMPLATE } from "./_html-template.js";
-import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown, renderHomeGuidesSection, renderImportantInternalLinksSection, shouldRenderImportantInternalLinks } from "./_guides-content.js";
-import { getSeoMetaOverride, renderAhrefsSsrContentSection } from "./_seo-content.js";
+import { GUIDE_CONTENT_PAGES, renderGuideHtml, renderGuideMarkdown, renderGuidesIndexHtml, renderGuidesIndexMarkdown } from "./_guides-content.js";
+import { getSeoMetaOverride } from "./_seo-content.js";
+import { isKnownSitePath } from "../shared/site-routes.js";
 
 // ─── DB Setup (lightweight, no Drizzle overhead) ────────────────────────────
 neonConfig.webSocketConstructor = ws;
@@ -22,21 +23,35 @@ function getTemplate(): string {
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 const BASE = "https://www.aquavoiq.com";
-const DEFAULT_IMAGE = `${BASE}/logo_aquavo.png`;
-const CRITICAL_HOME_SHELL = `<section class="critical-home-shell" aria-hidden="true"><div class="critical-home-card"><img src="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" alt="حوض زينة بتصميم مائي من AQUAVO" fetchpriority="high" decoding="sync" width="1200" height="800"><div class="critical-home-copy"><h1>&#1581;&#1608;&#1604; &#1581;&#1608;&#1590;&#1603; &#1573;&#1604;&#1609; &#1578;&#1581;&#1601;&#1577; &#1601;&#1606;&#1610;&#1577;.</h1></div></div></section>`;
+const DEFAULT_IMAGE = `${BASE}/brand/aquavo-v2-horizontal.png`;
 const DEFAULT_TITLE = "AQUAVO — مستلزمات أحواض الزينة في العراق | فلاتر، سخانات، أغذية";
 const DEFAULT_DESC = "AQUAVO متجر عراقي لمعدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكور ومعالجات مياه، مع توصيل لكل العراق ودفع عند الاستلام.";
 const DEFAULT_KEYWORDS = "مستلزمات احواض الزينة العراق، فلاتر احواض بغداد، سخانات احواض، معدات الحوض YEE العراق، احواض زجاجية العراق، علاجات مياه احواض، اغذية احواض الزينة، توصيل العراق";
 
 // ─── Static page metadata ───────────────────────────────────────────────────
-interface PageMeta {
+export interface PageMeta {
   title: string;
   description: string;
   keywords?: string;
   ogType?: string;
   ogTitle?: string;
   jsonLd?: object | object[];
+  notFound?: boolean;
 }
+
+const PRODUCT_CATEGORY_ITEMS = [
+  { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
+  { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
+  { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
+  { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
+  { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
+  { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
+  { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
+  { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
+  { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
+  { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
+  { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
+] as const;
 
 const STATIC_PAGES: Record<string, PageMeta> = {
   "/": {
@@ -51,6 +66,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         "@type": "Organization",
         "@id": `${BASE}/#organization`,
         name: "AQUAVO",
+        legalName: "محل المنبع / AL NABEA SHOP",
         alternateName: ["أكوافو", "AQUAVO Iraq"],
         url: BASE,
         logo: {
@@ -60,7 +76,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           height: 512
         },
         description: "متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة: فلاتر، سخانات، أغذية، ديكورات ومعالجات مياه. الدفع عند الاستلام، وتوصيل لكل العراق برسوم 5,000 د.ع.",
-        foundingDate: "2024",
         knowsAbout: ["أحواض الزينة", "معدات الأحواض", "فلاتر المياه", "علاجات مياه الأحواض", "Aquascaping", "العناية بأسماك الزينة"],
         areaServed: {
           "@type": "Country",
@@ -130,20 +145,8 @@ const STATIC_PAGES: Record<string, PageMeta> = {
         name: "فئات منتجات AQUAVO",
         description: "جميع فئات مستلزمات أحواض الزينة المتوفرة في العراق",
         url: `${BASE}/products`,
-        numberOfItems: 12,
-        itemListElement: [
-          { "@type": "ListItem", position: 1, name: "أحواض زجاجية", url: `${BASE}/products?category=tanks` },
-          { "@type": "ListItem", position: 2, name: "فلاتر", url: `${BASE}/products?category=filters` },
-          { "@type": "ListItem", position: 3, name: "سخانات", url: `${BASE}/products?category=heaters` },
-          { "@type": "ListItem", position: 4, name: "إضاءة LED", url: `${BASE}/products?category=lighting` },
-          { "@type": "ListItem", position: 5, name: "أغذية أسماك", url: `${BASE}/products?category=food` },
-          { "@type": "ListItem", position: 6, name: "علاجات مياه", url: `${BASE}/products?category=treatments` },
-          { "@type": "ListItem", position: 7, name: "ديكورات", url: `${BASE}/products?category=decorations` },
-          { "@type": "ListItem", position: 8, name: "ركائز", url: `${BASE}/products?category=substrates` },
-          { "@type": "ListItem", position: 9, name: "مضخات هواء", url: `${BASE}/products?category=air-pumps` },
-          { "@type": "ListItem", position: 10, name: "مستلزمات الصيانة", url: `${BASE}/products?category=maintenance` },
-          { "@type": "ListItem", position: 11, name: "أطقم كاملة للمبتدئين", url: `${BASE}/products?category=starter-kits` },
-        ],
+        numberOfItems: PRODUCT_CATEGORY_ITEMS.length,
+        itemListElement: PRODUCT_CATEGORY_ITEMS,
       },
       {
         "@context": "https://schema.org",
@@ -308,7 +311,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           // الشحن والتوصيل
           { "@type": "Question", name: "ما هي مناطق التوصيل المتاحة؟", acceptedAnswer: { "@type": "Answer", text: "نوصل إلى بغداد وكل المحافظات العراقية خلال 24 ساعة." } },
           { "@type": "Question", name: "كم تكلفة التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "رسوم التوصيل 5,000 دينار لبغداد وكل المحافظات العراقية." } },
-          { "@type": "Question", name: "هل يمكن تتبع طلبي؟", acceptedAnswer: { "@type": "Answer", text: "نعم! بمجرد شحن طلبك، ستتلقى رسالة نصية ورسالة واتساب تحتوي على رابط التتبع المباشر ورقم الشحنة." } },
+          { "@type": "Question", name: "شلون أعرف حالة طلبي؟", acceptedAnswer: { "@type": "Answer", text: "تواصل ويانه برقم الطلب عبر واتساب أو الهاتف ونراجعلك حالته." } },
           { "@type": "Question", name: "ماذا لو لم أكن متواجداً عند التوصيل؟", acceptedAnswer: { "@type": "Answer", text: "سيتواصل معك مندوب التوصيل قبل الوصول. يمكنك تحديد موعد آخر أو ترك الطلب مع شخص موثوق بعد تأكيد هويته." } },
           { "@type": "Question", name: "شنو يبيع AQUAVO؟", acceptedAnswer: { "@type": "Answer", text: "AQUAVO متخصص بمعدات ومستلزمات الأحواض فقط: فلاتر، سخانات، غذاء، ديكور، إضاءة، ومعالجة مياه. ما نبيع كائنات حية." } },
           // الدفع والفواتير
@@ -318,11 +321,11 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "Question", name: "هل توجد رسوم إضافية مخفية؟", acceptedAnswer: { "@type": "Answer", text: "لا، السعر الذي تراه هو السعر النهائي للمنتجات، ورسوم التوصيل الثابتة 5,000 دينار تظهر بوضوح قبل إتمام الطلب." } },
           { "@type": "Question", name: "هل توجد طرق دفع غير الدفع عند الاستلام؟", acceptedAnswer: { "@type": "Answer", text: "حالياً الدفع نقداً عند الاستلام فقط. إذا فعّلنا أي طريقة دفع إضافية راح تظهر بشكل واضح بالموقع." } },
           // الإرجاع والاستبدال
-          { "@type": "Question", name: "ما هي سياسة الإرجاع؟", acceptedAnswer: { "@type": "Answer", text: "إذا وصلك منتج تالف أو منتج خاطئ، أبلغنا خلال 48 ساعة مع صور واضحة وسنراجع الطلب للاستبدال حسب السياسة." } },
+          { "@type": "Question", name: "شنو أسوي إذا وصل المنتج متضرر أو مختلف؟", acceptedAnswer: { "@type": "Answer", text: "وثّق الحالة وقت الاستلام وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة حتى نراجعها حسب سياسة مشاكل الاستلام." } },
           { "@type": "Question", name: "كيف أطلب إرجاع منتج؟", acceptedAnswer: { "@type": "Answer", text: "تواصل معنا عبر واتساب أو الهاتف مع ذكر رقم الطلب وسبب المشكلة وصور واضحة للمنتج." } },
           { "@type": "Question", name: "متى أستلم المبلغ المسترد؟", acceptedAnswer: { "@type": "Answer", text: "بعد مراجعة حالة الطلب، يتم التعامل معه حسب سياسة الاستبدال أو الاسترداد المعتمدة." } },
-          { "@type": "Question", name: "هل يمكن استبدال المنتج بدلاً من إرجاعه؟", acceptedAnswer: { "@type": "Answer", text: "الاستبدال متاح للمنتج التالف أو المنتج الخاطئ بعد الإبلاغ خلال 48 ساعة ومراجعة الحالة." } },
-          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "في حالة وصول منتج تالف، التقط صوراً واضحة وتواصل معنا خلال 48 ساعة. سنراجع الحالة ونرتب الاستبدال حسب السياسة." } },
+          { "@type": "Question", name: "هل يمكن استبدال المنتج؟", acceptedAnswer: { "@type": "Answer", text: "يعتمد الحل على فحص حالة المنتج ومطابقته للطلب، وقد يكون استبدالاً أو حلاً آخر حسب السياسة." } },
+          { "@type": "Question", name: "ماذا لو وصل المنتج تالفاً؟", acceptedAnswer: { "@type": "Answer", text: "وثّق الضرر قبل الاستخدام وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة حتى نراجع الحالة." } },
           // العناية بالأسماك
           { "@type": "Question", name: "كيف أختار الحوض المناسب؟", acceptedAnswer: { "@type": "Answer", text: "استخدم حاسبة الحوض في موقعنا! بشكل عام، لكل سنتيمتر من طول السمكة تحتاج 2 لتر ماء كحد أدنى. الأحواض الأكبر أسهل في الصيانة." } },
           { "@type": "Question", name: "كم مرة يجب تغيير الماء؟", acceptedAnswer: { "@type": "Answer", text: "ننصح بتغيير 20-30% من الماء أسبوعياً. استخدم مزيل الكلور واترك الماء الجديد ليصل لنفس درجة حرارة الحوض." } },
@@ -330,16 +333,16 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           { "@type": "Question", name: "كم مرة أطعم الأسماك؟", acceptedAnswer: { "@type": "Answer", text: "مرتين يومياً بكمية تستهلكها الأسماك خلال 2-3 دقائق. الإفراط في التغذية أخطر من التقليل ويلوث الماء." } },
           { "@type": "Question", name: "لماذا تموت أسماكي رغم العناية بها؟", acceptedAnswer: { "@type": "Answer", text: "الأسباب الشائعة: عدم تدوير الحوض قبل إضافة الأسماك، تغيير الماء بكميات كبيرة، أو اكتظاظ الحوض. تواصل معنا للتشخيص المجاني." } },
           // المنتجات والجودة
-          { "@type": "Question", name: "هل المنتجات أصلية؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع منتجاتنا أصلية 100% ومستوردة من الشركات المصنعة مباشرة. نوفر ضمان الأصالة على جميع المنتجات." } },
-          { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "نعم، جميع المعدات الإلكترونية (فلاتر، مضخات، سخانات، إضاءة) مغطاة بضمان من 6 أشهر إلى سنتين حسب المنتج." } },
+          { "@type": "Question", name: "شلون أعرف دليل أصالة المنتج؟", acceptedAnswer: { "@type": "Answer", text: "نعرض دليل الأصالة المتوفر لكل براند أو منتج بصفحته. شهادة YEE المعروضة تخص منتجات YEE الموردة إلى AQUAVO ولا تعني ضماناً شاملاً لكل المنتجات." } },
+          { "@type": "Question", name: "هل يوجد ضمان على المعدات؟", acceptedAnswer: { "@type": "Answer", text: "الضمان المحدود لمدة 6 أشهر ينطبق فقط على المنتج الكهربائي الذي تذكر صفحته بوضوح أنه مشمول. إذا ما مذكور، فالضمان غير مفعّل تلقائياً." } },
           { "@type": "Question", name: "هل توفرون كائنات حية؟", acceptedAnswer: { "@type": "Answer", text: "لا. المتجر الإلكتروني متخصص بمعدات ومستلزمات الأحواض فقط." } },
           { "@type": "Question", name: "هل تتوفر منتجات للمبتدئين؟", acceptedAnswer: { "@type": "Answer", text: "نعم! لدينا قسم خاص للمبتدئين يشمل أحواض جاهزة ومعدات سهلة الاستخدام مع دليل عناية مجاني." } },
           { "@type": "Question", name: "هل يمكن طلب منتج غير متوفر؟", acceptedAnswer: { "@type": "Answer", text: "بالتأكيد! أخبرنا بما تحتاجه وسنوفره لك خلال أسبوع إلى أسبوعين. لا يوجد حد أدنى للطلبات الخاصة." } },
           // الضمان والدعم
-          { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الفلاتر والمضخات: سنة واحدة. السخانات والإضاءة LED: 6 أشهر. الأحواض: ضمان ضد التسريب لمدة سنة." } },
-          { "@type": "Question", name: "ماذا يغطي الضمان؟", acceptedAnswer: { "@type": "Answer", text: "الضمان يغطي عيوب التصنيع والأعطال غير الناتجة عن سوء الاستخدام. لا يشمل الأضرار الناتجة عن الكهرباء غير المستقرة." } },
+          { "@type": "Question", name: "ما هي مدة الضمان؟", acceptedAnswer: { "@type": "Answer", text: "6 أشهر للمنتجات الكهربائية المعتمدة والمذكور شمولها بوضوح في صفحة المنتج، وتبدأ من تاريخ الاستلام المؤكد." } },
+          { "@type": "Question", name: "ماذا يغطي الضمان؟", acceptedAnswer: { "@type": "Answer", text: "يغطي عيب التصنيع المثبت بعد الفحص للمنتجات المشمولة فقط، ولا يشمل سوء الاستخدام أو التركيب الخاطئ أو الضرر الخارجي." } },
           { "@type": "Question", name: "كيف أستفيد من الضمان؟", acceptedAnswer: { "@type": "Answer", text: "احتفظ بفاتورة الشراء. عند حدوث مشكلة، تواصل معنا مع صور المنتج ورقم الفاتورة. سنوجهك للخطوات التالية." } },
-          { "@type": "Question", name: "هل تقدمون دعماً فنياً؟", acceptedAnswer: { "@type": "Answer", text: "نعم! نوفر دعماً فنياً مجانياً عبر واتساب والهاتف. كما نقدم زيارات منزلية للمساعدة في تركيب وصيانة الأحواض الكبيرة." } },
+          { "@type": "Question", name: "هل تقدمون دعماً فنياً؟", acceptedAnswer: { "@type": "Answer", text: "الدعم متوفر 24/7 عبر واتساب والهاتف للمساعدة باختيار المعدات ومراجعة المشكلة." } },
           { "@type": "Question", name: "هل تتوفر قطع غيار؟", acceptedAnswer: { "@type": "Answer", text: "نعم، نوفر قطع غيار لمعظم المنتجات التي نبيعها. تواصل معنا مع موديل المنتج وسنخبرك بالتوفر والسعر." } },
         ],
       },
@@ -372,7 +375,7 @@ const STATIC_PAGES: Record<string, PageMeta> = {
   },
   "/about": {
     title: "من نحن - AQUAVO متجر مستلزمات أحواض الزينة في العراق",
-    description: "AQUAVO (اكوافو) متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق. تأسسنا في بغداد عام 2024 لخدمة هواة الأحواض في كل المحافظات العراقية بمنتجات أصلية حسب المتوفر.",
+    description: "AQUAVO (اكوافو) براند ومتجر عراقي متخصص في معدات ومستلزمات أحواض الزينة البريميوم، مع توصيل لكل العراق ودفع نقداً عند الاستلام.",
     keywords: "AQUAVO، اكوافو، من نحن، مستلزمات أحواض الزينة في العراق، معدات أحواض بغداد",
     jsonLd: [
       {
@@ -387,7 +390,6 @@ const STATIC_PAGES: Record<string, PageMeta> = {
           alternateName: "اكوافو",
           url: BASE,
           logo: DEFAULT_IMAGE,
-          foundingDate: "2024",
           foundingLocation: { "@type": "Place", name: "بغداد، العراق" },
           description: "متجر إلكتروني متخصص في مستلزمات أحواض الزينة في العراق — فلاتر، سخانات، أغذية وعلاجات أصلية.",
           knowsAbout: ["أحواض الزينة", "معدات الأحواض", "Aquascaping", "مستلزمات الأحواض", "فلاتر المياه", "معالجة مياه الأحواض"],
@@ -477,6 +479,65 @@ for (const g of GUIDE_META) {
 }
 
 // ─── Fetch dynamic metadata from DB ─────────────────────────────────────────
+interface ProductDescriptionInput {
+  name: string;
+  brand?: string | null;
+  description?: string | null;
+  specifications?: Record<string, unknown> | null;
+}
+
+function includesTerm(value: string, term: string): boolean {
+  return value.toLocaleLowerCase("en").includes(term.trim().toLocaleLowerCase("en"));
+}
+
+function factualProductLabel(product: ProductDescriptionInput): string {
+  const details: string[] = [product.name.trim()];
+  const brand = product.brand?.trim();
+  if (brand && !includesTerm(product.name, brand)) details.push(brand);
+
+  const specs = product.specifications ?? {};
+  const modelOrSize = ["model", "Model", "الموديل", "size", "Size", "الحجم"]
+    .map((key) => specs[key])
+    .find((value) => typeof value === "string" || typeof value === "number");
+  if (modelOrSize != null && !includesTerm(details.join(" "), String(modelOrSize))) {
+    details.push(String(modelOrSize).trim());
+  }
+  return details.filter(Boolean).join(" ");
+}
+
+function productDescriptionFallback(product: ProductDescriptionInput): string {
+  return `${factualProductLabel(product)} من معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO. راجع تفاصيل المنتج لاختيار ما يناسب احتياج حوضك.`;
+}
+
+/** Build a concise snippet from complete factual sentences; never cut a sentence mid-way. */
+export function buildProductMetaDescription(product: ProductDescriptionInput): string {
+  const normalized = (product.description ?? "").replace(/\s+/g, " ").trim();
+  if (!normalized || /(?:\.{2,}|…)$/.test(normalized)) return productDescriptionFallback(product);
+
+  const completeSentences = normalized.match(/[^.!؟]+[.!؟]+/g)?.map((sentence) => sentence.trim()) ?? [];
+  if (completeSentences.length === 0) {
+    return normalized.length <= 155 ? `${normalized}.` : productDescriptionFallback(product);
+  }
+
+  let result = "";
+  for (const sentence of completeSentences) {
+    const candidate = result ? `${result} ${sentence}` : sentence;
+    if (candidate.length > 160) break;
+    result = candidate;
+  }
+  return result || productDescriptionFallback(product);
+}
+
+/** Append the site name exactly once and avoid repeating a product brand already in its name. */
+export function buildProductMetaTitle(name: string, brand?: string | null): string {
+  const cleanName = name.replace(/\s*[|\-–—]\s*AQUAVO\s*$/i, "").trim();
+  const cleanBrand = brand?.trim();
+  const productTitle = cleanBrand && !includesTerm(cleanName, cleanBrand)
+    ? `${cleanName} - ${cleanBrand}`
+    : cleanName;
+  return `${productTitle} | AQUAVO`;
+}
+
 async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?: string }) | null> {
   const db = getPool();
   if (!db) return null;
@@ -496,35 +557,47 @@ async function getProductMeta(slug: string): Promise<(PageMeta & { productImage?
     const variantStock = defaultVariant ? Number(defaultVariant.stock ?? 0) : stock;
     const schemaPrice = defaultVariant?.price ?? p.price;
     const inStock = p.hasVariants && defaultVariant ? stock > 0 && variantStock > 0 : stock > 0;
-    const rawDesc = p.description
-      || `تسوق ${p.name} من AQUAVO في العراق. توصيل لكل العراق خلال 24 ساعة.`;
-    const desc = rawDesc.length > 158
-      ? rawDesc.slice(0, rawDesc.lastIndexOf(" ", 155) || 155) + "..."
-      : rawDesc;
+    const desc = buildProductMetaDescription({
+      name: p.name,
+      brand: p.brand,
+      description: p.description,
+      specifications: p.specifications,
+    });
     const rawImage = (p.images && p.images.length > 0 ? p.images[0] : p.thumbnail) || DEFAULT_IMAGE;
     const primaryImage = rawImage.startsWith("http") ? rawImage : `${BASE}${rawImage}`;
     return {
-      title: `${p.name}${p.brand ? ` - ${p.brand}` : ""} | AQUAVO`,
+      title: buildProductMetaTitle(p.name, p.brand),
       description: desc,
       keywords: `${p.name}، ${p.category || "مستلزمات احواض"}، ${p.brand || "AQUAVO"}، شراء اونلاين العراق`,
       ogType: "product",
       productImage: primaryImage,
-      jsonLd: {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        name: p.name,
-        description: desc,
-        image: primaryImage,
-        brand: { "@type": "Brand", name: p.brand || "AQUAVO" },
-        offers: {
-          "@type": "Offer",
-          price: schemaPrice,
-          priceCurrency: p.currency || "IQD",
-          availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-          url: `${BASE}/products/${p.slug}`,
-          seller: { "@type": "Organization", name: "AQUAVO" },
+      jsonLd: [
+        {
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          description: desc,
+          image: primaryImage,
+          ...(p.brand ? { brand: { "@type": "Brand", name: p.brand } } : {}),
+          offers: {
+            "@type": "Offer",
+            price: schemaPrice,
+            priceCurrency: p.currency || "IQD",
+            availability: inStock ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+            url: `${BASE}/products/${p.slug}`,
+            seller: { "@type": "Organization", name: "AQUAVO" },
+          },
         },
-      },
+        {
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "الرئيسية", item: BASE },
+            { "@type": "ListItem", position: 2, name: "المنتجات", item: `${BASE}/products` },
+            { "@type": "ListItem", position: 3, name: p.name, item: `${BASE}/products/${p.slug}` },
+          ],
+        },
+      ],
     };
   } catch (err) {
     console.error("SSR meta: product query error", err);
@@ -583,9 +656,19 @@ async function getBlogMeta(slug: string): Promise<PageMeta | null> {
 }
 
 // ─── Resolve metadata for any path ──────────────────────────────────────────
-async function resolveMetadata(pathname: string): Promise<PageMeta & { url: string; image: string }> {
+async function resolveMetadata(pathname: string, notFound = false): Promise<PageMeta & { url: string; image: string }> {
   const cleanPath = pathname.replace(/\/+$/, "") || "/";
   const seoOverride = getSeoMetaOverride(cleanPath);
+
+  if (notFound) {
+    return {
+      title: "الصفحة غير موجودة | AQUAVO",
+      description: "الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO.",
+      url: `${BASE}${cleanPath}`,
+      image: DEFAULT_IMAGE,
+      notFound: true,
+    };
+  }
 
   // Static pages
   if (STATIC_PAGES[cleanPath]) {
@@ -650,7 +733,7 @@ function safeJsonLd(obj: object): string {
 }
 
 // ─── Inject metadata into HTML ──────────────────────────────────────────────
-function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
+export function injectMeta(html: string, meta: PageMeta & { url: string; image: string }): string {
   let jsonLdScript = "";
   if (meta.jsonLd) {
     if (Array.isArray(meta.jsonLd)) {
@@ -686,6 +769,17 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
     );
   }
 
+  if (meta.notFound) {
+    result = result
+      .replace(/\s*<link\b[^>]*\brel=["']canonical["'][^>]*>/gi, "")
+      .replace(/\s*<meta\b[^>]*\bproperty=["']og:[^"']+["'][^>]*>/gi, "")
+      .replace(/\s*<meta\b[^>]*\bname=["']twitter:[^"']+["'][^>]*>/gi, "")
+      .replace(
+        /<meta\b[^>]*\bname=["']robots["'][^>]*>/i,
+        '<meta name="robots" content="noindex, follow">'
+      );
+  }
+
   // Performance: strip unused modulepreloads (vendor-charts only for admin, vendor-animation deferred)
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-charts[^>]*>\n?/g, '');
   result = result.replace(/<link rel="modulepreload"[^>]*vendor-animation[^>]*>\n?/g, '');
@@ -700,49 +794,52 @@ function injectMeta(html: string, meta: PageMeta & { url: string; image: string 
   result = result.replace(/<link rel="preconnect"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
   result = result.replace(/<link rel="dns-prefetch"[^>]*analytics\.tiktok[^>]*>\n?/g, '');
 
-  // Performance: for product pages, replace hero preload with product image preload
+  // Route-aware LCP preload: home hero, product primary image, or none.
+  const imagePreloadPattern = /<link\b(?=[^>]*\brel=["']preload["'])(?=[^>]*\bas=["']image["'])[^>]*>\s*/gi;
+  result = result.replace(imagePreloadPattern, "");
   const isProductPage = meta.ogType === 'product' && meta.image && meta.image !== DEFAULT_IMAGE;
+  const isHomePage = !meta.notFound && new URL(meta.url, BASE).pathname === "/";
+  let imagePreload = "";
   if (isProductPage) {
-    // Replace hero image preload with product LCP image preload
-    result = result.replace(
-      /<link rel="preload" as="image"[^>]*iwagumi[^>]*>/,
-      `<link rel="preload" as="image" href="${safeImage}" fetchpriority="high">`
-    );
+    const preloadImage = escapeHtml(safeHttpUrl(toDetailPreloadImage(meta.image), DEFAULT_IMAGE));
+    imagePreload = `<link rel="preload" as="image" href="${preloadImage}" fetchpriority="high">`;
+  } else if (isHomePage) {
+    imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
+  }
+  if (imagePreload) {
+    result = result.replace("<!-- Open Graph / Facebook -->", `${imagePreload}\n\n  <!-- Open Graph / Facebook -->`);
   }
 
   // Inject JSON-LD
-  result = result.replace(/__JSON_LD__/g, jsonLdScript);
-
-  const metaPath = meta.url.replace(BASE, "") || "/";
-  const ahrefsSeoShell = renderAhrefsSsrContentSection(metaPath);
-  const importantLinksShell = shouldRenderImportantInternalLinks(metaPath)
-    ? renderImportantInternalLinksSection()
-    : "";
-
-  if (metaPath === "/" || metaPath === "/ar") {
-    result = result.replace(
-      /<link rel="stylesheet"([^>]*?)href="(\/assets\/[^"]+\.css)"([^>]*)>/,
-      (_tag, before, href, after) => `<link rel="stylesheet"${before}href="${href}"${after} media="print" data-app-css>`
-    );
-    // Robust against root div attribute changes (e.g. dir="rtl"): inject the
-    // critical LCP shell before #root, and the visible, crawlable AQUAVO Guides
-    // + FAQ section after #root (real text in View Source — no clip/aria-hidden).
-    result = result.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${CRITICAL_HOME_SHELL}${rootDiv}${renderHomeGuidesSection(BASE)}${importantLinksShell}`
-    );
-  } else if (ahrefsSeoShell || importantLinksShell) {
-    result = result.replace(
-      /<div id="root"[^>]*><\/div>/,
-      (rootDiv) => `${rootDiv}${ahrefsSeoShell}${importantLinksShell}`
-    );
-  }
+  result = result
+    .replace(/<!--__JSON_LD__-->/g, jsonLdScript)
+    .replace(/__JSON_LD__/g, jsonLdScript);
 
   return result;
 }
 
 function escapeHtml(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Mirrors the exact Cloudinary transform the PDP main image uses
+// (client/src/lib/cloudinary.ts `detailImage`: width 800, height 800,
+// quality auto:good, format auto, crop limit) so the SSR LCP preload targets
+// the SAME asset the rendered <img> requests — otherwise the browser fetches
+// both the raw and the transformed URL and the preload goes unused.
+//
+// `detailImage` itself cannot be imported here: it composes
+// `preferLocalWebp`, which reads `window.location.origin` and would throw
+// in this Node/Vercel serverless runtime, and the `@/*` client path alias
+// isn't wired into api/tsconfig.json. Non-Cloudinary (local) URLs are
+// returned unchanged, matching `optimizeCloudinaryUrl`'s own fallback.
+function toDetailPreloadImage(url: string): string {
+  if (!url.includes("res.cloudinary.com")) return url;
+  // Don't double-transform an already-transformed URL.
+  if (url.includes("/upload/f_") || url.includes("/upload/w_") || url.includes("/upload/q_")) {
+    return url;
+  }
+  return url.replace("/upload/", "/upload/f_auto,q_auto:good,w_800,h_800,c_limit/");
 }
 
 // Only allow http(s) URLs into href/src/content attributes; reject javascript:/data: etc.
@@ -777,12 +874,7 @@ function generateMarkdown(meta: PageMeta & { url: string; image: string }, pathn
     lines.push(`- \`GET /api/products?search={query}\` — Search products`);
     lines.push(`- \`GET /api/fish\` — Fish species database`);
     lines.push(`- \`GET /api/blog\` — Blog articles`);
-    lines.push(`- \`GET /api/orders/track/{orderNumber}\` — Track an order\n`);
     lines.push(`## Agent Discovery\n`);
-    lines.push(`- [API Catalog](${BASE}/.well-known/api-catalog) (RFC 9727)`);
-    lines.push(`- [MCP Server Card](${BASE}/.well-known/mcp/server-card.json)`);
-    lines.push(`- [Agent Skills](${BASE}/.well-known/agent-skills/index.json)`);
-    lines.push(`- [ACP](${BASE}/.well-known/acp.json)\n`);
     lines.push(`## Contact\n`);
     lines.push(`- Phone: +964 774 788 0673`);
     lines.push(`- Website: ${BASE}`);
@@ -834,7 +926,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const template = getTemplate();
-    const meta = await resolveMetadata(pathname);
+    const status = isKnownSitePath(pathname, Object.keys(GUIDE_CONTENT_PAGES)) ? 200 : 404;
+    const meta = await resolveMetadata(pathname, status === 404);
     const html = injectMeta(template, meta);
 
     // Markdown for Agents: If Accept: text/markdown, return markdown version
@@ -843,12 +936,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const md = generateMarkdown(meta, pathname);
       res.setHeader("Content-Type", "text/markdown; charset=utf-8");
       res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-      return res.status(200).send(md);
+      return res.status(status).send(md);
     }
 
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
-    return res.status(200).send(html);
+    return res.status(status).send(html);
   } catch (err) {
     console.error("SSR meta handler error:", err);
     // Fallback: serve template with defaults

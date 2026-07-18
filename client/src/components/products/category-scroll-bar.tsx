@@ -188,8 +188,16 @@ export function CategoryScrollBar({
         const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
         const isRTL = document.documentElement.dir === "rtl";
         if (isRTL) {
-            setShowRightArrow(scrollLeft < 0);
-            setShowLeftArrow(scrollLeft > -(scrollWidth - clientWidth));
+            // RTL uses the negative-scrollLeft convention: scrollLeft=0 is the start
+            // (first category, rightmost visually) and scrollLeft=-(scrollWidth-clientWidth)
+            // is the end (last category, leftmost visually).
+            // "التالية" (next, showRightArrow, scroll("right")) should be actionable
+            // whenever we're not yet at the end — a 10px tolerance absorbs subpixel
+            // rounding so it doesn't falsely show once the true end is reached.
+            setShowRightArrow(scrollLeft > -(scrollWidth - clientWidth - 10));
+            // "السابقة" (previous, showLeftArrow, scroll("left")) should be actionable
+            // whenever we're not at the start.
+            setShowLeftArrow(scrollLeft < 0);
         } else {
             setShowLeftArrow(scrollLeft > 0);
             setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
@@ -242,7 +250,7 @@ export function CategoryScrollBar({
                     )}
                 >
                     <LayoutGrid className="w-4 h-4" />
-                    <span className="text-[11px] font-medium leading-none">الكل</span>
+                    <span className="text-[11px] font-medium leading-[1.4]">الكل</span>
                 </button>
 
                 {organizedCategories.map(({ key, config, rawCategories, totalCount }) => {
@@ -260,10 +268,12 @@ export function CategoryScrollBar({
                             )}
                         >
                             <Icon className={cn("w-4 h-4", !isSelected && config.color)} />
-                            <span className="text-[11px] font-medium leading-none whitespace-nowrap">
+                            <span className="text-[11px] font-medium leading-[1.4] whitespace-nowrap">
                                 {config.label}
                                 {totalCount > 0 && !isSelected && (
-                                    <span className="mr-0.5 opacity-60">({totalCount})</span>
+                                    <span className="mr-0.5 rounded-full bg-[#0B1E28] px-1 py-px text-[#F6F4EF]">
+                                        ({totalCount})
+                                    </span>
                                 )}
                             </span>
                         </button>
@@ -279,10 +289,11 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="التمرير لعرض الفئات السابقة"
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("left")}
                         >
-                            <ChevronRight className="h-4 w-4" />
+                            <ChevronRight className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
                 )}
@@ -292,10 +303,11 @@ export function CategoryScrollBar({
                         <Button
                             variant="ghost"
                             size="icon"
+                            aria-label="التمرير لعرض الفئات التالية"
                             className="relative h-8 w-8 rounded-full bg-background/90 shadow border border-border/50"
                             onClick={() => scroll("right")}
                         >
-                            <ChevronLeft className="h-4 w-4" />
+                            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
                         </Button>
                     </div>
                 )}
@@ -309,7 +321,7 @@ export function CategoryScrollBar({
                     <button
                         onClick={clearAll}
                         className={cn(
-                            "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0",
+                            "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-semibold transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                             allSelected
                                 ? "bg-primary text-white border-primary shadow-md"
                                 : "bg-muted/40 border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
@@ -329,7 +341,7 @@ export function CategoryScrollBar({
                                 key={key}
                                 onClick={() => toggleGroup(rawCategories)}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0",
+                                    "flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 min-h-11",
                                     isSelected
                                         ? "bg-primary text-white border-primary shadow-md"
                                         : "bg-muted/40 border-border/40 text-muted-foreground hover:border-primary/40 hover:text-foreground"
@@ -340,7 +352,7 @@ export function CategoryScrollBar({
                                 {totalCount > 0 && (
                                     <span className={cn(
                                         "text-[11px] px-1.5 py-0.5 rounded-full font-medium",
-                                        isSelected ? "bg-white/25 text-white" : "bg-muted text-muted-foreground"
+                                        isSelected ? "bg-[#075F6B] text-[#F6F4EF]" : "bg-[#0B1E28] text-[#F6F4EF]"
                                     )}>
                                         {totalCount}
                                     </span>

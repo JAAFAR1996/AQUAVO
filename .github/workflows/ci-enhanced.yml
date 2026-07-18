@@ -14,7 +14,7 @@ on:
 
 env:
   NODE_VERSION: 20.19.0
-  PNPM_VERSION: 9.1.0
+  PNPM_VERSION: 10.0.0
   CI: true
 
 concurrency:
@@ -103,6 +103,14 @@ jobs:
 
       - name: 📚 Install dependencies
         run: pnpm install --prefer-offline
+        timeout-minutes: 10
+
+      # SSR suites import api/ssr-meta.ts, which imports the build-generated,
+      # gitignored api/_html-template.ts. This job runs in a fresh filesystem
+      # and does not share artifacts with the Build job, so it must generate
+      # the template itself before Vitest loads the SSR test files.
+      - name: 🏗️ Build (generate SSR template)
+        run: pnpm run build
         timeout-minutes: 10
 
       - name: 🧪 Run unit tests

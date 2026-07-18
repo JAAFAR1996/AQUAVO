@@ -742,7 +742,7 @@ export default function BeginnerGuide() {
         url="https://www.aquavoiq.com/beginner-guide"
         canonicalUrl="https://www.aquavoiq.com/beginner-guide"
       />
-    <div className="relative bg-[#010611] text-white min-h-screen w-full" dir="rtl">
+    <div className="relative bg-[#0B1E28] text-white min-h-screen w-full" dir="rtl">
       {/* Layers */}
       <AmbientBg idx={activeIdx} />
       <FloatingBubbles />

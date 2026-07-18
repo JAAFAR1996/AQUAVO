@@ -16,13 +16,13 @@ const pages = [
 
 export default function Guide5Mistakes() {
   return (
-    <div className="min-h-screen bg-[#010611] text-white" dir="rtl">
+    <div className="min-h-screen bg-[#0B1E28] text-white" dir="rtl">
       {/* Sticky top bar */}
       <header
         style={{ backdropFilter: "blur(8px)" }}
-        className="sticky top-0 z-50 h-16 bg-[#010611]/96 border-b border-[#199BB8]/35 flex items-center justify-between px-4"
+        className="sticky top-0 z-50 h-16 bg-[#0B1E28]/96 border-b border-[#0B93A6]/35 flex items-center justify-between px-4"
       >
-        <a href="/" className="text-[#199BB8] font-bold tracking-[4px] text-lg">
+        <a href="/" className="text-[#0B93A6] font-bold tracking-[4px] text-lg">
           AQUAVO
         </a>
 
@@ -31,7 +31,7 @@ export default function Guide5Mistakes() {
             href={PDF_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-[#E8EDF2] border border-[#199BB8]/45 hover:bg-[#199BB8]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
+            className="flex items-center gap-1.5 text-[#E8EDF2] border border-[#0B93A6]/45 hover:bg-[#0B93A6]/10 text-xs sm:text-sm h-9 px-3 rounded-full font-bold transition-colors"
           >
             <span className="hidden sm:inline">فتح PDF</span>
             <ExternalLink className="w-4 h-4" />
@@ -40,7 +40,7 @@ export default function Guide5Mistakes() {
           <a
             href={PDF_URL}
             download="aquavo-guide-5-mistakes.pdf"
-            className="flex items-center gap-1.5 bg-[#199BB8] text-[#010611] hover:bg-[#199BB8]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
+            className="flex items-center gap-1.5 bg-[#0B93A6] text-[#0B1E28] hover:bg-[#0B93A6]/85 text-xs sm:text-sm h-9 px-3 sm:px-4 rounded-full font-bold transition-colors"
           >
             <span>تحميل PDF</span>
             <Download className="w-4 h-4" />
@@ -59,7 +59,7 @@ export default function Guide5Mistakes() {
             decoding="async"
             width={720}
             height={1018}
-            className="block w-full h-auto mb-4 last:mb-0 rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.45)] bg-[#0A1628]"
+            className="block w-full h-auto mb-4 last:mb-0 rounded-xl shadow-[0_18px_50px_rgba(0,0,0,0.45)] bg-[#0B1E28]"
           />
         ))}
       </main>

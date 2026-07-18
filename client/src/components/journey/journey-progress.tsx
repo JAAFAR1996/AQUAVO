@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { JourneyStepDefinition } from "@/types/journey";
@@ -10,18 +10,19 @@ interface JourneyProgressProps {
 }
 
 export function JourneyProgress({ steps, currentStep, setCurrentStep }: JourneyProgressProps) {
+    const reduceMotion = useReducedMotion();
     return (
         <div className="max-w-5xl mx-auto mb-12">
             <div className="relative">
                 {/* Background bar */}
-                <div className="absolute top-5 right-0 w-full h-1 bg-muted rounded-full" />
+                <div className="absolute top-4 right-0 w-full h-1 bg-muted rounded-full md:top-5" />
 
                 {/* Progress bar - RTL: starts from right */}
                 <motion.div
-                    className="absolute top-5 right-0 h-1 bg-primary rounded-full origin-right"
+                    className="absolute top-4 right-0 h-1 bg-primary rounded-full origin-right md:top-5"
                     initial={{ width: "0%" }}
                     animate={{ width: `${(currentStep / (steps.length - 1)) * 100}%` }}
-                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    transition={{ duration: reduceMotion ? 0 : 0.5, ease: "easeOut" }}
                 />
 
                 {/* Steps */}
@@ -38,14 +39,14 @@ export function JourneyProgress({ steps, currentStep, setCurrentStep }: JourneyP
                             >
                                 <motion.button
                                     className={cn(
-                                        "w-10 h-10 md:w-12 md:h-12 rounded-full border-4 flex items-center justify-center bg-background transition-all duration-300",
+                                        "h-8 w-8 rounded-full border-[3px] flex items-center justify-center bg-background transition-all duration-300 md:h-12 md:w-12 md:border-4",
                                         isCompleted ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/25" :
-                                            isCurrent ? "border-primary text-primary shadow-lg shadow-primary/25 scale-110" :
+                                            isCurrent ? "border-primary text-primary shadow-lg shadow-primary/25 scale-105 md:scale-110" :
                                                 "border-muted text-muted-foreground"
                                     )}
                                     onClick={() => setCurrentStep(index)}
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
+                                    whileHover={reduceMotion ? undefined : { scale: 1.1 }}
+                                    whileTap={reduceMotion ? undefined : { scale: 0.95 }}
                                     aria-label={`الخطوة ${index + 1}: ${step.title}`}
                                 >
                                     {isCompleted ? (

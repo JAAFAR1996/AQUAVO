@@ -1,247 +1,207 @@
-import React, { useState, memo } from "react";
-import { Product } from "@/types";
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { DifficultyBadge } from "@/components/ui/difficulty-badge";
-import { Heart, ShoppingCart, Leaf, Eye } from "lucide-react";
-
-import { useToast } from "@/hooks/use-toast";
-import { useCart } from "@/contexts/cart-context";
-import { WishlistButton } from "@/components/wishlist/wishlist-button";
-import { CompareButton } from "@/components/products/product-comparison";
+import { memo, useState, type MouseEvent } from "react";
+import { Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useABTest, EXPERIMENTS, trackABConversion } from "@/lib/ab-testing";
-import { formatNumber, formatPrice } from "@/lib/format";
-import { cardImage } from "@/lib/cloudinary";
-import { CartPulse } from "@/components/ui/micro-animations";
-import { flyToCart } from "@/lib/fly-to-cart";
+
+import { CompareButton } from "@/components/products/product-comparison";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { DifficultyBadge } from "@/components/ui/difficulty-badge";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { useCart } from "@/contexts/cart-context";
+import { useToast } from "@/hooks/use-toast";
+import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
+import { formatPrice } from "@/lib/format";
+import { trackSelectItem } from "@/lib/analytics";
+import type { Product } from "@/types";
 
 interface ProductCardProps {
   product: Product;
   onCompare?: (product: Product) => void;
   onQuickView?: (product: Product) => void;
-  /** Pass true for above-the-fold cards (first ~8) to load eagerly */
+  /** Pass true for above-the-fold cards to load eagerly. */
   priority?: boolean;
 }
 
-export const ProductCard = memo(function ProductCard({ product, onCompare, onQuickView, priority = false }: ProductCardProps) {
-  const { toast } = useToast();
+export const ProductCard = memo(function ProductCard({
+  product,
+  onQuickView,
+  priority = false,
+}: ProductCardProps) {
   const { addItem } = useCart();
+  const { toast } = useToast();
   const [, setLocation] = useLocation();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [cartAdded, setCartAdded] = useState(false);
 
-  // A/B Testing: Button Text
-  const buttonVariant = useABTest(EXPERIMENTS.ADD_TO_CART_BUTTON.name);
-  const buttonText = buttonVariant === 'A'
-    ? EXPERIMENTS.ADD_TO_CART_BUTTON.variants.A
-    : EXPERIMENTS.ADD_TO_CART_BUTTON.variants.B;
+  const variantPrices = product.hasVariants && product.variants?.length
+    ? product.variants.map((variant) => variant.price).filter((price) => price > 0)
+    : [];
+  const variantMinPrice = variantPrices.length > 0 ? Math.min(...variantPrices) : undefined;
+  const hasPrice = (product.price ?? 0) > 0 || variantMinPrice !== undefined;
+  const requiresVariantChoice = Boolean(product.hasVariants && product.variants?.length);
+  const isOutOfStock = requiresVariantChoice
+    ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
+    : (product.stock ?? 0) <= 0;
 
-  const variantMinPrice = (product.hasVariants && product.variants?.length)
-    ? Math.min(...product.variants.map(v => v.price))
-    : undefined;
-
-  // كل منتج عنده سعر أكبر من صفر يمكن شراؤه — لا قيود على البراند
-  const hasPrice = ((product.price ?? 0) > 0 || (variantMinPrice !== undefined && variantMinPrice > 0));
-
-  // Variant products have no option selector on the card, and their base price is
-  // often 0 (price lives on each variant) — calling addItem(product) here would be
-  // silently rejected as "unavailable". Send the customer to the detail page to
-  // pick an option instead, so the add always succeeds.
-  const requiresVariantChoice = !!(product.hasVariants && product.variants?.length);
-
-  const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleAddToCart = async (event: MouseEvent<HTMLButtonElement>) => {
     if (requiresVariantChoice) {
       setLocation(`/products/${product.slug}`);
       return;
     }
 
-    // addItem validates stock and fires AddToCart analytics ONLY on success.
-    // It also surfaces the Arabic error toast itself when blocked.
-    const ok = await addItem(product);
-    if (!ok) return;
+    const added = await addItem(product);
+    if (!added) return;
 
-    setCartAdded(true);
-    setTimeout(() => setCartAdded(false), 700);
-
-    // 2026 fly-to-cart: send the product image arcing into the navbar cart icon.
-    const card = (e.currentTarget as HTMLElement).closest("a")?.querySelector("img") as HTMLElement | null;
-    flyToCart(card ?? (e.currentTarget as HTMLElement), cardImage(product.thumbnail || product.image) || product.image);
-
-    // Track A/B Conversion (only counts real adds)
-    trackABConversion(EXPERIMENTS.ADD_TO_CART_BUTTON.name, 'added_to_cart');
     toast({
       title: "تمت الإضافة",
       description: `${product.name} انضاف للسلة.`,
     });
   };
 
-  const isOutOfStock = product.hasVariants && product.variants?.length
-    ? product.variants.every(v => (v.stock ?? 0) <= 0)
-    : (product.stock ?? 0) <= 0;
+  const rawImage = product.thumbnail || product.image;
+  const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
+  // Only Cloudinary-hosted images have multiple pre-generated widths to pick
+  // from; local assets ship a single fixed-size variant, so srcSet stays
+  // undefined for those and the browser just uses `imageSrc`.
+  const imageSrcSet = cardImageSrcSet(rawImage);
 
   return (
-    <>
-      <Link href={`/products/${product.slug}`} aria-label={`عرض تفاصيل ${product.name}`}>
-        <Card className="card-sheen group overflow-hidden rounded-xl sm:rounded-[2rem] border border-border bg-card/50 backdrop-blur-xl hover:border-primary/50 transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_0_30px_rgba(79,209,197,0.15)] hover:-translate-y-1 h-full flex flex-col relative cursor-pointer text-right gpu-accelerate">
-          {/* Badges */}
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 flex flex-col gap-1 sm:gap-2 pointer-events-none" aria-hidden="true">
-            {product.isNew && <Badge className="bg-primary text-primary-foreground text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 shadow-lg">جديد</Badge>}
-            {product.isBestSeller && <Badge className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-lg animate-in fade-in duration-500 delay-100">الأكثر مبيعاً</Badge>}
-            {product.ecoFriendly && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 gap-1 shadow-lg animate-in fade-in duration-500 delay-200">
-                <Leaf className="w-3 h-3" aria-hidden="true" /> صديق للبيئة
-              </Badge>
-            )}
-          </div>
-
-          {/* Always-visible compare toggle (top-left) — works on mobile too */}
-          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 z-20">
-            <CompareButton
-              productId={product.id}
-              variant="icon"
-              className="h-8 w-8 sm:h-9 sm:w-9 bg-background/80 backdrop-blur-sm shadow-md"
-            />
-          </div>
-
-          {/* Image */}
-          <div className="relative pt-[100%] overflow-hidden rounded-t-xl" data-protected="true">
-            <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
-              {/* Skeleton placeholder shown while image is loading */}
-              {!imgLoaded && (
-                <div className="absolute inset-0 animate-pulse bg-muted/60" />
-              )}
-              <img
-                src={cardImage(product.thumbnail || product.image) || "/logo_aquavo.png"}
-                alt={`صورة منتج ${product.name} من ${product.brand}`}
-                className={`absolute inset-0 w-full h-full object-cover select-none transition-[opacity,filter,transform] duration-700 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-hover:scale-105 ${imgLoaded ? "opacity-100 blur-0 scale-100" : "opacity-0 blur-md scale-105"}`}
-                loading={priority ? "eager" : "lazy"}
-                fetchPriority={priority ? "high" : "auto"}
-                width={400}
-                height={400}
-                decoding="async"
-                draggable={false}
-                onContextMenu={(e) => e.preventDefault()}
-                onDragStart={(e) => e.preventDefault()}
-                onLoad={() => setImgLoaded(true)}
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.endsWith("/logo_aquavo.png")) {
-                    target.src = "/logo_aquavo.png";
-                  }
-                  setImgLoaded(true);
-                }}
-              />
-            </div>
-
-            {/* Quick Actions Overlay - Hidden on mobile */}
-            <div
-              className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-background/90 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 hidden sm:flex justify-center gap-2 z-20"
-              role="group"
-              aria-label="إجراءات سريعة"
+    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/60 text-right transition-colors hover:border-primary/50">
+      <div className="pointer-events-none absolute inset-x-2 top-2 z-20 flex items-start justify-between gap-2 sm:inset-x-3 sm:top-3">
+        <div className="pointer-events-auto flex gap-1.5">
+          <CompareButton
+            productId={product.id}
+            variant="icon"
+            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+          />
+          <WishlistButton
+            product={product}
+            variant="icon"
+            size="icon"
+            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+          />
+          {onQuickView ? (
+            <Button
+              type="button"
+              size="icon"
+              variant="outline"
+              className="hidden h-9 w-9 border-border/70 bg-background/90 shadow-sm backdrop-blur-sm sm:inline-flex"
+              onClick={() => onQuickView(product)}
+              aria-label={`نظرة سريعة على ${product.name}`}
             >
-              <Button
-                size="sm"
-                variant="secondary"
-                className="rounded-full shadow-md micro-bounce"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onQuickView?.(product);
-                }}
-                aria-label={`نظرة سريعة على ${product.name}`}
-              >
-                <Eye className="w-4 h-4 ml-1" aria-hidden="true" />
-                نظرة سريعة
-              </Button>
-              <WishlistButton
-                product={product}
-                variant="icon"
-                size="icon"
-                className="shadow-md"
-              />
-            </div>
+              <Eye className="h-4 w-4" aria-hidden="true" />
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-col items-end gap-1">
+          {product.isNew ? <Badge className="bg-primary text-primary-foreground">جديد</Badge> : null}
+          {product.isBestSeller ? <Badge variant="secondary">الأكثر مبيعاً</Badge> : null}
+          {product.ecoFriendly ? (
+            <Badge variant="outline" className="gap-1 border-primary/25 bg-background/90 text-primary">
+              <Leaf className="h-3 w-3" aria-hidden="true" />
+              صديق للبيئة
+            </Badge>
+          ) : null}
+        </div>
+      </div>
+
+      <Link
+        href={`/products/${product.slug}`}
+        onClick={() => trackSelectItem({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity: 1,
+          category: product.category,
+        })}
+        aria-label={`عرض تفاصيل ${product.name}`}
+        className="flex min-w-0 flex-1 flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
+      >
+        <div className="relative aspect-square overflow-hidden bg-white" data-protected="true">
+          {!imgLoaded ? <div className="absolute inset-0 bg-muted/45" aria-hidden="true" /> : null}
+          <img
+            src={imageSrc}
+            srcSet={imageSrcSet}
+            sizes={imageSrcSet ? "(max-width: 639px) 50vw, (max-width: 1023px) 33vw, (max-width: 1279px) 25vw, 20vw" : undefined}
+            alt={`صورة منتج ${product.name}`}
+            className={`h-full w-full select-none object-contain p-3 transition-opacity duration-200 sm:p-5 ${imgLoaded ? "opacity-100" : "opacity-0"}`}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
+            width={400}
+            height={400}
+            decoding="async"
+            draggable={false}
+            onContextMenu={(event) => event.preventDefault()}
+            onDragStart={(event) => event.preventDefault()}
+            onLoad={() => setImgLoaded(true)}
+            onError={(event) => {
+              const target = event.currentTarget;
+              if (!target.src.endsWith("/brand/aquavo-v2-icon.svg")) {
+                target.src = "/brand/aquavo-v2-icon.svg";
+              }
+              setImgLoaded(true);
+            }}
+          />
+        </div>
+
+        <CardHeader className="space-y-2 p-3 pb-2 sm:p-4 sm:pb-2">
+          <div className="flex min-w-0 items-center justify-between gap-2">
+            <span className="truncate text-[11px] text-muted-foreground sm:text-xs">
+              {product.brand || "AQUAVO"}
+            </span>
+            {product.difficulty ? <DifficultyBadge level={product.difficulty} className="shrink-0" /> : null}
           </div>
+          <h3 className="line-clamp-2 min-h-10 text-sm font-bold leading-5 transition-colors group-hover:text-primary sm:text-base sm:leading-6">
+            {product.name}
+          </h3>
+        </CardHeader>
 
-          <CardHeader className="p-2 sm:pb-2 sm:p-4 text-right">
-            <div className="flex justify-between items-start gap-1 sm:gap-2 flex-row-reverse">
-              <div className="text-[10px] sm:text-sm text-muted-foreground truncate">{product.brand}</div>
-              <DifficultyBadge level={product.difficulty} className="scale-75 sm:scale-90 origin-right" />
-            </div>
-            <h3 className="font-semibold text-xs sm:text-sm leading-tight transition-colors line-clamp-2 h-8 sm:h-10 hover:text-primary text-right">
-              {product.name}
-            </h3>
-          </CardHeader>
-
-          <CardContent className="flex-1 p-2 sm:p-4 pt-0">
-            <div className="flex items-baseline gap-1 sm:gap-2 mb-1 sm:mb-2 flex-row-reverse justify-end">
-              {hasPrice ? (
-                <>
-                  {/* سعر شطب (إذا موجود) */}
-                  {!product.hasVariants && (product.originalPrice ?? 0) > (product.price ?? 0) && (
-                    <span className="text-[10px] sm:text-sm text-muted-foreground line-through">
-                      {formatPrice(product.originalPrice!)}
-                    </span>
-                  )}
-                  {/* السعر الفعلي: أقل سعر فاريانت أو سعر المنتج */}
-                  <span className="text-base sm:text-xl font-bold text-primary">
-                    {product.hasVariants && variantMinPrice !== undefined
-                      ? formatPrice(variantMinPrice)
-                      : formatPrice(product.price!)}
-                  </span>
-                  {/* كلمة "من" قبل السعر للمنتجات ذات الفاريانتات */}
-                  {(product.hasVariants && variantMinPrice !== undefined) && (
-                    <span className="text-[10px] text-muted-foreground">من</span>
-                  )}
-                </>
-              ) : (
-                <span className="text-sm font-medium text-muted-foreground">
-                  قريباً
+        <CardContent className="mt-auto p-3 pt-0 sm:p-4 sm:pt-0">
+          {hasPrice ? (
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              {requiresVariantChoice && variantMinPrice !== undefined ? (
+                <span className="text-[11px] text-muted-foreground">من</span>
+              ) : null}
+              <span className="text-base font-bold text-primary sm:text-lg">
+                {requiresVariantChoice && variantMinPrice !== undefined
+                  ? formatPrice(variantMinPrice)
+                  : formatPrice(product.price ?? 0)}
+              </span>
+              {!requiresVariantChoice && (product.originalPrice ?? 0) > (product.price ?? 0) ? (
+                <span className="text-xs text-muted-foreground line-through">
+                  {formatPrice(product.originalPrice ?? 0)}
                 </span>
-              )}
+              ) : null}
             </div>
-            {(product.reviewCount ?? 0) > 0 && (
-              <div className="flex items-center gap-0.5 sm:gap-1 text-[10px] sm:text-sm text-amber-500 justify-end" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
-                <span aria-hidden="true">★</span>
-                <span className="font-medium text-foreground">{product.rating}</span>
-                <span className="text-muted-foreground">({product.reviewCount})</span>
-              </div>
-            )}
-          </CardContent>
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground">قريباً</span>
+          )}
 
-          <CardFooter className="p-2 sm:p-4 pt-0">
-            <CartPulse triggered={cartAdded} onComplete={() => setCartAdded(false)}>
-              <Button
-                className="w-full gap-1 sm:gap-2 text-xs sm:text-sm py-2 sm:py-2.5 group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                onClick={handleAddToCart}
-                aria-label={requiresVariantChoice ? `اختر خيار ${product.name}` : `أضف ${product.name} إلى سلة المشتريات`}
-                disabled={!hasPrice || isOutOfStock}
-              >
-                {hasPrice && !isOutOfStock ? (
-                  <>
-                    <ShoppingCart className="w-4 h-4" aria-hidden="true" />
-                    {requiresVariantChoice ? "اختر الخيار" : buttonText}
-                  </>
-                ) : !hasPrice ? (
-                  <>
-                    <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
-                    قريباً جداً
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4 opacity-50" aria-hidden="true" />
-                    نفذت الكمية
-                  </>
-                )}
-              </Button>
-            </CartPulse>
-          </CardFooter>
-        </Card>
+          {(product.reviewCount ?? 0) > 0 ? (
+            <div className="mt-2 flex items-center gap-1 text-xs" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
+              <span className="text-amber-400" aria-hidden="true">★</span>
+              <span className="font-medium">{product.rating}</span>
+              <span className="text-muted-foreground">({product.reviewCount})</span>
+            </div>
+          ) : null}
+        </CardContent>
       </Link>
-    </>
+
+      <CardFooter className="p-3 pt-0 sm:p-4 sm:pt-0">
+        <Button
+          type="button"
+          className="min-h-11 w-full gap-2 text-xs sm:text-sm"
+          onClick={handleAddToCart}
+          aria-label={requiresVariantChoice ? `اختر خيار ${product.name}` : `أضف ${product.name} إلى سلة المشتريات`}
+          disabled={!hasPrice || isOutOfStock}
+        >
+          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+          {hasPrice && !isOutOfStock
+            ? requiresVariantChoice ? "اختار الخيار" : "أضف للسلة"
+            : !hasPrice ? "قريباً" : "نفذت الكمية"}
+        </Button>
+      </CardFooter>
+    </Card>
   );
 });

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 type ModelViewerElement = HTMLElement & {
   loaded?: boolean;
   jumpCameraToGoal?: () => void;
+  getCameraOrbit?: () => { theta: number; phi: number; radius: number };
 };
 
 interface Product3DViewerProps {
@@ -106,13 +107,13 @@ function ViewerHeader({ pieceCode }: { pieceCode?: string }) {
 function ViewerFooter() {
   return (
     <div className="border-t border-white/10 px-4 py-3 text-xs leading-6 text-white/70">
-      هذا المجسم ثلاثي الأبعاد مبني على تفاصيل وهيكل نفس القطعة الحقيقية حتى تشوف تفرعاتها من كل جهة قبل الشراء. تذكر أن ألوان المجسم تظل تقريبية بسبب اختلاف الرندرة الرقمية، وتعتبر الصور الفوتوغرافية هي مرجعك الأساسي لشكل القطعة.
+      النموذج توضيحي حتى تشوف الشكل من زوايا مختلفة. صور المنتج والقياسات والتغليف والمواصفات المكتوبة هي المرجع الأساسي قبل الشراء.
     </div>
   );
 }
 
 const VIEWER_BG =
-  "bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#010611_0%,#0A1628_54%,#06111f_100%)]";
+  "bg-[radial-gradient(circle_at_48%_38%,rgba(29,211,211,0.2),transparent_25%),radial-gradient(circle_at_76%_78%,rgba(255,123,90,0.1),transparent_23%),linear-gradient(145deg,#0B1E28_0%,#0B1E28_54%,#06111f_100%)]";
 
 function ViewerShell({
   className,
@@ -126,7 +127,7 @@ function ViewerShell({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-lg border border-primary/20 bg-[#010611] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
+        "overflow-hidden rounded-lg border border-primary/20 bg-[#0B1E28] shadow-[0_16px_50px_rgba(0,0,0,0.28)]",
         className
       )}
       aria-label="عرض المنتج ثلاثي الأبعاد"
@@ -143,23 +144,6 @@ function ViewerShell({
    CSS keyframes (inserted once)
    ────────────────────────────────────────────────────────── */
 
-const ANIMATION_CSS = `
-  @keyframes horizontal-bounce {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(3px); }
-  }
-  @keyframes horizontal-bounce-reverse {
-    0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(-3px); }
-  }
-  .animate-horizontal-bounce {
-    animation: horizontal-bounce 1.5s infinite ease-in-out;
-  }
-  .animate-horizontal-bounce-reverse {
-    animation: horizontal-bounce-reverse 1.5s infinite ease-in-out;
-  }
-`;
-
 /* ──────────────────────────────────────────────────────────
    Drag overlay hint
    ────────────────────────────────────────────────────────── */
@@ -174,9 +158,9 @@ function DragOverlay({ visible }: { visible: boolean }) {
           : "translate-y-2 scale-95 opacity-0"
       )}
     >
-      <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#010611]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
+      <div className="flex max-w-[290px] items-center gap-3 rounded-full border border-cyan-500/20 bg-[#0B1E28]/85 px-4 py-2.5 shadow-[0_8px_32px_rgba(0,0,0,0.5)] backdrop-blur-md sm:max-w-md">
         <svg
-          className="h-4 w-4 shrink-0 animate-horizontal-bounce-reverse text-cyan-400"
+          className="h-4 w-4 shrink-0 text-cyan-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -185,7 +169,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         <svg
-          className="h-5 w-5 shrink-0 animate-pulse text-white/95"
+          className="h-5 w-5 shrink-0 text-white/95"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -200,7 +184,7 @@ function DragOverlay({ visible }: { visible: boolean }) {
           اسحب يمين أو يسار حتى تشوف القطعة من كل زاوية
         </p>
         <svg
-          className="h-4 w-4 shrink-0 animate-horizontal-bounce text-cyan-400"
+          className="h-4 w-4 shrink-0 text-cyan-400"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -230,6 +214,26 @@ function ModelViewerInner({
   const viewerRef = useRef<ModelViewerElement | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
   const [viewerError, setViewerError] = useState(false);
+
+  const resetView = () => {
+    const viewer = viewerRef.current;
+    if (!viewer) return;
+    setShowOverlay(false);
+    viewer.setAttribute("camera-orbit", "145deg 71deg 118%");
+    viewer.jumpCameraToGoal?.();
+  };
+
+  const adjustZoom = (factor: number) => {
+    const viewer = viewerRef.current;
+    const orbit = viewer?.getCameraOrbit?.();
+    if (!viewer || !orbit) return;
+    setShowOverlay(false);
+    viewer.setAttribute(
+      "camera-orbit",
+      `${orbit.theta}rad ${orbit.phi}rad ${orbit.radius * factor}m`
+    );
+    viewer.jumpCameraToGoal?.();
+  };
 
   // Cache-bust the GLB URL
   const busterSrc = src
@@ -284,10 +288,6 @@ function ModelViewerInner({
     const baseTheta = 145;
     const basePhi = 71;
     const baseRadius = 118;
-    const orbitAmplitude = 4.0;
-    const orbitCycleMs = 4000;
-    let animationFrame: number | undefined;
-    let hasUserInteracted = false;
     let overlayTimeout: ReturnType<typeof setTimeout> | undefined;
 
     const formatOrbit = (theta: number) =>
@@ -302,47 +302,22 @@ function ModelViewerInner({
       }
     };
 
-    const stopMotion = () => {
-      hasUserInteracted = true;
+    const acknowledgeInteraction = () => {
       setShowOverlay(false);
       if (overlayTimeout) {
         clearTimeout(overlayTimeout);
         overlayTimeout = undefined;
       }
-      if (animationFrame !== undefined) {
-        cancelAnimationFrame(animationFrame);
-        animationFrame = undefined;
-      }
-    };
-
-    const animate = (timestamp: number) => {
-      if (hasUserInteracted) {
-        animationFrame = undefined;
-        return;
-      }
-      const progress = (timestamp % orbitCycleMs) / orbitCycleMs;
-      const theta = baseTheta + Math.sin(progress * Math.PI * 2) * orbitAmplitude;
-      jumpTo(theta);
-      animationFrame = requestAnimationFrame(animate);
-    };
-
-    const startMotion = () => {
-      if (hasUserInteracted || animationFrame !== undefined) return;
-      jumpTo(baseTheta);
-      animationFrame = requestAnimationFrame(animate);
-      if (!overlayTimeout) {
-        overlayTimeout = setTimeout(stopMotion, 6000);
-      }
     };
 
     const handleLoad = () => {
       jumpTo(baseTheta);
-      startMotion();
+      overlayTimeout = setTimeout(acknowledgeInteraction, 6000);
     };
 
     const handleCameraChange = (event: Event) => {
       const ce = event as CustomEvent<{ source: string }>;
-      if (ce.detail?.source === "user-interaction") stopMotion();
+      if (ce.detail?.source === "user-interaction") acknowledgeInteraction();
     };
 
     const handleError = (event: Event) => {
@@ -354,19 +329,21 @@ function ModelViewerInner({
     viewer.addEventListener("load", handleLoad);
     viewer.addEventListener("camera-change", handleCameraChange);
     viewer.addEventListener("error", handleError);
+    viewer.addEventListener("pointerdown", acknowledgeInteraction);
+    viewer.addEventListener("wheel", acknowledgeInteraction);
 
     jumpTo(baseTheta);
-    startMotion();
 
     if (viewer.loaded) handleLoad();
 
     return () => {
-      if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
       if (overlayTimeout) clearTimeout(overlayTimeout);
       try {
         viewer!.removeEventListener("load", handleLoad);
         viewer!.removeEventListener("camera-change", handleCameraChange);
         viewer!.removeEventListener("error", handleError);
+        viewer!.removeEventListener("pointerdown", acknowledgeInteraction);
+        viewer!.removeEventListener("wheel", acknowledgeInteraction);
         container.removeChild(viewer!);
       } catch {
         /* already removed */
@@ -390,7 +367,7 @@ function ModelViewerInner({
             className="absolute inset-0 h-full w-full object-contain"
           />
         )}
-        <div className="relative z-10 mx-4 max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+        <div className="relative z-10 mx-4 max-w-sm rounded-lg border border-white/15 bg-[#0B1E28]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
           {MODEL_LOAD_ERROR_MESSAGE}
         </div>
       </div>
@@ -407,8 +384,33 @@ function ModelViewerInner({
       {/* model-viewer gets appended here imperatively */}
       <div ref={containerRef} className="absolute inset-0" />
 
-      <style dangerouslySetInnerHTML={{ __html: ANIMATION_CSS }} />
       <DragOverlay visible={showOverlay} />
+      <div className="absolute left-3 top-3 z-20 flex flex-wrap gap-2" dir="rtl">
+        <button
+          type="button"
+          onClick={resetView}
+          className="min-h-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-xs font-semibold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="رجّع العرض للبداية"
+        >
+          رجّع العرض
+        </button>
+        <button
+          type="button"
+          onClick={() => adjustZoom(0.82)}
+          className="min-h-11 min-w-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-sm font-bold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="قرّب العرض"
+        >
+          +
+        </button>
+        <button
+          type="button"
+          onClick={() => adjustZoom(1.18)}
+          className="min-h-11 min-w-11 rounded-md border border-white/20 bg-[#0B1E28]/90 px-3 text-sm font-bold text-white shadow-sm backdrop-blur hover:border-cyan-300/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300"
+          aria-label="بعّد العرض"
+        >
+          −
+        </button>
+      </div>
     </div>
   );
 }
@@ -424,12 +426,13 @@ export const Product3DViewer = memo(function Product3DViewer({
   pieceCode,
   className,
 }: Product3DViewerProps) {
-  // If the library already resolved before mount (module-level preload), skip
-  // the async wait entirely — no spinner shown.
+  // Reuse the library if another activated viewer already loaded it this session.
+  const [activated, setActivated] = useState(false);
   const [libraryReady, setLibraryReady] = useState(() => modelViewerResolved);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
+    if (!activated) return;
     if (modelViewerResolved) return; // already done — nothing to wait for
     let cancelled = false;
     loadModelViewer()
@@ -442,7 +445,7 @@ export const Product3DViewer = memo(function Product3DViewer({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [activated]);
 
   // Fallback: show a clear error instead of implying a working 3D view.
   const fallbackContent = (
@@ -461,13 +464,48 @@ export const Product3DViewer = memo(function Product3DViewer({
           />
         )}
         <div className="relative z-10 flex flex-col items-center gap-2 text-white/50">
-          <p className="max-w-sm rounded-lg border border-white/15 bg-[#010611]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
+          <p className="max-w-sm rounded-lg border border-white/15 bg-[#0B1E28]/85 px-4 py-3 text-center text-sm leading-6 text-white shadow-[0_10px_30px_rgba(0,0,0,0.35)] backdrop-blur">
             {MODEL_LOAD_ERROR_MESSAGE}
           </p>
         </div>
       </div>
     </ViewerShell>
   );
+
+  // Keep the heavy model-viewer library off the product-page critical path.
+  if (!activated) {
+    return (
+      <ViewerShell className={className} pieceCode={pieceCode}>
+        <div
+          className={cn(
+            "relative flex min-h-[320px] items-center justify-center overflow-hidden sm:min-h-[420px]",
+            VIEWER_BG
+          )}
+        >
+          {poster && (
+            <img
+              src={poster}
+              alt={productName}
+              className="absolute inset-0 h-full w-full object-contain opacity-70"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#06111f]/90 via-[#06111f]/20 to-transparent" />
+          <div className="relative z-10 mt-auto flex w-full flex-col items-center gap-3 px-5 pb-7 pt-24 text-center">
+            <button
+              type="button"
+              onClick={() => setActivated(true)}
+              className="min-h-11 rounded-md border border-cyan-300/35 bg-cyan-400/15 px-5 py-2.5 text-sm font-semibold text-cyan-50 transition-colors hover:bg-cyan-400/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0B1E28]"
+            >
+              شغّل العرض ثلاثي الأبعاد
+            </button>
+            <p className="max-w-sm text-xs leading-5 text-white/70">
+              يتحمّل العرض عند الطلب حتى تبقى صفحة المنتج أسرع وتستهلك بيانات أقل.
+            </p>
+          </div>
+        </div>
+      </ViewerShell>
+    );
+  }
 
   // Library failed to load — show fallback with poster
   if (loadError) return fallbackContent;

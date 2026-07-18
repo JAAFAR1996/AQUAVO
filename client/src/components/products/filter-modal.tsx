@@ -69,7 +69,9 @@ function FilterPill({
 
     return (
         <button
+            type="button"
             onClick={onClick}
+            aria-pressed={selected}
             className={cn(
                 "inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium",
                 "border-2 transition-all duration-200",
@@ -77,7 +79,7 @@ function FilterPill({
                 colorClasses[color]
             )}
         >
-            {Icon && <Icon className="w-4 h-4" />}
+            {Icon && <Icon className="w-4 h-4" aria-hidden="true" />}
             <span>{label}</span>
             {count !== undefined && count > 0 && (
                 <Badge
@@ -90,7 +92,7 @@ function FilterPill({
                     {count}
                 </Badge>
             )}
-            {selected && <Check className="w-4 h-4" />}
+            {selected && <Check className="w-4 h-4" aria-hidden="true" />}
         </button>
     );
 }

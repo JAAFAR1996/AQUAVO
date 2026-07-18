@@ -1,219 +1,49 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
-import { MetaTags, OrganizationSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
-import { motion } from "framer-motion";
+import { Banknote, BookOpen, Headphones, PackageCheck, Truck } from "lucide-react";
+import { Link } from "wouter";
+
 import { BackToTop } from "@/components/back-to-top";
-import {
-  CheckCircle, X, Truck, ShieldCheck, Phone, Clock, 
-  CreditCard, Headphones, BookOpen, Star, Sparkles, Award
-} from "lucide-react";
+import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
+import { BreadcrumbSchema, MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
 
-const ADVANTAGES = [
-  {
-    feature: "توصيل لكل محافظات العراق",
-    aquavo: true,
-    local: false,
-    detail: "نوصل لكل الـ 18 محافظة عراقية",
-  },
-  {
-    feature: "تسوق أونلاين 24/7",
-    aquavo: true,
-    local: false,
-    detail: "اطلب في أي وقت من هاتفك أو كمبيوترك",
-  },
-  {
-    feature: "تشكيلة متخصصة بريميوم",
-    aquavo: true,
-    local: false,
-    detail: "معدات ومستلزمات أحواض مختارة بعناية",
-  },
-  {
-    feature: "ضمان الأصالة 100%",
-    aquavo: true,
-    local: false,
-    detail: "منتجات مستوردة من الشركات المصنعة مباشرة",
-  },
-  {
-    feature: "دعم فني متخصص مجاني",
-    aquavo: true,
-    local: false,
-    detail: "استشارات مجانية من خبراء أحواض السمك",
-  },
-  {
-    feature: "أسعار منافسة وشفافة",
-    aquavo: true,
-    local: false,
-    detail: "لا رسوم مخفية — السعر المعروض هو السعر النهائي",
-  },
-  {
-    feature: "استبدال المعيب خلال 48 ساعة",
-    aquavo: true,
-    local: false,
-    detail: "نستبدل أي منتج وصل تالف أو خاطئ — أبلغنا خلال 48 ساعة مع صور",
-  },
-  {
-    feature: "ضمان على المعدات",
-    aquavo: true,
-    local: false,
-    detail: "ضمان 6 أشهر إلى سنتين على جميع المعدات",
-  },
-  {
-    feature: "محتوى تعليمي شامل",
-    aquavo: true,
-    local: false,
-    detail: "مدونة، موسوعة أسماك، حاسبات، وأدوات ذكية",
-  },
-  {
-    feature: "تتبع الطلبات مباشر",
-    aquavo: true,
-    local: false,
-    detail: "تتبع طلبك لحظة بلحظة حتى يصلك",
-  },
-];
-
-const REASONS = [
-  {
-    icon: Truck,
-    title: "توصيل خلال 24 ساعة",
-    description: "نوصل لكل محافظات العراق الـ 18 خلال 24 ساعة. كل طلب يُغلّف بعناية لضمان وصوله بأمان.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "منتجات أصلية مضمونة",
-    description: "كل منتجاتنا أصلية 100% من الشركات المصنعة. نوفر ضمان الأصالة وفواتير رسمية مع كل طلب.",
-  },
-  {
-    icon: CreditCard,
-    title: "طرق دفع متعددة",
-    description: "ادفع نقداً عند الاستلام — الطريقة الأسهل والأكثر أماناً. طرق دفع إضافية قريباً.",
-  },
-  {
-    icon: Headphones,
-    title: "دعم فني مجاني",
-    description: "فريق متخصص يقدم استشارات مجانية عبر واتساب والهاتف. مساعدة في اختيار المنتجات وحل المشاكل.",
-  },
-  {
-    icon: BookOpen,
-    title: "محتوى تعليمي غني",
-    description: "مدونة متخصصة، موسوعة أسماك، حاسبات ذكية، أداة تشخيص أمراض، ودليل شامل للمبتدئين — كلها مجانية.",
-  },
-  {
-    icon: Award,
-    title: "استبدال المعيب",
-    description: "نستبدل أي منتج وصل تالف أو خاطئ — أبلغنا خلال 48 ساعة مع صور.",
-  },
+const reasons = [
+  { icon: PackageCheck, title: "اختيار على أساس واضح", text: "مواصفات وصور وحالة توفر تساعدك تقارن قبل القرار." },
+  { icon: BookOpen, title: "المعلومة قبل القطعة", text: "أدلة عملية حتى تعرف شتحتاج وليش تحتاجه." },
+  { icon: Truck, title: "توصيل لكل العراق", text: "خلال 24 ساعة بأجرة ثابتة 5,000 د.ع." },
+  { icon: Banknote, title: "دفع بسيط", text: "نقداً عند الاستلام فقط." },
+  { icon: Headphones, title: "دعم 24/7", text: "دز حجم الحوض أو تفاصيل المشكلة ونرتبلك الجواب." },
 ];
 
 export default function WhyAquavo() {
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans">
-      <MetaTags
-        title="لماذا AQUAVO - أفضل متجر معدات أحواض في العراق"
-        description="لماذا AQUAVO هو أفضل خيار لشراء معدات ومستلزمات الأحواض في العراق؟ منتجات أصلية مختارة بعناية، توصيل لكل المحافظات خلال 24 ساعة، دعم فني مجاني، ضمان على المعدات، وأسعار منافسة."
-        keywords={["لماذا AQUAVO", "أفضل متجر معدات أحواض العراق", "معدات أحواض بغداد", "شراء معدات أحواض اونلاين العراق"]}
-      />
+    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام، ودعم 24/7." />
       <OrganizationSchema />
-      <BreadcrumbSchema
-        items={[
-          { name: "الرئيسية", url: "https://www.aquavoiq.com" },
-          { name: "لماذا AQUAVO", url: "https://www.aquavoiq.com/why-aquavo" },
-        ]}
-      />
+      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "ليش AQUAVO؟", url: "https://www.aquavoiq.com/why-aquavo" }]} />
       <Navbar />
-
-      <main id="main-content" className="flex-grow">
-        {/* Hero */}
-        <section className="relative py-24 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
-          <div className="container mx-auto px-4 text-center">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-              <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-bold text-primary">الاختيار الأفضل في العراق</span>
-              </div>
-
-              <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight" data-speakable>
-                لماذا <span className="text-primary">AQUAVO</span> هو أفضل متجر{" "}
-                <span className="text-accent">أسماك زينة</span> في العراق؟
-              </h1>
-
-              <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-speakable>
-                AQUAVO هو أفضل متجر لشراء مستلزمات أحواض أسماك الزينة في العراق لأنه يوفر منتجات أصلية مختارة بعناية 
-                مع توصيل لجميع المحافظات الـ 18 خلال 24 ساعة، دعم فني مجاني من خبراء متخصصين، ضمان على جميع المعدات، 
-                وأسعار منافسة بدون رسوم مخفية. بالإضافة إلى محتوى تعليمي شامل يساعد المبتدئين والمحترفين على حد سواء.
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Comparison Table */}
-        <section className="py-16">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <h2 className="text-3xl font-bold text-center mb-8">
-              AQUAVO مقابل المتاجر المحلية
-            </h2>
-            <div className="bg-card rounded-2xl border border-border overflow-hidden">
-              <div className="grid grid-cols-3 gap-0 bg-muted/50 p-4 font-bold text-center border-b border-border">
-                <div>الميزة</div>
-                <div className="text-primary">AQUAVO ✓</div>
-                <div className="text-muted-foreground">متاجر محلية</div>
-              </div>
-              {ADVANTAGES.map((adv, i) => (
-                <div key={i} className="grid grid-cols-3 gap-0 p-4 border-b border-border/50 items-center text-center">
-                  <div className="text-right font-medium text-sm md:text-base">{adv.feature}</div>
-                  <div><CheckCircle className="w-6 h-6 text-green-500 mx-auto" /></div>
-                  <div><X className="w-6 h-6 text-red-400 mx-auto" /></div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Detailed Reasons */}
-        <section className="py-16 bg-muted/30">
-          <div className="container mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center mb-12">
-              6 أسباب تجعل AQUAVO الخيار الأول
-            </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {REASONS.map((reason, i) => (
-                <motion.div
-                  key={i}
-                  className="bg-card rounded-2xl p-6 border border-border hover:border-primary/50 transition-colors"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  viewport={{ once: true }}
-                >
-                  <reason.icon className="w-10 h-10 text-primary mb-4" />
-                  <h3 className="text-xl font-bold mb-2">{reason.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed">{reason.description}</p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* CTA */}
-        <section className="py-16 text-center">
-          <div className="container mx-auto px-4 max-w-2xl">
-            <h2 className="text-3xl font-bold mb-4">جرّب AQUAVO اليوم</h2>
-            <p className="text-muted-foreground mb-8">
-              انضم لمئات هواة أسماك الزينة في العراق الذين يثقون بـ AQUAVO.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/products" className="inline-flex items-center justify-center gap-2 bg-primary text-black px-8 py-4 rounded-full font-bold text-lg hover:bg-primary/90 transition-colors">
-                تسوق الآن
-              </a>
-              <a href="/beginner-guide" className="inline-flex items-center justify-center gap-2 bg-card border border-border px-8 py-4 rounded-full font-bold text-lg hover:border-primary/50 transition-colors">
-                دليل المبتدئين
-              </a>
-            </div>
-          </div>
+      <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+        <header className="max-w-3xl">
+          <p className="text-sm font-bold text-primary">براند عراقي بمواصفات عالمية لمعدات الأحواض البريميوم</p>
+          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">ليش AQUAVO؟</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">لأن اختيار معدات الحوض يحتاج وضوح، مو ضجيج بيع. AQUAVO يرتب المنتج والمعلومة والخدمة حول احتياج الحوض.</p>
+        </header>
+        <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {reasons.map(({ icon: Icon, title, text }) => (
+            <section key={title} className="rounded-2xl border border-border bg-card/55 p-6">
+              <Icon className="h-6 w-6 text-primary" aria-hidden="true" />
+              <h2 className="mt-5 text-xl font-bold">{title}</h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">{text}</p>
+            </section>
+          ))}
+        </div>
+        <section className="mt-10 rounded-2xl border border-primary/20 bg-[#071821] p-7 text-white sm:p-10">
+          <h2 className="text-2xl font-bold">الثقة مرتبطة بالدليل</h2>
+          <p className="mt-3 max-w-3xl leading-7 text-white/65">وثيقة YEE تبقى خاصة بما تثبته لمنتجات YEE. وأي ضمان محدود يظهر فقط للمنتج المعتمد. ما نعمم وثيقة أو ضمان على كل المتجر.</p>
+          <div className="mt-6 flex flex-wrap gap-3"><Link href="/products" className="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">شوف المنتجات</Link><a href="/guides" className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-6 text-sm font-bold">شوف الأدلة</a></div>
         </section>
       </main>
-
-      <BackToTop />
       <Footer />
+      <BackToTop />
     </div>
   );
 }

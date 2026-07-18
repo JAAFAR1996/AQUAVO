@@ -116,7 +116,7 @@ function nextScheduledTime(intervalHours = 12): string {
 // ─── Colors ──────────────────────────────────────────────────────────────────
 
 const SEVERITY_COLORS: Record<string, { bg: string; border: string; text: string }> = {
-  low:      { bg: "#0d1f3c", border: "#199bb840", text: "#67e8f9" },
+  low:      { bg: "#0d1f3c", border: "#0B93A640", text: "#67e8f9" },
   medium:   { bg: "#1a1a0a", border: "#f59e0b60", text: "#fcd34d" },
   high:     { bg: "#1a0d0d", border: "#ef444460", text: "#fca5a5" },
   critical: { bg: "#200010", border: "#dc2626", text: "#f87171" },
@@ -233,8 +233,8 @@ function FindingCard({ finding }: { finding: AuditFinding }) {
             </div>
           )}
 
-          <div style={{ background: "#0a1628", borderRadius: 8, padding: "8px 12px",
-            borderRight: "3px solid #199bb8" }}>
+          <div style={{ background: "#0B1E28", borderRadius: 8, padding: "8px 12px",
+            borderRight: "3px solid #0B93A6" }}>
             <div style={{ color: "#64748b", fontSize: 10, marginBottom: 4 }}>الإصلاح المقترح</div>
             <div style={{ color: "#e2e8f0", fontSize: 12 }}>{finding.suggestedFix}</div>
           </div>
@@ -296,27 +296,27 @@ function SchedulerStatusCard({
 }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
-      <div style={{ background: "#0a1628", border: `1px solid ${enabled ? "#22c55e30" : "#ef444430"}`,
+      <div style={{ background: "#0B1E28", border: `1px solid ${enabled ? "#22c55e30" : "#ef444430"}`,
         borderRadius: 8, padding: "10px 14px" }}>
         <div style={{ color: "#64748b", fontSize: 10 }}>حالة الجدولة</div>
         <div style={{ color: enabled ? "#4ade80" : "#f87171", fontSize: 13, fontWeight: 600, marginTop: 3 }}>
           {enabled ? "مفعّل" : "معطّل"}
         </div>
       </div>
-      <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
+      <div style={{ background: "#0B1E28", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
         <div style={{ color: "#64748b", fontSize: 10 }}>الفترة</div>
         <div style={{ color: "#e2e8f0", fontSize: 13, fontWeight: 600, marginTop: 3 }}>
           كل {intervalHours} ساعة
         </div>
       </div>
-      <div style={{ background: "#0a1628", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
+      <div style={{ background: "#0B1E28", border: "1px solid #1e3a5f", borderRadius: 8, padding: "10px 14px" }}>
         <div style={{ color: "#64748b", fontSize: 10 }}>آخر تشغيل</div>
         <div style={{ color: "#e2e8f0", fontSize: 12, fontWeight: 600, marginTop: 3 }}>
           {lastRunAt ? new Date(lastRunAt).toLocaleString("ar-IQ") : "لم يُشغَّل بعد"}
         </div>
       </div>
       {enabled && (
-        <div style={{ background: "#0a1628", border: "1px solid #199bb820", borderRadius: 8, padding: "10px 14px" }}>
+        <div style={{ background: "#0B1E28", border: "1px solid #0B93A620", borderRadius: 8, padding: "10px 14px" }}>
           <div style={{ color: "#64748b", fontSize: 10 }}>التشغيل القادم</div>
           <div style={{ color: "#67e8f9", fontSize: 12, fontWeight: 600, marginTop: 3 }}>
             {nextScheduledTime(intervalHours)}
@@ -432,7 +432,7 @@ export function FinanceAudit() {
     <div dir="rtl" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
 
       {/* Header card */}
-      <div style={{ background: "#0d1f3c", border: "1px solid #199bb820",
+      <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620",
         borderRadius: 12, padding: "18px 22px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
           <div>
@@ -446,8 +446,8 @@ export function FinanceAudit() {
           <button
             onClick={runAudit}
             disabled={running}
-            style={{ background: running ? "#0d1f3c" : "#199bb8",
-              border: "1.5px solid #199bb8", color: "#fff", borderRadius: 8,
+            style={{ background: running ? "#0d1f3c" : "#0B93A6",
+              border: "1.5px solid #0B93A6", color: "#fff", borderRadius: 8,
               padding: "8px 18px", fontSize: 13, fontWeight: 600,
               cursor: running ? "not-allowed" : "pointer",
               opacity: running ? 0.6 : 1, whiteSpace: "nowrap" }}>
@@ -455,7 +455,7 @@ export function FinanceAudit() {
           </button>
         </div>
 
-        <div style={{ marginTop: 14, background: "#010611", borderRadius: 8,
+        <div style={{ marginTop: 14, background: "#0B1E28", borderRadius: 8,
           padding: "8px 14px", border: "1px solid #1e3a5f" }}>
           <div style={{ color: "#f59e0b", fontSize: 11, fontWeight: 600, marginBottom: 4 }}>
             تنبيه مهم
@@ -589,7 +589,7 @@ export function FinanceAudit() {
                   { label: "مخزون منخفض/نافد",
                     value: `${snapshot.lowStockCount} / ${snapshot.outOfStockCount}` },
                 ].map(card => (
-                  <div key={card.label} style={{ background: "#0a1628",
+                  <div key={card.label} style={{ background: "#0B1E28",
                     border: `1px solid ${card.highlight ? "#f59e0b50" : "#1e3a5f"}`,
                     borderRadius: 8, padding: "10px 14px" }}>
                     <div style={{ color: "#64748b", fontSize: 10 }}>{card.label}</div>
@@ -610,7 +610,7 @@ export function FinanceAudit() {
 
           {/* Invariant checks */}
           {invariantChecks.length > 0 && (
-            <div style={{ background: "#0d1f3c", border: "1px solid #199bb820",
+            <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620",
               borderRadius: 12, padding: "14px 18px" }}>
               <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600, marginBottom: 10 }}>
                 الفحوصات الحتمية
@@ -652,7 +652,7 @@ export function FinanceAudit() {
       )}
 
       {/* Audit history */}
-      <div style={{ background: "#0d1f3c", border: "1px solid #199bb820",
+      <div style={{ background: "#0d1f3c", border: "1px solid #0B93A620",
         borderRadius: 12, padding: "14px 18px" }}>
         <div style={{ color: "#94a3b8", fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
           سجل التدقيق (آخر 10 تشغيلات)

@@ -98,27 +98,30 @@ export function CheckoutLoyaltySection({ cartTotal, onPointsChange }: CheckoutLo
                         <Coins className="w-4 h-4 text-primary" />
                     </div>
                     <div>
-                        <p className="text-sm font-medium">استخدام رصيد الباقي</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p id="cashback-toggle-label" className="text-sm font-medium">استخدام رصيد الباقي</p>
+                        <p id="cashback-toggle-desc" className="text-xs text-muted-foreground">
                             {balance.cashbackBalance.toLocaleString()} نقطة = {formatIQD(balance.cashbackValueIQD)}
                         </p>
                     </div>
                 </div>
                 <Switch
+                    id="cashback-toggle"
                     checked={useCashback}
                     onCheckedChange={setUseCashback}
                     disabled={!hasCashback}
+                    aria-labelledby="cashback-toggle-label"
+                    aria-describedby="cashback-toggle-desc"
                 />
             </div>
 
             {/* Preview */}
             {isLoadingPreview ? (
-                <div className="flex items-center justify-center py-2">
+                <div className="flex items-center justify-center py-2" role="status" aria-live="polite">
                     <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                     <span className="text-xs text-muted-foreground mr-2">جاري الحساب...</span>
                 </div>
             ) : preview && useCashback ? (
-                <div className="space-y-1.5">
+                <div className="space-y-1.5" role="status" aria-live="polite">
                     {preview.totalDiscount > 0 && (
                         <div className="flex justify-between text-sm">
                             <span className="text-green-600 dark:text-green-400">خصم رصيد الباقي</span>

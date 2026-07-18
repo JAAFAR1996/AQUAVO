@@ -146,20 +146,6 @@ app.use(apiOnly(sanitizeBody));
 // Security: Log suspicious activity
 app.use(apiOnly(securityLogger));
 
-// Agent Readiness: Link response headers (RFC 8288) for AI agent discovery
-app.use((req: Request, res: Response, next: NextFunction) => {
-  // Only add Link headers on HTML page requests (homepage / navigations)
-  if (req.path === "/" || (!req.path.startsWith("/api") && !req.path.includes("."))) {
-    res.setHeader("Link", [
-      '</.well-known/api-catalog>; rel="api-catalog"',
-      '</.well-known/mcp/server-card.json>; rel="mcp-server-card"',
-      '</.well-known/agent-skills/index.json>; rel="agent-skills"',
-      '</.well-known/acp.json>; rel="acp"',
-    ].join(", "));
-  }
-  next();
-});
-
 // Health check endpoint - BEFORE session middleware
 // This allows the hosting platform to verify the app is running without hitting the database
 app.get("/health", (_req, res) => {

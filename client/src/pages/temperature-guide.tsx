@@ -28,7 +28,7 @@ interface FishTemp {
 
 const FISH_DATA: FishTemp[] = [
   { name: "نيون تترا", nameEn: "Neon Tetra", min: 20, max: 26, ideal: 24, difficulty: "سهل", color: "#00d4ff", image: "/fish/neon-tetra.webp" },
-  { name: "جوبي", nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#ff7b5a", image: "/fish/guppy.webp" },
+  { name: "جوبي", nameEn: "Guppy", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#0B64A6", image: "/fish/guppy.webp" },
   { name: "بيتا", nameEn: "Betta", min: 24, max: 30, ideal: 27, difficulty: "سهل", color: "#e63946", image: "/fish/betta-splendens.webp" },
   { name: "أنجل فيش", nameEn: "Angelfish", min: 24, max: 30, ideal: 26, difficulty: "متوسط", color: "#ffd700", image: "/fish/angelfish.webp" },
   { name: "مولي", nameEn: "Molly", min: 22, max: 28, ideal: 25, difficulty: "سهل", color: "#7FFF00", image: "/fish/molly.webp" },
@@ -66,8 +66,8 @@ function FloatingBubbles() {
           <div key={i} style={{
             position: "absolute", left: `${b.l}%`, bottom: "-8%",
             width: b.s, height: b.s, borderRadius: "50%",
-            background: "radial-gradient(circle at 35% 35%, rgba(25,155,184,0.45), rgba(25,155,184,0.06))",
-            border: "1px solid rgba(25,155,184,0.2)",
+            background: "radial-gradient(circle at 35% 35%, rgba(11,147,166,0.45), rgba(11,147,166,0.06))",
+            border: "1px solid rgba(11,147,166,0.2)",
             animation: `tempFloat ${b.dur}s ${b.del}s infinite linear`,
           }} />
         ))}
@@ -166,7 +166,7 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
               style={{
                 left: `${((fish.ideal - 16) / 20) * 100}%`,
                 background: fish.color,
-                borderColor: "#010611",
+                borderColor: "#0B1E28",
                 boxShadow: `0 0 6px ${fish.color}`,
                 marginLeft: "-5px",
               }}
@@ -199,7 +199,7 @@ export default function TemperatureGuide() {
   };
 
   return (
-    <div className="relative bg-[#010611] text-white min-h-screen w-full" dir="rtl">
+    <div className="relative bg-[#0B1E28] text-white min-h-screen w-full" dir="rtl">
       <FloatingBubbles />
 
       {/* Noise grain */}
@@ -216,7 +216,7 @@ export default function TemperatureGuide() {
           {/* Ambient glow */}
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-[140px]"
-              style={{ background: "radial-gradient(circle, rgba(25,155,184,0.15), transparent 70%)" }} />
+              style={{ background: "radial-gradient(circle, rgba(11,147,166,0.15), transparent 70%)" }} />
           </div>
 
           {/* Badge */}
@@ -224,13 +224,13 @@ export default function TemperatureGuide() {
             initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8"
-            style={{ background: "rgba(25,155,184,0.1)", border: "1px solid rgba(25,155,184,0.25)", backdropFilter: "blur(12px)" }}
+            style={{ background: "rgba(11,147,166,0.1)", border: "1px solid rgba(11,147,166,0.25)", backdropFilter: "blur(12px)" }}
           >
             <motion.span
               animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
               transition={{ duration: 2, repeat: Infinity }}
               className="w-1.5 h-1.5 rounded-full bg-cyan-400"
-              style={{ boxShadow: "0 0 8px rgba(25,155,184,0.9)" }}
+              style={{ boxShadow: "0 0 8px rgba(11,147,166,0.9)" }}
             />
             <span className="text-cyan-300 text-xs font-bold tracking-widest uppercase">مجاناً</span>
             <span className="text-cyan-300/35 text-xs">· AQUAVO 2026</span>
@@ -243,9 +243,9 @@ export default function TemperatureGuide() {
             transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
             className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
             style={{
-              background: "linear-gradient(135deg, rgba(25,155,184,0.3), rgba(255,123,90,0.2))",
-              border: "1px solid rgba(25,155,184,0.4)",
-              boxShadow: "0 0 40px rgba(25,155,184,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+              background: "linear-gradient(135deg, rgba(11,147,166,0.3), rgba(11,100,166,0.2))",
+              border: "1px solid rgba(11,147,166,0.4)",
+              boxShadow: "0 0 40px rgba(11,147,166,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
             }}
           >
             <Thermometer size={36} className="text-cyan-300" />
@@ -258,7 +258,7 @@ export default function TemperatureGuide() {
             className="text-3xl md:text-4xl font-black text-center leading-tight mb-4"
           >
             جدول درجات الحرارة{" "}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#199bb8]">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-[#0B93A6]">
               المثالية
             </span>
             <br />
@@ -280,9 +280,9 @@ export default function TemperatureGuide() {
             onClick={handleDownload}
             className="group flex items-center gap-3 px-8 py-4 rounded-2xl font-bold text-white transition-all active:scale-[0.97]"
             style={{
-              background: "linear-gradient(135deg, rgba(25,155,184,0.9), rgba(13,122,148,0.9))",
-              boxShadow: "0 0 40px rgba(25,155,184,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
-              border: "1px solid rgba(25,155,184,0.5)",
+              background: "linear-gradient(135deg, rgba(11,147,166,0.9), rgba(13,122,148,0.9))",
+              boxShadow: "0 0 40px rgba(11,147,166,0.3), inset 0 1px 0 rgba(255,255,255,0.2)",
+              border: "1px solid rgba(11,147,166,0.5)",
             }}
           >
             <Download size={20} />
@@ -315,12 +315,12 @@ export default function TemperatureGuide() {
               background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 50%, rgba(255,255,255,0.06) 100%)",
               backdropFilter: "blur(24px) saturate(180%)",
               border: "1px solid rgba(255,255,255,0.12)",
-              boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 40px rgba(25,155,184,0.1)",
+              boxShadow: "0 24px 64px rgba(0,0,0,0.5), 0 0 40px rgba(11,147,166,0.1)",
             }}
           >
             <div className="flex items-center gap-3 mb-6">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center"
-                style={{ background: "rgba(25,155,184,0.2)", border: "1px solid rgba(25,155,184,0.4)" }}>
+                style={{ background: "rgba(11,147,166,0.2)", border: "1px solid rgba(11,147,166,0.4)" }}>
                 <Thermometer size={16} className="text-cyan-400" />
               </div>
               <h2 className="text-lg font-black text-white">جدول الحرارة التفاعلي</h2>
@@ -372,12 +372,12 @@ export default function TemperatureGuide() {
             transition={{ duration: 0.7 }}
             className="rounded-3xl p-6"
             style={{
-              background: "linear-gradient(135deg, rgba(255,123,90,0.08), rgba(25,155,184,0.06))",
-              border: "1px solid rgba(255,123,90,0.15)",
+              background: "linear-gradient(135deg, rgba(11,100,166,0.08), rgba(11,147,166,0.06))",
+              border: "1px solid rgba(11,100,166,0.15)",
             }}
           >
             <h3 className="text-lg font-black text-white/90 mb-4 flex items-center gap-2">
-              <Shield size={18} className="text-[#ff7b5a]" />
+              <Shield size={18} className="text-[#0B64A6]" />
               نصائح ذهبية للحرارة
             </h3>
             <div className="space-y-3 text-sm text-white/60 font-medium leading-relaxed">
@@ -403,9 +403,9 @@ export default function TemperatureGuide() {
             <Link href="/products">
               <button className="w-full font-bold py-5 rounded-2xl flex items-center justify-center gap-2.5 transition-all active:scale-[0.97] text-[15px] text-white"
                 style={{
-                  background: "linear-gradient(135deg, rgba(25,155,184,0.9), rgba(13,122,148,0.8))",
-                  boxShadow: "0 0 40px rgba(25,155,184,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  border: "1px solid rgba(25,155,184,0.4)",
+                  background: "linear-gradient(135deg, rgba(11,147,166,0.9), rgba(13,122,148,0.8))",
+                  boxShadow: "0 0 40px rgba(11,147,166,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  border: "1px solid rgba(11,147,166,0.4)",
                 }}>
                 <Thermometer size={20} />
                 <span>تسوق سخانات ستيل — حماية دائمة</span>

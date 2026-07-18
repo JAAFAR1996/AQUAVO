@@ -79,6 +79,7 @@ vi.mock('@/lib/api', () => ({
 }));
 
 import Products from '../products';
+import { fetchProducts } from '@/lib/api';
 
 const createWrapper = () => {
     const queryClient = new QueryClient({
@@ -94,6 +95,12 @@ const createWrapper = () => {
 describe('Products Page', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        vi.mocked(fetchProducts).mockResolvedValue({
+            products: [
+                { id: '1', name: 'Test Fish Food', price: 15000, category: 'أطعمة', slug: 'test-fish-food', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 2 },
+                { id: '2', name: 'Test Filter', price: 50000, category: 'فلاتر', slug: 'test-filter', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 2 },
+            ],
+        });
     });
 
     afterEach(() => {
@@ -127,5 +134,27 @@ describe('Products Page', () => {
     it('should render footer', () => {
         render(<Products />, { wrapper: createWrapper() });
         expect(screen.getByTestId('footer')).toBeInTheDocument();
+    });
+
+    it('uses a benefit-first store heading without a blanket authenticity claim', () => {
+        render(<Products />, { wrapper: createWrapper() });
+        expect(screen.getByRole('heading', { level: 1, name: 'جهّز حوضك على أساس واضح' })).toBeInTheDocument();
+        expect(screen.queryByText(/أصلية لكل العراق/i)).not.toBeInTheDocument();
+    });
+
+    it('shows one recoverable error state when products fail to load', async () => {
+        vi.mocked(fetchProducts).mockRejectedValue(new Error('network unavailable'));
+        render(<Products />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { name: 'ما كدرنا نحمّل المنتجات' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'حاول مرة ثانية' })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: 'لم يتم العثور على منتجات' })).not.toBeInTheDocument();
+    });
+
+    it('gives the sort SelectTrigger a 44px touch target (h-11) instead of the old h-10 (40px)', async () => {
+        render(<Products />, { wrapper: createWrapper() });
+        const sortTrigger = await screen.findByLabelText('ترتيب المنتجات');
+        expect(sortTrigger.className).toContain('h-11');
+        expect(sortTrigger.className).not.toMatch(/\bh-10\b/);
     });
 });

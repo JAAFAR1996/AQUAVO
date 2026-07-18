@@ -1,5 +1,6 @@
 // Google Analytics 4 Integration
 // To use: Add VITE_GA_ID to your .env file
+import { isTrackingAllowed } from "./tracking-environment";
 
 // Cart item interface for analytics
 interface AnalyticsCartItem {
@@ -24,7 +25,7 @@ const GA_ID = import.meta.env.VITE_GA_ID;
 
 // Initialize Google Analytics
 export function initGA() {
-  if (!GA_ID || typeof window === 'undefined') return;
+  if (!GA_ID || !isTrackingAllowed()) return;
 
   // Load gtag script
   const script = document.createElement('script');
@@ -47,7 +48,7 @@ export function initGA() {
 
 // Track page views
 export function trackPageView(url: string) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('config', GA_ID, {
     page_path: url,
@@ -61,7 +62,7 @@ export function trackEvent(
   label?: string,
   value?: number
 ) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', action, {
     event_category: category,
@@ -77,7 +78,7 @@ export function trackAddToCart(product: {
   price: number;
   quantity: number;
 }) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'add_to_cart', {
     currency: 'IQD',
@@ -99,7 +100,7 @@ export function trackRemoveFromCart(product: {
   price: number;
   quantity: number;
 }) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'remove_from_cart', {
     currency: 'IQD',
@@ -116,7 +117,7 @@ export function trackRemoveFromCart(product: {
 }
 
 export function trackBeginCheckout(cartItems: AnalyticsCartItem[], total: number) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'begin_checkout', {
     currency: 'IQD',
@@ -130,12 +131,50 @@ export function trackBeginCheckout(cartItems: AnalyticsCartItem[], total: number
   });
 }
 
+export function trackViewCart(cartItems: AnalyticsCartItem[], total: number) {
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
+  window.gtag('event', 'view_cart', {
+    currency: 'IQD', value: total, items: toGAItems(cartItems),
+  });
+}
+
+export function trackAddShippingInfo(cartItems: AnalyticsCartItem[], total: number) {
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
+  window.gtag('event', 'add_shipping_info', {
+    currency: 'IQD', value: total, shipping_tier: 'Iraq delivery', items: toGAItems(cartItems),
+  });
+}
+
+export function trackViewItemList(products: Array<AnalyticsCartItem & { category?: string }>, listName: string) {
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag || products.length === 0) return;
+  window.gtag('event', 'view_item_list', {
+    item_list_name: listName,
+    items: products.map((item, index) => ({ ...toGAItem(item), index, item_category: item.category })),
+  });
+}
+
+export function trackSelectItem(product: AnalyticsCartItem & { category?: string }, listName = 'products') {
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
+  window.gtag('event', 'select_item', {
+    item_list_name: listName,
+    items: [{ ...toGAItem(product), item_category: product.category }],
+  });
+}
+
+function toGAItem(item: AnalyticsCartItem) {
+  return { item_id: item.id, item_name: item.name, price: item.price, quantity: item.quantity };
+}
+
+function toGAItems(items: AnalyticsCartItem[]) {
+  return items.map(toGAItem);
+}
+
 export function trackPurchase(orderData: {
   orderId: string;
   total: number;
   items: AnalyticsCartItem[];
 }) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'purchase', {
     transaction_id: orderData.orderId,
@@ -151,7 +190,7 @@ export function trackPurchase(orderData: {
 }
 
 export function trackSearch(searchQuery: string) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'search', {
     search_term: searchQuery,
@@ -164,7 +203,7 @@ export function trackViewItem(product: {
   price: number;
   category?: string;
 }) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'view_item', {
     currency: 'IQD',
@@ -185,7 +224,7 @@ export function trackAddToWishlist(product: {
   name: string;
   price: number;
 }) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'add_to_wishlist', {
     currency: 'IQD',
@@ -202,7 +241,7 @@ export function trackAddToWishlist(product: {
 
 // User engagement events
 export function trackSignUp(method: string) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'sign_up', {
     method: method,
@@ -210,7 +249,7 @@ export function trackSignUp(method: string) {
 }
 
 export function trackLogin(method: string) {
-  if (!GA_ID || typeof window === 'undefined' || !window.gtag) return;
+  if (!GA_ID || !isTrackingAllowed() || !window.gtag) return;
 
   window.gtag('event', 'login', {
     method: method,
@@ -222,8 +261,9 @@ export function trackWhatsAppClick(page: string, productName?: string) {
   trackEvent('whatsapp_click', 'CRO', productName ? `${page}:${productName}` : page);
 }
 
-export function trackCartOpen() {
+export function trackCartOpen(cartItems?: AnalyticsCartItem[], total?: number) {
   trackEvent('cart_open', 'CRO');
+  if (cartItems && typeof total === 'number') trackViewCart(cartItems, total);
 }
 
 // Custom AQUAVO events

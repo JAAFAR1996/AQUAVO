@@ -22,8 +22,8 @@ const LINK_LABELS: Record<string, string> = {
   "/products": "المنتجات",
   "/guides": "أدلة أحواض الزينة",
   "/guides/new-aquarium-setup-iraq": "تجهيز حوض جديد",
-  "/guides/aquarium-filter-guide": "اختيار الفلتر",
-  "/guides/aquarium-heater-guide": "اختيار السخان",
+  "/guides/filter-choice": "اختيار الفلتر",
+  "/guides/heater-choice": "اختيار السخان",
   "/guides/aquarium-water-test-guide": "فحص ماء الحوض",
   "/guides/aquarium-decor-stones-guide": "ديكور وأحجار الحوض",
   "/shipping": "التوصيل",
@@ -49,8 +49,6 @@ const LINK_LABELS: Record<string, string> = {
   "/community-gallery": "معرض المجتمع",
   "/journey": "رحلة الحوض",
   "/invest": "الاستثمار",
-  "/guides/filter-choice": "اختيار فلتر الحوض",
-  "/guides/heater-choice": "اختيار سخان الحوض",
   "/guides/tank-rescue-plan": "خطة إنقاذ الحوض",
   "/guides/white-scale": "إزالة الكلس الأبيض",
   "/guides/feeding-table": "جدول التغذية",
@@ -73,7 +71,7 @@ const DEFAULT_LINKS = [
   "/products",
   "/guides",
   "/guides/new-aquarium-setup-iraq",
-  "/guides/aquarium-filter-guide",
+  "/guides/filter-choice",
   "/guides/aquarium-water-test-guide",
   "/shipping",
   "/faq",
@@ -259,7 +257,7 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "تصفح معدات ومستلزمات الحوض المتوفرة مثل الفلاتر، السخانات، الإضاءة، الغذاء، الديكور ومعالجات المياه",
     audience: "هذه الصفحة مناسبة لمن يريد مقارنة المنتجات حسب الفئة قبل اختيار القطعة المناسبة لحجم الحوض واحتياجه",
     action: "ابدأ بتحديد المشكلة: تصفية، حرارة، إضاءة، ديكور، أو فحص ماء، ثم انتقل للفئة المناسبة بدل شراء قطعة عشوائية",
-    links: ["/guides", "/guides/aquarium-filter-guide", "/guides/aquarium-heater-guide", "/guides/aquarium-water-test-guide", "/guides/aquarium-decor-stones-guide"],
+    links: ["/guides", "/guides/filter-choice", "/guides/heater-choice", "/guides/aquarium-water-test-guide", "/guides/aquarium-decor-stones-guide"],
   },
   "/shipping": {
     h1: "التوصيل والدفع عند الاستلام في العراق",
@@ -308,21 +306,21 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "ترتيب خطوات تجهيز الحوض الأول من اختيار المعدات إلى تشغيل الحوض وفحص الماء",
     audience: "هذه الصفحة مناسبة للمبتدئ الذي لا يريد يشتري قطع متفرقة بدون فهم العلاقة بينها",
     action: "ابدأ بالحوض والفلتر والسخان ومزيل الكلور، ثم تابع دليل فحص الماء قبل إدخال أي أسماك",
-    links: ["/guides/new-aquarium-setup-iraq", "/guides/aquarium-filter-guide", "/guides/aquarium-heater-guide", "/guides/aquarium-water-test-guide", "/products"],
+    links: ["/guides/new-aquarium-setup-iraq", "/guides/filter-choice", "/guides/heater-choice", "/guides/aquarium-water-test-guide", "/products"],
   },
   "/guides/filter-choice": {
     h1: "اختيار فلتر الحوض",
     topic: "فهم أنواع الفلاتر ومتى تختار الفلتر الداخلي أو الخارجي أو الإسفنجي حسب حجم الحوض",
     audience: "هذه الصفحة مناسبة لمن يعاني من ماء عكر أو يريد يجهز فلتر صحيح من البداية",
     action: "قارن بين حجم الحوض، كمية الفضلات، وقوة التدفق قبل الانتقال إلى منتجات الفلاتر",
-    links: ["/products?category=filters", "/guides/aquarium-filter-guide", "/guides/filter-media", "/guides/aquarium-water-test-guide", "/guides/water-change-schedule"],
+    links: ["/products?category=filters", "/guides/filter-choice", "/guides/filter-media", "/guides/aquarium-water-test-guide", "/guides/water-change-schedule"],
   },
   "/guides/heater-choice": {
     h1: "اختيار سخان الحوض",
     topic: "تحديد قوة السخان المناسبة حسب حجم الماء ودرجة حرارة الغرفة وثبات الحرارة المطلوب",
     audience: "هذه الصفحة مناسبة لمن يريد يقلل تذبذب الحرارة ويحافظ على استقرار الحوض",
     action: "احسب تقريباً حاجة الحوض، ثم راجع دليل السخان التفصيلي واختر المنتج حسب حجم الماء",
-    links: ["/products?category=heaters", "/guides/aquarium-heater-guide", "/guides/temperature-guide", "/guides/aquarium-water-test-guide", "/guides/new-aquarium-setup-iraq"],
+    links: ["/products?category=heaters", "/guides/heater-choice", "/guides/temperature-guide", "/guides/aquarium-water-test-guide", "/guides/new-aquarium-setup-iraq"],
   },
   "/fish-encyclopedia": {
     h1: "موسوعة أسماك الزينة",
@@ -350,14 +348,14 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "مقالات تعليمية عن تجهيز وصيانة أحواض الزينة واختيار المعدات المناسبة",
     audience: "هذه الصفحة مناسبة لمن يريد يقرأ مواضيع أوسع من الأدلة المختصرة أو يتابع تحديثات AQUAVO",
     action: "ابدأ بالأدلة الأساسية إذا أنت جديد، ثم استخدم المدونة للتوسع في المشاكل والحلول",
-    links: ["/guides", "/beginner-guide", "/guides/aquarium-filter-guide", "/guides/aquarium-water-test-guide", "/products"],
+    links: ["/guides", "/beginner-guide", "/guides/filter-choice", "/guides/aquarium-water-test-guide", "/products"],
   },
   "/deals": {
     h1: "عروض AQUAVO لمستلزمات أحواض الزينة",
     topic: "متابعة العروض المتاحة حسب المخزون على معدات ومستلزمات أحواض الزينة",
     audience: "هذه الصفحة مناسبة لمن يعرف احتياجه ويريد يراجع المنتجات المتوفرة بسعر أو عرض مناسب",
     action: "لا تختار العرض وحده كسبب شراء؛ تأكد أن المنتج يناسب حجم الحوض والمشكلة التي تريد حلها",
-    links: ["/products", "/guides/aquarium-filter-guide", "/guides/aquarium-heater-guide", "/shipping", "/faq"],
+    links: ["/products", "/guides/filter-choice", "/guides/heater-choice", "/shipping", "/faq"],
   },
   "/guides/tank-rescue-plan": {
     h1: "خطة إنقاذ الحوض في حالات الطوارئ",
@@ -371,21 +369,21 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "أدوات حسابية تساعدك تقدّر حجم الحوض وقوة الفلتر والسخان ونسبة تغيير الماء",
     audience: "هذه الصفحة مناسبة لمن يريد قراراً أقرب للمنطق قبل شراء المعدات أو تغيير الروتين",
     action: "استخدم الحاسبة كبداية، ثم راجع الدليل التفصيلي لأن ظروف كل حوض تختلف",
-    links: ["/aquarium-wizard", "/tank-builder", "/guides/aquarium-filter-guide", "/guides/aquarium-heater-guide", "/guides/water-change-schedule"],
+    links: ["/aquarium-wizard", "/tank-builder", "/guides/filter-choice", "/guides/heater-choice", "/guides/water-change-schedule"],
   },
   "/aquarium-wizard": {
     h1: "مساعد تجهيز الحوض",
     topic: "مساعدة الزائر على ترتيب احتياجات الحوض حسب الحجم والخطوة الحالية",
     audience: "هذه الصفحة مناسبة للمبتدئ أو الهاوي الذي يريد قائمة أولية قبل فتح صفحة المنتجات",
     action: "استخدم المساعد لتحديد الأولويات، ثم راجع الأدلة الأساسية قبل اختيار المنتج",
-    links: ["/tank-builder", "/calculators", "/guides/new-aquarium-setup-iraq", "/guides/aquarium-filter-guide", "/products"],
+    links: ["/tank-builder", "/calculators", "/guides/new-aquarium-setup-iraq", "/guides/filter-choice", "/products"],
   },
   "/tank-builder": {
     h1: "مصمم أحواض الزينة",
     topic: "تخطيط مكونات الحوض مثل الفلتر والسخان والإضاءة والديكور قبل الشراء",
     audience: "هذه الصفحة مناسبة لمن يريد يجهز حوضاً متوازناً بدل شراء معدات غير متناسقة",
     action: "ابدأ بالحجم والغرض من الحوض، ثم اختر كل قطعة حسب احتياجها العملي وليس الشكل فقط",
-    links: ["/aquarium-wizard", "/calculators", "/guides/aquarium-decor-stones-guide", "/guides/aquarium-filter-guide", "/products"],
+    links: ["/aquarium-wizard", "/calculators", "/guides/aquarium-decor-stones-guide", "/guides/filter-choice", "/products"],
   },
   "/fish-compatibility": {
     h1: "توافق أسماك الزينة",
@@ -483,7 +481,7 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "تقليل استهلاك الطاقة والماء والهدر عبر معدات مناسبة وروتين صيانة متوازن",
     audience: "هذه الصفحة مناسبة لمن يريد حوضاً عملياً ومستقراً بدون استهلاك زائد أو تبديل غير ضروري",
     action: "ابدأ بالفلتر المناسب، الإضاءة المعقولة، وتغيير الماء حسب الحاجة لا حسب التخمين",
-    links: ["/sustainability", "/guides/water-change-schedule", "/guides/filter-media", "/guides/aquarium-heater-guide", "/products"],
+    links: ["/sustainability", "/guides/water-change-schedule", "/guides/filter-media", "/guides/heater-choice", "/products"],
   },
   "/guides/happy-fish-signs": {
     h1: "علامات صحة وسعادة أسماك الزينة",
@@ -504,14 +502,14 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "عرض أفكار وترتيبات أحواض تساعد الزائر يستلهم شكل الحوض بدون نسخ عشوائي",
     audience: "هذه الصفحة مناسبة لمن يريد يشوف أمثلة قبل اختيار الديكور أو ترتيب المعدات داخل الحوض",
     action: "استخدم الصور كمصدر إلهام، ثم راجع دليل الديكور والفلتر قبل التطبيق على حوضك",
-    links: ["/guides/aquarium-decor-stones-guide", "/guides/aquarium-filter-guide", "/products?category=decorations", "/guides", "/about"],
+    links: ["/guides/aquarium-decor-stones-guide", "/guides/filter-choice", "/products?category=decorations", "/guides", "/about"],
   },
   "/guides/filter-media": {
     h1: "كيف تختار وتصين ميديا الفلتر",
     topic: "فهم الإسفنج والسيراميك والكربون ودور كل نوع داخل الفلتر",
     audience: "هذه الصفحة مناسبة لمن يريد يحسن تصفية الماء أو ينظف الفلتر بدون خسارة البكتيريا النافعة",
     action: "نظف الميديا بماء من الحوض عند الحاجة، ولا تغسل كل شيء دفعة واحدة بماء الحنفية",
-    links: ["/guides/aquarium-filter-guide", "/guides/filter-choice", "/products?category=filters", "/guides/aquarium-water-test-guide", "/guides/water-change-schedule"],
+    links: ["/guides/filter-choice", "/guides/filter-choice", "/products?category=filters", "/guides/aquarium-water-test-guide", "/guides/water-change-schedule"],
   },
   "/guides/treatment-basics": {
     h1: "أساسيات علاج أمراض أسماك الزينة",
@@ -525,14 +523,14 @@ const SEO_CONTENT_PAGES: Record<string, SeoContentPage> = {
     topic: "أخطاء البداية مثل تشغيل الحوض بسرعة، ضعف الفلتر، الإفراط بالتغذية، وإهمال فحص الماء",
     audience: "هذه الصفحة مناسبة لأي مبتدئ يريد يتجنب المشاكل التي تظهر في الأسابيع الأولى من الحوض",
     action: "اقرأ الأخطاء كقائمة فحص، ثم انتقل لدليل التجهيز وفحص الماء لتطبيق الخطوات بالترتيب",
-    links: ["/beginner-guide", "/guides/new-aquarium-setup-iraq", "/guides/aquarium-water-test-guide", "/guides/aquarium-filter-guide", "/products"],
+    links: ["/beginner-guide", "/guides/new-aquarium-setup-iraq", "/guides/aquarium-water-test-guide", "/guides/filter-choice", "/products"],
   },
   "/guides/temperature-guide": {
     h1: "درجات حرارة الماء المناسبة لأسماك الزينة",
     topic: "فهم دور حرارة الماء والسخان والترمومتر وثبات الحرارة في استقرار الحوض",
     audience: "هذه الصفحة مناسبة لمن يلاحظ خمول أو تذبذب سلوك مرتبط بتغير حرارة الغرفة",
     action: "استخدم ترمومتر منفصل، وراجع قوة السخان حسب حجم الحوض وليس حسب التخمين",
-    links: ["/guides/aquarium-heater-guide", "/guides/heater-choice", "/products?category=heaters", "/fish-encyclopedia", "/fish-health"],
+    links: ["/guides/heater-choice", "/guides/heater-choice", "/products?category=heaters", "/fish-encyclopedia", "/fish-health"],
   },
   "/fish-finder": {
     h1: "اختيار السمك المناسب لحوضك",
@@ -567,7 +565,7 @@ export function getSeoMetaOverride(pathname: string): SeoMetaOverride | undefine
 function fitMetaDescription(description: string): string {
   if (description.length >= 120) return description;
 
-  const suffix = " مع روابط داخلية مفيدة من AQUAVO.";
+  const suffix = " مع معلومات عملية من AQUAVO لترتيب اختيارك بوضوح.";
   const expanded = `${description}${suffix}`;
   if (expanded.length <= 155) return expanded;
 
@@ -601,12 +599,12 @@ function linksFor(page: SeoContentPage): SeoLink[] {
 
 const SEO_CONTENT_CSS = `#aquavo-ssr-page-content{background:#08172b;color:#d7e4ee;border-top:1px solid rgba(255,255,255,.10);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;direction:rtl;text-align:right;line-height:1.85}
 #aquavo-ssr-page-content .asc-wrap{max-width:1100px;margin:0 auto;padding:28px 18px}
-#aquavo-ssr-page-content h1{font-family:'Changa','Cairo',sans-serif;font-size:1.35rem;line-height:1.45;color:#fff;margin:0 0 .75rem;font-weight:800;letter-spacing:0}
+#aquavo-ssr-page-content h1{font-family:'Cairo',sans-serif;font-size:1.35rem;line-height:1.45;color:#fff;margin:0 0 .75rem;font-weight:700;letter-spacing:0}
 #aquavo-ssr-page-content p{margin:.45rem 0;color:#c8d8e6;font-size:.96rem}
 #aquavo-ssr-page-content strong{color:#fff}
 #aquavo-ssr-page-content nav{display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem}
 #aquavo-ssr-page-content a{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#e4f3f8;background:rgba(255,255,255,.04);padding:.42rem .7rem;text-decoration:none;font-size:.9rem;line-height:1.4}
-#aquavo-ssr-page-content a:hover{border-color:#199bb8;color:#fff;background:rgba(25,155,184,.14)}`;
+#aquavo-ssr-page-content a:hover{border-color:#0B93A6;color:#fff;background:rgba(11,147,166,.14)}`;
 
 export function renderAhrefsSsrContentSection(pathname: string): string {
   const page = SEO_CONTENT_PAGES[normalizeSeoPath(pathname)];
@@ -620,9 +618,9 @@ export function renderAhrefsSsrContentSection(pathname: string): string {
 <style>${SEO_CONTENT_CSS}</style>
 <div class="asc-wrap">
 <h1>${esc(page.h1)}</h1>
-<p><strong>${esc(page.h1)}</strong> صفحة مخصصة لـ ${esc(page.topic)}. ${esc(page.audience)}. الهدف منها أن تعطي الزائر جواباً مختصراً ومفيداً داخل HTML من السيرفر قبل تحميل JavaScript، حتى يعرف هل هذه الصفحة تناسب حاجته أم يحتاج دليلاً آخر.</p>
-<p>في AQUAVO نربط التعليم بالمنتج بشكل هادئ: نوضح المشكلة، ثم نرشدك إلى الأدلة والمنتجات والسياسات المناسبة بدون ضغط شراء. ${esc(page.action)}. هذا مهم لهواة أحواض الزينة في العراق لأن جودة الماء، اختيار الفلتر، الحرارة، الديكور، وروتين الصيانة كلها قرارات تؤثر على استقرار الحوض.</p>
-<p>للاستفادة أكثر، انتقل من هذه الصفحة إلى الروابط الداخلية القريبة مثل ${esc(linkedLabels)}. كل الروابط هنا ظاهرة وليست مخفية، وتساعد الزائر ومحركات البحث على فهم بنية الموقع. AQUAVO يركز على معدات ومستلزمات أحواض الزينة فقط، ولا يبيع أسماكاً حية أو كائنات حية أو نباتات حية.</p>
+<p><strong>${esc(page.h1)}</strong> يغطي ${esc(page.topic)}. ${esc(page.audience)}.</p>
+<p>${esc(page.action)}. خلّ القرار مبني على حجم الحوض، قياسات المي، وتعليمات المنتج الفعلية، مو على التخمين.</p>
+<p>إذا تحتاج تكمل الصورة، راجع أيضاً ${esc(linkedLabels)}. AQUAVO يوفر معدات ومستلزمات أحواض الزينة، ولا يبيع أسماكاً حية أو كائنات حية أو نباتات مائية حية.</p>
 <nav aria-label="روابط مرتبطة بهذه الصفحة">${linkHtml}</nav>
 </div>
 </section>`;

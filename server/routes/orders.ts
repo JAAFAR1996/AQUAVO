@@ -1,9 +1,10 @@
 import type { Router as RouterType, Request, Response, NextFunction } from "express";
 import { Router } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { storage } from "../storage/index.js";
 import { requireAuth, getSession } from "../middleware/auth.js";
 import * as Sentry from "@sentry/node";
-import { orderLimiter } from "../middleware/rate-limit.js";
+import { orderLimiter, orderTrackingLimiter } from "../middleware/rate-limit.js";
 import { z } from "zod";
 import { analyticsTracker } from "../services/analytics-tracker.js";
 import { db } from "../db.js";
@@ -43,6 +44,52 @@ export const createOrderSchema = z.object({
     pointsToUse: z.number().int().min(0).optional().default(0),
     cashbackToUse: z.number().int().min(0).optional().default(0),
 });
+
+const idempotencyKeySchema = z.string().uuid();
+
+export const ORDER_TRACKING_FAILURE_MESSAGE = "تعذر التحقق من الطلب. تأكد من المعلومات وحاول مرة ثانية.";
+
+export function normalizePhoneDigits(value: string): string {
+    const arabicIndic = "٠١٢٣٤٥٦٧٨٩";
+    const easternArabic = "۰۱۲۳۴۵۶۷۸۹";
+    return value
+        .replace(/[٠-٩]/g, (digit) => String(arabicIndic.indexOf(digit)))
+        .replace(/[۰-۹]/g, (digit) => String(easternArabic.indexOf(digit)))
+        .replace(/\D/g, "");
+}
+
+const orderTrackingSchema = z.object({
+    phoneLast4: z.string().transform(normalizePhoneDigits).refine(
+        (value) => value.length === 4,
+        "The last four phone digits are required",
+    ),
+}).strict();
+
+export function verifyOrderTrackingPhone(customerPhone: string | null | undefined, phoneLast4: string): boolean {
+    const storedDigits = normalizePhoneDigits(customerPhone ?? "");
+    const expected = storedDigits.length >= 4 ? storedDigits.slice(-4) : "0000";
+    const supplied = normalizePhoneDigits(phoneLast4).padEnd(4, "0").slice(0, 4);
+    return timingSafeEqual(Buffer.from(expected), Buffer.from(supplied)) && storedDigits.length >= 4;
+}
+
+export function buildPublicOrderTrackingResponse(order: {
+    orderNumber: string | null;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+}) {
+    const orderDate = new Date(order.createdAt);
+    const estimatedDelivery = new Date(orderDate);
+    estimatedDelivery.setDate(orderDate.getDate() + (order.status === "delivered" ? 0 : order.status === "shipped" ? 2 : 4));
+
+    return {
+        orderNumber: order.orderNumber,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        estimatedDelivery,
+    };
+}
 
 export function calculateActualCashbackUsed({
     useCashback,
@@ -117,6 +164,28 @@ export function createOrderRouter(): RouterType {
 
             const { items, customerInfo, couponCode, useCashback, cashbackToUse } = validationResult.data;
 
+            const rawIdempotencyKey = req.get("Idempotency-Key");
+            const parsedIdempotencyKey = rawIdempotencyKey
+                ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
+                : null;
+            if (parsedIdempotencyKey && !parsedIdempotencyKey.success) {
+                res.status(400).json({ message: "Invalid Idempotency-Key header" });
+                return;
+            }
+            const idempotencyKey = parsedIdempotencyKey?.success
+                ? parsedIdempotencyKey.data
+                : undefined;
+
+            // A repeated request returns the already committed order and skips every
+            // inventory, coupon, loyalty, notification, and analytics side effect.
+            if (idempotencyKey) {
+                const existingOrder = await storage.getOrder(idempotencyKey);
+                if (existingOrder) {
+                    res.status(200).json(existingOrder);
+                    return;
+                }
+            }
+
             if (!userId && useCashback && cashbackToUse > 0) {
                 res.status(400).json({
                     message: "Cashback redemption requires a logged-in customer",
@@ -130,6 +199,7 @@ export function createOrderRouter(): RouterType {
                 customerInfo,
                 couponCode,
                 { useCashback, cashbackToUse },
+                idempotencyKey,
             );
 
             // 📝 Store client IP with order for rejection tracking
@@ -281,6 +351,17 @@ export function createOrderRouter(): RouterType {
 
             res.status(201).json(response);
         } catch (err: any) {
+            const rawIdempotencyKey = req.get("Idempotency-Key");
+            const parsedIdempotencyKey = rawIdempotencyKey
+                ? idempotencyKeySchema.safeParse(rawIdempotencyKey)
+                : null;
+            if (parsedIdempotencyKey?.success) {
+                const existingOrder = await storage.getOrder(parsedIdempotencyKey.data);
+                if (existingOrder) {
+                    res.status(200).json(existingOrder);
+                    return;
+                }
+            }
             // Convert known validation errors to 400 (stock issues surface the
             // clean Arabic message produced by order-storage).
             if (err.message?.includes('not found') ||
@@ -355,55 +436,32 @@ export function createOrderRouter(): RouterType {
         }
     });
 
-    // Track Order Publicly - only expose safe fields (no PII)
-    // Must be defined BEFORE /:id to avoid route conflict
-    router.get("/track/:orderNumber", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    // A predictable order number alone must never expose order information.
+    // Keep the legacy method closed with the same generic response used for a
+    // missing order or failed verifier.
+    router.get("/track/:orderNumber", orderTrackingLimiter, (_req: Request, res: Response): void => {
+        res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
+    });
+
+    // Existing orders need no migration: the last four digits are verified
+    // against the customer phone already stored with the order.
+    router.post("/track/:orderNumber", orderTrackingLimiter, async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { orderNumber } = req.params as { orderNumber: string };
-            const order = await storage.getOrder(orderNumber);
-            if (!order) {
-                res.status(404).json({ message: "Order not found" });
+            const parsedOrderNumber = z.string().trim().min(3).max(100).safeParse(orderNumber);
+            const parsedBody = orderTrackingSchema.safeParse(req.body ?? {});
+            if (!parsedOrderNumber.success || !parsedBody.success) {
+                res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
                 return;
             }
 
-            // Get order items from the JSONB field (items are stored inline, not in a separate table)
-            const rawItems = (order.items as any[]) || [];
-            const productIds = rawItems.map((item: any) => item.productId);
-            const trackProducts = productIds.length > 0 ? await storage.getProductsByIds(productIds) : [];
-            const trackMap = new Map(trackProducts.map((p: any) => [p.id, p]));
-            const enrichedItems = rawItems.map((item: any) => {
-                const product = trackMap.get(item.productId);
-                return {
-                    name: product?.name || product?.arabicName || "منتج غير معروف",
-                    imageUrl: product?.image || "",
-                    quantity: item.quantity
-                };
-            });
-
-            // Calculate estimated delivery
-            // Base estimation: orders take 1-3 days to process, then 1-3 days to ship
-            const orderDate = new Date(order.createdAt || new Date());
-            const estimatedDate = new Date(orderDate);
-
-            if (order.status === "delivered") {
-                estimatedDate.setDate(orderDate.getDate()); // Already delivered
-            } else if (order.status === "shipped") {
-                estimatedDate.setDate(orderDate.getDate() + 2); // 2 days from order if shipped
-            } else {
-                estimatedDate.setDate(orderDate.getDate() + 4); // General estimate: 4 days
+            const order = await storage.getOrder(parsedOrderNumber.data);
+            if (!order || !verifyOrderTrackingPhone(order.customerPhone, parsedBody.data.phoneLast4)) {
+                res.status(404).json({ message: ORDER_TRACKING_FAILURE_MESSAGE });
+                return;
             }
 
-            // Only return safe tracking info, hide customer PII
-            res.json({
-                id: order.id,
-                orderNumber: order.orderNumber,
-                status: order.status,
-                total: order.total,
-                createdAt: order.createdAt,
-                updatedAt: order.updatedAt,
-                estimatedDelivery: estimatedDate,
-                items: enrichedItems
-            });
+            res.json(buildPublicOrderTrackingResponse(order));
         } catch (err) {
             next(err);
         }

@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { phTrackSearch } from "@/lib/posthog";
+import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
+import { thumbImage } from "@/lib/cloudinary";
 
 interface GlobalSearchProps {
   open: boolean;
@@ -46,13 +48,13 @@ const staticPages = [
 
 // Popular/Quick Links with Arabic keywords for search
 const popularItems = [
-  { title: "فلاتر المياه", url: "/products?category=Filters", category: "فلاتر", keywords: ["فلتر", "فلاتر", "filter", "filters", "تصفية"] },
-  { title: "سخانات الحوض", url: "/products?category=Heaters", category: "سخانات", keywords: ["سخان", "سخانات", "heater", "heaters", "تسخين", "حرارة"] },
-  { title: "الإضاءة LED", url: "/products?category=Lighting", category: "إضاءة", keywords: ["ضوء", "إضاءة", "ليد", "led", "lighting", "أضواء"] },
-  { title: "الديكورات", url: "/products?category=Decorations", category: "ديكور", keywords: ["ديكور", "زينة", "حجر", "صخور", "decoration"] },
-  { title: "مضخات الهواء", url: "/products?category=Air Pumps", category: "مضخات", keywords: ["مضخة", "هواء", "أكسجين", "pump", "air"] },
-  { title: "أغذية الأسماك", url: "/products?category=Food", category: "أغذية", keywords: ["طعام", "غذاء", "أكل", "food", "علف"] },
-  { title: "معالجات المياه", url: "/products?category=Water Treatment", category: "معالجات", keywords: ["معالج", "كيماوي", "ماء", "treatment", "conditioner"] },
+  { title: "فلاتر المياه", url: SHOP_CATEGORY_LINKS.filters, category: "فلاتر", keywords: ["فلتر", "فلاتر", "filter", "filters", "تصفية"] },
+  { title: "سخانات الحوض", url: SHOP_CATEGORY_LINKS.heaters, category: "سخانات", keywords: ["سخان", "سخانات", "heater", "heaters", "تسخين", "حرارة"] },
+  { title: "الإضاءة LED", url: SHOP_CATEGORY_LINKS.lighting, category: "إضاءة", keywords: ["ضوء", "إضاءة", "ليد", "led", "lighting", "أضواء"] },
+  { title: "الديكورات", url: SHOP_CATEGORY_LINKS.decor, category: "ديكور", keywords: ["ديكور", "زينة", "حجر", "صخور", "decoration"] },
+  { title: "مضخات الهواء", url: SHOP_CATEGORY_LINKS.airPumps, category: "مضخات", keywords: ["مضخة", "هواء", "أكسجين", "pump", "air"] },
+  { title: "أغذية الأسماك", url: SHOP_CATEGORY_LINKS.food, category: "أغذية", keywords: ["طعام", "غذاء", "أكل", "food", "علف"] },
+  { title: "معالجات المياه", url: SHOP_CATEGORY_LINKS.waterTreatment, category: "معالجات", keywords: ["معالج", "كيماوي", "ماء", "treatment", "conditioner"] },
 ];
 
 // Fuzzy matching helper
@@ -360,7 +362,7 @@ export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
                 >
                   {result.type === "product" && result.image && (
                     <img
-                      src={result.image}
+                      src={thumbImage(result.image)}
                       alt={result.title}
                       loading="lazy"
                       decoding="async"

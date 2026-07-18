@@ -114,7 +114,7 @@ export function MultiDimensionVariantSelector({
         <div className="space-y-4" dir="rtl">
             {/* Header */}
             <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
+                <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
                 <span className="font-semibold text-sm">اختر الخصائص</span>
             </div>
 
@@ -127,15 +127,19 @@ export function MultiDimensionVariantSelector({
                     <div key={dimension.name} className="space-y-2">
                         {/* Dimension label */}
                         <div className="flex items-center gap-2 text-sm">
-                            <Icon className="w-4 h-4 text-muted-foreground" />
-                            <span className="font-medium">{dimension.name}:</span>
+                            <Icon className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
+                            <span className="font-medium" id={`variant-dim-${dimension.name}`}>{dimension.name}:</span>
                             {selectedValue && (
                                 <span className="text-primary font-semibold">{selectedValue}</span>
                             )}
                         </div>
 
                         {/* Dimension options as compact buttons */}
-                        <div className="flex flex-wrap gap-2">
+                        <div
+                            className="flex flex-wrap gap-2"
+                            role="group"
+                            aria-labelledby={`variant-dim-${dimension.name}`}
+                        >
                             {dimension.values.map((value) => {
                                 const isSelected = selectedValue === value;
 
@@ -154,18 +158,22 @@ export function MultiDimensionVariantSelector({
                                 return (
                                     <button
                                         key={value}
+                                        type="button"
                                         onClick={() => handleDimensionSelect(dimension.name, value)}
                                         disabled={!isAvailable}
+                                        aria-pressed={isSelected}
+                                        aria-label={!isAvailable ? `${dimension.name} ${value}، غير متوفر` : `${dimension.name} ${value}`}
                                         className={cn(
                                             "px-4 py-2 rounded-full text-sm font-medium transition-all duration-200",
-                                            "border-2 hover:shadow-sm",
+                                            "border-2 hover:shadow-sm min-h-11",
+                                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                             isSelected
                                                 ? "border-primary bg-primary text-primary-foreground shadow-sm"
                                                 : "border-muted bg-background hover:border-primary/50",
                                             !isAvailable && "opacity-40 cursor-not-allowed line-through"
                                         )}
                                     >
-                                        {isSelected && <Check className="inline w-3 h-3 ml-1" />}
+                                        {isSelected && <Check className="inline w-3 h-3 ml-1" aria-hidden="true" />}
                                         {value}
                                     </button>
                                 );
@@ -177,9 +185,9 @@ export function MultiDimensionVariantSelector({
 
             {/* Show selected variant price */}
             {selectedVariant && (
-                <div className="pt-3 border-t space-y-2">
+                <div className="pt-3 border-t space-y-2" aria-live="polite">
                     <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4 text-muted-foreground" />
+                        <Tag className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                         <span className="text-sm text-muted-foreground">السعر:</span>
                         <span className="font-bold text-primary">
                             {Number(selectedVariant.price).toLocaleString('en-US')} د.ع
@@ -189,7 +197,7 @@ export function MultiDimensionVariantSelector({
                     <div className="flex items-center gap-2 text-sm">
                         {selectedVariant.stock > 0 ? (
                             <>
-                                <Check className="w-4 h-4 text-green-500" />
+                                <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
                                 <span className="text-green-600 dark:text-green-400">
                                     متوفر ({selectedVariant.stock} قطعة)
                                 </span>

@@ -10,8 +10,10 @@ export default function NotFound() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <MetaTags
-        title="الصفحة غير موجودة | 404"
-        description="عذراً، الصفحة التي تبحث عنها غير موجودة."
+        title="الصفحة غير موجودة | AQUAVO"
+        description="الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO."
+        noIndex
+        notFound
       />
       <Navbar />
 

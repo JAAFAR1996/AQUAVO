@@ -19,19 +19,19 @@ function toNum(v: unknown): number {
 const S = {
   card: {
     background: "#0d1f3c",
-    border: "1px solid #199bb820",
+    border: "1px solid #0B93A620",
     borderRadius: 12,
     padding: "18px 20px",
     marginBottom: 16,
   } as React.CSSProperties,
   sectionTitle: {
-    color: "#199bb8",
+    color: "#0B93A6",
     fontSize: 12,
     fontWeight: 700,
     letterSpacing: "0.06em",
     textTransform: "uppercase" as const,
     marginBottom: 14,
-    borderBottom: "1px solid #199bb820",
+    borderBottom: "1px solid #0B93A620",
     paddingBottom: 8,
   } as React.CSSProperties,
   label: {
@@ -41,7 +41,7 @@ const S = {
     display: "block",
   } as React.CSSProperties,
   input: {
-    background: "#010611",
+    background: "#0B1E28",
     border: "1px solid #1e3a5f",
     color: "#e2e8f0",
     borderRadius: 8,
@@ -54,7 +54,7 @@ const S = {
   } as React.CSSProperties,
   kpiCard: (color: string) =>
     ({
-      background: "#010611",
+      background: "#0B1E28",
       border: `1px solid ${color}30`,
       borderRadius: 10,
       padding: "12px 14px",
@@ -89,9 +89,9 @@ const S = {
       fontSize: 12,
       fontWeight: 600,
       cursor: "pointer",
-      background: active ? "#199bb820" : "#0d1f3c",
-      border: active ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
-      color: active ? "#199bb8" : "#94a3b8",
+      background: active ? "#0B93A620" : "#0d1f3c",
+      border: active ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
+      color: active ? "#0B93A6" : "#94a3b8",
     }) as React.CSSProperties,
   warnBox: {
     background: "#78350f20",
@@ -104,7 +104,7 @@ const S = {
   } as React.CSSProperties,
   infoBox: {
     background: "#0f2a1a",
-    border: "1px solid #199bb840",
+    border: "1px solid #0B93A640",
     borderRadius: 8,
     padding: "8px 14px",
     color: "#94a3b8",
@@ -501,12 +501,12 @@ export function FinanceScenarioCalculator() {
                 borderRadius: 6,
                 fontSize: 11,
                 cursor: "pointer",
-                background: selectedProduct?.id === p.id ? "#199bb820" : "#010611",
+                background: selectedProduct?.id === p.id ? "#0B93A620" : "#0B1E28",
                 border:
                   selectedProduct?.id === p.id
-                    ? "1.5px solid #199bb8"
+                    ? "1.5px solid #0B93A6"
                     : "1.5px solid #1e3a5f",
-                color: selectedProduct?.id === p.id ? "#199bb8" : "#94a3b8",
+                color: selectedProduct?.id === p.id ? "#0B93A6" : "#94a3b8",
                 textAlign: "right",
               }}
             >
@@ -520,7 +520,7 @@ export function FinanceScenarioCalculator() {
             style={{
               marginTop: 12,
               padding: "10px 14px",
-              background: "#010611",
+              background: "#0B1E28",
               borderRadius: 8,
               border: "1px solid #1e3a5f",
               display: "grid",
@@ -655,8 +655,8 @@ export function FinanceScenarioCalculator() {
                 marginBottom: 14,
               }}
             >
-              <KpiCard label="الإيراد الإجمالي" value={fmt(result.grossRevenue)} color="#199bb8" />
-              <KpiCard label="التوصيل المستلم" value={fmt(result.deliveryCollected)} color="#199bb8" />
+              <KpiCard label="الإيراد الإجمالي" value={fmt(result.grossRevenue)} color="#0B93A6" />
+              <KpiCard label="التوصيل المستلم" value={fmt(result.deliveryCollected)} color="#0B93A6" />
               <KpiCard label="كلفة المنتج الكلية" value={fmt(result.productCostTotal)} color="#64748b" />
               <KpiCard label="كلفة التغليف الكلية" value={fmt(result.packagingTotal)} color="#64748b" />
               <KpiCard label="كلفة الإضافة الكلية" value={fmt(result.insertTotal)} color="#64748b" />
@@ -715,7 +715,7 @@ export function FinanceScenarioCalculator() {
               <KpiCard
                 label="أعلى كلفة إعلان آمنة"
                 value={fmt(result.maxSafeAdCost)}
-                color="#199bb8"
+                color="#0B93A6"
               />
             </div>
 
@@ -737,7 +737,7 @@ export function FinanceScenarioCalculator() {
               <KpiCard
                 label="الإيراد المحتمل من المخزون"
                 value={fmt(result.potentialRevenue)}
-                color="#199bb8"
+                color="#0B93A6"
               />
               <KpiCard
                 label="الربح الإجمالي المحتمل"
@@ -766,7 +766,7 @@ export function FinanceScenarioCalculator() {
                   <KpiCard
                     label="السعر"
                     value={fmt(comparison.currentPrice)}
-                    color="#199bb8"
+                    color="#0B93A6"
                   />
                   <div style={{ marginTop: 8 }}>
                     <KpiCard
@@ -789,7 +789,7 @@ export function FinanceScenarioCalculator() {
                   <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
                     المحاكاة
                   </div>
-                  <KpiCard label="السعر" value={fmt(salePrice)} color="#199bb8" />
+                  <KpiCard label="السعر" value={fmt(salePrice)} color="#0B93A6" />
                   <div style={{ marginTop: 8 }}>
                     <KpiCard
                       label="الربح التقديري / طلب"
@@ -870,7 +870,7 @@ export function FinanceScenarioCalculator() {
                 background: "none",
                 border: "none",
                 cursor: "pointer",
-                color: "#199bb8",
+                color: "#0B93A6",
                 fontSize: 13,
                 fontWeight: 700,
                 padding: 0,
@@ -920,7 +920,7 @@ export function FinanceScenarioCalculator() {
                   ] as [string, string][]
                 ).map(([title, formula]) => (
                   <div key={title}>
-                    <span style={{ color: "#199bb8", fontWeight: 600 }}>
+                    <span style={{ color: "#0B93A6", fontWeight: 600 }}>
                       {title}:{" "}
                     </span>
                     {formula}

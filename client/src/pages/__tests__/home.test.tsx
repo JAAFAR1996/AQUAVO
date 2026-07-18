@@ -1,6 +1,5 @@
 /**
- * Home Page Tests
- * Tests for the main landing page of FIST-LIVE
+ * AQUAVO v2 home-page contract.
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -79,10 +78,34 @@ describe('Home Page', () => {
         expect(screen.getByRole('main')).toBeInTheDocument();
     });
 
-    it('should display hero section with heading', () => {
+    it('uses one clear value-proposition heading', () => {
         render(<Home />, { wrapper: createWrapper() });
-        const headings = screen.getAllByRole('heading');
-        expect(headings.length).toBeGreaterThan(0);
+        const headings = screen.getAllByRole('heading', { level: 1 });
+        expect(headings).toHaveLength(1);
+        expect(headings[0]).toHaveTextContent('معدات حوضك، مرتبة على احتياجك');
+    });
+
+    it('keeps the primary actions calm and useful', () => {
+        render(<Home />, { wrapper: createWrapper() });
+        expect(screen.getByRole('link', { name: /شوف المنتجات/i })).toHaveAttribute('href', '/products');
+        expect(screen.getByRole('link', { name: /اختار حسب حوضك/i })).toHaveAttribute('href', '/tank-builder');
+    });
+
+    it('shows only verified service facts', () => {
+        render(<Home />, { wrapper: createWrapper() });
+        expect(screen.getByText(/الدفع عند الاستلام/i)).toBeInTheDocument();
+        expect(screen.getByText(/5,000 د\.ع/i)).toBeInTheDocument();
+        expect(screen.getByText(/دعم 24\/7/i)).toBeInTheDocument();
+        expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/نستورد مباشرة/i)).not.toBeInTheDocument();
+    });
+
+    it('offers stable category and education discovery without API data', () => {
+        render(<Home />, { wrapper: createWrapper() });
+        expect(screen.getByRole('heading', { name: 'ابدأ من احتياج الحوض' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /الفلاتر/i })).toHaveAttribute('href', '/products?category=%D8%A7%D9%84%D9%81%D9%84%D8%AA%D8%B1%D8%A9%20%D9%88%D8%A7%D9%84%D8%AA%D9%86%D9%82%D9%8A%D8%A9');
+        expect(screen.getByRole('heading', { name: 'المعلومة قبل القطعة' })).toBeInTheDocument();
+        expect(screen.getByRole('link', { name: /شوف أدلة AQUAVO/i })).toHaveAttribute('href', '/guides');
     });
 
     it('should not render a page-level WhatsApp widget', () => {
@@ -96,5 +119,10 @@ describe('Home Page', () => {
             const links = screen.getAllByRole('link');
             expect(links.length).toBeGreaterThan(0);
         });
+    });
+
+    it('does not nest interactive controls', () => {
+        const { container } = render(<Home />, { wrapper: createWrapper() });
+        expect(container.querySelector('a button, button a')).not.toBeInTheDocument();
     });
 });

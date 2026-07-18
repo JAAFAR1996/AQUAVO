@@ -4,6 +4,7 @@ import { Product, EquipmentPart } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Plus, Info, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { thumbImage } from "@/lib/cloudinary";
 
 interface ExplodedProductViewProps {
     product: Product;
@@ -72,9 +73,11 @@ export function ExplodedProductView({ product }: ExplodedProductViewProps) {
                             <div className="w-16 h-16 bg-white/10 rounded-xl overflow-hidden flex-shrink-0">
                                 {/* Fallback to product image if part image fails or is generic */}
                                 <img
-                                    src={selectedPart.imageUrl || product.image}
+                                    src={thumbImage(selectedPart.imageUrl || product.image)}
                                     alt={selectedPart.name}
                                     className="w-full h-full object-contain p-1"
+                                    loading="lazy"
+                                    decoding="async"
                                     onError={(e) => (e.currentTarget.src = product.image || "")}
                                 />
                             </div>

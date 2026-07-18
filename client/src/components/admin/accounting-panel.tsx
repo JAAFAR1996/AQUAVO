@@ -71,7 +71,7 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
 
 // ─── KPI Card ────────────────────────────────────────────────────────────────
 function KpiCard({
-  label, value, sub, color = "#199bb8", big = false,
+  label, value, sub, color = "#0B93A6", big = false,
 }: {
   label: string; value: string; sub?: string; color?: string; big?: boolean;
 }) {
@@ -93,8 +93,8 @@ function KpiCard({
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
-      color: "#199bb8", fontSize: 13, fontWeight: 700,
-      borderBottom: "1px solid #199bb820", paddingBottom: 8, marginBottom: 12,
+      color: "#0B93A6", fontSize: 13, fontWeight: 700,
+      borderBottom: "1px solid #0B93A620", paddingBottom: 8, marginBottom: 12,
     }}>
       {children}
     </div>
@@ -234,8 +234,8 @@ export default function AccountingPanel() {
               onClick={() => setPeriod(p.value)}
               style={{
                 padding: "5px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
-                background: period === p.value ? "#199bb8" : "#0d1f3c",
-                border: period === p.value ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+                background: period === p.value ? "#0B93A6" : "#0d1f3c",
+                border: period === p.value ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
                 color: period === p.value ? "#fff" : "#94a3b8",
               }}
             >
@@ -257,7 +257,7 @@ export default function AccountingPanel() {
       <div>
         <SectionTitle>صحة العمل — {PERIODS.find(p => p.value === period)?.label}</SectionTitle>
         {loadingSum ? (
-          <div style={{ color: "#199bb8", textAlign: "center", padding: 24 }}>جاري التحميل...</div>
+          <div style={{ color: "#0B93A6", textAlign: "center", padding: 24 }}>جاري التحميل...</div>
         ) : summary ? (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 10 }}>
@@ -271,7 +271,7 @@ export default function AccountingPanel() {
                 label="صافي الربح"
                 value={fmt(summary.netProfit)}
                 sub={`بعد البضاعة والكارتونات والخصومات`}
-                color={summary.netProfit >= 0 ? "#199bb8" : "#ef4444"}
+                color={summary.netProfit >= 0 ? "#0B93A6" : "#ef4444"}
                 big
               />
               <KpiCard
@@ -286,7 +286,7 @@ export default function AccountingPanel() {
               <KpiCard label="طلبات موصّلة" value={String(summary.deliveredCount)} color="#22c55e" />
               <KpiCard label="طلبات ملغاة / مرفوضة" value={String(summary.cancelledCount)} color="#ef4444" />
               <KpiCard label="نسبة RTO (إرجاع)" value={`${summary.rtoRate}%`} color={summary.rtoRate > 20 ? "#ef4444" : "#f59e0b"} />
-              <KpiCard label="متوسط قيمة الطلب" value={fmt(summary.aov)} color="#ffd700" />
+              <KpiCard label="متوسط قيمة الطلب" value={fmt(summary.aov)} color="var(--aqv-warning)" />
             </div>
             {!summary.costsComplete && (
               <div style={{ marginTop: 10, background: "#f59e0b15", border: "1px solid #f59e0b40", borderRadius: 8, padding: "8px 14px", color: "#fcd34d", fontSize: 12 }}>
@@ -328,7 +328,7 @@ export default function AccountingPanel() {
           <div style={{ color: "#94a3b8", fontSize: 12 }}>دفعات مسجّلة من شركات الشحن</div>
           <button
             onClick={() => setShowSettlement(true)}
-            style={{ padding: "5px 14px", borderRadius: 7, background: "#199bb8", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
+            style={{ padding: "5px 14px", borderRadius: 7, background: "#0B93A6", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
           >
             سجّل دفعة جديدة
           </button>
@@ -337,7 +337,7 @@ export default function AccountingPanel() {
           <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ background: "#010611" }}>
+                <tr style={{ background: "#0B1E28" }}>
                   {["شركة الشحن", "المبلغ", "ملاحظات", "التاريخ"].map(h => (
                     <th key={h} style={{ padding: "8px 14px", textAlign: "right", color: "#94a3b8", fontSize: 11 }}>{h}</th>
                   ))}
@@ -377,14 +377,14 @@ export default function AccountingPanel() {
           </SectionTitle>
         </div>
         {loadingProds ? (
-          <div style={{ color: "#199bb8", textAlign: "center", padding: 20 }}>جاري التحميل...</div>
+          <div style={{ color: "#0B93A6", textAlign: "center", padding: 20 }}>جاري التحميل...</div>
         ) : products.length === 0 ? (
           <div style={{ color: "#64748b", textAlign: "center", padding: 20, fontSize: 13 }}>لا توجد مبيعات في هذه الفترة</div>
         ) : (
           <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
-                <tr style={{ background: "#010611" }}>
+                <tr style={{ background: "#0B1E28" }}>
                   <th style={{ padding: "10px 14px", textAlign: "right", color: "#94a3b8", fontSize: 11 }}>المنتج</th>
                   <th style={{ padding: "10px 14px", textAlign: "center", color: "#94a3b8", fontSize: 11 }}>مبيع</th>
                   <th style={{ padding: "10px 14px", textAlign: "center", color: "#94a3b8", fontSize: 11 }}>إيراد</th>
@@ -406,7 +406,7 @@ export default function AccountingPanel() {
                     <td style={{ padding: "10px 14px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>{row.unitsSold}</td>
                     <td style={{ padding: "10px 14px", textAlign: "center", color: "#22c55e", fontSize: 13 }}>{fmt(row.revenue)}</td>
                     <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 13 }}>{fmt(row.cogs)}</td>
-                    <td style={{ padding: "10px 14px", textAlign: "center", fontSize: 13, fontWeight: 700, color: row.netProfit >= 0 ? "#199bb8" : "#ef4444" }}>
+                    <td style={{ padding: "10px 14px", textAlign: "center", fontSize: 13, fontWeight: 700, color: row.netProfit >= 0 ? "#0B93A6" : "#ef4444" }}>
                       {fmt(row.netProfit)}
                     </td>
                     <td style={{ padding: "10px 14px", textAlign: "center" }}>
@@ -425,7 +425,7 @@ export default function AccountingPanel() {
                           setCosts({ costPrice: row.costPrice, packagingCost: row.packagingCost, insertCost: row.insertCost });
                           fetchCostHistory(row.productId);
                         }}
-                        style={{ background: "none", border: "1px solid #1e3a5f", borderRadius: 6, color: "#199bb8", cursor: "pointer", padding: "3px 10px", fontSize: 11 }}
+                        style={{ background: "none", border: "1px solid #1e3a5f", borderRadius: 6, color: "#0B93A6", cursor: "pointer", padding: "3px 10px", fontSize: 11 }}
                       >
                         <Pencil style={{ width: 11, height: 11, display: "inline", marginLeft: 3 }} />
                         تعديل
@@ -463,13 +463,13 @@ export default function AccountingPanel() {
         {showOrders && (
           <div style={{ marginTop: 8, background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
             {loadingOrders ? (
-              <div style={{ textAlign: "center", padding: 24, color: "#199bb8" }}>جاري التحميل...</div>
+              <div style={{ textAlign: "center", padding: 24, color: "#0B93A6" }}>جاري التحميل...</div>
             ) : orderRows.length === 0 ? (
               <div style={{ textAlign: "center", padding: 24, color: "#64748b", fontSize: 13 }}>لا توجد طلبات في هذه الفترة</div>
             ) : (
               <table style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#010611" }}>
+                  <tr style={{ background: "#0B1E28" }}>
                     {["الزبون والمنتجات", "الحالة", "إيراد", "تكلفة بضاعة", "كارتونة", "كوبون / نقاط", "صافي ربح", "هامش"].map(h => (
                       <th key={h} style={{ padding: "10px 14px", textAlign: h === "الزبون والمنتجات" ? "right" : "center", color: "#94a3b8", fontSize: 11 }}>{h}</th>
                     ))}
@@ -480,11 +480,11 @@ export default function AccountingPanel() {
                     <tr key={row.orderId} style={{ borderTop: "1px solid #1e3a5f20", verticalAlign: "top" }}>
                       <td style={{ padding: "10px 14px" }}>
                         <div style={{ color: "#fff", fontSize: 13, fontWeight: 600 }}>{row.customerName ?? "زبون"}</div>
-                        {row.customerPhone && <div style={{ color: "#199bb8", fontSize: 11 }}>{row.customerPhone}</div>}
+                        {row.customerPhone && <div style={{ color: "#0B93A6", fontSize: 11 }}>{row.customerPhone}</div>}
                         <div style={{ marginTop: 4 }}>
                           {row.items.map((item, i) => (
                             <div key={i} style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.6 }}>
-                              <span style={{ color: "#199bb8", fontWeight: 700 }}>{item.qty}×</span> {item.name}
+                              <span style={{ color: "#0B93A6", fontWeight: 700 }}>{item.qty}×</span> {item.name}
                             </div>
                           ))}
                         </div>
@@ -524,9 +524,9 @@ export default function AccountingPanel() {
                                 onClick={() => saveBoxCost(row.orderId, box.value)}
                                 style={{
                                   padding: "2px 6px", borderRadius: 5, fontSize: 10, cursor: saving ? "wait" : "pointer",
-                                  border: sel ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
-                                  background: sel ? "#199bb820" : "#010611",
-                                  color: sel ? "#199bb8" : "#64748b", fontWeight: sel ? 700 : 400,
+                                  border: sel ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
+                                  background: sel ? "#0B93A620" : "#0B1E28",
+                                  color: sel ? "#0B93A6" : "#64748b", fontWeight: sel ? 700 : 400,
                                 }}
                               >
                                 {box.label}
@@ -542,7 +542,7 @@ export default function AccountingPanel() {
                         {(row.couponDiscount + row.loyaltyDiscount) > 0 ? fmt(row.couponDiscount + row.loyaltyDiscount) : "—"}
                       </td>
                       <td style={{ padding: "10px 14px", textAlign: "center", fontWeight: 700, fontSize: 12,
-                        color: row.status !== "delivered" ? "#475569" : row.netProfit >= 0 ? "#199bb8" : "#ef4444" }}>
+                        color: row.status !== "delivered" ? "#475569" : row.netProfit >= 0 ? "#0B93A6" : "#ef4444" }}>
                         {fmt(row.netProfit)}
                         {row.status !== "delivered" && (
                           <div style={{ fontSize: 9, color: "#475569", fontWeight: 400, marginTop: 1 }}>
@@ -579,20 +579,20 @@ export default function AccountingPanel() {
                 placeholder="اسم شركة الشحن"
                 value={settlementForm.carrier}
                 onChange={e => setSettlementForm(p => ({ ...p, carrier: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#010611", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
+                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
               />
               <input
                 type="number"
                 placeholder="المبلغ (د.ع)"
                 value={settlementForm.amount}
                 onChange={e => setSettlementForm(p => ({ ...p, amount: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#010611", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
+                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
               />
               <input
                 placeholder="ملاحظات (اختياري)"
                 value={settlementForm.notes}
                 onChange={e => setSettlementForm(p => ({ ...p, notes: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#010611", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
+                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
               />
             </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18 }}>
@@ -600,7 +600,7 @@ export default function AccountingPanel() {
               <button
                 onClick={() => createSettlement.mutate()}
                 disabled={createSettlement.isPending}
-                style={{ padding: "7px 18px", borderRadius: 7, background: "#199bb8", color: "#fff", border: "none", cursor: createSettlement.isPending ? "wait" : "pointer", opacity: createSettlement.isPending ? 0.7 : 1, fontWeight: 600 }}
+                style={{ padding: "7px 18px", borderRadius: 7, background: "#0B93A6", color: "#fff", border: "none", cursor: createSettlement.isPending ? "wait" : "pointer", opacity: createSettlement.isPending ? 0.7 : 1, fontWeight: 600 }}
               >
                 {createSettlement.isPending ? "جاري الحفظ..." : "حفظ"}
               </button>
@@ -611,7 +611,7 @@ export default function AccountingPanel() {
 
       {/* ══ Edit Cost Dialog ══ */}
       <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
-        <DialogContent className="bg-[#0a1628] border-[#199bb8]/30 text-white" dir="rtl">
+        <DialogContent className="bg-[#0B1E28] border-[#0B93A6]/30 text-white" dir="rtl">
           <DialogHeader>
             <DialogTitle className="text-white text-sm">{editProduct?.name}</DialogTitle>
           </DialogHeader>
@@ -622,7 +622,7 @@ export default function AccountingPanel() {
                 type="number"
                 value={costs.costPrice}
                 onChange={e => setCosts(c => ({ ...c, costPrice: Number(e.target.value) }))}
-                className="bg-[#010611] border-[#199bb8]/40 text-white"
+                className="bg-[#0B1E28] border-[#0B93A6]/40 text-white"
               />
             </div>
             <div>
@@ -631,7 +631,7 @@ export default function AccountingPanel() {
                 type="number"
                 value={costs.packagingCost}
                 onChange={e => setCosts(c => ({ ...c, packagingCost: Number(e.target.value) }))}
-                className="bg-[#010611] border-[#199bb8]/40 text-white"
+                className="bg-[#0B1E28] border-[#0B93A6]/40 text-white"
               />
             </div>
             <div>
@@ -640,7 +640,7 @@ export default function AccountingPanel() {
                 type="number"
                 value={costs.insertCost}
                 onChange={e => setCosts(c => ({ ...c, insertCost: Number(e.target.value) }))}
-                className="bg-[#010611] border-[#199bb8]/40 text-white"
+                className="bg-[#0B1E28] border-[#0B93A6]/40 text-white"
               />
             </div>
             <div style={{ borderTop: "1px solid #1e3a5f", paddingTop: 14 }}>
@@ -649,7 +649,7 @@ export default function AccountingPanel() {
                 type="date"
                 value={newCostDate}
                 onChange={e => setNewCostDate(e.target.value)}
-                style={{ padding: "6px 10px", borderRadius: 6, background: "#010611", border: "1px solid #1e3a5f", color: "#fff", width: "100%", marginBottom: 8, fontSize: 12 }}
+                style={{ padding: "6px 10px", borderRadius: 6, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", width: "100%", marginBottom: 8, fontSize: 12 }}
               />
               <button
                 disabled={!newCostDate}
@@ -674,7 +674,7 @@ export default function AccountingPanel() {
                     toast({ title: "خطأ", description: errMsg(e), variant: "destructive" });
                   }
                 }}
-                style={{ padding: "5px 12px", borderRadius: 6, background: "#199bb8", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, opacity: newCostDate ? 1 : 0.4 }}
+                style={{ padding: "5px 12px", borderRadius: 6, background: "#0B93A6", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, opacity: newCostDate ? 1 : 0.4 }}
               >
                 حفظ بتاريخ محدد
               </button>
@@ -692,7 +692,7 @@ export default function AccountingPanel() {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => saveCosts.mutate()} disabled={saveCosts.isPending} className="bg-[#199bb8] hover:bg-[#199bb8]/80">
+            <Button onClick={() => saveCosts.mutate()} disabled={saveCosts.isPending} className="bg-[#0B93A6] hover:bg-[#0B93A6]/80">
               {saveCosts.isPending ? "جاري الحفظ..." : "حفظ التكاليف"}
             </Button>
           </DialogFooter>

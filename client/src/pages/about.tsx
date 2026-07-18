@@ -104,7 +104,7 @@ export default function About() {
               {/* Answer-First paragraph for AI */}
               <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-speakable>
                 AQUAVO (اكوافو) متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.
-                تأسس في بغداد عام 2024، ويخدم هواة الأحواض في جميع المحافظات العراقية الـ 18 مع توصيل لكل العراق ودفع عند الاستلام.
+                نشتغل من بغداد ونخدم هواة الأحواض بتوصيل لكل العراق ودفع نقداً عند الاستلام.
                 نوفر تشكيلة متخصصة من المنتجات الأصلية حسب المتوفر، تشمل الأحواض، الفلاتر، السخانات، الإضاءة، الأغذية، الديكور ومعالجات المياه،
                 مع محتوى تعليمي ودعم عملي لاختيار المناسب.
               </p>
@@ -234,7 +234,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>السبت - الخميس: 9 صباحاً - 9 مساءً</span>
+                  <span>الدعم متوفر 24/7 عبر واتساب والهاتف</span>
                 </div>
               </div>
             </div>

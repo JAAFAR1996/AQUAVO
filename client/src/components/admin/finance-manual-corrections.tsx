@@ -159,14 +159,14 @@ function NewAdjustmentForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   const inp: React.CSSProperties = {
-    background: "#0a1628", border: "1px solid #1e3a5f", color: "#e2e8f0",
+    background: "#0B1E28", border: "1px solid #1e3a5f", color: "#e2e8f0",
     borderRadius: 7, padding: "6px 10px", fontSize: 12, width: "100%", outline: "none",
   };
   const sel: React.CSSProperties = { ...inp };
 
   return (
     <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, padding: "16px 18px", marginBottom: 20 }}>
-      <div style={{ color: "#199bb8", fontWeight: 700, fontSize: 13, marginBottom: 12 }}>إنشاء تعديل يدوي جديد</div>
+      <div style={{ color: "#0B93A6", fontWeight: 700, fontSize: 13, marginBottom: 12 }}>إنشاء تعديل يدوي جديد</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 10 }}>
         <div>
           <div style={{ color: "#64748b", fontSize: 11, marginBottom: 3 }}>نوع الكيان</div>
@@ -216,7 +216,7 @@ function NewAdjustmentForm({ onSuccess }: { onSuccess: () => void }) {
         onClick={submit}
         disabled={submitting}
         style={{
-          background: "#199bb8", border: "none", color: "#fff", borderRadius: 7,
+          background: "#0B93A6", border: "none", color: "#fff", borderRadius: 7,
           padding: "7px 20px", fontSize: 12, fontWeight: 600, cursor: "pointer",
           opacity: submitting ? 0.6 : 1,
         }}
@@ -301,8 +301,8 @@ export function FinanceManualCorrections() {
         onClick={() => setSubTab(value)}
         style={{
           padding: "5px 14px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: "pointer",
-          background: subTab === value ? "#199bb8" : "#0d1f3c",
-          border: subTab === value ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+          background: subTab === value ? "#0B93A6" : "#0d1f3c",
+          border: subTab === value ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
           color: subTab === value ? "#fff" : "#94a3b8",
           position: "relative",
         }}
@@ -408,7 +408,7 @@ export function FinanceManualCorrections() {
                 style={{
                   padding: "4px 12px", borderRadius: 7, fontSize: 11, fontWeight: 600, cursor: "pointer",
                   background: flagFilter === s ? "#1e3a5f" : "#0d1f3c",
-                  border: flagFilter === s ? "1.5px solid #199bb8" : "1.5px solid #1e3a5f",
+                  border: flagFilter === s ? "1.5px solid #0B93A6" : "1.5px solid #1e3a5f",
                   color: flagFilter === s ? "#e2e8f0" : "#64748b",
                 }}
               >
@@ -515,7 +515,7 @@ export function FinanceManualCorrections() {
       {/* ── New Adjustment ── */}
       {subTab === "new" && (
         <div>
-          <div style={{ background: "#0a1628", border: "1px solid #f59e0b40", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 11, color: "#fbbf24" }}>
+          <div style={{ background: "#0B1E28", border: "1px solid #f59e0b40", borderRadius: 8, padding: "10px 14px", marginBottom: 16, fontSize: 11, color: "#fbbf24" }}>
             <strong>تذكير:</strong> كل تعديل يدخل بحالة "pending" ويحتاج موافقة المدير قبل التطبيق.
             سعر البيع <strong>محمي</strong> — لا يمكن تعديله من هنا.
             AI لا يمكنه إنشاء أو تطبيق أي تعديل.
@@ -535,7 +535,7 @@ export function FinanceManualCorrections() {
               { title: "تصحيح ربط variant", entity: "product_variant", field: "variantId", example: "coarse3 → تابع لـ yee-07509" },
             ].map((ex) => (
               <div key={ex.title} style={{ borderBottom: "1px solid #1e3a5f", padding: "8px 0", display: "flex", gap: 10 }}>
-                <span style={{ color: "#199bb8", fontWeight: 600, fontSize: 11, minWidth: 180 }}>{ex.title}</span>
+                <span style={{ color: "#0B93A6", fontWeight: 600, fontSize: 11, minWidth: 180 }}>{ex.title}</span>
                 <span style={{ color: "#64748b", fontSize: 11 }}>{ex.entity} → {ex.field}</span>
                 <span style={{ color: "#94a3b8", fontSize: 11, marginRight: "auto" }}>{ex.example}</span>
               </div>

@@ -29,8 +29,8 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
         : discount;
 
     return (
-        <div className="rounded-lg border border-border/60 p-4 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">ملخص الطلب</h3>
+        <section className="rounded-lg border border-border/60 p-4 space-y-3" aria-labelledby="order-summary-heading">
+            <h3 id="order-summary-heading" className="text-sm font-semibold text-foreground">ملخص الطلب</h3>
 
             {cartItems.length > 0 && (
                 <>
@@ -101,7 +101,7 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
             <Separator />
 
             {/* المجموع النهائي */}
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center" role="status" aria-live="polite" aria-atomic="true">
                 <span className="font-semibold">المبلغ الكلي</span>
                 <span className="text-xl font-bold text-primary">{formatIQD(displayTotal)}</span>
             </div>
@@ -140,6 +140,6 @@ export function OrderSummary({ cartTotal, deliveryFee, discount, grandTotal, isF
             <p className="text-xs text-muted-foreground text-center">
                 لا توجد تكاليف مخفية
             </p>
-        </div>
+        </section>
     );
 }

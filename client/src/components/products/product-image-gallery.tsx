@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { detailImage, thumbImage, lightboxImage } from "@/lib/cloudinary";
+import { detailImage, detailImageSrcSet, thumbImage, lightboxImage } from "@/lib/cloudinary";
 
 interface ProductImageGalleryProps {
     images: string[];
@@ -54,14 +54,32 @@ export function ProductImageGallery({
     const handleMouseEnter = () => setIsZoomed(true);
     const handleMouseLeave = () => setIsZoomed(false);
 
+    // RTL note: this UI reads right-to-left, so "next" (forward in reading
+    // direction) is mirrored to the left and "previous" to the right — matching
+    // the ChevronRight=previous / ChevronLeft=next convention used elsewhere in
+    // this app (see customers-management.tsx pagination). Arrow keys mirror the
+    // on-screen position: Left key = next (visually left), Right key = previous.
     const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (e.key === "ArrowLeft") handlePrevious();
-        if (e.key === "ArrowRight") handleNext();
+        if (e.key === "ArrowLeft") handleNext();
+        if (e.key === "ArrowRight") handlePrevious();
+        if (e.key === "Enter" || e.key === " ") {
+            if (galleryImages.length > 0 && !imageFailed) {
+                e.preventDefault();
+                setLightboxOpen(true);
+            }
+        }
         if (e.key === "Escape") setLightboxOpen(false);
-    }, [handlePrevious, handleNext]);
+    }, [handlePrevious, handleNext, galleryImages.length, imageFailed]);
 
     return (
-        <div className={cn("space-y-4", className)} onKeyDown={handleKeyDown} tabIndex={0}>
+        <div
+            className={cn("space-y-4", className)}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            role="group"
+            aria-roledescription="معرض صور"
+            aria-label={`معرض صور ${productName} — استخدم مفاتيح الأسهم للتنقل و Enter للتكبير`}
+        >
             {/* Main Image with Zoom */}
             <div className="relative group" data-protected="true">
                 <div
@@ -78,13 +96,15 @@ export function ProductImageGallery({
                 >
                     {/* Main Image */}
                     {galleryImages.length === 0 || imageFailed ? (
-                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-[#0a1628]/40 border border-white/5 rounded-lg p-6 text-center select-none">
+                        <div className="w-full h-full min-h-[350px] flex flex-col items-center justify-center bg-[#0B1E28]/40 border border-white/5 rounded-lg p-6 text-center select-none">
                             <span className="text-sm text-muted-foreground/80 font-medium font-cairo">الصورة غير متوفرة</span>
                         </div>
                     ) : (
                         <>
                             <img
                                 src={detailImage(currentImage)}
+                                srcSet={detailImageSrcSet(currentImage)}
+                                sizes="(max-width: 512px) 100vw, 512px"
                                 alt={`${productName} - صورة ${selectedIndex + 1}`}
                                 className={cn(
                                     "w-full h-full object-contain transition-transform duration-300 p-4 select-none",
@@ -116,45 +136,51 @@ export function ProductImageGallery({
                                 "absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs flex items-center gap-1.5 transition-opacity",
                                 isZoomed ? "opacity-0" : "opacity-100"
                             )}>
-                                <ZoomIn className="w-3.5 h-3.5" />
+                                <ZoomIn className="w-3.5 h-3.5" aria-hidden="true" />
                                 <span>اضغط للتكبير</span>
                             </div>
                         </>
                     )}
 
-                    {/* Navigation Arrows */}
+                    {/* Navigation Arrows — always visible on touch devices (no hover
+                        state to reveal them), fade in on hover for mouse users. RTL:
+                        previous sits on the right (ChevronRight), next on the left
+                        (ChevronLeft), matching this app's RTL pagination convention. */}
                     {galleryImages.length > 1 && !imageFailed && (
                         <>
                             <Button
                                 variant="secondary"
                                 size="icon"
-                                className="absolute left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11 md:h-11 md:w-11"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handlePrevious();
                                 }}
                                 aria-label="الصورة السابقة"
                             >
-                                <ChevronLeft className="w-5 h-5" />
+                                <ChevronRight className="w-5 h-5" aria-hidden="true" />
                             </Button>
                             <Button
                                 variant="secondary"
                                 size="icon"
-                                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                className="absolute left-2 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shadow-lg h-11 w-11 md:h-11 md:w-11"
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     handleNext();
                                 }}
                                 aria-label="الصورة التالية"
                             >
-                                <ChevronRight className="w-5 h-5" />
+                                <ChevronLeft className="w-5 h-5" aria-hidden="true" />
                             </Button>
                         </>
                     )}
 
                     {/* Image Counter */}
                     {galleryImages.length > 1 && !imageFailed && (
-                        <div className="absolute top-4 left-4 bg-black/60 text-white px-2 py-1 rounded-full text-xs">
+                        <div
+                            className="absolute top-4 left-4 bg-black/60 text-white px-2 py-1 rounded-full text-xs"
+                            aria-live="polite"
+                        >
                             {selectedIndex + 1} / {galleryImages.length}
                         </div>
                     )}
@@ -163,16 +189,24 @@ export function ProductImageGallery({
 
             {/* Thumbnails */}
             {galleryImages.length > 1 && (
-                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                <div
+                    className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin"
+                    role="group"
+                    aria-label={`صور مصغرة لـ ${productName}`}
+                >
                     {galleryImages.map((image) => (
                         <button
                             key={image}
+                            type="button"
                             onClick={() => {
                                 setImageFailed(false);
                                 setSelectedIndex(galleryImages.indexOf(image));
                             }}
+                            aria-pressed={selectedIndex === galleryImages.indexOf(image)}
+                            aria-label={`عرض الصورة ${galleryImages.indexOf(image) + 1}`}
                             className={cn(
                                 "relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                 selectedIndex === galleryImages.indexOf(image)
                                     ? "border-primary ring-2 ring-primary/30"
                                     : "border-transparent hover:border-muted-foreground/30"
@@ -204,16 +238,23 @@ export function ProductImageGallery({
             {/* Lightbox Modal */}
             <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
                 <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 bg-black/95 border-none">
+                    {/* Visually hidden — Radix requires a title/description for
+                        screen reader users; the visible UI conveys this via the
+                        close button and image alt text instead. */}
+                    <DialogTitle className="sr-only">{`صورة ${productName}`}</DialogTitle>
+                    <DialogDescription className="sr-only">
+                        عرض مكبّر لصور {productName}، استخدم الأسهم للتنقل بين الصور و Escape للإغلاق
+                    </DialogDescription>
                     <div className="relative w-full h-full min-h-[70vh] flex items-center justify-center">
                         {/* Close Button */}
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
+                            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20 h-11 w-11 md:h-11 md:w-11"
                             onClick={() => setLightboxOpen(false)}
                             aria-label="إغلاق معرض الصور"
                         >
-                            <X className="w-6 h-6" />
+                            <X className="w-6 h-6" aria-hidden="true" />
                         </Button>
 
                         {/* Main Image */}
@@ -232,42 +273,51 @@ export function ProductImageGallery({
                             />
                         )}
 
-                        {/* Navigation in Lightbox */}
+                        {/* Navigation in Lightbox — RTL: previous on the right
+                            (ChevronRight), next on the left (ChevronLeft). */}
                         {galleryImages.length > 1 && !imageFailed && (
                             <>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handlePrevious}
                                     aria-label="الصورة السابقة"
                                 >
-                                    <ChevronLeft className="w-8 h-8" />
+                                    <ChevronRight className="w-8 h-8" aria-hidden="true" />
                                 </Button>
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12"
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 w-12 h-12 md:h-12 md:w-12"
                                     onClick={handleNext}
                                     aria-label="الصورة التالية"
                                 >
-                                    <ChevronRight className="w-8 h-8" />
+                                    <ChevronLeft className="w-8 h-8" aria-hidden="true" />
                                 </Button>
                             </>
                         )}
 
                         {/* Thumbnails in Lightbox */}
                         {galleryImages.length > 1 && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg">
+                            <div
+                                className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 bg-black/50 p-2 rounded-lg"
+                                role="group"
+                                aria-label={`صور مصغرة لـ ${productName}`}
+                            >
                                 {galleryImages.map((image) => (
                                     <button
                                         key={image}
+                                        type="button"
                                         onClick={() => {
                                             setImageFailed(false);
                                             setSelectedIndex(galleryImages.indexOf(image));
                                         }}
+                                        aria-pressed={selectedIndex === galleryImages.indexOf(image)}
+                                        aria-label={`عرض الصورة ${galleryImages.indexOf(image) + 1}`}
                                         className={cn(
                                             "w-12 h-12 rounded overflow-hidden border-2 transition-all",
+                                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black",
                                             selectedIndex === galleryImages.indexOf(image)
                                                 ? "border-white"
                                                 : "border-transparent opacity-60 hover:opacity-100"

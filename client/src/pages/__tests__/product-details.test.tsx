@@ -222,4 +222,150 @@ describe('Product Details Page', () => {
             expect(screen.queryByTestId('whatsapp-widget')).not.toBeInTheDocument();
         });
     });
+
+    it('does not invent authenticity or warranty claims for a non-YEE product', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
+        expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();
+        expect(screen.queryByText(/ضمان الجودة/i)).not.toBeInTheDocument();
+        expect(screen.getByText('معلومات المنتج')).toBeInTheDocument();
+    });
+
+    // ---- Phase E: purchase confidence + CTA accessibility ----
+
+    it('surfaces Cash on Delivery, flat shipping fee, and 24/7 support near the CTA', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByText(/الدفع عند الاستلام فقط/)).toBeInTheDocument();
+        expect(screen.getByText(/5,000 د.ع/)).toBeInTheDocument();
+        expect(screen.getByText(/دعم AQUAVO متوفر 24\/7/)).toBeInTheDocument();
+    });
+
+    it('never implies a payment gateway or live fish/plants are sold', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.queryByText(/بطاقة ائتمان|فيزا|ماستركارد/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/أسماك حية|نباتات مائية/)).not.toBeInTheDocument();
+    });
+
+    it('exposes the add-to-cart button as busy while the request is pending', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+        let resolveAdd: (ok: boolean) => void = () => { };
+        mockAddItem.mockImplementation(
+            () => new Promise<boolean>((resolve) => { resolveAdd = resolve; })
+        );
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        const mainCta = await screen.findByRole('button', { name: 'أضف إلى السلة' });
+
+        await user.click(mainCta);
+
+        expect(await screen.findByRole('button', { name: /جاري الإضافة/ })).toHaveAttribute('aria-busy', 'true');
+
+        resolveAdd(true);
+
+        await waitFor(() => {
+            expect(screen.queryByRole('button', { name: /جاري الإضافة/ })).not.toBeInTheDocument();
+        });
+    });
+
+    it('groups the quantity stepper under an accessible label and announces changes', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByRole('group', { name: 'الكمية:' })).toBeInTheDocument();
+        expect(screen.getByText('1')).toHaveAttribute('aria-live', 'polite');
+    });
+
+    // ---- WCAG 44x44 touch target regression: quantity stepper must stay 44x44 at desktop widths ----
+
+    it('keeps the quantity decrease control at 44x44 on both mobile and desktop breakpoints', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const decreaseButton = screen.getByRole('button', { name: 'تقليل الكمية' });
+        expect(decreaseButton).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+    });
+
+    it('keeps the quantity increase control at 44x44 on both mobile and desktop breakpoints', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const increaseButton = screen.getByRole('button', { name: 'زيادة الكمية' });
+        expect(increaseButton).toHaveClass('h-11', 'w-11', 'md:h-11', 'md:w-11');
+    });
+
+    it('disables the decrease control at the minimum quantity and keeps the increase control enabled', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(screen.getByRole('button', { name: 'تقليل الكمية' })).toBeDisabled();
+        expect(screen.getByRole('button', { name: 'زيادة الكمية' })).not.toBeDisabled();
+        expect(screen.getByText('1')).toBeInTheDocument();
+    });
+
+    it('increments and decrements the quantity via the stepper controls', async () => {
+        const user = await import('@testing-library/user-event').then((m) => m.default.setup());
+
+        render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const decreaseButton = screen.getByRole('button', { name: 'تقليل الكمية' });
+        const increaseButton = screen.getByRole('button', { name: 'زيادة الكمية' });
+
+        await user.click(increaseButton);
+        expect(screen.getByText('2')).toBeInTheDocument();
+
+        await user.click(increaseButton);
+        expect(screen.getByText('3')).toBeInTheDocument();
+
+        await user.click(decreaseButton);
+        expect(screen.getByText('2')).toBeInTheDocument();
+        expect(decreaseButton).not.toBeDisabled();
+
+        await user.click(decreaseButton);
+        expect(screen.getByText('1')).toBeInTheDocument();
+        expect(decreaseButton).toBeDisabled();
+    });
+
+    // ---- Tablet (768px) horizontal-overflow regression ----
+    // scrollWidth 970 > clientWidth 753 was caused by the main gallery/info
+    // grid activating two columns at `md` (768px), before there was room for
+    // both columns. The fix defers the two-column layout to `lg` (desktop).
+
+    it('does not activate the main gallery/info grid at the tablet (md) breakpoint', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const mainGrid = container.querySelector('.grid.gap-12');
+        expect(mainGrid).toBeInTheDocument();
+        expect(mainGrid).not.toHaveClass('md:grid-cols-2');
+    });
+
+    it('activates the main gallery/info grid at the desktop (lg) breakpoint', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        const mainGrid = container.querySelector('.grid.gap-12');
+        expect(mainGrid).toBeInTheDocument();
+        expect(mainGrid).toHaveClass('lg:grid-cols-2');
+    });
+
+    it('does not hide tablet overflow behind overflow-x-hidden on the PDP container', async () => {
+        const { container } = render(<ProductDetails />, { wrapper: createWrapper() });
+        await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' });
+
+        expect(container.querySelector('.overflow-x-hidden')).not.toBeInTheDocument();
+    });
+
+    it('keeps the PDP h1, main landmark, variant selector, and Add-to-Cart button present', async () => {
+        render(<ProductDetails />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { level: 1, name: 'سيفون تغيير ماء' })).toBeInTheDocument();
+        expect(screen.getByRole('main')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '1.7 متر' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'أضف إلى السلة' })).toBeInTheDocument();
+    });
 });

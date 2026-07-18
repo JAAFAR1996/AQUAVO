@@ -27,7 +27,7 @@ import { WHATSAPP_URL } from '@/lib/constants/shipping';
 const LINKS_CONFIG = {
   brand: {
     name: 'AQUAVO',
-    tagline: 'أول متجر أحواض سمك في العراق 🇮🇶',
+    tagline: 'متجر أحواض السمك المتخصص بالعراق',
     logoUrl: '/assets/brand/AQUAVO-logo-full-color.svg',
   },
   links: [
@@ -89,16 +89,6 @@ const LINKS_CONFIG = {
       icon: 'globe',
       color: 'from-amber-400 to-orange-500',
       glow: 'shadow-amber-500/20',
-    },
-    {
-      id: 'location',
-      label: 'موقعنا',
-      sublabel: 'بغداد — العراق 📍',
-      url: 'https://maps.google.com/?q=Baghdad,Iraq',
-      icon: 'location',
-      color: 'from-rose-400 to-rose-600',
-      glow: 'shadow-rose-500/20',
-      external: true,
     },
   ],
 };
@@ -367,6 +357,15 @@ export default function LinksPage() {
             className="mt-2 text-slate-400 text-[15px] font-medium tracking-wide text-center"
           >
             {LINKS_CONFIG.brand.tagline}
+          </motion.p>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-1 text-slate-500 text-[13px] font-medium tracking-wide text-center"
+          >
+            توصيل لكل العراق — الدفع عند الاستلام
           </motion.p>
         </motion.div>
 
