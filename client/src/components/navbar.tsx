@@ -34,6 +34,8 @@ import { useCart } from "@/contexts/cart-context";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { formatIQD } from "@/lib/utils";
 import { trackCartOpen } from "@/lib/analytics";
+import { useFlowGateNav } from "@/lib/motion/flow-gate-context";
+import { isEligibleSection, prefetchSection } from "@/lib/motion/flow-gate-routes";
 
 const GlobalSearch = lazy(() => import("@/components/search/global-search").then((module) => ({ default: module.GlobalSearch })));
 
@@ -60,6 +62,9 @@ export default function Navbar() {
   const { items: cartItems, removeItem, updateQuantity, totalItems, totalPrice } = useCart();
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
+  const flowGateNav = useFlowGateNav();
+  // Warm an eligible destination on intent so the first click resolves fast.
+  const warm = (href: string) => () => { if (isEligibleSection(href)) prefetchSection(href); };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -169,8 +174,9 @@ export default function Navbar() {
             </SheetContent>
           </Sheet>
 
-          <Link href="/" aria-label="الصفحة الرئيسية - AQUAVO" className="shrink-0">
+          <Link href="/" aria-label="الصفحة الرئيسية - AQUAVO" className="shrink-0" onClick={flowGateNav("/")}>
             <img
+              data-aqv-brand-mark
               src="/brand/aquavo-v2-horizontal.svg"
               alt="AQUAVO"
               width="180"
@@ -201,7 +207,14 @@ export default function Navbar() {
               }
 
               return (
-                <Link key={link.href} href={link.href} className={linkClassName}>
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={linkClassName}
+                  onClick={flowGateNav(link.href, warm(link.href))}
+                  onPointerEnter={warm(link.href)}
+                  onFocus={warm(link.href)}
+                >
                   {content}
                 </Link>
               );

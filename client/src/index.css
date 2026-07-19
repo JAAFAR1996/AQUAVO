@@ -1065,6 +1065,8 @@ button, [role="button"], a[class*="rounded"] {
 button:active, [role="button"]:active { transform: scale(.985); transition-duration: var(--aq-motion-instant); }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Disable the cross-document Guides transition for reduced-motion users. */
+  @view-transition { navigation: none; }
   .aq-waterline-hero::after { animation: none !important; transform: none; opacity: 1; }
   .aq-site-header,
   .aq-hero-title,
@@ -1112,3 +1114,16 @@ button:active, [role="button"]:active { transform: scale(.985); transition-durat
   animation: none !important;
   opacity: 1 !important;
 }
+
+/* =====================================================================
+   Cross-document View Transitions — Guides publishing boundary only.
+   The Guides index + published articles are same-origin, server-rendered
+   documents (see api/_guides-content.ts) that opt into the same transition
+   with a shared header name. Full-document navigations between the SPA and
+   /guides therefore get a smooth branded morph of the header where supported;
+   unsupported browsers navigate normally, and same-document (wouter) routing
+   is unaffected and continues to use the WAAPI Flow Gate. Disabled under
+   reduced motion so those users get a plain navigation.
+   ===================================================================== */
+@view-transition { navigation: auto; }
+.aq-site-header { view-transition-name: aqv-site-header; }

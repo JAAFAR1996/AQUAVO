@@ -10,6 +10,7 @@ export function PageLoader() {
   return (
     <div
       dir="rtl"
+      data-aqv-loader
       style={{
         minHeight: "100vh",
         display: "flex",
