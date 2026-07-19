@@ -161,3 +161,4 @@ env.prod
 .env.vercel.production
 playwright-report/
 reports/screenshots/
+research/

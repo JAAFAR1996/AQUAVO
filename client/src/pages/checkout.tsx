@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
+import { COUPON_MESSAGES, mapCouponError, appliedDiscountMessage } from "@/lib/coupon-messages";
 import { useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -342,13 +343,17 @@ export default function CheckoutPage() {
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
   const applyCoupon = async () => {
-    if (isApplyingCoupon) return;
-    const code = couponCode.toUpperCase().trim();
-    if (!code) return;
+    if (isApplyingCoupon) return; // guard against repeated Apply clicks
     setCouponError("");
     setCouponSuccess("");
-    setAppliedCoupon(null);
-    setCouponDiscount(0);
+
+    const code = couponCode.toUpperCase().trim();
+    if (!code) {
+      // Empty field — do not call the API; keep the typed value.
+      setCouponError(COUPON_MESSAGES.empty);
+      return;
+    }
+
     setIsApplyingCoupon(true);
     try {
       const response = await fetch("/api/coupons/validate", {
@@ -358,34 +363,48 @@ export default function CheckoutPage() {
         body: JSON.stringify({ code, totalAmount: cartTotal }),
       });
       if (!response.ok) {
-        const error = await response.json();
-        setCouponError(error.message || "كود الخصم غير صالح");
+        // Map the stable backend code to Arabic — never surface raw API text.
+        // Keep the typed code so the customer can correct it.
+        const body = await response.json().catch(() => null);
+        setCouponError(mapCouponError(response.status, body));
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
         return;
       }
       const coupon = await response.json();
       if (coupon.type === "percentage") {
-        setAppliedCoupon(coupon);
         const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
-        setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
-      } else if (coupon.type === "fixed") {
         setAppliedCoupon(coupon);
-        const discountAmount = Number(coupon.value);
         setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
+        setCouponSuccess(appliedDiscountMessage(discountAmount));
+      } else if (coupon.type === "fixed") {
+        const discountAmount = Number(coupon.value);
+        setAppliedCoupon(coupon);
+        setCouponDiscount(discountAmount);
+        setCouponSuccess(appliedDiscountMessage(discountAmount));
       } else if (coupon.type === "free_shipping") {
         setAppliedCoupon(coupon);
         setCouponDiscount(0);
-        setCouponSuccess("تم تطبيق شحن مجاني");
+        setCouponSuccess(COUPON_MESSAGES.applied);
       } else {
-        setCouponError("نوع الكوبون غير مدعوم حالياً");
+        setCouponError(COUPON_MESSAGES.notEligible);
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
       }
     } catch (error) {
       console.error("Coupon error:", error);
-      setCouponError("حدث خطأ أثناء التحقق من الكوبون");
+      setCouponError(COUPON_MESSAGES.generic);
     } finally {
       setIsApplyingCoupon(false);
     }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError("");
+    setCouponSuccess(COUPON_MESSAGES.removed);
   };
 
   // Success page
@@ -459,7 +478,11 @@ export default function CheckoutPage() {
               applyCoupon={applyCoupon}
               couponError={couponError}
               couponSuccess={couponSuccess}
-              isApplying={isApplyingCoupon}
+              isChecking={isApplyingCoupon}
+              appliedCoupon={appliedCoupon}
+              couponDiscount={couponDiscount}
+              newTotal={grandTotal}
+              onRemove={removeCoupon}
             />
 
             {user && (

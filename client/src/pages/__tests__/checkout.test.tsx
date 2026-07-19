@@ -187,7 +187,7 @@ describe("checkout page", () => {
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "FREESHIP");
     await user.click(screen.getByRole("button", { name: "تطبيق" }));
 
-    expect(await screen.findByText("تم تطبيق شحن مجاني")).toBeInTheDocument();
+    expect(await screen.findByText("تم تطبيق كود الخصم بنجاح")).toBeInTheDocument();
     expect(screen.getByText("مجاني")).toBeInTheDocument();
     // Product total only (25,000) since the 5,000 delivery fee is now waived —
     // both the subtotal line and the grand total now show this value.
@@ -195,11 +195,13 @@ describe("checkout page", () => {
     expect(screen.queryByText("30,000 د.ع")).not.toBeInTheDocument();
   });
 
-  it("surfaces the server's rejection message for an invalid coupon instead of silently applying a discount", async () => {
+  it("maps the backend code to a clean Arabic message (never the raw server text) and applies no discount", async () => {
     const user = userEvent.setup();
     mockFetch.mockResolvedValueOnce({
       ok: false,
-      json: async () => ({ message: "انتهت صلاحية هذا الكوبون" }),
+      status: 400,
+      // Backend may include an internal `message`; the customer must NEVER see it.
+      json: async () => ({ code: "EXPIRED", message: "coupon expired / raw internal text" }),
     });
     render(<CheckoutPage />);
 
@@ -207,7 +209,11 @@ describe("checkout page", () => {
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "EXPIRED");
     await user.click(screen.getByRole("button", { name: "تطبيق" }));
 
-    expect(await screen.findByText("انتهت صلاحية هذا الكوبون")).toBeInTheDocument();
+    // Mapped Arabic message shown; raw backend text never surfaced.
+    expect(await screen.findByText("انتهت صلاحية كود الخصم")).toBeInTheDocument();
+    expect(screen.queryByText(/raw internal text/)).not.toBeInTheDocument();
+    // The typed code is preserved so the customer can correct it.
+    expect(screen.getByPlaceholderText("أدخل الكود...")).toHaveValue("EXPIRED");
     // Total must remain the unmodified product+delivery total — no silent discount.
     expect(screen.getByText("30,000 د.ع")).toBeInTheDocument();
   });
@@ -227,7 +233,7 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("button", { name: /عندك كود خصم؟/ }));
     await user.type(screen.getByPlaceholderText("أدخل الكود..."), "SAVE20");
     await user.click(screen.getByRole("button", { name: "تطبيق" }));
-    expect(await screen.findByText(/تم تطبيق خصم 20%/)).toBeInTheDocument();
+    expect(await screen.findByText(/تم تطبيق الخصم/)).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("الاسم الكامل"), { target: { value: "جعفر محمد" } });
     fireEvent.change(screen.getByLabelText("رقم الهاتف"), { target: { value: "07701234567" } });

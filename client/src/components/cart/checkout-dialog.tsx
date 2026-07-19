@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatIQD } from "@/lib/utils";
+import { COUPON_MESSAGES, mapCouponError, appliedDiscountMessage } from "@/lib/coupon-messages";
 import { CartItem, useCart } from "@/contexts/cart-context";
 import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
@@ -167,6 +168,7 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const [couponError, setCouponError] = useState("");
   const [couponSuccess, setCouponSuccess] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; type: string; value: number } | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
   const getDeliveryEstimate = () => {
     return "توصيل خلال 24 ساعة";
@@ -383,14 +385,18 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
   const grandTotal = Math.max(0, cartTotal + deliveryFee - discount);
 
   const applyCoupon = async () => {
+    if (isCheckingCoupon) return; // guard against repeated Apply clicks
     setCouponError("");
     setCouponSuccess("");
-    setAppliedCoupon(null);
-    setCouponDiscount(0);
 
     const code = couponCode.toUpperCase().trim();
-    if (!code) return;
+    if (!code) {
+      // Empty field — do not call the API; keep the typed value.
+      setCouponError(COUPON_MESSAGES.empty);
+      return;
+    }
 
+    setIsCheckingCoupon(true);
     try {
       const response = await fetch("/api/coupons/validate", {
         method: "POST",
@@ -399,29 +405,47 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        setCouponError(error.message || "كود الخصم غير صالح");
+        // Map the stable backend code to Arabic — never surface raw API text.
+        // Keep the typed code so the customer can correct it.
+        const body = await response.json().catch(() => null);
+        setCouponError(mapCouponError(response.status, body));
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
         return;
       }
 
       const coupon = await response.json();
-      if (coupon.type === "percentage") {
-        setAppliedCoupon(coupon);
-        const discountAmount = Math.round(cartTotal * (Number(coupon.value) / 100));
-        setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم ${coupon.value}% (${formatIQD(discountAmount)})`);
-      } else if (coupon.type === "fixed") {
-        setAppliedCoupon(coupon);
-        const discountAmount = Number(coupon.value);
-        setCouponDiscount(discountAmount);
-        setCouponSuccess(`تم تطبيق خصم بقيمة ${formatIQD(discountAmount)}`);
-      } else {
-        setCouponError("التوصيل ثابت 5,000 د.ع لبغداد وكل المحافظات خلال 24 ساعة");
+      const discountAmount = coupon.type === "percentage"
+        ? Math.round(cartTotal * (Number(coupon.value) / 100))
+        : coupon.type === "fixed"
+          ? Number(coupon.value)
+          : NaN;
+
+      if (!Number.isFinite(discountAmount) || discountAmount <= 0) {
+        // Unsupported coupon type (e.g. free-shipping) — no monetary discount.
+        setCouponError(COUPON_MESSAGES.notEligible);
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
+        return;
       }
+
+      setAppliedCoupon(coupon);
+      setCouponDiscount(discountAmount);
+      setCouponSuccess(appliedDiscountMessage(discountAmount));
     } catch (error) {
       console.error("Coupon error:", error);
-      setCouponError("حدث خطأ أثناء التحقق من الكوبون");
+      setCouponError(COUPON_MESSAGES.generic);
+    } finally {
+      setIsCheckingCoupon(false);
     }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponDiscount(0);
+    setCouponCode("");
+    setCouponError("");
+    setCouponSuccess(COUPON_MESSAGES.removed);
   };
 
   return (
@@ -454,6 +478,11 @@ export function CheckoutDialog({ open, onOpenChange, cartItems, cartTotal, onChe
               applyCoupon={applyCoupon}
               couponError={couponError}
               couponSuccess={couponSuccess}
+              isChecking={isCheckingCoupon}
+              appliedCoupon={appliedCoupon}
+              couponDiscount={couponDiscount}
+              newTotal={grandTotal}
+              onRemove={removeCoupon}
             />
 
             {/* Loyalty Points Section - Only for logged-in users */}
