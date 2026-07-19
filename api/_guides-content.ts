@@ -750,32 +750,96 @@ function buildGuideJsonLd(path: string, page: GuidePage, base: string, image: st
   ];
 }
 
-const PAGE_CSS = `:root{--bg:#0B1E28;--card:#0f1f38;--fg:#eaf2f7;--muted:#b6c6d6;--primary:#0B93A6;--accent:#0B64A6;--line:rgba(255,255,255,.10)}
+// Theme bootstrap — identical logic to client/index.html so a returning
+// visitor's saved choice (and the first-visit default) is shared between the
+// React app and these server-rendered guide pages (no flash, no dark-only).
+const THEME_BOOTSTRAP = `(function(){try{var t=localStorage.getItem('theme');var r;if(t==='dark')r='dark';else if(t==='light')r='light';else if(t==='system')r=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';else r='dark';var e=document.documentElement;e.classList.remove('dark','light');e.classList.add(r);}catch(e){document.documentElement.classList.add('dark');}})();`;
+
+// Functional theme toggle (persists to the same 'theme' key the SPA reads).
+const THEME_TOGGLE_SCRIPT = `(function(){var b=document.getElementById('aqv-theme-toggle');if(!b)return;b.addEventListener('click',function(){var e=document.documentElement;var d=e.classList.contains('dark');e.classList.remove('dark','light');e.classList.add(d?'light':'dark');try{localStorage.setItem('theme',d?'light':'dark');}catch(x){}});})();`;
+
+const PAGE_CSS = `@view-transition{navigation:auto}
+@media (prefers-reduced-motion: reduce){@view-transition{navigation:none}}
+:root{--bg:#F6F4EF;--card:#ffffff;--fg:#0B1E28;--muted:#5c6b73;--primary:#0B93A6;--accent:#0B64A6;--line:rgba(11,30,40,.12);--header-bg:rgba(246,244,239,.92);--answer-bg:rgba(11,147,166,.06);--th-bg:rgba(11,147,166,.10);--btn-fg:#ffffff}
+html.dark{--bg:#0B1E28;--card:#0f1f38;--fg:#eaf2f7;--muted:#b6c6d6;--line:rgba(255,255,255,.10);--header-bg:rgba(11,30,40,.92);--answer-bg:rgba(11,147,166,.14);--th-bg:rgba(11,147,166,.18);--btn-fg:#04222a}
 *{box-sizing:border-box}html,body{margin:0;padding:0}
-body{background:var(--bg);color:#eaf2f7;font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;line-height:1.85;font-size:17px}
-a{color:#56c6dd;text-decoration:none}a:hover{text-decoration:underline}
-.wrap{max-width:820px;margin:0 auto;padding:20px 18px 64px}
-header.site{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 18px;border-bottom:1px solid var(--line);max-width:820px;margin:0 auto}
-header.site .brand{font-family:'Cairo',sans-serif;font-weight:700;font-size:22px;color:#fff}
-header.site nav a{margin-inline-start:14px;color:var(--muted);font-size:15px}
-nav.crumb{font-size:14px;color:var(--muted);margin:18px 0 8px}nav.crumb a{color:var(--muted)}
-h1{font-family:'Cairo',sans-serif;font-weight:700;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.25;margin:.2em 0 .5em;color:#fff}
-h2{font-family:'Cairo',sans-serif;font-weight:700;font-size:1.32rem;margin:1.6em 0 .4em;color:#fff}
-h3{font-weight:700;font-size:1.08rem;margin:1.1em 0 .3em;color:#dcebf7;color:#dce9f2}
-p{margin:.5em 0;color:#dbe7f0}
-.answer{background:var(--card);border:1px solid var(--line);border-inline-start:4px solid var(--primary);border-radius:12px;padding:16px 18px;margin:8px 0 6px;font-size:1.05rem;color:#eef5fa}
+body{background:var(--bg);color:var(--fg);font-family:'Cairo',system-ui,-apple-system,'Segoe UI',Tahoma,sans-serif;line-height:1.85;font-size:17px;-webkit-font-smoothing:antialiased}
+a{color:var(--primary);text-decoration:none}a:hover{text-decoration:underline}
+header.site{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--header-bg);backdrop-filter:blur(10px);view-transition-name:aqv-site-header}
+header.site .brand{display:inline-flex;align-items:center;flex-shrink:0}
+header.site .brand img{height:32px;width:auto;max-width:150px;display:block;object-fit:contain}
+header.site nav.main{display:none;gap:2px;margin-inline-start:8px}
+header.site nav.main a{padding:8px 12px;border-radius:8px;color:var(--fg);opacity:.68;font-size:14px;font-weight:600}
+header.site nav.main a:hover{opacity:1;text-decoration:none}
+header.site nav.main a.active{opacity:1;color:var(--primary)}
+header.site .controls{margin-inline-start:auto;display:flex;align-items:center;gap:2px}
+header.site .controls a,header.site .controls button{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:999px;color:var(--fg);background:transparent;border:0;cursor:pointer;opacity:.8}
+header.site .controls a:hover,header.site .controls button:hover{opacity:1;background:color-mix(in srgb,var(--fg) 8%,transparent)}
+header.site svg{width:20px;height:20px}
+.icon-sun{display:none}html.dark .icon-moon{display:none}html.dark .icon-sun{display:inline}
+@media(min-width:900px){header.site nav.main{display:flex}}
+.wrap{max-width:760px;margin:0 auto;padding:22px 18px 72px}
+nav.crumb{font-size:14px;color:var(--muted);margin:10px 0 6px}nav.crumb a{color:var(--muted)}nav.crumb a:hover{color:var(--primary)}
+h1{font-family:'Changa','Cairo',sans-serif;font-weight:700;font-size:clamp(2rem,6vw,2.6rem);line-height:1.2;margin:.25em 0 .5em;color:var(--fg);letter-spacing:-.01em}
+h2{font-family:'Cairo',sans-serif;font-weight:700;font-size:1.4rem;margin:1.7em 0 .4em;color:var(--fg)}
+h3{font-weight:700;font-size:1.1rem;margin:1.15em 0 .3em;color:var(--fg)}
+p{margin:.55em 0;color:var(--fg)}
+.answer{background:var(--answer-bg);border:1px solid var(--line);border-inline-start:4px solid var(--primary);border-radius:12px;padding:16px 18px;margin:10px 0 8px;font-size:1.05rem}
 .answer strong{color:var(--primary)}
-table{width:100%;border-collapse:collapse;margin:.8em 0 1.3em;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;margin:.9em 0 1.4em;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
 th,td{border:1px solid var(--line);padding:10px 12px;text-align:right;vertical-align:top}
-th{color:#fff;background:rgba(11,147,166,.18);font-weight:800}
-td{color:#dbe7f0}
+th{background:var(--th-bg);font-weight:800;color:var(--fg)}
+td{color:var(--fg)}
 ul.links{list-style:none;padding:0;margin:.4em 0}
 ul.links li{margin:.35em 0}ul.links li a{font-weight:600}
-.faq h3{border-top:1px solid var(--line);padding-top:.8em}
-.cta{margin-top:2em;background:linear-gradient(135deg,rgba(11,147,166,.16),rgba(255,123,90,.10));border:1px solid var(--line);border-radius:14px;padding:18px}
-.cta a.btn{display:inline-block;margin-top:.6em;background:var(--primary);color:#012;padding:10px 18px;border-radius:10px;font-weight:800}
-footer.site{border-top:1px solid var(--line);margin-top:40px;padding:22px 18px;color:var(--muted);font-size:14px;max-width:820px;margin-inline:auto}
-footer.site a{color:var(--muted)}`;
+.faq h3{border-top:1px solid var(--line);padding-top:.85em}
+ul.guide-index{list-style:none;padding:0;margin:1.1em 0;display:grid;gap:14px}
+@media(min-width:640px){ul.guide-index{grid-template-columns:1fr 1fr}}
+ul.guide-index li{margin:0}
+ul.guide-index a.card{display:block;height:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;color:var(--fg)}
+ul.guide-index a.card:hover{border-color:var(--primary);box-shadow:0 6px 20px rgba(11,147,166,.10);text-decoration:none}
+ul.guide-index a.card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+ul.guide-index .t{display:block;font-weight:700;font-size:1.08rem;color:var(--fg);margin-bottom:.25em}
+ul.guide-index .t::after{content:"\\2190";margin-inline-start:.4em;color:var(--primary);font-weight:700}
+ul.guide-index p{margin:0;color:var(--muted);font-size:.95rem;line-height:1.7}
+.cta{margin-top:2.2em;background:linear-gradient(135deg,rgba(11,147,166,.12),rgba(11,100,166,.08));border:1px solid var(--line);border-radius:16px;padding:20px}
+.cta a.btn{display:inline-block;margin-top:.6em;background:var(--primary);color:var(--btn-fg);padding:11px 20px;border-radius:12px;font-weight:800}
+.cta a.btn:hover{text-decoration:none;background:var(--accent);color:#fff}
+footer.site{border-top:1px solid var(--line);margin-top:48px;background:var(--card)}
+footer.site .fwrap{max-width:760px;margin:0 auto;padding:26px 18px;color:var(--muted);font-size:14px}
+footer.site a{color:var(--muted)}footer.site a:hover{color:var(--primary)}
+footer.site .fnav{margin-top:.6em;display:flex;flex-wrap:wrap;gap:.35em 1em}`;
+
+// Shared production-matching header (real logo asset + nav + controls + theme
+// toggle). Rendered as static HTML so no-JS crawlers still see full branding;
+// the theme toggle + cart/account links point to the real SPA routes.
+const SITE_HEADER = `<header class="site">
+  <a class="brand" href="/" aria-label="AQUAVO — الصفحة الرئيسية"><img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO" width="180" height="50" /></a>
+  <nav class="main" aria-label="التنقل الرئيسي">
+    <a href="/products">المتجر</a>
+    <a href="/tank-builder">اختار المناسب</a>
+    <a href="/guides" class="active" aria-current="page">أدلة AQUAVO</a>
+    <a href="/about">منو AQUAVO</a>
+  </nav>
+  <div class="controls">
+    <a href="/search" aria-label="البحث عن منتج"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+    <a href="/wishlist" aria-label="المفضلة"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg></a>
+    <a href="/login" aria-label="الحساب"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg></a>
+    <a href="/cart" aria-label="سلة المشتريات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/><path d="M2 3h3l2.4 12.4a1.6 1.6 0 0 0 1.6 1.3h8.4a1.6 1.6 0 0 0 1.6-1.3L22 7H6"/></svg></a>
+    <button id="aqv-theme-toggle" type="button" aria-label="تبديل المظهر">
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/></svg>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg>
+    </button>
+  </div>
+</header>`;
+
+// Shared production-matching footer.
+const SITE_FOOTER = `<footer class="site"><div class="fwrap">
+  <p>AQUAVO — متجر معدات ومستلزمات أحواض الزينة في العراق. توصيل لكل المحافظات، دفع عند الاستلام. لا نبيع كائنات حية.</p>
+  <nav class="fnav" aria-label="روابط الموقع">
+    <a href="/">الرئيسية</a><a href="/products">المتجر</a><a href="/guides">الأدلة</a><a href="/shipping">التوصيل</a><a href="/faq">الأسئلة الشائعة</a><a href="/about">من نحن</a>
+  </nav>
+</div></footer>`;
 
 function renderLinks(links: GuideLink[], base: string): string {
   return (
@@ -824,6 +888,7 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>${THEME_BOOTSTRAP}</script>
 <title>${esc(page.title)}</title>
 <meta name="description" content="${esc(page.description)}" />
 <link rel="canonical" href="${esc(url)}" />
@@ -843,15 +908,12 @@ export function renderGuideHtml(path: string, page: GuidePage, base: string, ima
 <meta name="theme-color" content="#0B93A6" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" />
 ${jsonLd}
 <style>${PAGE_CSS}</style>
 </head>
 <body>
-<header class="site">
-  <a class="brand" href="/">AQUAVO</a>
-  <nav><a href="/products">المنتجات</a><a href="/faq">الأسئلة</a><a href="/beginner-guide">دليل المبتدئين</a></nav>
-</header>
+${SITE_HEADER}
 <div class="wrap">
   <nav class="crumb">${crumb}</nav>
   <h1>${esc(page.h1)}</h1>
@@ -866,10 +928,8 @@ ${jsonLd}
     <a class="btn" href="${esc(page.cta.href)}">${esc(page.cta.label)}</a>
   </div>
 </div>
-<footer class="site">
-  <p>AQUAVO — متجر معدات ومستلزمات أحواض الزينة في العراق. توصيل لكل المحافظات، دفع عند الاستلام. لا نبيع كائنات حية.</p>
-  <p><a href="/">الرئيسية</a> · <a href="/products">المنتجات</a> · <a href="/shipping">التوصيل</a> · <a href="/faq">الأسئلة الشائعة</a> · <a href="/about-aquavo">من نحن</a></p>
-</footer>
+${SITE_FOOTER}
+<script>${THEME_TOGGLE_SCRIPT}</script>
 </body>
 </html>`;
 }
@@ -1107,7 +1167,7 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
     "فهرس أدلة AQUAVO التعليمية لأحواض الزينة في العراق: تجهيز حوض جديد، اختيار الفلتر والسخان، فحص ماء الحوض، الصيانة الأسبوعية وأخطاء المبتدئين.";
   const cards = GUIDE_INDEX_ITEMS.map(
     (g) =>
-      `<li><a href="${esc(g.href)}"><strong>${esc(g.label)}</strong></a><p>${esc(g.blurb)}</p></li>`
+      `<li><a class="card" href="${esc(g.href)}"><span class="t">${esc(g.label)}</span><p>${esc(g.blurb)}</p></a></li>`
   ).join("");
   const faq = HOME_FAQ.map((f) => `<h3>${esc(f.q)}</h3><p>${esc(f.a)}</p>`).join("");
   const jsonLd = renderJsonLdScripts([
@@ -1152,6 +1212,7 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>${THEME_BOOTSTRAP}</script>
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}" />
 <link rel="canonical" href="${esc(url)}" />
@@ -1171,19 +1232,12 @@ export function renderGuidesIndexHtml(base: string, image: string): string {
 <meta name="theme-color" content="#0B93A6" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" />
 ${jsonLd}
-<style>${PAGE_CSS}
-ul.guide-index{list-style:none;padding:0;margin:1em 0}
-ul.guide-index li{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:.6em 0}
-ul.guide-index strong{color:#fff;font-size:1.1rem}
-ul.guide-index p{margin:.3em 0 0;color:#b6c6d6;font-size:.95rem}</style>
+<style>${PAGE_CSS}</style>
 </head>
 <body>
-<header class="site">
-  <a class="brand" href="/">AQUAVO</a>
-  <nav><a href="/products">المنتجات</a><a href="/faq">الأسئلة</a><a href="/about-aquavo">من نحن</a></nav>
-</header>
+${SITE_HEADER}
 <div class="wrap">
   <nav class="crumb"><a href="/">الرئيسية</a> / <span>الأدلة</span></nav>
   <h1>أدلة AQUAVO لأحواض الزينة</h1>
@@ -1196,10 +1250,8 @@ ul.guide-index p{margin:.3em 0 0;color:#b6c6d6;font-size:.95rem}</style>
     <a class="btn" href="/products">تصفح المنتجات</a>
   </div>
 </div>
-<footer class="site">
-  <p>AQUAVO — متجر معدات ومستلزمات أحواض الزينة في العراق. توصيل لكل المحافظات، دفع عند الاستلام. لا نبيع كائنات حية.</p>
-  <p><a href="/">الرئيسية</a> · <a href="/products">المنتجات</a> · <a href="/shipping">التوصيل</a> · <a href="/faq">الأسئلة الشائعة</a> · <a href="/about-aquavo">من نحن</a></p>
-</footer>
+${SITE_FOOTER}
+<script>${THEME_TOGGLE_SCRIPT}</script>
 </body>
 </html>`;
 }
