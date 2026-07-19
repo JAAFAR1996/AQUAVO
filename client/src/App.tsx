@@ -26,6 +26,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { CommerceMotionPanel } from "@/components/commerce-motion/commerce-motion-panel";
+import { CommerceMotionOverlay } from "@/components/commerce-motion/commerce-motion-overlay";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTransition } from "@/components/ui/page-transition";
 
@@ -1059,8 +1060,9 @@ function AppShell() {
                   </IdleMount>
 
                   <Toaster />
-                  {/* Preview-only commerce-motion control (self-gates to non-prod hosts) */}
+                  {/* Preview-only commerce-motion control + overlay (self-gate to non-prod hosts) */}
                   <CommerceMotionPanel />
+                  <CommerceMotionOverlay />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
                       <BirthdayCelebration />

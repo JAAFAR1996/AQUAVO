@@ -74,6 +74,14 @@ export default function Navbar() {
     }
   }, []);
 
+  // Passive hook so any surface can request the cart to open (used by the preview
+  // commerce-motion confirmation). Inert in Production — nothing dispatches it there.
+  useEffect(() => {
+    const handler = () => setIsCartOpen(true);
+    window.addEventListener("aqv:open-cart", handler);
+    return () => window.removeEventListener("aqv:open-cart", handler);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {

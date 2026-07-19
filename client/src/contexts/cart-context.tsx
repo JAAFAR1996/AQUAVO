@@ -8,6 +8,7 @@ import { metaTrackAddToCart } from "@/lib/meta-pixel";
 import { ttqAddToCart } from "@/lib/tiktok-pixel";
 import { trackAddToCart as gaTrackAddToCart } from "@/lib/analytics";
 import { phTrackAddToCart } from "@/lib/posthog";
+import { emitAddToCartPreview } from "@/lib/commerce-motion/preview-flags";
 
 // Single source of truth for AddToCart tracking. Fires Meta Pixel (+CAPI),
 // TikTok, GA4 and PostHog — ONLY after a successful add. Centralizing here
@@ -326,6 +327,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           }
           // If cartRes is not ok, item was still added — optimistic local state is already correct
           fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+          emitAddToCartPreview({ id: product.id, name: product.name, variantLabel, quantity, price: productPrice, image: product.thumbnail || product.image || product.images?.[0] });
           return true;
         }
 
@@ -424,6 +426,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
 
     fireAddToCartAnalytics({ id: product.id, name: displayName, price: productPrice, quantity, category: product.category });
+    emitAddToCartPreview({ id: product.id, name: product.name, variantLabel, quantity, price: productPrice, image: product.thumbnail || product.image || product.images?.[0] });
     return true;
   };
 

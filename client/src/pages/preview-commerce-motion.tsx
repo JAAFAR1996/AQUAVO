@@ -9,14 +9,22 @@ import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, RotateCcw } from "lucide-react";
+import { CheckCircle2, RotateCcw, ShoppingBag } from "lucide-react";
 import { OrderCalmConfirm } from "@/components/commerce-motion/order-calm-confirm";
 import { SIMULATED_ORDER } from "@/lib/commerce-motion/order-fixtures";
 import { formatIQD } from "@/lib/utils";
 import {
   isCommerceMotionPreviewHost,
   getOrderConcept, setOrderConcept, type OrderConcept,
+  getCartConcept, setCartConcept, type CartConcept,
+  ADD_TO_CART_EVENT,
 } from "@/lib/commerce-motion/preview-flags";
+
+const CART_CHOICES: { value: CartConcept; label: string }[] = [
+  { value: "current", label: "الحالي" },
+  { value: "A", label: "الفكرة A — FlowLine Seal" },
+  { value: "B", label: "الفكرة B — Facet Turn" },
+];
 
 const ORDER_CHOICES: { value: OrderConcept; label: string }[] = [
   { value: "current", label: "الحالي" },
@@ -57,16 +65,27 @@ function CurrentOrderBaseline() {
 
 export default function PreviewCommerceMotion() {
   const [orderConcept, setOrderConceptState] = useState<OrderConcept>("B");
+  const [cartConcept, setCartConceptState] = useState<CartConcept>("A");
   const [replay, setReplay] = useState(0);
 
   useEffect(() => {
     // Default the sim to Idea B (the owner-locked direction) so it shows first.
     setOrderConceptState(getOrderConcept() === "current" ? "B" : getOrderConcept());
+    setCartConceptState(getCartConcept() === "current" ? "A" : getCartConcept());
   }, []);
 
   if (!isCommerceMotionPreviewHost()) return <Redirect to="/" />;
 
   const chooseOrder = (v: OrderConcept) => { setOrderConceptState(v); setOrderConcept(v); setReplay((r) => r + 1); };
+  const chooseCart = (v: CartConcept) => { setCartConceptState(v); setCartConcept(v); };
+  const fireDemoAdd = () => window.dispatchEvent(new CustomEvent(ADD_TO_CART_EVENT, { detail: {
+    id: "sim-demo",
+    name: SIMULATED_ORDER.items[0].name,
+    variantLabel: "قطعة فردية",
+    quantity: 1,
+    price: SIMULATED_ORDER.items[0].price,
+    image: SIMULATED_ORDER.items[0].image,
+  } }));
 
   return (
     <div className="flex min-h-screen flex-col bg-background font-sans" dir="rtl">
@@ -114,6 +133,35 @@ export default function PreviewCommerceMotion() {
                 ? <CurrentOrderBaseline />
                 : <OrderCalmConfirm order={SIMULATED_ORDER} replayKey={replay} />}
             </div>
+          </section>
+
+          <section className="mt-12">
+            <h2 className="text-lg font-bold text-foreground">الإضافة للسلة</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              اختر فكرة ثم اضغط الزر لمعاينة التأكيد. على صفحات المنتجات الحقيقية تعمل نفس الفكرة ببيانات المنتج الفعلية.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {CART_CHOICES.map((c) => {
+                const active = cartConcept === c.value;
+                return (
+                  <button
+                    key={c.value}
+                    type="button"
+                    onClick={() => chooseCart(c.value)}
+                    aria-pressed={active}
+                    className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
+                      active ? "border-[#0B93A6] bg-[#0B93A6] text-white" : "border-border bg-card text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <Button onClick={fireDemoAdd} className="mt-4 gap-2" disabled={cartConcept === "current"}>
+              <ShoppingBag className="h-4 w-4" />
+              {cartConcept === "current" ? "اختر فكرة A أو B للمعاينة" : "أضف منتج تجريبي للسلة"}
+            </Button>
           </section>
         </div>
       </main>
