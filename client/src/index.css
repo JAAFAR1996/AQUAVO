@@ -544,6 +544,34 @@ html.dark {
 }
 
 /* ============================================
+   Commerce-Motion V2 (Preview) — bulletproof CSS enter/exit.
+   CSS animations always play on mount, independent of any JS scheduler,
+   so the confirmation surface can never strand invisible.
+   ============================================ */
+@keyframes aqv-cm-tray-in {
+  from { transform: translateY(120%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes aqv-cm-tray-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(120%); opacity: 0; }
+}
+@keyframes aqv-cm-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes aqv-cm-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.aqv-cm-enter { animation: aqv-cm-tray-in 340ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.aqv-cm-exit  { animation: aqv-cm-tray-out 300ms cubic-bezier(0.4, 0, 1, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .aqv-cm-enter { animation: aqv-cm-fade-in 150ms ease both; }
+  .aqv-cm-exit  { animation: aqv-cm-fade-out 150ms ease both; }
+}
+
+/* ============================================
    SCROLL-DRIVEN REVEAL (2026) — zero-JS fade-up
    ============================================
    Uses native scroll-driven animations where supported. Each element marked
