@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -248,8 +247,7 @@ export default function AdminPartnersPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
-      <Navbar />
+    <div className="flex-1 bg-background" dir="rtl">
       <main className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">شركاء المبيعات الميدانيين</h1>
 

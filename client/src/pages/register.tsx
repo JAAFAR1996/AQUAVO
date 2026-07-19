@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useSearch } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -114,9 +112,7 @@ export default function Register() {
     ];
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-            <Navbar />
-
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
             <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <div className="w-full max-w-4xl grid md:grid-cols-2 gap-8">
                     {/* Benefits Section */}
@@ -371,9 +367,6 @@ export default function Register() {
                     </motion.div>
                 </div>
             </main>
-
-
-            <Footer />
         </div>
     );
 }

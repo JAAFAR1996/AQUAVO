@@ -1,15 +1,12 @@
 import { AlertTriangle, CheckCircle2, PackageSearch, ShieldCheck, Wrench } from "lucide-react";
 import { Link } from "wouter";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 export default function ReturnPolicy() {
   return (
-    <div className="min-h-screen bg-background text-foreground" data-testid="return-policy-page" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" data-testid="return-policy-page" dir="rtl">
       <MetaTags title="مشاكل الاستلام والضمان المحدود" description="سياسة AQUAVO لمراجعة الضرر والنقص وعدم المطابقة، وفصلها عن ضمان AQUAVO المحدود للمنتجات الكهربائية المعتمدة فقط." />
-      <Navbar />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
           <p className="text-sm font-bold text-primary">السياسة بدون خلط</p>
@@ -55,7 +52,6 @@ export default function ReturnPolicy() {
 
         <Link href="/contact" className="mt-8 inline-flex min-h-12 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">دز رقم الطلب وتفاصيل الحالة</Link>
       </main>
-      <Footer />
     </div>
   );
 }

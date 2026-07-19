@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 import { BackToTop } from "@/components/back-to-top";
@@ -65,15 +63,13 @@ export default function Blog() {
     const regularPosts = blogPosts.filter((p) => !p.isFeatured);
 
     return (
-        <div className="min-h-screen flex flex-col bg-background selection:bg-primary/30">
+        <div className="flex-1 flex flex-col bg-background selection:bg-primary/30">
             <MetaTags
                 title="المدونة"
                 description="مقالات ونصائح متخصصة في عالم أحواض الأسماك والحياة المائية - AQUAVO"
                 keywords={["مدونة أحواض الأسماك", "نصائح تربية الأسماك", "أحواض المياه العذبة", "AQUAVO"]}
                 type="article"
             />
-            <Navbar />
-
             {/* Hero Section - 2025 Premium Design */}
             <section className="relative pt-32 pb-16 overflow-hidden">
                 {/* Ambient Background Glow */}
@@ -262,8 +258,6 @@ export default function Blog() {
                 </div>
             </main>
 
-            <BackToTop />
-            <Footer />
-        </div>
+            <BackToTop />        </div>
     );
 }

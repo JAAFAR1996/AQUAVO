@@ -1,6 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -128,9 +126,7 @@ export default function CulturalTwin() {
   const fishMap = data?.fishMap || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-1">
+    <div className="flex-1 flex flex-col bg-background">      <main className="flex-1">
 
         {/* ── Hero ── */}
         <div className="relative overflow-hidden bg-gradient-to-b from-blue-950 via-blue-900 to-cyan-950 py-16 px-4 text-center">
@@ -360,8 +356,6 @@ export default function CulturalTwin() {
           50% { transform: scaleX(1.05); opacity: 0.35; }
         }
       `}</style>
-
-      <Footer />
     </div>
   );
 }

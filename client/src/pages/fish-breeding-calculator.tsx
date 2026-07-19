@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -387,9 +385,7 @@ export default function FishBreedingCalculator() {
   const waterStatus = checkWaterParameters();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-background">
       <main id="main-content" className="flex-1">
         {/* Hero */}
         <section className="py-20 bg-gradient-to-b from-pink-50 to-background dark:from-pink-950/20">
@@ -864,8 +860,6 @@ export default function FishBreedingCalculator() {
           </div>
         </section>
       </main>
-
-      <Footer />
 
       {/* Hidden PDF Export Container */}
       {species && timeline && (

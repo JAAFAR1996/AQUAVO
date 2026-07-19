@@ -1,5 +1,4 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetaTags } from "@/components/seo/meta-tags";
@@ -30,14 +29,12 @@ const checks = [
 
 export default function FishFinder() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" dir="rtl">
       <MetaTags
         title="اختيار السمك المناسب لحوضك"
         description="أداة تعليمية تساعدك تفكر بحجم الحوض، الحرارة، والتوافق قبل اختيار أسماك الزينة، مع روابط لأدلة التجهيز والصيانة."
         canonicalUrl="https://www.aquavoiq.com/fish-finder"
-      />
-      <Navbar />
-      <main className="container mx-auto px-4 py-10">
+      />      <main className="container mx-auto px-4 py-10">
         <section className="max-w-4xl mx-auto space-y-6">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-2 text-sm text-primary">
             <Fish className="h-4 w-4" />
@@ -80,22 +77,20 @@ export default function FishFinder() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="outline">
-                <a href="/fish-encyclopedia">موسوعة أسماك الزينة</a>
+                <Link href="/fish-encyclopedia">موسوعة أسماك الزينة</Link>
               </Button>
               <Button asChild variant="outline">
-                <a href="/fish-compatibility">توافق الأسماك</a>
+                <Link href="/fish-compatibility">توافق الأسماك</Link>
               </Button>
               <Button asChild variant="outline">
-                <a href="/guides/new-aquarium-setup-iraq">تجهيز حوض جديد</a>
+                <Link href="/guides/new-aquarium-setup-iraq">تجهيز حوض جديد</Link>
               </Button>
               <Button asChild>
-                <a href="/guides/aquarium-water-test-guide">فحص ماء الحوض</a>
+                <Link href="/guides/aquarium-water-test-guide">فحص ماء الحوض</Link>
               </Button>
             </div>
           </section>
         </section>
-      </main>
-      <Footer />
-    </div>
+      </main>    </div>
   );
 }

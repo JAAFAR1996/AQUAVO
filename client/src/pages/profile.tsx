@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -186,13 +184,12 @@ export default function Profile() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex flex-col bg-background">
             <MetaTags
                 title="حسابي"
                 description="إدارة حسابك الشخصي وطلباتك وعناوينك ونقاط الولاء في AQUAVO"
                 noIndex={true}
             />
-            <Navbar />
 
             <main id="main-content" className="flex-1 py-8">
                 <div className="container mx-auto px-4">
@@ -317,7 +314,6 @@ export default function Profile() {
 
 
             <BackToTop />
-            <Footer />
         </div>
     );
 }

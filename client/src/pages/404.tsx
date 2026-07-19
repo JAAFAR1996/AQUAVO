@@ -1,6 +1,4 @@
 import { useLocation } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { ErrorState, errorMessages } from "@/components/ui/error-state";
 import { MetaTags } from "@/components/seo/meta-tags";
 
@@ -8,15 +6,13 @@ export default function NotFound() {
   const [, setLocation] = useLocation();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background">
       <MetaTags
         title="الصفحة غير موجودة | AQUAVO"
         description="الرابط الذي فتحته غير موجود. تقدر ترجع للرئيسية أو تتصفح معدات ومستلزمات أحواض الزينة المتوفرة لدى AQUAVO."
         noIndex
         notFound
       />
-      <Navbar />
-
       <main id="main-content" className="flex-1 container mx-auto px-4 py-20 flex items-center justify-center">
         <div className="max-w-2xl mx-auto w-full">
           <ErrorState
@@ -52,8 +48,6 @@ export default function NotFound() {
           </ErrorState>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

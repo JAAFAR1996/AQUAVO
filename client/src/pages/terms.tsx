@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -94,9 +92,8 @@ export default function Terms() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="terms-page">
+    <div className="flex-1 flex flex-col bg-background font-sans" data-testid="terms-page">
       <MetaTags title="الشروط والأحكام" description="شروط الطلب والدفع نقداً عند الاستلام والتوصيل والضمان المحدود لدى AQUAVO / محل المنبع." />
-      <Navbar />
 
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 opacity-10">
@@ -362,8 +359,6 @@ export default function Terms() {
           </motion.section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

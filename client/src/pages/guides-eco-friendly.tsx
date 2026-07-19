@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Leaf, Droplets, Sun, Recycle, ArrowRight, Activity, Calendar, AlertTriangle, CheckCircle2, Thermometer } from "lucide-react";
 import { Link } from "wouter";
@@ -16,9 +14,7 @@ export default function EcoFriendlyGuide() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950 font-sans">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 font-sans">
       <main id="main-content" className="flex-1">
         {/* Hero Section */}
         <section className="relative py-24 bg-gradient-to-br from-teal-900 via-slate-900 to-black overflow-hidden text-foreground dark:text-white">
@@ -307,8 +303,6 @@ export default function EcoFriendlyGuide() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

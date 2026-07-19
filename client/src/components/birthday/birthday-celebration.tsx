@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Cake } from "lucide-react";
 import { useAuth } from "@/contexts/auth-context";
@@ -178,7 +179,7 @@ export function BirthdayCelebration() {
               className="h-12 w-full rounded-2xl text-base font-bold shadow-lg shadow-primary/20"
               asChild
             >
-              <a href="/products">أبدأ التسوّق</a>
+              <Link href="/products" onClick={() => setOpen(false)}>أبدأ التسوّق</Link>
             </Button>
           </motion.div>
         </motion.div>

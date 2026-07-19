@@ -1,8 +1,6 @@
 import { useRoute, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { BlogPost } from "@shared/schema";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags, ArticleSchema } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +42,7 @@ export default function BlogPost() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background font-sans">
+        <div className="flex-1 flex flex-col bg-background font-sans">
             <MetaTags
                 title={post.title}
                 description={post.excerpt || post.title}
@@ -58,8 +56,6 @@ export default function BlogPost() {
                 datePublished={post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString()}
                 author={post.author || "AQUAVO"}
             />
-            <Navbar />
-
             <main id="main-content" className="flex-1 pb-20">
                 {/* Hero Header */}
                 <div className="relative h-[50vh] min-h-[400px]">
@@ -173,8 +169,6 @@ export default function BlogPost() {
                     </div>
                 </article>
             </main>
-
-            <Footer />
         </div>
     );
 }

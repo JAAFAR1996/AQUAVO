@@ -1,8 +1,6 @@
 import { Banknote, PackageCheck, ShieldCheck, Truck } from "lucide-react";
 import { Link } from "wouter";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { BreadcrumbSchema, FAQSchema, MetaTags } from "@/components/seo/meta-tags";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
@@ -48,12 +46,10 @@ const questions = groups.flatMap((group) => group.items.map((item) => ({ questio
 
 export default function FAQ() {
   return (
-    <div className="min-h-screen bg-background text-foreground" data-testid="faq-page" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" data-testid="faq-page" dir="rtl">
       <MetaTags title="الأسئلة الشائعة" description="أجوبة واضحة عن منتجات AQUAVO، التوصيل خلال 24 ساعة، أجرة 5,000 د.ع، الدفع عند الاستلام، ومشاكل الاستلام." />
       <FAQSchema questions={questions} />
-      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" }]} />
-      <Navbar />
-      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+      <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "الأسئلة الشائعة", url: "https://www.aquavoiq.com/faq" }]} />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
           <p className="text-sm font-bold text-primary">قبل ما تطلب</p>
           <h1 className="mt-3 text-4xl font-bold" data-testid="text-page-title">أسئلة واضحة، أجوبة مباشرة</h1>
@@ -75,8 +71,6 @@ export default function FAQ() {
           ))}
         </div>
         <div className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 text-sm">بعدك محتار؟ <Link href="/contact" className="font-bold text-primary hover:underline">تواصل ويانه</Link></div>
-      </main>
-      <Footer />
-    </div>
+      </main>    </div>
   );
 }

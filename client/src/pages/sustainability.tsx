@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Leaf, Droplets, Wind, Recycle, Heart, Globe, Fish, Waves, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -22,9 +20,7 @@ export default function Sustainability() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background dark:bg-slate-950 font-sans selection:bg-teal-500/30">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-background dark:bg-slate-950 font-sans selection:bg-teal-500/30">
       {/* Immersive Hero Section */}
       <section className="relative h-[85vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
@@ -290,8 +286,6 @@ export default function Sustainability() {
           </div>
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

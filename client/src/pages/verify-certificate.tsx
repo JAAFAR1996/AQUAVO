@@ -2,8 +2,6 @@ import { useState } from "react";
 import { ArrowLeft, CalendarDays, ExternalLink, FileCheck2, Maximize2, Minus, Plus, RotateCcw, ShieldCheck } from "lucide-react";
 import { Link, useParams } from "wouter";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -76,8 +74,7 @@ export default function VerifyCertificate() {
 
   if (!isYeeDocument) {
     return (
-      <div className="min-h-screen bg-background text-foreground" dir="rtl">
-        <Navbar />
+      <div className="flex-1 bg-background text-foreground" dir="rtl">
         <main id="main-content" className="mx-auto max-w-3xl px-4 pb-20 pt-32 text-center">
           <h1 className="text-3xl font-bold">الوثيقة مو موجودة</h1>
           <p className="mt-4 text-muted-foreground">الرابط اللي فتحته ما يطابق وثيقة منشورة من AQUAVO.</p>
@@ -86,18 +83,16 @@ export default function VerifyCertificate() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
           </Link>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" dir="rtl">
       <MetaTags
         title="وثيقة أصالة منتجات YEE"
         description="عرض الوثيقة الصادرة من Weifang Yipin Pet Products إلى AQUAVO العراق بخصوص أصالة منتجات YEE الموردة."
       />
-      <Navbar />
 
       <main id="main-content" className="mx-auto max-w-7xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32 lg:px-8">
         <header className="max-w-3xl">
@@ -193,7 +188,6 @@ export default function VerifyCertificate() {
         </div>
       </main>
 
-      <Footer />
       <CertificateViewer open={viewerOpen} onOpenChange={setViewerOpen} />
     </div>
   );

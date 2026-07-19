@@ -1,8 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchProducts } from "@/lib/api";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,14 +58,12 @@ export default function Deals() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
+    <div className="flex-1 flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="العروض والخصومات"
         description="اكتشف أفضل عروض وخصومات منتجات أحواض الأسماك في AQUAVO - وفر أكثر مع خصوماتنا الحصرية"
         keywords={["عروض أحواض الأسماك", "خصومات معدات المياه", "تخفيضات AQUAVO", "أسعار مخفضة"]}
       />
-      <Navbar />
-
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12" dir="rtl">
         {/* Hero Section */}
         <div className="mb-12 text-center relative overflow-hidden rounded-3xl bg-gradient-to-br from-orange-500 via-pink-500 to-rose-500 p-12 text-white shadow-2xl">
@@ -306,8 +302,6 @@ export default function Deals() {
       </main>
 
 
-      <BackToTop />
-      <Footer />
-    </div>
+      <BackToTop />    </div>
   );
 }

@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { ProductComparisonTable, useComparison } from "@/components/products/product-comparison";
 import { Button } from "@/components/ui/button";
@@ -28,14 +26,12 @@ export default function ComparePage() {
     const comparedProducts = allProducts.filter(p => compareIds.includes(p.id));
 
     return (
-        <div className="min-h-screen flex flex-col bg-background">
+        <div className="flex-1 flex flex-col bg-background">
             <MetaTags
                 title="مقارنة المنتجات"
                 description="قارن بين منتجات أحواض الأسماك واختر الأنسب لك - مقارنة شاملة للمواصفات والأسعار في AQUAVO"
                 keywords={["مقارنة أحواض الأسماك", "مقارنة منتجات المياه", "AQUAVO"]}
             />
-            <Navbar />
-
             <main className="flex-1 container mx-auto px-4 py-8 pt-24">
                 {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -73,8 +69,6 @@ export default function ComparePage() {
                     onRemove={removeFromCompare}
                 />
             </main>
-
-            <Footer />
         </div>
     );
 }

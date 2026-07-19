@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -132,9 +130,7 @@ export default function OrderTracking() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans" data-testid="order-tracking-page">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-background font-sans" data-testid="order-tracking-page">
       <section className="relative py-20 overflow-hidden bg-gradient-to-b from-primary/5 to-background">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-20 right-20 w-64 h-64 bg-primary rounded-full blur-3xl" />
@@ -364,8 +360,6 @@ export default function OrderTracking() {
           )}
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

@@ -2,8 +2,6 @@ import { Banknote, BookOpen, Headphones, PackageCheck, Truck } from "lucide-reac
 import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { BreadcrumbSchema, MetaTags, OrganizationSchema } from "@/components/seo/meta-tags";
 
 const reasons = [
@@ -16,11 +14,10 @@ const reasons = [
 
 export default function WhyAquavo() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" dir="rtl">
       <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام، ودعم 24/7." />
       <OrganizationSchema />
       <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "ليش AQUAVO؟", url: "https://www.aquavoiq.com/why-aquavo" }]} />
-      <Navbar />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
           <p className="text-sm font-bold text-primary">براند عراقي بمواصفات عالمية لمعدات الأحواض البريميوم</p>
@@ -42,7 +39,6 @@ export default function WhyAquavo() {
           <div className="mt-6 flex flex-wrap gap-3"><Link href="/products" className="inline-flex min-h-11 items-center rounded-full bg-primary px-6 text-sm font-bold text-white">شوف المنتجات</Link><a href="/guides" className="inline-flex min-h-11 items-center rounded-full border border-white/20 px-6 text-sm font-bold">شوف الأدلة</a></div>
         </section>
       </main>
-      <Footer />
       <BackToTop />
     </div>
   );

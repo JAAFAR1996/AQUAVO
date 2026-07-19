@@ -1,7 +1,5 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -85,27 +83,24 @@ export default function Login() {
     // Show loading if auth is still checking
     if (authLoading) {
         return (
-            <div className="min-h-screen flex flex-col bg-background" dir="rtl">
-                <Navbar />
+            <div className="flex-1 flex flex-col bg-background" dir="rtl">
                 <main className="flex-1 flex items-center justify-center py-12 px-4">
                     <div className="flex flex-col items-center gap-4">
                         <Loader2 className="w-12 h-12 animate-spin text-primary" />
                         <p className="text-muted-foreground">جاري التحميل...</p>
                     </div>
                 </main>
-                <Footer />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background" dir="rtl">
+        <div className="flex-1 flex flex-col bg-background" dir="rtl">
             <MetaTags
                 title="تسجيل الدخول"
                 description="سجّل دخولك إلى AQUAVO للوصول إلى طلباتك وعروضك الشخصية ونقاط الولاء"
                 noIndex={true}
             />
-            <Navbar />
 
             <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <motion.div
@@ -237,9 +232,6 @@ export default function Login() {
                     </Card>
                 </motion.div>
             </main>
-
-
-            <Footer />
         </div>
     );
 }

@@ -74,6 +74,24 @@ export default function Navbar() {
     }
   }, []);
 
+  // Idle-warm the single most critical destination (the store) on capable
+  // desktops. This imports the route's JS chunk only — no data fetch, no
+  // mutation — so the first navigation to /products skips a cold chunk load.
+  // Skipped on touch devices and when the user requested reduced data usage.
+  useEffect(() => {
+    const finePointer = window.matchMedia?.("(pointer: fine)").matches;
+    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
+    if (!finePointer || saveData) return;
+
+    const warmStore = () => prefetchSection("/products");
+    if (typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(warmStore, { timeout: 2000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(warmStore, 1200);
+    return () => window.clearTimeout(id);
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {

@@ -26,8 +26,6 @@ import { Link } from "wouter";
 
 import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
@@ -144,13 +142,11 @@ export default function Home() {
   const hasStorePicks = storePicks.length > 0;
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="flex-1 overflow-x-hidden bg-background text-foreground">
       <MetaTags
         title="معدات أحواض بريميوم بالعراق"
         description="AQUAVO براند عراقي لمعدات الأحواض البريميوم. اختار الفلاتر والسخانات والإضاءة ومستلزمات العناية حسب احتياج حوضك، مع الدفع عند الاستلام وتوصيل لكل العراق."
       />
-
-      <Navbar />
 
       <main id="main-content" dir="rtl">
         <section className="aq-waterline-hero relative isolate overflow-hidden border-b border-border bg-background pt-24 sm:pt-28">
@@ -416,8 +412,6 @@ export default function Home() {
           </PrecisionReveal>
         </section>
       </main>
-
-      <Footer />
       <BackToTop />
     </div>
   );

@@ -1,8 +1,7 @@
 import { useState, useRef, useCallback } from "react";
+import { useLocation } from "wouter";
 import { addCsrfHeader } from "@/lib/csrf";
 import { MetaTags } from "@/components/seo/meta-tags";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -193,6 +192,7 @@ const diseaseCategories = [
 // ═══════════════════════════════════════════════════════
 
 export default function FishHealthDiagnosis() {
+  const [, navigate] = useLocation();
   const [image, setImage] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -500,13 +500,11 @@ export default function FishHealthDiagnosis() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background">
       <MetaTags
         title="طبيب الأسماك — تشخيص الأمراض بالذكاء الاصطناعي"
         description="أداة تعليمية تساعدك تراجع أعراض أسماك الزينة وتفكر بخطوات فحص الماء والعزل والمعالجة المناسبة حسب الحالة."
       />
-      <Navbar />
-
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         {/* ═══════════ Header ═══════════ */}
         <div className="text-center mb-12">
@@ -1415,7 +1413,7 @@ export default function FishHealthDiagnosis() {
                 <p className="text-sm text-muted-foreground dark:text-slate-400">Dr. AQUAVO سوف يذكرك بموعد المتابعة 📅</p>
                 <Button
                   className="mt-4 bg-cyan-600 hover:bg-cyan-500 text-foreground dark:text-white gap-2"
-                  onClick={() => window.location.href = '/fish-patients'}
+                  onClick={() => navigate('/fish-patients')}
                 >
                   <Fish className="w-4 h-4" /> شوف السجل الطبي
                 </Button>
@@ -1693,8 +1691,6 @@ export default function FishHealthDiagnosis() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
