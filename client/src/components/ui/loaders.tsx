@@ -1,31 +1,62 @@
 import { useCallback, useEffect, useState } from "react";
+import "./loaders.css";
 
 /**
- * Static loading indicators. All motion (fish-draw, pulsing dots, aurora,
- * scan-line, glow, fade) has been removed; loaders are now a static logo +
- * static text on a light surface. Dark Mode keeps a readable surface via the
- * theme tokens on the surrounding page.
+ * Branded, theme-aware loading indicators. All colors derive from the app
+ * theme tokens (--background / --foreground / --primary) so the loaders match
+ * the selected light/dark theme with no flash. Motion is CSS-only and gated
+ * behind prefers-reduced-motion (see loaders.css).
+ */
+
+/**
+ * Suspense fallback for lazy routes. Shows an animated AQUAVO logo with a water
+ * ripple, rising bubbles and a top progress shimmer. A ~140ms delay avoids
+ * flashing the loader on fast navigations; after that it fades in. Because it
+ * is a Suspense fallback it unmounts automatically once the route resolves.
  */
 export function PageLoader() {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShow(true), 140);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  if (!show) return null;
+
   return (
     <div
       dir="rtl"
       data-aqv-loader
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "18px",
-        background: "#F6F4EF",
-        color: "#0B1E28",
-      }}
+      data-visible="true"
+      className="aqv-loader"
+      role="status"
+      aria-live="polite"
+      aria-label="جارٍ تحميل الصفحة"
     >
-      <img src="/brand/aquavo-v2-icon.svg" alt="" aria-hidden="true" width={64} height={64} />
-      <p style={{ fontSize: "0.95rem", fontWeight: 600, color: "#0B1E28" }} role="status">
-        جاري التحميل…
-      </p>
+      <div className="aqv-loader__progress" aria-hidden="true" />
+
+      <div className="aqv-loader__stage" aria-hidden="true">
+        <span className="aqv-loader__ring aqv-loader__ring--1" />
+        <span className="aqv-loader__ring aqv-loader__ring--2" />
+        <img
+          src="/brand/aquavo-v2-icon.svg"
+          alt=""
+          aria-hidden="true"
+          width={64}
+          height={64}
+          className="aqv-loader__logo"
+        />
+        <div className="aqv-loader__bubbles">
+          <span className="aqv-loader__bubble aqv-loader__bubble--1" />
+          <span className="aqv-loader__bubble aqv-loader__bubble--2" />
+          <span className="aqv-loader__bubble aqv-loader__bubble--3" />
+        </div>
+      </div>
+
+      {/* aria-hidden: the live region already announces via aria-label, so the
+          visible text is decorative to AT (prevents a double announcement). */}
+      <p className="aqv-loader__text" aria-hidden="true">جارٍ تجهيز الصفحة...</p>
     </div>
   );
 }
@@ -39,7 +70,7 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   const triggerDone = useCallback(onDone, [onDone]);
 
   useEffect(() => {
-    // Preserve the short init gate, but with no fade animation.
+    // Preserve the short init gate timing.
     const hideTimer = window.setTimeout(() => setHidden(true), 300);
     const doneTimer = window.setTimeout(() => triggerDone(), 500);
     return () => {
@@ -53,32 +84,16 @@ export function AppInitLoader({ onDone }: AppInitLoaderProps) {
   return (
     <div
       dir="rtl"
-      style={{
-        position: "fixed",
-        inset: 0,
-        background: "#F6F4EF",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: "18px",
-        zIndex: 9999,
-      }}
+      className="aqv-init"
+      role="status"
+      aria-live="polite"
+      aria-label="جارٍ تحميل التطبيق"
     >
-      <div
-        style={{
-          fontFamily: '"Segoe UI", system-ui, sans-serif',
-          fontSize: "2.6rem",
-          fontWeight: 800,
-          letterSpacing: "6px",
-          color: "#0B93A6",
-        }}
-      >
+      <div className="aqv-init__wordmark" aria-hidden="true">
         AQUAVO
       </div>
-      <p style={{ color: "#0B1E28", fontSize: "0.8rem", letterSpacing: "2px" }}>
-        أحواض السمك والمعدات المائية
-      </p>
+      <p className="aqv-init__tagline" aria-hidden="true">أحواض السمك والمعدات المائية</p>
+      <div className="aqv-init__bar" aria-hidden="true" />
     </div>
   );
 }

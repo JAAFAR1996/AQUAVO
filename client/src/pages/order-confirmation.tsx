@@ -5,11 +5,11 @@ import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, Calendar, MessageCircle, Wallet } from "lucide-react";
+import { Package, Truck, Home, Copy, Check, Printer, Star, Crown, Gift, MapPin, Phone, MessageCircle, Wallet } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InvoiceDialog } from "@/components/cart/invoice-dialog";
-import { formatIQD, formatDate } from "@/lib/utils";
+import { formatIQD } from "@/lib/utils";
 import { readStashedOrder } from "@/lib/order-stash";
 import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
@@ -102,18 +102,52 @@ export default function OrderConfirmation() {
         return (
             <div className="min-h-screen flex flex-col bg-background">
                 <Navbar />
-                <main className="flex-1 flex items-center justify-center p-4">
-                    <Card className="w-full max-w-md" role="status" aria-live="polite" aria-label="جار تحميل تفاصيل الطلب">
-                        <CardContent className="p-8 space-y-4 text-center">
-                            <Skeleton className="h-20 w-20 rounded-full mx-auto" />
-                            <Skeleton className="h-8 w-48 mx-auto" />
-                            <Skeleton className="h-4 w-64 mx-auto" />
-                            <div className="space-y-2 mt-8">
-                                <Skeleton className="h-12 w-full" />
-                                <Skeleton className="h-12 w-full" />
+                <main className="flex-1 flex items-start justify-center py-12 px-4">
+                    <div
+                        dir="rtl"
+                        role="status"
+                        aria-live="polite"
+                        aria-label="جار تحميل تفاصيل الطلب"
+                        className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xl"
+                    >
+                        <div className="h-1.5 w-full bg-gradient-to-l from-primary to-primary/70" />
+                        <div className="p-5 sm:p-6 space-y-5">
+                            {/* Header */}
+                            <div className="flex flex-col items-center gap-3">
+                                <Skeleton className="h-12 w-28" />
+                                <Skeleton className="h-7 w-40" />
+                                <Skeleton className="h-4 w-56" />
                             </div>
-                        </CardContent>
-                    </Card>
+                            {/* Order number */}
+                            <Skeleton className="h-16 w-full rounded-xl" />
+                            {/* Product row */}
+                            <div className="space-y-2">
+                                <Skeleton className="h-3.5 w-24" />
+                                <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-2.5">
+                                    <Skeleton className="h-14 w-14 shrink-0 rounded-lg" />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="h-3 w-1/3" />
+                                    </div>
+                                    <Skeleton className="h-4 w-16 shrink-0" />
+                                </div>
+                            </div>
+                            {/* Price summary */}
+                            <Skeleton className="h-24 w-full rounded-xl" />
+                            {/* Facts / customer info */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <Skeleton className="h-14 w-full rounded-lg" />
+                                <Skeleton className="h-14 w-full rounded-lg" />
+                                <Skeleton className="col-span-2 h-14 w-full rounded-lg" />
+                            </div>
+                            {/* Actions */}
+                            <div className="space-y-2.5 pt-1">
+                                <Skeleton className="h-11 w-full rounded-md" />
+                                <Skeleton className="h-11 w-full rounded-md" />
+                                <Skeleton className="h-11 w-full rounded-md" />
+                            </div>
+                        </div>
+                    </div>
                 </main>
                 <Footer />
             </div>
@@ -254,7 +288,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     }, [orderId]);
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#0B1E28] font-sans">
+        <div className="min-h-screen flex flex-col bg-background font-sans">
             <MetaTags
                 title="تأكيد الطلب"
                 description="شكراً لطلبك! تم استلام طلبك بنجاح في AQUAVO"
@@ -266,9 +300,9 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                 <div
                     ref={cardRef}
                     dir="rtl"
-                    className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-[#0F2731] text-[#EAF1F3] shadow-2xl"
+                    className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-xl"
                 >
-                    <div className="h-1.5 w-full bg-gradient-to-l from-[#0B93A6] to-[#0B64A6]" />
+                    <div className="h-1.5 w-full bg-gradient-to-l from-primary to-primary/70" />
                     <div className="p-5 sm:p-6">
                         {/* AQUAVO mark */}
                         <div className="flex justify-center">
@@ -276,31 +310,31 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                         </div>
                         {/* Heading + subtitle (approved dark confirmation) */}
                         <div ref={headingRef} className="mt-3 text-center" role="status" aria-live="polite">
-                            <h1 role="heading" aria-level={1} className="text-2xl font-bold text-white">تم إنشاء طلبك</h1>
-                            <p className="mt-1 text-sm text-[#8CA1AB]">شكراً لطلبك — تم استلامه بنجاح</p>
+                            <h1 role="heading" aria-level={1} className="text-2xl font-bold text-foreground">تم إنشاء طلبك</h1>
+                            <p className="mt-1 text-sm text-muted-foreground">شكراً لطلبك — تم استلامه بنجاح</p>
                         </div>
 
                         <div className="space-y-5">
                             {/* Order number (resolves ≤250ms) with copy */}
-                            <div ref={numRef} className="rounded-xl border border-[#0B93A6]/35 bg-[#0B93A6]/10 p-4 text-center">
-                                <p className="text-xs text-[#8CA1AB]">رقم الطلب</p>
+                            <div ref={numRef} className="rounded-xl border border-primary/30 bg-primary/10 p-4 text-center">
+                                <p className="text-xs text-muted-foreground">رقم الطلب</p>
                                 <div className="mt-1 flex items-center justify-center gap-2" dir="ltr">
                                     <button
                                         type="button"
                                         onClick={copyOrderNumber}
                                         aria-label="نسخ رقم الطلب"
-                                        className="grid h-7 w-7 place-items-center rounded-md text-[#8CA1AB] hover:bg-white/10 hover:text-white"
+                                        className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                                     >
-                                        {copied ? <Check className="h-3.5 w-3.5 text-[#35C0D1]" /> : <Copy className="h-3.5 w-3.5" />}
+                                        {copied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
                                     </button>
-                                    <span className="font-mono text-lg font-bold tracking-wider text-[#35C0D1]">#{displayNumber}</span>
+                                    <span className="font-mono text-lg font-bold tracking-wider text-primary">#{displayNumber}</span>
                                 </div>
                             </div>
 
                             {/* Products */}
                             {items.length > 0 && (
                                 <div className="space-y-2">
-                                    <div className="flex items-center gap-2 text-xs font-semibold text-[#8CA1AB]">
+                                    <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
                                         <Package className="h-3.5 w-3.5" aria-hidden="true" />
                                         <span>{items.length} منتجات</span>
                                     </div>
@@ -308,24 +342,24 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                         <div
                                             key={idx}
                                             ref={(el) => { rowRefs.current[idx] = el; }}
-                                            className="flex items-center gap-3 rounded-xl border border-white/10 bg-[#0C222C] p-2.5"
+                                            className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-2.5"
                                         >
-                                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-white/10 bg-black/20">
+                                            <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-border bg-muted">
                                                 {item.image ? (
                                                     <img src={item.image} alt={item.productName || ""} className="h-full w-full object-cover" loading="lazy" />
                                                 ) : (
-                                                    <span className="grid h-full w-full place-items-center text-xs text-[#35C0D1]">{item.quantity}</span>
+                                                    <span className="grid h-full w-full place-items-center text-xs text-primary">{item.quantity}</span>
                                                 )}
                                             </div>
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-medium text-[#EAF1F3]">{item.productName || item.productId}</p>
-                                                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-[#8CA1AB]">
-                                                    {item.variantLabel && <span className="rounded bg-white/10 px-1.5 py-0.5">{item.variantLabel}</span>}
+                                                <p className="truncate text-sm font-medium text-foreground">{item.productName || item.productId}</p>
+                                                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
+                                                    {item.variantLabel && <span className="rounded bg-muted px-1.5 py-0.5">{item.variantLabel}</span>}
                                                     <span>الكمية: {item.quantity}</span>
                                                 </div>
                                             </div>
                                             {item.priceAtPurchase != null && (
-                                                <span className="shrink-0 font-mono text-sm text-[#EAF1F3]">{formatIQD(Number(item.priceAtPurchase) * item.quantity)}</span>
+                                                <span className="shrink-0 font-mono text-sm text-foreground">{formatIQD(Number(item.priceAtPurchase) * item.quantity)}</span>
                                             )}
                                         </div>
                                     ))}
@@ -335,24 +369,24 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                             {/* Totals + facts (settle) */}
                             <div ref={factsRef} className="space-y-3">
                                 {total > 0 && (
-                                    <div className="rounded-xl bg-white/5 p-4">
+                                    <div className="rounded-xl bg-muted/40 p-4">
                                         <div className="space-y-1.5 text-sm">
                                             {subtotal > 0 && (
-                                                <div className="flex items-center justify-between text-[#8CA1AB]"><span>المجموع الفرعي</span><span className="text-[#EAF1F3]">{formatIQD(subtotal)}</span></div>
+                                                <div className="flex items-center justify-between text-muted-foreground"><span>المجموع الفرعي</span><span className="text-foreground">{formatIQD(subtotal)}</span></div>
                                             )}
                                             {shippingCost > 0 && (
-                                                <div className="flex items-center justify-between text-[#8CA1AB]"><span>التوصيل</span><span className="text-[#EAF1F3]">{formatIQD(shippingCost)}</span></div>
+                                                <div className="flex items-center justify-between text-muted-foreground"><span>التوصيل</span><span className="text-foreground">{formatIQD(shippingCost)}</span></div>
                                             )}
                                             {shippingCost === 0 && subtotal > 0 && (
-                                                <div className="flex items-center justify-between text-[#35C0D1]"><span>التوصيل</span><span>مجاني</span></div>
+                                                <div className="flex items-center justify-between text-primary"><span>التوصيل</span><span>مجاني</span></div>
                                             )}
                                             {discountAmount > 0 && (
-                                                <div className="flex items-center justify-between text-[#35C0D1]"><span>الخصم</span><span>-{formatIQD(discountAmount)}</span></div>
+                                                <div className="flex items-center justify-between text-primary"><span>الخصم</span><span>-{formatIQD(discountAmount)}</span></div>
                                             )}
                                         </div>
-                                        <div className="mt-2 flex items-center justify-between border-t border-white/10 pt-2">
-                                            <span className="font-bold text-white">المبلغ الكلي</span>
-                                            <span className="text-2xl font-bold text-[#35C0D1]">{formatIQD(total)}</span>
+                                        <div className="mt-2 flex items-center justify-between border-t border-border pt-2">
+                                            <span className="font-bold text-foreground">المبلغ الكلي</span>
+                                            <span className="text-2xl font-bold text-primary">{formatIQD(total)}</span>
                                         </div>
                                     </div>
                                 )}
@@ -362,36 +396,35 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     {customerName && <Fact icon={<Package className="h-4 w-4" />} label="المستلم" value={customerName} />}
                                     {customerPhone && <Fact icon={<Phone className="h-4 w-4" />} label="الهاتف" value={customerPhone} ltr />}
                                     {address && <Fact icon={<MapPin className="h-4 w-4" />} label="العنوان" value={address} full />}
-                                    <Fact icon={<Calendar className="h-4 w-4" />} label="تاريخ الطلب" value={formatDate(createdAt)} />
                                 </div>
                             </div>
 
                             {/* Loyalty rewards */}
                             {loyalty && (loyalty.pointsEarned > 0 || loyalty.cashbackEarned > 0) && (
-                                <div className="rounded-xl border border-[#0B93A6]/25 bg-[#0B93A6]/5 p-4">
+                                <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                                     <div className="mb-3 flex items-center gap-2">
-                                        <Gift className="h-4 w-4 text-[#35C0D1]" />
-                                        <span className="text-sm font-semibold text-[#35C0D1]">مكافآت هذا الطلب</span>
+                                        <Gift className="h-4 w-4 text-primary" />
+                                        <span className="text-sm font-semibold text-primary">مكافآت هذا الطلب</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         {loyalty.pointsEarned > 0 && (
-                                            <div className="rounded-lg bg-white/5 p-3 text-center">
-                                                <Star className="mx-auto mb-1 h-4 w-4 text-yellow-400" />
-                                                <p className="text-lg font-bold text-[#35C0D1]">+{loyalty.pointsEarned}</p>
-                                                <p className="text-xs text-[#8CA1AB]">نقطة ولاء</p>
+                                            <div className="rounded-lg bg-muted/40 p-3 text-center">
+                                                <Star className="mx-auto mb-1 h-4 w-4 text-yellow-500 dark:text-yellow-400" />
+                                                <p className="text-lg font-bold text-primary">+{loyalty.pointsEarned}</p>
+                                                <p className="text-xs text-muted-foreground">نقطة ولاء</p>
                                             </div>
                                         )}
                                         {loyalty.cashbackEarned > 0 && (
-                                            <div className="rounded-lg bg-white/5 p-3 text-center">
-                                                <Crown className="mx-auto mb-1 h-4 w-4 text-purple-300" />
-                                                <p className="text-lg font-bold text-purple-300">+{loyalty.cashbackEarned}</p>
-                                                <p className="text-xs text-[#8CA1AB]">نقطة باقي</p>
+                                            <div className="rounded-lg bg-muted/40 p-3 text-center">
+                                                <Crown className="mx-auto mb-1 h-4 w-4 text-purple-500 dark:text-purple-300" />
+                                                <p className="text-lg font-bold text-purple-600 dark:text-purple-300">+{loyalty.cashbackEarned}</p>
+                                                <p className="text-xs text-muted-foreground">نقطة باقي</p>
                                             </div>
                                         )}
                                     </div>
                                     {loyalty.tierUpgraded && (
                                         <div className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-2 text-center">
-                                            <p className="text-sm font-bold text-yellow-300">
+                                            <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300">
                                                 تهانينا! ترقيت للمستوى {loyalty.tier === 'diamond' ? 'الماسي' : loyalty.tier === 'gold' ? 'الذهبي' : loyalty.tier === 'silver' ? 'الفضي' : 'البرونزي'}!
                                             </p>
                                         </div>
@@ -411,13 +444,13 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     أكد طلبك عبر واتساب
                                 </a>
                                 <Link href="/order-tracking">
-                                    <Button className="h-11 w-full bg-[#0B93A6] text-white hover:bg-[#0B93A6]/90">
+                                    <Button className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90">
                                         <Truck className="ml-2 h-4 w-4" />
                                         تتبع طلبك
                                     </Button>
                                 </Link>
                                 <Button
-                                    className="h-11 w-full border-white/20 bg-transparent text-[#EAF1F3] hover:bg-white/10"
+                                    className="h-11 w-full"
                                     variant="outline"
                                     onClick={() => setInvoiceOpen(true)}
                                 >
@@ -425,7 +458,7 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     طباعة الفاتورة
                                 </Button>
                                 <Link href="/">
-                                    <Button className="h-11 w-full text-[#8CA1AB] hover:bg-white/10 hover:text-white" variant="ghost">
+                                    <Button className="h-11 w-full text-muted-foreground hover:bg-muted hover:text-foreground" variant="ghost">
                                         <Home className="ml-2 h-4 w-4" />
                                         العودة للرئيسية
                                     </Button>
@@ -449,11 +482,11 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
 
 function Fact({ icon, label, value, ltr, full }: { icon: React.ReactNode; label: string; value: string; ltr?: boolean; full?: boolean }) {
     return (
-        <div className={`flex items-center gap-2 rounded-lg border border-white/10 bg-[#0C222C] p-2.5 ${full ? "col-span-2" : ""}`}>
-            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#0B93A6]/15 text-[#35C0D1]">{icon}</span>
+        <div className={`flex items-center gap-2 rounded-lg border border-border bg-muted/40 p-2.5 ${full ? "col-span-2" : ""}`}>
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/10 text-primary">{icon}</span>
             <div className="min-w-0">
-                <div className="text-[11px] text-[#8CA1AB]">{label}</div>
-                <div className="truncate text-xs font-medium text-[#EAF1F3]" dir={ltr ? "ltr" : undefined}>{value}</div>
+                <div className="text-[11px] text-muted-foreground">{label}</div>
+                <div className="truncate text-xs font-medium text-foreground" dir={ltr ? "ltr" : undefined}>{value}</div>
             </div>
         </div>
     );

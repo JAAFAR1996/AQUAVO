@@ -1,0 +1,233 @@
+/* AQUAVO branded loaders — theme-aware, CSS-only animation.
+   All colors derive from the app theme tokens (--background / --foreground /
+   --primary), so the loader is light in light theme and dark in dark theme
+   with no flash. Motion is gated behind prefers-reduced-motion. */
+
+.aqv-loader {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  /* Fade-in after the initial delay gate. */
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.aqv-loader[data-visible="true"] {
+  opacity: 1;
+}
+
+/* Thin indeterminate progress bar pinned to the top of the viewport. */
+.aqv-loader__progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  background: hsl(var(--primary) / 0.12);
+}
+
+.aqv-loader__progress::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--primary) / 0) 0%,
+    hsl(var(--primary)) 50%,
+    hsl(var(--primary) / 0) 100%
+  );
+  transform: translateX(-120%);
+}
+
+/* Logo + ripple ring stack. */
+.aqv-loader__stage {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aqv-loader__logo {
+  position: relative;
+  z-index: 2;
+  width: 64px;
+  height: 64px;
+  display: block;
+}
+
+.aqv-loader__ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 72px;
+  height: 72px;
+  margin: -36px 0 0 -36px;
+  border-radius: 50%;
+  border: 1.5px solid hsl(var(--primary) / 0.5);
+  opacity: 0;
+}
+
+.aqv-loader__ring--2 {
+  animation-delay: 1s;
+}
+
+.aqv-loader__bubbles {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.aqv-loader__bubble {
+  position: absolute;
+  bottom: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: hsl(var(--primary) / 0.55);
+  opacity: 0;
+}
+
+.aqv-loader__bubble--1 { left: 14%; width: 5px; height: 5px; animation-delay: 0s; }
+.aqv-loader__bubble--2 { left: 44%; width: 7px; height: 7px; animation-delay: 0.9s; }
+.aqv-loader__bubble--3 { left: 72%; width: 5px; height: 5px; animation-delay: 1.6s; }
+
+.aqv-loader__text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: hsl(var(--foreground));
+  margin: 0;
+}
+
+/* ----- AppInitLoader (branded wordmark splash) ----- */
+.aqv-init {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+.aqv-init__wordmark {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 6px;
+  color: hsl(var(--primary));
+}
+
+.aqv-init__tagline {
+  font-size: 0.8rem;
+  letter-spacing: 2px;
+  color: hsl(var(--foreground) / 0.7);
+  margin: 0;
+}
+
+.aqv-init__bar {
+  width: 120px;
+  height: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: hsl(var(--primary) / 0.15);
+}
+
+.aqv-init__bar::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: 40%;
+  border-radius: 999px;
+  background: hsl(var(--primary));
+  transform: translateX(-120%);
+}
+
+/* ----- Page transition entrance -----
+   Default to fully visible so route content can NEVER be stuck invisible if
+   the fade animation does not run (unsupported env / neither media query). The
+   fade-from-0 lives in the animation's `from` frame under no-preference below. */
+.aqv-page-enter {
+  opacity: 1;
+}
+
+/* ================= MOTION ================= */
+@media (prefers-reduced-motion: no-preference) {
+  .aqv-loader__progress::before {
+    animation: aqv-progress-slide 1.3s ease-in-out infinite;
+  }
+
+  .aqv-loader__ring {
+    animation: aqv-ripple 2.4s ease-out infinite;
+  }
+
+  .aqv-loader__bubble {
+    animation: aqv-bubble-rise 2.6s ease-in infinite;
+  }
+
+  .aqv-init__bar::before {
+    animation: aqv-progress-slide 1.3s ease-in-out infinite;
+  }
+
+  .aqv-page-enter {
+    animation: aqv-page-fade 320ms ease both;
+  }
+}
+
+/* Reduced motion: no travel, just a calm opacity pulse; content stays visible. */
+@media (prefers-reduced-motion: reduce) {
+  .aqv-loader__stage {
+    animation: aqv-pulse 2s ease-in-out infinite;
+  }
+
+  .aqv-page-enter {
+    opacity: 1;
+  }
+}
+
+@keyframes aqv-progress-slide {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(320%); }
+}
+
+@keyframes aqv-ripple {
+  0% { transform: scale(0.6); opacity: 0.55; }
+  80% { opacity: 0; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+
+@keyframes aqv-bubble-rise {
+  0% { transform: translateY(0); opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.4; }
+  100% { transform: translateY(-46px); opacity: 0; }
+}
+
+@keyframes aqv-pulse {
+  0%, 100% { opacity: 0.65; }
+  50% { opacity: 1; }
+}
+
+@keyframes aqv-page-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

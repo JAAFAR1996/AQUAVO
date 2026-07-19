@@ -1,3 +1,4 @@
+import { Link } from "wouter";
 import Navbar from "@/components/navbar";
 import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
@@ -80,16 +81,16 @@ export default function FishFinder() {
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="outline">
-                <a href="/fish-encyclopedia">موسوعة أسماك الزينة</a>
+                <Link href="/fish-encyclopedia">موسوعة أسماك الزينة</Link>
               </Button>
               <Button asChild variant="outline">
-                <a href="/fish-compatibility">توافق الأسماك</a>
+                <Link href="/fish-compatibility">توافق الأسماك</Link>
               </Button>
               <Button asChild variant="outline">
-                <a href="/guides/new-aquarium-setup-iraq">تجهيز حوض جديد</a>
+                <Link href="/guides/new-aquarium-setup-iraq">تجهيز حوض جديد</Link>
               </Button>
               <Button asChild>
-                <a href="/guides/aquarium-water-test-guide">فحص ماء الحوض</a>
+                <Link href="/guides/aquarium-water-test-guide">فحص ماء الحوض</Link>
               </Button>
             </div>
           </section>
