@@ -25,6 +25,7 @@ import { useDeviceDetection } from "@/hooks/use-device-detection";
 
 import { ComparisonProvider } from "@/contexts/comparison-context";
 import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
+import { CommerceMotionPanel } from "@/components/commerce-motion/commerce-motion-panel";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTransition } from "@/components/ui/page-transition";
 
@@ -59,6 +60,7 @@ const MergeProductsPage = lazy(() => import("@/pages/admin/merge-products"));
 const AdminAI = lazy(() => import("@/pages/admin/admin-ai"));
 const InvestPage = lazy(() => import("@/pages/invest"));
 const PartnersPage = lazy(() => import("@/pages/partners"));
+const PreviewCommerceMotion = lazy(() => import("@/pages/preview-commerce-motion"));
 const AdminPartnersPage = lazy(() => import("@/pages/admin/partners"));
 const AITools = lazy(() => import("@/pages/ai-tools"));
 const BeginnerGuide = lazy(() => import("@/pages/beginner-guide"));
@@ -784,6 +786,17 @@ function Router() {
         )}
       </Route>
 
+      {/* Preview-only commerce-motion simulation (guards to non-prod hosts internally) */}
+      <Route path="/preview/commerce-motion">
+        {() => (
+          <ErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <PreviewCommerceMotion />
+            </Suspense>
+          </ErrorBoundary>
+        )}
+      </Route>
+
       {/* Invest Page */}
       <Route path="/invest">
         {() => (
@@ -1046,6 +1059,8 @@ function AppShell() {
                   </IdleMount>
 
                   <Toaster />
+                  {/* Preview-only commerce-motion control (self-gates to non-prod hosts) */}
+                  <CommerceMotionPanel />
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
                       <BirthdayCelebration />
