@@ -131,7 +131,13 @@ export default function PreviewCommerceMotion() {
             <div className="mt-5" key={`${orderConcept}-${replay}`}>
               {orderConcept === "current"
                 ? <CurrentOrderBaseline />
-                : <OrderCalmConfirm order={SIMULATED_ORDER} replayKey={replay} />}
+                : (
+                  // Dark AQUAVO backdrop so the approved dark confirmation reads on
+                  // dark regardless of the site theme (matches the approved target).
+                  <div className="rounded-2xl bg-[#0B1E28] p-4 sm:p-8">
+                    <OrderCalmConfirm order={SIMULATED_ORDER} replayKey={replay} />
+                  </div>
+                )}
             </div>
           </section>
 
