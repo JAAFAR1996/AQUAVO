@@ -1,7 +1,5 @@
 import { useState, useMemo } from "react";
 import { MetaTags } from "@/components/seo/meta-tags";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { FishCard } from "@/components/fish/fish-card";
 import { FishDetailModal } from "@/components/fish/fish-detail-modal";
 import { FishComparisonTool } from "@/components/fish/fish-comparison-tool";
@@ -133,9 +131,7 @@ export default function FishEncyclopedia() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <MetaTags
+    <div className="flex-1 flex flex-col bg-background">      <MetaTags
         title="موسوعة الأسماك"
         description="موسوعة شاملة لأنواع أسماك المياه العذبة مع معلومات تفصيلية عن الرعاية والتغذية والتكاثر"
         keywords={["أسماك", "موسوعة", "أحواض", "رعاية الأسماك", "أسماك المياه العذبة"]}
@@ -380,8 +376,6 @@ export default function FishEncyclopedia() {
       />
 
 
-      <BackToTop />
-      <Footer />
-    </div>
+      <BackToTop />    </div>
   );
 }

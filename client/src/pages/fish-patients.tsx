@@ -7,8 +7,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { addCsrfHeader } from "@/lib/csrf";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -190,9 +188,7 @@ export default function FishPatients() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-foreground dark:text-white">
-      <Navbar />
-
+    <div className="flex-1 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-foreground dark:text-white">
       <main className="container mx-auto px-4 py-8 max-w-5xl" dir="rtl">
         {/* ── Header ── */}
         <div className="text-center mb-10">
@@ -603,8 +599,6 @@ export default function FishPatients() {
           )
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

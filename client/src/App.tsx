@@ -28,6 +28,11 @@ import { NavbarPreferencesProvider } from "@/hooks/use-navbar-preferences";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { PageTransition } from "@/components/ui/page-transition";
 
+// Persistent chrome — rendered once in the shell around the Router
+import Navbar from "@/components/navbar";
+import Footer from "@/components/footer";
+import { layoutGroup } from "@/lib/layout-group";
+
 // Direct imports for critical pages only (needed for fast first paint)
 import Home from "@/pages/home";
 const Products = lazy(() => import("@/pages/products"));
@@ -972,6 +977,7 @@ function AppShell() {
   // Initialize device detection (adds body classes automatically)
   useDeviceDetection();
   const [location] = useLocation();
+  const group = layoutGroup(location);
 
   // Initialize Meta Pixel (deferred to idle callback for performance)
   useMetaPixelInit();
@@ -1018,7 +1024,7 @@ function AppShell() {
                   <DeferredSentryInit />
                   <PageViewTracker />
                   {/* Skip to main content for keyboard navigation */}
-                  {!isStandalonePage && (
+                  {group !== 'bare' && (
                     <a href="#main-content" className="skip-to-main">
                       الانتقال إلى المحتوى الرئيسي
                     </a>
@@ -1058,7 +1064,13 @@ function AppShell() {
                       </Suspense>
                     </IdleMount>
                   )}
-                  <Router />
+                  <div className="flex min-h-screen flex-col" style={{ ['--aq-header-h' as string]: group === 'bare' ? '0px' : '4rem' }}>
+                    {group !== 'bare' && <Navbar />}
+                    <div className="flex flex-1 flex-col">
+                      <Router />
+                    </div>
+                    {group === 'standard' && <Footer />}
+                  </div>
                   {!isStandalonePage && (
                     <Suspense fallback={null}>
                       <DeferredOnboardingTour />

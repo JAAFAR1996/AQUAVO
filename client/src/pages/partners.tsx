@@ -1,6 +1,4 @@
 import { useState } from "react";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -272,12 +270,11 @@ export default function PartnersPage() {
   const progress = ((step + 1) / STEP_TITLES.length) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background" dir="rtl">
+    <div className="flex-1 flex flex-col bg-background" dir="rtl">
       <MetaTags
         title="برنامج شركاء AQUAVO الميدانيين"
         description="انضم لبرنامج شركاء المبيعات الميدانيين في AQUAVO بنظام العمولة. عرّف الزبائن والمحلات على منتجاتنا واكسب عمولتك بعد استلام الزبون ودفعه."
       />
-      <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-2xl">
         {done ? (
@@ -457,8 +454,6 @@ export default function PartnersPage() {
           </>
         )}
       </main>
-
-      <Footer />
     </div>
   );
 }

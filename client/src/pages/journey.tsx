@@ -3,8 +3,6 @@ import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 // Hook
@@ -158,13 +156,12 @@ export default function JourneyPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background" ref={topRef}>
+    <div className="flex-1 overflow-x-hidden bg-background" ref={topRef}>
       <MetaTags
         title="رحلتي مع الحوض"
         description="خطط لإعداد حوضك المثالي خطوة بخطوة مع دليل AQUAVO التفاعلي - من اختيار الحوض حتى إضافة الأسماك"
         keywords={["إعداد حوض الأسماك", "خطوات إنشاء حوض", "دليل مبتدئين", "AQUAVO"]}
       />
-      <Navbar />
       {/* Header */}
       <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
         <div className="container text-center">

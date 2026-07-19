@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -66,13 +64,12 @@ export default function Wishlist() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background">
       <MetaTags
         title="قائمة المفضلة"
         description="منتجاتك المفضلة في AQUAVO - احفظ ما يعجبك وارجع إليه لاحقاً"
         noIndex={true}
       />
-      <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8" id="main-content">
         {/* Header */}
@@ -228,8 +225,6 @@ export default function Wishlist() {
           </AlertDialogContent>
         </AlertDialog>
       </main>
-
-      <Footer />
     </div>
   );
 }

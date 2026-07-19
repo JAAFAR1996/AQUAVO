@@ -3,8 +3,6 @@ import { useParams, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { type Product, type ProductVariant } from "@/types";
 import { fetchProductBySlug, fetchProductVariants } from "@/lib/api";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -252,26 +250,22 @@ export default function ProductDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
+      <div className="flex-1 flex flex-col bg-background">
         <main className="flex-1 container mx-auto py-8">
           <Skeleton className="h-[400px] w-full rounded-xl" />
         </main>
-        <Footer />
       </div>
     );
   }
 
   if (isError || !product) {
     return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
+      <div className="flex-1 flex flex-col bg-background">
         <main className="flex-1 container mx-auto py-8 text-center bg-destructive/5 rounded-lg p-8 m-8 border border-destructive/20">
           <h1 className="text-2xl font-bold mb-4">المنتج غير موجود</h1>
           <p className="text-muted-foreground mb-4">عذراً، لم نتمكن من العثور على المنتج المطلوب.</p>
           <Button onClick={() => setLocation("/products")}>تصفح المنتجات</Button>
         </main>
-        <Footer />
       </div>
     );
   }
@@ -282,7 +276,7 @@ export default function ProductDetails() {
   const inStock = displayStock > 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background">
       <MetaTags
         title={product.name}
         description={product.specs?.substring(0, 160) || `تسوق ${product.name} من AQUAVO بأفضل الأسعار.`}
@@ -291,7 +285,6 @@ export default function ProductDetails() {
         price={product.price}
       />
 
-      <Navbar />
       <main id="main-content" className="flex-1 py-8 md:py-12" dir="rtl">
         <div className="container mx-auto px-4">
           <>
@@ -984,7 +977,6 @@ export default function ProductDetails() {
       </main>
 
       <BackToTop />
-      <Footer />
 
       {/* P1.8: Sticky mobile Add to Cart bar */}
       {product && hasPrice && !isOutOfStock && (

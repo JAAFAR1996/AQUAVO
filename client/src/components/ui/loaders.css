@@ -5,7 +5,10 @@
 
 .aqv-loader {
   position: relative;
-  min-height: 100vh;
+  /* Fills the content region BELOW the persistent sticky navbar (h-16 = 4rem)
+     so the route loader never covers the shell chrome. --aq-header-h is set by
+     the app shell (0 on bare/navbar-less routes); 4rem is the safe fallback. */
+  min-height: calc(100svh - var(--aq-header-h, 4rem));
   display: flex;
   flex-direction: column;
   align-items: center;

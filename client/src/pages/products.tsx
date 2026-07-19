@@ -2,8 +2,6 @@ import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
 import { useLocation } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { AlertCircle, ArrowUpDown, RefreshCw, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
@@ -349,7 +347,7 @@ export default function Products() {
   }, [displayedProducts]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans transition-colors duration-300">
+    <div className="flex-1 flex flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="متجر معدات الأحواض"
         description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام وتوصيل لكل العراق."
@@ -361,8 +359,6 @@ export default function Products() {
           items={itemListItems} 
         />
       )}
-      <Navbar />
-
       <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-24 sm:px-4 sm:pt-28" dir="rtl">
         {/* Header */}
         <div className="text-center space-y-1 sm:space-y-2 mb-5 sm:mb-6">
@@ -556,8 +552,6 @@ export default function Products() {
       <Suspense fallback={null}>
         <ComparisonDrawer products={finalProducts} />
       </Suspense>
-
-      <Footer />
     </div>
   );
 }

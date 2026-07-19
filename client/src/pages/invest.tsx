@@ -1,14 +1,11 @@
 import { FileWarning, Mail } from "lucide-react";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 export default function Invest() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
+    <div className="flex-1 bg-background text-foreground" dir="rtl">
       <MetaTags title="معلومات الاستثمار" description="معلومات AQUAVO الاستثمارية غير منشورة للعامة حالياً. أي أرقام أو توقعات تحتاج بيانات مالية مدققة وموافقة المالك." noIndex />
-      <Navbar />
       <main id="main-content" className="mx-auto max-w-3xl px-4 pb-20 pt-32 sm:px-6">
         <section className="rounded-3xl border border-border bg-card/60 p-7 sm:p-10">
           <FileWarning className="h-8 w-8 text-primary" aria-hidden="true" />
@@ -25,7 +22,6 @@ export default function Invest() {
           </a>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

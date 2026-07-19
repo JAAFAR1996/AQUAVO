@@ -1,7 +1,5 @@
 import { BarChart3, Database, Mail, MessageCircle, PackageCheck, ShieldCheck } from "lucide-react";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 
@@ -30,9 +28,8 @@ const sections = [
 
 export default function PrivacyPolicy() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl" data-testid="privacy-policy-page">
+    <div className="flex-1 bg-background text-foreground" dir="rtl" data-testid="privacy-policy-page">
       <MetaTags title="سياسة الخصوصية" description="شنو يجمع موقع AQUAVO، ليش نستخدم البيانات، ومنو قد يستلم الحد اللازم منها لتنفيذ الطلب وتشغيل الموقع." />
-      <Navbar />
       <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
           <p className="text-sm font-bold text-primary">واضحة ومباشرة</p>
@@ -68,7 +65,6 @@ export default function PrivacyPolicy() {
           </div>
         </section>
       </main>
-      <Footer />
     </div>
   );
 }

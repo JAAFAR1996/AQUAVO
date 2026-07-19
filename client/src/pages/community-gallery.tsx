@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
@@ -170,9 +168,7 @@ export default function CommunityGallery() {
   const approvedSubmissions = submissions.filter(s => s.isApproved && !s.isWinner);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-background">
       <main id="main-content" className="flex-1 container mx-auto px-4 py-12">
         {/* Header */}
         <div className="text-center space-y-4 mb-12">
@@ -505,8 +501,6 @@ export default function CommunityGallery() {
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

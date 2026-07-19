@@ -66,13 +66,6 @@ describe('Login Page', () => {
             expect(screen.getByLabelText('كلمة المرور')).toBeInTheDocument();
         });
 
-        it('should render navbar and footer', () => {
-            render(<Login />);
-
-            expect(screen.getByTestId('navbar')).toBeInTheDocument();
-            expect(screen.getByTestId('footer')).toBeInTheDocument();
-        });
-
         it('should render remember me checkbox', () => {
             render(<Login />);
 

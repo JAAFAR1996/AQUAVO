@@ -1,6 +1,4 @@
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
-import Footer from "@/components/footer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,9 +17,7 @@ import { WaterParametersCalculator } from "@/components/calculators/water-parame
 
 export default function Calculators() {
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans">
-      <Navbar />
-      <MetaTags
+    <div className="flex-1 flex flex-col bg-background font-sans">      <MetaTags
         title="حاسبات أحواض الأسماك"
         description="أدوات تقديرية تساعدك بحساب حجم الحوض والسخان والفلتر والملوحة وجدول الصيانة، مع مراجعة تعليمات المنتج وحالة الحوض."
         keywords={["حاسبة", "أحواض", "أسماك", "سخان", "فلتر", "صيانة"]}
@@ -120,8 +116,6 @@ export default function Calculators() {
         </div>
       </main>
 
-      <BackToTop />
-      <Footer />
-    </div>
+      <BackToTop />    </div>
   );
 }

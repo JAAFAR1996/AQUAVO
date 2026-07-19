@@ -1,7 +1,5 @@
 import { useEffect, useState, useMemo, useLayoutEffect, useRef } from "react";
 import { Link, useRoute } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -100,8 +98,7 @@ export default function OrderConfirmation() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-background">
-                <Navbar />
+            <div className="flex-1 flex flex-col bg-background">
                 <main className="flex-1 flex items-start justify-center py-12 px-4">
                     <div
                         dir="rtl"
@@ -149,20 +146,18 @@ export default function OrderConfirmation() {
                         </div>
                     </div>
                 </main>
-                <Footer />
             </div>
         );
     }
 
     if (!orderData && !loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-background">
+            <div className="flex-1 flex flex-col bg-background">
                 <MetaTags
                     title="تحقق من حالة الطلب"
                     description="لخصوصيتك، استخدم رقم الطلب وآخر أربعة أرقام من الهاتف للتحقق من الحالة."
                     noIndex
                 />
-                <Navbar />
                 <main className="flex flex-1 items-center justify-center px-4 py-12">
                     <Card className="w-full max-w-lg border-t-4 border-t-primary">
                         <CardHeader className="text-center">
@@ -181,7 +176,6 @@ export default function OrderConfirmation() {
                         </CardContent>
                     </Card>
                 </main>
-                <Footer />
             </div>
         );
     }
@@ -288,13 +282,12 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     }, [orderId]);
 
     return (
-        <div className="min-h-screen flex flex-col bg-background font-sans">
+        <div className="flex-1 flex flex-col bg-background font-sans">
             <MetaTags
                 title="تأكيد الطلب"
                 description="شكراً لطلبك! تم استلام طلبك بنجاح في AQUAVO"
                 noIndex={true}
             />
-            <Navbar />
 
             <main className="flex-1 flex items-start justify-center py-12 px-4">
                 <div
@@ -474,8 +467,6 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                 onOpenChange={setInvoiceOpen}
                 orderData={invoiceData}
             />
-
-            <Footer />
         </div>
     );
 }

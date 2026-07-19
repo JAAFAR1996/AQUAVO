@@ -1,8 +1,6 @@
 import { ArrowLeft, Headphones, Mail, MessageCircle, Phone } from "lucide-react";
 import { Link } from "wouter";
 
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 
@@ -10,10 +8,8 @@ const actionClass = "mt-auto inline-flex min-h-11 w-full items-center justify-ce
 
 export default function Contact() {
   return (
-    <div className="min-h-screen bg-background text-foreground" dir="rtl">
-      <MetaTags title="تواصل ويانه" description="تواصل مع دعم AQUAVO عبر واتساب أو الهاتف أو info@aquavoiq.com. الدعم متوفر 24/7." />
-      <Navbar />
-      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+    <div className="flex-1 bg-background text-foreground" dir="rtl">
+      <MetaTags title="تواصل ويانه" description="تواصل مع دعم AQUAVO عبر واتساب أو الهاتف أو info@aquavoiq.com. الدعم متوفر 24/7." />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-2xl">
           <p className="text-sm font-bold text-primary">دعم AQUAVO</p>
           <h1 className="mt-3 text-4xl font-bold">تواصل ويانه</h1>
@@ -47,8 +43,6 @@ export default function Contact() {
           <Link href="/order-tracking" className="text-sm font-bold text-primary hover:underline">تتبع طلبك</Link>
           <Link href="/faq" className="text-sm font-bold text-primary hover:underline">الأسئلة الشائعة</Link>
         </div>
-      </main>
-      <Footer />
-    </div>
+      </main>    </div>
   );
 }

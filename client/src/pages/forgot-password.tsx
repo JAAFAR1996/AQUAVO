@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,9 +58,7 @@ export default function ForgotPassword() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800" dir="rtl">
-            <Navbar />
-
+        <div className="flex-1 flex flex-col bg-gradient-to-br from-cyan-50 via-blue-50 to-teal-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800" dir="rtl">
             <main id="main-content" className="flex-1 flex items-center justify-center py-12 px-4">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -182,8 +178,6 @@ export default function ForgotPassword() {
                 </motion.div>
             </main>
 
-
-            <Footer />
         </div>
     );
 }

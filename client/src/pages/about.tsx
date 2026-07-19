@@ -1,5 +1,3 @@
-import Navbar from "@/components/navbar";
-import Footer from "@/components/footer";
 import { MetaTags, OrganizationSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { motion } from "framer-motion";
 import { BackToTop } from "@/components/back-to-top";
@@ -67,7 +65,7 @@ const CATEGORIES = [
 
 export default function About() {
   return (
-    <div className="min-h-screen flex flex-col bg-background font-sans">
+    <div className="flex-1 flex flex-col bg-background font-sans">
       <MetaTags
         title="من نحن - AQUAVO"
         description="AQUAVO متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة، يقدم منتجات أصلية حسب المتوفر وتعليم عملي للهواة."
@@ -80,8 +78,6 @@ export default function About() {
           { name: "من نحن", url: "https://www.aquavoiq.com/about" },
         ]}
       />
-      <Navbar />
-
       <main id="main-content" className="flex-grow">
         {/* Hero Section */}
         <section className="relative py-24 overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
@@ -242,8 +238,6 @@ export default function About() {
         </section>
       </main>
 
-      <BackToTop />
-      <Footer />
-    </div>
+      <BackToTop />    </div>
   );
 }
