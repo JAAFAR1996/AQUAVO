@@ -191,3 +191,64 @@ BEGIN
     ALTER TABLE fulfillment_materials ADD CONSTRAINT fmat_current_purchase_fk
       FOREIGN KEY (current_cost_purchase_id) REFERENCES packaging_purchases(id) NOT VALID; END IF;
 END $$;
+
+-- ── Domain integrity ─────────────────────────────────────────────────────────
+-- (2) At most ONE active (non-reversed) 'original' event per order.
+CREATE UNIQUE INDEX IF NOT EXISTS ofe_one_active_original_uidx
+  ON order_fulfillment_events(order_id)
+  WHERE event_type = 'original' AND workflow_state <> 'reversed';
+
+-- (3) Deterministic event chronology: unique sequence per order.
+CREATE UNIQUE INDEX IF NOT EXISTS ofe_order_sequence_uidx
+  ON order_fulfillment_events(order_id, sequence_number);
+
+-- (8) Movement direction guard (receipts/returns positive; usage/waste negative).
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname='pim_direction_chk') THEN
+    ALTER TABLE packaging_inventory_movements ADD CONSTRAINT pim_direction_chk CHECK (
+      (movement_type IN ('purchase_receipt','return_to_stock') AND quantity > 0) OR
+      (movement_type IN ('fulfillment_usage','damage_waste')   AND quantity < 0) OR
+      (movement_type IN ('correction','reversal'))
+    ) NOT VALID; END IF;
+END $$;
+
+-- (4) Immutability: confirmed events/lines/movements cannot be silently edited.
+CREATE OR REPLACE FUNCTION fulfillment_block_mutation() RETURNS trigger AS $BODY$
+BEGIN
+  RAISE EXCEPTION 'immutable fulfillment record: use an adjustment/reversal event instead';
+END; $BODY$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ofe_guard_confirmed() RETURNS trigger AS $BODY$
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    IF OLD.workflow_state IN ('confirmed','adjusted','reversed') THEN
+      RAISE EXCEPTION 'cannot delete a settled fulfillment event';
+    END IF;
+    RETURN OLD;
+  END IF;
+  -- UPDATE: once settled, financial snapshot is frozen; only workflow_state may move.
+  IF OLD.workflow_state IN ('confirmed','adjusted','reversed') THEN
+    IF NEW.expected_cost IS DISTINCT FROM OLD.expected_cost
+       OR NEW.actual_cost IS DISTINCT FROM OLD.actual_cost
+       OR NEW.variance    IS DISTINCT FROM OLD.variance
+       OR NEW.cost_status IS DISTINCT FROM OLD.cost_status
+       OR NEW.profile_id  IS DISTINCT FROM OLD.profile_id
+       OR NEW.profile_version IS DISTINCT FROM OLD.profile_version THEN
+      RAISE EXCEPTION 'confirmed fulfillment event financial snapshot is immutable';
+    END IF;
+  END IF;
+  RETURN NEW;
+END; $BODY$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS ofl_immutable ON order_fulfillment_lines;
+CREATE TRIGGER ofl_immutable BEFORE UPDATE OR DELETE ON order_fulfillment_lines
+  FOR EACH ROW EXECUTE FUNCTION fulfillment_block_mutation();
+
+DROP TRIGGER IF EXISTS pim_immutable ON packaging_inventory_movements;
+CREATE TRIGGER pim_immutable BEFORE UPDATE OR DELETE ON packaging_inventory_movements
+  FOR EACH ROW EXECUTE FUNCTION fulfillment_block_mutation();
+
+DROP TRIGGER IF EXISTS ofe_guard ON order_fulfillment_events;
+CREATE TRIGGER ofe_guard BEFORE UPDATE OR DELETE ON order_fulfillment_events
+  FOR EACH ROW EXECUTE FUNCTION ofe_guard_confirmed();

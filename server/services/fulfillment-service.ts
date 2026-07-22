@@ -12,8 +12,11 @@ import {
 } from "../../shared/schema.js";
 import { toMoneyOrNull } from "../../shared/order-financials.js";
 import { COST_COMPONENTS, type CostComponentType } from "../../shared/cost-components.js";
+import { sql } from "drizzle-orm";
 
-type Db = NonNullable<ReturnType<typeof getDb>>;
+// Injectable DB: the real Drizzle instance in prod, or a PGlite-backed Drizzle
+// instance in integration tests. Structurally identical (.select/.insert/.transaction).
+type Db = any;
 export type CostStatus = "exact" | "estimated" | "incomplete" | "unknown";
 
 // ── Pure helpers (unit-tested without a DB) ──────────────────────────────────
@@ -84,6 +87,8 @@ export interface ConfirmFulfillmentInput {
   recordedBy?: string;
   varianceReason?: string;
   adjustmentReason?: string;
+  /** Owner-approved override to allow packaging stock to go negative. */
+  allowNegativeStock?: boolean;
 }
 
 export interface ConfirmResult {
@@ -122,14 +127,37 @@ export async function confirmFulfillment(dbArg: Db | undefined, input: ConfirmFu
   const variance = computeVariance(expected, summary.actualCost);
   const eventId = randomUUID();
 
-  return await db.transaction(async (tx) => {
-    // Re-check inside the tx to close the race, then insert. A duplicate idem key
-    // hits the unique index and we fall back to the existing row.
-    try {
-      // next sequence number for this order
-      const prior = await tx.select().from(orderFulfillmentEvents)
-        .where(eq(orderFulfillmentEvents.orderId, input.orderId));
-      const sequenceNumber = prior.length + 1;
+  try {
+    return await db.transaction(async (tx) => {
+      // (item 2) at most one active (non-reversed) ORIGINAL per order.
+      if (eventType === "original") {
+        const activeOriginals = await tx.select().from(orderFulfillmentEvents).where(and(
+          eq(orderFulfillmentEvents.orderId, input.orderId),
+          eq(orderFulfillmentEvents.eventType, "original"),
+        ));
+        if (activeOriginals.some((e: any) => e.workflowState !== "reversed")) {
+          throw new Error("ORIGINAL_ALREADY_EXISTS: this order already has an active original shipment");
+        }
+      }
+
+      // (item 3) safe sequence: max(sequence)+1; the unique (order,sequence) index is
+      // the concurrency backstop (a colliding concurrent insert fails and retries).
+      const seqRow = await tx.select({ maxSeq: sql<number>`COALESCE(MAX(${orderFulfillmentEvents.sequenceNumber}), 0)` })
+        .from(orderFulfillmentEvents).where(eq(orderFulfillmentEvents.orderId, input.orderId));
+      const sequenceNumber = Number(seqRow[0]?.maxSeq ?? 0) + 1;
+
+      // (item 8) stock guard: usage must not drive available below 0 unless overridden.
+      if (!input.allowNegativeStock) {
+        for (const l of frozen) {
+          if (!l.materialId) continue;
+          const balRow = await tx.select({ bal: sql<number>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
+            .from(packagingInventoryMovements).where(eq(packagingInventoryMovements.materialId, l.materialId));
+          const available = Number(balRow[0]?.bal ?? 0);
+          if (available - Math.abs(Number(l.quantity)) < 0) {
+            throw new Error(`INSUFFICIENT_STOCK: material ${l.materialId} (available ${available}, need ${Math.abs(Number(l.quantity))})`);
+          }
+        }
+      }
 
       await tx.insert(orderFulfillmentEvents).values({
         id: eventId, orderId: input.orderId, eventType, sequenceNumber,
@@ -165,19 +193,20 @@ export async function confirmFulfillment(dbArg: Db | undefined, input: ConfirmFu
 
       return { eventId, reused: false, actualCost: summary.actualCost, expectedCost: expected,
         variance, costStatus: summary.status };
-    } catch (err: any) {
-      // unique idempotency violation → someone won the race; return the committed row
-      const dup = await db.select().from(orderFulfillmentEvents)
-        .where(eq(orderFulfillmentEvents.idempotencyKey, idem)).limit(1);
-      if (dup[0]) {
-        const e = dup[0];
-        return { eventId: e.id, reused: true, actualCost: toMoneyOrNull(e.actualCost),
-          expectedCost: toMoneyOrNull(e.expectedCost), variance: toMoneyOrNull(e.variance),
-          costStatus: e.costStatus as CostStatus };
-      }
-      throw err;
+    });
+  } catch (err: any) {
+    // After the tx rolled back (connection free), a unique idempotency violation
+    // means a concurrent request won the race → return the committed row.
+    const dup = await db.select().from(orderFulfillmentEvents)
+      .where(eq(orderFulfillmentEvents.idempotencyKey, idem)).limit(1);
+    if (dup[0]) {
+      const e = dup[0];
+      return { eventId: e.id, reused: true, actualCost: toMoneyOrNull(e.actualCost),
+        expectedCost: toMoneyOrNull(e.expectedCost), variance: toMoneyOrNull(e.variance),
+        costStatus: e.costStatus as CostStatus };
     }
-  });
+    throw err;
+  }
 }
 
 /**

@@ -43,16 +43,19 @@ describe("fulfillment-costing migration (real Postgres via PGlite)", () => {
   });
 
   it("ALLOWS multiple events per (order,type) but blocks duplicate idempotency key", async () => {
-    await db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, idempotency_key, workflow_state, cost_status)
-                   VALUES ('ev-1','ord-1','original','ord-1:original:1','confirmed','incomplete')`);
+    await db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
+                   VALUES ('ev-1','ord-1','original',1,'ord-1:original:1','confirmed','incomplete')`);
     // same idempotency key → rejected (duplicate request)
-    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, idempotency_key, workflow_state, cost_status)
-                   VALUES ('ev-dup','ord-1','original','ord-1:original:1','confirmed','incomplete')`)).rejects.toBeTruthy();
-    // second ORIGINAL-type event with a DIFFERENT key → now ALLOWED (multi-event)
-    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, idempotency_key, workflow_state, cost_status)
-                   VALUES ('ev-2','ord-1','reshipment','ord-1:reshipment:1','confirmed','incomplete')`)).resolves.toBeDefined();
-    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, idempotency_key, workflow_state, cost_status)
-                   VALUES ('ev-3','ord-1','reshipment','ord-1:reshipment:2','confirmed','incomplete')`)).resolves.toBeDefined();
+    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
+                   VALUES ('ev-dup','ord-1','original',2,'ord-1:original:1','confirmed','incomplete')`)).rejects.toBeTruthy();
+    // reshipments with distinct sequence numbers → ALLOWED (multi-event)
+    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
+                   VALUES ('ev-2','ord-1','reshipment',2,'ord-1:reshipment:1','confirmed','incomplete')`)).resolves.toBeDefined();
+    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
+                   VALUES ('ev-3','ord-1','reshipment',3,'ord-1:reshipment:2','confirmed','incomplete')`)).resolves.toBeDefined();
+    // (item 2) a SECOND active original is rejected by the partial unique index
+    await expect(db.exec(`INSERT INTO order_fulfillment_events (id, order_id, event_type, sequence_number, idempotency_key, workflow_state, cost_status)
+                   VALUES ('ev-2orig','ord-1','original',4,'ord-1:original:2','confirmed','incomplete')`)).rejects.toBeTruthy();
   });
 
   it("inventory movements block a duplicate deduction (same idempotency key)", async () => {
