@@ -219,6 +219,44 @@ field for it. Every manual line is itemized and auditable.
 
 ---
 
+## 9. Admin UX
+
+`client/src/components/admin/fulfillment/`, mounted inside each order with a
+three-line edit to `orders-management.tsx`. Built by an agent with **no ownership
+over accounting formulas**: no component calculates revenue, COGS, profit or any
+total — every number is rendered verbatim from the API and the client only formats
+it. Verified by grep for arithmetic operators on money across all of its files.
+
+Sections: تجهيز الطلب · البروفايل المقترح · سبب الاقتراح · مواد التغليف ·
+الإدخال اليدوي السريع · التكلفة المتوقعة · التكلفة الفعلية · فرق التكلفة ·
+حالة البيانات · تاريخ التجهيز وإعادة الإرسال · إجمالي تكلفة الطلب · الربح المباشر.
+
+The suggested profile arrives pre-filled with its reason, so confirming common
+packaging is one button press; quick-add chips cover the owner's real categories.
+NULL renders as "غير معروف", never 0, and when the expected cost is unknown the
+partial known subtotal is shown explicitly labelled as partial. Arabic RTL, light
+and dark, mobile and desktop, loading/error/empty states, confirmation warnings,
+event history, and drill-down from every total. Zero emoji. 15 component tests.
+
+## 10. Accounting consolidation (in parallel)
+
+Continued under separate file ownership; **no legacy implementation deleted** —
+superseded local functions are kept and marked `@deprecated` with no live caller,
+because deletion is a separately gated phase.
+
+21 sites redirected across `groqFinanceAudit.ts`, `analytics.ts`, `ai-dashboard.ts`,
+`predictive-analytics.ts`, `ai-tools.ts` and all three MCP finance surfaces.
+The notable finds: `ai-dashboard` was reporting today's revenue as
+`SUM(orders.total)` across **all** statuses with no shipping deduction, and the MCP
+finance tools were aggregating `rounded_total` over `('delivered','confirmed')` —
+i.e. counting unconfirmed orders as realized revenue. Both now go through
+`computePeriodFinancials`.
+
+`docs/audit/inline-financial-arithmetic-removal-map.md` catalogues all 165 sites
+repository-wide (21 redirected, 5 already canonical, 20 engine internals, 30 in the
+legacy accounting route awaiting the deletion gate, 89 non-accounting), each with
+file, line, expression, canonical replacement and the reason for any deferral.
+
 ## 11. Independent verification
 
 `server/services/fulfillment-verifier.ts` re-derives **29 invariants from raw SQL**
@@ -239,9 +277,11 @@ nothing.
 
 | Gate | Result |
 |---|---|
-| `npx vitest run server/__tests__/` | 351 passed |
+| `npx vitest run server/__tests__/` | 383 passed (29 files) |
+| `npx vitest run client/src/components/admin/fulfillment` | 15 passed |
 | `npm run check:accounting` | clean |
 | `npm run check:accounting:routes` | no errors in owned files (53 pre-existing legacy errors listed) |
+| `npx tsc --noEmit -p tsconfig.json` | clean apart from the one pre-existing `products.tsx(364,16)` error |
 | `npx playwright test e2e/fulfillment-admin.spec.ts --list` | 15 tests discovered |
 
 The Playwright spec **writes accounting rows**, so it refuses a production URL and
