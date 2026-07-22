@@ -57,6 +57,19 @@ FROM purchase_order_items poi
 WHERE poi.received_quantity < 0
    OR poi.received_quantity > poi.ordered_quantity;
 
+SELECT
+  COUNT(*) FILTER (WHERE order_number IS NULL OR btrim(order_number)='') AS missing_order_numbers,
+  COUNT(*) FILTER (
+    WHERE total<0 OR shipping_cost<0 OR COALESCE(discount_total,0)<0
+  ) AS invalid_order_money,
+  COUNT(*) AS total_orders
+FROM orders;
+
+SELECT reconciliation_reason, COUNT(*) AS orders
+FROM order_total_reconciliation
+GROUP BY reconciliation_reason
+ORDER BY reconciliation_reason;
+
 SELECT reconciliation_reason, COUNT(*) AS orders
 FROM order_financial_reconciliation
 GROUP BY reconciliation_reason
@@ -66,6 +79,28 @@ SELECT reconciliation_reason, COUNT(*) AS invoices
 FROM manual_invoice_reconciliation_queue
 GROUP BY reconciliation_reason
 ORDER BY reconciliation_reason;
+
+SELECT domain,severity,status,COUNT(*) AS findings
+FROM database_repair_findings
+GROUP BY domain,severity,status
+ORDER BY domain,severity,status;
+
+SELECT
+  conname,
+  convalidated
+FROM pg_constraint
+WHERE conname IN (
+  'orders_coupon_id_coupons_id_fk',
+  'manual_invoices_order_id_orders_id_fk',
+  'categories_parent_id_categories_id_fk',
+  'cash_flow_order_id_orders_id_fk',
+  'orders_order_number_present_check',
+  'orders_nonnegative_money_check',
+  'payment_events_event_amount_check',
+  'cash_settlements_net_formula_check',
+  'cash_settlement_items_net_formula_check'
+)
+ORDER BY conname;
 
 SELECT routine_name
 FROM information_schema.routines
@@ -78,7 +113,16 @@ WHERE routine_schema='public'
     'sync_product_variant_reconciliation',
     'record_order_item_inventory_sale',
     'reverse_order_inventory_on_terminal_status',
-    'prevent_audited_order_hard_delete'
+    'prevent_audited_order_hard_delete',
+    'validate_payment_event_reversal',
+    'sync_order_payment_status_from_events',
+    'prevent_unverified_order_payment_status',
+    'validate_cash_settlement_reconciliation',
+    'ensure_order_number',
+    'refresh_order_financial_snapshot',
+    'validate_product_variants_json',
+    'order_is_hard_deletable',
+    'prevent_unsafe_order_dependency_mutation'
   )
 ORDER BY routine_name;
 
@@ -92,9 +136,24 @@ WHERE trigger_schema='public'
     'products_sync_variant_reconciliation',
     'order_items_record_inventory_sale',
     'orders_reverse_inventory_on_terminal_status',
-    'orders_prevent_audited_hard_delete'
+    'orders_prevent_audited_hard_delete',
+    'payment_events_validate_reversal',
+    'payment_events_sync_order_status',
+    'orders_prevent_unverified_payment_status',
+    'cash_settlements_validate_reconciliation',
+    'orders_ensure_order_number',
+    'order_items_refresh_financial_snapshot',
+    'orders_refresh_financial_snapshot',
+    'products_validate_variants_json',
+    'referrals_guard_order_detach',
+    'auto_orders_guard_order_detach',
+    'loyalty_transactions_guard_order_detach',
+    'loyalty_coupons_guard_order_detach',
+    'return_requests_guard_order_detach',
+    'order_items_guard_order_detach',
+    'payments_guard_order_detach'
   )
-ORDER BY event_object_table, trigger_name;
+ORDER BY event_object_table,trigger_name;
 
 SELECT key,value
 FROM settings
@@ -111,6 +170,6 @@ SELECT
   has_table_privilege('aquavo_runtime','products','TRUNCATE') AS products_truncate,
   has_function_privilege('aquavo_runtime','post_goods_receipt(text,text)','EXECUTE') AS post_receipt_execute;
 
-SELECT domain, source_name, decision_status, allowed_for_automated_decisions
+SELECT domain,source_name,decision_status,allowed_for_automated_decisions
 FROM data_source_registry
-ORDER BY domain, source_name;
+ORDER BY domain,source_name;
