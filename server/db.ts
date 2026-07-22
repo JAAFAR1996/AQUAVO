@@ -74,7 +74,7 @@ if (!databaseUrl) {
   // When Neon auto-suspends and terminates idle connections, the Pool emits
   // an 'error' event. Without this handler, Node.js treats it as an
   // uncaught exception and crashes with exit code 129 (SIGHUP).
-  pool.on('error', (err) => {
+  pool.on('error', (err: Error) => {
     if (err.message?.includes('terminating connection due to administrator command')) {
       console.warn('[DB] Neon terminated idle connection — pool will reconnect automatically');
       return;

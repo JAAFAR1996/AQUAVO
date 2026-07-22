@@ -9,6 +9,7 @@ import { confirmFulfillment, reverseFulfillmentEvent } from "../services/fulfill
 
 const ROOT = process.cwd();
 const migration = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
+const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
 
 // Real Drizzle over a real (WASM) Postgres — the actual service transactions run here.
 let client: PGlite;
@@ -29,9 +30,13 @@ describe("fulfillment service — real transactional integration (Drizzle + PGli
     client = new PGlite();
     await client.exec(`CREATE TABLE orders (id text PRIMARY KEY); INSERT INTO orders (id) VALUES ('ord-1'),('ord-2');`);
     await client.exec(migration);
+    await client.exec(hardening);
     db = drizzle(client, { schema });
-    // catalog material + starting stock (a purchase receipt of +100)
-    await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit,current_unit_cost) VALUES ('box','Small box','box','piece','1500'),('sticker','AQUAVO sticker','sticker','piece','200'),('lowstock','Rare label','label','piece','50')`);
+    // Catalog identity + starting stock (a purchase receipt of +100). No
+    // current_unit_cost here: after the hardening migration the catalog may only
+    // carry a cost that mirrors an APPROVED cost record (see material-cost-service).
+    // These tests pass the frozen unit cost explicitly on each line instead.
+    await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit) VALUES ('box','Small box','box','piece'),('sticker','AQUAVO sticker','sticker','piece'),('lowstock','Rare label','label','piece')`);
     await client.exec(`INSERT INTO packaging_inventory_movements (id,material_id,movement_type,quantity,idempotency_key) VALUES ('rc-box','box','purchase_receipt','100','rc:box'),('rc-st','sticker','purchase_receipt','100','rc:sticker'),('rc-low','lowstock','purchase_receipt','1','rc:low')`);
   });
 

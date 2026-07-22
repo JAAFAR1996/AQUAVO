@@ -12,6 +12,11 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: ['./vitest.setup.ts'],
+    // The accounting/fulfillment integration tests boot a real Postgres (PGlite WASM)
+    // in beforeAll. Under parallel workers that boot can exceed the 10s hook default,
+    // which shows up as a spurious "Hook timed out" suite failure.
+    hookTimeout: 90_000,
+    testTimeout: 30_000,
     include: [
       'client/src/**/*.{test,spec}.{ts,tsx}',
       'server/**/*.{test,spec}.{ts,tsx}',

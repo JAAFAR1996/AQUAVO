@@ -2845,8 +2845,11 @@ export const fulfillmentMaterials = pgTable("fulfillment_materials", {
   category: text("category"),
   costComponentType: text("cost_component_type").notNull().default("aquavo_fulfillment_material"),
   unit: text("unit"),
+  // Mirror of the single active APPROVED material_cost_records row. A DB trigger
+  // rejects any state where these three disagree with that record.
   currentUnitCost: numeric("current_unit_cost"),        // current approved standard cost; NULL = unknown
   currentCostPurchaseId: text("current_cost_purchase_id"),
+  currentCostRecordId: text("current_cost_record_id"),
   currency: text("currency").notNull().default("IQD"),
   costConfidence: text("cost_confidence"),
   taxClassification: text("tax_classification"),
@@ -2873,18 +2876,42 @@ export const packagingPurchases = pgTable("packaging_purchases", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => ({ materialIdx: index("packaging_purchases_material_idx").on(t.materialId) }));
 
+// Profile IDENTITY. A family owns many immutable-once-used VERSIONS.
+export const packagingProfileFamilies = pgTable("packaging_profile_families", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  familyKey: text("family_key").notNull(),
+  name: text("name").notNull(),
+  appliesTo: jsonb("applies_to"),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ keyUidx: uniqueIndex("ppf_key_uidx").on(t.familyKey) }));
+
+// A packaging profile row is a VERSION of a family. Once `locked` (used by a
+// confirmed event) it is immutable — editing creates a new version instead.
 export const packagingProfiles = pgTable("packaging_profiles", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
   name: text("name").notNull(),
   appliesTo: jsonb("applies_to"),
   expectedCost: numeric("expected_cost"),
   effectiveDate: timestamp("effective_date"),
   version: integer("version").notNull().default(1),
+  previousVersionId: text("previous_version_id"),
+  supersededById: text("superseded_by_id"),
+  creationReason: text("creation_reason"),
+  locked: boolean("locked").notNull().default(false),
+  lockedAt: timestamp("locked_at"),
+  createdBy: text("created_by"),
   active: boolean("active").notNull().default(true),
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (t) => ({
+  familyVersionUidx: uniqueIndex("pp_family_version_uidx").on(t.profileFamilyId, t.version),
+  familyIdx: index("pp_family_idx").on(t.profileFamilyId),
+}));
 
 export const packagingProfileItems = pgTable("packaging_profile_items", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
@@ -2904,8 +2931,10 @@ export const orderFulfillmentEvents = pgTable("order_fulfillment_events", {
   idempotencyKey: text("idempotency_key").notNull(),
   workflowState: text("workflow_state").notNull().default("confirmed"), // not_started|suggested|awaiting_confirmation|confirmed|adjusted|reversed
   costStatus: text("cost_status").notNull().default("incomplete"),       // exact|estimated|incomplete|unknown
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
   profileId: text("profile_id").references(() => packagingProfiles.id),
   profileVersion: integer("profile_version"),
+  draftId: text("draft_id"),
   expectedCost: numeric("expected_cost"),
   actualCost: numeric("actual_cost"),
   variance: numeric("variance"),
@@ -2933,6 +2962,11 @@ export const orderFulfillmentLines = pgTable("order_fulfillment_lines", {
   source: text("source"),                              // catalog|profile|manual|none
   costStatus: text("cost_status").notNull().default("unknown"),
   confidence: text("confidence"),
+  // Manual quick-entry descriptors, frozen with the line (item 8).
+  category: text("category"),
+  description: text("description"),
+  unit: text("unit"),
+  note: text("note"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => ({
   eventIdx: index("ofl_event_idx").on(t.eventId),
@@ -2969,6 +3003,78 @@ export const fulfillmentAdjustments = pgTable("fulfillment_adjustments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 }, (t) => ({ orderIdx: index("fulfillment_adjustments_order_idx").on(t.orderId) }));
 
+// Per-order sequence ALLOCATION counter. One row per order; allocation is a single
+// atomic INSERT…ON CONFLICT DO UPDATE…RETURNING that row-locks only this order.
+export const orderFulfillmentSequences = pgTable("order_fulfillment_sequences", {
+  orderId: text("order_id").primaryKey().references(() => orders.id),
+  nextSequence: integer("next_sequence").notNull().default(1),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Auditable cost-approval evidence. The SOURCE OF TRUTH for a material's unit cost;
+// fulfillment_materials.current_unit_cost is a mirror of the single active approved row.
+export const materialCostRecords = pgTable("material_cost_records", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  costBasis: text("cost_basis").notNull(),            // purchase_batch | verified_manual_standard
+  purchaseId: text("purchase_id").references(() => packagingPurchases.id),
+  unitCost: numeric("unit_cost"),                     // NULL = unknown; 0 only when verified+approved
+  currency: text("currency").notNull().default("IQD"),
+  approvalStatus: text("approval_status").notNull().default("pending"),
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  reason: text("reason").notNull(),
+  evidenceUrl: text("evidence_url"),
+  supersededById: text("superseded_by_id"),
+  supersededAt: timestamp("superseded_at"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ materialIdx: index("mcr_material_idx").on(t.materialId) }));
+
+// ── Mutable preparation DRAFTS (never accounting events) ─────────────────────
+// A draft has NO effect on profit, fulfillment totals, packaging stock or reports.
+// Confirmation converts it into ONE immutable event and marks the draft consumed.
+export const fulfillmentPreparationDrafts = pgTable("fulfillment_preparation_drafts", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventType: text("event_type").notNull().default("original"),
+  state: text("state").notNull().default("suggested"), // suggested|editing|awaiting_confirmation|consumed|discarded
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
+  profileId: text("profile_id").references(() => packagingProfiles.id),
+  profileVersion: integer("profile_version"),
+  suggestionReason: text("suggestion_reason"),
+  expectedCost: numeric("expected_cost"),
+  costStatus: text("cost_status").notNull().default("unknown"),
+  confirmedEventId: text("confirmed_event_id"),
+  consumedAt: timestamp("consumed_at"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ orderIdx: index("fpd_order_idx").on(t.orderId) }));
+
+export const fulfillmentPreparationDraftLines = pgTable("fulfillment_preparation_draft_lines", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  draftId: text("draft_id").references(() => fulfillmentPreparationDrafts.id, { onDelete: "cascade" }).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id), // NULL = named manual line
+  materialName: text("material_name").notNull(),
+  category: text("category"),
+  description: text("description"),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit"),
+  unitCost: numeric("unit_cost"),                     // NULL = unknown (never 0)
+  costStatus: text("cost_status").notNull().default("unknown"),
+  source: text("source").notNull().default("manual"), // catalog|profile|manual
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ draftIdx: index("fpdl_draft_idx").on(t.draftId) }));
+
+export type PackagingProfileFamily = typeof packagingProfileFamilies.$inferSelect;
+export type OrderFulfillmentSequence = typeof orderFulfillmentSequences.$inferSelect;
+export type MaterialCostRecord = typeof materialCostRecords.$inferSelect;
+export type FulfillmentPreparationDraft = typeof fulfillmentPreparationDrafts.$inferSelect;
+export type FulfillmentPreparationDraftLine = typeof fulfillmentPreparationDraftLines.$inferSelect;
 export type FulfillmentMaterial = typeof fulfillmentMaterials.$inferSelect;
 export type PackagingPurchase = typeof packagingPurchases.$inferSelect;
 export type PackagingProfile = typeof packagingProfiles.$inferSelect;

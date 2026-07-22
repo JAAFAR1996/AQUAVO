@@ -27,7 +27,8 @@
     "test:e2e:report": "playwright show-report",
     "test:e2e:headed": "playwright test --headed",
     "mcp": "tsx server/aquavo-mcp.ts",
-    "mcp:http": "tsx server/aquavo-mcp-http.ts"
+    "mcp:http": "tsx server/aquavo-mcp-http.ts",
+    "check:accounting": "tsc --noEmit -p tsconfig.accounting.json"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
