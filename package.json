@@ -29,7 +29,8 @@
     "mcp": "tsx server/aquavo-mcp.ts",
     "mcp:http": "tsx server/aquavo-mcp-http.ts",
     "check:accounting": "tsc --noEmit -p tsconfig.accounting.json",
-    "check:accounting:routes": "node tools/check-accounting-routes.mjs"
+    "check:accounting:routes": "node tools/check-accounting-routes.mjs",
+    "verify:fulfillment": "node tools/verify-fulfillment.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
