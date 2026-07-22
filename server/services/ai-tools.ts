@@ -6,6 +6,10 @@
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { eq, ilike, and, or, desc, sql } from "drizzle-orm";
+// Canonical money primitives — the AI must never quote a figure derived by a
+// local formula. `toMoney` replaces scattered parseFloat() on price columns
+// (NaN-safe); `orderCollectedAmount` is the ONE "what the customer paid" rule.
+import { toMoney, orderCollectedAmount } from "../../shared/order-financials.js";
 
 // ============================================================
 // TOOL DEFINITIONS - تعريف الأدوات المتاحة للـ AI
@@ -263,7 +267,7 @@ export class AIToolsExecutor {
                 let priceDisplay = p.price;
                 let variantPrices: string | null = null;
                 if (p.hasVariants && Array.isArray(p.variants) && p.variants.length > 0) {
-                    const prices = (p.variants as any[]).map(v => parseFloat(v.price)).filter(n => !isNaN(n) && n > 0);
+                    const prices = (p.variants as any[]).map(v => toMoney(v.price)).filter(n => n > 0);
                     if (prices.length > 0) {
                         const minP = Math.min(...prices);
                         const maxP = Math.max(...prices);
@@ -280,13 +284,13 @@ export class AIToolsExecutor {
                     brand: p.brand,
                     category: p.category,
                     price: priceDisplay,
-                    priceDisplay: variantPrices ?? (parseFloat(p.price) > 0 ? `${parseInt(p.price).toLocaleString()} د.ع` : "اتصل للسعر"),
+                    priceDisplay: variantPrices ?? (toMoney(p.price) > 0 ? `${Math.round(toMoney(p.price)).toLocaleString()} د.ع` : "اتصل للسعر"),
                     stock: p.stock,
                     rating: p.rating,
                     thumbnail: p.thumbnail,
                     hasVariants: p.hasVariants,
                     description: p.description ? p.description.slice(0, 150) + "..." : null,
-                    hasDiscount: p.originalPrice && parseFloat(p.originalPrice) > parseFloat(p.price),
+                    hasDiscount: !!p.originalPrice && toMoney(p.originalPrice) > toMoney(p.price),
                 };
             });
 
@@ -371,6 +375,7 @@ export class AIToolsExecutor {
                 .select({
                     id: schema.orders.id,
                     total: schema.orders.total,
+                    roundedTotal: schema.orders.roundedTotal,
                     status: schema.orders.status,
                     createdAt: schema.orders.createdAt,
                 })
@@ -378,6 +383,14 @@ export class AIToolsExecutor {
                 .where(eq(schema.orders.userId, params.userId))
                 .orderBy(desc(schema.orders.createdAt))
                 .limit(5);
+
+            // The AI must quote what the customer ACTUALLY paid. Raw `total` is
+            // pre-rounding and is not the collected amount — expose the canonical
+            // collectedAmount alongside it so the bot cannot cite a third figure.
+            const recentOrders = orders.map((o) => ({
+                ...o,
+                collectedAmount: orderCollectedAmount(o),
+            }));
 
             // جلب آخر المحادثات
             const recentChats = await db
@@ -396,7 +409,7 @@ export class AIToolsExecutor {
                 data: {
                     profile: profile || null,
                     favorites,
-                    recentOrders: orders,
+                    recentOrders,
                     recentChats,
                     summary: profile?.aiSummary || null,
                 },
@@ -623,9 +636,9 @@ export class AIToolsExecutor {
                     description: product.description,
                     price: product.price,
                     originalPrice: product.originalPrice,
-                    hasDiscount: product.originalPrice && parseFloat(product.originalPrice) > parseFloat(product.price),
-                    discountPercent: product.originalPrice
-                        ? Math.round(((parseFloat(product.originalPrice) - parseFloat(product.price)) / parseFloat(product.originalPrice)) * 100)
+                    hasDiscount: !!product.originalPrice && toMoney(product.originalPrice) > toMoney(product.price),
+                    discountPercent: toMoney(product.originalPrice) > 0
+                        ? Math.round(((toMoney(product.originalPrice) - toMoney(product.price)) / toMoney(product.originalPrice)) * 100)
                         : 0,
                     stock: product.stock,
                     rating: product.rating,
@@ -673,8 +686,8 @@ export class AIToolsExecutor {
 
             const dealsWithDiscount = deals.map(d => ({
                 ...d,
-                discountPercent: d.originalPrice
-                    ? Math.round(((parseFloat(d.originalPrice) - parseFloat(d.price)) / parseFloat(d.originalPrice)) * 100)
+                discountPercent: toMoney(d.originalPrice) > 0
+                    ? Math.round(((toMoney(d.originalPrice) - toMoney(d.price)) / toMoney(d.originalPrice)) * 100)
                     : 0,
             }));
 

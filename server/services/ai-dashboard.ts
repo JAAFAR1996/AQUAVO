@@ -359,13 +359,12 @@ export class AIDashboard {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // الإيرادات اليوم
-        const revenueResult = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${orders.total} AS NUMERIC)), 0)`,
-            })
-            .from(orders)
-            .where(gte(orders.createdAt, today));
+        // الإيرادات اليوم — الإيراد المحقق عبر المحرك المحاسبي الموحّد.
+        // كان SUM(orders.total) الخام لكل الحالات: يحتسب الملغى والمعلّق كإيراد
+        // ولا يخصم الشحن ولا يستخدم المبلغ المحصّل المقرّب.
+        const todayEnd = new Date(today);
+        todayEnd.setHours(23, 59, 59, 999);
+        const todayFinancials = await computePeriodFinancials(db, today, todayEnd);
 
         // الطلبات اليوم
         const ordersResult = await db
@@ -400,7 +399,7 @@ export class AIDashboard {
         }
 
         return {
-            todayRevenue: parseFloat(revenueResult[0]?.total || "0"),
+            todayRevenue: todayFinancials.revenue,
             todayOrders: ordersResult[0]?.count || 0,
             pendingOrders: pendingResult[0]?.count || 0,
             lowStockProducts: lowStockResult[0]?.count || 0,

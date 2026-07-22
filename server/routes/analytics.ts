@@ -5,7 +5,7 @@ import { getDb } from "../db.js";
 import { orders, users, products, orderItems, productViews, cartSessions } from "../../shared/schema.js";
 import { sql, desc, gte, count, sum, eq, and, gt, inArray } from "drizzle-orm";
 import { pageViews } from "../../shared/schema.js";
-import { REALIZED_STATUSES } from "../../shared/order-financials.js";
+import { REALIZED_STATUSES, isRealizedStatus } from "../../shared/order-financials.js";
 
 const router = Router();
 
@@ -19,6 +19,9 @@ const realizedRevenueExpr = sql<string>`COALESCE(SUM(
   - COALESCE(${orders.shippingCost}, 0)
 ), 0)`;
 const REALIZED = [...REALIZED_STATUSES];
+// Parenthesised SQL list of the canonical realized statuses, for use inside a
+// raw CASE WHEN ... IN (...) expression.
+const REALIZED_SQL = sql`(${sql.join(REALIZED.map((s) => sql`${s}`), sql`, `)})`;
 
 // ─── Real-time Presence Store ─────────────────────────────────────────────────
 // Key = sessionId, Value = { pagePath, userId, ts }
@@ -188,7 +191,9 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
         const dailySalesData = await db
             .select({
                 date: sql<string>`(${orders.createdAt})::date::text`,
-                revenue: sql<string>`COALESCE(SUM(CASE WHEN ${orders.status} IN ('delivered')
+                // Status list comes from REALIZED_STATUSES — never a literal
+                // 'delivered', so a change to the canonical list reaches here.
+                revenue: sql<string>`COALESCE(SUM(CASE WHEN ${orders.status} IN ${REALIZED_SQL}
                     THEN COALESCE(${orders.roundedTotal}, ROUND(${orders.total}::numeric / 250) * 250)
                          - COALESCE(${orders.shippingCost}, 0)
                     ELSE 0 END), 0)`,
@@ -396,7 +401,8 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
             .where(gte(orders.createdAt, thirtyDaysAgo));
 
         const totalOrders = allOrdersData[0]?.count || 0;
-        const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
+        // Canonical realized check — not a local 'delivered' literal.
+        const completedOrders = recentOrders.filter(o => isRealizedStatus(o.status)).length;
 
         // Calculate cart abandonment from real completion rate only
         const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) : 0;

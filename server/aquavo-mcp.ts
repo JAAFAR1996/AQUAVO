@@ -34,6 +34,19 @@ import {
   gt,
 } from "drizzle-orm";
 import * as schema from "../shared/schema.js";
+// ── Canonical accounting engine ──────────────────────────────────────────────
+// Money reported by MCP finance tools MUST come from the engine, so an
+// assistant cannot quote a revenue/profit that differs from the accounting
+// page. The SQL these tools used treated 'confirmed' as realized revenue and
+// never deducted shipping.
+import {
+  computePeriodFinancials,
+  getRealizedOrdersForPeriod,
+  lineQuantity,
+  type Db as AccountingDb,
+  type OrderLineItem,
+} from "./services/accounting-engine.js";
+import { toMoney } from "../shared/order-financials.js";
 
 // ─── Auth Guard ───────────────────────────────────────────────────────────────
 // الـ MCP server يحتاج AQUAVO_MCP_TOKEN في الـ environment — بدونه لا يشتغل.
@@ -61,6 +74,8 @@ if (!databaseUrl) {
 
 const pool = new Pool({ connectionString: databaseUrl, max: 3 });
 const db = drizzle(pool, { schema });
+/** Same Drizzle/Neon handle the app uses — accepted by the accounting engine. */
+const accountingDb = db as unknown as AccountingDb;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -607,15 +622,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           .groupBy(schema.orders.status)
           .orderBy(desc(sql`COUNT(*)`));
 
-        const [overall] = await db
-          .select({
-            total_orders: sql<number>`COUNT(*)`,
-            total_revenue: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric ELSE 0 END)`,
-            total_shipping: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.shippingCost}::numeric ELSE 0 END)`,
-            avg_order_value: sql<number>`AVG(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric END)`,
-          })
+        const [summaryCounts] = await db
+          .select({ total_orders: sql<number>`COUNT(*)` })
           .from(schema.orders)
           .where(conditions.length ? and(...conditions) : undefined);
+
+        // Money from the canonical engine: realized orders only, collected − shipping.
+        const summaryStart = date_from ? new Date(date_from) : new Date(0);
+        const summaryEnd = date_to ? new Date(date_to) : new Date();
+        const summaryFin = await computePeriodFinancials(accountingDb, summaryStart, summaryEnd);
+        const summaryRealized = await getRealizedOrdersForPeriod(accountingDb, summaryStart, summaryEnd);
+        const overall = {
+          total_orders: Number(summaryCounts?.total_orders ?? 0),
+          total_revenue: summaryFin.revenue,
+          total_shipping: Math.round(
+            summaryRealized.reduce((s, o) => s + toMoney(o.shippingCost), 0)
+          ),
+          avg_order_value: summaryFin.deliveredOrders > 0
+            ? Math.round(summaryFin.revenue / summaryFin.deliveredOrders)
+            : 0,
+          realized_orders: summaryFin.deliveredOrders,
+          revenue_basis: "realized_collected_minus_shipping",
+        };
 
         return {
           content: [
@@ -756,19 +784,16 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const since = new Date();
         since.setDate(since.getDate() - days);
 
-        const [revenue] = await db
-          .select({
-            orders_count: sql<number>`COUNT(*)`,
-            revenue: sql<number>`SUM(${schema.orders.roundedTotal}::numeric)`,
-            avg_order: sql<number>`AVG(${schema.orders.roundedTotal}::numeric)`,
-          })
-          .from(schema.orders)
-          .where(
-            and(
-              gte(schema.orders.createdAt, since),
-              sql`${schema.orders.status} IN ('delivered', 'confirmed')`
-            )
-          );
+        // Canonical realized financials for the window.
+        const dashFin = await computePeriodFinancials(accountingDb, since, new Date());
+        const revenue = {
+          orders_count: dashFin.deliveredOrders,
+          revenue: dashFin.revenue,
+          avg_order: dashFin.deliveredOrders > 0
+            ? Math.round(dashFin.revenue / dashFin.deliveredOrders)
+            : 0,
+          revenue_basis: "realized_collected_minus_shipping",
+        };
 
         const [pendingOrders] = await db
           .select({ count: sql<number>`COUNT(*)` })
@@ -829,19 +854,45 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const since = new Date();
         since.setDate(since.getDate() - days);
 
-        const [breakdown] = await db
+        // Only the order-SOURCE split stays a count query; every money figure
+        // below comes from the engine.
+        const [srcCounts] = await db
           .select({
             total_orders: sql<number>`COUNT(*)`,
-            confirmed_orders: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN 1 ELSE 0 END)`,
-            total_revenue: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric ELSE 0 END)`,
-            total_shipping: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.shippingCost}::numeric ELSE 0 END)`,
-            total_discounts: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.discountTotal}::numeric ELSE 0 END)`,
-            total_box_cost: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.boxCost}::numeric ELSE 0 END)`,
             whatsapp_orders: sql<number>`SUM(CASE WHEN ${schema.orders.source} = 'whatsapp' THEN 1 ELSE 0 END)`,
             website_orders: sql<number>`SUM(CASE WHEN ${schema.orders.source} = 'website' THEN 1 ELSE 0 END)`,
           })
           .from(schema.orders)
           .where(gte(schema.orders.createdAt, since));
+
+        const breakdownNow = new Date();
+        const fin = await computePeriodFinancials(accountingDb, since, breakdownNow);
+        const realizedForBreakdown = await getRealizedOrdersForPeriod(accountingDb, since, breakdownNow);
+
+        const breakdown = {
+          total_orders: Number(srcCounts?.total_orders ?? 0),
+          confirmed_orders: fin.deliveredOrders,
+          total_revenue: fin.revenue,
+          total_shipping: Math.round(
+            realizedForBreakdown.reduce((s, o) => s + toMoney(o.shippingCost), 0)
+          ),
+          total_discounts: Math.round(
+            realizedForBreakdown.reduce((s, o) => s + toMoney(o.discountTotal), 0)
+          ),
+          total_box_cost: fin.packaging,
+          cogs: fin.cogs,
+          gross_profit: fin.grossProfit,
+          expenses_total: fin.expensesTotal,
+          final_net_profit: fin.finalNetProfit,
+          // NULL means UNKNOWN — non-null only when every realized order's cost
+          // was fully known. A consumer must never read null as 0.
+          exact_cogs: fin.exactCogs,
+          exact_final_net_profit: fin.exactFinalNetProfit,
+          cost_status: fin.costStatus,
+          orders_with_incomplete_cost: fin.ordersWithIncompleteCost,
+          whatsapp_orders: Number(srcCounts?.whatsapp_orders ?? 0),
+          website_orders: Number(srcCounts?.website_orders ?? 0),
+        };
 
         return {
           content: [
@@ -859,27 +910,20 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const since = new Date();
         since.setDate(since.getDate() - days);
 
-        // جلب الطلبات المكتملة في الفترة
-        const recentOrders = await db
-          .select({ items: schema.orders.items, total: schema.orders.roundedTotal })
-          .from(schema.orders)
-          .where(
-            and(
-              gte(schema.orders.createdAt, since),
-              sql`${schema.orders.status} IN ('delivered', 'confirmed')`
-            )
-          );
+        // الطلبات المحققة فقط عبر الفلتر الموحّد (كان literal 'delivered','confirmed'
+        // و 'confirmed' ليست إيراداً محققاً)
+        const recentOrders = await getRealizedOrdersForPeriod(accountingDb, since, new Date());
 
         // تجميع الكميات حسب المنتج
         const productSales: Record<string, { qty: number; revenue: number }> = {};
         for (const order of recentOrders) {
           if (!Array.isArray(order.items)) continue;
-          for (const item of order.items as any[]) {
+          for (const item of order.items as OrderLineItem[]) {
             if (!item.productId) continue;
             if (!productSales[item.productId]) productSales[item.productId] = { qty: 0, revenue: 0 };
-            productSales[item.productId].qty += Number(item.quantity) || 1;
-            productSales[item.productId].revenue +=
-              (Number(item.priceAtPurchase) || 0) * (Number(item.quantity) || 1);
+            const qty = lineQuantity(item);
+            productSales[item.productId].qty += qty;
+            productSales[item.productId].revenue += toMoney(item.priceAtPurchase) * qty;
           }
         }
 
