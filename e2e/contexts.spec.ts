@@ -1,4 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { resolveAdminCredentials } from './support/test-credentials';
+
+// Env-only admin credentials (no hardcoded defaults). See test-credentials.ts.
+const { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } = resolveAdminCredentials({
+    baseURL: process.env.E2E_BASE_URL,
+});
 
 /**
  * Context & State Management E2E Tests
@@ -342,9 +348,9 @@ test.describe('تحليلات API - Analytics API', () => {
         await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
         await page.waitForTimeout(1000);
 
-        // Login as admin
-        await page.locator('input[type="email"]').fill('admin@fishweb.com');
-        await page.locator('input[type="password"]').fill('admin123');
+        // Login as admin (credentials from environment only)
+        await page.locator('input[type="email"]').fill(ADMIN_EMAIL);
+        await page.locator('input[type="password"]').fill(ADMIN_PASSWORD);
         await page.locator('button[type="submit"]').click();
         await page.waitForTimeout(2000);
 

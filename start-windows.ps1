@@ -16,9 +16,9 @@ Write-Host ""
 Write-Host "📍 Server will be available at: http://localhost:5000" -ForegroundColor Cyan
 Write-Host "🔐 Admin login: http://localhost:5000/admin/login" -ForegroundColor Cyan
 Write-Host ""
-Write-Host "Login credentials:" -ForegroundColor Yellow
-Write-Host "  Email: admin@fishstore.com" -ForegroundColor White
-Write-Host "  Password: Admin123!@#" -ForegroundColor White
+Write-Host "Admin login: use the credentials configured for your environment." -ForegroundColor Yellow
+Write-Host "  (Do NOT use a shared/default password. Set a strong admin password" -ForegroundColor Gray
+Write-Host "   via your secrets manager / DB - never commit real credentials.)" -ForegroundColor Gray
 Write-Host ""
 Write-Host "Press Ctrl+C to stop the server" -ForegroundColor Gray
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Gray

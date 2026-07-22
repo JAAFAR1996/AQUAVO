@@ -359,8 +359,8 @@
 ## Test Credentials
 
 **Admin Account**:
-- Email: `admin@fishstore.com`
-- Password: `Admin123!@#`
+- Email: set via your environment / secrets manager (no default)
+- Password: set a strong admin password via env — never commit or reuse a shared default
 
 **Test User**:
 - Email: `test@example.com`

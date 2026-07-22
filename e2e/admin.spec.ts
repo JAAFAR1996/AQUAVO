@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { resolveAdminCredentials } from './support/test-credentials';
 
 /**
  * Admin Dashboard Comprehensive E2E Tests - اختبارات لوحة تحكم المدير الشاملة
@@ -18,9 +19,12 @@ import { test, expect, Page } from '@playwright/test';
  * - Discounts Management
  */
 
-// Admin credentials
-const ADMIN_EMAIL = 'admin@fishweb.com';
-const ADMIN_PASSWORD = 'admin123';
+// Admin credentials come ONLY from the environment (no hardcoded defaults).
+// resolveAdminCredentials throws clearly if E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD
+// are absent, and refuses a production baseURL unless ADMIN_AUDIT_READ_ONLY=true.
+const { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } = resolveAdminCredentials({
+    baseURL: process.env.E2E_BASE_URL,
+});
 
 // Helper to login as admin
 async function loginAsAdmin(page: Page) {

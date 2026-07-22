@@ -266,8 +266,8 @@ Fish Store is a comprehensive e-commerce platform for aquarium equipment and fis
 - Database: PostgreSQL (connection string available in env)
 
 ## Admin Credentials (for testing)
-- Email: admin@fishstore.com
-- Password: Admin123!@#
+- Email: set via environment / secrets manager (no default)
+- Password: set a strong admin password via env — never a shared default
 
 ## Next Steps for TestSprite
 
