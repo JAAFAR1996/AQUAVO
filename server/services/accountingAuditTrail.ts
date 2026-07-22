@@ -12,7 +12,13 @@ export type FinancialEntityType =
   | "settlement"
   | "return_event"
   | "manual_invoice"
-  | "product_cost";
+  | "product_cost"
+  // Per-order fulfillment costing entities.
+  | "fulfillment_material"
+  | "fulfillment_purchase"
+  | "fulfillment_cost_record"
+  | "fulfillment_event"
+  | "packaging_profile";
 
 export type FinancialAction = "create" | "update" | "delete" | "status_change";
 

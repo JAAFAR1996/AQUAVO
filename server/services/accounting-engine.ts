@@ -212,6 +212,11 @@ export async function buildFulfillmentResolver(db: Db, orderIds: Set<string>): P
         continue;
       }
       if (!["confirmed", "adjusted"].includes(e.workflowState)) continue; // only settled events count
+      // A REVERSAL is a counter-entry: its financial effect is achieved by excluding
+      // the event it reverses (already done above). It carries no cost lines of its
+      // own, so counting it would make the order's total read as UNKNOWN even though
+      // every remaining event is fully known.
+      if (e.reversalOfEventId) continue;
       counted++;
       unknownLines += c.unknown;
       if (c.estimated) anyEstimated = true;
@@ -513,7 +518,9 @@ export async function buildCostResolver(db: Db, productIds: Set<string>): Promis
       result.costKnown = true;
       result.costStatus = "manual" === (result.costSource ?? "") ? "exact" : "estimated";
       result.costSource = "manual";
-      result.costsComplete = result.costPrice > 0;
+      // An override only makes the cost complete when it actually supplied a value.
+      // A null costPrice is UNKNOWN — it must never read as a complete zero cost.
+      result.costsComplete = result.costPrice != null && result.costPrice > 0;
     }
     return result;
   }
@@ -1105,4 +1112,186 @@ export async function buildLedger(db: Db, start: Date, end: Date): Promise<Ledge
     integrity: { ledgerNetIncome: netIncome, computedFinalNetProfit: fin.finalNetProfit, difference: ledgerVsComputed, matches: ledgerVsComputed === 0 },
     counts: { orders: realizedOrders.length, expenses: expenseRows.length, returns: verified.length, journalEntries },
   };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CANONICAL per-order cost breakdown (the shape every consumer must read).
+//
+// This is the ONLY place the breakdown is assembled. Route handlers, React
+// components, AI tools and exports must call this — none of them may recompute
+// revenue, COGS or profit. Every field is NULL when its inputs are unknown; a
+// partial figure is never presented as a total.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface OrderCostBreakdown {
+  orderId: string;
+  orderNumber: string | null;
+  status: string;
+  createdAt: string;
+
+  /** What the customer actually paid (COD collected, after rounding). */
+  collectedAmount: number;
+  /** Collected minus the shipping the courier keeps — the seller's revenue. */
+  revenue: number;
+
+  // ── Direct costs, kept in strictly disjoint components ──────────────────
+  /** Product acquisition only (what AQUAVO paid the supplier for the goods). */
+  productCogs: number | null;
+  /** Packaging/inserts that arrive FROM the supplier with the product. */
+  supplierPackaging: number | null;
+  /** AQUAVO's OWN fulfillment materials, from the immutable event snapshots. */
+  aquavoFulfillmentCost: number | null;
+  originalShipmentCost: number | null;
+  reshipmentCost: number | null;
+  returnHandlingCost: number | null;
+  replacementCost: number | null;
+  /** Courier / last-mile delivery. */
+  courierCost: number | null;
+  commissions: number | null;
+  paymentFees: number | null;
+  otherDirectCosts: number | null;
+
+  /** Sum of the components above. NULL when ANY component is unknown. */
+  totalKnownDirectCost: number | null;
+  /** revenue − totalKnownDirectCost. NULL unless every input is known. */
+  contributionProfit: number | null;
+  contributionMargin: number | null;
+
+  /** Amounts that exist but cannot be attributed to a component yet. */
+  unallocated: {
+    /** Legacy per-order boxCost not yet migrated into a fulfillment event. */
+    legacyBoxCost: number | null;
+    /** Lines whose product cost is unknown. */
+    unknownProductLines: number;
+    /** Fulfillment lines whose unit cost is unknown. */
+    unknownFulfillmentLines: number;
+    /** Value of reversed fulfillment events (informational, excluded from totals). */
+    reversedFulfillmentCost: number;
+  };
+
+  /** exact = every input known; estimated = some derived; incomplete = something unknown. */
+  dataStatus: CostSnapshotStatus;
+  productCostStatus: CostSnapshotStatus;
+  fulfillmentCostStatus: CostSnapshotStatus;
+  items: OrderProfitItem[];
+}
+
+/** Extra deterministic direct costs an order may carry (courier/fees/commissions). */
+export interface DirectCostInputs {
+  courierCost?: number | null;
+  commissions?: number | null;
+  paymentFees?: number | null;
+  otherDirectCosts?: number | null;
+}
+
+/**
+ * Assemble the canonical breakdown from an already-computed OrderProfit plus the
+ * fulfillment snapshot. Pure — no I/O — so it is trivially unit-testable.
+ */
+export function buildOrderCostBreakdown(
+  order: OrderRow,
+  profit: OrderProfit,
+  fulfillment: OrderFulfillmentCost | undefined,
+  direct: DirectCostInputs = {},
+): OrderCostBreakdown {
+  // Split product COGS into acquisition vs supplier packaging using the same
+  // per-line evidence calcOrderProfit already resolved. A line with any unknown
+  // component contributes to NEITHER total (it is counted as unknown instead).
+  let acquisition: number | null = 0;
+  let supplierPackaging: number | null = 0;
+  let unknownProductLines = 0;
+  for (const it of profit.items) {
+    if (it.unitCostPrice == null || it.unitPackagingCost == null || it.unitInsertCost == null) {
+      unknownProductLines++;
+      acquisition = null;
+      supplierPackaging = null;
+      continue;
+    }
+    if (acquisition != null) acquisition += it.unitCostPrice * it.qty;
+    if (supplierPackaging != null) supplierPackaging += (it.unitPackagingCost + it.unitInsertCost) * it.qty;
+  }
+  if (profit.items.length === 0) { acquisition = null; supplierPackaging = null; }
+
+  const courierCost = direct.courierCost ?? toMoneyOrNull(order.shippingCost);
+  const commissions = direct.commissions ?? null;
+  const paymentFees = direct.paymentFees ?? null;
+  const otherDirectCosts = direct.otherDirectCosts ?? null;
+
+  // A component that is genuinely ABSENT (no commission on a COD order) is 0;
+  // a component that is UNKNOWN is null and poisons the total. We treat the
+  // caller-supplied direct costs as "absent = 0" only when explicitly passed.
+  const components: Array<number | null> = [
+    acquisition,
+    supplierPackaging,
+    fulfillment ? fulfillment.totalFulfillmentCost : null,
+    courierCost,
+    commissions ?? 0,
+    paymentFees ?? 0,
+    otherDirectCosts ?? 0,
+  ];
+  const anyUnknown = components.some((c) => c == null);
+  const totalKnownDirectCost = anyUnknown
+    ? null
+    : components.reduce<number>((sum, c) => sum + (c as number), 0);
+
+  const contributionProfit = totalKnownDirectCost == null ? null : profit.revenue - totalKnownDirectCost;
+  const contributionMargin =
+    contributionProfit != null && profit.revenue > 0
+      ? Math.round((contributionProfit / profit.revenue) * 100)
+      : null;
+
+  const overall: CostSnapshotStatus =
+    (profit.costStatus === "incomplete" || (fulfillment?.status ?? "unknown") === "incomplete"
+      || anyUnknown) ? "incomplete"
+    : (profit.costStatus === "estimated" || fulfillment?.status === "estimated") ? "estimated"
+    : (profit.costStatus === "exact" && fulfillment?.status === "exact") ? "exact"
+    : "unknown";
+
+  return {
+    orderId: order.id,
+    orderNumber: order.orderNumber ?? null,
+    status: order.status ?? "pending",
+    createdAt: profit.createdAt,
+    collectedAmount: orderCollectedAmount(order),
+    revenue: profit.revenue,
+    productCogs: acquisition,
+    supplierPackaging,
+    aquavoFulfillmentCost: fulfillment ? fulfillment.totalFulfillmentCost : null,
+    originalShipmentCost: fulfillment ? fulfillment.originalFulfillmentCost : null,
+    reshipmentCost: fulfillment ? fulfillment.reshipmentCost : null,
+    returnHandlingCost: fulfillment ? fulfillment.returnHandlingCost : null,
+    replacementCost: fulfillment ? fulfillment.replacementCost : null,
+    courierCost,
+    commissions,
+    paymentFees,
+    otherDirectCosts,
+    totalKnownDirectCost,
+    contributionProfit,
+    contributionMargin,
+    unallocated: {
+      legacyBoxCost: toMoneyOrNull(order.boxCost),
+      unknownProductLines,
+      unknownFulfillmentLines: fulfillment?.unknownLines ?? 0,
+      reversedFulfillmentCost: fulfillment?.reversedCost ?? 0,
+    },
+    dataStatus: overall,
+    productCostStatus: profit.costStatus,
+    fulfillmentCostStatus: fulfillment?.status ?? "unknown",
+    items: profit.items,
+  };
+}
+
+/** Load an order and return its canonical breakdown. The API's single entry point. */
+export async function computeOrderCostBreakdown(
+  db: Db,
+  orderId: string,
+  direct: DirectCostInputs = {},
+): Promise<OrderCostBreakdown | null> {
+  const [order] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!order) return null;
+  const costs = await buildCostResolver(db, collectProductIds([order]));
+  const fulfillment = await buildFulfillmentResolver(db, new Set([order.id]));
+  const snapshot = fulfillment.get(order.id);
+  const profit = calcOrderProfit(order, costs, snapshot);
+  return buildOrderCostBreakdown(order, profit, snapshot, direct);
 }

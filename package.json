@@ -28,7 +28,8 @@
     "test:e2e:headed": "playwright test --headed",
     "mcp": "tsx server/aquavo-mcp.ts",
     "mcp:http": "tsx server/aquavo-mcp-http.ts",
-    "check:accounting": "tsc --noEmit -p tsconfig.accounting.json"
+    "check:accounting": "tsc --noEmit -p tsconfig.accounting.json",
+    "check:accounting:routes": "node tools/check-accounting-routes.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

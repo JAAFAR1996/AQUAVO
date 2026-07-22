@@ -1,0 +1,13 @@
+// Strict typecheck for the fulfillment ROUTE layer.
+//
+// Kept separate from tsconfig.accounting.json because the route imports
+// `requireAdmin`, which transitively drags in legacy modules (analytics-tracker,
+// storage, …) that still carry pre-existing strict errors unrelated to this work.
+// `npm run check:accounting:routes` therefore reports the full diagnostic set but
+// FAILS only on errors inside the files this effort owns — see tools/check-accounting-routes.mjs.
+{
+  "extends": "./tsconfig.accounting.json",
+  "include": [
+    "server/routes/fulfillment-admin.ts"
+  ]
+}
