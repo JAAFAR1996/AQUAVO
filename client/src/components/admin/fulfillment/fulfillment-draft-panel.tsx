@@ -15,11 +15,14 @@ import {
   useAddCatalogLine, useAddManualLine, useConfirmDraft, useDiscardDraft,
   useFulfillmentMaterials, useFulfillmentReference, useOrderDraft,
   useRemoveDraftLine, useUpdateDraftLine,
-  type ConfirmResult, type DraftLineView, type DraftView,
+  type ConfirmResult, type DraftLineView, type DraftView, type StockShortage,
 } from "@/hooks/use-fulfillment";
 import {
   Amount, CostStatusBadge, EmptyState, ErrorState, LoadingState, SectionCard,
 } from "./fulfillment-primitives";
+
+/** Fallback for a cached response predating the server's `stock` projection. */
+const EMPTY_STOCK: DraftView["stock"] = { wouldGoNegative: false, shortages: [] };
 
 function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err ?? "خطأ غير معروف");
@@ -57,11 +60,17 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
   const [catalogId, setCatalogId] = useState("");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [varianceReason, setVarianceReason] = useState("");
-  const [stockOverride, setStockOverride] = useState(false);
+  /** Set only when a confirm attempt was REJECTED for stock — the late fallback. */
+  const [stockRejected, setStockRejected] = useState(false);
   const [result, setResult] = useState<ConfirmResult | null>(null);
 
   const unknownLines = draft?.missingCostLines ?? [];
   const hasUnknownCost = unknownLines.length > 0;
+
+  // Server-projected, so the warning shows BEFORE the first attempt. `stockRejected`
+  // still covers stock moving between load and confirm.
+  const stock = draft?.stock ?? EMPTY_STOCK;
+  const needsStockOverride = stock.wouldGoNegative || stockRejected;
 
   const materials = materialsQuery.data ?? [];
   const catalogOptions = useMemo(
@@ -105,7 +114,7 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
 
   function startConfirm() {
     setResult(null);
-    setStockOverride(false);
+    setStockRejected(false);
     setConfirmOpen(true);
   }
 
@@ -122,7 +131,7 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
           setVarianceReason("");
         },
         onError: (err) => {
-          if (isStockError(err)) setStockOverride(true);
+          if (isStockError(err)) setStockRejected(true);
         },
       },
     );
@@ -309,6 +318,16 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
             كلفة غير معروفة في: {unknownLines.join("، ")}
           </p>
         )}
+        {stock.wouldGoNegative && (
+          <div
+            data-testid="stock-warning"
+            role="status"
+            className="mt-1 rounded-md border border-destructive/50 bg-destructive/10 px-2 py-1 text-xs text-destructive"
+          >
+            <p className="font-semibold">المخزون غير كافٍ</p>
+            <ShortageList shortages={stock.shortages} />
+          </div>
+        )}
       </div>
 
       {/* التأكيد */}
@@ -363,13 +382,15 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
         <ConfirmDialog
           draft={draft}
           unknownLines={unknownLines}
-          stockOverride={stockOverride}
+          shortages={stock.shortages}
+          needsStockOverride={needsStockOverride}
+          stockRejected={stockRejected}
           pending={confirm.isPending}
           error={confirm.isError ? errorMessage(confirm.error) : null}
           varianceReason={varianceReason}
           onVarianceReason={setVarianceReason}
           onCancel={() => setConfirmOpen(false)}
-          onConfirm={() => runConfirm(stockOverride)}
+          onConfirm={() => runConfirm(needsStockOverride)}
         />
       )}
     </SectionCard>
@@ -470,13 +491,29 @@ function DraftLineRow({
 
 // ── Confirmation dialog ─────────────────────────────────────────────────────
 
+/** Renders shortage counts verbatim — no arithmetic on `available` / `required`. */
+function ShortageList({ shortages }: { shortages: StockShortage[] }) {
+  if (shortages.length === 0) return null;
+  return (
+    <ul data-testid="stock-shortages" className="mt-1 space-y-0.5">
+      {shortages.map((s) => (
+        <li key={s.materialId}>
+          {s.materialName}: المتوفر {s.available} · المطلوب {s.required}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function ConfirmDialog({
-  draft, unknownLines, stockOverride, pending, error, varianceReason,
-  onVarianceReason, onCancel, onConfirm,
+  draft, unknownLines, shortages, needsStockOverride, stockRejected,
+  pending, error, varianceReason, onVarianceReason, onCancel, onConfirm,
 }: {
   draft: DraftView;
   unknownLines: string[];
-  stockOverride: boolean;
+  shortages: StockShortage[];
+  needsStockOverride: boolean;
+  stockRejected: boolean;
   pending: boolean;
   error: string | null;
   varianceReason: string;
@@ -511,13 +548,14 @@ function ConfirmDialog({
           </div>
         )}
 
-        {stockOverride && (
+        {needsStockOverride && (
           <div
             data-testid="confirm-stock-warning"
             className="rounded-md border border-destructive/50 bg-destructive/10 p-2 text-xs text-destructive"
           >
             <p className="font-semibold">تحذير: المخزون غير كافٍ</p>
             <p>التأكيد الآن سيجعل رصيد المخزون بالسالب. تابع فقط إذا كنت متأكداً.</p>
+            <ShortageList shortages={shortages} />
           </div>
         )}
 
@@ -531,12 +569,12 @@ function ConfirmDialog({
           />
         </label>
 
-        {error && !stockOverride && <ErrorState message={error} />}
+        {error && !stockRejected && <ErrorState message={error} />}
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onCancel}>إلغاء</Button>
           <Button type="button" size="sm" disabled={pending} onClick={onConfirm} data-testid="confirm-dialog-submit">
-            {pending ? "جاري التأكيد..." : stockOverride ? "تأكيد رغم نقص المخزون" : "تأكيد"}
+            {pending ? "جاري التأكيد..." : needsStockOverride ? "تأكيد رغم نقص المخزون" : "تأكيد"}
           </Button>
         </div>
       </div>

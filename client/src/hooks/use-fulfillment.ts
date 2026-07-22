@@ -35,6 +35,14 @@ export interface DraftLineView {
   note: string | null;
 }
 
+/** Counts, not money — rendered verbatim, never arithmetically combined. */
+export interface StockShortage {
+  materialId: string;
+  materialName: string;
+  available: number;
+  required: number;
+}
+
 export interface DraftView {
   id: string;
   orderId: string;
@@ -51,6 +59,15 @@ export interface DraftView {
   knownCostSubtotal: number;
   costStatus: "exact" | "incomplete" | "unknown";
   missingCostLines: string[];
+  /**
+   * Server-projected stock impact of confirming this draft. Advisory only — the
+   * confirmation transaction re-checks and is the real guard. The client must
+   * NOT derive this by comparing catalog balances against line quantities.
+   */
+  stock: {
+    wouldGoNegative: boolean;
+    shortages: StockShortage[];
+  };
   confirmedEventId: string | null;
   createdAt: string;
   updatedAt: string;
