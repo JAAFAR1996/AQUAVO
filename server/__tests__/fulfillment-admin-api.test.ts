@@ -381,4 +381,12 @@ describe("fulfillment admin API", () => {
     const res = await api().get(`${BASE}/orders/no-such-order/profitability`);
     expect(res.status).toBe(404);
   });
+
+  it("exposes an independent, read-only integrity verification", async () => {
+    const res = await api().get(`${BASE}/verify`);
+    expect(res.status).toBe(200);                     // 409 when an invariant is violated
+    expect(res.body.report.ok).toBe(true);
+    expect(res.body.report.findings.filter((f: { severity: string }) => f.severity === "critical")).toEqual([]);
+    expect(res.body.report.totals.events).toBeGreaterThan(0);
+  });
 });

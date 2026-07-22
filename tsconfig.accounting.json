@@ -30,6 +30,7 @@
     "shared/cost-components.ts",
     "server/services/accounting-engine.ts",
     "server/services/fulfillment-db.ts",
+    "server/services/fulfillment-verifier.ts",
     "server/services/fulfillment-service.ts",
     "server/services/fulfillment-draft-service.ts",
     "server/services/packaging-profile-service.ts",

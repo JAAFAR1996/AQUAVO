@@ -49,6 +49,7 @@ import {
   MANUAL_LINE_CATEGORIES, MANUAL_LINE_CATEGORY_LABELS,
 } from "../services/fulfillment-draft-service.js";
 import { computeOrderCostBreakdown } from "../services/accounting-engine.js";
+import { verifyFulfillmentIntegrity } from "../services/fulfillment-verifier.js";
 
 const router = Router();
 
@@ -684,6 +685,16 @@ router.post("/orders/:orderId/profitability", readLimiter, wrap(async (req, res)
   const breakdown = await computeOrderCostBreakdown(db() as never, orderId, direct);
   if (!breakdown) { res.status(404).json({ error: "ORDER_NOT_FOUND" }); return; }
   res.json({ breakdown });
+}));
+
+/**
+ * INDEPENDENT integrity verification. Read-only: it re-derives every invariant from
+ * raw SQL rather than reusing the services, so a service bug cannot hide itself.
+ * Returns 200 when all invariants hold and 409 when a critical one is violated.
+ */
+router.get("/verify", readLimiter, wrap(async (_req, res) => {
+  const report = await verifyFulfillmentIntegrity(db());
+  res.status(report.ok ? 200 : 409).json({ report });
 }));
 
 // Reference data the admin UI needs for the quick-entry form.
