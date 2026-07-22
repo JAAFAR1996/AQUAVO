@@ -344,6 +344,19 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
 export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] {
   const checks: InvariantCheck[] = [];
 
+  // Rounding-drift budget for invariant #4.
+  //
+  // `finalNetProfit` is ONE Math.round() of the engine's exact expression, but
+  // `computedFinal` re-derives the same quantity from SIX values the engine rounded
+  // independently for display (revenue, cogs, packaging, expensesTotal,
+  // salesReturnDeduction, actualReturnLoss). Each contributes up to 0.5 of error, so
+  // the two can legitimately differ by up to 6 × 0.5 + 0.5 = 3.5 with no defect
+  // present. A tolerance of 1 therefore produces FALSE invariant failures — the AI
+  // auditor would report a phantom accounting problem. 4 is the smallest integer
+  // that cannot false-fail. It is still a real check: a genuine formula error (a
+  // component added twice, a sign flipped) is off by thousands of dinars, not by 4.
+  const ROUNDING_DRIFT_TOLERANCE = 4;
+
   // 1. pendingSettlement formula
   const computedPending = Math.max(
     0,
@@ -380,11 +393,9 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
   // 4. Return loss applied once — finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss
   const computedFinal =
     snapshot.profitAfterExpensesBeforeReturns - snapshot.salesReturnDeduction - snapshot.actualReturnLoss;
-  // Tolerance is <=1 because finalNetProfit is taken verbatim from the canonical
-  // engine (already rounded), while the components are rounded independently.
   checks.push({
     name: "return loss affects profit once only",
-    passed: Math.abs(computedFinal - snapshot.finalNetProfit) <= 1,
+    passed: Math.abs(computedFinal - snapshot.finalNetProfit) <= ROUNDING_DRIFT_TOLERANCE,
     expected: computedFinal,
     actual: snapshot.finalNetProfit,
     note: "finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss",
