@@ -15,6 +15,8 @@ import {
 import { OperationalError } from "../middleware/error-handler.js";
 import { getDb } from "../db.js";
 import { recordFinancialChange, actorFromRequest, type FinancialEntityType } from "../services/accountingAuditTrail.js";
+// Canonical engine — per-order profit MUST come from here, not an inline formula.
+import { buildCostResolver, buildFulfillmentResolver, calcOrderProfit, collectProductIds } from "../services/accounting-engine.js";
 
 /** Strip sensitive fields before sending user data to client */
 function sanitizeUser(user: Record<string, any>) {
@@ -128,40 +130,53 @@ export function createAdminRouter(): RouterType {
     router.get("/orders", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const orders = await storage.getOrders();
+            const db = getDb();
+            if (!db) { res.status(503).json({ message: "قاعدة البيانات غير مهيأة" }); return; }
 
-            // Enrich orders with product names, cost_price, and profit
-            const enrichedOrders = await Promise.all(orders.map(async (order) => {
+            // Per-order profit comes from the ONE canonical engine (delivered-only
+            // collected − shipping − snapshot COGS − boxCost). No inline formula.
+            // Cost is resolved once (batched) for all products across all orders.
+            const costs = await buildCostResolver(db, collectProductIds(orders as any));
+            const fulfil = await buildFulfillmentResolver(db, new Set(orders.map((o: any) => o.id)));
+
+            const enrichedOrders = orders.map((order) => {
                 if (order.items && Array.isArray(order.items)) {
-                    let totalCogs = 0;
-                    const enrichedItems = await Promise.all(
-                        (order.items as any[]).map(async (item: any) => {
-                            let productName = item.productName;
-                            let price = item.priceAtPurchase || item.price;
-                            let costPrice = 0;
-                            if (item.productId) {
-                                const product = await storage.getProduct(item.productId);
-                                productName = productName || product?.name || `منتج #${item.productId.slice(0, 8)}`;
-                                if (!price) price = product?.price || 0;
-                                costPrice = Number(product?.costPrice ?? 0);
-                            }
-                            const qty = Number(item.quantity) || 1;
-                            totalCogs += costPrice * qty;
-                            return {
-                                ...item,
-                                productName,
-                                price: Number(price) || 0,
-                                costPrice,
-                            };
-                        })
-                    );
-                    const revenue = enrichedItems.reduce(
-                        (sum, item) => sum + Number(item.price) * (Number(item.quantity) || 1), 0
-                    );
-                    const profit = revenue - totalCogs;
-                    return { ...order, items: enrichedItems, profit };
+                    const createdAt = (order as any).createdAt ? new Date((order as any).createdAt) : new Date();
+                    const enrichedItems = (order.items as any[]).map((item: any) => {
+                        const cost = item.productId ? costs.getEffective(item.productId, createdAt) : undefined;
+                        const price = Number(item.priceAtPurchase ?? item.price ?? cost?.price ?? 0) || 0;
+                        // Prefer immutable line snapshot; else effective-dated cost.
+                        // NULL (not 0) when cost is genuinely unknown.
+                        const costPrice = item.costPrice != null ? Number(item.costPrice)
+                            : (cost?.costKnown ? cost.costPrice : null);
+                        return {
+                            ...item,
+                            productName: item.productName || cost?.name || `منتج #${String(item.productId ?? "").slice(0, 8)}`,
+                            price,
+                            costPrice,
+                        };
+                    });
+                    const p = calcOrderProfit(order as any, costs, fulfil.get((order as any).id));
+                    return {
+                        ...order,
+                        items: enrichedItems,
+                        profit: p.netProfit,
+                        revenue: p.revenue,
+                        cogs: p.cogs,
+                        // fulfillment kept SEPARATE from product COGS (contribution boundary)
+                        fulfillmentCost: p.fulfillmentCost,
+                        fulfillmentStatus: p.fulfillmentStatus,
+                        contributionProfit: p.contributionProfit,
+                        contributionMargin: p.contributionMargin,
+                        // completeness so the UI can flag estimated/incomplete orders
+                        costStatus: p.costStatus,
+                        costsComplete: p.costsComplete,
+                        estimatedCostLines: p.estimatedCostLines,
+                        missingCostLines: p.missingCostLines,
+                    };
                 }
                 return order;
-            }));
+            });
 
             res.json(enrichedOrders);
         } catch (err) {

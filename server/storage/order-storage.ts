@@ -260,6 +260,16 @@ export class OrderStorage {
                 const lineTotal = price * quantity;
                 subtotal += lineTotal;
 
+                // Immutable cost snapshot — freeze the product's current cost onto the
+                // order line so later cost edits can't rewrite this order's profit.
+                // Cost UNKNOWN at sale (product cost not entered) => NULL, never 0.
+                const hasCost = (product as any).costPrice != null;
+                const snapCostPrice = hasCost ? Number((product as any).costPrice) : null;
+                const snapPackagingCost = (product as any).packagingCost != null ? Number((product as any).packagingCost) : null;
+                const snapInsertCost = (product as any).insertCost != null ? Number((product as any).insertCost) : null;
+                const costStatus: "exact" | "unknown" = hasCost ? "exact" : "unknown";
+                const costSource: "product_current" | "none" = hasCost ? "product_current" : "none";
+
                 orderItemsData.push({
                     productId: product.id,
                     productName: product.name,
@@ -268,6 +278,11 @@ export class OrderStorage {
                     ...(variantLabel ? { variantLabel } : {}),
                     priceAtPurchase: price,
                     lineTotal,
+                    costPrice: snapCostPrice,
+                    packagingCost: snapPackagingCost,
+                    insertCost: snapInsertCost,
+                    costStatus,
+                    costSource,
                 });
             }
 
@@ -352,6 +367,14 @@ export class OrderStorage {
                         quantity: line.quantity,
                         priceAtPurchase: String(line.priceAtPurchase),
                         totalPrice: String(line.lineTotal),
+                        // NULL (not 0) when cost was unknown at sale.
+                        unitCostPrice: line.costPrice == null ? null : String(line.costPrice),
+                        unitPackagingCost: line.packagingCost == null ? null : String(line.packagingCost),
+                        unitInsertCost: line.insertCost == null ? null : String(line.insertCost),
+                        costSnapshotStatus: line.costStatus ?? "unknown",
+                        costSnapshotSource: line.costSource ?? "none",
+                        costSnapshotVersion: 1,
+                        costSnapshotAt: new Date(),
                         metadata: (line.variantId || line.variantLabel)
                             ? { variantId: line.variantId, variantLabel: line.variantLabel }
                             : null,

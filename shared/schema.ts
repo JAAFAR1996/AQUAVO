@@ -24,6 +24,16 @@ export interface OrderLineItem {
   variantLabel?: string;
   priceAtPurchase: number;
   lineTotal?: number;
+  // Immutable cost snapshot captured at sale time (per unit). When present, the
+  // accounting engine uses these directly instead of re-deriving cost from the
+  // mutable product record — so editing a product's cost later cannot change a
+  // completed order's profit. Absent on orders created before this was added.
+  // NULL cost = UNKNOWN at sale (never treat as 0); costStatus records this.
+  costPrice?: number | null;
+  packagingCost?: number | null;
+  insertCost?: number | null;
+  costStatus?: "exact" | "estimated" | "incomplete" | "unknown";
+  costSource?: "product_current" | "cost_history" | "manual" | "none";
 }
 
 
@@ -419,6 +429,16 @@ export const orderItems = pgTable("order_items_relational", {
   quantity: integer("quantity").notNull(),
   priceAtPurchase: numeric("price_at_purchase").notNull(), // Snapshot of price
   totalPrice: numeric("total_price").notNull(),
+  // Immutable per-unit cost snapshot captured at sale time (mirrors the JSONB
+  // orders.items snapshot). NULLABLE — NULL means cost was UNKNOWN at sale, never 0.
+  unitCostPrice: numeric("unit_cost_price"),
+  unitPackagingCost: numeric("unit_packaging_cost"),
+  unitInsertCost: numeric("unit_insert_cost"),
+  costSnapshotStatus: text("cost_snapshot_status"),       // exact|estimated|incomplete|unknown
+  costSnapshotSource: text("cost_snapshot_source"),       // product_current|cost_history|manual|none
+  costSnapshotConfidence: text("cost_snapshot_confidence"),// high|medium|low (NULL when unknown)
+  costSnapshotVersion: integer("cost_snapshot_version"),
+  costSnapshotAt: timestamp("cost_snapshot_at"),
   metadata: jsonb("metadata"), // For variants like size, color
 }, (table) => ({
   productIdIdx: index("order_items_product_id_idx").on(table.productId),
@@ -2813,3 +2833,147 @@ export const socialInteractions = pgTable('social_interactions', {
 export const insertSocialInteractionSchema = createInsertSchema(socialInteractions);
 export type SocialInteraction = typeof socialInteractions.$inferSelect;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-order fulfillment-cost system (additive). Mirrors add_fulfillment_costing.sql.
+// Money columns are NULLABLE — NULL means UNKNOWN (never 0). Snapshots immutable.
+// Many fulfillment EVENTS per order; stock derived from an immutable movement ledger.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const fulfillmentMaterials = pgTable("fulfillment_materials", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  name: text("name").notNull(),
+  category: text("category"),
+  costComponentType: text("cost_component_type").notNull().default("aquavo_fulfillment_material"),
+  unit: text("unit"),
+  currentUnitCost: numeric("current_unit_cost"),        // current approved standard cost; NULL = unknown
+  currentCostPurchaseId: text("current_cost_purchase_id"),
+  currency: text("currency").notNull().default("IQD"),
+  costConfidence: text("cost_confidence"),
+  taxClassification: text("tax_classification"),
+  accountingCode: text("accounting_code"),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const packagingPurchases = pgTable("packaging_purchases", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  quantity: numeric("quantity").notNull(),              // units of use bought
+  totalCost: numeric("total_cost"),                     // NULL = unknown
+  unitCost: numeric("unit_cost"),                       // derived; NULL = unknown
+  currency: text("currency").notNull().default("IQD"),
+  supplier: text("supplier"),
+  purchaseInvoiceUrl: text("purchase_invoice_url"),
+  purchaseDate: timestamp("purchase_date"),
+  reorderThreshold: numeric("reorder_threshold"),
+  approved: boolean("approved").notNull().default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ materialIdx: index("packaging_purchases_material_idx").on(t.materialId) }));
+
+export const packagingProfiles = pgTable("packaging_profiles", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  name: text("name").notNull(),
+  appliesTo: jsonb("applies_to"),
+  expectedCost: numeric("expected_cost"),
+  effectiveDate: timestamp("effective_date"),
+  version: integer("version").notNull().default(1),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const packagingProfileItems = pgTable("packaging_profile_items", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  profileId: text("profile_id").references(() => packagingProfiles.id, { onDelete: "cascade" }).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  quantity: numeric("quantity").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ profileIdx: index("packaging_profile_items_profile_idx").on(t.profileId) }));
+
+export const orderFulfillmentEvents = pgTable("order_fulfillment_events", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventType: text("event_type").notNull().default("original"), // original|reshipment|return_handling|replacement|adjustment
+  sequenceNumber: integer("sequence_number").notNull().default(1),
+  parentEventId: text("parent_event_id"),
+  reversalOfEventId: text("reversal_of_event_id"),
+  idempotencyKey: text("idempotency_key").notNull(),
+  workflowState: text("workflow_state").notNull().default("confirmed"), // not_started|suggested|awaiting_confirmation|confirmed|adjusted|reversed
+  costStatus: text("cost_status").notNull().default("incomplete"),       // exact|estimated|incomplete|unknown
+  profileId: text("profile_id").references(() => packagingProfiles.id),
+  profileVersion: integer("profile_version"),
+  expectedCost: numeric("expected_cost"),
+  actualCost: numeric("actual_cost"),
+  variance: numeric("variance"),
+  varianceReason: text("variance_reason"),
+  confidence: text("confidence"),
+  recordedBy: text("recorded_by"),
+  recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+  adjustmentReason: text("adjustment_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  idemUidx: uniqueIndex("ofe_idempotency_uidx").on(t.idempotencyKey),
+  orderIdx: index("ofe_order_idx").on(t.orderId),
+}));
+
+export const orderFulfillmentLines = pgTable("order_fulfillment_lines", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id, { onDelete: "cascade" }).notNull(),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id),
+  materialNameSnapshot: text("material_name_snapshot").notNull(),
+  costComponentType: text("cost_component_type").notNull().default("aquavo_fulfillment_material"),
+  quantity: numeric("quantity").notNull(),
+  unitCostSnapshot: numeric("unit_cost_snapshot"),     // NULL = unknown (never 0)
+  totalCost: numeric("total_cost"),                    // NULL when unit cost unknown
+  source: text("source"),                              // catalog|profile|manual|none
+  costStatus: text("cost_status").notNull().default("unknown"),
+  confidence: text("confidence"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  eventIdx: index("ofl_event_idx").on(t.eventId),
+  orderIdx: index("ofl_order_idx").on(t.orderId),
+}));
+
+export const packagingInventoryMovements = pgTable("packaging_inventory_movements", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  purchaseId: text("purchase_id").references(() => packagingPurchases.id),
+  movementType: text("movement_type").notNull(),       // purchase_receipt|fulfillment_usage|damage_waste|return_to_stock|correction|reversal
+  quantity: numeric("quantity").notNull(),             // signed
+  orderId: text("order_id").references(() => orders.id),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id),
+  idempotencyKey: text("idempotency_key").notNull(),
+  sourceDocument: text("source_document"),
+  reversalOfMovementId: text("reversal_of_movement_id"),
+  recordedBy: text("recorded_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  idemUidx: uniqueIndex("pim_idempotency_uidx").on(t.idempotencyKey),
+  materialIdx: index("pim_material_idx").on(t.materialId),
+}));
+
+export const fulfillmentAdjustments = pgTable("fulfillment_adjustments", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id),
+  type: text("type").notNull().default("adjustment"),  // adjustment|reversal
+  amount: numeric("amount"),
+  reason: text("reason").notNull(),
+  recordedBy: text("recorded_by"),
+  recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ orderIdx: index("fulfillment_adjustments_order_idx").on(t.orderId) }));
+
+export type FulfillmentMaterial = typeof fulfillmentMaterials.$inferSelect;
+export type PackagingPurchase = typeof packagingPurchases.$inferSelect;
+export type PackagingProfile = typeof packagingProfiles.$inferSelect;
+export type PackagingProfileItem = typeof packagingProfileItems.$inferSelect;
+export type OrderFulfillmentEvent = typeof orderFulfillmentEvents.$inferSelect;
+export type OrderFulfillmentLine = typeof orderFulfillmentLines.$inferSelect;
+export type PackagingInventoryMovement = typeof packagingInventoryMovements.$inferSelect;
+export type FulfillmentAdjustment = typeof fulfillmentAdjustments.$inferSelect;

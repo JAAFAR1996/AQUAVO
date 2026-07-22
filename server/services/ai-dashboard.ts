@@ -10,6 +10,11 @@ import {
 } from "../../shared/schema.js";
 import { eq, desc, gte, sql, count, sum, and } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
+// Canonical financial engine — the ONE source of realized revenue/profit.
+// Legacy revenue here summed orders.total across ALL statuses (raw, no shipping) —
+// wrong on 3 axes. We now delegate to computePeriodFinancials so "revenue" means
+// realized revenue: delivered-only, collected − shipping.
+import { computePeriodFinancials } from "./accounting-engine.js";
 
 /**
  * AI Dashboard Service
@@ -36,15 +41,12 @@ export class AIDashboard {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        // 1. إجمالي الإيرادات اليوم
-        const revenueResult = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${orders.total} AS NUMERIC)), 0)`,
-            })
-            .from(orders)
-            .where(gte(orders.createdAt, today));
-
-        const revenue = parseFloat(revenueResult[0]?.total || "0");
+        // 1. إجمالي الإيرادات اليوم — الإيراد المحقق (طلبات موصّلة فقط، المحصّل − الشحن)
+        //    عبر المحرك المحاسبي الموحّد بدل SUM(orders.total) لكل الحالات.
+        const todayEnd = new Date(today);
+        todayEnd.setHours(23, 59, 59, 999);
+        const dayFinancials = await computePeriodFinancials(db, today, todayEnd);
+        const revenue = dayFinancials.revenue;
 
         // 2. عدد الطلبات اليوم
         const ordersResult = await db
@@ -222,27 +224,16 @@ export class AIDashboard {
         const yesterday = new Date(today);
         yesterday.setDate(yesterday.getDate() - 1);
 
-        const todayRevenue = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${orders.total} AS NUMERIC)), 0)`,
-            })
-            .from(orders)
-            .where(gte(orders.createdAt, today));
+        // الإيراد المحقق (طلبات موصّلة، المحصّل − الشحن) عبر المحرك الموحّد
+        const todayEnd = new Date(today);
+        todayEnd.setHours(23, 59, 59, 999);
+        const yesterdayEnd = new Date(today.getTime() - 1);
 
-        const yesterdayRevenue = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${orders.total} AS NUMERIC)), 0)`,
-            })
-            .from(orders)
-            .where(
-                and(
-                    gte(orders.createdAt, yesterday),
-                    sql`${orders.createdAt} < ${today}`
-                )
-            );
+        const todayFin = await computePeriodFinancials(db, today, todayEnd);
+        const yesterdayFin = await computePeriodFinancials(db, yesterday, yesterdayEnd);
 
-        const todayTotal = parseFloat(todayRevenue[0]?.total || "0");
-        const yesterdayTotal = parseFloat(yesterdayRevenue[0]?.total || "0");
+        const todayTotal = todayFin.revenue;
+        const yesterdayTotal = yesterdayFin.revenue;
 
         if (yesterdayTotal > 0) {
             const change = ((todayTotal - yesterdayTotal) / yesterdayTotal) * 100;
@@ -307,19 +298,13 @@ export class AIDashboard {
             throw new Error("Database not available");
         }
 
-        // جلب بيانات الأسابيع الماضية
+        // جلب بيانات الأسابيع الماضية — إيراد وطلبات محققة (موصّلة) عبر المحرك الموحّد
         const fourWeeksAgo = new Date(Date.now() - 28 * 24 * 60 * 60 * 1000);
+        const now = new Date();
+        const weeklyFin = await computePeriodFinancials(db, fourWeeksAgo, now);
 
-        const weeklyData = await db
-            .select({
-                total: sql<string>`COALESCE(SUM(CAST(${orders.total} AS NUMERIC)), 0)`,
-                orderCount: count(),
-            })
-            .from(orders)
-            .where(gte(orders.createdAt, fourWeeksAgo));
-
-        const avgWeeklyRevenue = parseFloat(weeklyData[0]?.total || "0") / 4;
-        const avgWeeklyOrders = (weeklyData[0]?.orderCount || 0) / 4;
+        const avgWeeklyRevenue = weeklyFin.revenue / 4;
+        const avgWeeklyOrders = weeklyFin.deliveredOrders / 4;
 
         // استخدام AI للتوقع
         const forecast = await this.generateWeeklyForecast(

@@ -207,59 +207,63 @@ export class InvoiceStorage {
   /** إنشاء Order من الفاتورة المقبولة */
   private async createOrderFromInvoice(invoice: ManualInvoice): Promise<string> {
     const db = this.ensureDb();
-    const { orders, orderItems } = await import("../../shared/schema.js");
+    const { orders, orderItems, products } = await import("../../shared/schema.js");
+    const { eq: eqORM, sql: sqlORM } = await import("drizzle-orm");
     const orderId = randomUUID();
 
-    // Create order (only columns that exist in the Drizzle schema)
-    await db.insert(orders).values({
-      id: orderId,
-      orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
-      userId: null,
-      status: "pending",
-      total: invoice.total,
-      shippingCost: invoice.delivery,
-      customerName: invoice.customerName,
-      customerPhone: invoice.customerPhone,
-      shippingAddress: invoice.customerCity
-        ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
-        : (invoice.customerAddress || null),
-      source: "whatsapp",
-      items: (invoice.items as any[]).map((i) => ({
-        productId: i.productId,
-        productName: i.name,
-        quantity: i.quantity,
-        priceAtPurchase: i.unitPrice,
-        variantLabel: i.variantLabel || undefined,
-        variantId: i.variantId || undefined
-      })),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    // Order + items + stock deduction are wrapped in ONE transaction so a mid-loop
+    // failure can't leave a half-created order with partially deducted stock.
+    await db.transaction(async (tx) => {
+      // Create order (only columns that exist in the Drizzle schema).
+      // Carry the invoice discount onto the order so order-based reporting sees it.
+      await tx.insert(orders).values({
+        id: orderId,
+        orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
+        userId: null,
+        status: "pending",
+        total: invoice.total,
+        shippingCost: invoice.delivery,
+        discountTotal: invoice.discount ?? undefined,
+        customerName: invoice.customerName,
+        customerPhone: invoice.customerPhone,
+        shippingAddress: invoice.customerCity
+          ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
+          : (invoice.customerAddress || null),
+        source: "whatsapp",
+        items: (invoice.items as any[]).map((i) => ({
+          productId: i.productId,
+          productName: i.name,
+          quantity: i.quantity,
+          priceAtPurchase: i.unitPrice,
+          variantLabel: i.variantLabel || undefined,
+          variantId: i.variantId || undefined
+        })),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      for (const item of (invoice.items as any[])) {
+        await tx.insert(orderItems).values({
+          id: randomUUID(),
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          priceAtPurchase: String(item.unitPrice),
+          totalPrice: String(item.unitPrice * item.quantity),
+          metadata: {
+            productName: item.name,
+            variantLabel: item.variantLabel ?? null,
+            variantId: item.variantId ?? null,
+          },
+        } as any);
+
+        // Deduct stock — parameterized (no string interpolation / injection).
+        await tx
+          .update(products)
+          .set({ stock: sqlORM`GREATEST(${products.stock} - ${item.quantity}, 0)`, updatedAt: new Date() })
+          .where(eqORM(products.id, item.productId));
+      }
     });
-
-    // Create order items + deduct stock
-    const { products } = await import("../../shared/schema.js");
-    const { eq: eqORM } = await import("drizzle-orm");
-
-    for (const item of (invoice.items as any[])) {
-      await db.insert(orderItems).values({
-        id: randomUUID(),
-        orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        priceAtPurchase: String(item.unitPrice),
-        totalPrice: String(item.unitPrice * item.quantity),
-        metadata: {
-          productName: item.name,
-          variantLabel: item.variantLabel ?? null,
-          variantId: item.variantId ?? null,
-        },
-      } as any);
-
-      // Deduct stock
-      await db.execute(
-        `UPDATE products SET stock = GREATEST(stock - ${item.quantity}, 0), updated_at = NOW() WHERE id = '${item.productId}'` as any
-      );
-    }
 
     return orderId;
   }

@@ -13,6 +13,7 @@ import { isStockError } from "../storage/order-storage.js";
 import { ReferralStorage } from "../storage/referral-storage.js";
 import { loyaltyNotifications } from "../services/loyalty-notifications.js";
 import { sendOrderNotification } from "../services/order-notifications.js";
+import { orderCollectedAmount } from "../../shared/order-financials.js";
 
 const referralStorage = new ReferralStorage();
 
@@ -262,13 +263,20 @@ export function createOrderRouter(): RouterType {
                     lineTotal: item.lineTotal ?? (Number(item.priceAtPurchase ?? 0) * (Number(item.quantity) || 1)),
                 }));
 
+                // COD amount to collect = the rounded/post-cashback payable, NOT raw
+                // orders.total (which stays pre-cashback and unrounded). Prefer the
+                // authoritative post-cashback roundedTotal from the loyalty result.
+                const collectedTotal = orderCollectedAmount({
+                    total: (order as any).total ?? 0,
+                    roundedTotal: (loyaltyResult?.roundedTotal ?? (order as any).roundedTotal) ?? null,
+                });
                 sendOrderNotification({
                     orderId: order.id,
                     orderNumber: (order as any).orderNumber,
                     customerName: customerInfo.name,
                     customerPhone: customerInfo.phone,
                     customerAddress: customerInfo.address,
-                    total: String((order as any).total ?? 0),
+                    total: String(collectedTotal),
                     subtotal: (order as any).subtotal != null ? String((order as any).subtotal) : undefined,
                     shippingCost: (order as any).shippingCost != null ? String((order as any).shippingCost) : undefined,
                     discountTotal: (order as any).discountTotal != null ? String((order as any).discountTotal) : undefined,

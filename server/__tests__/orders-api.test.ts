@@ -536,6 +536,11 @@ describe('OrderStorage.createOrderSecure', () => {
             stock: 5,
             variants: null,
             hasVariants: false,
+            // product's current cost — must be frozen onto the order line as an
+            // immutable snapshot at sale time.
+            costPrice: '6000',
+            packagingCost: '300',
+            insertCost: '200',
         });
 
         const order = await storage.createOrderSecure(null, [
@@ -554,6 +559,12 @@ describe('OrderStorage.createOrderSecure', () => {
                 quantity: 2,
                 priceAtPurchase: 10000,
                 lineTotal: 20000,
+                // immutable cost snapshot captured from the product at sale time
+                costPrice: 6000,
+                packagingCost: 300,
+                insertCost: 200,
+                costStatus: 'exact',
+                costSource: 'product_current',
             },
         ]);
         expect(productUpdates[0].stock).toBe(3);
@@ -590,6 +601,13 @@ describe('OrderStorage.createOrderSecure', () => {
                 variantLabel: 'Small',
                 priceAtPurchase: 22000,
                 lineTotal: 44000,
+                // product has no cost set → snapshot is NULL + 'unknown' (never 0),
+                // so the order is visibly flagged incomplete, not silently full-profit.
+                costPrice: null,
+                packagingCost: null,
+                insertCost: null,
+                costStatus: 'unknown',
+                costSource: 'none',
             },
         ]);
         expect(productUpdates[0].variants[0].stock).toBe(1);
