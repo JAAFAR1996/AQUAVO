@@ -469,3 +469,73 @@ describe("(4)+(8) preparation drafts and manual quick entry", () => {
     await expect(confirmDraft(db, { draftId: draft.id })).rejects.toThrow(/DRAFT_EMPTY/);
   });
 });
+
+// ═════════════════════════════════════════════════════════════════════════════
+describe("draft stock projection (warn BEFORE confirming, not after)", () => {
+  beforeAll(async () => {
+    await client.exec(`INSERT INTO orders (id) VALUES ('s-ord-1'),('s-ord-2') ON CONFLICT DO NOTHING`);
+    await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit)
+      VALUES ('s-scarce','مادة نادرة','box','piece'),('s-plenty','مادة متوفرة','box','piece')`);
+    await client.exec(`INSERT INTO packaging_inventory_movements (id,material_id,movement_type,quantity,idempotency_key)
+      VALUES ('s-r1','s-scarce','purchase_receipt','2','s:r1'),('s-r2','s-plenty','purchase_receipt','100','s:r2')`);
+  });
+
+  it("reports no shortage when stock covers the draft", async () => {
+    const draft = await getOrCreateDraft(db, { orderId: "s-ord-1", manualOnly: true });
+    const v = await addCatalogLine(db, { draftId: draft.id, materialId: "s-plenty", quantity: 3 });
+    expect(v.stock.wouldGoNegative).toBe(false);
+    expect(v.stock.shortages).toEqual([]);
+  });
+
+  it("flags a shortage BEFORE any confirm attempt, naming the material and the gap", async () => {
+    const draft = await getOrCreateDraft(db, { orderId: "s-ord-1" });
+    const v = await addCatalogLine(db, { draftId: draft.id, materialId: "s-scarce", quantity: 5 });
+    expect(v.stock.wouldGoNegative).toBe(true);
+    expect(v.stock.shortages).toHaveLength(1);
+    expect(v.stock.shortages[0]).toMatchObject({
+      materialId: "s-scarce", materialName: "مادة نادرة", available: 2, required: 5,
+    });
+    // The projection is advisory only — it has NOT touched the ledger.
+    expect(await balance("s-scarce")).toBe(2);
+  });
+
+  it("SUMS several lines citing the same material rather than judging each alone", async () => {
+    const draft = await getOrCreateDraft(db, { orderId: "s-ord-2", manualOnly: true });
+    // 2 available; two lines of 1 and 2 each pass alone but total 3 — a shortage.
+    await addCatalogLine(db, { draftId: draft.id, materialId: "s-scarce", quantity: 1 });
+    const v = await addCatalogLine(db, { draftId: draft.id, materialId: "s-scarce", quantity: 2 });
+    expect(v.stock.wouldGoNegative).toBe(true);
+    expect(v.stock.shortages[0].required).toBe(3);
+  });
+
+  it("manual lines carry no material and never register a shortage", async () => {
+    const draft = await getOrCreateDraft(db, { orderId: "s-ord-2" });
+    const v = await addManualLine(db, {
+      draftId: draft.id, materialName: "تغليف يدوي", category: "wrap",
+      quantity: 999, unit: "order", unitCost: 100,
+    });
+    expect(v.stock.shortages.every((s) => s.materialId !== null)).toBe(true);
+    expect(v.stock.shortages.map((s) => s.materialId)).not.toContain(undefined);
+  });
+
+  it("the projection AGREES with the transactional guard that actually rejects", async () => {
+    await client.exec(`INSERT INTO orders (id) VALUES ('s-ord-3') ON CONFLICT DO NOTHING`);
+    const draft = await getOrCreateDraft(db, { orderId: "s-ord-3", manualOnly: true });
+    const v = await addCatalogLine(db, { draftId: draft.id, materialId: "s-scarce", quantity: 9 });
+    expect(v.stock.wouldGoNegative).toBe(true);
+    // The warning the owner saw is exactly what confirmation then enforces.
+    await expect(confirmDraft(db, { draftId: draft.id })).rejects.toThrow(/INSUFFICIENT_STOCK/);
+    // …and the override still works, for the same draft.
+    const forced = await confirmDraft(db, { draftId: draft.id, allowNegativeStock: true });
+    expect(forced.alreadyConfirmed).toBe(false);
+    expect(await balance("s-scarce")).toBe(2 - 9);
+  });
+
+  it("a consumed draft reports no pending shortage", async () => {
+    const rows = await client.query<{ id: string }>(
+      `SELECT id FROM fulfillment_preparation_drafts WHERE order_id='s-ord-3' AND state='consumed'`);
+    const v = await getDraft(db, rows.rows[0].id);
+    expect(v.state).toBe("consumed");
+    expect(v.stock.wouldGoNegative).toBe(false);
+  });
+});

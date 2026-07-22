@@ -16,11 +16,11 @@
 //   * stock is deducted exactly once.
 // ─────────────────────────────────────────────────────────────────────────────
 import { randomUUID } from "node:crypto";
-import { eq, and, inArray, desc } from "drizzle-orm";
+import { eq, and, inArray, desc, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import {
   fulfillmentPreparationDrafts, fulfillmentPreparationDraftLines,
-  fulfillmentMaterials, orderFulfillmentEvents,
+  fulfillmentMaterials, orderFulfillmentEvents, packagingInventoryMovements,
 } from "../../shared/schema.js";
 import { toMoneyOrNull } from "../../shared/order-financials.js";
 import type {
@@ -88,6 +88,16 @@ export interface DraftView {
   knownCostSubtotal: number;    // sum over KNOWN lines only, clearly labelled as partial
   costStatus: "exact" | "incomplete" | "unknown";
   missingCostLines: string[];   // names of lines whose unit cost is unknown
+  /**
+   * Stock sufficiency, computed HERE so the admin screen can warn BEFORE the owner
+   * presses confirm, instead of only after a rejected attempt. The client must not
+   * derive this by comparing catalog balances against line quantities itself.
+   * Confirmation re-checks inside its transaction — this is advisory, not the guard.
+   */
+  stock: {
+    wouldGoNegative: boolean;
+    shortages: Array<{ materialId: string; materialName: string; available: number; required: number }>;
+  };
   confirmedEventId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -136,16 +146,52 @@ async function buildView(db: FulfillmentDb, draft: DraftRow): Promise<DraftView>
     .orderBy(fulfillmentPreparationDraftLines.createdAt);
   const lines = rows.map(toLineView);
   const totals = calculateDraftCost(lines);
+  const stock = draft.state === "consumed"
+    ? { wouldGoNegative: false, shortages: [] }   // already committed; nothing left to warn about
+    : await projectStock(db, lines);
   return {
     id: draft.id, orderId: draft.orderId, eventType: draft.eventType as FulfillmentEventType,
     state: draft.state as DraftState,
     profileFamilyId: draft.profileFamilyId, profileId: draft.profileId,
     profileVersion: draft.profileVersion, suggestionReason: draft.suggestionReason,
-    lines, ...totals,
+    lines, ...totals, stock,
     confirmedEventId: draft.confirmedEventId,
     createdAt: new Date(draft.createdAt).toISOString(),
     updatedAt: new Date(draft.updatedAt).toISOString(),
   };
+}
+
+/**
+ * Project the ledger balance of every catalog material this draft would consume.
+ * Read-only and advisory: confirmation re-checks inside its own transaction, which
+ * is where the real guard lives. Manual lines carry no material and never affect stock.
+ * Several lines may cite the SAME material — their quantities are summed, so a
+ * draft that splits one material across two lines is judged on the total.
+ */
+async function projectStock(db: FulfillmentDb, lines: DraftLineView[]): Promise<DraftView["stock"]> {
+  const required = new Map<string, { name: string; qty: number }>();
+  for (const l of lines) {
+    if (!l.materialId) continue;
+    const cur = required.get(l.materialId);
+    required.set(l.materialId, {
+      name: l.materialName,
+      qty: (cur?.qty ?? 0) + Math.abs(Number(l.quantity) || 0),
+    });
+  }
+  if (required.size === 0) return { wouldGoNegative: false, shortages: [] };
+
+  const shortages: DraftView["stock"]["shortages"] = [];
+  for (const [materialId, { name, qty }] of required) {
+    const [row] = await db
+      .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
+      .from(packagingInventoryMovements)
+      .where(eq(packagingInventoryMovements.materialId, materialId));
+    const available = Number(row?.bal ?? 0);
+    if (available - qty < 0) {
+      shortages.push({ materialId, materialName: name, available, required: qty });
+    }
+  }
+  return { wouldGoNegative: shortages.length > 0, shortages };
 }
 
 async function loadDraftRow(db: FulfillmentDb, draftId: string): Promise<DraftRow> {

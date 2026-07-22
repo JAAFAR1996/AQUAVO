@@ -39,10 +39,14 @@ export function formatQuantity(quantity: number, unit?: string | null): string {
   return unit ? `${n} ${unit}` : n;
 }
 
-/** Margin arrives from the server as a ratio; we only render it. */
+/**
+ * Margin arrives from the server ALREADY as a percentage — the accounting engine
+ * computes `Math.round((contributionProfit / revenue) * 100)`. We append the sign
+ * and nothing else. Do NOT scale it here: multiplying again rendered 23% as 2300%.
+ */
 export function formatMargin(value: number | null | undefined): string {
   if (value == null) return UNKNOWN_LABEL;
-  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value * 100)}%`;
+  return `${new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 }).format(value)}%`;
 }
 
 export function formatDateTime(iso: string | null | undefined): string {
