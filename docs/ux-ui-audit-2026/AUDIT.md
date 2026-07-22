@@ -1,0 +1,98 @@
+# AQUAVO — 2026 UX/UI, CRO, Accessibility, Performance & Motion Audit
+
+**Date:** 2026-07-16
+**Scope:** aquavoiq.com (production) + local repo (`client/`, `server/`, `vercel.json`)
+**Method:** live browser inspection (Playwright, since the Claude-in-Chrome extension was not connected — documented fallback), source review, and four parallel specialist sub-agent audits (design/research, accessibility/mobile, commerce-flow, performance/motion-readiness). Cross-checked against pre-existing repo audits (`AQUAVO_CONVERSION_FLOW_AUDIT.md`, `ACCESSIBILITY.md`, `AQUAVO_COPY_AND_BRAND_AUDIT.md`, `AQUAVO_FILE_BY_FILE_AUDIT.md`) so this pass does not duplicate already-documented findings — it verifies, extends, and adds what those passes missed (mainly: motion/animation system, and this session's live-site diagnosis).
+
+**Brand identity conflict, resolved:** the task brief quoted colors `#0B93A6` / `#0B64A6` / `#0B1E28`. The actual, deployed design tokens (`client/src/index.css:171-195`) and `.agents/memory/02_brand_identity.md` are the ground truth: Deep Ocean `#0a1628` background, AQUAVO Cyan `#199bb8` primary, Coral `#ff7b5a` accent, Gold `#ffd700` highlight, Cairo/Changa Arabic + Inter English. All recommendations below use the real tokens.
+
+---
+
+## Scores (0–10)
+
+| Dimension | Score | Basis |
+|---|---|---|
+| Brand alignment | 8 | Dark-premium palette is applied consistently and correctly across header/hero/cards/footer; no generic-AI gradient/neon drift observed live. |
+| First impression (homepage) | 7 | Clean hero, clear value prop line ("معدات حوضك، مرتبة على احتياجك"), visible trust bar (24/7, fixed shipping, COD, 24h delivery) above the fold. Loses a point for a slow-appearing category/product section (see P1-3). |
+| Visual quality | 7 | Consistent card system, good spacing rhythm, legible Arabic type. Product photography quality varies (some plain white-bg stock shots next to styled dark shots — inconsistent photography treatment). |
+| Mobile UX | 6 | Responsive, readable, and the sticky PDP add-to-cart exists — but per the pre-existing conversion audit, mobile and desktop checkout are two diverging implementations (P0, see below), and quick actions (wishlist) are hidden on mobile product cards. |
+| Desktop UX | 7 | Good information density on `/products` (14-category filter rail, sort, count). |
+| Navigation | 7 | Clear primary nav; search (Ctrl+K) present. |
+| Product discovery | 7 | Category chips with live counts, 114 products across 14+ categories, sort/filter controls present and semantically labeled. |
+| Product detail page | 6 | Well-composed once painted (badge, brand, price, stock count, shipping box, expandable description, qty stepper, share/compare/wishlist/add-to-cart, WhatsApp support line, trust icons) — but see P1-3 (slow first paint) and known gaps in `AQUAVO_CONVERSION_FLOW_AUDIT.md` (sticky mobile CTA doesn't mirror variant/added-state, dead "notify me" button, specs table shows "0/5" rating). |
+| Cart & checkout | 5 | Functional, but the existing conversion audit documents a P0: **two divergent checkout implementations** (desktop dialog vs. mobile page) with different shipping-fee sources, different summaries, and a missing `credentials:"include"` on desktop coupon fetch. Not re-verified line-by-line this pass (would duplicate that report) but the architecture problem is real and unresolved as of this session. |
+| Trust & credibility | 7 | Honest shipping/COD/24h messaging, no fake urgency observed, real stock counts, source-verification page (`/verify-certificate/yee`). Undercut by the CSP/pixel bug (P1-1) and, per the copy audit, `LocalBusiness` JSON-LD with `openingHoursSpecification` + geo-coordinates that imply a walk-in showroom AQUAVO doesn't have. |
+| Conversion clarity | 7 | Prices, stock, delivery fee, and COD are all visible without digging. |
+| Content readability | 8 | Arabic Baghdadi copy reads clean and non-generic on the pages sampled. |
+| Arabic/RTL quality | 8 | RTL layout is correct throughout (nav, breadcrumbs, price alignment, forms) in every page sampled. |
+| Accessibility | 6 | Skip link, ARIA labels on cart/wishlist/quick-view buttons, semantic headings, Radix-based accessible primitives already in place (per `ACCESSIBILITY.md`). Gap: framer-motion animations are not globally gated by `prefers-reduced-motion` (P1-4). |
+| Performance | 6 | Product-listing API layer is fast (200s across the board), but PDP first paint is visibly delayed (~2s blank content area) on a plain broadband connection (P1-3) — see baseline evidence. |
+| Motion quality | 5 | A genuinely well-designed shared motion token system already exists (`client/src/lib/motion.ts` — "Snappy Modern" springs/variants) and framer-motion is used in 35 files, but adoption looks organic/ad-hoc rather than systematic, and there's no app-root `prefers-reduced-motion` gate for framer-motion specifically. |
+| Consistency | 7 | Design tokens are used consistently; the CSP/config duplication (P1-1) is the one clear "two sources of truth" architecture smell found this pass. |
+| **Overall 2026 readiness** | **6.5 / 10** | Solid, honest, on-brand foundation with a well-thought-out motion vocabulary already started. The blockers are a handful of concrete, fixable defects (CSP config drift, PDP paint delay, reduced-motion gate, the pre-existing checkout-flow split) rather than a broad design overhaul. |
+
+---
+
+## Findings
+
+### P0 — Purchase-flow / trust-critical
+
+**P0-1. Desktop and mobile checkout are two divergent implementations (pre-existing, unresolved).**
+Documented in full in `AQUAVO_CONVERSION_FLOW_AUDIT.md` §0 and §4. `navbar.tsx:427-434` branches: desktop opens `CheckoutDialog`, mobile routes to `/checkout` page. They pull shipping fee from different sources (admin-configurable API vs. hardcoded constants), the desktop dialog doesn't pass `cartItems` to `OrderSummary` (no itemized review before paying), and desktop's coupon fetch is missing `credentials:"include"`. Verified still present in the codebase (files exist at the cited paths); not re-walked line-by-line to avoid duplicating that report.
+**Customer impact:** if admin changes the shipping fee, only desktop customers see the new number; desktop customers approve a total with no line-item breakdown.
+**Fix:** out of this mission's motion/UI-first scope to fully unify (STRATEGIC per the original report), but see Phase A for the two SAFE sub-fixes taken in this pass (pass `cartItems`, add `credentials:"include"`).
+
+### P1 — Major, fixed or fix-planned this pass
+
+**P1-1. CSP has two divergent, out-of-sync sources; production is dropping ad-pixel events site-wide.**
+Live console on every page (home, listing, PDP) shows 5 blocked-by-CSP errors per load:
+- `connect-src` blocks Meta's Conversions-API-Gateway domains (`fh-*.ecs.us-west-2.on.aws`, `*.run.app`).
+- `form-action` blocks a `POST` to `https://www.facebook.com/tr/`.
+
+Root cause, precisely: `server/middleware/security.ts` (Express-set CSP header) and `vercel.json` (edge-set CSP header, `vercel.json:99-100`) define **two different CSP policies** that had drifted — but verified via `vercel.json`'s `rewrites` (only `/api/*`, `/.well-known/*`, `/oauth/*` route to the Express app) that the Express policy was **only ever live for `/api` JSON responses**, never for page loads. So the drift itself was a real "two sources of truth for the same concept" hygiene bug (and independently flagged in the pre-existing `AQUAVO_FILE_BY_FILE_AUDIT.md`: "`security.ts` — Modified on branch; review CSP correctness"), but it was **not** the cause of the live pixel-blocking console errors — those come solely from `vercel.json`'s `connect-src`, unchanged by this pass, which correctly does not allow-list Meta's dynamic Conversions-API-Gateway domains (`fh-*.ecs.us-west-2.on.aws`, `*.run.app` — shared multi-tenant Cloud Run/AWS-ECS hosts; wildcarding them would let *any* tenant's domain pass `connect-src`, a real security regression for a cosmetic pixel-transport feature).
+**Customer impact:** none directly (page renders fine) — the blocked CAPI-Gateway calls mean **some Meta ad conversion events may be under-reported via that specific transport**, though the primary `facebook.com/tr` pixel and `connect.facebook.net` config calls are already allow-listed and unaffected.
+**Fix (Phase A, done):** removed the dead/misleading duplicate production CSP block from `security.ts` so `vercel.json` is unambiguously the one place that governs production CSP (page and `/api` alike) — a correctness/maintainability fix. **Not fixed (deliberate):** the CAPI-Gateway console errors persist; loosening `connect-src` to catch them would trade real security posture for a cosmetic console-error fix on a non-critical, gracefully-degrading tracking path. If AQUAVO wants that specific Meta feature working, the correct fix is asking Meta/the pixel integration for its static domain (if one exists) rather than wildcarding cloud-host TLDs.
+
+**P1-2. Full-page (stitched) screenshots are unreliable evidence — methodology note, not a site bug.**
+Initial full-page Playwright screenshots of the homepage showed large (~600-1000px) black bands that don't exist in reality — confirmed via DOM inspection (`opacity:1`, all sections present, correct heights) and a scroll+viewport screenshot at `scrollY:900` which showed real content (category grid, live product carousel). This is a known Chromium/Playwright full-page-stitching artifact, likely from `position: sticky` header + backdrop-blur compositing. **Recorded here so nobody re-chases this as a real bug from the `evidence/before/` screenshots** — `desktop-1440-home.png` and `desktop-1440-home-retake.png` should be read with this caveat; `desktop-viewport-scroll900.png` is the reliable one.
+
+**P1-3. PDP shows a blank content area for a perceptible period after navigation.**
+`GET /api/products/:slug`, `/frequently-bought-together`, `/similar`, `/variants` all return 200 quickly, but the viewport is empty (header + footer only, full content gap) immediately after `page.goto()`, and only fully painted after a ~2.5s wait (see `evidence/before/desktop-pdp-viewport.png` vs. `desktop-pdp-waited.png`). This reads as either render-blocking work between data-fetch and first paint, or a mount/hydration delay specific to the PDP route. Not fully root-caused in this pass (would need a performance trace) — flagged for the performance track in `IMPLEMENTATION-PLAN.md` Phase D as a measured, evidenced regression risk to fix before adding any further motion to this specific page (a fade-in on an already-slow paint would make it feel even slower).
+**Customer impact:** a shopper clicking into a product from a category page currently sees an empty page for ~1-2+ seconds — this is the single biggest perceived-performance issue found this session, on the exact page where purchase intent is highest.
+
+**P1-4. framer-motion is not globally gated by `prefers-reduced-motion`.**
+`client/src/lib/motion.ts` is a genuinely well-built shared motion-token system ("Snappy Modern": tuned springs, `fadeUp`/`fadeIn`/`scaleIn`/`staggerContainer` variants, tap/hover presets) used across 35 files. CSS-level animations correctly respect `@media (prefers-reduced-motion: reduce)` (7 gated blocks in `index.css`). But there is **no `<MotionConfig reducedMotion="user">`** wrapping the app root (`App.tsx` `AppShell`), so framer-motion-driven animations (page transitions, card reveals, hover lifts) do not automatically honor the OS setting — only `home.tsx` manually checks `matchMedia` for one specific effect. This is a one-line, zero-risk fix with outsized accessibility value given how much of the app already uses framer-motion.
+**Fix (Phase D — implemented this pass):** wrap `AppShell`'s return with `<MotionConfig reducedMotion="user">`.
+
+### P1 (continued) — from the four parallel specialist sub-agent audits
+
+Four read-only specialist agents (`aquavo-design-research-lead`, `aquavo-accessibility-mobile-lead`, `aquavo-commerce-flow-analyst`, `aquavo-performance-media-engineer`) ran in parallel against the full repo. Consolidated below; full detail lives in their session reports. These corroborate and extend, rather than contradict, the live-site findings above.
+
+**P1-5 (CRITICAL, perf). 3D product viewer eager-loads 12–13 MB GLB models above the photo gallery.** `product-details.tsx:352-360` renders `<Product3DViewer>` unconditionally first (comment: "يظهر مباشرة أول ما تفتح الصفحة" — shows immediately on page open) for any product with `product3DMeta`, and `product-3d-viewer.tsx:269` sets `loading="eager"` with `reveal="auto"`. Driftwood-collection GLBs run 12–13 MB each; `test_wood*.glb` (~18 MB, looks like a leftover test asset) also ships to prod. **This is a distinct bug from P1-3** — the PDP I live-tested (`sunsun-air-pump`) has no 3D model, so this doesn't explain that specific delay, but it's a real, separate, and likely worse version of the same symptom on every 3D-enabled product page. **Not implemented this pass:** the component has non-trivial orbit-animation/interaction-overlay logic (`showOverlay`, `hasUserInteracted`, ambient auto-orbit) that a `reveal="interaction"` change (the standard model-viewer fix — show the poster, defer the GLB fetch until tap) would need to be verified against live on an actual 3D product page before shipping, which this pass didn't do. Documented here with a specific recommended fix for the performance track rather than risking an unverified change to a fragile, highly-interactive component.
+
+**P1-6 (a11y). Mobile hamburger menu had no accessible name — fixed this pass.** `navbar.tsx:212-224`: the `SheetContent` for the mobile nav drawer had no `SheetTitle`, so Radix Dialog announced an unnamed dialog to screen readers (and logs a dev warning). **Fix implemented:** added `<SheetHeader><SheetTitle className="sr-only">القائمة الرئيسية</SheetTitle></SheetHeader>`. Verified: `SheetHeader`/`SheetTitle` were already imported (used elsewhere for the cart sheet), `pnpm check` clean of new errors, build succeeds.
+
+**P1-7 (a11y, validates P1-4). Independent confirmation that framer-motion needed exactly the fix this pass made.** The accessibility audit, working independently from the same repo, reached the same conclusion as the live-site pass before either saw the other's output: `lib/motion.ts` and framer-motion (~35-61 files depending on count method) had zero reduced-motion gating and should be gated at the app root via `MotionConfig`/`useReducedMotion` *before* any further motion work — exactly the fix implemented in Phase C1. Also flagged: the custom `usePrefersReducedMotion()` hook in `a11y-components.tsx:132` is non-reactive (reads `matchMedia` once at render, no change listener) — not touched this pass since `MotionConfig reducedMotion="user"` doesn't depend on it, but worth deprecating in favor of framer's own `useReducedMotion()` if that custom hook is ever relied on directly.
+
+**P1-8 (a11y). Interactive controls nested inside `<a>` in product cards.** `product-card.tsx:89` wraps the whole card in a `<Link>`, then nests Add-to-cart, Quick-view, Wishlist, and Compare buttons inside it — invalid HTML (interactive-in-interactive), works today only via `preventDefault`/`stopPropagation`, muddles keyboard/AT tab order. **Not touched this pass** — restructuring a component this central (used on every listing/grid page) without a full visual regression pass carries more risk than this pass's verification budget covers; flagged for a dedicated pass with its own before/after testing.
+
+**P1-9 (design/consistency). Six user-switchable navbar color themes, including off-brand purple and orange variants.** `index.css:1014-1093` defines six navbar palettes as a user-facing toggle, two of which (280° purple glassmorphism, 30° orange) contradict the dark-premium cyan/coral/gold identity entirely. Independently, the theme system **defaults new visitors to light mode** (`ui/theme-switcher.tsx:16,26`), which also contradicts the "dark premium" brand direction stated in `CLAUDE.md` and `.agents/memory/02_brand_identity.md`. This is the single largest driver of the "template/AI-generic" visual-consistency risk the mission's brief warned against — not a motion or accessibility defect, but a brand-governance one. **Not touched this pass:** collapsing six theme variants and changing the default theme is a visible, site-wide visual change that needs its own before/after screenshot verification across every major page — exactly the kind of change this mission's own rules say shouldn't be made without that evidence in hand. Flagged as the top recommendation for the next design-system pass (see `MOTION-RESEARCH.md`/`RESULTS.md` for the full accept/reject reasoning this pass applied to smaller motion decisions — the same discipline applies here at a larger scale).
+
+**P1-10 (commerce, correctness, out of UI/motion scope).** The commerce-flow audit found real server-side correctness gaps independent of the (already-documented) checkout-flow split: cart quantity updates have no stock cap (only add-to-cart does), coupons are capped only globally not per-user/guest, and an order-points schema field is accepted but silently unused server-side (latent, not currently exploitable since the client never sends it). None touched this pass — commerce/backend logic, not UI/motion, and each needs its own test coverage before shipping a fix to money-handling code.
+
+### P2 — Consistency / quality
+
+**P2-1. Product photography treatment is inconsistent.** Sampled the `/products` grid: most items use styled dark/moody shots consistent with the brand's photography DNA (`.agents/memory/02_brand_identity.md`), but a handful (e.g. the liquid stabilizer bottle, the test-strip tube) are plain white/stock-style shots that break the "deep ocean, warm amber light, no white backgrounds" rule. Design-track item, not touched this pass (asset production, not code).
+
+**P2-2. `LocalBusiness` JSON-LD implies a physical showroom that doesn't exist.** Documented already in `AQUAVO_COPY_AND_BRAND_AUDIT.md` §D: `api/ssr-meta.ts` sets `openingHoursSpecification` + precise `geo` coordinates on a business schema, which both implies walk-in retail hours and contradicts the site's actual 24/7-support claim. Real trust/SEO issue but outside this mission's UI/motion implementation scope — flagged for the copy/SEO track owner.
+
+### P3 — Polish
+
+- Mobile product cards hide wishlist/quick-view behind `hidden sm:flex` (`AQUAVO_CONVERSION_FLOW_AUDIT.md` §1.5) — soft-conversion capture lost on the majority-mobile Iraqi traffic. STRATEGIC, not touched this pass.
+- PDP image gallery counter reads "2 / 1" (inverted) on `sunsun-air-pump` — cosmetic, worth a follow-up ticket.
+
+---
+
+## What this pass does NOT re-litigate
+
+The existing `AQUAVO_CONVERSION_FLOW_AUDIT.md`, `ACCESSIBILITY.md`/`ACCESSIBILITY_IMPROVEMENTS_2025-12-20.md`, and `AQUAVO_COPY_AND_BRAND_AUDIT.md` already contain dozens of specific, well-evidenced, unimplemented SAFE and STRATEGIC fixes (rounding-up dark pattern in checkout, emoji violations across ~15 files, dead "notify me" button, stock-threshold mismatches, missing sticky-CTA variant label, etc.). Those are real and still open as of this session (spot-checked a sample, not exhaustively re-verified), but re-solving all of them is copy/commerce-logic work, not UX/UI/motion implementation — they're listed here for completeness and left to their own tracks. This audit's implementation focus (`IMPLEMENTATION-PLAN.md`) is the CSP fix, the PDP paint-delay flag, and the motion/reduced-motion system, which is what this mission was specifically chartered to move on.
