@@ -8,6 +8,9 @@ import { embeddingGenerator } from "../services/embedding-generator.js";
 import { clearProductsCache } from "./products.js";
 import { sql, eq, desc, gte, and, count, sum } from "drizzle-orm";
 import { z } from "zod";
+// Canonical order-financial definitions — customer spend and loyalty accrual must
+// use the amount actually collected, never the raw pre-rounding `total`.
+import { orderCollectedAmount, isRealizedStatus } from "../../shared/order-financials.js";
 import {
     users, orders, pageViews, searchQueries, productViews, cartItems,
     favorites, reviews, churnPredictions, customerProfiles, products,
@@ -242,7 +245,9 @@ export function createAdminRouter(): RouterType {
                     try {
                         const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
                         if ((order as any).userId) {
-                            const orderTotal = parseFloat(String(order.total)) || 0;
+                            // Points accrue on what the customer actually paid, not the
+                            // pre-rounding raw total.
+                            const orderTotal = orderCollectedAmount(order);
                             await loyaltyStorage.approveOrderPoints(
                                 (order as any).userId,
                                 order.id,
@@ -567,8 +572,13 @@ export function createAdminRouter(): RouterType {
                 .where(eq(orders.userId, userId))
                 .orderBy(desc(orders.createdAt));
 
-            const totalSpent = userOrders.reduce((s, o) => s + Number(o.total ?? 0), 0);
-            const completedOrders = userOrders.filter(o => o.status === "delivered").length;
+            // What the customer actually PAID (rounding-aware), over REALIZED orders
+            // only. Previously this summed the raw `total` of every order — including
+            // cancelled ones — so a customer's "total spent" exceeded what they paid.
+            const totalSpent = userOrders
+                .filter(o => isRealizedStatus(o.status))
+                .reduce((s, o) => s + orderCollectedAmount(o), 0);
+            const completedOrders = userOrders.filter(o => isRealizedStatus(o.status)).length;
             const lastOrderDate = userOrders[0]?.createdAt ?? null;
 
             // 3. Page journey (last 200 views)

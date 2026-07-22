@@ -6,6 +6,7 @@ import { orders, users, products, orderItems, productViews, cartSessions } from 
 import { sql, desc, gte, count, sum, eq, and, gt, inArray } from "drizzle-orm";
 import { pageViews } from "../../shared/schema.js";
 import { REALIZED_STATUSES, isRealizedStatus } from "../../shared/order-financials.js";
+import { REALIZED_STATUS_SQL } from "../services/accounting-engine.js";
 
 const router = Router();
 
@@ -19,9 +20,10 @@ const realizedRevenueExpr = sql<string>`COALESCE(SUM(
   - COALESCE(${orders.shippingCost}, 0)
 ), 0)`;
 const REALIZED = [...REALIZED_STATUSES];
-// Parenthesised SQL list of the canonical realized statuses, for use inside a
-// raw CASE WHEN ... IN (...) expression.
-const REALIZED_SQL = sql`(${sql.join(REALIZED.map((s) => sql`${s}`), sql`, `)})`;
+// Parenthesised SQL list of the canonical realized statuses, for use inside a raw
+// CASE WHEN ... IN (...) expression. Defined ONCE in the accounting engine so the
+// three places that need it cannot drift apart.
+const REALIZED_SQL = REALIZED_STATUS_SQL;
 
 // ─── Real-time Presence Store ─────────────────────────────────────────────────
 // Key = sessionId, Value = { pagePath, userId, ts }

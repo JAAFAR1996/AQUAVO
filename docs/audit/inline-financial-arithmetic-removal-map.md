@@ -39,10 +39,11 @@ engine.
 | | Sites |
 |---|---|
 | **Redirected in this pass** | **21** |
+| Redirected in the integrator follow-up pass | 6 |
 | Already canonical (engine / primitives / prior pass) | 5 |
 | Pending — accounting engine internals (by design) | 20 |
 | Pending — `server/routes/accounting.ts` (legacy route, gated deletion) | 30 |
-| Pending — non-accounting arithmetic (catalog price, scoring, display, counts) | 89 |
+| Pending — non-accounting arithmetic (catalog price, scoring, display, counts) | 83 |
 | **Total catalogued** | **165** |
 
 ---
@@ -64,7 +65,15 @@ engine.
 | 236–254 | inline COGS loop over a current-cost map + `+= toNum(order.boxCost)` | `buildCostResolver` + `calcOrderProfit`; totals from `computePeriodFinancials().cogs + .packaging` | Redirected |
 | 260–264 | `grossProfit = netRevenue − totalCogs`; `expensesTotal` reduce; `finalNetProfit` | `computePeriodFinancials().expensesTotal` / `.finalNetProfit` | Redirected |
 | 273 | `costPrice = toNum(p.costPrice)` (inventory valuation) | `toMoneyOrNull` — unknown cost excluded, not read as 0 | Redirected |
-| 381 | invariant #4 tolerance `< 1` | `<= 1` (finalNetProfit is now the engine's pre-rounded figure) | Adjusted |
+| 381 | invariant #4 tolerance `< 1` | `<= ROUNDING_DRIFT_TOLERANCE` (=4) | Adjusted, then CORRECTED — see note |
+
+**Tolerance correction (integrator pass).** The first pass widened invariant #4 from
+`< 1` to `<= 1`. That was the right direction but under-derived and still false-fails:
+`finalNetProfit` is ONE rounding of the exact expression, while the invariant re-derives
+the same quantity from SIX independently-rounded figures, so a legitimate divergence of up
+to 6 × 0.5 + 0.5 = 3.5 dinars is possible with no defect present. Replaced with a named
+`ROUNDING_DRIFT_TOLERANCE = 4` — the smallest integer that cannot false-fail — with the
+derivation at the constant and pinned by `consolidation-rounding-tolerance.test.ts`.
 
 **Behavioural change:** `salesReturnDeduction` / `actualReturnLoss` now count every
 verified return event in the window (the engine's rule) rather than only those linked
@@ -206,17 +215,31 @@ The only improvement available is swapping `parseFloat` for `toMoney` for NaN sa
 | `server/routes/simulation.ts` | 302–303, 310, 348–349 | What-if simulator (`cost * 0.2` default, weighted score) | Explicitly hypothetical; must never be persisted as accounting evidence |
 | `server/routes/notifications.ts` | 440 · `server/storage/user-storage.ts` 60 | `Number(count)` pagination totals | Not money |
 
-### Highest-value follow-ups from section E
+### Highest-value follow-ups from section E — NOW DONE (integrator pass)
 
-1. `server/routes/admin.ts` 241, 245, 570, 571 — `orderCollectedAmount` + `isRealizedStatus`
-   (customer `totalSpent` and loyalty accrual currently read raw `total` across a literal
-   status check).
-2. `server/routes/ai.ts` 180, 190 — same two swaps; this is money the chatbot quotes.
-3. `server/services/fraud-detector.ts` 111 — `orderCollectedAmount`.
-4. `server/routes/orders.ts` 396 and `server/storage/{badge,winback}-engine.ts` —
-   `isRealizedStatus` / `REALIZED_STATUSES`.
+These were flagged as outside the consolidation pass's file ownership and have since
+been completed. Each is covered by `server/__tests__/consolidation-followup-swaps.test.ts`,
+which states the legacy formula and the canonical one side by side.
 
-All four are outside this pass's file ownership.
+| # | Site | Was | Now | What was actually wrong |
+|---|---|---|---|---|
+| 1 | `server/routes/admin.ts` (customer `totalSpent`) | `Number(o.total)` over ALL statuses | `orderCollectedAmount` over `isRealizedStatus` | A customer's "total spent" included **cancelled and pending** orders and used the pre-rounding total |
+| 2 | `server/routes/admin.ts` (loyalty accrual) | `parseFloat(String(order.total))` | `orderCollectedAmount(order)` | Points accrued on the raw total, not what the customer paid |
+| 3 | `server/routes/ai.ts` (chatbot revenue) | `parseFloat(order.total)` over EVERY order in the window | `orderCollectedAmount` gated on `isRealizedStatus` | The chatbot quoted revenue including cancelled orders — in the test scenario, **3× the real figure** |
+| 4 | `server/services/fraud-detector.ts` | `parseFloat(order.total)` | `orderCollectedAmount(order)` | An order whose collected amount crossed the 500,000 threshold was **not flagged** because the raw total sat just under it |
+| 5 | `server/storage/badge-engine.ts`, `server/storage/winback-engine.ts` | raw SQL `status = 'delivered'` | `IN ${REALIZED_STATUS_SQL}` | Local literals that could drift from accounting |
+
+**New shared export:** `REALIZED_STATUS_SQL` in `server/services/accounting-engine.ts` —
+the canonical realized-status set as a SQL `IN (...)` list. Aggregate queries cannot call
+`isRealizedStatus`, so each previously carried its own literal. `analytics.ts` now uses
+this shared definition instead of building its own copy, so the three call sites cannot
+diverge.
+
+**Deliberately NOT changed:** `server/routes/orders.ts` 396. The map originally listed it
+as needing `isRealizedStatus`, but on inspection it is a delivery-DATE estimator branching
+`"delivered"` vs `"shipped"` vs other — a shipping-status display branch, not a revenue
+filter. Binding it to `REALIZED_STATUSES` would silently break the estimate if that set
+ever widened to include a non-terminal status. Left as a literal, intentionally.
 
 ---
 

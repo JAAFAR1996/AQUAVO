@@ -19,7 +19,7 @@ import {
   orderFulfillmentEvents,
   orderFulfillmentLines,
 } from "../../shared/schema.js";
-import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
+import { and, gte, lte, inArray, eq, desc, isNull, sql } from "drizzle-orm";
 import type { AccountingPeriod } from "../../shared/accounting.js";
 // Canonical order-financial definitions — single source of truth (Stage A).
 import {
@@ -28,6 +28,16 @@ import {
   orderCollectedAmount,
   REALIZED_STATUSES,
 } from "../../shared/order-financials.js";
+
+/**
+ * The canonical realized-status set as a SQL `IN (...)` list.
+ *
+ * Aggregate queries cannot call `isRealizedStatus`, so before this existed every
+ * such query hard-coded its own `IN ('delivered', …)` literal and they drifted —
+ * some counted `'confirmed'` as realized revenue. Derived from REALIZED_STATUSES,
+ * so widening that array updates every query at once.
+ */
+export const REALIZED_STATUS_SQL = sql`(${sql.join(REALIZED_STATUSES.map((s) => sql`${s}`), sql`, `)})`;
 
 export type Db = NonNullable<ReturnType<typeof getDb>>;
 export type OrderRow = typeof orders.$inferSelect;
