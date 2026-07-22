@@ -4,7 +4,7 @@
 // `requireAdmin`, which transitively drags in legacy modules (analytics-tracker,
 // storage, …) that still carry pre-existing strict errors unrelated to this work.
 // `npm run check:accounting:routes` therefore reports the full diagnostic set but
-// FAILS only on errors inside the files this effort owns — see tools/check-accounting-routes.mjs.
+// FAILS only on errors inside the files this effort owns — see TOOLS/check-accounting-routes.mjs.
 {
   "extends": "./tsconfig.accounting.json",
   "include": [
