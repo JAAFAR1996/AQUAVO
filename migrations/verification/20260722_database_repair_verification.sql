@@ -25,7 +25,7 @@ SELECT
    CROSS JOIN LATERAL jsonb_array_elements(
      CASE WHEN jsonb_typeof(p.variants)='array' THEN p.variants ELSE '[]'::jsonb END
    ) x(value)) AS source_variant_rows,
-  (SELECT COUNT(*) FROM product_variant_reconciliation) AS captured_variant_rows;
+  (SELECT COUNT(*) FROM product_variant_reconciliation WHERE is_active=true) AS active_captured_variant_rows;
 
 SELECT
   COUNT(*) AS reconciliation_rows,
@@ -74,7 +74,11 @@ WHERE routine_schema='public'
     'prevent_negative_inventory_balance',
     'reject_inventory_movement_mutation',
     'post_goods_receipt',
-    'reject_payment_event_mutation'
+    'reject_payment_event_mutation',
+    'sync_product_variant_reconciliation',
+    'record_order_item_inventory_sale',
+    'reverse_order_inventory_on_terminal_status',
+    'prevent_audited_order_hard_delete'
   )
 ORDER BY routine_name;
 
@@ -84,9 +88,28 @@ WHERE trigger_schema='public'
   AND trigger_name IN (
     'inventory_movements_prevent_negative',
     'inventory_movements_immutable',
-    'payment_events_immutable'
+    'payment_events_immutable',
+    'products_sync_variant_reconciliation',
+    'order_items_record_inventory_sale',
+    'orders_reverse_inventory_on_terminal_status',
+    'orders_prevent_audited_hard_delete'
   )
 ORDER BY event_object_table, trigger_name;
+
+SELECT key,value
+FROM settings
+WHERE key IN ('inventory_ledger_mode','payment_ledger_enabled')
+ORDER BY key;
+
+SELECT
+  has_schema_privilege('aquavo_runtime','public','USAGE') AS schema_usage,
+  has_schema_privilege('aquavo_runtime','public','CREATE') AS schema_create,
+  has_table_privilege('aquavo_runtime','products','SELECT') AS products_select,
+  has_table_privilege('aquavo_runtime','products','INSERT') AS products_insert,
+  has_table_privilege('aquavo_runtime','products','UPDATE') AS products_update,
+  has_table_privilege('aquavo_runtime','products','DELETE') AS products_delete,
+  has_table_privilege('aquavo_runtime','products','TRUNCATE') AS products_truncate,
+  has_function_privilege('aquavo_runtime','post_goods_receipt(text,text)','EXECUTE') AS post_receipt_execute;
 
 SELECT domain, source_name, decision_status, allowed_for_automated_decisions
 FROM data_source_registry
