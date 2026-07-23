@@ -893,7 +893,11 @@ export const loginAttempts = pgTable("login_attempts", {
   ipAddress: text("ip_address"), // عنوان IP
   userAgent: text("user_agent"), // معلومات المتصفح
   failureReason: text("failure_reason"), // سبب الفشل (كلمة مرور خاطئة، حساب غير موجود...)
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  // F-8: timestamptz (not naked `timestamp`) — this column feeds the block
+  // decision (failed-attempts-in-last-hour). A tz-less column round-trips a JS
+  // Date through the driver with a local-offset skew; timestamptz stores an
+  // absolute instant so the "last hour" window is correct in any server tz.
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("login_attempts_email_idx").on(table.email),
   ipIdx: index("login_attempts_ip_idx").on(table.ipAddress),
@@ -907,10 +911,17 @@ export const blockedIPs = pgTable("blocked_ips", {
   ipAddress: text("ip_address").notNull().unique(),
   reason: text("reason").notNull(), // سبب الحظر
   failedAttempts: integer("failed_attempts").default(0), // عدد المحاولات الفاشلة
-  blockedAt: timestamp("blocked_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at"), // null = حظر دائم
+  // F-8: ALL three timestamps are timestamptz. `expires_at` is the load-bearing
+  // one — a naked `timestamp` column stored the JS Date's UTC wall-clock but was
+  // read back interpreted as Asia/Baghdad local (+03:00), so a row expiring
+  // 09:54Z was served as 12:54Z and the block never lifted. timestamptz carries
+  // an absolute instant, so writes and reads agree regardless of session tz.
+  // NOTE: expiry is ALWAYS compared in-DB against now() (see security-storage),
+  // never against a JS clock — server clock skew must not extend a block.
+  blockedAt: timestamp("blocked_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }), // null = حظر دائم (permanent)
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   ipIdx: index("blocked_ips_ip_idx").on(table.ipAddress),
   isActiveIdx: index("blocked_ips_is_active_idx").on(table.isActive),
