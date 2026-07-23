@@ -125,6 +125,17 @@ export function createOrderRouter(): RouterType {
                 return;
             }
 
+            // Deployment guard: createOrderSecure writes cost-snapshot columns that
+            // only exist after migrations/add_order_item_cost_snapshot.sql. Refuse
+            // clearly (503) rather than failing this customer's order on an opaque
+            // "column does not exist" deep inside the transaction.
+            {
+                const { getSchemaReadiness, assertOrderCreationReady } =
+                    await import("../services/schema-readiness.js");
+                const { db } = await import("../db.js");
+                assertOrderCreationReady(await getSchemaReadiness(db as any));
+            }
+
             const order = await storage.createOrderSecure(
                 userId || null,
                 items,

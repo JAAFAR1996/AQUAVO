@@ -312,9 +312,30 @@ export function createSystemRouter(): RouterType {
         res.status(404).json({ error: "Not found", path: `/.well-known/${_req.params.path}` });
     });
 
-    // Health check (public)
+    // Health check (public) — liveness only.
     router.get("/health", (_req: Request, res: Response): void => {
         res.json({ status: "ok", timestamp: new Date().toISOString() });
+    });
+
+    // Readiness (public) — is the DATABASE SCHEMA new enough for THIS app version?
+    // Returns 503 when the app writes columns the database lacks, so a
+    // pre-migration deployment is refused traffic instead of failing individual
+    // customer orders. See server/services/schema-readiness.ts.
+    router.get("/ready", async (_req: Request, res: Response): Promise<void> => {
+        try {
+            const { getSchemaReadiness } = await import("../services/schema-readiness.js");
+            const { db } = await import("../db.js");
+            const readiness = await getSchemaReadiness(db as any);
+            res.status(readiness.ready ? 200 : 503).json({
+                status: readiness.ready ? "ready" : "not_ready",
+                orderCreationEnabled: readiness.orderCreationEnabled,
+                missingColumns: readiness.missingColumns,
+                detail: readiness.detail,
+                checkedAt: readiness.checkedAt,
+            });
+        } catch (err: any) {
+            res.status(503).json({ status: "not_ready", detail: err?.message ?? "readiness probe failed" });
+        }
     });
 
     // Seeding (Admin only)

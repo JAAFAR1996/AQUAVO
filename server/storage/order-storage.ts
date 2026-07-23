@@ -103,10 +103,26 @@ export class OrderStorage {
         return byNumber[0];
     }
 
-    async createOrder(order: Partial<Order>): Promise<Order> {
-        const db = this.ensureDb();
-        const [newOrder] = await db.insert(orders).values(order as any).returning();
-        return newOrder;
+    /**
+     * @deprecated UNSAFE — DISABLED. Use {@link createOrderSecure} instead.
+     *
+     * This wrote `orders` with a bare non-transactional insert and never wrote
+     * `order_items_relational`. That is precisely the defect that left 12
+     * production orders (73 lines) with no relational rows between 2026-05-12 and
+     * 2026-06-17, fixed for the storefront by f1b85d4 — but this function kept the
+     * old shape and would silently reintroduce the gap for any new caller.
+     *
+     * It now fails closed rather than corrupting data. Deliberately NOT deleted:
+     * it stays on the storage interface so existing type contracts still compile
+     * and the history remains visible.
+     */
+    async createOrder(_order: Partial<Order>): Promise<Order> {
+        throw new Error(
+            "storage.createOrder() is disabled: it wrote no order_items_relational rows " +
+            "and used no transaction, which caused the 2026-05/06 relational coverage gap. " +
+            "Use storage.createOrderSecure() — it writes orders.items and " +
+            "order_items_relational inside one transaction."
+        );
     }
 
     async updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined> {

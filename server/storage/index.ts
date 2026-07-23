@@ -24,6 +24,12 @@ export interface IStorage {
     deleteProduct(id: string): Promise<boolean>;
     getOrders(userId?: string, options?: { limit?: number, offset?: number }): Promise<Order[]>;
     getOrder(id: string): Promise<Order | undefined>;
+    /**
+     * @deprecated UNSAFE — DISABLED, always throws. Use {@link IStorage.createOrderSecure}.
+     * Retained on the interface only for compatibility; the implementation fails
+     * closed because it wrote no `order_items_relational` rows and used no
+     * transaction. See `docs/audit/neon-verification-final.md` §5bis.
+     */
     createOrder(order: Partial<Order>): Promise<Order>;
     updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined>;
     deleteOrder(id: string): Promise<boolean>;

@@ -91,11 +91,34 @@ export class AutoOrderProcessor {
     /**
      * معالجة الطلبات المجدولة
      */
+    /**
+     * @deprecated QUARANTINED — DISABLED, always throws.
+     *
+     * This write path is broken and unsafe on three counts:
+     *   1. it inserts `totalAmount`, `shippingMethod`, `paymentMethod` and
+     *      `priceAtTime` — none of which exist in the schema, so every run would
+     *      abort mid-way;
+     *   2. it never writes `orders.items`, so the order would have no JSONB lines;
+     *   3. it uses `db.insert(...)` with NO transaction, so a partial failure
+     *      leaves an order with deducted stock and no line items.
+     *
+     * It is quarantined rather than deleted so the defect stays visible. To revive
+     * it, route order creation through `storage.createOrderSecure()` (which writes
+     * both line-item stores in one transaction) and delete this guard — not before.
+     */
     async processScheduledOrders(): Promise<{
         processed: number;
         failed: number;
         skipped: number;
     }> {
+        throw new Error(
+            "AutoOrderProcessor.processScheduledOrders() is QUARANTINED: it references " +
+            "columns that do not exist (totalAmount/priceAtTime/shippingMethod), writes no " +
+            "orders.items, and inserts outside any transaction. Route it through " +
+            "storage.createOrderSecure() before re-enabling."
+        );
+
+        // eslint-disable-next-line no-unreachable
         console.log("[AutoOrderProcessor] Processing scheduled orders...");
 
         try {
