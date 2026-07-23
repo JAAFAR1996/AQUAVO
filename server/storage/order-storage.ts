@@ -3,6 +3,13 @@ import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, t
 import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
+import {
+    buildProductCostSnapshot,
+    lockProductRowForUpdate,
+    toJsonbCostFields,
+    toRelationalCostFields,
+    type LockedProductRow as CanonicalLockedProductRow,
+} from "../services/product-cost-snapshot.js";
 
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
@@ -31,14 +38,9 @@ type OrderWithLoyalty = Order & {
     actualCashbackUsed?: number;
 };
 
-interface LockedProductRow {
-    id: string;
-    name: string;
-    price: string | number;
-    stock: number | null;
+type LockedProductRow = CanonicalLockedProductRow & {
     variants: ProductVariant[] | null;
-    hasVariants?: boolean;
-}
+};
 
 export class OrderStorage {
     private db = getDb();
@@ -50,16 +52,17 @@ export class OrderStorage {
         return this.db;
     }
 
+    /**
+     * Lock the product row for the duration of the creation transaction.
+     *
+     * F-1 FIX: this used to SELECT only id/name/price/stock/variants/has_variants,
+     * so every cost field read back `undefined` and EVERY storefront line was
+     * frozen as `costStatus:"unknown"` — permanently uncostable. It now delegates
+     * to the canonical `lockProductRowForUpdate`, which is the single SELECT
+     * shared by all creation paths and always carries the cost columns.
+     */
     private async lockProductForUpdate(tx: any, productId: string): Promise<LockedProductRow | undefined> {
-        const result = await tx.execute(sql`
-            SELECT id, name, price, stock, variants, has_variants AS "hasVariants"
-            FROM products
-            WHERE id = ${productId}
-              AND deleted_at IS NULL
-            FOR UPDATE
-        `);
-        const rows = Array.isArray(result) ? result : (result?.rows ?? []);
-        return rows[0] as LockedProductRow | undefined;
+        return await lockProductRowForUpdate(tx, productId) as LockedProductRow | undefined;
     }
 
     private parsePositivePrice(value: unknown, label: string): number {
@@ -211,6 +214,9 @@ export class OrderStorage {
             // 1. Calculate totals and validate stock
             let subtotal = 0;
             const orderItemsData: OrderLineItem[] = [];
+            // One timestamp for the whole order so JSONB and relational snapshots agree.
+            const snapshotAt = new Date();
+            const lineSnapshots: ReturnType<typeof buildProductCostSnapshot>[] = [];
 
             // Lock each product row before price/stock validation so concurrent orders cannot oversell.
             for (const item of items) {
@@ -278,13 +284,10 @@ export class OrderStorage {
 
                 // Immutable cost snapshot — freeze the product's current cost onto the
                 // order line so later cost edits can't rewrite this order's profit.
-                // Cost UNKNOWN at sale (product cost not entered) => NULL, never 0.
-                const hasCost = (product as any).costPrice != null;
-                const snapCostPrice = hasCost ? Number((product as any).costPrice) : null;
-                const snapPackagingCost = (product as any).packagingCost != null ? Number((product as any).packagingCost) : null;
-                const snapInsertCost = (product as any).insertCost != null ? Number((product as any).insertCost) : null;
-                const costStatus: "exact" | "unknown" = hasCost ? "exact" : "unknown";
-                const costSource: "product_current" | "none" = hasCost ? "product_current" : "none";
+                // Built by the ONE canonical builder shared with the admin/WhatsApp
+                // path. Verified 0 stays 0; UNKNOWN stays NULL. Never conflated.
+                const snapshot = buildProductCostSnapshot(product, snapshotAt);
+                lineSnapshots.push(snapshot);
 
                 orderItemsData.push({
                     productId: product.id,
@@ -294,11 +297,7 @@ export class OrderStorage {
                     ...(variantLabel ? { variantLabel } : {}),
                     priceAtPurchase: price,
                     lineTotal,
-                    costPrice: snapCostPrice,
-                    packagingCost: snapPackagingCost,
-                    insertCost: snapInsertCost,
-                    costStatus,
-                    costSource,
+                    ...toJsonbCostFields(snapshot),
                 });
             }
 
@@ -377,20 +376,15 @@ export class OrderStorage {
             // Items are also kept inline in orders.items (JSONB) for fast reads.
             if (orderItemsData.length > 0) {
                 await tx.insert(orderItems).values(
-                    orderItemsData.map((line) => ({
+                    orderItemsData.map((line, idx) => ({
                         orderId: newOrder.id,
                         productId: line.productId,
                         quantity: line.quantity,
                         priceAtPurchase: String(line.priceAtPurchase),
                         totalPrice: String(line.lineTotal),
-                        // NULL (not 0) when cost was unknown at sale.
-                        unitCostPrice: line.costPrice == null ? null : String(line.costPrice),
-                        unitPackagingCost: line.packagingCost == null ? null : String(line.packagingCost),
-                        unitInsertCost: line.insertCost == null ? null : String(line.insertCost),
-                        costSnapshotStatus: line.costStatus ?? "unknown",
-                        costSnapshotSource: line.costSource ?? "none",
-                        costSnapshotVersion: 1,
-                        costSnapshotAt: new Date(),
+                        // Same canonical snapshot object that produced the JSONB line,
+                        // so both stores are guaranteed to agree. NULL (not 0) = unknown.
+                        ...toRelationalCostFields(lineSnapshots[idx]),
                         metadata: (line.variantId || line.variantLabel)
                             ? { variantId: line.variantId, variantLabel: line.variantLabel }
                             : null,

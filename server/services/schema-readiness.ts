@@ -26,6 +26,7 @@ export const REQUIRED_ORDER_ITEM_COLUMNS = [
   "unit_insert_cost",
   "cost_snapshot_status",
   "cost_snapshot_source",
+  "cost_snapshot_confidence",
   "cost_snapshot_version",
   "cost_snapshot_at",
 ] as const;

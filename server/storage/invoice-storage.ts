@@ -204,17 +204,58 @@ export class InvoiceStorage {
     return updated;
   }
 
-  /** إنشاء Order من الفاتورة المقبولة */
+  /**
+   * إنشاء Order من الفاتورة المقبولة (admin / WhatsApp path).
+   *
+   * F-2 FIX: this path previously wrote NO cost snapshot at all — not in
+   * `orders.items` (JSONB) and not in `order_items_relational`. It therefore
+   * disagreed with the storefront on a core invariant. It now locks each product
+   * row FOR UPDATE via the canonical `lockProductRowForUpdate` and freezes the
+   * snapshot with the canonical `buildProductCostSnapshot`, identical to
+   * `createOrderSecure`. Verified 0 stays 0; UNKNOWN stays NULL.
+   */
   private async createOrderFromInvoice(invoice: ManualInvoice): Promise<string> {
     const db = this.ensureDb();
     const { orders, orderItems, products } = await import("../../shared/schema.js");
     const { eq: eqORM, sql: sqlORM } = await import("drizzle-orm");
+    const {
+      buildProductCostSnapshot,
+      lockProductRowForUpdate,
+      toJsonbCostFields,
+      toRelationalCostFields,
+    } = await import("../services/product-cost-snapshot.js");
     const orderId = randomUUID();
+
+    // Same deployment guard as the storefront: this path now writes cost-snapshot
+    // columns, so refuse up front if the migration has not been applied rather
+    // than failing one confirmed invoice at a time.
+    const { getSchemaReadiness, assertOrderCreationReady } =
+      await import("../services/schema-readiness.js");
+    assertOrderCreationReady(await getSchemaReadiness(db as any));
 
     // Order + items + stock deduction are wrapped in ONE transaction so a mid-loop
     // failure can't leave a half-created order with partially deducted stock.
     await db.transaction(async (tx) => {
-      // Create order (only columns that exist in the Drizzle schema).
+      const snapshotAt = new Date();
+      const invoiceLines = (invoice.items as any[]) ?? [];
+
+      // 1. Lock every product row FIRST and freeze its cost snapshot, inside the
+      //    same transaction that will deduct its stock.
+      const lines = [] as Array<{ raw: any; snapshot: ReturnType<typeof buildProductCostSnapshot> }>;
+      for (const item of invoiceLines) {
+        const locked = await lockProductRowForUpdate(tx as any, item.productId);
+        if (!locked) {
+          // Fail closed: an invoice line pointing at a missing/deleted product
+          // must abort the whole confirmation rather than create an uncostable order.
+          throw Object.assign(
+            new Error(`المنتج غير موجود ضمن الفاتورة (${item.productId})`),
+            { status: 400 },
+          );
+        }
+        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt) });
+      }
+
+      // 2. Create order (only columns that exist in the Drizzle schema).
       // Carry the invoice discount onto the order so order-based reporting sees it.
       await tx.insert(orders).values({
         id: orderId,
@@ -230,19 +271,22 @@ export class InvoiceStorage {
           ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
           : (invoice.customerAddress || null),
         source: "whatsapp",
-        items: (invoice.items as any[]).map((i) => ({
-          productId: i.productId,
-          productName: i.name,
-          quantity: i.quantity,
-          priceAtPurchase: i.unitPrice,
-          variantLabel: i.variantLabel || undefined,
-          variantId: i.variantId || undefined
+        items: lines.map(({ raw, snapshot }) => ({
+          productId: raw.productId,
+          productName: raw.name,
+          quantity: raw.quantity,
+          priceAtPurchase: raw.unitPrice,
+          lineTotal: Number(raw.unitPrice) * Number(raw.quantity),
+          variantLabel: raw.variantLabel || undefined,
+          variantId: raw.variantId || undefined,
+          ...toJsonbCostFields(snapshot),
         })),
         createdAt: new Date(),
         updatedAt: new Date(),
       });
 
-      for (const item of (invoice.items as any[])) {
+      // 3. Relational lines carry the SAME snapshot objects → the two stores agree.
+      for (const { raw: item, snapshot } of lines) {
         await tx.insert(orderItems).values({
           id: randomUUID(),
           orderId,
@@ -250,6 +294,7 @@ export class InvoiceStorage {
           quantity: item.quantity,
           priceAtPurchase: String(item.unitPrice),
           totalPrice: String(item.unitPrice * item.quantity),
+          ...toRelationalCostFields(snapshot),
           metadata: {
             productName: item.name,
             variantLabel: item.variantLabel ?? null,

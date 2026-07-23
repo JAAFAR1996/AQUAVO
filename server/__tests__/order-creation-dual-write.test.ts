@@ -92,9 +92,15 @@ describe("order creation writes BOTH line-item stores transactionally", () => {
       expect(body).not.toMatch(/\bdb\.insert\(orderItems\)/);
     });
 
-    it("freezes cost as NULL when unknown — never 0", () => {
-      expect(body).toMatch(/unitCostPrice:\s*line\.costPrice\s*==\s*null\s*\?\s*null/);
-      expect(body).toMatch(/costSnapshotStatus:\s*line\.costStatus\s*\?\?\s*"unknown"/);
+    it("builds its cost snapshot with the ONE canonical builder", () => {
+      expect(body).toMatch(/buildProductCostSnapshot\(product,\s*snapshotAt\)/);
+      expect(body).toMatch(/toJsonbCostFields\(snapshot\)/);
+      expect(body).toMatch(/toRelationalCostFields\(lineSnapshots\[idx\]\)/);
+    });
+
+    it("does not hand-roll cost fields any more (F-1 shape is gone)", () => {
+      expect(body).not.toMatch(/costStatus\s*:\s*"exact"/);
+      expect(body).not.toMatch(/costSource\s*:\s*"none"/);
     });
   });
 
@@ -102,7 +108,7 @@ describe("order creation writes BOTH line-item stores transactionally", () => {
     const body = fnBody(invoiceStorage, "private async createOrderFromInvoice");
 
     it("writes orders.items (JSONB) and tags source=whatsapp", () => {
-      expect(body).toMatch(/items:\s*\(invoice\.items/);
+      expect(body).toMatch(/items:\s*lines\.map\(/);
       expect(body).toMatch(/source:\s*"whatsapp"/);
     });
 
@@ -113,6 +119,24 @@ describe("order creation writes BOTH line-item stores transactionally", () => {
     it("both writes use the SAME transaction handle (tx, never db)", () => {
       expect(body).not.toMatch(/\bdb\.insert\(orderItems\)/);
     });
+
+    it("F-2 FIX: carries a cost snapshot into BOTH stores via the canonical builder", () => {
+      expect(body).toMatch(/lockProductRowForUpdate\(tx as any,\s*item\.productId\)/);
+      expect(body).toMatch(/buildProductCostSnapshot\(locked,\s*snapshotAt\)/);
+      expect(body).toMatch(/toJsonbCostFields\(snapshot\)/);
+      expect(body).toMatch(/toRelationalCostFields\(snapshot\)/);
+    });
+  });
+
+  it("the canonical locking SELECT carries every cost column (F-1 root cause)", () => {
+    const canonical = read("server/services/product-cost-snapshot.ts");
+    const body = fnBody(canonical, "export async function lockProductRowForUpdate");
+    for (const col of ["cost_price", "packaging_cost", "insert_cost"]) {
+      expect(body).toContain(col);
+    }
+    expect(body).toMatch(/FOR UPDATE/);
+    // and order-storage must not keep a second, divergent SELECT
+    expect(orderStorage).not.toMatch(/SELECT id, name, price, stock, variants, has_variants AS "hasVariants"\s*\n\s*FROM products/);
   });
 
   it("legacy createOrder() is DISABLED — it throws instead of writing a broken order", () => {
