@@ -276,3 +276,143 @@ already gone. This is not a preference.
 
 **Local verification passes.** The two remaining ⏸ items are precisely what the Neon child
 branch exists to unblock.
+
+---
+
+# READINESS UPDATE — expanded four-operation set (2026-07-23)
+
+**Gate status: LOCAL VERIFICATION COMPLETE. Neon execution NOT authorized.**
+
+## What changed since the last readiness pass
+
+The migration set grew from two operations to four. Read-only forensics against production
+(`neon-child-branch-baseline.md` §6) established that `order_items_relational` exists with
+100 rows covering 25 of 37 orders — **12 orders (73 lines) have no relational rows**, and
+the fulfillment/accounting work reads those lines. Repairing that requires two operations
+that must run *before* the fulfillment migrations.
+
+## Readiness checklist
+
+| Gate | Status | Evidence |
+|---|---|---|
+| All 4 forward files hashed, full SHA-256 | ✅ | `neon-migration-review.md` (expanded set) |
+| All 4 rollback files hashed | ✅ | same |
+| Forward order defined + dependencies explicit | ✅ | snapshot → backfill → costing → hardening |
+| Rollback order defined (exact reverse) | ✅ | backfill rollback **before** snapshot rollback |
+| Snapshot migration idempotent (apply → reapply) | ✅ | 20-test PGlite suite |
+| Snapshot rollback complete (8 cols + 5 constraints) | ✅ | verified, then reapplied |
+| Snapshot safe against live 7-column shape | ✅ | fixture *is* the 7-column shape |
+| No historical row gets today's product cost | ✅ | asserted: all snapshots NULL post-apply |
+| Unknown cost stays NULL, verified zero stays 0 | ✅ | dedicated test |
+| Backfill refuses to run without its prerequisite | ✅ | hard guard raises, 0 rows written |
+| Backfill idempotent (re-run = 0 rows, no empty batch) | ✅ | test 8 |
+| Backfill preserves the 100 app rows byte-for-byte | ✅ | full-row JSON comparison |
+| Backfill reconciles line-by-line, not order-by-order | ✅ | partial-order top-up test |
+| Legitimate repeated product lines preserved | ✅ | exact-duplicate line test |
+| Batch-specific rollback removes only its 73 rows | ✅ | tests 9–11 |
+| Rollback never deletes app-created rows | ✅ | dedicated test |
+| Independent verifier (does not reuse migration SQL) | ✅ | TS reconciler in the suite |
+| Full server suite green | ✅ | **432/432**, 33 files |
+| Storefront dual-write regression guard | ✅ | `order-creation-dual-write.test.ts`, 9 tests |
+| Neon child-branch execution | ⛔ **BLOCKED** | MCP read-only; OAuth full access needed |
+| Production branch protection enabled | ⛔ **NOT DONE** | `protected: false` — owner action H1 |
+
+## Production state at this gate — unchanged
+
+- The 12-order coverage gap **remains unrepaired in production**. Nothing has been written.
+- `add_order_item_cost_snapshot.sql` is **not applied** to production.
+- The current branch's `order-storage.ts` writes `unit_cost_price` etc. — columns production
+  does not have. **Deploying this branch without operation #1 would break all order
+  creation.** Deployment ordering is: migration #1 first, then deploy.
+- Production branch `br-patient-mouse-a4d4cgr4` is `protected: false`; `allowed_ips` empty.
+
+## Remaining blockers
+
+1. **Neon MCP is read-only** — needs OAuth re-consent with full access.
+2. **Owner decision** — whether operations #1 and #2 join the authorized set (this document
+   prepares them; it does not authorize them).
+3. **Recommended first** — enable production branch protection (H1) before write scope is
+   granted.
+
+---
+
+# DEPLOYMENT COMPATIBILITY MATRIX (2026-07-23, rev. 3)
+
+"Old app" = any build **before** `ff90377` (does not write cost-snapshot columns).
+"New app" = this branch (writes 8 cost-snapshot columns via `createOrderSecure`).
+
+| Database schema | Old app | New app |
+|---|---|---|
+| **Before snapshot migration** | ✅ Works. Writes the original 7 columns only. This is production today. | ⛔ **MUST NOT RECEIVE TRAFFIC.** `GET /ready` returns **503** naming the missing columns; order creation returns 503 `SCHEMA_NOT_READY`. Without the guard every checkout would fail on `column ... does not exist`. |
+| **After snapshot migration (#1)** | ✅ Compatible. The 8 columns are nullable and additive; the old app simply ignores them and leaves them NULL. | ✅ **Supported.** Readiness passes; costs freeze at sale, NULL when unknown. |
+| **After all four operations** | ✅ Compatible. Fulfillment tables are new and unreferenced by the old app; backfilled rows are ordinary relational rows. | ✅ **Supported.** Full target state. |
+| **After rollback (all 4 reversed)** | ✅ Compatible — back to the pre-migration shape it already handles. | ⛔ **Requires the OLD app version.** The new app writes columns that no longer exist; readiness fails 503 by design. **Roll the app back before, or together with, the schema.** |
+
+## Rolling deployment order
+
+1. Apply **operation #1** (`add_order_item_cost_snapshot.sql`). Additive and
+   nullable, so the currently-deployed old app keeps working throughout — there is
+   no window in which live traffic is broken.
+2. Verify `GET /ready` returns 200 on a canary of the new app.
+3. Roll out the **new app**. Instances failing readiness are never given traffic.
+4. Apply operations **#2 → #3 → #4** (backfill, then fulfillment costing, then
+   hardening). None of these is required for order creation to work.
+
+**Never** deploy the new app before step 1. That is the only ordering that breaks
+customer checkout, and it is precisely what the readiness guard now prevents.
+
+## Rollback compatibility
+
+Reverse order (hardening → costing → backfill-batch → snapshot). Because the new
+app depends on the snapshot columns, **the application must be rolled back to the
+old version before — or in the same window as — step 4**. If the schema is rolled
+back first, the new app's readiness probe fails and it stops accepting traffic
+rather than corrupting orders: degraded, but safe and loud.
+
+Guard implementation: `server/services/schema-readiness.ts`; endpoint `GET /ready`;
+route guard in `server/routes/orders.ts`. Tests:
+`server/__tests__/schema-readiness.test.ts` (8).
+
+# COMPLETE LOCAL VERIFICATION (2026-07-23, rev. 3)
+
+Reported separately, not as one aggregate. The earlier "432/432" figure was the
+server suite alone and should not have been described as complete project verification.
+
+| Suite / gate | Command | Result |
+|---|---|---|
+| Server tests | `vitest run server/` | ✅ **490 passed** (36 files) |
+| Client tests | `vitest run client/` | ✅ **688 passed** (67 files) |
+| **Total unit/integration** | — | ✅ **1,178 passed, 0 failed (103 files)** |
+| API/route tests | included above (`api.test.ts`, `routes.test.ts`, `orders-api.test.ts`, `fulfillment-admin-api.test.ts`) | ✅ pass |
+| Migration tests | `orderitem-backfill-migration` (21) · `orderitem-backfill-validation` (35) · `migration-transaction-contract` (11) · `fulfillment-migration` · `fulfillment-hardening-migration` · `migration-idempotency` | ✅ pass |
+| Strict accounting typecheck | `npm run check:accounting` | ✅ clean |
+| Accounting route typecheck | `npm run check:accounting:routes` | ✅ OK — no strict errors in owned files |
+| Repository typecheck | `npm run check` | ✅ **clean (0 errors)** |
+| Production build | `npm run build` | ✅ client + server built (`dist/index.js`) |
+| Security / credential scan | pattern scan over all changed files | ✅ no live credentials introduced |
+| Independent fulfillment verifier | `npm run verify:fulfillment` | ⛔ **NOT RUN** — requires `DATABASE_URL`; it correctly refuses to guess a connection. Gated on the Neon child branch. |
+| Playwright fulfillment workflow | `npm run test:e2e` | ⛔ **NOT RUN** — needs a running app + seeded DB. Gated on the Neon child branch. |
+
+## Notes on the two gates that did not run
+
+Both are **branch-gated by design**, not skipped. `verify:fulfillment` refuses to
+run without an explicit `DATABASE_URL` — the correct behaviour, since guessing a
+connection is exactly the failure mode this whole effort is guarding against. The
+Playwright fulfillment workflow needs a live app against a real database. Both are
+first-class items in the child-branch plan and will run there.
+
+## Pre-existing typecheck error — FIXED, not explained away
+
+`client/src/pages/products.tsx:364` referenced `p.imageUrls`, which does not exist
+on `Product` (the field is `images`). Introduced by `81024b5` during SEO work, it
+silently emitted `image: undefined` on every JSON-LD ItemList entry on the products
+page — a real SEO defect, not merely a type complaint. Fixed to
+`p.thumbnail || p.images?.[0]`, matching `deals.tsx` and `admin-dashboard.tsx`.
+`npm run check` is now clean for the first time in this effort.
+
+## Pre-existing observation (NOT introduced here, no action taken)
+
+`docs/audit/pre-neon-readiness.md` (earlier section) contains a production
+connection string with the password already redacted as `REDACTED_ROTATE_ME`, but
+the host and role name remain visible. Not a live credential and left untouched as
+historical evidence — folded into hardening item H5 (rotation).

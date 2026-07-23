@@ -1,0 +1,410 @@
+# Neon Child-Branch Verification — Final Decision
+
+**Date:** 2026-07-23 (rev. 3)
+**Decision: BLOCKED on Neon execution.** Phase 0 PASSES; the expanded four-operation
+migration set is prepared, audited, committed and **locally verified (1,178 tests: 490 server
++ 688 client, 0 failed; repo typecheck clean; build green)**. Nothing has
+been run against Neon and no branch has been created.
+
+**Production state: the 12-order relational coverage gap REMAINS UNREPAIRED.** Its root
+cause is identified and its repair is built and tested locally, but repair is pending
+child-branch verification and owner approval. Diagnosis is not remediation.
+
+---
+
+## 1. Summary
+
+Phase 0 completed and passed. Everything after Phase 0 is blocked by a single cause: the
+connected Neon MCP integration is authorized in **read-only** mode. Branch creation is a
+write operation, so the two authorized child branches could not be created, and no gate
+downstream of them could execute.
+
+This is an authorization scope issue, not a defect in the migrations, the code, or the
+plan. The migration integrity gate passed cleanly.
+
+## 2. Phase 0 status — CONDITIONAL PASS (rev. 2, 2026-07-23)
+
+Phase 0 rev. 1 was accepted provisionally and then **failed one gate on challenge**. After
+read-only forensic reconciliation, Phase 0 now passes with the order-item finding corrected.
+
+| Gate | rev. 1 | rev. 2 (after reconciliation) |
+|---|---|---|
+| Neon project identified by multiple independent signals | ✅ PASS | ✅ PASS (revalidated, uncached) |
+| Production branch identity + parent recorded | ✅ PASS | ✅ PASS |
+| Target revalidation (project/branch/db/role/endpoint) | not done | ✅ PASS |
+| Forward-migration SHA-256 vs `neon-migration-review.md` | ✅ PASS | ✅ PASS — both exact, unchanged |
+| Rollback-migration hashes recorded | ✅ | ✅ |
+| Production object/row baseline captured | ⚠️ partly wrong | ✅ PASS (corrected) |
+| **Order-item topology** | ❌ **FAIL — false negative** | ✅ **PASS — corrected, §5** |
+| Reconciliation vs prior 2026-07-21 evidence | not done | ✅ PASS — counts identical |
+
+**Overall Phase 0: PASS (rev. 2).** One gate failed in rev. 1 and has been corrected with
+full evidence; the correction is recorded, not silently substituted.
+
+**Process lesson worth carrying forward:** rev. 1 turned a narrow negative result
+("no table with this exact name") into a broad architectural conclusion ("no relational
+side exists"). Absence-of-evidence claims in this audit must be backed by a pattern sweep
+across all schemas, not an exact-name lookup — and must be checked against prior recorded
+evidence before being published. The prior evidence contradicted the claim and would have
+caught it immediately.
+
+Evidence: `docs/audit/neon-child-branch-baseline.md` (§6 contradiction resolution).
+
+Key identifiers:
+
+- Project: `fishweb` / `shiny-tree-43710630` (org `org-sweet-glitter-04175211`)
+- Production branch: `production` / `br-patient-mouse-a4d4cgr4` (root branch, no parent)
+- Database `neondb`, PostgreSQL 17.10, 196 public tables, 143 products, 37 orders
+
+## 3. The blocker — exact permission missing
+
+Every Neon MCP tool schema returned by the integration carries this server-side notice:
+
+> The MCP server is currently configured with **read-only permissions**. All write-access
+> tools have been removed. All remaining tools are limited to read-only operations (for
+> example, read-only SQL queries). … The user can remove read-only mode by removing the
+> `readonly` query param from the MCP server URL, or by logging out and back in with OAuth
+> and selecting full access.
+
+**Missing capability:** write / full access on the Neon MCP connection for project
+`shiny-tree-43710630`.
+
+**Tools that were stripped and are required by this task:**
+
+| Required tool | Needed for |
+|---|---|
+| `create_branch` | Creating both authorized child branches |
+| `run_sql` / `run_sql_transaction` **with write permission** | Applying the two forward migrations in explicit transactions; seeding synthetic test data; rollback and re-apply |
+| `delete_branch` (optional) | Disposing of the rollback branch afterwards |
+
+The surviving `run_sql` tool executes read-only statements only, so even given an existing
+branch it could not run `BEGIN; … COMMIT;` around DDL.
+
+### How to unblock — official OAuth flow, no credentials in chat
+
+**Not requested yet** — per instruction, write access is deferred until the contradiction
+was closed. The contradiction is now closed (§5), so this is the precise ask.
+
+**Preferred (officially supported) flow:** disconnect the Neon connector and reconnect
+through **Neon OAuth**, selecting **full access** at the consent screen instead of
+read-only. The connector's own notice names this as a supported path
+("logging out and back in with OAuth and selecting full access").
+
+The alternative the notice also mentions — hand-editing the `readonly` query parameter out
+of the MCP server URL — is **not recommended here** and is not being requested. It is a URL
+manipulation rather than a re-consent, it leaves no audit record of a scope change, and it
+is indistinguishable from a workaround. Prefer the OAuth re-consent.
+
+**Minimum capabilities required** (all scoped to project `shiny-tree-43710630`):
+
+| Capability | Tool | Why |
+|---|---|---|
+| Create child branches | `create_branch` | The two authorized isolated branches |
+| Write SQL **on those child branches** | `run_sql` / `run_sql_transaction` | `BEGIN; … COMMIT;` around each migration; synthetic seed data; rollback + re-apply |
+| Branch-scoped ephemeral connection details | `get_connection_string` | Real multi-connection concurrency; running services against the branch |
+| Delete a branch (optional) | `delete_branch` | Disposing of the rollback branch |
+
+Neon OAuth scopes are granted per-project, not per-branch, so this necessarily also confers
+production write capability at the API level. **Production remains protected by task
+boundary, not by permission.** That gap is exactly why the hardening items in §7b matter.
+
+Nothing here requires a database password, a production connection string, an API key, or
+the historical `neondb_owner` credential in chat — and none will be accepted.
+
+### A second gate to expect after that one
+
+Two requested items need more than MCP write access, and will surface as soon as the first
+blocker clears:
+
+- **"Run the actual fulfillment services against this Neon child branch"** and
+- **"true multi-connection concurrency using separate real Neon connections"**
+
+Both require a *branch-scoped connection string* handed to the Node process and to parallel
+`pg` clients — the MCP `run_sql` transport cannot hold two concurrent sessions against each
+other, which is precisely what the advisory-lock and race tests need. The connected MCP
+exposes `get_connection_string`, which should supply a branch-scoped credential without
+touching production secrets, but whether it survives in read-only mode is untested. Plan
+for the concurrency harness to read a branch-only connection string from an env var that
+you populate, never from chat.
+
+## 4. Reports not produced, and why
+
+Four of the six requested documents are **deliberately absent**. Writing them would mean
+publishing headings with no evidence under them, and an audit trail that implies gates ran
+when they did not is worse than a missing file.
+
+| Report | Status |
+|---|---|
+| `neon-child-branch-baseline.md` | ✅ written (Phase 0 only; production baseline, not child-branch baseline) |
+| `neon-verification-final.md` | ✅ this document |
+| `neon-migration-execution.md` | ❌ not written — no migration executed |
+| `neon-concurrency-verification.md` | ❌ not written — no concurrent connections opened |
+| `neon-shadow-comparison.md` | ❌ not written — no branch data to compare over |
+| `neon-rollback-verification.md` | ❌ not written — no rollback executed |
+
+## 5. Order-item topology — CORRECTED 2026-07-23
+
+> ⚠️ **This section previously contained a false claim, retained here for audit integrity.**
+>
+> **Retracted claim (rev. 1):** "All 37 production orders store line items exclusively in
+> `orders.items` (JSONB). The `order_items` table does not exist at all — 0 relational
+> order-item rows... The requested comparison of JSONB and relational order items therefore
+> has no relational side on this data set."
+>
+> **That was wrong.** It came from an exact-equality filter (`table_name='order_items'`)
+> that could not match the real table, `order_items_relational`. The `0` it returned was
+> then over-interpreted as "no relational storage exists." The prior 2026-07-21 evidence in
+> `neon-forensics.md` was correct all along and is reinstated.
+
+**Corrected topology** (full evidence: `neon-child-branch-baseline.md` §6):
+
+- `public.order_items_relational` **exists** — 100 rows, 7 columns, FKs to `orders` and
+  `products`, 3 indexes, 0 orphans.
+- `public.order_items` does not exist under any name, casing, view, or synonym — but it
+  was never the operative table.
+- Coverage: **25 of 37 orders** have relational lines; **12 are JSONB-only**; 0 are
+  relational-only; 0 have neither.
+- Agreement: across the 25-order overlap, **97 of 97 comparison groups agree exactly** on
+  line count, quantity, and price. No divergence defect — only a coverage gap.
+- Root cause of the gap: **identified, but the gap itself is NOT repaired.** `orders.source`. WhatsApp/admin-created orders are 19/19 covered;
+  website/storefront orders are 6/18, with all 12 misses in a contiguous
+  2026-05-12 → 2026-06-17 window. The storefront path stopped writing relational lines in
+  that window; a fix landed ~2026-06-22.
+- **Production data did not change.** Today's counts (100 rows / 25 orders) are identical
+  to the independently recorded 2026-07-21 audit.
+
+**Effect on the shadow-comparison plan (revised).** The JSONB-vs-relational axis *is* live
+and testable against real production data — the opposite of what rev. 1 concluded. It must
+be exercised across the 25-order overlap, and the 12-order gap must be treated as a known
+input condition, not a test failure. Any comparison that silently assumes full relational
+coverage will misreport those 12 orders.
+
+## 5b. Blocking dependency discovered — the backfill cannot run
+
+`migrations/backfill_orderitems_from_jsonb.sql` writes six cost-snapshot columns
+(`unit_cost_price`, `unit_packaging_cost`, `unit_insert_cost`, `cost_snapshot_status`,
+`cost_snapshot_source`, `cost_snapshot_confidence`). **None exist** on the live 7-column
+table. The script would abort on `column ... does not exist`.
+
+Independently corroborated: the backfill stamps `metadata->>'backfilled' = true` on
+everything it writes, and **0 of the 100 live rows carry that marker** — so it has never
+run on production, and all 100 rows came from the application write path.
+
+Its prerequisite, `migrations/add_order_item_cost_snapshot.sql`, is **not applied to
+production** and is **not part of the two-migration sequence authorized for this task**.
+This ordering dependency must be resolved on the verification branch before the 12-order
+gap can be repaired. Flagging it rather than acting on it — expanding the authorized
+migration set is your call, not mine.
+
+## 6. Boundaries honored
+
+- No branch created; no write issued on any branch.
+- No production write, schema change, migration, promotion, endpoint change, env-var
+  change, or deletion.
+- No credential displayed, reused, requested, or rotated.
+- No customer PII read or reproduced.
+- No legacy accounting code deleted.
+- No deployment or promotion.
+- The 38 zero-byte files were not touched.
+- No destructive filesystem operation performed.
+
+## 7. Production credential-rotation runbook (documented, NOT executed)
+
+Recorded per instruction; **do not run any of this without separate explicit approval.**
+The historical exposed `neondb_owner` credential is a separate incident and was neither
+reused nor displayed here.
+
+1. **Inventory consumers first.** Enumerate everything holding a production connection
+   string: Vercel env vars (`DATABASE_URL` and any pooled variant), CI secrets, local
+   `.env` files, scheduled jobs. Rotation without a complete list causes an outage.
+2. **Prefer a new role over resetting the owner.** Create a least-privilege application
+   role scoped to `public`, rather than continuing to run the app as `neondb_owner`. This
+   converts the incident into a permanent improvement instead of a repeat of the same
+   exposure surface.
+3. **Rotate in a maintenance window.** The project window is Saturdays 08:00–09:00 UTC.
+4. **Reset the password** via the Neon console or API for the target role. Neon invalidates
+   the old password immediately — there is no dual-validity grace period, so update
+   consumers in the same window.
+5. **Update consumers**, redeploy, and confirm the app reconnects before closing the window.
+6. **Verify the old credential is dead** by attempting a connection with it and confirming
+   rejection.
+7. **Restrict the blast radius going forward:** enable `allowed_ips` (currently empty, i.e.
+   unrestricted) and consider `protected_branches_only`. Mark `production` as **protected**
+   — it is currently `protected: false`, which is why an accidental write or promotion is
+   mechanically possible today. This alone is worth doing regardless of rotation.
+8. **Purge the leaked value** from git history, logs, and any chat/ticket transcript, and
+   confirm the secret scanner flags it.
+
+## 5bis. Storefront fix — VERIFIED IN REPOSITORY HISTORY
+
+The 2026-06-22 inflection was a data-derived hypothesis. It is **now confirmed by the
+commit that caused it** — this is no longer a hypothesis.
+
+| Field | Evidence |
+|---|---|
+| **Commit** | `f1b85d46c649fed0b5a46c1d97156b6d03c1cae3` (`f1b85d4`) |
+| **Date** | Fri 2026-06-19 20:51:42 +0300 — inside the data gap (last miss 06-17, first cover 06-22) |
+| **Subject** | `fix(orders): persist line items into order_items_relational on every order` |
+| **File / function** | `server/storage/order-storage.ts` → `createOrderSecure()`, block "6b" |
+| **Diff size** | +18 lines, 1 file |
+| **Tests added** | **None.** The fix shipped unguarded. |
+
+The commit body states the defect independently of our data analysis:
+
+> "Website checkout only wrote items to orders.items (JSONB); the relational table
+> (order_items_relational) was never populated, so sales analytics under-counted (only
+> ~half of orders had relational rows). Insert relational rows inside the order
+> transaction."
+
+"only ~half of orders had relational rows" matches the measured 25/37 exactly. **Data
+evidence and code evidence agree independently.**
+
+### Do all current order-creation paths dual-write transactionally?
+
+| Path | Source tag | Writes JSONB | Writes relational | Same transaction | Verdict |
+|---|---|---|---|---|---|
+| `order-storage.ts` `createOrderSecure()` — storefront | `website` | ✅ | ✅ (since f1b85d4) | ✅ `tx.insert` | **OK** |
+| `invoice-storage.ts` `createOrderFromInvoice()` — admin | `whatsapp` | ✅ | ✅ | ✅ `tx.insert` | **OK** |
+| `order-storage.ts` `createOrder()` — legacy | — | ✅ | ❌ **none** | ❌ bare `db.insert` | **LATENT HAZARD** |
+| `auto-order-processor.ts` | — | ❌ | ⚠️ `db.insert` (not `tx`) | ❌ | **DEAD / BROKEN** |
+
+Two findings beyond the original question:
+
+- **`createOrder()` is the same bug, still present.** A bare `db.insert(orders)` with no
+  transaction and no relational write. No route calls it today (routes use
+  `createOrderSecure`), but it remains on the storage interface — routing anything to it
+  would silently recreate the gap.
+- **`auto-order-processor.ts` cannot run at all.** It inserts `totalAmount`, `priceAtTime`
+  and `shippingMethod` — none of which exist in the schema — writes no `orders.items`, and
+  uses `db.insert` outside any transaction. Its processing loop is unreferenced (only
+  `create()` and `getUserAutoOrders()` are imported), so it is dead code, not a live defect.
+
+### Regression guard added
+
+`server/__tests__/order-creation-dual-write.test.ts` — **9 tests, passing.** Asserts both
+live paths write both stores via `tx`, that cost is frozen NULL-not-0, that `createOrder()`
+stays unrouted, and that `auto-order-processor` stays dead. The original regression shipped
+with no test; this closes that.
+
+## 5c. Expanded migration set — FINAL, committed and locally verified (rev. 3)
+
+**Execution contract:** migration files contain NO top-level BEGIN/COMMIT/ROLLBACK.
+The executor owns the transaction and submits each complete file through one
+write-capable transactional call. Full rationale, parameters and per-file detail:
+`neon-migration-review.md` (rev. 3). Enforced by an 11-test static guard.
+
+Hashes below are of the **committed** bytes, verified equal to the working tree.
+
+| # | Forward file | SHA-256 (committed) |
+|---|---|---|
+| 1 | `add_order_item_cost_snapshot.sql` | `e507bce47ae334aa77de3df5b38ea2f53e3e656ea6d84f51a2433c4650b3b0ed` |
+| 2 | `backfill_orderitems_from_jsonb.sql` **(rewritten)** | `8225c60242a1ce6944bbdbc2eaa238aaebf8cbad41dcab1ee4fcc612ca5a0f62` |
+| 3 | `add_fulfillment_costing.sql` | `ea34a32f5f3d84b5913ca700531941a5ba7f53edf9ba125aa865345a979901d1` |
+| 4 | `add_fulfillment_hardening.sql` | `5a7f43634f801f7dc2c77a5f621204c39b1ae1b9cf245a1377e2c67615547f47` |
+
+Read-only companion, run before and after #2:
+`backfill_orderitems_reconcile_report.sql` —
+`874f5d8e246373e55b15c5c2a5c3c38462009f8b84c0c12bde8b6e7c235f0c25`
+
+| Rollback step | File | SHA-256 (committed) |
+|---|---|---|
+| 1 | `add_fulfillment_hardening_rollback.sql` | `8a7d97347556de33a7e8fc0c214e85f2fd881ac9e95a70b35724ea3282c510b4` |
+| 2 | `add_fulfillment_costing_rollback.sql` | `80fb2b54da93ed0f3c932e71e9321a3adfe185476facd29ccf686cb46f291296` |
+| 3 | `backfill_orderitems_from_jsonb_rollback.sql` | `23503c3ee273db51fe0b8b6d6717f38cafdf4864f810d335fdbc219183cf7dd1` |
+| 4 | `add_order_item_cost_snapshot_rollback.sql` | `8811d78cc24830e1c70c61b11d1194918d73e6afe516a7ad4132044715dd1ae4` |
+
+**Required `SET LOCAL` parameters** (same transaction, before the file):
+`aquavo.backfill_batch_id` is **mandatory** for the rollback — there is no default,
+because "latest batch" can change between preview and execution.
+`aquavo.backfill_allow_unresolved` gates the fail-closed behaviour;
+`aquavo.backfill_drop_control_table` selects rollback MODE A vs MODE B.
+
+**Control-table rollback policy — explicit.** `orderitem_backfill_batches` is
+introduced by operation #2. MODE A (`drop_control_table='on'`) removes it, giving a
+true byte-for-byte object-set rollback, permitted only on the disposable branch and
+only when no un-rolled-back batch remains. MODE B (default) retains it as the audit
+trail; under MODE B the rollback is **"complete except for the retained audit
+table"** and is never described as unqualified. Both modes are tested.
+
+**Nothing is fabricated.** Quantity is never defaulted to 1, price never to 0.
+Eight reason codes classify unresolved lines; the migration fails closed unless the
+owner sets an explicit override, and even then bad lines stay uninserted and the
+batch records `reconciliation_complete = false`.
+
+**Complete local verification — reported separately** (see
+`pre-neon-readiness.md`): server **490**, client **688**, **total 1,178 passed,
+0 failed** across 103 files; repository typecheck **clean**; accounting + route
+typechecks clean; production build succeeds; credential scan clean. Two gates did
+not run and are branch-gated by design: `verify:fulfillment` (refuses to run
+without `DATABASE_URL`) and the Playwright fulfillment workflow (needs a live app).
+
+**This is preparation, not authorization.** Nothing has been run against Neon.
+
+## 5d. Deployment-ordering hazard (NEW, needs owner attention)
+
+`server/storage/order-storage.ts` (`createOrderSecure`, current branch) writes
+`unit_cost_price`, `cost_snapshot_status` and four sibling columns — added 2026-07-22 in
+`ff90377`. **Production does not have those columns.** Deploying this branch before
+operation #1 would make every storefront order creation fail.
+
+Required order: **apply migration #1 → then deploy.** Not the reverse.
+
+## 7b. Production hardening proposal (findings only — NO write authorized)
+
+Recorded as a proposal. **No production security setting was changed during this task**,
+and none is authorized. Each item is separable and can be approved individually.
+
+| # | Finding | Current state | Proposed | Risk if left |
+|---|---|---|---|---|
+| H1 | Production branch protection disabled | `protected: false` on `br-patient-mouse-a4d4cgr4` | Enable branch protection on `production` | Accidental write, reset, or promotion to production is mechanically possible — nothing but discipline prevents it |
+| H2 | No IP restrictions | `allowed_ips: []`, `block_public_connections: false` | Optional allowlist (Vercel egress + admin) | Any host with a valid credential can connect from anywhere |
+| H3 | **MCP executes as `neondb_owner`** | Confirmed `current_user = neondb_owner` | Least-privilege role for tooling; reserve owner for DDL | Read-only is enforced only at the MCP layer; granting write grants **owner-level** production write |
+| H4 | App likely runs as owner too | Inferred — needs confirmation | Dedicated app role: DML on `public`, no DDL, no DROP | A single app-side injection reaches full schema authority |
+| H5 | Historical `neondb_owner` credential exposed | Rotation UNVERIFIED (per findings register) | Execute the §7 rotation runbook | Known-leaked full-privilege credential may still authenticate |
+| H6 | No promotion controls | Any branch promotable | Require protection + explicit approval before promote | An unreviewed branch can become production |
+
+### H1 — exact owner action (recommended BEFORE granting OAuth full access)
+
+**Do this yourself in the Neon console. I am not authorized to perform it and have not.**
+
+1. Neon Console → organization **Eng** (`org-sweet-glitter-04175211`) → project **fishweb**
+   (`shiny-tree-43710630`) → **Branches**.
+2. Open branch **`production`** (`br-patient-mouse-a4d4cgr4`) — the one marked *default*
+   and *primary*.
+3. Enable **Branch protection** (branch settings → "Protect branch" / `protected: true`).
+4. Confirm the branch list shows `production` as protected.
+
+Effect: protected branches reject deletion and reset, and are excluded from accidental
+destructive operations. Child branches can still be created *from* it, so this does **not**
+block the verification work — it only removes the hazard of holding write scope.
+
+Verification afterwards (read-only, I can run it): `describe_project` should report
+`"protected": true` on `br-patient-mouse-a4d4cgr4`.
+
+Rollback: the same toggle, off.
+
+**Not authorized and not to be done now:** credential rotation, IP allowlisting, role
+changes, promotion-control changes. Each needs separate explicit approval.
+
+Suggested order: **H1 first** (single toggle, highest ratio of risk removed to effort),
+then H5 (rotation), then H3/H4 (least-privilege roles), then H2 and H6.
+
+H1 and H3 together are the ones that make this verification task safer: with branch
+protection on and a non-owner tooling role, granting MCP write access would no longer put
+production within reach of a mistake.
+
+## 8. Recommended next step
+
+The read-only contradiction is closed (§5), so the permission ask is now unblocked.
+
+1. Reconnect the Neon connector through **OAuth with full access** (§3), which restores
+   `create_branch`, write-capable `run_sql`/`run_sql_transaction`, and
+   `get_connection_string`.
+2. Optionally enable **H1 (production branch protection)** first — one toggle, and it
+   removes the main hazard of holding write scope.
+3. Resume at "authorized branch creation." **Phase 0 does not need repeating:** project,
+   branch, role, baseline, coverage matrix, and migration hashes are all recorded, and the
+   migration bytes are verified unchanged.
+4. Decide whether `migrations/add_order_item_cost_snapshot.sql` joins the authorized
+   migration set (§5b) — without it the backfill cannot run and the 12-order gap cannot be
+   repaired on the verification branch.

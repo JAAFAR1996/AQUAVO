@@ -253,3 +253,190 @@ none affects financial correctness.
    serializes statements. Specifically: two reshipments for one order from two connections,
    a duplicate idempotency request, two orders simultaneously, and advisory-lock scope.
 6. Rollback, on a **separate disposable child branch**, restores the baseline exactly.
+
+---
+
+# EXPANDED MIGRATION SET — four ordered operations (2026-07-23)
+
+**Status: prepared, audited and locally verified. NOT authorized to run on Neon.**
+
+The original two-migration set was insufficient. `add_fulfillment_costing.sql` and
+`add_fulfillment_hardening.sql` remain byte-identical and re-verified, but the child-branch
+plan now needs two additional operations first, because the fulfillment/accounting work
+reads order lines that 12 production orders do not have (see
+`neon-child-branch-baseline.md` §6).
+
+## Forward sequence — MUST run in this order
+
+| # | File | Lines | SHA-256 | Depends on |
+|---|---|---:|---|---|
+| 1 | `migrations/add_order_item_cost_snapshot.sql` | 69 | `e507bce47ae334aa77de3df5b38ea2f53e3e656ea6d84f51a2433c4650b3b0ed` | — |
+| 2 | `migrations/backfill_orderitems_from_jsonb.sql` | 243 | `7586b078119718853b65a28ff091e3156014272db4df121f355590035c14bf1e` | **#1 (hard guard, raises exception without it)** |
+| 3 | `migrations/add_fulfillment_costing.sql` | 254 | `ea34a32f5f3d84b5913ca700531941a5ba7f53edf9ba125aa865345a979901d1` | — (unchanged, re-verified) |
+| 4 | `migrations/add_fulfillment_hardening.sql` | 448 | `5a7f43634f801f7dc2c77a5f621204c39b1ae1b9cf245a1377e2c67615547f47` | #3 |
+
+### Per-operation detail
+
+**1 — `add_order_item_cost_snapshot.sql`**
+- *Transaction boundary:* no explicit `BEGIN`. One multi-column `ALTER TABLE` + one `DO`
+  block; wrap in an explicit transaction when executing.
+- *Objects changed:* `order_items_relational` +8 nullable columns
+  (`unit_cost_price`, `unit_packaging_cost`, `unit_insert_cost`, `cost_snapshot_status`,
+  `cost_snapshot_source`, `cost_snapshot_confidence`, `cost_snapshot_version`,
+  `cost_snapshot_at`) and +5 `NOT VALID` CHECK constraints. **7 columns → 15.**
+- *Rows changed:* **0.** Purely additive; every new column is NULL on existing rows.
+  The migration explicitly refuses to backfill from current product cost.
+- *Rollback:* `add_order_item_cost_snapshot_rollback.sql`
+  (`8811d78cc24830e1c70c61b11d1194918d73e6afe516a7ad4132044715dd1ae4`)
+- *Idempotency:* `ADD COLUMN IF NOT EXISTS`; each constraint guarded by a `pg_constraint`
+  lookup. Verified by reapply.
+
+**2 — `backfill_orderitems_from_jsonb.sql` (REWRITTEN 2026-07-23)**
+- *Transaction boundary:* explicit `BEGIN; … COMMIT;` around STEP 3, with
+  `LOCK TABLE order_items_relational IN SHARE ROW EXCLUSIVE MODE`. STEP 1/4 are read-only
+  reports outside the transaction; STEP 2 is a pre-flight guard.
+- *Objects changed:* creates `orderitem_backfill_batches` (control/audit table) if absent.
+- *Rows changed:* inserts one relational row per JSONB line that has no counterpart —
+  **73 on current production data**, bringing coverage 25/37 → 37/37. **Never updates or
+  deletes an existing row.** Cost fields are written NULL with
+  `status='unknown', source='none'` — never 0, never today's product cost.
+- *Rollback:* `backfill_orderitems_from_jsonb_rollback.sql`
+  (`f5e722d4d93073961f35b905234226cf10f3d8cc76329582d2bcffaba9c50fe2`) — **batch-specific**.
+- *Idempotency:* re-running inserts 0 rows and opens **no** batch.
+
+**3 / 4 — fulfillment costing + hardening**
+Unchanged from the original review above; hashes re-verified byte-identical on 2026-07-23.
+Rollbacks: `add_fulfillment_costing_rollback.sql`
+(`80fb2b54da93ed0f3c932e71e9321a3adfe185476facd29ccf686cb46f291296`),
+`add_fulfillment_hardening_rollback.sql`
+(`8a7d97347556de33a7e8fc0c214e85f2fd881ac9e95a70b35724ea3282c510b4`).
+
+## Rollback sequence — EXACT REVERSE, mandatory
+
+| Step | File | Removes |
+|---|---|---|
+| 1 | `add_fulfillment_hardening_rollback.sql` | hardening triggers/functions/indexes |
+| 2 | `add_fulfillment_costing_rollback.sql` | the 8 fulfillment tables |
+| 3 | `backfill_orderitems_from_jsonb_rollback.sql` | **only** the rows of one batch |
+| 4 | `add_order_item_cost_snapshot_rollback.sql` | the 8 columns + 5 constraints |
+
+**Step 3 MUST precede step 4.** The batch selector reads
+`metadata #>> '{backfill,batch_id}'`; dropping the snapshot columns first is survivable for
+`metadata` itself, but reversing the order breaks the intended dependency chain and leaves
+backfilled rows indistinguishable from app rows if `metadata` is ever touched. Treat the
+order as mandatory.
+
+## Why the old backfill was rejected
+
+| Defect | Consequence | Fix |
+|---|---|---|
+| INSERTed 6 columns that don't exist pre-#1 | Aborted instantly; never ran | Hard guard (STEP 2) + documented dependency |
+| Skipped an entire order if it had ANY relational row | A partially-written order could never be completed | Line-by-line reconciliation via `(order, product, qty, price, dup_rank)` |
+| Rollback selector was global `metadata.backfilled=true` | Would reverse **every** backfill, not one batch | Batch-specific `metadata.backfill.batch_id` uuid |
+| No batch identity, no audit trail | No way to prove what a run inserted | `orderitem_backfill_batches` control table |
+| Random `gen_random_uuid()` line identity | Duplicate lines indistinguishable across retries | Deterministic fingerprint recorded per row |
+
+## Local verification evidence
+
+`server/__tests__/orderitem-backfill-migration.test.ts` — **20 tests, all passing**, against
+a PGlite fixture reproducing the exact live topology (37 orders / 173 JSONB lines / 100
+relational rows / 25 covered / 12 gap / repeated product lines / 7-column pre-migration
+shape). Includes an **independent verifier** that recomputes expected coverage in TypeScript
+from `orders.items` without reusing any migration SQL.
+
+Full suite: **432/432 server tests pass** (33 files).
+
+---
+
+# FINAL — execution contract + committed hashes (2026-07-23, rev. 3)
+
+**Supersedes the hash table above for the two backfill files** (both were rewritten;
+see the "why the old backfill was rejected" table plus the new defects below).
+All hashes here are of the **committed bytes**, verified equal to the working tree.
+
+## Execution contract (MANDATORY, all operations)
+
+> **Migration SQL files contain no top-level `BEGIN`, `COMMIT` or `ROLLBACK`.
+> The executor owns the transaction.**
+
+Each complete file is submitted through exactly one write-capable transactional call:
+
+```sql
+BEGIN;
+--   ... one complete migration file, verbatim ...
+COMMIT;          -- on ANY error: ROLLBACK;
+```
+
+A failure rolls back **every** statement in that file together — control-table
+creation, prerequisite guards, `LOCK TABLE`, batch creation, inserted relational
+lines and the batch completion stamp. There is no partial state to reason about.
+
+Rationale: PostgreSQL has no true nested transactions. A `BEGIN` inside a file that
+the executor has already wrapped emits a warning and is ignored; a `COMMIT` inside
+it ends the *outer* transaction early, so later statements run unprotected and a
+subsequent `ROLLBACK` reverses less than it appears to. Rollback evidence becomes
+ambiguous exactly when it matters most.
+
+Enforced by `server/__tests__/migration-transaction-contract.test.ts` (11 tests),
+which scans all nine reviewed files with dollar-quoted PL/pgSQL bodies stripped, so
+a `DO $$ BEGIN ... END $$` block delimiter is not a false positive. It carries both
+a negative control (a real violation is caught) and a false-positive control.
+
+**Parameters** are passed as `SET LOCAL` in the same transaction, before the file:
+
+| Setting | Used by | Meaning |
+|---|---|---|
+| `aquavo.backfill_allow_unresolved` | forward backfill | `'on'` proceeds despite unresolved/ambiguous lines (owner review). Default off → fail closed. |
+| `aquavo.backfill_batch_id` | backfill rollback | **REQUIRED**, exact uuid. No default. |
+| `aquavo.backfill_drop_control_table` | backfill rollback | `'on'` = MODE A (drop audit table). Default MODE B (retain). |
+
+## Forward sequence — committed hashes
+
+| # | File | Lines | SHA-256 (committed) |
+|---|---|---:|---|
+| 1 | `add_order_item_cost_snapshot.sql` | 69 | `e507bce47ae334aa77de3df5b38ea2f53e3e656ea6d84f51a2433c4650b3b0ed` |
+| 2 | `backfill_orderitems_from_jsonb.sql` | 253 | `8225c60242a1ce6944bbdbc2eaa238aaebf8cbad41dcab1ee4fcc612ca5a0f62` |
+| 3 | `add_fulfillment_costing.sql` | 254 | `ea34a32f5f3d84b5913ca700531941a5ba7f53edf9ba125aa865345a979901d1` |
+| 4 | `add_fulfillment_hardening.sql` | 448 | `5a7f43634f801f7dc2c77a5f621204c39b1ae1b9cf245a1377e2c67615547f47` |
+
+Supporting, read-only, run before/after #2:
+
+| File | SHA-256 (committed) |
+|---|---|
+| `backfill_orderitems_reconcile_report.sql` | `874f5d8e246373e55b15c5c2a5c3c38462009f8b84c0c12bde8b6e7c235f0c25` |
+
+## Rollback sequence — committed hashes, exact reverse
+
+| Step | File | SHA-256 (committed) |
+|---|---|---|
+| 1 | `add_fulfillment_hardening_rollback.sql` | `8a7d97347556de33a7e8fc0c214e85f2fd881ac9e95a70b35724ea3282c510b4` |
+| 2 | `add_fulfillment_costing_rollback.sql` | `80fb2b54da93ed0f3c932e71e9321a3adfe185476facd29ccf686cb46f291296` |
+| 3 | `backfill_orderitems_from_jsonb_rollback.sql` | `23503c3ee273db51fe0b8b6d6717f38cafdf4864f810d335fdbc219183cf7dd1` |
+| 4 | `add_order_item_cost_snapshot_rollback.sql` | `8811d78cc24830e1c70c61b11d1194918d73e6afe516a7ad4132044715dd1ae4` |
+
+Step 3 **must** precede step 4: the batch selector reads
+`metadata #>> '{backfill,batch_id}'`, and step 3 also needs the snapshot columns
+still present to re-verify counts.
+
+## Additional defects fixed in this revision
+
+| Defect | Consequence | Fix |
+|---|---|---|
+| File managed its own transaction | Nested-transaction ambiguity under the executor | All transaction control removed; static guard added |
+| `quantity` defaulted to `1` | Fabricated historical quantity on any line missing it | Line is unresolved (`invalid_quantity`), never inserted |
+| `priceAtPurchase` defaulted to `0` | Fabricated a **zero-price sale** | Line is unresolved (`missing_price`/`invalid_price`), never inserted |
+| No total consistency check | A line whose total disagreed with qty×price was accepted | `invalid_total` / `total_mismatch` |
+| Identity ignored variant | Same product/qty/price under different variants could pair wrongly | `variant_key` added to the canonical identity |
+| Duplicates paired silently | An un-provable pairing looked like a match | Ambiguous groups detected, reported and skipped |
+| Rollback defaulted to "latest batch" | "Latest" can change between preview and execution | Explicit batch uuid REQUIRED, no default |
+| No count reconciliation on rollback | Could delete a set that disagreed with the audit record | Pre-check + in-transaction re-verification, both abort on mismatch |
+| Control-table rollback contract undefined | "Complete rollback" claimed while an introduced object remained | Two explicit modes (A drop / B documented retention) |
+
+## Unresolved-line reason codes
+
+`missing_product_id` · `missing_product` · `invalid_quantity` · `missing_price` ·
+`invalid_price` · `invalid_total` · `total_mismatch` · `malformed_jsonb_line`
+
+Behaviour: fail closed by default; with the owner override the batch proceeds but
+unresolved lines stay **uninserted** and the batch row records
+`reconciliation_complete = false` with the unresolved and ambiguous counts.

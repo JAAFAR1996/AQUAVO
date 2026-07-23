@@ -143,3 +143,68 @@ Website orders reconcile exactly. WhatsApp orders carry a small aggregate varian
 - **Order status split:** delivered/paid 26, delivered/pending 10, shipped/pending 1. No cancelled/refunded. `financially_counted` = 0 across all 37.
 - **No per-line cost snapshot** anywhere → historical margin is non-reproducible.
 - **Single currency (IQD), no FX tables.** No duplicate order/invoice numbers. Empty accounting ledgers (`expenses`, `payments`, period closes all 0).
+
+---
+
+## APPENDIX — Reconfirmation & root cause, 2026-07-23
+
+This audit's order-item findings were **challenged and then independently reconfirmed** two
+days later during Neon child-branch Phase 0. Full evidence:
+`docs/audit/neon-child-branch-baseline.md` §6.
+
+### Reconfirmed unchanged
+
+| Metric | 2026-07-21 (this doc) | 2026-07-23 (recheck) | Result |
+|---|---:|---:|---|
+| `order_items_relational` rows | 100 | 100 | ✅ identical |
+| Distinct orders covered | 25 | 25 | ✅ identical |
+| Orders total | 37 | 37 | ✅ identical |
+| JSONB-only orders | 12 | 12 | ✅ identical |
+
+An interim Phase 0 report claimed the relational table did not exist and that all 37 orders
+were JSONB-only. **That claim was wrong** — it used an exact-name filter
+(`table_name='order_items'`) which cannot match `order_items_relational`. This audit was
+correct; no production data changed. The interim claim has been retracted in place.
+
+### NEW — the 12-order gap: ROOT CAUSE IDENTIFIED (gap NOT repaired)
+
+This audit left "12-order relational gap" unresolved. Its **root cause is now identified**. The **coverage gap itself remains unrepaired in production** — repair is pending child-branch backfill verification and owner approval. Diagnosis is not remediation.
+
+Neither date nor status discriminates (covered/uncovered orders interleave on the same
+days; 36 of 37 share status `delivered`). **`orders.source` is a clean discriminator:**
+
+| `orders.source` | Orders | Covered | Uncovered |
+|---|---:|---:|---:|
+| `whatsapp` (admin-created) | 19 | **19 (100%)** | 0 |
+| `website` (storefront) | 18 | 6 | **12** |
+
+Within `website` the gap is a contiguous window: `2026-04-24` covered →
+**`2026-05-12` … `2026-06-17` all 12 uncovered** → `2026-06-22` onward all covered.
+
+**Conclusion:** the storefront checkout path stopped writing relational lines between
+~2026-05-12 and ~2026-06-17; the admin/WhatsApp path never did. A fix landed ~2026-06-22.
+The 12 orders in the window **were never repaired and remain unrepaired in production today**.
+
+### NEW — data quality where both stores exist
+
+Across the 25-order overlap, grouped by `(order_id, product_id)`: **97 of 97 groups agree
+exactly** on line count, quantity, and price. 0 orphan lines, 0 lines referencing a missing
+product. **There is no divergence defect — only a coverage gap.** This is a materially
+better result than "two line-item stores, no backfill" implied.
+
+### NEW — the backfill has never run and currently cannot
+
+`migrations/backfill_orderitems_from_jsonb.sql` INSERTs six cost-snapshot columns
+(`unit_cost_price`, `unit_packaging_cost`, `unit_insert_cost`, `cost_snapshot_status`,
+`cost_snapshot_source`, `cost_snapshot_confidence`) that **do not exist** on the live
+7-column table — it would abort immediately. Its prerequisite
+`migrations/add_order_item_cost_snapshot.sql` is not applied to production.
+
+Corroboration: the backfill stamps `metadata->>'backfilled' = true`; **0 of 100 live rows
+carry it**. All 100 rows came from the application write path, not from any backfill.
+
+### NEW — security observation
+
+The connected MCP executes as **`neondb_owner`** (`current_user` confirmed). Read-only is
+enforced at the MCP layer only, not by database privileges. Production branch protection is
+`false` and `allowed_ips` is empty. Tracked as H1–H6 in `neon-verification-final.md` §7b.
