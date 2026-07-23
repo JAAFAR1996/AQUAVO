@@ -49,3 +49,28 @@ export function resolveAdminCredentials(
 
   return { email, password };
 }
+
+/**
+ * Lazy variant of {@link resolveAdminCredentials}.
+ *
+ * Module-scope credential resolution used to abort an ENTIRE spec file (and, in
+ * `contexts.spec.ts`, effectively the whole run) at collection time when the
+ * environment was incomplete. This returns a live view instead: resolution — and
+ * therefore any throw — happens at property access, inside a test, so a missing
+ * credential fails one test rather than the suite.
+ *
+ * Credentials are supplied by e2e/support/global-setup.mjs, which seeds
+ * disposable synthetic accounts on the verify branch. They are never production.
+ */
+export function lazyAdminCredentials(
+  opts: { baseURL?: string | null } = {}
+): TestCreds {
+  return {
+    get email() {
+      return resolveAdminCredentials(opts).email;
+    },
+    get password() {
+      return resolveAdminCredentials(opts).password;
+    },
+  } as TestCreds;
+}

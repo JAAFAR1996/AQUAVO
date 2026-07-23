@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { resolveAdminCredentials } from './support/test-credentials';
+import { lazyAdminCredentials } from './support/test-credentials';
 
 /**
  * Admin Dashboard Comprehensive E2E Tests - اختبارات لوحة تحكم المدير الشاملة
@@ -22,15 +22,14 @@ import { resolveAdminCredentials } from './support/test-credentials';
 // Admin credentials come ONLY from the environment (no hardcoded defaults).
 // resolveAdminCredentials throws clearly if E2E_ADMIN_EMAIL / E2E_ADMIN_PASSWORD
 // are absent, and refuses a production baseURL unless ADMIN_AUDIT_READ_ONLY=true.
-const { email: ADMIN_EMAIL, password: ADMIN_PASSWORD } = resolveAdminCredentials({
-    baseURL: process.env.E2E_BASE_URL,
-});
+const CREDS = lazyAdminCredentials({ baseURL: process.env.PLAYWRIGHT_BASE_URL ?? process.env.E2E_BASE_URL });
+
 
 // Helper to login as admin
 async function loginAsAdmin(page: Page) {
     await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
-    await page.locator('input[type="email"]').first().fill(ADMIN_EMAIL);
-    await page.locator('input[type="password"]').first().fill(ADMIN_PASSWORD);
+    await page.locator('input[type="email"]').first().fill(CREDS.email);
+    await page.locator('input[type="password"]').first().fill(CREDS.password);
     await page.locator('button[type="submit"]').first().click();
     await page.waitForTimeout(3000);
 }
@@ -93,8 +92,8 @@ test.describe('1. تسجيل دخول المدير - Admin Login', () => {
     test('should show loading state while logging in', async ({ page }) => {
         await page.goto('/admin/login', { waitUntil: 'domcontentloaded' });
 
-        await page.locator('input[type="email"]').first().fill(ADMIN_EMAIL);
-        await page.locator('input[type="password"]').first().fill(ADMIN_PASSWORD);
+        await page.locator('input[type="email"]').first().fill(CREDS.email);
+        await page.locator('input[type="password"]').first().fill(CREDS.password);
         await page.locator('button[type="submit"]').first().click();
 
         // Button should show loading
