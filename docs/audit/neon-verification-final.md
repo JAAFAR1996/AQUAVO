@@ -408,3 +408,147 @@ The read-only contradiction is closed (§5), so the permission ask is now unbloc
 4. Decide whether `migrations/add_order_item_cost_snapshot.sql` joins the authorized
    migration set (§5b) — without it the backfill cannot run and the 12-order gap cannot be
    repaired on the verification branch.
+
+---
+
+# MULTI-AGENT VERIFICATION RUN — 2026-07-23 (rev. 4)
+
+**DECISION: FAIL / BLOCKED. Two independent blockers, one of them a newly discovered
+migration defect that would have corrupted or aborted production.**
+
+Six independent agents were authorized. **Two ran (Phase A). Four were not launched**,
+and that was a deliberate coordinator decision — see §D.
+
+## A. Agents and scope
+
+| Agent | Scope | Ran | Verdict |
+|---|---|---|---|
+| 1 · TestInventoryAgent | test discovery, configs, full local verification | ✅ | Reconciled; 2 findings |
+| 2 · NeonIdentityAgent | read-only branch identity | ✅ | **`BRANCH_ENV_MISSING`** |
+| 3 · VerifyMigrationAgent | apply 4 ops to verify branch | ❌ not launched | no database target |
+| 4 · ConcurrencyServiceAgent | real multi-connection races | ❌ not launched | no database target |
+| 5 · ApplicationShadowAgent | app + Playwright + shadow accounting | ❌ not launched | no database target |
+| 6 · RollbackBranchAgent | rollback branch proof | ❌ not launched | no database target |
+
+## B. Blocker 1 — access (`BRANCH_ENV_MISSING`)
+
+Independently confirmed by the coordinator, not taken on the agent's word:
+
+- `NEON_VERIFY_DATABASE_URL` and `NEON_ROLLBACK_DATABASE_URL` are **absent** from the
+  process environment and from all five `.env*` files (presence checks only; no values
+  were read, printed or logged).
+- Agent 2 enumerated **19 branches** in project `shiny-tree-43710630`. Neither
+  `accounting-fulfillment-verify-20260723` nor `accounting-fulfillment-rollback-20260723`
+  exists. **The child branches were never created** — consistent with MCP still being
+  read-only and with branch creation never having been authorized.
+
+Per the coordinator gate, branch identity did not pass, so **all Neon write work stopped**.
+
+## C. Blocker 2 — NEWLY DISCOVERED MIGRATION DEFECT (the important one)
+
+While re-validating Agent 2's baseline the coordinator found that **the production schema
+has changed since the 02:49 baseline earlier today**, from a concurrent workstream:
+
+| Metric | 02:49 baseline | 07:00 re-check | Δ |
+|---|---:|---:|---:|
+| `public` tables | 196 | 196 | 0 |
+| Table fingerprint | `88b839d9…` | `88b839d9…` | unchanged |
+| Constraints (public) | 528 | **529** | +1 |
+| User triggers (public) | 29 | **32** | +3 |
+| Functions (public) | 178 | **181** | +3 |
+
+No new tables, but new **triggers and functions** — and three of them are on
+`order_items_relational`, the exact table operation #2 writes to. They did not exist when
+the backfill was designed and tested.
+
+### C1. The batch rollback is IMPOSSIBLE on production data — hard stop
+
+```
+CREATE TRIGGER order_items_guard_order_detach
+  BEFORE DELETE OR UPDATE OF order_id ON public.order_items_relational
+  FOR EACH ROW EXECUTE FUNCTION prevent_unsafe_order_dependency_mutation('order_id')
+```
+
+It raises `order % is audited and its dependent records cannot be removed or detached`
+whenever `order_is_hard_deletable(order_id)` is false.
+
+Measured against the real gap orders:
+
+| Check | Result |
+|---|---:|
+| Gap orders whose rows **cannot** be deleted | **12 of 12** |
+| Gap orders that could be deleted | **0** |
+
+Every row the batch rollback would remove belongs to an audited order. **The rollback
+raises on the first row and reverses nothing.** Operation #2 would be a one-way door on
+production — the exact opposite of the "batch-specific, fully reversible" property that
+was reported as verified.
+
+### C2. The backfill would write 73 inventory movements — and likely abort
+
+```
+CREATE TRIGGER order_items_record_inventory_sale
+  AFTER INSERT ON public.order_items_relational
+  FOR EACH ROW EXECUTE FUNCTION record_order_item_inventory_sale()
+```
+
+The function is gated on `settings.inventory_ledger_mode`. Measured:
+
+| Check | Result |
+|---|---|
+| `inventory_ledger_mode` | **`enforce`** — the trigger is live |
+| MAIN inventory location configured | yes (1) |
+| Existing `source_type='order_line'` movements | **0** |
+| Products affected by the 73 backfilled lines | 44 |
+| Units that would be deducted | **187** |
+| Products whose stock would go **negative** | **7** |
+| `inventory_movements_prevent_negative` trigger active | yes |
+
+Two consequences, both bad:
+
+1. **Asymmetric ledger.** The 100 pre-existing relational rows have *no* ledger movements
+   (the trigger post-dates them). Backfilling would record sales for 73 of 173 lines and
+   not the other 100 — an inventory ledger that is internally inconsistent by construction.
+2. **Probable hard abort.** 7 products would be driven negative and a negative-balance
+   guard is active, so the whole transaction most likely raises and rolls back. Fail-closed
+   rather than silent corruption — but operation #2 simply cannot run as written.
+
+### C3. Why local testing missed this
+
+The PGlite fixture reproduced the production **table shape and data**, but not its
+**triggers**. Every "verified" claim about operation #2 holds only for a trigger-free
+table. This is a concrete demonstration that the child-branch gate is not a formality:
+local verification was necessary and **not sufficient**, exactly as required.
+
+Per the conflict-prevention rules the migration files were **not modified**. Correcting
+this changes inventory semantics and is an owner decision (§F).
+
+## D. Why agents 3–6 were not launched
+
+Their scopes are defined by an exclusive database target that does not exist. Launching
+them would have produced four report files with headings and no evidence — the same
+failure this audit rejected earlier. Blocker C independently invalidates operation #2, so
+even with branch URLs, agents 3 and 6 would have been executing a migration now known to
+be unsafe.
+
+## E. Verified state — unchanged
+
+- Production: **not touched**. No write, no DDL, no branch created, no setting changed.
+- The 12-order coverage gap: **still unrepaired**.
+- Migration bytes: all 9 files still match their committed blobs.
+- No secret was printed, logged, committed or placed in any report.
+
+## F. Required owner decisions before any retry
+
+1. **Trigger interaction (blocking).** Operation #2 must not proceed until decided:
+   should backfilled historical lines produce inventory movements at all? Options include
+   backfilling with the ledger disabled, exempting `source_type='order_line'` rows created
+   by a backfill batch, or recording movements for all 173 lines rather than 73.
+2. **Rollback reversibility (blocking).** With `order_items_guard_order_detach` active,
+   no batch rollback is possible. Either the guard must be made backfill-aware, or
+   operation #2 must be accepted as irreversible on production — which contradicts the
+   stated rollback requirement.
+3. **Schema drift (process).** Another workstream is changing production concurrently.
+   Any baseline must be re-taken immediately before execution, and the child branch must
+   be cut from the branch state at that moment.
+4. Child branches + env vars, if and when branch verification resumes.
