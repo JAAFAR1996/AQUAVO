@@ -20,6 +20,7 @@ export default defineConfig({
     include: [
       'client/src/**/*.{test,spec}.{ts,tsx}',
       'server/**/*.{test,spec}.{ts,tsx}',
+      'shared/**/*.{test,spec}.{ts,tsx}',
       'test/**/*.{test,spec}.{ts,tsx}',
       'scripts/**/*.{test,spec}.{ts,tsx}',
     ],
