@@ -168,12 +168,31 @@ test.describe("تجهيز الطلب — fulfillment costing admin workflow", ()
   });
 
   test("the fulfillment panel renders inside an order in Arabic RTL, light and dark", async ({ page }) => {
-    const orderId = process.env.E2E_FULFILLMENT_ORDER_ID;
-    test.skip(!orderId, "Set E2E_FULFILLMENT_ORDER_ID to an order id in the local database.");
+    // F-9 FIX: there is NO `/admin/orders/:id` route. The fulfillment panel
+    // (SectionCard title="تجهيز الطلب") is composed by <OrderFulfillmentPanel>,
+    // which renders inside the order-DETAIL DIALOG of the admin Orders tab
+    // (client/src/components/admin/orders-management.tsx → Dialog → line ~806),
+    // opened from the per-row detail (eye) button. The previous navigation drove
+    // a route that 404s, so this test could never have exercised the real panel.
+    // We now reach it through the real UI surface.
     await loginAsAdmin(page);
 
-    await page.goto(`/admin/orders/${orderId}`, { waitUntil: "domcontentloaded" });
-    const panel = page.getByText("تجهيز الطلب").first();
+    await page.goto(`/admin`, { waitUntil: "domcontentloaded" });
+
+    // Switch to the Orders tab (Radix TabsTrigger → role="tab").
+    await page.getByRole("tab", { name: "الطلبات" }).click();
+
+    // The orders table lists real orders; open the first row's detail dialog.
+    const firstRow = page.locator("table tbody tr").first();
+    const hasOrders = await firstRow.count();
+    test.skip(hasOrders === 0, "No orders in the local database to open a fulfillment panel against.");
+    // The first action button in the row is the detail (eye) trigger.
+    await firstRow.getByRole("button").first().click();
+
+    // The detail dialog carries the fulfillment panel. Scope every assertion to it.
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible({ timeout: 20_000 });
+    const panel = dialog.getByText("تجهيز الطلب").first();
     await expect(panel).toBeVisible({ timeout: 20_000 });
 
     // Direction is RTL.
@@ -182,7 +201,7 @@ test.describe("تجهيز الطلب — fulfillment costing admin workflow", ()
     expect(dir).toBe("rtl");
 
     // An unknown amount reads as "غير معروف" — never as a fabricated zero.
-    const body = await page.evaluate(() => document.body.innerText);
+    const body = await dialog.evaluate((el) => (el as HTMLElement).innerText);
     expect(body).not.toMatch(/التكلفة المتوقعة\s*0\s*د\.ع/);
 
     // Both themes render the panel.

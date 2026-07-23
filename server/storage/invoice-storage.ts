@@ -267,9 +267,20 @@ export class InvoiceStorage {
         discountTotal: invoice.discount ?? undefined,
         customerName: invoice.customerName,
         customerPhone: invoice.customerPhone,
-        shippingAddress: invoice.customerCity
-          ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
-          : (invoice.customerAddress || null),
+        // orders.shippingAddress is a typed JSONB object ({ addressLine1, city,
+        // country }), NOT a string. The manual-invoice path previously wrote a
+        // concatenated string, which both violated the declared column type and
+        // disagreed at runtime with every reader that destructures the object.
+        // Build the object the schema declares; country defaults to IQ (Iraq-only
+        // storefront). Null when the invoice carries no address at all.
+        shippingAddress:
+          invoice.customerCity || invoice.customerAddress
+            ? {
+                addressLine1: invoice.customerAddress ?? "",
+                city: invoice.customerCity ?? "",
+                country: "IQ",
+              }
+            : null,
         source: "whatsapp",
         items: lines.map(({ raw, snapshot }) => ({
           productId: raw.productId,
