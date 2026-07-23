@@ -1,13 +1,19 @@
 import { defineConfig } from "drizzle-kit";
-import * as dotenv from "dotenv";
+import {
+  loadEnvFilesPreservingDatabaseTargets,
+  resolveDatabaseTarget,
+  logResolvedDatabaseTarget,
+} from "./server/db-target.js";
 
-// Load environment variables from .env.local
-dotenv.config({ path: ".env.local" });
-dotenv.config(); // Fallback to .env
+// Env files may not override an explicitly inherited DATABASE_URL.
+const envLoad = loadEnvFilesPreservingDatabaseTargets();
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
+
+// Fails closed if the target cannot be identified; logs redacted identity only.
+logResolvedDatabaseTarget(resolveDatabaseTarget("primary", { inherited: envLoad.inherited }));
 
 export default defineConfig({
   out: "./migrations",

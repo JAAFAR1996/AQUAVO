@@ -3,7 +3,7 @@
  * Order to KEEP: FW-260424-0001 (yee-c5-1123-2, Zain Emad)
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.production', override: true });
+dotenv.config({ path: '.env.production' }); // NOTE: no 'override' — an explicitly inherited DATABASE_URL must win (see server/db-target.ts)
 import { neon } from '@neondatabase/serverless';
 
 const DATABASE_URL = process.env.DATABASE_URL;

@@ -8,9 +8,19 @@
  * أو مع tsx: npx tsx server/aquavo-mcp.ts
  */
 
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local", override: true });
-dotenv.config({ override: true });
+import {
+  loadEnvFilesPreservingDatabaseTargets,
+  resolveDatabaseTarget,
+  logResolvedDatabaseTarget,
+} from "./db-target.js";
+// Explicitly inherited DATABASE_URL wins over any local .env (see server/db-target.ts).
+const __envLoad = loadEnvFilesPreservingDatabaseTargets();
+if (process.env.DATABASE_URL?.trim()) {
+  logResolvedDatabaseTarget(
+    resolveDatabaseTarget("primary", { inherited: __envLoad.inherited }),
+    (m) => console.error(m), // stdout is the MCP transport — log to stderr only
+  );
+}
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {

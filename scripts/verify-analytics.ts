@@ -2,7 +2,7 @@
  * Deep verification of all analytics numbers
  */
 import dotenv from 'dotenv';
-dotenv.config({ path: '.env.production', override: true });
+dotenv.config({ path: '.env.production' }); // NOTE: no 'override' — an explicitly inherited DATABASE_URL must win (see server/db-target.ts)
 import { neon } from '@neondatabase/serverless';
 
 const sql = neon(process.env.DATABASE_URL!);

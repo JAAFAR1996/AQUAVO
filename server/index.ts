@@ -24,7 +24,8 @@ Sentry.init({
   },
 });
 
-import dotenv from 'dotenv';
+// NOTE: no dotenv here on purpose — env loading is owned by ./env.js (imported
+// at the top of this file) which protects database targets from .env override.
 import http from "http";
 import express, { Request, Response, NextFunction } from "express";
 import session from "express-session";
