@@ -516,6 +516,14 @@ test.describe('order creation', () => {
         // Asserted directly against the E2E target branch (read-only) rather than
         // by hammering POST /api/orders, which is capped at 10/hour/IP. This also
         // gives the COMPLETE answer instead of a sample.
+        // AUTHORITATIVE PER-SKU GRAIN. The checkout ledger reserves at
+        // (product_id, variant_id) grain, so a variant product's stock lives in
+        // its per-variant canonical rows — NOT the base (variant_id IS NULL) row.
+        // The earlier `AND b.variant_id IS NULL` restriction was a base-grain
+        // artifact that flagged healthy variant products as unorderable (the
+        // false 27/129 and 29/102 counts; see findings-register F-6). A product
+        // is genuinely unorderable only when it has NO canonical SKU — at any
+        // grain — carrying a positive balance.
         const rows = await queryTarget<{ id: string; stock: number }>(`
             SELECT p.id, p.stock
             FROM products p
@@ -525,7 +533,6 @@ test.describe('order creation', () => {
               AND NOT EXISTS (
                   SELECT 1 FROM inventory_canonical_balances b
                   WHERE b.product_id = p.id
-                    AND b.variant_id IS NULL
                     AND b.canonical_stock > 0
               )
             ORDER BY p.stock DESC
