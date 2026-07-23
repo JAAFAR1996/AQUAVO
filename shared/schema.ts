@@ -110,6 +110,17 @@ export const products = pgTable("products", {
   costPrice: numeric("cost_price").default("0"),
   packagingCost: numeric("packaging_cost").default("0"),
   insertCost: numeric("insert_cost").default("0"),
+  // F-5: what each cost number MEANS. 'known' (>0, real evidence) |
+  // 'verified_zero' (=0, human-confirmed, requires costResolutionNote) |
+  // 'unresolved' (UNKNOWN — accounting treats the value as NULL, never as 0).
+  // NULL is read as 'unresolved'. Requires migrations/add_product_cost_resolution.sql
+  // to be applied BEFORE this code is deployed.
+  costPriceResolution: text("cost_price_resolution"),
+  packagingCostResolution: text("packaging_cost_resolution"),
+  insertCostResolution: text("insert_cost_resolution"),
+  costResolutionNote: text("cost_resolution_note"),
+  costResolutionBy: text("cost_resolution_by"),
+  costResolutionAt: timestamp("cost_resolution_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),
@@ -2982,6 +2993,12 @@ export const packagingInventoryMovements = pgTable("packaging_inventory_movement
   orderId: text("order_id").references(() => orders.id),
   eventId: text("event_id").references(() => orderFulfillmentEvents.id),
   idempotencyKey: text("idempotency_key").notNull(),
+  // F-4: the order_fulfillment_lines row this movement deducted stock for.
+  // Gives the idempotency key a per-line component so one event may legitimately
+  // list the same material on two lines. NULL for pre-migration rows and for
+  // movements not derived from a fulfillment line (purchases, reversals).
+  // Requires migrations/add_pim_line_identity.sql applied BEFORE deploy.
+  lineId: text("line_id"),
   sourceDocument: text("source_document"),
   reversalOfMovementId: text("reversal_of_movement_id"),
   recordedBy: text("recorded_by"),
@@ -2989,6 +3006,8 @@ export const packagingInventoryMovements = pgTable("packaging_inventory_movement
 }, (t) => ({
   idemUidx: uniqueIndex("pim_idempotency_uidx").on(t.idempotencyKey),
   materialIdx: index("pim_material_idx").on(t.materialId),
+  // at most ONE movement per fulfillment line (strictly stronger than before)
+  lineUidx: uniqueIndex("pim_line_uidx").on(t.lineId),
 }));
 
 export const fulfillmentAdjustments = pgTable("fulfillment_adjustments", {

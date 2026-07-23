@@ -259,8 +259,13 @@ export async function confirmFulfillment(
         });
 
         for (const l of frozen) {
+          // F-4: the line's own id is the per-line component of the movement's
+          // idempotency key. Without it two lines of ONE event carrying the same
+          // material minted the same key and the second INSERT died on
+          // pim_idempotency_uidx (23505), aborting the whole confirmation.
+          const lineId = randomUUID();
           await tx.insert(orderFulfillmentLines).values({
-            id: randomUUID(), eventId, orderId: input.orderId,
+            id: lineId, eventId, orderId: input.orderId,
             materialId: l.materialId, materialNameSnapshot: l.materialName,
             costComponentType: l.costComponentType ?? COST_COMPONENTS.AQUAVO_FULFILLMENT_MATERIAL,
             quantity: String(l.quantity),
@@ -276,7 +281,12 @@ export async function confirmFulfillment(
             await tx.insert(packagingInventoryMovements).values({
               id: randomUUID(), materialId: l.materialId, movementType: "fulfillment_usage",
               quantity: String(-Math.abs(Number(l.quantity))), orderId: input.orderId, eventId,
-              idempotencyKey: `use:${eventId}:${l.materialId}`, recordedBy: input.recordedBy ?? null,
+              lineId,
+              // per-LINE key. Duplicate protection is unchanged: a replayed request
+              // never reaches here (it short-circuits on the event's own
+              // idempotency key), and pim_line_uidx additionally guarantees at
+              // most one movement per line.
+              idempotencyKey: `use:${eventId}:${lineId}`, recordedBy: input.recordedBy ?? null,
             });
           }
         }

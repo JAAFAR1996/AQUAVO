@@ -18,6 +18,7 @@ import {
   accountingManualAdjustments,
   orderFulfillmentEvents,
   orderFulfillmentLines,
+  orderItems,
 } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull, sql } from "drizzle-orm";
 import type { AccountingPeriod } from "../../shared/accounting.js";
@@ -61,8 +62,73 @@ export interface OrderLineItem {
   costSource?: CostSnapshotSource;
 }
 
-export type CostSnapshotStatus = "exact" | "estimated" | "incomplete" | "unknown";
+/**
+ * ─── STATUS LATTICE (single vocabulary for line, order and period level) ─────
+ *
+ *   exact         every cost component came from an immutable snapshot frozen at
+ *                 sale time and is real evidence.
+ *   verified_zero the cost is genuinely 0 and a human confirmed it (F-5:
+ *                 products.*_resolution = 'verified_zero'). Numerically exact;
+ *                 does NOT degrade an order.
+ *   estimated     no frozen snapshot; the value was substituted from the current
+ *                 catalog or the effective-dated cost history. It is a
+ *                 substitution, not evidence — it REQUIRES an explicit source
+ *                 (costSource = 'product_current' | 'cost_history' | 'manual').
+ *   incomplete    SOME components are known and some are unknown. The known part
+ *                 is still summed into the best-effort COGS; the order can no
+ *                 longer report an exact figure.
+ *   unknown       no cost evidence at all for this line/order.
+ *
+ * Degradation order (worst wins when rolling lines up into an order):
+ *   unknown > incomplete > estimated > verified_zero ≈ exact
+ *
+ * INVARIANT: `unknown` is NEVER rendered as 0. A component with no evidence is
+ * excluded from the sum and counted, it is not coerced.
+ */
+export type CostSnapshotStatus = "exact" | "verified_zero" | "estimated" | "incomplete" | "unknown";
 export type CostSnapshotSource = "product_current" | "cost_history" | "manual" | "none";
+
+/** Rank used to roll line statuses up. Higher = worse. */
+const STATUS_RANK: Record<CostSnapshotStatus, number> = {
+  exact: 0, verified_zero: 0, estimated: 1, incomplete: 2, unknown: 3,
+};
+export function worstStatus(a: CostSnapshotStatus, b: CostSnapshotStatus): CostSnapshotStatus {
+  return STATUS_RANK[b] > STATUS_RANK[a] ? b : a;
+}
+
+export type CostResolution = "known" | "verified_zero" | "unresolved";
+
+/**
+ * F-5. Decide what a stored cost number MEANS.
+ *
+ *   NULL                              -> null  (already explicitly unknown)
+ *   > 0                               -> value (a positive number is evidence)
+ *   = 0 and resolution 'verified_zero' -> 0     (a real, human-confirmed zero)
+ *   = 0 otherwise                      -> null  (AMBIGUOUS: `numeric DEFAULT '0'`
+ *                                                means an untouched product is
+ *                                                born holding a zero. Treating it
+ *                                                as a cost of 0 is exactly the
+ *                                                overloading F-5 is about.)
+ *
+ * `resolution` may legitimately be undefined/null — before the migration is
+ * applied, or for tables that have no resolution columns (product_cost_history).
+ * That case is read as 'unresolved', i.e. the conservative reading, so this
+ * function is correct with or without the migration.
+ */
+export function resolveCostComponent(
+  value: number | null | undefined,
+  resolution: string | null | undefined,
+): number | null {
+  if (value == null) return null;
+  if (value > 0) return value;
+  if (value < 0) return value; // a negative cost is a real (if odd) entered value
+  return resolution === "verified_zero" ? 0 : null;
+}
+
+/** True when this component is a confirmed zero rather than a positive cost. */
+function isVerifiedZero(value: number | null, resolution: string | null | undefined): boolean {
+  return value === 0 && resolution === "verified_zero";
+}
 
 /**
  * Build a ProductCost from an order line's immutable cost snapshot, if present.
@@ -294,7 +360,14 @@ export interface OrderProfit {
   missingCostLines: number;
   missingProductLines: number;
   estimatedCostLines: number; // >0 means some COGS was estimated, not from an immutable snapshot
-  costStatus: CostSnapshotStatus; // order-level completeness: exact | estimated | incomplete
+  unknownCostLines: number;   // lines with NO cost evidence at all
+  incompleteCostLines: number;// lines with partial cost evidence
+  verifiedZeroLines: number;  // lines whose zero cost is human-confirmed
+  /** F-3: which store supplied the cost snapshots for this order. */
+  costSourceOfTruth: "relational" | "jsonb";
+  /** F-3: false = relational rows exist but disagree with the JSONB lines. */
+  sourceReconciled: boolean;
+  costStatus: CostSnapshotStatus; // exact | verified_zero | estimated | incomplete | unknown
   // `netProfit`/`cogs` above are a best-effort figure over KNOWN lines only.
   // These are non-null ONLY when costStatus === "exact" — the hard guard that an
   // unknown cost can never yield a value presented as an exact profit.
@@ -413,6 +486,156 @@ export function getOrderItems(order: OrderRow): OrderLineItem[] {
   return Array.isArray(order.items) ? (order.items as OrderLineItem[]) : [];
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// F-3 — SOURCE-OF-TRUTH POLICY for a line's cost snapshot
+// ═══════════════════════════════════════════════════════════════════════════
+// The engine historically read cost evidence ONLY from the `orders.items` JSONB
+// blob. The relational store `order_items_relational` also carries a per-line
+// cost snapshot, and for the historically backfilled lines it is the ONLY place
+// that records the truth: unit_cost_price = NULL, cost_snapshot_status =
+// 'unknown'. Reading JSONB alone lost that signal, so those lines fell through
+// to the effective-dated resolver and surfaced as `estimated` — today's catalog
+// cost silently substituted for a cost nobody ever knew.
+//
+// POLICY (deterministic, no guessing):
+//   1. `orders.items` remains the REVENUE basis. It is what the customer was
+//      charged and it is never overridden here.
+//   2. `order_items_relational` is the COST-SNAPSHOT source of truth whenever
+//      rows exist for the order AND they reconcile with the JSONB lines
+//      (same multiset of productId → total quantity).
+//   3. Reconciled: the relational cost snapshot REPLACES the JSONB cost fields,
+//      matched positionally within each productId (nth occurrence ↔ nth row).
+//      A relational row that says `unknown` therefore stays `unknown` and the
+//      resolver fallback is NOT consulted for it.
+//   4. Not reconciled (row counts or quantities disagree): nothing is merged —
+//      merging mismatched stores would fabricate an attribution. The JSONB
+//      lines are used as-is and the ORDER is degraded to `incomplete`, with
+//      `sourceReconciled=false` so the residue is visible rather than silent.
+//   5. No relational rows at all: unchanged legacy behaviour (JSONB only).
+
+export interface RelationalLineSnapshot {
+  orderId: string;
+  productId: string;
+  quantity: number;
+  priceAtPurchase: number;
+  costPrice: number | null;
+  packagingCost: number | null;
+  insertCost: number | null;
+  costStatus: CostSnapshotStatus | null;
+  costSource: CostSnapshotSource | null;
+}
+
+export interface RelationalLineResolver {
+  get(orderId: string): RelationalLineSnapshot[] | undefined;
+}
+
+const VALID_STATUSES: readonly string[] = ["exact", "verified_zero", "estimated", "incomplete", "unknown"];
+const VALID_SOURCES: readonly string[] = ["product_current", "cost_history", "manual", "none"];
+
+/** Batch-load the relational cost snapshots for a set of orders. */
+export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>): Promise<RelationalLineResolver> {
+  if (orderIds.size === 0) return { get: () => undefined };
+  const rows = await db
+    .select()
+    .from(orderItems)
+    .where(inArray(orderItems.orderId, [...orderIds]));
+  const byOrder = new Map<string, RelationalLineSnapshot[]>();
+  for (const r of rows) {
+    const status = VALID_STATUSES.includes(r.costSnapshotStatus ?? "")
+      ? (r.costSnapshotStatus as CostSnapshotStatus) : null;
+    const source = VALID_SOURCES.includes(r.costSnapshotSource ?? "")
+      ? (r.costSnapshotSource as CostSnapshotSource) : null;
+    const snap: RelationalLineSnapshot = {
+      orderId: r.orderId,
+      productId: r.productId,
+      quantity: Number(r.quantity) || 0,
+      priceAtPurchase: toNumber(r.priceAtPurchase),
+      // NULL stays NULL. A relational 0 is NOT promoted to a cost of zero
+      // unless the row itself says the snapshot was verified.
+      costPrice: resolveCostComponent(toMoneyOrNull(r.unitCostPrice), status === "verified_zero" ? "verified_zero" : null),
+      packagingCost: resolveCostComponent(toMoneyOrNull(r.unitPackagingCost), status === "verified_zero" ? "verified_zero" : null),
+      insertCost: resolveCostComponent(toMoneyOrNull(r.unitInsertCost), status === "verified_zero" ? "verified_zero" : null),
+      costStatus: status,
+      costSource: source,
+    };
+    const arr = byOrder.get(r.orderId) ?? [];
+    arr.push(snap);
+    byOrder.set(r.orderId, arr);
+  }
+  return { get: (orderId) => byOrder.get(orderId) };
+}
+
+export interface ReconciledLines {
+  items: OrderLineItem[];
+  sourceOfTruth: "relational" | "jsonb";
+  /** false = relational rows exist but do not agree with the JSONB lines */
+  reconciled: boolean;
+}
+
+/** Multiset key: productId → summed quantity. */
+function quantityByProduct(pairs: Array<{ productId: string; quantity: number }>): Map<string, number> {
+  const m = new Map<string, number>();
+  for (const p of pairs) m.set(p.productId, (m.get(p.productId) ?? 0) + p.quantity);
+  return m;
+}
+
+/**
+ * Apply the source-of-truth policy above. PURE — no I/O, fully testable.
+ */
+export function reconcileOrderLines(
+  jsonbItems: OrderLineItem[],
+  relational: RelationalLineSnapshot[] | undefined,
+): ReconciledLines {
+  if (!relational || relational.length === 0) {
+    return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: true };
+  }
+  const jsonbPairs = jsonbItems
+    .filter((i) => !!i.productId)
+    .map((i) => ({ productId: i.productId as string, quantity: lineQuantity(i) }));
+  // Lines without a productId cannot be matched to a relational row at all.
+  const unmatchableJsonb = jsonbItems.length - jsonbPairs.length;
+  const jq = quantityByProduct(jsonbPairs);
+  const rq = quantityByProduct(relational.map((r) => ({ productId: r.productId, quantity: r.quantity })));
+  const agree =
+    unmatchableJsonb === 0 &&
+    jq.size === rq.size &&
+    [...jq].every(([pid, qty]) => rq.get(pid) === qty) &&
+    jsonbPairs.length === relational.length;
+  if (!agree) {
+    return { items: jsonbItems, sourceOfTruth: "jsonb", reconciled: false };
+  }
+
+  // Positional match within each productId (nth JSONB occurrence ↔ nth row).
+  const queues = new Map<string, RelationalLineSnapshot[]>();
+  for (const r of relational) {
+    const arr = queues.get(r.productId) ?? [];
+    arr.push(r);
+    queues.set(r.productId, arr);
+  }
+  const merged = jsonbItems.map((item) => {
+    const q = queues.get(item.productId as string);
+    const rel = q && q.length > 0 ? q.shift()! : undefined;
+    if (!rel) return item;
+    // A relational row that asserts NOTHING (no status and no cost value) is not
+    // evidence of "unknown" — it is an absence of information. Leave the JSONB
+    // line untouched so a legitimate JSONB snapshot is never demoted.
+    const asserts =
+      rel.costStatus != null || rel.costPrice != null || rel.packagingCost != null || rel.insertCost != null;
+    if (!asserts) return item;
+    return {
+      ...item,
+      // cost evidence is taken WHOLESALE from the relational snapshot — never a
+      // field-by-field mix of the two stores.
+      costPrice: rel.costPrice,
+      packagingCost: rel.packagingCost,
+      insertCost: rel.insertCost,
+      costStatus: rel.costStatus ?? "unknown",
+      costSource: rel.costSource ?? "none",
+    } satisfies OrderLineItem;
+  });
+  return { items: merged, sourceOfTruth: "relational", reconciled: true };
+}
+
 export function lineQuantity(item: OrderLineItem): number {
   const qty = toNumber(item.quantity);
   return qty > 0 ? qty : 1;
@@ -425,34 +648,55 @@ export function orderSubtotal(items: OrderLineItem[]): number {
 }
 
 export function productCostFromProduct(product: ProductRow): ProductCost {
-  const costPrice = toMoneyOrNull(product.costPrice); // NULL = cost never entered (unknown)
+  // F-5: a stored 0 is only a cost of zero when a human verified it; otherwise
+  // it is UNKNOWN (see resolveCostComponent). NULL was always unknown.
+  const res = product as unknown as {
+    costPriceResolution?: string | null;
+    packagingCostResolution?: string | null;
+    insertCostResolution?: string | null;
+  };
+  const costPrice = resolveCostComponent(toMoneyOrNull(product.costPrice), res.costPriceResolution);
+  const packagingCost = resolveCostComponent(toMoneyOrNull(product.packagingCost), res.packagingCostResolution);
+  const insertCost = resolveCostComponent(toMoneyOrNull(product.insertCost), res.insertCostResolution);
   const costKnown = costPrice != null;
+  // A verified zero is EXACT evidence, not an estimate — even when read from the
+  // current catalog, because "this costs nothing" does not drift with time.
+  const allVerifiedZero =
+    isVerifiedZero(costPrice, res.costPriceResolution) &&
+    isVerifiedZero(packagingCost, res.packagingCostResolution) &&
+    isVerifiedZero(insertCost, res.insertCostResolution);
   return {
     productId: product.id,
     name: product.name,
     price: toNumber(product.price),
     costPrice,
-    packagingCost: toMoneyOrNull(product.packagingCost),
-    insertCost: toMoneyOrNull(product.insertCost),
+    packagingCost,
+    insertCost,
     costKnown,
-    costsComplete: costKnown && costPrice > 0,
-    costStatus: costKnown ? "estimated" : "unknown", // current cost used for a past sale = estimate
+    costsComplete: costKnown && packagingCost != null && insertCost != null,
+    costStatus: allVerifiedZero ? "verified_zero"
+      : costKnown ? "estimated"   // current cost used for a past sale = estimate
+      : "unknown",
     costSource: costKnown ? "product_current" : "none",
   };
 }
 
 export function productCostFromHistory(product: ProductRow, history: CostHistoryRow): ProductCost {
-  const costPrice = toMoneyOrNull(history.costPrice);
+  // product_cost_history has no resolution columns — every zero there is
+  // ambiguous by construction, so it resolves to UNKNOWN. Never guessed.
+  const costPrice = resolveCostComponent(toMoneyOrNull(history.costPrice), null);
+  const packagingCost = resolveCostComponent(toMoneyOrNull(history.packagingCost), null);
+  const insertCost = resolveCostComponent(toMoneyOrNull(history.insertCost), null);
   const costKnown = costPrice != null;
   return {
     productId: product.id,
     name: product.name,
     price: toNumber(product.price),
     costPrice,
-    packagingCost: toMoneyOrNull(history.packagingCost),
-    insertCost: toMoneyOrNull(history.insertCost),
+    packagingCost,
+    insertCost,
     costKnown,
-    costsComplete: costKnown && costPrice > 0,
+    costsComplete: costKnown && packagingCost != null && insertCost != null,
     costStatus: costKnown ? "estimated" : "unknown", // effective-dated history estimate
     costSource: costKnown ? "cost_history" : "none",
   };
@@ -749,14 +993,25 @@ export async function getRealizedOrdersForPeriod(db: Db, start: Date, end: Date)
   });
 }
 
-export function calcOrderProfit(order: OrderRow, costs: CostResolver, fulfillment?: OrderFulfillmentCost): OrderProfit {
-  const rawItems = getOrderItems(order);
+export function calcOrderProfit(
+  order: OrderRow,
+  costs: CostResolver,
+  fulfillment?: OrderFulfillmentCost,
+  relationalLines?: RelationalLineSnapshot[],
+): OrderProfit {
+  // F-3: apply the source-of-truth policy before any cost is read.
+  const reconciliation = reconcileOrderLines(getOrderItems(order), relationalLines);
+  const rawItems = reconciliation.items;
   const createdAt = toDate(order.createdAt);
   let cogs = 0;
-  let missingCostLines = 0;
+  let missingCostLines = 0;   // lines with at least one unknown component
+  let unknownCostLines = 0;   // lines with NO cost evidence at all
+  let incompleteCostLines = 0;// lines with partial cost evidence
+  let verifiedZeroLines = 0;
   let missingProductLines = 0;
   let estimatedCostLines = 0; // lines with no immutable snapshot → cost estimated from history/current
   const resolvedItems: OrderProfitItem[] = [];
+  let worst: CostSnapshotStatus = "exact";
 
   for (const item of rawItems) {
     const qty = lineQuantity(item);
@@ -781,16 +1036,44 @@ export function calcOrderProfit(order: OrderRow, costs: CostResolver, fulfillmen
       continue;
     }
 
-    // A line contributes to COGS ONLY when every cost component is known.
-    // Unknown (null) cost is NEVER coerced to 0 — the line is flagged instead.
-    const lineCostKnown = cost.costPrice != null && cost.packagingCost != null && cost.insertCost != null;
-    const lineStatus: CostSnapshotStatus = !lineCostKnown ? "unknown"
-      : (snapshot ? (cost.costStatus ?? "exact") : "estimated");
-    if (!lineCostKnown) {
+    // COMPONENT-WISE evidence. An unknown (null) component is NEVER coerced to
+    // 0: it is excluded from the sum and the line is flagged. A line with SOME
+    // known components still contributes those — that is `incomplete`, and it is
+    // numerically identical to the old all-or-nothing rule whenever the unknown
+    // components were the ambiguous zeros F-5 is about (they added 0 anyway).
+    //
+    // ACQUISITION COST GATES THE LINE. If `costPrice` itself is unknown the line
+    // contributes NOTHING (as before) — a packaging figure alone is not a COGS.
+    // If `costPrice` IS known, the line contributes it plus whichever ancillary
+    // components are known. Both branches reproduce the previous arithmetic
+    // exactly whenever the newly-unknown components are the ambiguous zeros F-5
+    // is about, because those added 0 anyway → no monetary drift, only honesty.
+    const components: Array<number | null> = [cost.costPrice, cost.packagingCost, cost.insertCost];
+    const knownComponents = components.filter((v): v is number => v != null);
+    const unknownComponents = components.length - knownComponents.length;
+
+    let lineStatus: CostSnapshotStatus;
+    if (cost.costPrice == null) {
+      lineStatus = unknownComponents === components.length ? "unknown" : "incomplete";
       missingCostLines++;
+      if (lineStatus === "unknown") unknownCostLines++; else incompleteCostLines++;
+    } else if (unknownComponents > 0) {
+      lineStatus = "incomplete";
+      missingCostLines++;
+      incompleteCostLines++;
+      cogs += knownComponents.reduce((s, v) => s + v, 0) * qty;
     } else {
-      cogs += (cost.costPrice! + cost.packagingCost! + cost.insertCost!) * qty;
+      // Fully known. `estimated` REQUIRES an explicit substitution source; a
+      // frozen snapshot keeps its own recorded status.
+      lineStatus = snapshot
+        ? (cost.costStatus ?? "exact")
+        : cost.costStatus === "verified_zero"
+          ? "verified_zero"
+          : "estimated";
+      if (lineStatus === "verified_zero") verifiedZeroLines++;
+      cogs += knownComponents.reduce((s, v) => s + v, 0) * qty;
     }
+    worst = worstStatus(worst, lineStatus);
     resolvedItems.push({
       productId: item.productId, name: cost.name, qty, priceAtPurchase: price,
       unitCostPrice: cost.costPrice, unitPackagingCost: cost.packagingCost, unitInsertCost: cost.insertCost,
@@ -808,13 +1091,31 @@ export function calcOrderProfit(order: OrderRow, costs: CostResolver, fulfillmen
   const netProfit = revenue - cogs - packaging;
   const margin = revenue > 0 ? Math.round((netProfit / revenue) * 100) : 0;
 
-  const orderCostStatus: CostSnapshotStatus =
-    (missingCostLines > 0 || missingProductLines > 0) ? "incomplete"
-    : estimatedCostLines > 0 ? "estimated"
-    : "exact";
+  // ── Order rollup over the status lattice (worst line wins) ────────────────
+  // A line the engine could not resolve to a product at all, or a relational /
+  // JSONB disagreement, degrades the order to at least `incomplete`.
+  let orderCostStatus = worst;
+  if (missingProductLines > 0 || !reconciliation.reconciled) {
+    orderCostStatus = worstStatus(orderCostStatus, "incomplete");
+  }
+  // ORDER-LEVEL VOCABULARY is deliberately narrower than the line-level lattice:
+  // {exact, verified_zero, estimated, incomplete}. An order with unknown lines is
+  // `incomplete` — the pre-existing, published contract that consumers (MCP,
+  // dashboards, period close) already branch on. The finer distinction is not
+  // lost: it is reported per line in `items[].costStatus` and counted in
+  // `unknownCostLines` / `incompleteCostLines`.
+  if (orderCostStatus === "unknown") orderCostStatus = "incomplete";
+  // An order whose every line is a human-verified zero reports `verified_zero`
+  // rather than the indistinguishable `exact` — the reader can tell that this
+  // order genuinely cost nothing, not that it was fully costed at nonzero.
+  if (orderCostStatus === "exact" && verifiedZeroLines > 0 && verifiedZeroLines === resolvedItems.length) {
+    orderCostStatus = "verified_zero";
+  }
   // Exact figures are emitted ONLY when nothing is unknown/estimated. Otherwise
   // null — a consumer literally cannot read an "exact" profit off an incomplete order.
-  const isExact = orderCostStatus === "exact";
+  // `verified_zero` is exact evidence (a confirmed zero), so it does not block
+  // an exact figure. Everything below it on the lattice does.
+  const isExact = orderCostStatus === "exact" || orderCostStatus === "verified_zero";
 
   // ── Fulfillment cost (separate component). null when no confirmed snapshot or
   // incomplete — a consumer cannot read a fulfillment cost that isn't fully known.
@@ -850,6 +1151,11 @@ export function calcOrderProfit(order: OrderRow, costs: CostResolver, fulfillmen
     missingCostLines,
     missingProductLines,
     estimatedCostLines,
+    unknownCostLines,
+    incompleteCostLines,
+    verifiedZeroLines,
+    costSourceOfTruth: reconciliation.sourceOfTruth,
+    sourceReconciled: reconciliation.reconciled,
     costStatus: orderCostStatus,
     exactCogs: isExact ? cogs : null,
     exactNetProfit: isExact ? netProfit : null,
@@ -870,7 +1176,8 @@ export function calcOrderProfit(order: OrderRow, costs: CostResolver, fulfillmen
 export async function computeOrderProfitability(db: Db, order: OrderRow): Promise<OrderProfit> {
   const costs = await buildCostResolver(db, collectProductIds([order]));
   const fulfillment = await buildFulfillmentResolver(db, new Set([order.id]));
-  return calcOrderProfit(order, costs, fulfillment.get(order.id));
+  const relational = await buildRelationalLineResolver(db, new Set([order.id]));
+  return calcOrderProfit(order, costs, fulfillment.get(order.id), relational.get(order.id));
 }
 
 export interface PeriodFinancials {
@@ -902,10 +1209,12 @@ export interface PeriodFinancials {
 export async function computePeriodFinancials(db: Db, start: Date, end: Date): Promise<PeriodFinancials> {
   const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
   const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+  // F-3: relational cost snapshots are the source of truth where they exist.
+  const relational = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
 
   let revenue = 0, cogs = 0, packaging = 0, ordersWithIncompleteCost = 0;
   for (const order of realizedOrders) {
-    const p = calcOrderProfit(order, costs);
+    const p = calcOrderProfit(order, costs, undefined, relational.get(order.id));
     revenue += p.revenue;
     cogs += p.cogs;
     packaging += p.boxCost;
@@ -1036,8 +1345,10 @@ export async function buildLedger(db: Db, start: Date, end: Date): Promise<Ledge
   // 1. Realized (delivered) orders → revenue, COGS, packaging
   const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
   const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+  // F-3: relational cost snapshots are the source of truth where they exist.
+  const relationalLedger = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
   for (const order of realizedOrders) {
-    const p = calcOrderProfit(order, costs);
+    const p = calcOrderProfit(order, costs, undefined, relationalLedger.get(order.id));
     const cashAccount = (order as any).codReceived === true ? "1000" : "1100";
     // Sale: Dr Cash/Receivable, Cr Revenue
     post(cashAccount, p.revenue, 0);
@@ -1302,6 +1613,7 @@ export async function computeOrderCostBreakdown(
   const costs = await buildCostResolver(db, collectProductIds([order]));
   const fulfillment = await buildFulfillmentResolver(db, new Set([order.id]));
   const snapshot = fulfillment.get(order.id);
-  const profit = calcOrderProfit(order, costs, snapshot);
+  const relational = await buildRelationalLineResolver(db, new Set([order.id]));
+  const profit = calcOrderProfit(order, costs, snapshot, relational.get(order.id));
   return buildOrderCostBreakdown(order, profit, snapshot, direct);
 }

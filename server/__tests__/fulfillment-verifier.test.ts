@@ -23,6 +23,8 @@ import { getOrCreateDraft, addManualLine, confirmDraft } from "../services/fulfi
 const ROOT = process.cwd();
 const base = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
 const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
+// F-4: per-line identity for packaging_inventory_movements (add_pim_line_identity.sql)
+const pimLineIdentity = readFileSync(join(ROOT, "migrations/add_pim_line_identity.sql"), "utf8");
 
 let client: PGlite;
 let db: FulfillmentDb;
@@ -45,6 +47,7 @@ beforeAll(async () => {
     INSERT INTO orders (id) VALUES ('v-ord-1'),('v-ord-2');`);
   await client.exec(base);
   await client.exec(hardening);
+  await client.exec(pimLineIdentity);
   db = drizzle(client, { schema }) as unknown as FulfillmentDb;
 
   // ── Build a realistic, entirely service-authored dataset ──────────────────

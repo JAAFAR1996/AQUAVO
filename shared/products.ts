@@ -72,6 +72,14 @@ export const products: Product[] = [
     costPrice: null,
     packagingCost: null,
     insertCost: null,
+    // F-5 cost-resolution columns: a static seed asserts no evidence about
+    // what its (absent) costs mean, so every component is 'unresolved'.
+    costPriceResolution: "unresolved",
+    packagingCostResolution: "unresolved",
+    insertCostResolution: "unresolved",
+    costResolutionNote: null,
+    costResolutionBy: null,
+    costResolutionAt: null,
   },
   {
     id: "hygger-hg978-22w",
@@ -117,6 +125,14 @@ export const products: Product[] = [
     costPrice: null,
     packagingCost: null,
     insertCost: null,
+    // F-5 cost-resolution columns: a static seed asserts no evidence about
+    // what its (absent) costs mean, so every component is 'unresolved'.
+    costPriceResolution: "unresolved",
+    packagingCostResolution: "unresolved",
+    insertCostResolution: "unresolved",
+    costResolutionNote: null,
+    costResolutionBy: null,
+    costResolutionAt: null,
   },
   {
     id: "hygger-hg978-26w",
@@ -162,5 +178,13 @@ export const products: Product[] = [
     costPrice: null,
     packagingCost: null,
     insertCost: null,
+    // F-5 cost-resolution columns: a static seed asserts no evidence about
+    // what its (absent) costs mean, so every component is 'unresolved'.
+    costPriceResolution: "unresolved",
+    packagingCostResolution: "unresolved",
+    insertCostResolution: "unresolved",
+    costResolutionNote: null,
+    costResolutionBy: null,
+    costResolutionAt: null,
   },
 ];

@@ -13,6 +13,8 @@ import * as schema from "../../shared/schema.js";
 const ROOT = process.cwd();
 const base = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
 const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
+// F-4: per-line identity for packaging_inventory_movements (add_pim_line_identity.sql)
+const pimLineIdentity = readFileSync(join(ROOT, "migrations/add_pim_line_identity.sql"), "utf8");
 const auditTable = `
   CREATE TABLE IF NOT EXISTS accounting_audit_trail (
     id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
@@ -68,8 +70,19 @@ beforeAll(async () => {
       low_stock_threshold integer, is_new boolean DEFAULT false, is_best_seller boolean DEFAULT false,
       is_product_of_week boolean DEFAULT false, specifications jsonb, variants jsonb,
       has_variants boolean DEFAULT false, cost_price numeric, packaging_cost numeric,
-      insert_cost numeric, created_at timestamptz DEFAULT now(),
+      insert_cost numeric,
+      cost_price_resolution text, packaging_cost_resolution text, insert_cost_resolution text,
+      cost_resolution_note text, cost_resolution_by text, cost_resolution_at timestamptz,
+      created_at timestamptz DEFAULT now(),
       updated_at timestamptz DEFAULT now(), deleted_at timestamptz);`);
+  // F-3: the relational cost-snapshot store the engine now reads as source of truth
+  await client.exec(`CREATE TABLE order_items_relational (
+      id text PRIMARY KEY DEFAULT gen_random_uuid()::text, order_id text NOT NULL,
+      product_id text NOT NULL, quantity integer NOT NULL,
+      price_at_purchase numeric NOT NULL, total_price numeric NOT NULL,
+      unit_cost_price numeric, unit_packaging_cost numeric, unit_insert_cost numeric,
+      cost_snapshot_status text, cost_snapshot_source text, cost_snapshot_confidence text,
+      cost_snapshot_version integer, cost_snapshot_at timestamptz, metadata jsonb);`);
   await client.exec(`CREATE TABLE product_cost_history (
       id text PRIMARY KEY DEFAULT gen_random_uuid()::text, product_id text,
       cost_price numeric, packaging_cost numeric, insert_cost numeric,
@@ -83,6 +96,7 @@ beforeAll(async () => {
   await client.exec(auditTable);
   await client.exec(base);
   await client.exec(hardening);
+  await client.exec(pimLineIdentity);
 
   await client.exec(`INSERT INTO products (id,name,price,cost_price,packaging_cost,insert_cost)
     VALUES ('p1','فلتر داخلي','25000','15000','500','0')`);

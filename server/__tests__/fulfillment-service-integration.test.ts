@@ -10,6 +10,8 @@ import { confirmFulfillment, reverseFulfillmentEvent } from "../services/fulfill
 const ROOT = process.cwd();
 const migration = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
 const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
+// F-4: per-line identity for packaging_inventory_movements (add_pim_line_identity.sql)
+const pimLineIdentity = readFileSync(join(ROOT, "migrations/add_pim_line_identity.sql"), "utf8");
 
 // Real Drizzle over a real (WASM) Postgres — the actual service transactions run here.
 let client: PGlite;
@@ -31,6 +33,7 @@ describe("fulfillment service — real transactional integration (Drizzle + PGli
     await client.exec(`CREATE TABLE orders (id text PRIMARY KEY); INSERT INTO orders (id) VALUES ('ord-1'),('ord-2');`);
     await client.exec(migration);
     await client.exec(hardening);
+    await client.exec(pimLineIdentity);
     db = drizzle(client, { schema });
     // Catalog identity + starting stock (a purchase receipt of +100). No
     // current_unit_cost here: after the hardening migration the catalog may only

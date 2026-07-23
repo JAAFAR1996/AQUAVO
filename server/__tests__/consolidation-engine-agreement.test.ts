@@ -46,6 +46,9 @@ CREATE TABLE products (
   specifications jsonb NOT NULL DEFAULT '{}', variants jsonb,
   has_variants boolean NOT NULL DEFAULT false,
   cost_price numeric, packaging_cost numeric, insert_cost numeric,
+  -- F-5 cost-resolution columns (migrations/add_product_cost_resolution.sql)
+  cost_price_resolution text, packaging_cost_resolution text, insert_cost_resolution text,
+  cost_resolution_note text, cost_resolution_by text, cost_resolution_at timestamptz,
   created_at timestamp NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT now(),
   deleted_at timestamp
 );
@@ -63,6 +66,13 @@ CREATE TABLE orders (
   cod_received boolean DEFAULT false, box_cost numeric DEFAULT '0',
   source text DEFAULT 'website', financially_counted boolean,
   created_at timestamp NOT NULL DEFAULT now(), updated_at timestamp NOT NULL DEFAULT now()
+);
+CREATE TABLE order_items_relational (
+  id text PRIMARY KEY, order_id text NOT NULL, product_id text NOT NULL,
+  quantity integer NOT NULL, price_at_purchase numeric NOT NULL, total_price numeric NOT NULL,
+  unit_cost_price numeric, unit_packaging_cost numeric, unit_insert_cost numeric,
+  cost_snapshot_status text, cost_snapshot_source text, cost_snapshot_confidence text,
+  cost_snapshot_version integer, cost_snapshot_at timestamp, metadata jsonb
 );
 CREATE TABLE product_cost_history (
   id text PRIMARY KEY, product_id text NOT NULL,

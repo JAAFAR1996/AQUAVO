@@ -15,6 +15,8 @@ import type { FulfillmentDb } from "../services/fulfillment-db.js";
 const ROOT = process.cwd();
 const base = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
 const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
+// F-4: per-line identity for packaging_inventory_movements (add_pim_line_identity.sql)
+const pimLineIdentity = readFileSync(join(ROOT, "migrations/add_pim_line_identity.sql"), "utf8");
 
 let client: PGlite;
 let db: FulfillmentDb;
@@ -33,6 +35,7 @@ describe("reversal integrity", () => {
       INSERT INTO orders (id) VALUES ('r-ord-1'),('r-ord-2');`);
     await client.exec(base);
     await client.exec(hardening);
+    await client.exec(pimLineIdentity);
     db = drizzle(client, { schema }) as unknown as FulfillmentDb;
     await client.exec(`INSERT INTO fulfillment_materials (id,name,unit) VALUES ('rbox','Box','piece'),('rother','Other','piece')`);
     await client.exec(`INSERT INTO packaging_inventory_movements (id,material_id,movement_type,quantity,idempotency_key)
