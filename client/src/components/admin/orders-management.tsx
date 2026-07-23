@@ -364,8 +364,9 @@ export function OrdersManagement() {
         </Select>
       </div>
 
-      {/* Orders Table */}
-      <div className="border rounded-lg">
+      {/* Orders Table — scrolls horizontally inside its own box on narrow
+          screens so the wide table never stretches the page. */}
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
