@@ -244,3 +244,36 @@ verification branch by the coordinator (exit 0) and are additive and reversible.
 - ~176 ad-hoc scripts read `DATABASE_URL` raw with no classification; several are destructive.
 - `numeric DEFAULT '0'` on product cost columns still mints new ambiguous zeros.
 - Both existing child branches remain **test-contaminated and unpromotable**.
+
+---
+
+## Wave 8 — Phase A remediation + Phase B independent verification (2026-07-24, coordinator-verified)
+
+Eight agents across two phases, disjoint file ownership, every claim independently
+reproduced by the coordinator.
+
+### Closed and independently confirmed
+
+| ID | Sev | Fix | Coordinator's independent proof |
+|---|---|---|---|
+| **F-6** | HIGH→resolved | checkout ledger rejection now HTTP 409 `OUT_OF_STOCK`, not a raw 500 | Detector + 409 mapping present in `order-storage.ts`/`orders.ts`. **Magnitude corrected:** the 27/129 count was a base-grain (`variant_id IS NULL`) artifact; at the authoritative per-SKU grain **0 of 183 advertised SKUs are unfulfillable** — reproduced by the coordinator AND independently by the Phase B verifier (F-6 REFUTED as a live defect). The 500→409 mapping is still correct and shipped. |
+| **F-7** | HIGH | overflow root cause fixed; wrapping RTL tab strip; 44px targets; `?section=` persistence | Overflow guards, `dir="rtl"`, touch targets and section persistence verified in `admin-dashboard.tsx`. Playwright 42/0/2-skip across 4 projects. |
+| **F-8** | HIGH | `blocked_ips` expiry → `timestamptz`, compared in-DB | Migration applied to the verify branch by the coordinator; columns confirmed `timestamp with time zone`; a 5-minute block reads blocked now and unblocked at +6min via the canonical predicate. Adversarially re-verified under TZ=Baghdad/UTC/Kiritimati/DST — no skew. |
+| **F-9** | MED | `fulfillment-admin.spec.ts` retargeted to the real order-detail dialog | Committed. |
+| **RC-1** | MED | `server/vite.ts` no longer `process.exit(1)`s on a Vite logger error; graceful EADDRINUSE + SIGTERM/SIGINT shutdown | Committed. |
+| **T-1** | LOW | `invoice-storage.ts` `shippingAddress` rebuilt as the declared JSONB object | server typecheck gate now green on owned files. |
+| N-2 (script side) | HIGH-adjacent | tracked `TOOLS/script-db-guard.mjs`; `.env.example` STARTUP SAFETY POLICY | Adversarially re-verified: `.env` cannot override an explicit target; production rejected for verify/rollback roles even via `?options=…branch=…`, pooler host, or uppercase; redaction leaks 0 synthetic secrets. Coordinator independently reproduced the production-rejection matrix. |
+
+### Infrastructure hardening (committed)
+Authoritative server typecheck (`tsconfig.server.check.json` + `TOOLS/check-server.mjs`, `check:server`/`check:all`) — surfaces 308 pre-existing legacy server errors, fails only on owned files (all green). Accidental zero-byte repo-root file removed after a five-point proof; only that file removed.
+
+### NEW — open, discovered by Phase B verification
+
+| ID | Sev | Finding | Evidence |
+|---|---|---|---|
+| **F-10** | **MED** | `buildProductCostSnapshot` decides `unknown` **only** on `cost_price === null` and ignores the F-5 `*_resolution` columns; `lockProductRowForUpdate` does not even SELECT them. So a product with `cost_price = 0` marked `cost_price_resolution = 'unresolved'` freezes a false **`exact` 0** COGS at sale — reopening the F-5 "unknown must never read as 0" invariant at the **order-creation write path**. | Coordinator-verified on the verify branch: **30** products are `cost_price=0 / unresolved`, **27 orderable now** (`stock>0`). Root cause confirmed by reading `product-cost-snapshot.ts:104-108,170`. Missed because the snapshot builder (F-1/F-2 owner) and the resolution columns (F-5 owner) were owned by different agents; neither closed the seam. |
+
+**F-10 remediation plan (next cycle, one scoped owner):** (1) add `cost_price_resolution`/`packaging_cost_resolution`/`insert_cost_resolution` to `lockProductRowForUpdate`'s SELECT and `LockedProductRow`; (2) in `buildProductCostSnapshot`, treat a `0` component whose resolution is not `known`/`verified_zero` as `unknown` (NULL); (3) update the PGlite fixtures in the affected test files to carry the resolution columns; (4) add a regression test: ordering an `unresolved`-zero product snapshots `unknown`, not `exact 0`. Deployment ordering: requires `add_product_cost_resolution.sql` applied first (already mandatory).
+
+### Reconciliation (Phase B independent, real engine, 36 orders)
+Legacy − canonical: revenue +155,827, COGS +160,672 (legacy fabricates current cost on unknown/backfilled lines), box 0 → net −4,845, matching the direct difference **exactly, zero unexplained residue**. Phase A's period-scoped 16,803 (34 orders) was not reproduced (different order set) and is marked INCONCLUSIVE; the structural core holds.
