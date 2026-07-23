@@ -1,5 +1,10 @@
 # Neon Child-Branch Verification — Final Decision
 
+> ⚠️ **SUPERSEDED — see §12 "rev. 6 — Full child-branch execution" at the end of this
+> file.** The child branches were subsequently created, all five operations were executed
+> on both, and the rollback was proven. The "BLOCKED" decision below reflects rev. 3 only
+> and is retained for history.
+
 **Date:** 2026-07-23 (rev. 3)
 **Decision: BLOCKED on Neon execution.** Phase 0 PASSES; the expanded four-operation
 migration set is prepared, audited, committed and **locally verified (1,178 tests: 490 server
@@ -696,3 +701,227 @@ against real production triggers.** That is precisely what the child branch is f
 are now implemented and locally proven, and the previously fatal defects are addressed.
 Production remains untouched: no write, no DDL, no branch, no setting changed; the 12-order
 gap remains unrepaired.
+
+---
+
+# 12. rev. 6 — Full child-branch execution (2026-07-23)
+
+**Decision for production planning: CONDITIONAL PASS — the migration set is proven; two
+HIGH application defects must be fixed first, and Playwright certification is outstanding.**
+
+This section supersedes the rev. 3 "BLOCKED" decision. The two child branches were
+created, Gate 0 passed, and four independent agents executed against them. Every claim
+below was independently re-verified by the coordinator against the live branches.
+
+## 12.1 Identity gate — `BRANCH_IDENTITY_PASS`
+
+Full evidence: `docs/audit/neon-child-branches-identity.md`.
+
+Both env vars valid and distinct; verification = `br-round-dust-a4t0kt58`
+(`ep-rapid-breeze-a46glg7f`), rollback = `br-wispy-tree-a4ksj3t1`
+(`ep-broad-butterfly-a405p27r`); both direct children of production
+`br-patient-mouse-a4d4cgr4` at the **identical LSN `0/4AC59150`**; production endpoint
+`ep-quiet-moon-a4h7tdze` referenced by neither. Both branches identical pre-migration:
+PG 17.10, 185 tables / 529 constraints / 574 indexes / 32 triggers / 181 functions,
+fingerprint `7ba395295f65b3a66598a12f64b05ce8`, 100 relational lines, 37 orders.
+All 11 migration files hash-matched their committed Git blobs.
+
+## 12.2 Five-operation execution — PASS on both branches
+
+Applied in order, each in a separate executor-owned transaction with `ON_ERROR_STOP=1`.
+No file contained an executable top-level transaction command (all `BEGIN` hits were
+inside `DO $$` bodies; all `COMMIT` hits were `ON COMMIT DROP` or comments).
+
+Post-migration state is **deterministic across both branches** — independently confirmed:
+
+| | verify branch | rollback branch |
+|---|---|---|
+| fingerprint | `af3879d5cdf660988d5a0ddcfa270aea` | `af3879d5cdf660988d5a0ddcfa270aea` |
+| tables / constraints / indexes / triggers / functions | 200 / 610 / 613 / 43 / 191 | 200 / 610 / 613 / 43 / 191 |
+| rows inserted by backfill | 73 | 73 |
+
+Trigger-function SHA-256 after migration, identical on both branches:
+`prevent_unsafe_order_dependency_mutation` = `c7c8c844...`,
+`record_order_item_inventory_sale` = `efaa7f40...`. The third function,
+`refresh_order_financial_snapshot_trigger`, retained its **exact Gate 0 hash**
+`a99c1a1d43f9a1423952f169dede585ec0f88ac8178d9ef72c5f32342e1435a4`, proving only the two
+declared functions were replaced.
+
+## 12.3 Trigger safety — 10/10 PASS
+
+Run live with `inventory_ledger_mode='enforce'`. Normal insert records a movement; forged
+metadata alone, missing session context, and a wrong batch UUID all **fail to bypass**;
+only the exact approved batch with full context suppresses the movement; normal audited
+deletes stay blocked (`P0001 ... is audited`); the exact authorized batch rollback is
+allowed; an application-created row cannot use the exception. Full transcript:
+`docs/audit/neon-migration-execution.md`.
+
+## 12.4 Backfill and inventory evidence — PASS
+
+Reconciliation before: 100 exact matches, **73 deterministic missing**, 0 unresolved,
+0 ambiguous, 0 surplus, 0 metadata disagreements, 0 variant disagreements. **No
+unresolved-data override was used** (`aquavo.backfill_allow_unresolved` never set).
+
+Batch UUID `1833092b-4c7f-4835-9038-dca33e1ce33d`, generated inside the executor
+transaction. Coordinator-verified afterwards:
+
+- 173 rows = 100 untagged originals + 73 batch-tagged — original rows md5 `c9d4bc78...`
+  identical before and after;
+- **inventory movements 185 -> 185** — zero created by the historical backfill; zero
+  reference the batch;
+- product-stock md5 `cc1f8463...` unchanged;
+- all 73 backfilled lines have `unit_cost_price`/`unit_packaging_cost`/`unit_insert_cost`
+  **NULL** with `cost_snapshot_status='unknown'` — **zero** zero-valued costs;
+- 0 duplicate backfill fingerprints; 173/173 reconciled, 0 missing, 0 surplus.
+
+### Finding N-1 (MEDIUM) — the backfill is *fail-closed* idempotent, not clean-exit idempotent
+
+A second run does **not** exit via the "nothing deterministically missing" notice. It
+aborts on the ambiguity gate and rolls back:
+
+```
+ERROR:  ABORT: reconciliation incomplete — 0 unresolved line(s) [none],
+        1 ambiguous duplicate group(s).
+```
+
+**Independently reproduced by the coordinator on the rollback branch** (a second,
+untouched branch): zero rows written, no second batch opened, state unchanged at
+173 rows / 1 batch / 185 movements. Cause: order `6f11d0f2` has a JSONB line with
+genuinely no variant data whose correctly-backfilled counterpart is also variant-less,
+which trips the heuristic's `INTERSECT` once the table is complete.
+
+The required behaviour (zero rows on re-run) holds and the failure direction is safe.
+**Operational consequence:** an operator re-running the backfill on production will see
+an abort and must **not** reflexively set the override GUC. Document this in the runbook.
+
+## 12.5 Concurrency — 11/11 PASS
+
+Full evidence: `docs/audit/neon-concurrency-verification.md`. Driven through the real
+exported service functions (`confirmFulfillment`, `reverseFulfillmentEvent`), not
+reimplemented SQL. Interleaving was **forced and proven**, not assumed: a holder session
+took the service's own `pg_advisory_xact_lock(hashtext(order_id))` key while contenders
+launched, and an observer session confirmed the required number of `granted=false`
+waiters in `pg_locks` (up to 6 on `objid 745609845`) before each test counted.
+
+Same-order reshipments serialize; duplicate idempotency keys resolve to the winner's row;
+original-confirmation race yields one winner and one clean `ORIGINAL_ALREADY_EXISTS`;
+different orders proceed in parallel; sequence allocation 5->10 with no gaps or duplicates;
+stock deducted exactly once; insufficient-stock rolls back clean; reversal idempotent
+(net 0); mid-transaction failure leaves zero residue; zero orphan rows.
+
+## 12.6 Rollback and reapplication — PASS
+
+Full evidence: `docs/audit/neon-rollback-verification.md`. Reverse sequence executed in
+the mandated order with the exact batch UUID
+(`a2f37658-6b05-49a8-9964-8c6d47d85904`) plus
+`aquavo.backfill_rollback_authorized='on'`.
+
+Proven: only the exact batch rows were deleted (73 deleted = 73 inserted, ids identical);
+the application-created row survived; unauthorized delete stayed blocked; authorized
+rollback succeeded; **no retrospective inventory reversal** (movements 185 and stock
+checksum identical at every checkpoint); control table dropped; the three trigger
+functions returned to their **exact Gate 0 hashes**; objects back to
+185/529/574/32/181; fingerprint `7ba395295f65b3a66598a12f64b05ce8` restored with a
+185-table row-count diff showing **no differences**.
+
+Reapplied all five operations: second batch `a7cbf313-33cd-4174-84f4-237ccdca016e`,
+again 73 rows / 0 unresolved / 0 ambiguous. Coordinator-verified that the rollback
+branch's control table now contains **only** the reapply batch — proving the first batch
+was genuinely removed. Branch **not deleted, not promoted**.
+
+> Note: the rollback used MODE A (`aquavo.backfill_drop_control_table='on'`) because that
+> branch is disposable. **Production must use the default MODE B**, which retains the
+> audit table.
+
+## 12.7 Application, accounting and Playwright
+
+Full evidence: `docs/audit/neon-shadow-comparison.md`,
+`docs/audit/neon-playwright-verification.md`.
+
+`/ready` returned **HTTP 200** on the verification branch
+(`orderCreationEnabled:true, missingColumns:[]`). Part 1: 25 PASS / 3 FAIL / 2 PARTIAL.
+Dual-store creation (website *and* WhatsApp), drafts, profiles, suggestions, manual cost
+lines, original shipment, reshipment, returns, reversals, event history, expected-vs-actual
+costs, contribution profit, unknown-never-zero and verified-zero-vs-unknown all passed.
+
+Accounting shadow comparison over 34 clean orders reconciles **exactly**:
+legacy 984,377 − canonical 967,574 = **16,803 = 1,965 revenue + 9,238 COGS + 5,600 box
+cost**, with no unexplained residue. The headline difference is behavioural, not
+arithmetic: canonical returns `contributionProfit = null` for all 34 orders because
+fulfillment cost is unknown, while legacy confidently reports a number. On the only three
+orders carrying real fulfillment data, legacy overstates margin by **16–31 points**.
+
+**Playwright: NOT CERTIFIED.** No clean run was obtained and none is claimed. The dev
+server died mid-run on every attempt (best observed: 36 passed / 148 failed / 6 skipped
+with `POSTCHECK ready=000`). Theme, preparation-workflow and approval/history specs exist
+but are gated behind admin credentials that were not available; `contexts.spec.ts`
+resolves credentials at module scope and aborts the whole run. **Arabic RTL, desktop,
+mobile, light theme, dark theme, preparation workflow, and approval/history remain
+unverified by Playwright.**
+
+## 12.8 Branch disposition — both child branches are now unfit for promotion
+
+Neither was ever going to be promoted, but this is now a hard property rather than a
+policy: the concurrency and application agents created synthetic rows that the schema's
+own immutability guards (`ofl_immutable`, `pim_immutable`, `ofe_guard_confirmed`,
+`order_is_hard_deletable`) **correctly refuse to delete**. No agent forced past any guard.
+
+| Residue | Count | On |
+|---|---|---|
+| fulfillment events / lines / packaging movements | 15 / 14 / 16 | 3 pre-existing orders, 100% `CONCTEST`-tagged (coordinator-verified) |
+| synthetic orders | 16 | `SHADOW-Customer` / `SHADOW-WA-Customer` |
+
+The protected accounting canon was verified intact throughout: 100 original + 73
+backfilled relational lines, and `orders`/`inventory_movements`/`products` unchanged at
+the point each agent finished.
+
+## 12.9 Production boundary
+
+No production write occurred.
+
+One near-miss is disclosed in full: the application agent's first launch silently
+connected to the **production** endpoint, because `server/env.ts` calls
+`dotenv.config({override:true})` — so the committed `.env` beats an inherited
+`DATABASE_URL` — and `tsx` re-execs a child, so a parent-only preload is not inherited.
+It surfaced as a schema-drift 503, not a connection error.
+
+Only `GET /ready` and `GET /health` were issued. The coordinator independently verified
+these are write-free: `/health` returns a static JSON literal, and `/ready` calls
+`getSchemaReadiness`, a module containing **no** INSERT/UPDATE/DELETE/CREATE/ALTER
+statement anywhere (the only such words appear in comments). Neon metadata shows
+production with no reset and no schema change. Direct verification queries against
+production were **blocked by the safety classifier**, which is the correct outcome; that
+denial was not worked around, so the assurance above rests on the read-only endpoint code
+plus branch metadata rather than on a production query.
+
+### Finding N-2 (HIGH, tooling) — `dotenv override:true` defeats environment-based branch targeting
+
+This is the single most dangerous thing found in this exercise. Any operator who believes
+they are pointing the app at a child branch via `DATABASE_URL` is **silently pointed at
+production instead**. It failed safe here only because the child schema was ahead of
+production and the probe was read-only. Fix before any further branch-targeted testing.
+
+## 12.10 Local test suite
+
+`npm test -- --run`: **107 test files, 1446 tests, 0 failed** — exactly the expected
+baseline, no difference to explain. (A first invocation aborted at startup on an invalid
+`--reporter=basic` flag under Vitest 4; that was a CLI error, not a test failure, and the
+run was repeated with the default reporter.)
+
+## 12.11 Verdict
+
+**CONDITIONAL PASS for production planning.**
+
+Cleared: the five-operation migration set, the trigger-safety exception protocol, the
+historical backfill's zero-inventory guarantee, concurrency behaviour, and the rollback
+path including exact-batch deletion and full schema restoration.
+
+Blocking before production execution:
+1. **F-1 (HIGH)** — storefront orders freeze `costStatus:"unknown"` permanently.
+2. **F-2 (HIGH)** — WhatsApp path writes no snapshot; the two creation paths disagree.
+3. **N-2 (HIGH)** — `dotenv override:true` env-targeting hazard.
+4. **Playwright certification** — needs a stable server and verification-branch admin
+   credentials.
+
+Non-blocking but must be in the runbook: **N-1** (backfill re-run aborts; do not
+reflexively override), and **MODE B** for the production rollback path.

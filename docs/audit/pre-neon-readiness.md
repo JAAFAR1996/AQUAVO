@@ -429,3 +429,47 @@ Focused backup of the final bytes:
 (`sha256sum -c` verified) and `MANIFEST.txt` recording commit `d981069` on branch
 `feat/accounting-canonical-fulfillment`. Every file verified identical to its
 committed git blob.
+
+---
+
+# Addendum — rev. 6 (2026-07-23): child-branch execution completed
+
+The readiness position above was written while Neon execution was still blocked. It is now
+resolved. Both child branches were created and executed against; full evidence and the
+production-planning decision live in `docs/audit/neon-verification-final.md` §12.
+
+## Readiness delta
+
+| Gate | Previous | Now |
+|---|---|---|
+| Child-branch identity | not runnable | ✅ `BRANCH_IDENTITY_PASS` |
+| Five frozen operations applied | not run | ✅ PASS on both branches, deterministic |
+| Trigger-safety exception protocol | designed only | ✅ 10/10 proven on a real branch |
+| Historical backfill, zero inventory effect | unproven | ✅ 73 rows, movements 185 -> 185 |
+| Concurrency / advisory locks | unproven | ✅ 11/11, interleaving forced and proven |
+| Rollback + reapply | unproven | ✅ exact-batch only; fingerprint restored |
+| Local suite | 1,178 tests (stale figure) | ✅ **107 files / 1446 tests / 0 failed** |
+| Playwright certification | not run | ❌ **still not certified** |
+| Application correctness on branch | unproven | ⚠️ 25 PASS / 3 FAIL / 2 PARTIAL |
+
+## Still blocking production execution
+
+1. **F-1 (HIGH)** — `lockProductForUpdate()` omits the cost columns, so `createOrderSecure`
+   freezes `costStatus:"unknown"` on every storefront line, permanently uncostable.
+2. **F-2 (HIGH)** — the WhatsApp order path writes no cost snapshot at all; the two
+   creation paths disagree on a core invariant.
+3. **N-2 (HIGH)** — `server/env.ts` calls `dotenv.config({override:true})`, so a committed
+   `.env` silently overrides an inherited `DATABASE_URL`. Branch targeting by environment
+   variable does not work; an operator aiming at a child branch hits production instead.
+4. **Playwright** — needs a stable server process and verification-branch admin
+   credentials before RTL / viewport / theme / workflow coverage can be claimed.
+
+## Runbook amendments (non-blocking but mandatory)
+
+- **N-1** — a second backfill run **aborts** on the ambiguity gate rather than exiting
+  cleanly. Zero rows are written, which is the safe direction. The operator must **not**
+  set `aquavo.backfill_allow_unresolved` reflexively in response.
+- The production rollback must use the **default MODE B** (retains the audit table). MODE A
+  was used on the disposable branch only.
+- Neither child branch may be promoted: both now carry synthetic rows that the schema's own
+  immutability guards correctly refuse to delete.

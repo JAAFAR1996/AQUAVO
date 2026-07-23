@@ -145,3 +145,102 @@ Inventory valuation method · historical cost-backfill method · landed-cost all
 - **Prior agent claim corrected again:** credential scan re-verified — 0 LIVE secrets. 196 hits are the redacted literal `REDACTED_ROTATE_ME`; 17 are generic template strings in docs/`.env.example`.
 - **STILL UNPROVEN (requires the child branch):** the trigger-safety design has only ever run against a PGlite reconstruction — **never against real production triggers**. Also unproven: real multi-connection concurrency, services against a branch, Playwright, accounting shadow comparison.
 - **Production untouched:** no write, no DDL, no branch created, no setting changed; 12-order gap still unrepaired; `production` still `protected: false`.
+
+---
+
+## Wave 6 — Neon child-branch execution (2026-07-23, coordinator-verified)
+
+Gate 0 passed (`BRANCH_IDENTITY_PASS`); four independent agents executed; every result
+independently re-verified by the coordinator against the live branches. Decision and full
+evidence: `docs/audit/neon-verification-final.md` §12.
+
+| Agent | Scope | Status | Evidence file |
+|---|---|---|---|
+| Coordinator | Gate 0 branch identity + migration hashes | ✅ PASS | docs/audit/neon-child-branches-identity.md |
+| VerifyMigrationAgent | 5 operations, trigger safety, backfill | ✅ PASS | docs/audit/neon-migration-execution.md, neon-backfill-verification.md |
+| ConcurrencyServiceAgent | 11 concurrency/race tests | ✅ 11/11 PASS | docs/audit/neon-concurrency-verification.md |
+| ApplicationShadowAgent | App on branch + accounting shadow | ⚠️ 25 PASS / 3 FAIL / 2 PARTIAL | docs/audit/neon-shadow-comparison.md |
+| ApplicationShadowAgent | Playwright certification | ❌ **NOT CERTIFIED** | docs/audit/neon-playwright-verification.md |
+| RollbackBranchAgent | Rollback + reapply | ✅ PASS | docs/audit/neon-rollback-verification.md |
+
+**Resolves the long-standing convergent finding #3** (two line-item stores, no backfill):
+the coverage gap is now proven repairable. 73 deterministic missing lines were backfilled
+with **zero inventory movements created** (185 -> 185), stock checksum unchanged, all
+backfilled costs **NULL, never zero**, and the whole operation proven reversible to an
+exact schema fingerprint match.
+
+### New findings to action
+
+| ID | Sev | Finding | Consequence |
+|---|---|---|---|
+| **N-2** | **HIGH** | `server/env.ts` calls `dotenv.config({override:true})`; the committed `.env` beats an inherited `DATABASE_URL`, and `tsx` re-execs so a parent-only preload is not inherited. | Environment-based branch targeting **silently fails to production**. Caused a real near-miss this session (read-only probes only; no write reached production). Fix before further branch-targeted testing. |
+| **F-1** | **HIGH** | `lockProductForUpdate()` never SELECTs `cost_price`/`packaging_cost`/`insert_cost`, so `createOrderSecure` freezes `costStatus:"unknown"`; `lineCostSnapshot()` honours an explicit unknown and will not fall back. | **Every new storefront order line is permanently uncostable.** |
+| **F-2** | **HIGH** | The admin/WhatsApp order path writes no cost snapshot at all. | The two order-creation paths disagree on a core invariant. |
+| **F-3** | MED | The accounting engine reads `orders.items` JSONB, never `order_items_relational`. | The 73 backfilled NULL costs surface as **`estimated`** (today's cost substituted), not `unknown`. Never zero, never exact — but the unknown signal is lost. |
+| **F-4** | MED | `pim_idempotency_uidx` lacks a per-line component. | The same material on two lines of one event fails to insert. |
+| **F-5** | MED | No product can express an unknown cost: 0 NULLs, but 30 zero `cost_price` and 143 zero packaging/insert. | Zero is overloaded to mean "unknown", defeating the NULL-not-zero rule at source. |
+| **N-1** | MED | Backfill re-run aborts on the ambiguity gate instead of exiting cleanly (independently reproduced on a second branch; zero rows written). | Safe direction, but the operator must **not** reflexively set the override GUC. Runbook item. |
+
+### Accounting shadow comparison — reconciles exactly
+
+Over 34 clean orders: legacy 984,377 − canonical 967,574 = **16,803**, fully attributed to
+1,965 revenue + 9,238 COGS + 5,600 box cost. **No unexplained residue.** The material
+difference is behavioural: canonical returns `contributionProfit = null` for all 34 orders
+(fulfillment cost unknown) where legacy reports a confident number. On the only three
+orders with real fulfillment data, legacy **overstates margin by 16–31 points**.
+
+Honest negative: the expected "legacy treats unknown as 0" effect measured **zero** here,
+because no product currently has a NULL cost (see F-5). Reported as latent, not claimed.
+
+### Branch disposition
+
+Neither child branch may be promoted. Both carry synthetic rows that `ofl_immutable`,
+`pim_immutable`, `ofe_guard_confirmed` and `order_is_hard_deletable` correctly refuse to
+delete — 15 events / 14 lines / 16 packaging movements on 3 pre-existing orders (100%
+`CONCTEST`-tagged) and 16 `SHADOW-*` orders. No guard was forced. The protected accounting
+canon (100 original + 73 backfilled lines) was verified intact.
+
+---
+
+## Wave 7 — Remediation cycle (2026-07-23, coordinator-verified)
+
+Four independent agents with disjoint file ownership. No agent edited another's files;
+no conflicts required central resolution. Every claim below was independently re-verified
+by the coordinator.
+
+### Closed this cycle
+
+| ID | Was | Now | Coordinator's independent proof |
+|---|---|---|---|
+| **N-2** | HIGH — `.env` silently overrode an explicit `DATABASE_URL`, sending the app to production | **CLOSED** | Ran a real `tsx` child with a `.env` pointing at the production endpoint and an inherited `DATABASE_URL` pointing at the child branch. Resolved to `ep-rapid-breeze-a46glg7f` (child), while non-DB keys still honoured `.env`. New canonical resolver `server/db-target.ts`. |
+| **F-1** | HIGH — storefront lines permanently uncostable | **CLOSED** | `lockProductForUpdate()` never SELECTed the three cost columns, so `costStatus` froze at `unknown`. Now one canonical `lockProductRowForUpdate()` + `buildProductCostSnapshot()`; verified both cost columns and `FOR UPDATE` present. |
+| **F-2** | HIGH — admin/WhatsApp wrote no snapshot at all | **CLOSED** | `createOrderFromInvoice()` now locks each product through the same canonical builder inside the existing transaction. Verified both `order-storage.ts` and `invoice-storage.ts` import and use the identical builder. |
+| **F-3** | MED — engine read JSONB only, so backfilled NULLs surfaced as `estimated` | **CLOSED** | Relational store is now authoritative when it reconciles with JSONB; disagreement degrades to `incomplete`, never merges. Canonical product COGS falls by exactly 163,640 IQD — the substituted cost that was never evidence. |
+| **F-4** | MED — PIM idempotency key lacked per-line identity | **CLOSED** | Collision reproduced on real PostgreSQL. Fix adds `line_id` + partial `pim_line_uidx`; `pim_idempotency_uidx` untouched in both directions, so duplicate protection is unchanged and the new index is strictly stronger. Both indexes verified present on the branch. |
+| **F-5** | MED — products could not express unknown cost separately from verified zero | **CLOSED** | `*_resolution` columns added. Verified on real data: **113 `known`, 30 `unresolved`, 0 invented `verified_zero`** — every ambiguous zero stayed explicitly unresolved, exactly as required. |
+
+### Newly found — all OPEN, none owned by this cycle's agents
+
+| ID | Sev | Finding | Evidence |
+|---|---|---|---|
+| **F-6** | **HIGH** | `products.stock` and `inventory_canonical_balances` diverge, so products advertised as in stock fail checkout with HTTP 500 `insufficient canonical inventory balance`. **Live revenue defect.** | Coordinator-verified at DB level: **27 of 129** advertised-in-stock products have canonical balance ≤ 0. Agent 4 measured 29/102 through `GET /api/products`; denominators differ because the API applies its own product filter. Both confirm the defect. |
+| **F-7** | **HIGH** | On a 393 px viewport the admin **الطلبات** tab cannot be activated — 45 s of clicks, `المنتجات` stays selected; instant on desktop. Admins on phones cannot reach orders or fulfillment. | Playwright, Pixel 5 project; screenshot shows the tab rendered and unobstructed. |
+| **F-8** | **HIGH** | `blocked_ips.expires_at` is read back with a +03:00 skew, so expired IP blocks never lift — a 5-minute lockout becomes **permanent**. | A row expiring `09:54Z` was served as `expiresAt: 12:54Z`; it produced a real 429 that broke a test run. |
+| **F-9** | MED | `e2e/fulfillment-admin.spec.ts` drives `/admin/orders/:id`, **a route that does not exist** — that UI test could never have passed. | Route absent; spec left untouched for the owner. |
+| **RC-1** | MED | `server/vite.ts` sets `customLogger.error = msg => { …; process.exit(1) }`, so **any** Vite-level error kills the whole Express process. Root cause of every prior Playwright collapse. **Owned by no one** — it sat outside every agent's declared ownership, which is why it survived this long. | Captured verbatim: `WebSocket server error: Port 24678 is already in use` → `SERVER PROCESS EXITED code=1`. Neutralised externally for E2E; the durable fix is removing the `process.exit(1)`. |
+| **T-1** | LOW | `server/storage/invoice-storage.ts:270` has a pre-existing type error (`shippingAddress` string vs object). **Not a regression** — byte-identical to `HEAD` (md5 match); surfaced only because `server/` was typechecked for the first time, since `tsconfig.json` excludes `server/**`. | Coordinator diff vs `HEAD`. |
+
+### Deployment ordering — mandatory
+
+`migrations/add_product_cost_resolution.sql` and `migrations/add_pim_line_identity.sql`
+**must be applied before** the accounting/product code is deployed, because Drizzle emits
+explicit column lists and will fail against the old schema. Both were applied to the
+verification branch by the coordinator (exit 0) and are additive and reversible.
+
+### Still open from earlier waves
+
+- Operator's local `.env` still defaults to production. The invariant is fixed — an explicit
+  variable always wins — but with nothing inherited, `.env` decides. Operator's file to change.
+- ~176 ad-hoc scripts read `DATABASE_URL` raw with no classification; several are destructive.
+- `numeric DEFAULT '0'` on product cost columns still mints new ambiguous zeros.
+- Both existing child branches remain **test-contaminated and unpromotable**.
