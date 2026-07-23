@@ -22,6 +22,8 @@ const ROOT = process.cwd();
 
 const REVIEWED_FILES = [
   "migrations/add_order_item_cost_snapshot.sql",
+  "migrations/add_orderitem_backfill_trigger_safety.sql",
+  "migrations/add_orderitem_backfill_trigger_safety_rollback.sql",
   "migrations/backfill_orderitems_from_jsonb.sql",
   "migrations/add_fulfillment_costing.sql",
   "migrations/add_fulfillment_hardening.sql",

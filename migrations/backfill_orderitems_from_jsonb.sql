@@ -15,6 +15,23 @@
 -- DEPENDENCY (HARD): migrations/add_order_item_cost_snapshot.sql MUST be applied
 -- first. STEP 2 raises an exception otherwise.
 --
+-- DEPENDENCY (HARD): migrations/add_orderitem_backfill_trigger_safety.sql MUST be
+-- applied first (introduces the AFTER INSERT inventory-sale trigger's suppression
+-- exception on order_items_relational). Without it, inserting the missing lines
+-- will fire live inventory-sale movements for historical rows.
+--
+-- REQUIRED PARAMETER — set in the SAME transaction, BEFORE this file:
+--       SET LOCAL aquavo.backfill_batch_id = '<fresh-uuid-generated-by-the-executor>';
+--   There is deliberately NO internal `gen_random_uuid()` default anymore. The
+--   trigger-safety migration's inventory-sale suppression exception is keyed off
+--   this same GUC, and the exception must be visible to the trigger BEFORE the
+--   INSERT that fires it — which is only possible if the batch id exists as a
+--   session GUC (and as a row in orderitem_backfill_batches) before this file's
+--   INSERT INTO order_items_relational runs. Generating the id inside this
+--   migration (as before) would make it unknowable to the executor in time to
+--   `SET LOCAL` it first, so the executor now owns UUID generation. Without this
+--   GUC the migration RAISES immediately and writes nothing (fail closed).
+--
 -- CORRECTNESS RULES
 --   * Cost is UNKNOWN for historical lines → NULL, never 0, never today's cost.
 --   * Quantity is NEVER defaulted to 1. Price is NEVER defaulted to 0. A line
@@ -82,6 +99,7 @@ $guard$;
 -- Runs inside the EXECUTOR's transaction. No transaction control here.
 DO $backfill$
 DECLARE
+  v_batch_txt  text := current_setting('aquavo.backfill_batch_id', true);
   v_batch      uuid;
   v_missing    bigint;
   v_unresolved bigint;
@@ -90,6 +108,29 @@ DECLARE
   v_allow      text := COALESCE(current_setting('aquavo.backfill_allow_unresolved', true), 'off');
   v_reasons    text;
 BEGIN
+  ---------------------------------------------------------------------------
+  -- 3.0 FAIL CLOSED: an explicit, fresh batch id is mandatory — checked before
+  --     any other work so a missing GUC never falls through to a partial run.
+  ---------------------------------------------------------------------------
+  IF v_batch_txt IS NULL OR btrim(v_batch_txt) = '' THEN
+    RAISE EXCEPTION
+      'ABORT: no batch id supplied. Set "SET LOCAL aquavo.backfill_batch_id = ''<uuid>'';" '
+      'in the SAME transaction, BEFORE this file — the trigger-safety inventory-suppression '
+      'exception depends on the GUC being visible before the INSERT. There is deliberately no default.';
+  END IF;
+
+  BEGIN
+    v_batch := btrim(v_batch_txt)::uuid;
+  EXCEPTION WHEN others THEN
+    RAISE EXCEPTION 'ABORT: aquavo.backfill_batch_id (%) is not a valid uuid.', v_batch_txt;
+  END;
+
+  IF EXISTS (SELECT 1 FROM orderitem_backfill_batches WHERE batch_id = v_batch) THEN
+    RAISE EXCEPTION
+      'ABORT: batch id % already exists in orderitem_backfill_batches — the executor '
+      'must supply a fresh, never-before-used UUID for every run.', v_batch;
+  END IF;
+
   -- Serialize concurrent backfill attempts.
   LOCK TABLE order_items_relational IN SHARE ROW EXCLUSIVE MODE;
 
@@ -214,11 +255,13 @@ BEGIN
   END IF;
 
   ---------------------------------------------------------------------------
-  -- 3e. Open the batch and insert.
+  -- 3e. Open the batch (with the executor-supplied id) and insert.
+  --     The batch row MUST exist before the line INSERT below, so that the
+  --     trigger-safety inventory-sale suppression exception — which looks up
+  --     this same v_batch id in orderitem_backfill_batches — can see it.
   ---------------------------------------------------------------------------
-  INSERT INTO orderitem_backfill_batches (note)
-  VALUES ('line-by-line canonical JSONB reconciliation')
-  RETURNING batch_id INTO v_batch;
+  INSERT INTO orderitem_backfill_batches (batch_id, note)
+  VALUES (v_batch, 'line-by-line canonical JSONB reconciliation');
 
   INSERT INTO order_items_relational (
     id, order_id, product_id, quantity, price_at_purchase, total_price,

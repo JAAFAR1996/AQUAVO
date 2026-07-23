@@ -1,7 +1,13 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
+
+// Each test spins up a fresh PGlite instance; the first instantiation is slow
+// when the full 107-file suite runs in parallel. The 30s global default was
+// tripping here (~33s observed) — a load artefact, not a logic failure.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
 
 /**
  * Backfill safety properties that the production-shaped happy path cannot show:
@@ -21,7 +27,16 @@ const backfillSql = readFileSync(join(ROOT, "migrations/backfill_orderitems_from
 const backfillRollbackSql = readFileSync(join(ROOT, "migrations/backfill_orderitems_from_jsonb_rollback.sql"), "utf8");
 const reportSql = readFileSync(join(ROOT, "migrations/backfill_orderitems_reconcile_report.sql"), "utf8");
 
-const ALLOW = `SET LOCAL aquavo.backfill_allow_unresolved = 'on';`;
+/**
+ * Forward backfill now requires a fresh, executor-supplied batch-id GUC on
+ * every invocation (fail-closed if absent — see the dedicated tests below).
+ * Each helper mints a new UUID per call so re-invocations within one test
+ * never collide against the "batch id already exists" guard.
+ */
+const withBatch = () => `SET LOCAL aquavo.backfill_batch_id = '${randomUUID()}';`;
+const withAllow = () => `${withBatch()} SET LOCAL aquavo.backfill_allow_unresolved = 'on';`;
+const withRollback = (batchId: string) =>
+  `SET LOCAL aquavo.backfill_batch_id = '${batchId}'; SET LOCAL aquavo.backfill_rollback_authorized = 'on';`;
 
 async function applyInTx(db: PGlite, sqlText: string, pre = ""): Promise<void> {
   try {
@@ -83,8 +98,8 @@ describe("backfill never fabricates commercial evidence", () => {
   for (const { code, line, why } of INVALID_CASES) {
     it(`FAILS CLOSED on ${code} — ${why}`, async () => {
       const db = await makeDb({ "o1": [line] });
-      await expect(applyInTx(db, backfillSql)).rejects.toThrow(/reconciliation incomplete/);
-      await expect(applyInTx(db, backfillSql)).rejects.toThrow(new RegExp(code));
+      await expect(applyInTx(db, backfillSql, withBatch())).rejects.toThrow(/reconciliation incomplete/);
+      await expect(applyInTx(db, backfillSql, withBatch())).rejects.toThrow(new RegExp(code));
       // nothing written
       expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(0);
       await db.close();
@@ -92,7 +107,7 @@ describe("backfill never fabricates commercial evidence", () => {
 
     it(`leaves the ${code} line UNINSERTED even with the owner override — ${why}`, async () => {
       const db = await makeDb({ "o1": [line, GOOD] });
-      await applyInTx(db, backfillSql, ALLOW);
+      await applyInTx(db, backfillSql, withAllow());
       // only the valid line was inserted
       expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(1);
       const row = (await db.query<{ quantity: number; price_at_purchase: string }>(
@@ -108,7 +123,7 @@ describe("backfill never fabricates commercial evidence", () => {
 
   it("records the batch as reconciliation INCOMPLETE when lines were unresolved", async () => {
     const db = await makeDb({ "o1": [{ productId: "p1", quantity: 1 }, GOOD] });
-    await applyInTx(db, backfillSql, ALLOW);
+    await applyInTx(db, backfillSql, withAllow());
     const b = (await db.query<{ unresolved_lines: number; reconciliation_complete: boolean }>(
       `SELECT unresolved_lines, reconciliation_complete FROM orderitem_backfill_batches`)).rows[0];
     expect(Number(b.unresolved_lines)).toBe(1);
@@ -118,7 +133,7 @@ describe("backfill never fabricates commercial evidence", () => {
 
   it("records reconciliation COMPLETE when every line was valid", async () => {
     const db = await makeDb({ "o1": [GOOD] });
-    await applyInTx(db, backfillSql);
+    await applyInTx(db, backfillSql, withBatch());
     const b = (await db.query<{ unresolved_lines: number; reconciliation_complete: boolean }>(
       `SELECT unresolved_lines, reconciliation_complete FROM orderitem_backfill_batches`)).rows[0];
     expect(Number(b.unresolved_lines)).toBe(0);
@@ -143,7 +158,7 @@ describe("canonical line identity distinguishes variants", () => {
         { productId: "p1", quantity: 1, priceAtPurchase: 500, variantId: "v-blue" },
       ],
     });
-    await applyInTx(db, backfillSql);
+    await applyInTx(db, backfillSql, withBatch());
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(2);
     // each kept its own variant identity
     expect(await scalar(db,
@@ -155,7 +170,7 @@ describe("canonical line identity distinguishes variants", () => {
     const db = await makeDb({
       "o1": [{ productId: "p1", quantity: 1, priceAtPurchase: 500, variantLabel: "  Red  " }],
     });
-    await applyInTx(db, backfillSql);
+    await applyInTx(db, backfillSql, withBatch());
     const k = (await db.query<{ k: string }>(
       `SELECT metadata #>> '{backfill,variant_key}' AS k FROM order_items_relational`)).rows[0].k;
     expect(k).toBe("red");
@@ -175,10 +190,10 @@ describe("canonical line identity distinguishes variants", () => {
       (id, order_id, product_id, quantity, price_at_purchase, total_price, metadata)
       VALUES ('app-1','o1','p1',1,500,500,'{"productName":"X"}'::jsonb)`);
 
-    await expect(applyInTx(db, backfillSql)).rejects.toThrow(/ambiguous duplicate group/);
+    await expect(applyInTx(db, backfillSql, withBatch())).rejects.toThrow(/ambiguous duplicate group/);
 
     // With the override the group is skipped, NOT silently paired.
-    await applyInTx(db, backfillSql, ALLOW);
+    await applyInTx(db, backfillSql, withAllow());
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(1);
     expect(await scalar(db,
       `SELECT count(*) FROM order_items_relational
@@ -196,7 +211,7 @@ describe("canonical line identity distinguishes variants", () => {
     await db.exec(`INSERT INTO order_items_relational
       (id, order_id, product_id, quantity, price_at_purchase, total_price, metadata)
       VALUES ('app-1','o1','p1',1,500,500,'{"variantId":"v-red"}'::jsonb)`);
-    await applyInTx(db, backfillSql);
+    await applyInTx(db, backfillSql, withBatch());
     // only the blue line was missing
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(2);
     expect(await scalar(db,
@@ -209,7 +224,7 @@ describe("canonical line identity distinguishes variants", () => {
 describe("control-table rollback policy — two documented modes", () => {
   async function seeded() {
     const db = await makeDb({ "o1": [GOOD] });
-    await applyInTx(db, backfillSql);
+    await applyInTx(db, backfillSql, withBatch());
     const batch = (await db.query<{ batch_id: string }>(
       `SELECT batch_id FROM orderitem_backfill_batches LIMIT 1`)).rows[0].batch_id;
     return { db, batch };
@@ -220,7 +235,7 @@ describe("control-table rollback policy — two documented modes", () => {
 
   it("MODE B (default): audit table RETAINED — documented rollback exception", async () => {
     const { db, batch } = await seeded();
-    await applyInTx(db, backfillRollbackSql, `SET LOCAL aquavo.backfill_batch_id = '${batch}';`);
+    await applyInTx(db, backfillRollbackSql, withRollback(batch));
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(0);
     expect(await tableExists(db)).toBe(1);          // deliberately still there
     expect(await scalar(db,
@@ -231,7 +246,7 @@ describe("control-table rollback policy — two documented modes", () => {
   it("MODE A (child branch): audit table DROPPED — full object-set rollback", async () => {
     const { db, batch } = await seeded();
     await applyInTx(db, backfillRollbackSql,
-      `SET LOCAL aquavo.backfill_batch_id = '${batch}'; SET LOCAL aquavo.backfill_drop_control_table = 'on';`);
+      `${withRollback(batch)} SET LOCAL aquavo.backfill_drop_control_table = 'on';`);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(0);
     expect(await tableExists(db)).toBe(0);          // introduced object removed
     await db.close();
@@ -239,17 +254,17 @@ describe("control-table rollback policy — two documented modes", () => {
 
   it("MODE A refuses to drop while an un-rolled-back batch remains", async () => {
     const db = await makeDb({ "o1": [GOOD] });
-    await applyInTx(db, backfillSql);                       // batch 1
+    await applyInTx(db, backfillSql, withBatch());           // batch 1
     const first = (await db.query<{ batch_id: string }>(
       `SELECT batch_id FROM orderitem_backfill_batches LIMIT 1`)).rows[0].batch_id;
     // A NEW order arrives, so a second backfill opens a second batch — without
     // disturbing batch 1's rows (which must still match its audit record).
     await db.query(`INSERT INTO orders (id, source, items) VALUES ('o2','website',$1)`,
       [JSON.stringify([GOOD])]);
-    await applyInTx(db, backfillSql);                       // batch 2, still active
+    await applyInTx(db, backfillSql, withBatch());           // batch 2, still active
 
     await expect(applyInTx(db, backfillRollbackSql,
-      `SET LOCAL aquavo.backfill_batch_id = '${first}'; SET LOCAL aquavo.backfill_drop_control_table = 'on';`))
+      `${withRollback(first)} SET LOCAL aquavo.backfill_drop_control_table = 'on';`))
       .rejects.toThrow(/un-rolled-back batch/);
     expect(await tableExists(db)).toBe(1);
     await db.close();
@@ -259,8 +274,25 @@ describe("control-table rollback policy — two documented modes", () => {
     const { db, batch } = await seeded();
     // Tamper: make the audit record disagree with reality.
     await db.exec(`UPDATE orderitem_backfill_batches SET rows_inserted = 99`);
+    await expect(applyInTx(db, backfillRollbackSql, withRollback(batch)))
+      .rejects.toThrow(/row-count mismatch/);
+    expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(1);
+    await db.close();
+  });
+
+  it("rollback FAILS CLOSED when the batch-UUID GUC is absent", async () => {
+    const { db, batch } = await seeded();
+    void batch;
     await expect(applyInTx(db, backfillRollbackSql,
-      `SET LOCAL aquavo.backfill_batch_id = '${batch}';`)).rejects.toThrow(/row-count mismatch/);
+      `SET LOCAL aquavo.backfill_rollback_authorized = 'on';`)).rejects.toThrow(/no batch id supplied/);
+    expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(1);
+    await db.close();
+  });
+
+  it("rollback FAILS CLOSED when the authorization GUC is absent, even with a valid batch id", async () => {
+    const { db, batch } = await seeded();
+    await expect(applyInTx(db, backfillRollbackSql,
+      `SET LOCAL aquavo.backfill_batch_id = '${batch}';`)).rejects.toThrow(/rollback not authorized/);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(1);
     await db.close();
   });

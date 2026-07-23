@@ -1,7 +1,13 @@
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { randomUUID } from "node:crypto";
 import { PGlite } from "@electric-sql/pglite";
+
+// Each test spins up a fresh PGlite instance; the first instantiation is slow
+// when the full 107-file suite runs in parallel. The 30s global default was
+// tripping here (~33s observed) — a load artefact, not a logic failure.
+vi.setConfig({ testTimeout: 180_000, hookTimeout: 180_000 });
 
 /**
  * Production-shaped verification of:
@@ -38,9 +44,14 @@ COMMIT;`);
     throw err;
   }
 }
+/** Forward backfill now REQUIRES an executor-supplied, fresh batch UUID GUC. */
+const runBackfill = (db: PGlite, batchId: string = randomUUID()) =>
+  applyInTx(db, backfillSql, `SET LOCAL aquavo.backfill_batch_id = '${batchId}';`);
+
 const rollbackBatch = (db: PGlite, batchId: string, drop = false) =>
   applyInTx(db, backfillRollbackSql,
     `SET LOCAL aquavo.backfill_batch_id = '${batchId}';` +
+    ` SET LOCAL aquavo.backfill_rollback_authorized = 'on';` +
     (drop ? ` SET LOCAL aquavo.backfill_drop_control_table = 'on';` : ""));
 
 async function latestBatchId(db: PGlite): Promise<string> {
@@ -307,8 +318,22 @@ describe("order-item cost-snapshot migration + JSONB backfill (production-shaped
     expect(pre).toMatchObject({ jsonbLines: 173, relationalRows: 100, ordersCovered: 25, missing: 73, surplus: 0 });
   });
 
+  it("backfill FAILS CLOSED when the batch-UUID GUC is absent (checked before any parsing)", async () => {
+    // The whole file — including STEP 1's CREATE TABLE — runs in one executor
+    // transaction, so the fail-closed RAISE at the top of STEP 3 rolls back
+    // everything: the control table is left exactly as it was beforehand.
+    await expect(applyInTx(db, backfillSql)).rejects.toThrow(/no batch id supplied/);
+    expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(100);
+  });
+
+  it("backfill FAILS CLOSED on a malformed batch-UUID GUC", async () => {
+    await expect(applyInTx(db, backfillSql, `SET LOCAL aquavo.backfill_batch_id = 'not-a-uuid';`))
+      .rejects.toThrow(/not a valid uuid/);
+    expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(100);
+  });
+
   it("3-5. backfill inserts exactly 73 rows → coverage 37/37, all 173 lines represented", async () => {
-    await applyInTx(db, backfillSql);
+    await runBackfill(db);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(173);
     expect(await scalar(db, `SELECT count(DISTINCT order_id) FROM order_items_relational`)).toBe(37);
     expect(await scalar(db,
@@ -368,11 +393,23 @@ describe("order-item cost-snapshot migration + JSONB backfill (production-shaped
 
   it("8. re-running the backfill inserts zero additional rows (idempotent)", async () => {
     const batchesBefore = await scalar(db, `SELECT count(*) FROM orderitem_backfill_batches`);
-    await applyInTx(db, backfillSql);
+    // Idempotent no-op still requires a fresh batch-id GUC (the guard is
+    // unconditional and runs before the "anything missing?" check), but since
+    // nothing is missing no batch row is opened with it.
+    await runBackfill(db);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(173);
     // no empty batch was opened, so the real batch stays the rollback target
     expect(await scalar(db, `SELECT count(*) FROM orderitem_backfill_batches`)).toBe(batchesBefore);
     expect((await independentReconcile(db))).toMatchObject({ missing: 0, surplus: 0 });
+  });
+
+  it("rollback FAILS CLOSED when the authorization GUC is absent, even with a valid batch id", async () => {
+    const batch = await latestBatchId(db);
+    await expect(applyInTx(db, backfillRollbackSql, `SET LOCAL aquavo.backfill_batch_id = '${batch}';`))
+      .rejects.toThrow(/rollback not authorized/);
+    expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(173);
+    expect(await scalar(db,
+      `SELECT count(*) FROM orderitem_backfill_batches WHERE batch_id='${batch}' AND rolled_back_at IS NOT NULL`)).toBe(0);
   });
 
   it("9-11. batch rollback removes exactly the 73 inserted rows, leaving the 100 intact", async () => {
@@ -407,7 +444,7 @@ describe("order-item cost-snapshot migration + JSONB backfill (production-shaped
   });
 
   it("12. reapplying the backfill restores 37/37 and reconciles clean", async () => {
-    await applyInTx(db, backfillSql);
+    await runBackfill(db);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational`)).toBe(173);
     expect(await scalar(db, `SELECT count(DISTINCT order_id) FROM order_items_relational`)).toBe(37);
     expect(await independentReconcile(db)).toMatchObject({
@@ -422,7 +459,7 @@ describe("order-item cost-snapshot migration + JSONB backfill (production-shaped
     await db.exec(`DELETE FROM order_items_relational
                    WHERE id IN ('rel-ord-cov-4-0','rel-ord-cov-4-1')`);
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational WHERE order_id='ord-cov-4'`)).toBe(6);
-    await applyInTx(db, backfillSql);
+    await runBackfill(db);
     // The old order-level skip would have left this at 6 forever.
     expect(await scalar(db, `SELECT count(*) FROM order_items_relational WHERE order_id='ord-cov-4'`)).toBe(8);
     expect(await independentReconcile(db)).toMatchObject({ missing: 0, surplus: 0 });

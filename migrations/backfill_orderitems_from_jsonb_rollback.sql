@@ -6,12 +6,24 @@
 --   MUST submit the complete file through one write-capable transactional call:
 --       BEGIN;  <entire file>  COMMIT;      -- on any error: ROLLBACK;
 --
--- REQUIRED PARAMETER — set in the SAME transaction, BEFORE this file:
+-- REQUIRED PARAMETERS — set in the SAME transaction, BEFORE this file:
 --       SET LOCAL aquavo.backfill_batch_id = '<exact-batch-uuid>';
---   There is NO default. "Most recent batch" selection was removed: `latest` can
---   change between preview and execution, or select a different batch after
---   another run, so an implicit target is unsafe. Without the setting this file
---   raises and deletes nothing.
+--       SET LOCAL aquavo.backfill_rollback_authorized = 'on';
+--   Neither has a default. "Most recent batch" selection was removed: `latest`
+--   can change between preview and execution, or select a different batch after
+--   another run, so an implicit target is unsafe.
+--
+--   The SECOND GUC exists because of the trigger-safety migration
+--   (add_orderitem_backfill_trigger_safety.sql): production's
+--   order_items_guard_order_detach BEFORE DELETE trigger blocks deletion of any
+--   order_items_relational row belonging to an audited order — which is every
+--   row a backfill batch could ever touch, since the backfill only fills gaps
+--   on real (audited) orders. The trigger-safety migration adds a narrowly
+--   scoped exception that permits deletion ONLY when
+--   aquavo.backfill_rollback_authorized = 'on' AND aquavo.backfill_batch_id
+--   names a batch this executor is entitled to remove. Without BOTH GUCs set,
+--   this file raises and deletes nothing — never "most rows deleted, one
+--   raised", the whole transaction fails closed before the DELETE runs.
 --
 --   Find the batch id with:
 --       SELECT batch_id, started_at, finished_at, rows_inserted,
@@ -29,13 +41,26 @@
 --   * Rows of any OTHER batch are equally unreachable.
 --   * The deleted count is compared against the recorded rows_inserted INSIDE the
 --     same transaction; a mismatch raises and the executor rolls back.
+--   * This migration creates NO inventory reversal movements. Locked policy:
+--     the forward backfill (via the trigger-safety suppression GUC) created
+--     zero inventory movements for its rows, so there is nothing to reverse.
 --
--- ROLLBACK ORDER: this file runs BEFORE add_order_item_cost_snapshot_rollback.sql.
+-- ROLLBACK ORDER: this file runs AFTER add_fulfillment_hardening_rollback.sql
+-- and add_fulfillment_costing_rollback.sql, and BEFORE
+-- add_orderitem_backfill_trigger_safety_rollback.sql and
+-- add_order_item_cost_snapshot_rollback.sql. It must run BEFORE the
+-- trigger-safety rollback specifically: the trigger-safety migration is what
+-- authorizes deleting these audited-order rows in the first place, so removing
+-- that exception first would make every backfilled row permanently
+-- undeletable in this transaction (and, if committed separately, in any
+-- future one) — see docs/audit/revised-backfill-plan.md for the full sequence
+-- and its rationale.
 -- ============================================================================
 
 DO $rollback$
 DECLARE
   v_txt      text := current_setting('aquavo.backfill_batch_id', true);
+  v_auth     text := COALESCE(current_setting('aquavo.backfill_rollback_authorized', true), 'off');
   v_batch    uuid;
   v_rec      orderitem_backfill_batches%ROWTYPE;
   v_selected bigint;
@@ -58,6 +83,19 @@ BEGIN
   EXCEPTION WHEN others THEN
     RAISE EXCEPTION 'ABORT: aquavo.backfill_batch_id (%) is not a valid uuid.', v_txt;
   END;
+
+  ---------------------------------------------------------------------------
+  -- 1b. Rollback authorization is mandatory (fail closed before touching any
+  --     row). This is the same GUC the trigger-safety BEFORE DELETE guard on
+  --     order_items_relational checks to permit deleting audited-order rows
+  --     for this batch; requiring it here too means this file never attempts
+  --     a DELETE it knows the trigger would reject.
+  ---------------------------------------------------------------------------
+  IF v_auth <> 'on' THEN
+    RAISE EXCEPTION
+      'ABORT: rollback not authorized. Set "SET LOCAL aquavo.backfill_rollback_authorized = ''on'';" '
+      'in the same transaction, alongside aquavo.backfill_batch_id. There is deliberately no default.';
+  END IF;
 
   ---------------------------------------------------------------------------
   -- 2. Validate the batch record.
