@@ -552,3 +552,147 @@ be unsafe.
    Any baseline must be re-taken immediately before execution, and the child branch must
    be cut from the branch state at that moment.
 4. Child branches + env vars, if and when branch verification resumes.
+
+---
+
+# REV. 5 — TRIGGER-SAFETY REMEDIATION (2026-07-23)
+
+**VERDICT: PASS — approved to manually create the two child branches.**
+
+Four independent agents ran; every claim below was independently reproduced by the
+coordinator, and two agent claims from the previous run were corrected rather than
+propagated.
+
+## 1. Trigger provenance and drift cause
+
+Agent 1 established, and the coordinator confirmed by direct query, that **the live
+production schema was changed outside version control**. Ten trigger/function objects on
+`order_items_relational` and `inventory_movements` appear in **no committed migration**;
+`git log -S` finds zero occurrences for six of them in the entire tracked history, and the
+other four appear only inside a same-day audit narrative that *describes discovering* the
+drift. The two thematically closest migrations (`add_fulfillment_costing`,
+`add_fulfillment_hardening`) are marked not-yet-applied and define a different subsystem.
+
+**This is a governance finding, not just a technical one:** production is being modified by
+a process that leaves no versioned artefact. It is the direct cause of the near-miss.
+
+## 2. Double-counting and blocked deletes — confirmed
+
+- `settings.inventory_ledger_mode = 'enforce'` is live, so any INSERT into
+  `order_items_relational` writes an `inventory_movements` row which cascades through
+  `inventory_movements_project_product_stock` to `products.stock`, while application code
+  manages `products.stock` on a separate unreconciled path. `inventory_movements` holds 185
+  rows and **zero** with `source_type='order_line'`, despite 100 existing relational rows.
+- **12 of 12** gap orders evaluate `order_is_hard_deletable() = false` -> **0** backfilled
+  rows would have been deletable.
+
+## 3. Trigger-safety design — coordinator-verified
+
+`migrations/add_orderitem_backfill_trigger_safety.sql` CREATE OR REPLACEs both functions
+from their captured live definitions and adds two exceptions.
+
+**Inventory suppression requires ALL of:** session GUC `aquavo.backfill_batch_id` present ·
+row carries `metadata.backfill.batch_id` · exact match · batch exists in
+`orderitem_backfill_batches` · `source='orders.items'` and
+`migration='backfill_orderitems_from_jsonb.sql'` · `finished_at IS NULL AND rolled_back_at
+IS NULL` (the batch is being written by *this* transaction — not "latest batch").
+
+**Delete authorization additionally requires:** `aquavo.backfill_rollback_authorized='on'` ·
+`TG_OP='DELETE'` and `TG_TABLE_NAME='order_items_relational'` · row has a `backfill`
+metadata key · batch `finished_at IS NOT NULL AND rolled_back_at IS NULL`.
+
+Coordinator checks performed independently:
+
+| Check | Result |
+|---|---|
+| `DISABLE TRIGGER` / `session_replication_role` / role bypass anywhere in `migrations/` | **none** — the only hits are comments stating they are not used |
+| Normal path unchanged when ledger mode is not 'enforce' | PASS — early RETURN NEW preserved |
+| UPDATE-of-order_id path unchanged | PASS — exception gated on `TG_OP='DELETE'` |
+| Application rows (no `metadata.backfill`) reachable by the delete exception | **unreachable by construction** |
+| Metadata trusted alone | NO — every bypass re-validates the persisted control row |
+| Transaction-contract compliance of both new files | PASS — enforced by the static guard |
+
+## 4. Revised sequences
+
+**Forward (five operations)** — each file submitted whole inside one executor transaction:
+
+| # | File | SHA-256 (committed) |
+|---|---|---|
+| 1 | `add_order_item_cost_snapshot.sql` | `e507bce47ae334aa77de3df5b38ea2f53e3e656ea6d84f51a2433c4650b3b0ed` |
+| 2 | `add_orderitem_backfill_trigger_safety.sql` | `ee96e878f98a53c8f303fc0f6be1c629da883cc4e6d2edbc01a717ce73c7cb89` |
+| 3 | `backfill_orderitems_from_jsonb.sql` | `bbe942d34716dfc9941f8419559cc78fb45350bafd4faa8a24db962c758a3ac2` |
+| 4 | `add_fulfillment_costing.sql` | `ea34a32f5f3d84b5913ca700531941a5ba7f53edf9ba125aa865345a979901d1` |
+| 5 | `add_fulfillment_hardening.sql` | `5a7f43634f801f7dc2c77a5f621204c39b1ae1b9cf245a1377e2c67615547f47` |
+
+Read-only companion: `backfill_orderitems_reconcile_report.sql` —
+`874f5d8e246373e55b15c5c2a5c3c38462009f8b84c0c12bde8b6e7c235f0c25`
+
+**Reverse rollback (six steps):**
+
+| Step | File | SHA-256 (committed) |
+|---|---|---|
+| 1 | `add_fulfillment_hardening_rollback.sql` | `8a7d97347556de33a7e8fc0c214e85f2fd881ac9e95a70b35724ea3282c510b4` |
+| 2 | `add_fulfillment_costing_rollback.sql` | `80fb2b54da93ed0f3c932e71e9321a3adfe185476facd29ccf686cb46f291296` |
+| 3 | `backfill_orderitems_from_jsonb_rollback.sql` | `9baedea40786549c6d9cd00c3b16dd3304b8a2d6c20930444d9246edc43a0f44` |
+| 4 | `add_orderitem_backfill_trigger_safety_rollback.sql` | `7a969e6fff28dd838442d90c9ba7f648229d13c04673bc77ba5a76eb6a3e003a` |
+| 5 | `add_order_item_cost_snapshot_rollback.sql` | `8811d78cc24830e1c70c61b11d1194918d73e6afe516a7ad4132044715dd1ae4` |
+| 6 | optional: disposable-branch audit-table cleanup (MODE A) | — |
+
+**Step 3 MUST precede step 4.** The trigger-safety exception is what authorizes deleting
+those audited-order rows; removing it first makes every backfilled row permanently
+undeletable.
+
+## 5. Execution contract (new GUC requirements)
+
+Forward, operation 3:
+
+```
+BEGIN;
+SET LOCAL aquavo.backfill_batch_id = '<fresh-uuid-minted-by-the-executor>';
+-- optional, only after owner review of unresolved lines:
+-- SET LOCAL aquavo.backfill_allow_unresolved = 'on';
+<entire backfill_orderitems_from_jsonb.sql>
+COMMIT;
+```
+
+Rollback, step 3:
+
+```
+BEGIN;
+SET LOCAL aquavo.backfill_batch_id = '<exact-batch-uuid>';
+SET LOCAL aquavo.backfill_rollback_authorized = 'on';
+<entire backfill_orderitems_from_jsonb_rollback.sql>
+COMMIT;
+```
+
+The executor now mints the UUID because the trigger must see the GUC *before* the INSERT
+fires it. The migration refuses a reused id and fails closed before any parsing or locking
+if the GUC is absent.
+
+## 6. Local verification
+
+**107 files / 1446 tests — all passing.** Reconciles exactly: 1417 (after the shared-test
+discovery fix) + 22 trigger-safety + 5 new backfill fail-closed + 2 contract-guard entries.
+
+Repository typecheck clean · accounting typechecks clean · build green · no live secret in
+any changed file.
+
+**Honest caveat:** the suite is intermittently flaky under full parallel load. The
+reproducible offender was PGlite first-instantiation exceeding the 30 s global timeout
+(observed 33-43 s); timeouts were raised in the two backfill suites and the final run is
+fully green. A separate occasional timing flake in a client page test was observed by an
+agent and is not addressed here.
+
+## 7. What is still NOT proven
+
+Everything requiring a live branch: real multi-connection concurrency, services against the
+branch, Playwright, and the accounting shadow comparison. The trigger-safety design is
+proven only against a PGlite reconstruction of the live triggers — **it has never executed
+against real production triggers.** That is precisely what the child branch is for.
+
+## 8. Decision
+
+**PASS — proceed to manually create the two child branches.** Both blocking owner decisions
+are now implemented and locally proven, and the previously fatal defects are addressed.
+Production remains untouched: no write, no DDL, no branch, no setting changed; the 12-order
+gap remains unrepaired.
