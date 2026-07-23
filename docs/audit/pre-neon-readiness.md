@@ -416,3 +416,16 @@ page — a real SEO defect, not merely a type complaint. Fixed to
 connection string with the password already redacted as `REDACTED_ROTATE_ME`, but
 the host and role name remain visible. Not a live credential and left untouched as
 historical evidence — folded into hardening item H5 (rotation).
+
+## Safety backup of the FINAL migration bytes
+
+`_backups/FishWebClean-preneon-20260723-000738.tar.gz` was taken at **00:07**, before
+the 2026-07-23 backfill rewrite. It therefore contains the **superseded** backfill
+bytes and lacks `backfill_orderitems_reconcile_report.sql`. It remains valid as a
+pre-Neon repository snapshot but is **not** the authority for the migration set.
+
+Focused backup of the final bytes:
+`_backups/migration-set-final-20260723/` — all 9 files plus `SHA256SUMS.txt`
+(`sha256sum -c` verified) and `MANIFEST.txt` recording commit `d981069` on branch
+`feat/accounting-canonical-fulfillment`. Every file verified identical to its
+committed git blob.
