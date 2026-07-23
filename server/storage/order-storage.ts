@@ -22,6 +22,30 @@ export function isStockError(message?: string): boolean {
     return message.includes(STOCK_ERROR_INSUFFICIENT) || message.includes(STOCK_ERROR_MAX_REACHED);
 }
 
+/**
+ * The production database enforces a second, DB-level inventory backstop
+ * (`settings.inventory_ledger_mode='enforce'`): inserting an order line into
+ * `order_items_relational` records a `sale` movement in `inventory_movements`,
+ * and the `prevent_negative_inventory_balance` BEFORE-INSERT trigger RAISEs
+ *   `insufficient canonical inventory balance for product %, variant %, location %`
+ * whenever the canonical running balance (SUM of movement deltas) would go
+ * negative. That is a genuine out-of-stock/availability outcome discovered at
+ * commit time — NOT a server fault — so it must surface as a clean domain
+ * availability conflict (HTTP 409), never as an opaque HTTP 500 with a raw
+ * English Postgres message leaking to the customer.
+ *
+ * See docs/audit/inventory-availability-remediation.md (F-6).
+ */
+export function isCanonicalInventoryBalanceError(error: unknown): boolean {
+    if (!error) return false;
+    const anyErr = error as { message?: unknown; cause?: unknown };
+    const direct = typeof anyErr.message === "string" &&
+        anyErr.message.includes("insufficient canonical inventory balance");
+    if (direct) return true;
+    // Postgres driver errors sometimes wrap the DB message in `cause`.
+    return isCanonicalInventoryBalanceError(anyErr.cause);
+}
+
 interface CreateOrderLineInput {
     productId: string;
     quantity: number;
@@ -423,6 +447,16 @@ export class OrderStorage {
                         continue;
                     }
                     throw new Error("Order creation failed after repeated order number collisions. Please try again.");
+                }
+
+                // The DB-level enforce-mode canonical ledger rejected the sale
+                // because the item is not actually available (canonical balance
+                // would go negative). The whole transaction has already rolled
+                // back — no order, no oversell. Re-surface it as the canonical
+                // Arabic availability error so the route maps it to a controlled
+                // 409 (never a 500 with a leaked English Postgres message).
+                if (isCanonicalInventoryBalanceError(error)) {
+                    throw new Error(STOCK_ERROR_INSUFFICIENT);
                 }
 
                 throw error;

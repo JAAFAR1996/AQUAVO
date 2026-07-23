@@ -5,10 +5,10 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { products, orders, settings, users, loyaltyTransactions } from '../../shared/schema.js';
+import { products, orders, settings, users, loyaltyTransactions, orderItems } from '../../shared/schema.js';
 import { getDb } from '../db.js';
 import { calculateActualCashbackUsed, createOrderSchema } from '../routes/orders.js';
-import { OrderStorage } from '../storage/order-storage.js';
+import { OrderStorage, isCanonicalInventoryBalanceError, STOCK_ERROR_INSUFFICIENT, isStockError } from '../storage/order-storage.js';
 
 vi.mock('../db.js', () => ({
     getDb: vi.fn(),
@@ -34,6 +34,7 @@ function createOrderStorageHarness(productRow: any, options: {
     duplicateLoyaltyRows?: any[];
     loyaltyInsertErrors?: unknown[];
     userUpdateError?: unknown;
+    orderItemsInsertError?: unknown;
 } = {}) {
     const productUpdates: any[] = [];
     const userUpdates: any[] = [];
@@ -88,8 +89,8 @@ function createOrderStorageHarness(productRow: any, options: {
             })),
         })),
         insert: vi.fn((table) => ({
-            values: vi.fn((payload) => ({
-                returning: vi.fn(async function () {
+            values: vi.fn((payload) => {
+                const run = async () => {
                     const tx = transactionAttempts[transactionAttempts.length - 1];
                     if (table === orders) {
                         const nextError = insertErrors.shift();
@@ -109,9 +110,19 @@ function createOrderStorageHarness(productRow: any, options: {
                         tx._staged.insertedLoyaltyTransactions.push(payload);
                         return [{ id: `loyalty-${tx._staged.insertedLoyaltyTransactions.length}`, ...payload }];
                     }
+                    if (table === orderItems && options.orderItemsInsertError) {
+                        // Simulates the production enforce-mode ledger trigger
+                        // (prevent_negative_inventory_balance) rejecting the
+                        // order-line insert into order_items_relational.
+                        throw options.orderItemsInsertError;
+                    }
                     return [{ id: 'row-1', ...payload }];
-                }),
-            })),
+                };
+                // `.returning()` for callers that use it (orders, loyalty), and a
+                // thenable for callers that `await tx.insert(x).values(...)`
+                // directly (order_items_relational has no `.returning()`).
+                return { returning: vi.fn(run), then: (res: any, rej: any) => run().then(res, rej) };
+            }),
         })),
     });
 
@@ -672,6 +683,45 @@ describe('OrderStorage.createOrderSecure', () => {
             address: 'Baghdad',
         })).rejects.toThrow('الكمية المطلوبة غير متوفرة حالياً (Variant Pump — Small)');
         expect(insertedOrders).toHaveLength(0);
+    });
+
+    // ── F-6: enforce-mode canonical ledger race → clean 409, never a 500 ──────
+    describe('F-6 canonical inventory ledger rejection', () => {
+        it('isCanonicalInventoryBalanceError detects the raw Postgres message (direct and wrapped in cause)', () => {
+            const raw = new Error('insufficient canonical inventory balance for product p1, variant <NULL>, location MAIN');
+            expect(isCanonicalInventoryBalanceError(raw)).toBe(true);
+            expect(isCanonicalInventoryBalanceError({ cause: raw })).toBe(true);
+            expect(isCanonicalInventoryBalanceError(new Error('some other db error'))).toBe(false);
+            expect(isCanonicalInventoryBalanceError(undefined)).toBe(false);
+        });
+
+        it('translates the ledger rejection into the clean Arabic stock error (mapped to 409), rolling back the order', async () => {
+            const ledgerError = Object.assign(
+                new Error('insufficient canonical inventory balance for product base-1, variant <NULL>, location MAIN'),
+                { code: 'P0001' },
+            );
+            const { storage, insertedOrders } = createOrderStorageHarness({
+                id: 'base-1',
+                name: 'Base Filter',
+                price: '10000',
+                stock: 5, // storefront advertises it as available
+                variants: null,
+                hasVariants: false,
+            }, { orderItemsInsertError: ledgerError });
+
+            const promise = storage.createOrderSecure(null, [
+                { productId: 'base-1', quantity: 1 },
+            ], { name: 'Customer', phone: '07701234567', address: 'Baghdad' });
+
+            await expect(promise).rejects.toThrow(STOCK_ERROR_INSUFFICIENT);
+            // The raw English DB message must NOT leak to the caller.
+            await promise.catch((err: Error) => {
+                expect(err.message).not.toMatch(/insufficient canonical inventory balance/);
+                expect(isStockError(err.message)).toBe(true); // → route returns 409
+            });
+            // No order escaped — the whole transaction rolled back (no oversell).
+            expect(insertedOrders).toHaveLength(0);
+        });
     });
 
     it('writes cashback redemption, order loyalty columns, user balance, stock, and ledger rows transactionally', async () => {
