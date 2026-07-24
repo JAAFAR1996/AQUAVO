@@ -38,9 +38,18 @@ describe("immutable cost snapshot preference (NULL-not-zero)", () => {
   });
 
   it("treats a snapshot with a verified 0 cost as KNOWN but not 'complete-with-positive-cost'", () => {
-    const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: 0, costStatus: "exact" });
+    // F-10: "this really costs nothing" is spelled `verified_zero`. That is the
+    // ONLY status under which a stored 0 is read back as a real cost of 0.
+    const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: 0, costStatus: "verified_zero" });
     expect(c!.costKnown).toBe(true);
     expect(c!.costPrice).toBe(0);
-    expect(c!.costsComplete).toBe(false); // positive-cost gate, but cost IS known
+    expect(c!.costsComplete).toBe(false); // components absent, so still not complete
+  });
+
+  it("F-10: a 0 frozen as plain 'exact' is AMBIGUOUS — it falls back, never reads as a cost of 0", () => {
+    // Pre-F-10 writers could freeze the `cost_price DEFAULT '0'` value as
+    // "exact". Reading that back as a genuine zero fabricates a 100% margin.
+    const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: 0, costStatus: "exact" });
+    expect(c).toBeNull(); // → caller falls back to the effective-dated resolver
   });
 });

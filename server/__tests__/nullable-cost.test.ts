@@ -31,7 +31,9 @@ describe("Item 1 — unknown cost stays null, verified zero stays 0", () => {
   });
 
   it("(2) a verified zero remains numeric 0, not null", () => {
-    const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: 0, packagingCost: 0, insertCost: 0, costStatus: "exact" });
+    // F-10: a verified zero declares itself via `verified_zero`; a bare 0 under
+    // any other status is the ambiguous `DEFAULT '0'` and is NOT a cost of 0.
+    const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: 0, packagingCost: 0, insertCost: 0, costStatus: "verified_zero" });
     expect(c!.costPrice).toBe(0);
     expect(c!.packagingCost).toBe(0);
     expect(c!.insertCost).toBe(0);
@@ -70,7 +72,7 @@ describe("Item 1 — unknown cost stays null, verified zero stays 0", () => {
 
   it("(5) JSON serialization preserves null-vs-0 distinction", () => {
     const unknown = calcOrderProfit(makeOrder({ costStatus: "unknown", costSource: "none" }), noResolver);
-    const zero = calcOrderProfit(makeOrder({ costPrice: 0, packagingCost: 0, insertCost: 0, costStatus: "exact" }), noResolver);
+    const zero = calcOrderProfit(makeOrder({ costPrice: 0, packagingCost: 0, insertCost: 0, costStatus: "verified_zero" }), noResolver);
     const u = JSON.parse(JSON.stringify(unknown));
     const z = JSON.parse(JSON.stringify(zero));
     expect(u.items[0].unitCostPrice).toBeNull();
