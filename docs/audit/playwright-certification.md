@@ -206,9 +206,15 @@ verify branch's `products` table had only `cost_price`, `packaging_cost`, `inser
 `GET /api/products` returned **500** and the storefront catalogue was entirely unavailable.
 
 **Cleared 2026-07-23** by the coordinator, who applied
-`migrations/add_product_cost_resolution.sql` (sha256 `98b2878a…`). Verified here: the column
-exists and the distribution on real data is **113 `known` / 30 `unresolved` / 0 `verified_zero`**
-— i.e. no cost was invented as a zero. `GET /api/products` now returns **200**.
+`migrations/add_product_cost_resolution.sql` (sha256 `98b2878a…` **as applied**; the file
+now hashes `fd88ddd6…` after a **comment-only** correction on 2026-07-24 that withdrew the
+stale "30 zero-cost / 143 products" figures from its header — no executable statement
+changed, so the applied branches remain byte-equivalent in effect). Verified here: the column
+exists and the distribution on real data is **113 `known` / 0 `verified_zero`** — i.e. no
+cost was invented as a zero. `GET /api/products` now returns **200**. (The `unresolved`
+figure was reported as 30 from the verification branch, counted without
+`deleted_at IS NULL`; on production it is **1**. See
+`docs/audit/live-product-cost-reconciliation.md`.)
 
 ---
 

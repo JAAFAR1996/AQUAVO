@@ -217,7 +217,7 @@ by the coordinator.
 | **F-2** | HIGH — admin/WhatsApp wrote no snapshot at all | **CLOSED** | `createOrderFromInvoice()` now locks each product through the same canonical builder inside the existing transaction. Verified both `order-storage.ts` and `invoice-storage.ts` import and use the identical builder. |
 | **F-3** | MED — engine read JSONB only, so backfilled NULLs surfaced as `estimated` | **CLOSED** | Relational store is now authoritative when it reconciles with JSONB; disagreement degrades to `incomplete`, never merges. Canonical product COGS falls by exactly 163,640 IQD — the substituted cost that was never evidence. |
 | **F-4** | MED — PIM idempotency key lacked per-line identity | **CLOSED** | Collision reproduced on real PostgreSQL. Fix adds `line_id` + partial `pim_line_uidx`; `pim_idempotency_uidx` untouched in both directions, so duplicate protection is unchanged and the new index is strictly stronger. Both indexes verified present on the branch. |
-| **F-5** | MED — products could not express unknown cost separately from verified zero | **CLOSED** | `*_resolution` columns added. Verified on real data: **113 `known`, 30 `unresolved`, 0 invented `verified_zero`** — every ambiguous zero stayed explicitly unresolved, exactly as required. |
+| **F-5** | MED — products could not express unknown cost separately from verified zero | **CLOSED** | `*_resolution` columns added. Verified on real data: **113 `known`, 0 invented `verified_zero`** — every ambiguous zero stayed explicitly unresolved, exactly as required. The `unresolved` count was reported as 30 from the verification branch; on **production** it is **1** (`houyi-mountain-wood`, out of stock) — the other 29 were soft-deleted rows counted without `deleted_at IS NULL`, since permanently removed. See `docs/audit/live-product-cost-reconciliation.md`. |
 
 ### Newly found — all OPEN, none owned by this cycle's agents
 
@@ -267,13 +267,54 @@ reproduced by the coordinator.
 ### Infrastructure hardening (committed)
 Authoritative server typecheck (`tsconfig.server.check.json` + `TOOLS/check-server.mjs`, `check:server`/`check:all`) — surfaces 308 pre-existing legacy server errors, fails only on owned files (all green). Accidental zero-byte repo-root file removed after a five-point proof; only that file removed.
 
-### NEW — open, discovered by Phase B verification
+### F-10 — RESOLVED (code + schema), magnitude CORRECTED
 
 | ID | Sev | Finding | Evidence |
 |---|---|---|---|
-| **F-10** | **MED** | `buildProductCostSnapshot` decides `unknown` **only** on `cost_price === null` and ignores the F-5 `*_resolution` columns; `lockProductRowForUpdate` does not even SELECT them. So a product with `cost_price = 0` marked `cost_price_resolution = 'unresolved'` freezes a false **`exact` 0** COGS at sale — reopening the F-5 "unknown must never read as 0" invariant at the **order-creation write path**. | Coordinator-verified on the verify branch: **30** products are `cost_price=0 / unresolved`, **27 orderable now** (`stock>0`). Root cause confirmed by reading `product-cost-snapshot.ts:104-108,170`. Missed because the snapshot builder (F-1/F-2 owner) and the resolution columns (F-5 owner) were owned by different agents; neither closed the seam. |
+| **F-10** | MED→resolved (code) | `buildProductCostSnapshot` decided `unknown` **only** on `cost_price === null` and ignored the F-5 `*_resolution` columns; `lockProductRowForUpdate` did not even SELECT them. A product whose `cost_price = 0` is merely the `numeric DEFAULT '0'` it was born with therefore froze a false **`exact` 0** COGS at sale — the F-5 "unknown must never read as 0" invariant, reopened at the **order-creation write path**. | **Live exposure: NONE.** Verified read-only against production (project `shiny-tree-43710630`, branch `br-patient-mouse-a4d4cgr4`, 2026-07-24): 114 active products, **113** with `cost_price > 0`, **1** with `cost_price = 0` (`houyi-mountain-wood`, **stock = 0**), **0** active in-stock zero-cost products, 0 soft-deleted. The generic code defect was real and is fixed; no order could have been created through it. |
 
-**F-10 remediation plan (next cycle, one scoped owner):** (1) add `cost_price_resolution`/`packaging_cost_resolution`/`insert_cost_resolution` to `lockProductRowForUpdate`'s SELECT and `LockedProductRow`; (2) in `buildProductCostSnapshot`, treat a `0` component whose resolution is not `known`/`verified_zero` as `unknown` (NULL); (3) update the PGlite fixtures in the affected test files to carry the resolution columns; (4) add a regression test: ordering an `unresolved`-zero product snapshots `unknown`, not `exact 0`. Deployment ordering: requires `add_product_cost_resolution.sql` applied first (already mandatory).
+> **CORRECTION — the "30 unresolved / 27 orderable" figure in the original F-10
+> entry was FALSE and is withdrawn.** It was measured on the *contaminated
+> verification branch*, which still held **29 soft-deleted zero-cost products**,
+> and it was measured **without a `deleted_at IS NULL` filter**: 29 deleted + 1
+> active = the "30". The "27 orderable" was that same unfiltered set re-filtered
+> on `stock > 0` — i.e. on the **stale `products.stock` left behind on
+> soft-deleted rows**, which is not availability at all. Those 29 rows were
+> permanently deleted from production on 2026-07-24 (backup branch
+> `br-summer-dawn-a45g2zi5`) after being proved to carry zero order-line,
+> inventory-movement, goods-receipt, purchase-order and supplier references.
+> The mistake is reproduced as an executable test in
+> `server/__tests__/product-cost-resolution-migration.test.ts`
+> ("REPRODUCES THE FALSE COUNT"). See `docs/audit/live-product-cost-reconciliation.md`.
+
+**F-10 remediation — SHIPPED:**
+1. `lockProductRowForUpdate` now SELECTs `cost_price_resolution` /
+   `packaging_cost_resolution` / `insert_cost_resolution` via
+   `to_jsonb(p) ->> '…'`, so the lock keeps working on a database where
+   `add_product_cost_resolution.sql` has not been applied yet (absent column →
+   NULL → read as `unresolved`, the conservative reading).
+2. `buildProductCostSnapshot` resolves each component through
+   `resolveSnapshotComponent`, the **same decision table** as
+   `accounting-engine.resolveCostComponent`: unresolved 0 → NULL/`unknown`;
+   verified 0 → exact `0` with status `verified_zero`; positive → exact.
+   A test asserts the two functions agree for every input shape.
+3. `lineCostSnapshot` (JSONB read path) now honours the same rule, so a 0 frozen
+   as plain `exact` by a pre-fix writer falls back to the resolver instead of
+   being read as a genuine cost of zero.
+4. `normalizeProductCostWrite` on every product create/update: an omitted or
+   empty cost becomes NULL + `unresolved`; a zero can only be stored with a
+   stated resolution; a `verified_zero` still requires a recorded note.
+5. `migrations/drop_product_cost_zero_defaults.sql` (+ rollback) removes
+   `DEFAULT '0'` from the three cost columns, defaults the resolution columns to
+   `'unresolved'`, and adds a NOT VALID CHECK that a stored 0 must declare its
+   meaning. **Not applied to production.**
+
+**F-10b — latent risk, REMAINS OPEN until the migrations are applied**
+
+| ID | Sev | Finding | Evidence |
+|---|---|---|---|
+| **F-10b** | **LOW (latent)** | While `products.cost_price / packaging_cost / insert_cost` still carry `numeric DEFAULT '0'` in production, every future product created without a cost is born holding a zero that is indistinguishable from a deliberate one. The application layer now writes NULL + `unresolved` explicitly, so the exposure is confined to writers that bypass `ProductStorage` (direct SQL, an import script, a psql session). | Production DDL still shows `cost_price DEFAULT 0`, `packaging_cost DEFAULT 0`, `insert_cost DEFAULT 0`, and no `*_resolution` columns are deployed. Closed by applying `add_product_cost_resolution.sql` then `drop_product_cost_zero_defaults.sql`. |
+| **F-10c** | **LOW (data-quality)** | **All 114** active products have `packaging_cost = 0` **and** `insert_cost = 0`. That is either a true zero or a never-populated field; the two are indistinguishable today. Every affected line therefore snapshots as `incomplete`, never `exact` — honest, but it means no order can currently report an exact fully-loaded COGS. | Verified read-only on production 2026-07-24. **Deliberately not remediated in code:** promoting these to `verified_zero` requires owner evidence, and fabricating a packaging cost would be worse than reporting `incomplete`. |
 
 ### Reconciliation (Phase B independent, real engine, 36 orders)
 Legacy − canonical: revenue +155,827, COGS +160,672 (legacy fabricates current cost on unknown/backfilled lines), box 0 → net −4,845, matching the direct difference **exactly, zero unexplained residue**. Phase A's period-scoped 16,803 (34 orders) was not reproduced (different order set) and is marked INCONCLUSIVE; the structural core holds.

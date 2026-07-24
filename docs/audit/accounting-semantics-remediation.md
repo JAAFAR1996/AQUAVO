@@ -120,6 +120,13 @@ All 194 relational rows on this branch have `unit_cost_price IS NULL`; 83 carry
 status. Product catalog on the same branch: 143 products, **0** NULL `cost_price`,
 30 with `cost_price = 0`, 143 with `packaging_cost = 0`, 143 with `insert_cost = 0`.
 
+> **SUPERSEDED — branch-scoped, not production.** The "30 with `cost_price = 0`"
+> above was counted on the verification branch **without a `deleted_at IS NULL`
+> filter**; 29 of those 30 were soft-deleted rows. Production (verified read-only
+> 2026-07-24): **114 active products, 113 with a positive cost, exactly 1 with
+> `cost_price = 0` (out of stock), 0 soft-deleted, 0 active in-stock zero-cost
+> products.** See `docs/audit/live-product-cost-reconciliation.md`.
+
 ### Effect on the shadow reconciliation
 
 The prior comparison (34 clean orders) was:
@@ -223,9 +230,23 @@ movement. Duplicate requests still short-circuit earlier, on the event's own
 `products.cost_price / packaging_cost / insert_cost` are declared
 `numeric DEFAULT '0'` (`shared/schema.ts`). A product created without cost
 information is **born holding a zero** that is indistinguishable from a deliberately
-entered zero. Measured live (read-only): **0** NULL costs, **30** products with
-`cost_price = 0`, **143 of 143** with `packaging_cost = 0` **and** `insert_cost = 0`.
+entered zero.
+
+**Measured on PRODUCTION, read-only, 2026-07-24** (project `shiny-tree-43710630`,
+branch `br-patient-mouse-a4d4cgr4`) — this supersedes the earlier verification-branch
+figures of "30 zero-cost / 143 products", which were counted without a
+`deleted_at IS NULL` filter and are withdrawn:
+
+* 114 total products, **114 active**, **0 soft-deleted**;
+* **113** active products with `cost_price > 0`;
+* **1** active product with `cost_price = 0` — `houyi-mountain-wood`, **stock 0**;
+* **0** active *in-stock* products with `cost_price = 0`;
+* **114 of 114** active products with `packaging_cost = 0` **and** `insert_cost = 0`.
+
 Zero is overloaded to mean "unknown", defeating the NULL-not-zero rule at its source.
+The defect is generic and real; its *current live exposure is nil*, because the one
+ambiguous cost belongs to a product that cannot be ordered. The risk it removes is
+forward-looking — the next product created without a cost.
 
 ### Schema representation
 
@@ -309,9 +330,10 @@ become `null` instead of a confident number resting on a fabricated zero).
   resolution is read as `unresolved`, i.e. the conservative reading. Applying the
   migration is not a prerequisite for the fix — it is what makes it *possible* for an
   operator ever to say `verified_zero`.
-* **Nothing is reinterpreted.** All 30 ambiguous `cost_price = 0` products and all
-  143 zero packaging/insert values remain explicitly `unresolved` until a human
-  supplies evidence. They are neither promoted to a real zero nor rewritten to NULL.
+* **Nothing is reinterpreted.** On production that means the **1** ambiguous
+  `cost_price = 0` product and all **114** zero packaging/insert values remain
+  explicitly `unresolved` until a human supplies evidence. They are neither promoted
+  to a real zero nor rewritten to NULL.
 * **Rollback is lossless for business data**: it drops only the added columns,
   constraints and index. Any recorded `verified_zero` classification is discarded —
   evidence is lost, never invented, which is the correct direction of failure.

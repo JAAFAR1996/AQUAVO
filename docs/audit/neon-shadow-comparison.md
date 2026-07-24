@@ -261,9 +261,13 @@ No unexplained residue.
 8. **"Legacy treats unknown cost as 0" — measured at ZERO effect on this dataset.**
    `l_linesUnknownCoercedToZero = 0`, because no product has a NULL `cost_price`. The
    classic legacy sin is real in the code but does not materialise here. Reported honestly
-   rather than claimed. Its latent form is **F-5**: 30 products carry `cost_price = 0` and
-   all 143 carry `packaging_cost = insert_cost = 0`, which may be unknowns already encoded
-   as zeros — in which case *both* engines are understating COGS and neither can tell.
+   rather than claimed. Its latent form is **F-5**: some products carry `cost_price = 0`
+   and every product carries `packaging_cost = insert_cost = 0`, which may be unknowns
+   already encoded as zeros — in which case *both* engines are understating COGS and
+   neither can tell. (Branch counts of "30" / "143" here are verification-branch figures
+   taken without `deleted_at IS NULL`. Production, 2026-07-24: **114 active products,
+   1 with `cost_price = 0` (out of stock), 114/114 with zero packaging+insert.** See
+   `docs/audit/live-product-cost-reconciliation.md`.)
 9. **Fulfillment cost (null vs 0) — the structural difference.** None of the 34 clean
    orders has a confirmed fulfillment event, so canonical reports `null` = *unknown*, while
    legacy has no such component and implicitly asserts *zero*. This is exactly the

@@ -303,11 +303,19 @@ Failing files: `consolidation-engine-agreement`, `fulfillment-admin-api`,
 
 1. **Zero is still overloaded at the product layer (Agent 3, not fixed here).**
    `shared/schema.ts:110-112` declares `costPrice/packagingCost/insertCost` as
-   `numeric(...).default("0")`, and the migrated branch has 0 NULLs but 30 zero
-   `cost_price` and 143 zero packaging/insert. So **no product can currently express
-   an unknown cost**, and in practice the builder's `unknown` branch will almost
-   never fire on live data — a genuinely un-costed product will be snapshotted as a
-   verified zero. The snapshot layer is now correct and ready; the *input* is not.
+   `numeric(...).default("0")`. So **no product can currently express an unknown
+   cost**, and a genuinely un-costed product would be snapshotted as a verified zero.
+   The snapshot layer is now correct and ready; the *input* is not.
+
+   > **UPDATED 2026-07-24 — fixed, and the magnitude was wrong.** The "30 zero
+   > `cost_price` / 143 zero packaging-insert" figures came from the verification
+   > branch counted **without `deleted_at IS NULL`**; 29 of the 30 were soft-deleted.
+   > Production: **114 active products, 113 positive-cost, 1 zero-cost (out of
+   > stock), 0 active in-stock zero-cost, 114/114 zero packaging+insert.** The
+   > builder now resolves an unresolved zero to `unknown` (F-10), the product write
+   > path can no longer create a bare ambiguous zero, and
+   > `migrations/drop_product_cost_zero_defaults.sql` removes the `DEFAULT '0'`
+   > itself. See `docs/audit/live-product-cost-reconciliation.md`.
    This needs a product-cost representation change (nullable columns, or an explicit
    `cost_price_resolution`) plus a reviewed reclassification of the existing zeros.
    The `unknown` path is fully implemented and tested and will start producing
