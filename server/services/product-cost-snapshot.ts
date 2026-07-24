@@ -17,14 +17,31 @@
  *        cost snapshot at all — neither into `orders.items` (JSONB) nor into
  *        `order_items_relational`.
  *
- * SEMANTICS — the two states below are DIFFERENT and must never collapse:
+ *   F-10 `lockProductRowForUpdate` never SELECTed the F-5 `*_resolution`
+ *        columns and `buildProductCostSnapshot` decided "unknown" purely on
+ *        `cost_price === null`. Because `products.cost_price` is
+ *        `numeric DEFAULT '0'`, a product created without any cost evidence is
+ *        BORN holding a 0 — so the builder froze a false `exact 0` COGS for it.
+ *        That is the same "unknown must never read as 0" invariant F-5 fixed on
+ *        the READ path, reopened on the order-creation WRITE path.
  *
- *   verified zero : the product genuinely costs 0. Stored as 0 (not NULL),
+ * SEMANTICS — the three states below are DIFFERENT and must never collapse:
+ *
+ *   known         : a positive number is evidence of itself. Stored as-is,
  *                   costStatus "exact"/"incomplete", costSource
- *                   "product_current". Profit maths may use it.
- *   unknown       : no cost was ever recorded. Stored as NULL (never 0),
- *                   costStatus "unknown", costSource "none", confidence NULL.
- *                   Profit maths must refuse to compute and flag the order.
+ *                   "product_current".
+ *   verified zero : the product genuinely costs 0, confirmed by a human via
+ *                   `cost_price_resolution = 'verified_zero'`. Stored as 0 (not
+ *                   NULL), costStatus "verified_zero". Profit maths may use it.
+ *   unknown       : no cost was ever recorded — either an explicit NULL, or a 0
+ *                   whose resolution is absent/'unresolved' (the `DEFAULT '0'`
+ *                   trap). Stored as NULL (never 0), costStatus "unknown",
+ *                   costSource "none", confidence NULL. Profit maths must refuse
+ *                   to compute and flag the order.
+ *
+ * A NULL/absent resolution is read as 'unresolved' — the conservative reading —
+ * so this module is correct BOTH before and after
+ * `migrations/add_product_cost_resolution.sql` is applied.
  *
  * This module NEVER looks at "today's" cost for an order that already exists —
  * it is only ever called while a NEW line is being created, inside the same
@@ -33,7 +50,16 @@
 
 import { sql } from "drizzle-orm";
 
-export type CostSnapshotStatus = "exact" | "estimated" | "incomplete" | "unknown";
+/**
+ * Kept identical to `accounting-engine.CostSnapshotStatus`. `verified_zero` is
+ * the status that lets the relational read path preserve a real 0 (see
+ * `buildRelationalLineResolver`); without it, a zero written as "exact" is read
+ * back as UNKNOWN and the two paths disagree.
+ */
+export type CostSnapshotStatus = "exact" | "verified_zero" | "estimated" | "incomplete" | "unknown";
+
+/** F-5 vocabulary for what a stored cost number MEANS. */
+export type CostResolution = "known" | "verified_zero" | "unresolved";
 export type CostSnapshotSource = "product_current" | "cost_history" | "manual" | "none";
 export type CostSnapshotConfidence = "high" | "medium" | "low";
 
@@ -48,6 +74,11 @@ export const PRODUCT_COST_SNAPSHOT_COLUMNS = [
     "cost_price",
     "packaging_cost",
     "insert_cost",
+    // F-10: without these the builder cannot tell a verified zero from the
+    // `DEFAULT '0'` an untouched product is born with.
+    "cost_price_resolution",
+    "packaging_cost_resolution",
+    "insert_cost_resolution",
 ] as const;
 
 /** Shape returned by {@link lockProductRowForUpdate}. */
@@ -62,6 +93,13 @@ export interface LockedProductRow {
     costPrice: string | number | null;
     packagingCost: string | number | null;
     insertCost: string | number | null;
+    /**
+     * F-5/F-10 resolution metadata. `null`/absent is read as 'unresolved', so
+     * these are optional and the builder is correct before the migration lands.
+     */
+    costPriceResolution?: string | null;
+    packagingCostResolution?: string | null;
+    insertCostResolution?: string | null;
 }
 
 export interface ProductCostSnapshot {
@@ -91,8 +129,36 @@ export function parseCostValue(raw: unknown): number | null {
 }
 
 /**
+ * F-10. Decide what one stored cost component MEANS, at snapshot time.
+ * Deliberately the same decision table as
+ * `accounting-engine.resolveCostComponent`, so the write path and the read path
+ * can never disagree about a zero:
+ *
+ *   NULL / absent / unparsable          -> null (UNKNOWN)
+ *   != 0                                -> the value (a number is evidence)
+ *   = 0 and resolution 'verified_zero'  -> 0 (a real, human-confirmed zero)
+ *   = 0 otherwise                       -> null (UNKNOWN — `DEFAULT '0'` means an
+ *                                          untouched product is born holding a 0;
+ *                                          freezing that as COGS is a fabrication)
+ */
+export function resolveSnapshotComponent(
+    raw: unknown,
+    resolution: string | null | undefined,
+): number | null {
+    const value = parseCostValue(raw);
+    if (value === null) return null;
+    if (value !== 0) return value;
+    return resolution === "verified_zero" ? 0 : null;
+}
+
+/**
  * THE canonical builder. Given a product row that was just locked FOR UPDATE
  * inside the creation transaction, produce the immutable per-unit snapshot.
+ *
+ * NOTE ON `verified_zero` STATUS: when the cost price is a confirmed 0 the
+ * status is `verified_zero`, not `exact`. That is what
+ * `buildRelationalLineResolver` keys on to read a stored 0 back as a real 0
+ * instead of conservatively demoting it to UNKNOWN.
  */
 export function buildProductCostSnapshot(
     product: Partial<LockedProductRow> | Record<string, unknown>,
@@ -101,12 +167,18 @@ export function buildProductCostSnapshot(
     const p = product as Record<string, unknown>;
     // Accept both camelCase (Drizzle) and snake_case (raw SQL) spellings so a
     // future caller cannot reintroduce F-1 by using a different row shape.
-    const costPrice = parseCostValue(p.costPrice ?? p.cost_price);
-    const packagingCost = parseCostValue(p.packagingCost ?? p.packaging_cost);
-    const insertCost = parseCostValue(p.insertCost ?? p.insert_cost);
+    const costRes = (p.costPriceResolution ?? p.cost_price_resolution) as string | null | undefined;
+    const packRes = (p.packagingCostResolution ?? p.packaging_cost_resolution) as string | null | undefined;
+    const insRes = (p.insertCostResolution ?? p.insert_cost_resolution) as string | null | undefined;
+
+    const rawCostPrice = p.costPrice ?? p.cost_price;
+    const costPrice = resolveSnapshotComponent(rawCostPrice, costRes);
+    const packagingCost = resolveSnapshotComponent(p.packagingCost ?? p.packaging_cost, packRes);
+    const insertCost = resolveSnapshotComponent(p.insertCost ?? p.insert_cost, insRes);
 
     if (costPrice === null) {
-        // UNKNOWN. All evidence NULL — never fabricate a 0, never partially fill.
+        // UNKNOWN — either an explicit NULL or an unresolved zero. All evidence
+        // NULL: never fabricate a 0, never partially fill.
         return {
             costPrice: null,
             packagingCost: null,
@@ -120,16 +192,63 @@ export function buildProductCostSnapshot(
     }
 
     const complete = packagingCost !== null && insertCost !== null;
+    const costStatus: CostSnapshotStatus = !complete
+        ? "incomplete"
+        : costPrice === 0
+            ? "verified_zero"
+            : "exact";
     return {
         costPrice,
         packagingCost,
         insertCost,
-        costStatus: complete ? "exact" : "incomplete",
+        costStatus,
         costSource: "product_current",
         costConfidence: complete ? "high" : "medium",
         costSnapshotVersion: COST_SNAPSHOT_VERSION,
         costSnapshotAt: now,
     };
+}
+
+/**
+ * F-10 WRITE GUARD for the product catalog itself (not for order lines).
+ *
+ * Applied by every product create/update path so an import or an admin form can
+ * never silently produce an ambiguous zero again:
+ *
+ *   field absent            -> left absent (an update must not clear a cost it
+ *                              was not asked to touch)
+ *   "" / null               -> null (UNKNOWN) + resolution 'unresolved'
+ *   0                       -> 0 kept, but resolution forced to 'unresolved'
+ *                              unless the caller EXPLICITLY supplied one. A
+ *                              'verified_zero' can only ever be stated
+ *                              deliberately, with a note.
+ *   != 0                    -> value kept + resolution 'known'
+ *
+ * An explicitly supplied resolution is always respected — this only fills gaps.
+ */
+export function normalizeProductCostWrite<T extends Record<string, any>>(input: T): T {
+    const out: Record<string, any> = { ...input };
+    const pairs = [
+        ["costPrice", "costPriceResolution"],
+        ["packagingCost", "packagingCostResolution"],
+        ["insertCost", "insertCostResolution"],
+    ] as const;
+
+    for (const [valueKey, resKey] of pairs) {
+        if (!(valueKey in out)) continue;
+        const raw = out[valueKey];
+        const parsed = raw === "" ? null : parseCostValue(raw);
+
+        if (parsed === null) {
+            out[valueKey] = null;
+            if (out[resKey] == null) out[resKey] = "unresolved";
+            continue;
+        }
+        out[valueKey] = raw;
+        if (out[resKey] != null) continue;           // caller was explicit — respect it
+        out[resKey] = parsed === 0 ? "unresolved" : "known";
+    }
+    return out as T;
 }
 
 /** Snapshot fields as they are embedded in the `orders.items` JSONB line. */
@@ -166,14 +285,23 @@ export async function lockProductRowForUpdate(
     tx: { execute: (q: any) => Promise<any> },
     productId: string,
 ): Promise<LockedProductRow | undefined> {
+    // The `*_resolution` columns are read through `to_jsonb(p) ->> ...` on
+    // purpose: that yields NULL (== 'unresolved', the conservative reading) when
+    // migrations/add_product_cost_resolution.sql has not been applied yet,
+    // instead of failing the whole lock with "column does not exist". Order
+    // creation therefore keeps working on a pre-migration database.
     const result = await tx.execute(sql`
-        SELECT id, name, price, stock, variants, has_variants AS "hasVariants",
-               cost_price AS "costPrice",
-               packaging_cost AS "packagingCost",
-               insert_cost AS "insertCost"
-        FROM products
-        WHERE id = ${productId}
-          AND deleted_at IS NULL
+        SELECT p.id, p.name, p.price, p.stock, p.variants,
+               p.has_variants AS "hasVariants",
+               p.cost_price AS "costPrice",
+               p.packaging_cost AS "packagingCost",
+               p.insert_cost AS "insertCost",
+               to_jsonb(p) ->> 'cost_price_resolution'     AS "costPriceResolution",
+               to_jsonb(p) ->> 'packaging_cost_resolution' AS "packagingCostResolution",
+               to_jsonb(p) ->> 'insert_cost_resolution'    AS "insertCostResolution"
+        FROM products p
+        WHERE p.id = ${productId}
+          AND p.deleted_at IS NULL
         FOR UPDATE
     `);
     const rows = Array.isArray(result) ? result : (result?.rows ?? []);

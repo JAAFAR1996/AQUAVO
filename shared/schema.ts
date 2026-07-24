@@ -32,7 +32,10 @@ export interface OrderLineItem {
   costPrice?: number | null;
   packagingCost?: number | null;
   insertCost?: number | null;
-  costStatus?: "exact" | "estimated" | "incomplete" | "unknown";
+  // `verified_zero` = a human-confirmed cost of exactly 0. Distinct from a 0
+  // that is merely the `DEFAULT '0'` an untouched product is born with — that
+  // one is snapshotted as `unknown` with NULL costs (F-10).
+  costStatus?: "exact" | "verified_zero" | "estimated" | "incomplete" | "unknown";
   costSource?: "product_current" | "cost_history" | "manual" | "none";
 }
 
@@ -106,10 +109,15 @@ export const products = pgTable("products", {
   // Product variants (for products with multiple sizes/options like HYGGER)
   variants: jsonb("variants").$type<ProductVariant[] | null>(),
   hasVariants: boolean("has_variants").notNull().default(false),
-  // Accounting: cost fields (set by admin manually)
-  costPrice: numeric("cost_price").default("0"),
-  packagingCost: numeric("packaging_cost").default("0"),
-  insertCost: numeric("insert_cost").default("0"),
+  // Accounting: cost fields (set by admin manually).
+  // F-10: NO column default. A `DEFAULT '0'` made an untouched product born
+  // holding a zero that is indistinguishable from a deliberate one, which is
+  // exactly the ambiguity the *_resolution columns below exist to remove.
+  // Omitting a cost must yield NULL (= UNKNOWN), never 0.
+  // Requires migrations/drop_product_cost_zero_defaults.sql.
+  costPrice: numeric("cost_price"),
+  packagingCost: numeric("packaging_cost"),
+  insertCost: numeric("insert_cost"),
   // F-5: what each cost number MEANS. 'known' (>0, real evidence) |
   // 'verified_zero' (=0, human-confirmed, requires costResolutionNote) |
   // 'unresolved' (UNKNOWN — accounting treats the value as NULL, never as 0).

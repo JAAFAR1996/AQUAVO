@@ -156,7 +156,13 @@ export function lineCostSnapshot(item: OrderLineItem): ProductCost | null {
     };
   }
   // Known snapshot: preserve a real 0 as 0, but keep null if any field is absent.
-  const costPrice = toMoneyOrNull(item.costPrice);
+  // F-10: a 0 is only a real 0 when the snapshot itself says `verified_zero`.
+  // A 0 frozen under any other status is an ambiguous `DEFAULT '0'` value and
+  // must fall back to the resolver rather than be read as a cost of nothing.
+  const costPrice = resolveCostComponent(
+    toMoneyOrNull(item.costPrice),
+    item.costStatus === "verified_zero" ? "verified_zero" : null,
+  );
   if (costPrice == null) return null; // no usable cost → fall back to resolver
   const packagingCost = toMoneyOrNull(item.packagingCost);
   const insertCost = toMoneyOrNull(item.insertCost);
@@ -168,7 +174,10 @@ export function lineCostSnapshot(item: OrderLineItem): ProductCost | null {
     packagingCost,
     insertCost,
     costKnown: true,
-    costsComplete: costPrice > 0 && packagingCost != null && insertCost != null,
+    // A verified zero is complete evidence, not a missing cost.
+    costsComplete:
+      (costPrice > 0 || item.costStatus === "verified_zero") &&
+      packagingCost != null && insertCost != null,
     costStatus: item.costStatus ?? "exact",
     costSource: item.costSource ?? "manual",
   };
