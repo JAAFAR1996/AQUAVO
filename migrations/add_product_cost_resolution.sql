@@ -11,11 +11,21 @@
 -- THE DEFECT
 --   products.cost_price / packaging_cost / insert_cost are `numeric DEFAULT '0'`.
 --   A product created without any cost information is therefore born holding a
---   value that is indistinguishable from a deliberately-entered zero. Live
---   evidence (verification branch, read-only): 0 NULL costs, 30 products with
---   cost_price = 0, 143 of 143 products with packaging_cost = 0 AND
---   insert_cost = 0. Zero is overloaded to mean "unknown", which defeats the
---   NULL-not-zero rule at its source.
+--   value that is indistinguishable from a deliberately-entered zero. Zero is
+--   overloaded to mean "unknown", which defeats the NULL-not-zero rule at its
+--   source.
+--
+--   PRODUCTION EVIDENCE (read-only, 2026-07-24, project shiny-tree-43710630,
+--   branch br-patient-mouse-a4d4cgr4):
+--       114 total products; 114 active (deleted_at IS NULL); 0 soft-deleted
+--       113 active with cost_price > 0        0 active with cost_price IS NULL
+--         1 active with cost_price = 0        (houyi-mountain-wood, stock = 0)
+--         0 active IN-STOCK with cost_price = 0
+--       114/114 active with packaging_cost = 0 AND insert_cost = 0
+--   An earlier header cited "30 products with cost_price = 0, 143 of 143" — that
+--   was the verification branch counted WITHOUT a `deleted_at IS NULL` filter
+--   (29 of the 30 were soft-deleted rows, since permanently removed). It is
+--   withdrawn; see docs/audit/live-product-cost-reconciliation.md.
 --
 -- THE DESIGN
 --   The numeric columns are NOT modified — no existing value is rewritten, no
