@@ -12,7 +12,7 @@
   <script>
     (function () {
       var el = document.documentElement;
-      var resolved = 'light'; /* first-time visitor + failure fallback default */
+      var resolved = 'light';
       try {
         var t = localStorage.getItem('theme');
         if (t === 'dark') resolved = 'dark';
@@ -31,13 +31,11 @@
   <meta name="keywords" content="__META_KEYWORDS__" />
   <link rel="canonical" href="__META_URL__" />
 
-  <!-- Preload LCP hero image for fastest possible render (responsive) -->
   <link rel="preload" fetchpriority="high" as="image" type="image/webp"
     href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp"
     imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w"
     imagesizes="(max-width: 1024px) 100vw, 48vw" />
 
-  <!-- Open Graph / Facebook -->
   <meta property="og:title" content="__META_TITLE__" />
   <meta property="og:description" content="__META_DESCRIPTION__" />
   <meta property="og:type" content="__META_OG_TYPE__" />
@@ -46,45 +44,32 @@
   <meta property="og:locale" content="ar_IQ" />
   <meta property="og:image" content="__META_IMAGE__" />
 
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@aquavoiq" />
   <meta name="twitter:title" content="__META_TITLE__" />
   <meta name="twitter:description" content="__META_DESCRIPTION__" />
   <meta name="twitter:image" content="__META_IMAGE__" />
 
-  <!-- SSR JSON-LD -->
   <!--__JSON_LD__-->
 
-  <!-- Approved AQUAVO v2 favicon -->
   <link rel="icon" type="image/png" sizes="512x512" href="/brand/aquavo-v2-favicon.png" />
   <link rel="apple-touch-icon" href="/brand/aquavo-v2-favicon.png" />
   <meta name="theme-color" content="#0B93A6" />
 
-  <!-- PWA Support - 2025 Standard -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="AQUAVO" />
-
-  <!-- Performance: only preconnect to origins needed for initial render -->
-  <!-- Removed: unsplash (unused), fist-live-server (same-origin), plausible/tiktok (deferred 3.5s) -->
   <meta name="robots" content="index, follow, max-image-preview:large">
 
-  <!-- Preconnect for Google Fonts (DNS + TLS resolved before fonts load) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- Hero image preload only when on home page (handled by React) -->
-
-  <!-- Approved v2 type system: Cairo Arabic, Inter interface/English, Changa display only -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;700&family=Changa:wght@700&display=swap">
   <noscript>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;700&family=Changa:wght@700&display=swap" rel="stylesheet">
   </noscript>
 
-  <!-- Critical CSS for Above-the-Fold Content -->
   <style>
     :root {
       --background: 201 57% 10%;
@@ -100,7 +85,7 @@
       color: hsl(var(--foreground));
       margin: 0
     }
-    
+
     h1, h2, h3, h4, h5, h6 {
       font-family: 'Cairo', Tahoma, sans-serif;
       font-weight: 700;
@@ -120,15 +105,13 @@
       background: linear-gradient(to bottom, transparent, hsl(var(--background)));
       z-index: 10
     }
-
   </style>
-
 </head>
 
 <body dir="rtl">
   <div id="root" dir="rtl"></div>
+  <script defer src="/admin-dashboard-truth.js"></script>
   <script type="module" src="/src/main.tsx"></script>
 </body>
-
 
 </html>
