@@ -44,6 +44,7 @@ import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
 import { createMcpRouter } from "./routes/mcp.js";
 import { createOAuthRouter } from "./routes/oauth.js";
+import { accountingCarrierFeeMiddleware } from "./middleware/accounting-carrier-fee.js";
 import { storage } from "./storage/index.js";
 
 // Helper for session type extension if needed
@@ -162,7 +163,7 @@ export async function registerRoutes(
   // Early Access Landing Page routes
   app.use("/api/early-access", earlyAccessRoutes);
 
-  // Field Sales Partners Program routes (برنامج شركاء المبيعات الميدانيين)
+  // Field Sales Partners Program (برنامج شركاء المبيعات الميدانيين)
   app.use("/api/partners", partnersRoutes);
 
   // Blog routes
@@ -191,6 +192,7 @@ export async function registerRoutes(
 
   // Manual Invoices (WhatsApp orders)
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", accountingCarrierFeeMiddleware);
   app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/admin/expenses", createExpensesRouter());
   app.use("/api/invoice", createInvoiceRouter());

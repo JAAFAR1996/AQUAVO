@@ -1,9 +1,8 @@
 import { defineConfig } from "drizzle-kit";
 import * as dotenv from "dotenv";
 
-// Load environment variables from .env.local
 dotenv.config({ path: ".env.local" });
-dotenv.config(); // Fallback to .env
+dotenv.config();
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
@@ -11,7 +10,7 @@ if (!process.env.DATABASE_URL) {
 
 export default defineConfig({
   out: "./migrations",
-  schema: "./shared/schema.ts",
+  schema: ["./shared/schema.ts", "./shared/operations-schema.ts"],
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,
@@ -72,6 +71,27 @@ export default defineConfig({
     "accounting_period_closes",
     "ai_agent_settings",
     "store_social_interactions",
-    "settings"
+    "settings",
+    "data_source_registry",
+    "database_repair_runs",
+    "database_repair_findings",
+    "inventory_legacy_snapshots",
+    "product_variant_reconciliation",
+    "inventory_locations",
+    "inventory_reconciliations",
+    "inventory_movements",
+    "suppliers",
+    "supplier_products",
+    "supplier_quotes",
+    "supplier_quote_items",
+    "purchase_orders",
+    "purchase_order_items",
+    "goods_receipts",
+    "goods_receipt_items",
+    "landed_cost_allocations",
+    "payment_events",
+    "cash_settlements",
+    "cash_settlement_items",
+    "order_financial_adjustments"
   ]
 });
