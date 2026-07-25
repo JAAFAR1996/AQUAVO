@@ -1,258 +1,159 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Bot, Database, Loader2, MessageCircle, Send, Trash2, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { useMutation } from "@tanstack/react-query";
-import {
-    Send,
-    Bot,
-    User,
-    Loader2,
-    Sparkles,
-    Trash2,
-    MessageCircle
-} from "lucide-react";
+import { addCsrfHeader } from "@/lib/csrf";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/contexts/auth-context";
 
 interface ChatMessage {
-    role: "user" | "assistant";
-    content: string;
-    timestamp: Date;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
 }
 
-async function sendChatMessage(message: string, history: ChatMessage[], userName?: string) {
-    const response = await fetch("/api/ai/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            message,
-            history: history.map(m => ({ role: m.role, content: m.content })),
-            userName,
-        }),
-    });
+async function askVerifiedData(message: string): Promise<string> {
+  const response = await fetch("/api/pricing/dashboard-chat", {
+    method: "POST",
+    headers: addCsrfHeader({ "Content-Type": "application/json" }),
+    credentials: "include",
+    body: JSON.stringify({ message }),
+  });
+  const payload = await response.json();
+  if (!response.ok || !payload.success || !payload.data?.response) {
+    throw new Error(payload.error || "تعذر قراءة بيانات الإدارة");
+  }
+  return payload.data.response as string;
+}
 
-    if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "فشل الاتصال بالذكاء الاصطناعي");
-    }
-
-    const data = await response.json();
-    return data.data.response;
+function welcomeMessage(): ChatMessage {
+  return {
+    role: "assistant",
+    content:
+      "مرحباً، أنا مساعد بيانات AQUAVO. أجيب من قاعدة البيانات مباشرة عن المبيعات المحققة، الطلبات، المخزون، وأفضل المنتجات. لا أعرض رقماً تقديرياً عند غياب الدليل.",
+    timestamp: new Date(),
+  };
 }
 
 export function AIChatPanel() {
-    const { user } = useAuth();
-    const [messages, setMessages] = useState<ChatMessage[]>([
+  const [messages, setMessages] = useState<ChatMessage[]>([welcomeMessage()]);
+  const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages]);
+
+  const mutation = useMutation({
+    mutationFn: askVerifiedData,
+    onSuccess: (content) => {
+      setMessages((current) => [...current, { role: "assistant", content, timestamp: new Date() }]);
+    },
+    onError: (error: Error) => {
+      setMessages((current) => [
+        ...current,
         {
-            role: "assistant",
-            content: "مرحباً! 🧠 أنا مساعد AQUAVO الذكي للإدارة\n\n**يمكنني مساعدتك في:**\n📊 تحليل المبيعات والإيرادات\n📦 متابعة المخزون والتنبيهات\n📈 توقعات الطلب والاتجاهات\n🎯 اقتراحات لتحسين الأداء\n\n**اسألني مثلاً:**\n• ما هي مبيعات اليوم؟\n• أي منتج يحتاج إعادة تخزين؟\n• كيف أداء المتجر هذا الشهر؟",
-            timestamp: new Date(),
+          role: "assistant",
+          content: `تعذر التحقق من قاعدة البيانات: ${error.message}. لم يتم عرض رقم بديل.`,
+          timestamp: new Date(),
         },
-    ]);
-    const [input, setInput] = useState("");
-    const scrollRef = useRef<HTMLDivElement>(null);
+      ]);
+    },
+  });
 
-    // Auto-scroll to bottom
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-        }
-    }, [messages]);
+  const send = (rawMessage: string) => {
+    const message = rawMessage.trim();
+    if (!message || mutation.isPending) return;
+    setMessages((current) => [...current, { role: "user", content: message, timestamp: new Date() }]);
+    mutation.mutate(message);
+    setInput("");
+  };
 
-    // Chat mutation
-    const chatMutation = useMutation({
-        mutationFn: (message: string) => sendChatMessage(message, messages, user?.fullName || undefined),
-        onSuccess: (response) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: response,
-                    timestamp: new Date(),
-                },
-            ]);
-        },
-        onError: (error: Error) => {
-            setMessages((prev) => [
-                ...prev,
-                {
-                    role: "assistant",
-                    content: `❌ خطأ: ${error.message}`,
-                    timestamp: new Date(),
-                },
-            ]);
-        },
-    });
+  const quickPrompts = [
+    "ما هي مبيعات اليوم؟",
+    "أي منتجات تحتاج إعادة تخزين؟",
+    "ما هو أفضل منتج مبيعاً هذا الشهر؟",
+    "حلل الطلبات هذا الأسبوع",
+    "ما هي تكلفة المخزون؟",
+  ];
 
-    // Send message
-    const handleSend = () => {
-        if (!input.trim() || chatMutation.isPending) return;
+  return (
+    <Card className="flex h-[600px] flex-col">
+      <CardHeader className="border-b pb-3">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="flex items-center gap-2">
+            <div className="rounded-lg bg-primary p-2">
+              <Bot className="h-5 w-5 text-primary-foreground" />
+            </div>
+            مساعد بيانات AQUAVO
+          </CardTitle>
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="gap-1">
+              <Database className="h-3 w-3" />
+              بيانات مباشرة
+            </Badge>
+            <Button variant="ghost" size="icon" aria-label="مسح المحادثة" onClick={() => setMessages([welcomeMessage()])}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
 
-        const userMessage: ChatMessage = {
-            role: "user",
-            content: input.trim(),
-            timestamp: new Date(),
-        };
-
-        setMessages((prev) => [...prev, userMessage]);
-        chatMutation.mutate(input.trim());
-        setInput("");
-    };
-
-    // Clear chat
-    const handleClear = () => {
-        setMessages([
-            {
-                role: "assistant",
-                content: "تم مسح المحادثة. كيف يمكنني مساعدتك؟ 🐠",
-                timestamp: new Date(),
-            },
-        ]);
-    };
-
-    // Quick prompts - Admin-focused analytics questions (2025 Best Practice)
-    const quickPrompts = [
-        "📊 ما هي مبيعات اليوم؟",
-        "⚠️ ما هي المنتجات الأقل مخزوناً؟",
-        "🏆 ما هو أفضل منتج مبيعاً هذا الشهر؟",
-        "📈 تحليل الطلبات هذا الأسبوع",
-    ];
-
-    return (
-        <Card className="h-[600px] flex flex-col">
-            <CardHeader className="pb-3 border-b">
-                <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                        <div className="p-2 bg-gradient-to-br from-primary to-cyan-500 rounded-lg">
-                            <Bot className="w-5 h-5 text-white" />
-                        </div>
-                        مساعد AQUAVO الذكي
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="gap-1">
-                            <Sparkles className="w-3 h-3" />
-                            AI
-                        </Badge>
-                        <Button variant="ghost" size="icon" onClick={handleClear} aria-label="مسح المحادثة">
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
+      <CardContent className="flex flex-1 flex-col p-0">
+        <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+          <div className="space-y-4">
+            {messages.map((message, index) => (
+              <div key={`${message.timestamp.getTime()}-${index}`} className={cn("flex gap-3", message.role === "user" && "flex-row-reverse")}>
+                <div className={cn("flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full", message.role === "user" ? "bg-primary text-primary-foreground" : "bg-cyan-600 text-white")}>
+                  {message.role === "user" ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
                 </div>
-            </CardHeader>
-
-            <CardContent className="flex-1 p-0 flex flex-col">
-                {/* Messages */}
-                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-                    <div className="space-y-4">
-                        {messages.map((message, index) => (
-                            <div
-                                key={index}
-                                className={cn(
-                                    "flex gap-3",
-                                    message.role === "user" ? "flex-row-reverse" : ""
-                                )}
-                            >
-                                <div
-                                    className={cn(
-                                        "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0",
-                                        message.role === "user"
-                                            ? "bg-primary text-white"
-                                            : "bg-gradient-to-br from-cyan-500 to-blue-500 text-white"
-                                    )}
-                                >
-                                    {message.role === "user" ? (
-                                        <User className="w-4 h-4" />
-                                    ) : (
-                                        <Bot className="w-4 h-4" />
-                                    )}
-                                </div>
-                                <div
-                                    className={cn(
-                                        "max-w-[80%] rounded-2xl px-4 py-2",
-                                        message.role === "user"
-                                            ? "bg-primary text-white rounded-tr-none"
-                                            : "bg-muted rounded-tl-none"
-                                    )}
-                                >
-                                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                                    <p className="text-[10px] opacity-60 mt-1">
-                                        {message.timestamp.toLocaleTimeString("ar-IQ", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
-
-                        {/* Loading indicator */}
-                        {chatMutation.isPending && (
-                            <div className="flex gap-3">
-                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                                    <Bot className="w-4 h-4 text-white" />
-                                </div>
-                                <div className="bg-muted rounded-2xl rounded-tl-none px-4 py-3">
-                                    <div className="flex items-center gap-2">
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                        <span className="text-sm text-muted-foreground">
-                                            جاري التفكير...
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
-
-                {/* Quick Prompts */}
-                {messages.length <= 1 && (
-                    <div className="p-4 border-t bg-muted/30">
-                        <p className="text-xs text-muted-foreground mb-2">اسأل عن:</p>
-                        <div className="flex flex-wrap gap-2">
-                            {quickPrompts.map((prompt, index) => (
-                                <Button
-                                    key={index}
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-xs"
-                                    onClick={() => setInput(prompt)}
-                                >
-                                    <MessageCircle className="w-3 h-3 ml-1" />
-                                    {prompt}
-                                </Button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Input */}
-                <div className="p-4 border-t">
-                    <div className="flex gap-2">
-                        <Input
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-                            placeholder="اكتب رسالتك هنا..."
-                            disabled={chatMutation.isPending}
-                            className="flex-1"
-                        />
-                        <Button
-                            onClick={handleSend}
-                            disabled={!input.trim() || chatMutation.isPending}
-                            className="gap-1"
-                        >
-                            {chatMutation.isPending ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                                <Send className="w-4 h-4" />
-                            )}
-                        </Button>
-                    </div>
+                <div className={cn("max-w-[82%] rounded-2xl px-4 py-3", message.role === "user" ? "rounded-tr-none bg-primary text-primary-foreground" : "rounded-tl-none bg-muted")}>
+                  <p className="whitespace-pre-wrap text-sm leading-6">{message.content}</p>
+                  <p className="mt-1 text-[10px] opacity-60">
+                    {message.timestamp.toLocaleTimeString("ar-IQ", { hour: "2-digit", minute: "2-digit" })}
+                  </p>
                 </div>
-            </CardContent>
-        </Card>
-    );
+              </div>
+            ))}
+            {mutation.isPending && (
+              <div className="flex gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-cyan-600 text-white"><Bot className="h-4 w-4" /></div>
+                <div className="flex items-center gap-2 rounded-2xl rounded-tl-none bg-muted px-4 py-3 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري الحساب من قاعدة البيانات...
+                </div>
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+
+        {messages.length === 1 && (
+          <div className="border-t bg-muted/20 p-4">
+            <p className="mb-2 text-xs text-muted-foreground">أسئلة جاهزة:</p>
+            <div className="flex flex-wrap gap-2">
+              {quickPrompts.map((prompt) => (
+                <Button key={prompt} variant="outline" size="sm" className="h-auto whitespace-normal text-xs" onClick={() => send(prompt)}>
+                  <MessageCircle className="ml-1 h-3 w-3" />
+                  {prompt}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="border-t p-4">
+          <div className="flex gap-2">
+            <Input value={input} onChange={(event) => setInput(event.target.value)} onKeyDown={(event) => event.key === "Enter" && send(input)} placeholder="اسأل عن المبيعات أو الطلبات أو المخزون..." disabled={mutation.isPending} />
+            <Button onClick={() => send(input)} disabled={!input.trim() || mutation.isPending} aria-label="إرسال">
+              {mutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+            </Button>
+          </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">عند تعذر الوصول للبيانات سيذكر ذلك صراحة بدل التخمين.</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
