@@ -18,6 +18,7 @@ import { createSecurityRouter } from "./routes/security.js";
 import { createLoyaltyRouter } from "./routes/loyalty.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
+import { createAccurateAdminAnalyticsRouter } from "./routes/admin-analytics-accurate.js";
 import { createNotificationsRouter } from "./routes/notifications.js";
 import journeyRoutes from "./routes/journey.js";
 import aiRoutes from "./routes/ai.js";
@@ -75,7 +76,39 @@ export async function registerRoutes(
   app.use("/api/orders", createOrderRouter());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
-  app.use("/api/admin/analytics", createAnalyticsRouter());
+  app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
+
+  // Never record admin activity as customer traffic. Historical admin rows are
+  // also excluded by every admin analytics query.
+  app.use("/api/analytics", async (req, res, next) => {
+    const trackingEndpoints = new Set(["/track-visit", "/presence", "/heartbeat", "/presence/leave"]);
+    if (!trackingEndpoints.has(req.path)) {
+      next();
+      return;
+    }
+
+    const pagePath = typeof req.body?.pagePath === "string" ? req.body.pagePath : "";
+    if (pagePath.startsWith("/admin")) {
+      res.json({ ok: true, skipped: "admin" });
+      return;
+    }
+
+    const userId = req.session?.userId;
+    if (userId) {
+      try {
+        const user = await storage.getUser(userId);
+        if (user?.role === "admin") {
+          res.json({ ok: true, skipped: "admin" });
+          return;
+        }
+      } catch {
+        // Tracking must not break navigation. If role lookup fails, continue to
+        // the existing analytics endpoint and let its normal safeguards apply.
+      }
+    }
+
+    next();
+  });
   app.use("/api/analytics", createAnalyticsRouter());
   app.use("/api/notifications", createNotificationsRouter());
   app.use("/api/gallery", createGalleryRouter());
@@ -138,7 +171,6 @@ export async function registerRoutes(
   // Social media analytics + comment automation routes removed from the product
   // (unused marketing automation). Service modules retained for any internal use.
 
-
   // Cron job routes (Vercel Cron calls these endpoints)
   app.use("/api/cron", cronRouter);
 
@@ -163,7 +195,6 @@ export async function registerRoutes(
   app.use("/api/admin/expenses", createExpensesRouter());
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
-
 
   // Error handling middleware
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
