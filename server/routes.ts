@@ -25,6 +25,7 @@ import aiRoutes from "./routes/ai.js";
 import aiAdvancedRoutes from "./routes/ai-advanced.js";
 import aiSettingsRoutes from "./routes/ai-settings.js";
 import pricingSafetyRoutes from "./routes/pricing-safety.js";
+import pricingTruthOverrideRoutes from "./routes/pricing-truth-override.js";
 import pricingRoutes from "./routes/pricing.js";
 import metadataRoutes from "./routes/metadata.js";
 import earlyAccessRoutes from "./routes/early-access.js";
@@ -130,9 +131,8 @@ export async function registerRoutes(
   app.use("/api/admin/ai-monitor", aiMonitorRouter);
   app.use("/api/admin/ai-learnings", aiLearningsRouter);
 
-  // Verify that the production price-history table matches the canonical
-  // schema before the pricing engine is allowed to read it.
   app.use("/api/pricing", pricingSafetyRoutes);
+  app.use("/api/pricing", pricingTruthOverrideRoutes);
   app.use("/api/pricing", pricingRoutes);
 
   app.use("/api/metadata", metadataRoutes);
