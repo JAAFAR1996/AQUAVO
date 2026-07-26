@@ -77,11 +77,20 @@
       inventory.lowStock,
       `لا تشمل ${formatter.format(inventory.outOfStock)} منتجات نافدة كلياً`,
     );
+
+    const costComplete = inventory.purchaseCostComplete === true;
+    const missingUnits = Number(inventory.missingVariantCostUnits || 0);
+    const missingVariants = Number(inventory.missingVariantCostCount || 0);
+    const costTitle = costComplete ? "تكلفة شراء المخزون" : "تكلفة المخزون الموثقة";
+    const costDescription = costComplete
+      ? "تكلفة كل وحدة وخيار مثبتة في قاعدة البيانات"
+      : `مجموع جزئي؛ ${formatter.format(missingUnits)} وحدة ضمن ${formatter.format(missingVariants)} خياراً بلا تكلفة مثبتة`;
+
     setCard(
-      ["قيمة المخزون", "تكلفة شراء المخزون"],
-      "تكلفة شراء المخزون",
+      ["قيمة المخزون", "تكلفة شراء المخزون", "تكلفة المخزون الموثقة"],
+      costTitle,
       inventory.purchaseCostValue,
-      "تكلفة الوحدة المسجلة × الكمية الحالية — ليست قيمة البيع",
+      costDescription,
     );
     setCard(
       ["إجمالي الطلبات", "الطلبات النشطة"],
@@ -99,7 +108,12 @@
 
   function markUnavailable() {
     if (!isAdminPage()) return;
-    setCard(["قيمة المخزون", "تكلفة شراء المخزون"], "تكلفة شراء المخزون", "—", "تعذر التحقق من قاعدة البيانات");
+    setCard(
+      ["قيمة المخزون", "تكلفة شراء المخزون", "تكلفة المخزون الموثقة"],
+      "تكلفة المخزون الموثقة",
+      "—",
+      "تعذر التحقق من قاعدة البيانات",
+    );
     setCard(["إجمالي الطلبات", "الطلبات النشطة"], "الطلبات النشطة", "—", "تعذر التحقق من قاعدة البيانات");
   }
 
