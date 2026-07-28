@@ -364,12 +364,29 @@ describe("PHASE 1A — order creation AFTER the migrations are applied", () => {
     expect(Number(r.rows[0].price_at_purchase)).toBe(20000);
   });
 
-  it("the immutability trigger now protects that line from raw SQL", async () => {
+  it("a NEWLY CREATED (pending) order is still editable — freezing is not premature", async () => {
+    // createOrderSecure produces status='pending'. Freezing is bound to
+    // FINANCIAL REALIZATION, so a fresh order must remain editable; otherwise
+    // ordinary order management would break the moment the trigger ships.
     const storage = new OrderStorage();
     await storage.createOrderSecure(null, [{ productId: "p-filter", quantity: 1 }], CUSTOMER);
 
+    await pg.exec(`UPDATE order_items_relational SET quantity = 2`);
+    const r = await pg.query<{ quantity: number }>(
+      `SELECT quantity FROM order_items_relational LIMIT 1`);
+    expect(r.rows[0].quantity).toBe(2);
+  });
+
+  it("...and becomes immutable once the order is delivered", async () => {
+    const storage = new OrderStorage();
+    const order = await storage.createOrderSecure(
+      null, [{ productId: "p-filter", quantity: 1 }], CUSTOMER);
+
+    await pg.exec(`UPDATE orders SET status = 'delivered' WHERE id = '${order.id}'`);
+    // Note the line's cost status here is NOT 'exact' — protection must hold
+    // regardless, which is the whole point of the corrected design.
     await expect(
-      pg.exec(`UPDATE order_items_relational SET unit_cost_price = 6500`),
+      pg.exec(`UPDATE order_items_relational SET price_at_purchase = 1`),
     ).rejects.toThrow(/immutable/i);
   });
 

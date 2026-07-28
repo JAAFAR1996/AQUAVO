@@ -48,6 +48,49 @@ export function isInProgressStatus(status: string | null | undefined): boolean {
   return IN_PROGRESS_SET.has(normStatus(status));
 }
 
+/**
+ * Statuses an order can only reach AFTER it was delivered. A return does not
+ * un-deliver the sale: the original revenue and cost happened, and the return
+ * is a separate, later event. Listing them here is what makes the freeze
+ * STICKY — an order cannot be edited again by transitioning it to `returned`.
+ */
+export const POST_DELIVERY_STATUSES = ["returned", "rejected_returned"] as const;
+const POST_DELIVERY_SET = new Set<string>(POST_DELIVERY_STATUSES);
+
+/**
+ * FINANCIAL REALIZATION — the single rule that decides whether an order's
+ * historical financial facts are frozen.
+ *
+ * This deliberately does NOT depend on cost completeness. The previous design
+ * froze a line only when its cost snapshot was `exact` or `verified_zero`;
+ * because 0 of 114 catalogue products can currently produce either, that meant
+ * `price_at_purchase`, `quantity` and `total_price` were editable on every real
+ * order. An unknown COST must stay unknown — but that is no licence to rewrite
+ * the SALE price or the quantity that was actually shipped.
+ *
+ * Frozen when ANY of:
+ *   - the order is delivered (revenue realized), or
+ *   - it has moved to a post-delivery state (returned / rejected_returned), or
+ *   - an operator explicitly forced it into the financial set
+ *     (`financiallyCounted === true`).
+ *
+ * NOT frozen: pending / confirmed / processing / shipped / cancelled /
+ * rejected / rejected_carrier — none of which has produced realized revenue,
+ * so ordinary order editing must keep working.
+ *
+ * `financiallyCounted === false` does NOT unfreeze a delivered order. Excluding
+ * an order from revenue is a reporting decision; it does not un-happen the sale,
+ * and the exclusion can be reversed later.
+ */
+export function isFinanciallyRealizedOrder(input: {
+  status: string | null | undefined;
+  financiallyCounted?: boolean | null;
+}): boolean {
+  if (input.financiallyCounted === true) return true;
+  const s = normStatus(input.status);
+  return REALIZED_SET.has(s) || POST_DELIVERY_SET.has(s);
+}
+
 /** Money-safe numeric coercion: non-finite / null / garbage → 0 (never NaN).
  *  Use ONLY for values where 0 is a correct default (e.g. revenue/shipping that
  *  is genuinely absent). NEVER use for cost evidence — see toMoneyOrNull. */

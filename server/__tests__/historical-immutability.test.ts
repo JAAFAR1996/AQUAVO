@@ -282,131 +282,16 @@ const BASE_SCHEMA = `
   );
 `;
 
-const immutabilitySql = readFileSync(
-  join(ROOT, "migrations/add_order_item_snapshot_immutability.sql"), "utf8");
-const immutabilityRollbackSql = readFileSync(
-  join(ROOT, "migrations/add_order_item_snapshot_immutability_rollback.sql"), "utf8");
 const salePriceSql = readFileSync(
   join(ROOT, "migrations/add_order_item_sale_price_snapshot.sql"), "utf8");
 
-describe("§11.10 — a DB trigger blocks mutation of an exact snapshot", () => {
-  let db: PGlite;
-
-  beforeEach(async () => {
-    db = new PGlite();
-    await db.exec(BASE_SCHEMA);
-    await db.exec(immutabilitySql);
-    await db.exec(`
-      INSERT INTO products (id, cost_price, price) VALUES ('p1', 5000, 20000);
-      INSERT INTO order_items_relational
-        (id, order_id, product_id, quantity, price_at_purchase, total_price,
-         unit_cost_price, cost_snapshot_status, cost_snapshot_source)
-      VALUES
-        ('line-exact', 'o1', 'p1', 1, 20000, 20000, 5000, 'exact', 'product_current'),
-        ('line-est',   'o2', 'p1', 1, 20000, 20000, 5000, 'estimated', 'cost_history');
-    `);
-  });
-
-  it("refuses a direct UPDATE of a frozen cost — raw SQL cannot rewrite history", async () => {
-    await expect(
-      db.exec(`UPDATE order_items_relational SET unit_cost_price = 6500 WHERE id = 'line-exact'`)
-    ).rejects.toThrow(/immutable/i);
-
-    const r = await db.query<{ unit_cost_price: string }>(
-      `SELECT unit_cost_price FROM order_items_relational WHERE id = 'line-exact'`);
-    expect(Number(r.rows[0].unit_cost_price)).toBe(5000);
-  });
-
-  it("refuses a DELETE of a frozen line", async () => {
-    await expect(
-      db.exec(`DELETE FROM order_items_relational WHERE id = 'line-exact'`)
-    ).rejects.toThrow(/immutable/i);
-  });
-
-  it("§11.8: updating products.cost_price does NOT update any order line", async () => {
-    // The literal test §11.8 asks for. A catalogue edit is allowed; it simply
-    // has no reach into the order line.
-    await db.exec(`UPDATE products SET cost_price = 6500 WHERE id = 'p1'`);
-    const r = await db.query<{ id: string; unit_cost_price: string }>(
-      `SELECT id, unit_cost_price FROM order_items_relational ORDER BY id`);
-    for (const row of r.rows) expect(Number(row.unit_cost_price)).toBe(5000);
-  });
-
-  it("leaves ESTIMATED lines mutable — reconstruction must be able to upgrade them", async () => {
-    // If this failed, the Historical Cost Evidence Reconstruction workflow
-    // could never promote the 182 lines to exact.
-    await db.exec(`UPDATE order_items_relational SET unit_cost_price = 5200 WHERE id = 'line-est'`);
-    const r = await db.query<{ unit_cost_price: string }>(
-      `SELECT unit_cost_price FROM order_items_relational WHERE id = 'line-est'`);
-    expect(Number(r.rows[0].unit_cost_price)).toBe(5200);
-  });
-
-  it("allows a non-financial edit to a frozen line (metadata is not money)", async () => {
-    await db.exec(
-      `UPDATE order_items_relational SET metadata = '{"note":"x"}'::jsonb WHERE id = 'line-exact'`);
-    const r = await db.query(`SELECT metadata FROM order_items_relational WHERE id = 'line-exact'`);
-    expect(r.rows[0]).toBeTruthy();
-  });
-
-  it("permits an AUDITED correction and records evidence of it", async () => {
-    await db.exec(`
-      SET LOCAL aquavo.snapshot_correction_id = 'CR-2026-001';
-      SET LOCAL aquavo.snapshot_correction_authorized = 'on';
-      UPDATE order_items_relational SET unit_cost_price = 5100 WHERE id = 'line-exact';
-    `);
-    const ev = await db.query<{ correction_id: string; before_row: unknown; after_row: unknown }>(
-      `SELECT correction_id, before_row, after_row FROM order_item_snapshot_corrections`);
-    expect(ev.rows).toHaveLength(1);
-    expect(ev.rows[0].correction_id).toBe("CR-2026-001");
-    // The ORIGINAL value survives in the evidence row — §11 "احتفظ بالرقم السابق".
-    expect(Number((ev.rows[0].before_row as { unit_cost_price: string }).unit_cost_price)).toBe(5000);
-    expect(Number((ev.rows[0].after_row as { unit_cost_price: string }).unit_cost_price)).toBe(5100);
-  });
-
-  it("refuses a correction id WITHOUT the authorization flag", async () => {
-    // Both GUCs are required. One alone is not a correction path.
-    await expect(db.exec(`
-      SET LOCAL aquavo.snapshot_correction_id = 'CR-2026-002';
-      UPDATE order_items_relational SET unit_cost_price = 7000 WHERE id = 'line-exact';
-    `)).rejects.toThrow(/immutable/i);
-  });
-
-  it("the authorization does not leak into a later transaction", async () => {
-    await db.exec(`
-      SET LOCAL aquavo.snapshot_correction_id = 'CR-2026-003';
-      SET LOCAL aquavo.snapshot_correction_authorized = 'on';
-      UPDATE order_items_relational SET unit_cost_price = 5100 WHERE id = 'line-exact';
-    `);
-    // A fresh statement outside that transaction must be blocked again.
-    await expect(
-      db.exec(`UPDATE order_items_relational SET unit_cost_price = 8000 WHERE id = 'line-exact'`)
-    ).rejects.toThrow(/immutable/i);
-  });
-
-  it("M-5: accepts verified_zero, which the old CHECK rejected", async () => {
-    await db.exec(`
-      INSERT INTO order_items_relational
-        (id, order_id, product_id, quantity, price_at_purchase, total_price,
-         unit_cost_price, cost_snapshot_status, cost_snapshot_source)
-      VALUES ('line-vz', 'o3', 'p1', 1, 20000, 20000, 0, 'verified_zero', 'manual');
-    `);
-    const r = await db.query(`SELECT id FROM order_items_relational WHERE id = 'line-vz'`);
-    expect(r.rows).toHaveLength(1);
-  });
-});
+// §11.10 (DB-enforced immutability) now lives in
+// financial-realization-immutability.test.ts. It was moved when the freeze was
+// rebound from cost status to ORDER FINANCIAL REALIZATION: the original guard
+// only froze 'exact'/'verified_zero' lines, and production has 0 of 114
+// products able to produce either, so it protected nothing in practice.
 
 describe("§11 migrations are idempotent and reversible", () => {
-  it("the immutability migration applies twice and rolls back", async () => {
-    const db = new PGlite();
-    await db.exec(BASE_SCHEMA);
-    await db.exec(immutabilitySql);
-    await db.exec(immutabilitySql); // must not throw
-    await db.exec(immutabilityRollbackSql);
-    const t = await db.query<{ tgname: string }>(
-      `SELECT tgname FROM pg_trigger WHERE tgname = 'order_item_cost_snapshot_immutable'`);
-    expect(t.rows).toHaveLength(0);
-  });
-
   it("the sale-price migration adds columns without inventing a single snapshot", async () => {
     const db = new PGlite();
     await db.exec(BASE_SCHEMA);

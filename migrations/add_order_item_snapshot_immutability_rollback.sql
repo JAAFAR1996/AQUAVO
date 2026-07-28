@@ -3,21 +3,31 @@
 --
 -- Reverses add_order_item_snapshot_immutability.sql.
 --
--- Removes the immutability trigger and restores the previous (narrower) status
--- CHECK. Deliberately does NOT drop `order_item_snapshot_corrections`: that
--- table holds evidence of authorized corrections that actually happened, and
--- destroying an audit trail to undo a schema change is never acceptable. Drop
--- it by hand only if you are certain it is empty.
+-- Removes both immutability triggers and their helper functions, and restores
+-- the previous (narrower) cost-status CHECK.
 --
--- ⚠️ After this rollback, frozen cost snapshots are mutable again by any
--- writer. Mission §11's guarantee is not enforced while it is reverted.
+-- Deliberately does NOT drop `financial_correction_requests` or
+-- `financial_correction_audit`: they hold evidence of corrections that actually
+-- happened. Destroying an audit trail to undo a schema change is never
+-- acceptable. Drop them by hand only after confirming they are empty.
+--
+-- ⚠️ After this rollback, the financial fields of realized orders are editable
+-- again by any writer. Mission §11's guarantee is NOT enforced while reverted.
 --
 -- EXECUTION CONTRACT: no top-level BEGIN/COMMIT — the executor wraps the file.
 -- Idempotent.
 -- ============================================================================
 
+DROP TRIGGER IF EXISTS order_financial_history_immutable ON orders;
+DROP TRIGGER IF EXISTS order_item_financial_history_immutable ON order_items_relational;
+-- Legacy name from the first design, in case an older version was applied.
 DROP TRIGGER IF EXISTS order_item_cost_snapshot_immutable ON order_items_relational;
+
+DROP FUNCTION IF EXISTS guard_order_financial_history();
+DROP FUNCTION IF EXISTS guard_order_item_financial_history();
 DROP FUNCTION IF EXISTS guard_order_item_cost_snapshot();
+DROP FUNCTION IF EXISTS assert_financial_correction_authorized(text, text, text);
+DROP FUNCTION IF EXISTS is_financially_realized_order(text, boolean);
 
 -- Restore the original vocabulary (without 'verified_zero'), matching
 -- add_order_item_cost_snapshot.sql exactly.
@@ -33,25 +43,32 @@ ALTER TABLE order_items_relational
 
 DO $notice$
 DECLARE
-  evidence_rows integer;
+  reqs integer := 0;
+  auds integer := 0;
 BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables
-             WHERE table_name = 'order_item_snapshot_corrections') THEN
-    SELECT count(*) INTO evidence_rows FROM order_item_snapshot_corrections;
-    RAISE NOTICE
-      'order_item_snapshot_corrections retained with % row(s) — audit evidence '
-      'is not dropped by a rollback.', evidence_rows;
+  IF to_regclass('public.financial_correction_requests') IS NOT NULL THEN
+    SELECT count(*) INTO reqs FROM financial_correction_requests;
   END IF;
+  IF to_regclass('public.financial_correction_audit') IS NOT NULL THEN
+    SELECT count(*) INTO auds FROM financial_correction_audit;
+  END IF;
+  RAISE NOTICE
+    'Correction evidence retained: % request(s), % audit row(s). A rollback '
+    'never drops audit history.', reqs, auds;
 END
 $notice$;
 
 DO $verify$
+DECLARE
+  n integer;
 BEGIN
-  IF EXISTS (
-    SELECT 1 FROM pg_trigger
-    WHERE tgname = 'order_item_cost_snapshot_immutable' AND NOT tgisinternal
-  ) THEN
-    RAISE EXCEPTION 'ROLLBACK INCOMPLETE: trigger still present';
+  SELECT count(*) INTO n FROM pg_trigger
+  WHERE NOT tgisinternal
+    AND tgname IN ('order_item_financial_history_immutable',
+                   'order_financial_history_immutable',
+                   'order_item_cost_snapshot_immutable');
+  IF n <> 0 THEN
+    RAISE EXCEPTION 'ROLLBACK INCOMPLETE: % trigger(s) still present', n;
   END IF;
 END
 $verify$;
