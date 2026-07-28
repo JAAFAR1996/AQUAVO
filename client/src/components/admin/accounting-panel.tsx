@@ -1,4 +1,15 @@
 import { useState } from "react";
+
+/** تسميات مصدر الكلفة — مطابقة لِـ COST_BASIS_LABEL_AR في محرك المحاسبة. */
+const COST_BASIS_LABEL_AR: Record<string, string> = {
+  exact_snapshot: "كلفة الطلب الأصلية",
+  estimated_history: "تقديري من سجل الكلفة بتاريخ البيع",
+  estimated_database_reference: "تقديري من آخر كلفة محفوظة بقاعدة البيانات",
+  unknown: "الكلفة غير متوفرة",
+};
+/** كلفة/ربح/هامش غير معروف يُعرض "—" ولا يُعرض صفراً أبداً. */
+const fmtOrDash = (v: number | null | undefined, f: (n: number) => string) =>
+  v == null ? "—" : f(v);
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ZodType } from "zod";
 import { Button } from "@/components/ui/button";
@@ -290,7 +301,7 @@ export default function AccountingPanel() {
             </div>
             {!summary.costsComplete && (
               <div style={{ marginTop: 10, background: "#f59e0b15", border: "1px solid #f59e0b40", borderRadius: 8, padding: "8px 14px", color: "#fcd34d", fontSize: 12 }}>
-                تحذير: {summary.missingCostLines} منتج بدون سعر شراء — الأرباح محسوبة من البيانات المتوفرة فقط
+                الربح التقديري — محسوب من أفضل كلفة متوفرة في قاعدة البيانات، وليس لقطة تاريخية كاملة{summary.unknownCostProducts ? ` · ${summary.unknownCostProducts} منتجاً بلا كلفة معروفة` : ""}
               </div>
             )}
           </>
@@ -371,7 +382,7 @@ export default function AccountingPanel() {
             ربحية المنتجات
             {missingCostCount > 0 && (
               <span style={{ marginRight: 8, fontSize: 11, color: "#f59e0b", fontWeight: 400 }}>
-                ({missingCostCount} بدون سعر شراء)
+                ({missingCostCount} منتجاً بكلفة تقديرية أو غير متوفرة)
               </span>
             )}
           </SectionTitle>
@@ -399,15 +410,24 @@ export default function AccountingPanel() {
                   <tr key={row.productId} style={{ borderTop: "1px solid #1e3a5f20" }}>
                     <td style={{ padding: "10px 14px", color: "#fff", fontSize: 13, maxWidth: 200 }}>
                       <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{row.name}</div>
-                      {!row.costsComplete && (
-                        <div style={{ fontSize: 10, color: "#f59e0b", marginTop: 2 }}>بدون سعر شراء</div>
+                      {/* مصدر الكلفة — تقدير من قاعدة البيانات ليس "بدون سعر شراء". */}
+                      {row.costBasis && row.costBasis !== "exact_snapshot" && (
+                        <div
+                          style={{
+                            fontSize: 10,
+                            color: row.costBasis === "unknown" ? "#f59e0b" : "#94a3b8",
+                            marginTop: 2,
+                          }}
+                        >
+                          {COST_BASIS_LABEL_AR[row.costBasis]}
+                        </div>
                       )}
                     </td>
                     <td style={{ padding: "10px 14px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>{row.unitsSold}</td>
                     <td style={{ padding: "10px 14px", textAlign: "center", color: "#22c55e", fontSize: 13 }}>{fmt(row.revenue)}</td>
-                    <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 13 }}>{fmt(row.cogs)}</td>
+                    <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 13 }}>{fmtOrDash(row.cogs, fmt)}</td>
                     <td style={{ padding: "10px 14px", textAlign: "center", fontSize: 13, fontWeight: 700, color: row.netProfit >= 0 ? "#0B93A6" : "#ef4444" }}>
-                      {fmt(row.netProfit)}
+                      {fmtOrDash(row.netProfit, fmt)}
                     </td>
                     <td style={{ padding: "10px 14px", textAlign: "center" }}>
                       <span style={{
@@ -511,7 +531,7 @@ export default function AccountingPanel() {
                         )}
                       </td>
                       <td style={{ padding: "10px 14px", textAlign: "center", color: "#22c55e", fontSize: 12 }}>{fmt(row.revenue)}</td>
-                      <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 12 }}>{fmt(row.cogs)}</td>
+                      <td style={{ padding: "10px 14px", textAlign: "center", color: "#ef4444", fontSize: 12 }}>{fmtOrDash(row.cogs, fmt)}</td>
                       <td style={{ padding: "10px 14px", textAlign: "center" }}>
                         <div style={{ display: "flex", gap: 3, justifyContent: "center", flexWrap: "wrap" }}>
                           {BOX_SIZES.map(box => {
@@ -543,7 +563,7 @@ export default function AccountingPanel() {
                       </td>
                       <td style={{ padding: "10px 14px", textAlign: "center", fontWeight: 700, fontSize: 12,
                         color: row.status !== "delivered" ? "#475569" : row.netProfit >= 0 ? "#0B93A6" : "#ef4444" }}>
-                        {fmt(row.netProfit)}
+                        {fmtOrDash(row.netProfit, fmt)}
                         {row.status !== "delivered" && (
                           <div style={{ fontSize: 9, color: "#475569", fontWeight: 400, marginTop: 1 }}>
                             تقديري

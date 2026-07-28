@@ -2,7 +2,7 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
+import { orders, products, shippingSettlements, cashSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
@@ -481,10 +481,11 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const [allCodOrders, settlements, verifiedReturnEvents] = await Promise.all([
+    const [allCodOrders, settlements, verifiedReturnEvents, cashSettlementRows] = await Promise.all([
       db.select().from(orders),
       db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt)),
       db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
+      db.select().from(cashSettlements).orderBy(desc(cashSettlements.createdAt)),
     ]);
 
     const deliveredOrders = allCodOrders.filter((order) => order.status === "delivered");
@@ -503,7 +504,24 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const approvedReturnDeductions = verifiedReturnEvents
       .filter((e) => deliveredOrderIds.has(e.orderId))
       .reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
-    const totalPending = Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
+
+    // ── رصيد شركة التوصيل ──────────────────────────────────────────────────
+    // المصدر الرسمي: cash_settlements بحالة 'reconciled' فقط.
+    // جدول shipping_settlements و orders.shipping_cost سجلّات تشغيلية قديمة
+    // وناقصة — قراءتها كانت تُظهر رصيداً وهمياً باقياً عند الشركة.
+    const reconciled = cashSettlementRows.filter((s) => s.status === "reconciled");
+    // المقبوض من الزبائن (إجمالي) — قبل خصم أي أجور.
+    const grossCustomerCollections = reconciled.reduce((sum, s) => sum + toNumber(s.grossAmount), 0);
+    // أجور شركة التوصيل — الشركة تأخذها لنفسها، فهي ليست مبلغاً باقياً عندها.
+    const carrierFees = reconciled.reduce((sum, s) => sum + toNumber(s.feesAmount), 0);
+    // الصافي المستلم فعلاً من قبل AQUAVO.
+    const netCashReceived = reconciled.reduce((sum, s) => sum + toNumber(s.netAmount), 0);
+    const documentedAdjustments = approvedReturnDeductions;
+    // الباقي عند الشركة. لا يُقصّ إلى صفر: أي نقص حقيقي في التسويات المسجّلة
+    // يجب أن يظهر بدل أن يُخفى.
+    const carrierOutstanding =
+      grossCustomerCollections - carrierFees - netCashReceived - documentedAdjustments;
+    const totalPending = carrierOutstanding;
 
     res.json({
       success: true,
@@ -514,6 +532,15 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
         totalReceived,
         approvedReturnDeductions,
         totalPending,
+        // الأرقام الأربعة المعروضة في اللوحة — كل واحد مشتق من قاعدة البيانات.
+        carrierBalance: {
+          grossCustomerCollections,
+          carrierFees,
+          netCashReceived,
+          documentedAdjustments,
+          outstanding: carrierOutstanding,
+          fullySettled: carrierOutstanding === 0,
+        },
         settlements: settlements.map((settlement) => ({
           id: settlement.id,
           carrier: settlement.carrier,

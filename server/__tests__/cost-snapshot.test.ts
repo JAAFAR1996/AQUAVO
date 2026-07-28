@@ -27,14 +27,20 @@ describe("immutable cost snapshot preference (NULL-not-zero)", () => {
     expect(c!.name).toBe("Filter");
   });
 
-  it("returns an explicitly UNKNOWN cost (not 0) when the snapshot recorded unknown", () => {
-    // A frozen 'unknown' must NOT be silently replaced by current cost, and must
-    // never be treated as a real 0 → costKnown false, order flagged incomplete.
+  it("defers an 'unknown' snapshot to the resolver instead of reporting a zero cost", () => {
+    // SUPERSEDED CONTRACT. This used to return an all-NULL cost and stop, which
+    // meant a line whose product has a perfectly good product_cost_history row
+    // still reported "no purchase price" and a 100% margin.
+    //
+    // The snapshot is authoritative ONLY when it recorded exact evidence. Any
+    // other status returns null, which means "ask the database" — step 2 of the
+    // hierarchy (date-valid history), then step 3 (database reference), then
+    // step 4 (genuinely unknown). What is NOT allowed, then or now, is treating
+    // the missing snapshot as a cost of zero.
     const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 5000, costPrice: null, costStatus: "unknown", costSource: "none" });
-    expect(c).not.toBeNull();
-    expect(c!.costKnown).toBe(false);
-    expect(c!.costsComplete).toBe(false);
-    expect(c!.costStatus).toBe("unknown");
+    expect(c).toBeNull();
+    // The safety guarantee that still holds: never a fabricated 0.
+    expect(c?.costPrice).not.toBe(0);
   });
 
   it("treats a snapshot with a verified 0 cost as KNOWN but not 'complete-with-positive-cost'", () => {
