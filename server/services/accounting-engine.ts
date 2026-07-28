@@ -136,24 +136,21 @@ function isVerifiedZero(value: number | null, resolution: string | null | undefi
  * back to the effective-dated cost resolver.
  */
 export function lineCostSnapshot(item: OrderLineItem): ProductCost | null {
-  const hasStatus = item.costStatus != null;
-  // A frozen snapshot that recorded UNKNOWN cost must NOT be silently replaced by
-  // today's product cost — return an explicitly cost-unknown ProductCost (all cost
-  // fields NULL) so the engine flags the order incomplete, never fabricating a value.
-  if (item.costStatus === "unknown" || (item.costStatus == null && item.costPrice == null)) {
-    if (!hasStatus) return null; // no snapshot at all (older order) → fall back to resolver
-    return {
-      productId: item.productId ?? "",
-      name: item.productName ?? item.productId ?? "",
-      price: toNumber(item.priceAtPurchase),
-      costPrice: null,
-      packagingCost: null,
-      insertCost: null,
-      costKnown: false,
-      costsComplete: false,
-      costStatus: "unknown",
-      costSource: item.costSource ?? "none",
-    };
+  // STEP 1 of the cost-resolution hierarchy — EXACT SNAPSHOT ONLY.
+  //
+  // The immutable per-line snapshot is authoritative only when it actually
+  // recorded exact evidence. `verified_zero` counts: a human-confirmed zero is
+  // exact evidence and does not drift with time.
+  //
+  // Any other status — `unknown`, `estimated`, `incomplete`, or no snapshot at
+  // all — is NOT usable evidence, so we return null and let the resolver walk
+  // steps 2→4 (date-valid history → database reference → unknown). Previously an
+  // `unknown` snapshot short-circuited to an all-NULL cost and the database was
+  // never consulted, so a line whose product has a perfectly good
+  // product_cost_history row still reported "no purchase price". That was the
+  // root cause of the zero-cost dashboard.
+  if (item.costStatus !== "exact" && item.costStatus !== "verified_zero") {
+    return null; // fall back to the resolver — never fabricate, never short-circuit
   }
   // Known snapshot: preserve a real 0 as 0, but keep null if any field is absent.
   // F-10: a 0 is only a real 0 when the snapshot itself says `verified_zero`.
@@ -174,6 +171,7 @@ export function lineCostSnapshot(item: OrderLineItem): ProductCost | null {
     packagingCost,
     insertCost,
     costKnown: true,
+    costBasis: "exact_snapshot",
     // A verified zero is complete evidence, not a missing cost.
     costsComplete:
       (costPrice > 0 || item.costStatus === "verified_zero") &&
@@ -183,10 +181,40 @@ export function lineCostSnapshot(item: OrderLineItem): ProductCost | null {
   };
 }
 
+/**
+ * WHICH RUNG of the cost-resolution hierarchy produced this cost. This is the
+ * honesty channel: it tells the UI whether a number is immutable evidence or a
+ * database-derived estimate, so an estimate can never be presented as fact.
+ *
+ *   exact_snapshot                — the order line's own frozen cost (or a
+ *                                   human-verified zero). Immutable.
+ *   estimated_history             — newest positive product_cost_history row
+ *                                   effective on or before the sale date.
+ *   estimated_database_reference  — a positive cost still in the database but
+ *                                   not date-valid for this sale.
+ *   unknown                       — no positive cost evidence anywhere. Cost,
+ *                                   COGS, profit and margin all stay NULL.
+ */
+export type CostBasis =
+  | "exact_snapshot"
+  | "estimated_history"
+  | "estimated_database_reference"
+  | "unknown";
+
+/** Arabic labels shown to the operator. Kept beside the type so they cannot drift. */
+export const COST_BASIS_LABEL_AR: Readonly<Record<CostBasis, string>> = {
+  exact_snapshot: "كلفة الطلب الأصلية",
+  estimated_history: "تقديري من سجل الكلفة بتاريخ البيع",
+  estimated_database_reference: "تقديري من آخر كلفة محفوظة بقاعدة البيانات",
+  unknown: "الكلفة غير متوفرة",
+};
+
 export interface ProductCost {
   productId: string;
   name: string;
   price: number;
+  /** Which rung of the hierarchy produced this cost. */
+  costBasis?: CostBasis;
   // Cost evidence is NULLABLE. null = UNKNOWN (never treat as 0). A real 0 stays 0.
   costPrice: number | null;
   packagingCost: number | null;
@@ -798,14 +826,43 @@ export async function buildCostResolver(db: Db, productIds: Set<string>): Promis
       const product = productMap.get(productId);
       if (!product) return undefined;
 
-      const effectiveHistory = historyMap
-        .get(productId)
-        ?.find((history) => toDate(history.effectiveFrom).getTime() <= at.getTime());
+      const rows = historyMap.get(productId) ?? [];
+      const positive = (h: CostHistoryRow) => toMoneyOrNull(h.costPrice) != null && Number(h.costPrice) > 0;
 
-      const base = effectiveHistory
-        ? productCostFromHistory(product, effectiveHistory)
-        : productCostFromProduct(product);
-      return applyOverrides(base, productId);
+      // STEP 2 — estimated_history: newest POSITIVE history row effective on or
+      // before the sale date. This is the best evidence of what the item actually
+      // cost at the time it was sold. `historyMap` is already sorted newest-first.
+      const dateValid = rows.find(
+        (h) => positive(h) && toDate(h.effectiveFrom).getTime() <= at.getTime(),
+      );
+      if (dateValid) {
+        const cost = productCostFromHistory(product, dateValid);
+        return applyOverrides({ ...cost, costBasis: "estimated_history" }, productId);
+      }
+
+      // STEP 3 — estimated_database_reference: no date-valid history, so fall back
+      // to whatever the database still knows. This is a weaker estimate (it may
+      // post-date the sale) and is labelled as such — never as history.
+      //   3a. the current catalog cost, but only when it is positive AND the
+      //       operator has explicitly resolved it as `known`.
+      const currentRes = (product as unknown as { costPriceResolution?: string | null }).costPriceResolution;
+      const currentCost = toMoneyOrNull(product.costPrice);
+      if (currentRes === "known" && currentCost != null && currentCost > 0) {
+        const cost = productCostFromProduct(product);
+        return applyOverrides({ ...cost, costBasis: "estimated_database_reference" }, productId);
+      }
+      //   3b. otherwise the newest positive history row of any date.
+      const newestPositive = rows.find(positive);
+      if (newestPositive) {
+        const cost = productCostFromHistory(product, newestPositive);
+        return applyOverrides({ ...cost, costBasis: "estimated_database_reference" }, productId);
+      }
+
+      // STEP 4 — unknown. No positive cost evidence exists anywhere in the
+      // database. Cost stays NULL: never 0, so profit and margin stay NULL too.
+      const cost = productCostFromProduct(product);
+      const basis: CostBasis = cost.costPrice != null ? "estimated_database_reference" : "unknown";
+      return applyOverrides({ ...cost, costBasis: basis }, productId);
     },
   };
 }

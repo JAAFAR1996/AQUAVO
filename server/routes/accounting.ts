@@ -503,7 +503,26 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const approvedReturnDeductions = verifiedReturnEvents
       .filter((e) => deliveredOrderIds.has(e.orderId))
       .reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
-    const totalPending = Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
+
+    // ── رصيد شركة التوصيل ──────────────────────────────────────────────────
+    // المقبوض من الزبائن (إجمالي) — قبل خصم أي أجور.
+    const grossCustomerCollections = deliveredOrders.reduce(
+      (sum, order) => sum + orderCollectedAmount(order),
+      0,
+    );
+    // أجور شركة التوصيل — الشركة تأخذها لنفسها، فهي ليست مبلغاً باقياً عندها.
+    const carrierFees = deliveredOrders.reduce(
+      (sum, order) => sum + toNumber(order.shippingCost),
+      0,
+    );
+    // الصافي المستلم فعلاً = مجموع التسويات المسجّلة.
+    const netCashReceived = totalReceived;
+    const documentedAdjustments = approvedReturnDeductions;
+    // الباقي عند الشركة. لا يُقصّ إلى صفر: أي نقص حقيقي في التسويات المسجّلة
+    // يجب أن يظهر بدل أن يُخفى.
+    const carrierOutstanding =
+      grossCustomerCollections - carrierFees - netCashReceived - documentedAdjustments;
+    const totalPending = carrierOutstanding;
 
     res.json({
       success: true,
@@ -514,6 +533,15 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
         totalReceived,
         approvedReturnDeductions,
         totalPending,
+        // الأرقام الأربعة المعروضة في اللوحة — كل واحد مشتق من قاعدة البيانات.
+        carrierBalance: {
+          grossCustomerCollections,
+          carrierFees,
+          netCashReceived,
+          documentedAdjustments,
+          outstanding: carrierOutstanding,
+          fullySettled: carrierOutstanding === 0,
+        },
         settlements: settlements.map((settlement) => ({
           id: settlement.id,
           carrier: settlement.carrier,

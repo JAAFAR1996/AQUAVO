@@ -17,12 +17,12 @@ function makeOrder(line: Record<string, unknown>) {
 
 describe("Item 1 — unknown cost stays null, verified zero stays 0", () => {
   it("(1) unknown cost remains null (never coerced to 0)", () => {
+    // A non-exact snapshot now defers to the resolver (null === "ask the
+    // database"). The invariant under test is unchanged: nothing anywhere is
+    // allowed to turn a missing cost into a zero.
     const c = lineCostSnapshot({ productId: "p1", priceAtPurchase: 10000, costStatus: "unknown", costSource: "none" });
-    expect(c).not.toBeNull();
-    expect(c!.costPrice).toBeNull();
-    expect(c!.packagingCost).toBeNull();
-    expect(c!.insertCost).toBeNull();
-    expect(c!.costKnown).toBe(false);
+    expect(c).toBeNull();
+    expect(c?.costPrice).not.toBe(0);
     // toMoneyOrNull itself: null-ish/garbage → null, but a real 0 → 0
     expect(toMoneyOrNull(null)).toBeNull();
     expect(toMoneyOrNull(undefined)).toBeNull();
@@ -43,6 +43,8 @@ describe("Item 1 — unknown cost stays null, verified zero stays 0", () => {
   });
 
   it("(3) an unknown cost cannot produce an EXACT gross/net profit", () => {
+    // noResolver supplies no database cost either, so the line stays genuinely
+    // unknown and the order must refuse to claim an exact profit.
     const p = calcOrderProfit(makeOrder({ costStatus: "unknown", costSource: "none" }), noResolver);
     expect(p.costStatus).toBe("incomplete");
     expect(p.exactNetProfit).toBeNull();

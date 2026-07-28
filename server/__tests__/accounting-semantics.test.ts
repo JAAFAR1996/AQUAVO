@@ -157,7 +157,7 @@ describe("F-5 — a verified zero produces an EXACT zero-cost order", () => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 describe("F-3 — relational snapshot is the source of truth", () => {
-  it("HISTORICAL UNKNOWN STAYS UNKNOWN — today's cost is NOT substituted", () => {
+  it("a non-exact relational snapshot defers to the database, labelled ESTIMATED not exact", () => {
     const order = orderWith([{ productId: "p1", productName: "Filter", quantity: 1, priceAtPurchase: 10000 }]);
     // Without the relational store the resolver silently substitutes → estimated.
     const before = calcOrderProfit(order, substitutingResolver());
@@ -168,11 +168,14 @@ describe("F-3 — relational snapshot is the source of truth", () => {
     const after = calcOrderProfit(order, substitutingResolver(), undefined, [relLine()]);
     expect(after.costSourceOfTruth).toBe("relational");
     expect(after.sourceReconciled).toBe(true);
-    expect(after.items[0].costStatus).toBe("unknown");
-    expect(after.items[0].unitCostPrice).toBeNull();
-    expect(after.cogs).toBe(0);              // never coerced to zero, never fabricated
+    // SUPERSEDED: the relational row records `unknown`, which is not exact
+    // evidence, so the resolver is consulted and supplies a database estimate.
+    // Leaving the line unknown while the database held a usable cost was the
+    // zero-cost dashboard bug. The estimate is clearly labelled — never exact.
+    expect(after.items[0].costStatus).toBe("estimated");
+    expect(after.items[0].unitCostPrice).toBe(4000);
+    // The guarantee that must never weaken: an estimate is not exact evidence.
     expect(after.exactCogs).toBeNull();
-    expect(after.costStatus).toBe("incomplete");
   });
 
   it("a relational row with a real snapshot is used verbatim (exact, not estimated)", () => {
@@ -265,7 +268,7 @@ describe("legacy ↔ canonical comparison leaves NO unexplained residue", () => 
   ];
   const order = orderWith(lines);
 
-  it("the delta equals EXACTLY the substituted cost of the now-unknown lines", () => {
+  it("both engines now attribute the same database estimate, leaving no residue", () => {
     const legacy = calcOrderProfit(order, substitutingResolver(SUBSTITUTED));
     // both lines are historical backfill: relational says unknown
     const canonical = calcOrderProfit(order, substitutingResolver(SUBSTITUTED), undefined, [
@@ -276,10 +279,12 @@ describe("legacy ↔ canonical comparison leaves NO unexplained residue", () => 
       SUBSTITUTED.costPrice + SUBSTITUTED.packagingCost + SUBSTITUTED.insertCost;
     const attributed = unitSubstituted * (2 + 3);
 
+    // Both paths now resolve through the same hierarchy, so the canonical engine
+    // no longer drops the cost to zero and the delta collapses to nothing.
     expect(legacy.cogs).toBe(attributed);
-    expect(canonical.cogs).toBe(0);
-    expect(legacy.cogs - canonical.cogs).toBe(attributed); // fully attributed
-    expect(canonical.unknownCostLines).toBe(2);
+    expect(canonical.cogs).toBe(attributed);
+    expect(legacy.cogs - canonical.cogs).toBe(0); // no unexplained residue
+    expect(canonical.unknownCostLines).toBe(0);
 
     // NOTHING ELSE MOVED — revenue, shipping, box cost, discounts are identical.
     expect(canonical.revenue).toBe(legacy.revenue);
@@ -287,8 +292,8 @@ describe("legacy ↔ canonical comparison leaves NO unexplained residue", () => 
     expect(canonical.shipping).toBe(legacy.shipping);
     expect(canonical.couponDiscount).toBe(legacy.couponDiscount);
     expect(canonical.loyaltyDiscount).toBe(legacy.loyaltyDiscount);
-    // and the profit delta is exactly the COGS delta
-    expect(legacy.netProfit - canonical.netProfit).toBe(-attributed);
+    // and with both engines on the same hierarchy the profit delta is zero too
+    expect(legacy.netProfit - canonical.netProfit).toBe(0);
   });
 
   it("neither engine ever presented the substituted figure as EXACT", () => {
@@ -299,7 +304,7 @@ describe("legacy ↔ canonical comparison leaves NO unexplained residue", () => 
     expect(legacy.exactCogs).toBeNull();      // estimated → not exact
     expect(canonical.exactCogs).toBeNull();   // unknown  → not exact
     expect(legacy.costStatus).toBe("estimated");
-    expect(canonical.costStatus).toBe("incomplete");
+    expect(canonical.costStatus).toBe("estimated"); // estimated, and never exact
   });
 });
 

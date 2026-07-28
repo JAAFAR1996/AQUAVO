@@ -31,6 +31,12 @@ export const accountingCompletenessSchema = z.object({
   costsComplete: z.boolean(),
   missingCostLines: z.number(),
   missingProductLines: z.number(),
+  /** عدد المنتجات المبيعة التي لا تملك أي كلفة موجبة في قاعدة البيانات. */
+  unknownCostProducts: z.number().optional(),
+  /** الربح التقديري — يبقى منفصلاً عن exactNetProfit. */
+  estimatedNetProfit: z.number().nullable().optional(),
+  /** يبقى null حتى تصبح كل الأسطر المحتسبة exact. */
+  exactNetProfit: z.number().nullable().optional(),
 });
 
 export const whatsappInvoiceSummarySchema = z.object({
@@ -119,6 +125,10 @@ export const accountingProductProfitSchema = accountingCompletenessSchema.extend
   costPrice: z.number(),
   packagingCost: z.number(),
   insertCost: z.number(),
+  /** أي درجة من هرم الكلفة أنتجت هذا الرقم — لتمييز التقديري عن المؤكد. */
+  costBasis: z
+    .enum(["exact_snapshot", "estimated_history", "estimated_database_reference", "unknown"])
+    .optional(),
 });
 
 // Extended schema used by the product profitability tab — includes all products,
