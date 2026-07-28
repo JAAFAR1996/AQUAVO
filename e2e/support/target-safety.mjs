@@ -34,10 +34,15 @@ export const PRODUCTION_WEB_HOSTS = [
  *   ep-rough-smoke-a4umy5in  — playwright-final-certification-20260724
  *                              (br-cool-bar-a4x1pig5), direct child of
  *                              production taken after the product cleanup
+ *   ep-ancient-shape-a4k5kxrh — accounting-final-verify-20260728
+ *                              (br-fancy-mouse-a49ucj27), direct child of
+ *                              production, owner-authorised for the final
+ *                              accounting cutover verification
  */
 export const ALLOWED_DB_ENDPOINT_PREFIXES = [
     'ep-rapid-breeze-a46glg7f',
     'ep-rough-smoke-a4umy5in',
+    'ep-ancient-shape-a4k5kxrh',
 ];
 
 /** @deprecated retained so any existing importer keeps resolving. */
