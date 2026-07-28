@@ -9,6 +9,9 @@ import {
     type InsertPredictedNeed,
 } from "../../shared/schema.js";
 import { eq, desc, and, gte, lt, sql } from "drizzle-orm";
+// Canonical collected-amount definition — the ONE rule for "what the customer
+// paid" (prefers persisted roundedTotal, else rounds total to the IQD step).
+import { orderCollectedAmount } from "../../shared/order-financials.js";
 
 /**
  * Predictive Analytics Service
@@ -35,7 +38,8 @@ export class PredictiveAnalytics {
             const userOrders = await db
                 .select({
                     orderId: orders.id,
-                    totalAmount: orders.total,
+                    total: orders.total,
+                    roundedTotal: orders.roundedTotal,
                     createdAt: orders.createdAt,
                 })
                 .from(orders)
@@ -46,9 +50,11 @@ export class PredictiveAnalytics {
                 return { products: [], totalOrders: 0, avgOrderValue: 0 };
             }
 
-            // Calculate average order value
+            // Calculate average order value from the CANONICAL collected amount
+            // (was raw parseFloat(orders.total), which ignores the persisted
+            // roundedTotal the customer was actually charged).
             const totalAmount = userOrders.reduce(
-                (sum, order) => sum + parseFloat(order.totalAmount || "0"),
+                (sum, order) => sum + orderCollectedAmount(order),
                 0
             );
             const avgOrderValue = totalAmount / userOrders.length;

@@ -261,11 +261,21 @@ export class CompetitivePricer {
                                     analysis.lowestCompetitorPrice *
                                     (1 - parseFloat(rule.value) / 100);
                                 break;
-                            case "fixed_margin":
-                                // Assuming cost is 70% of current price
-                                const estimatedCost = parseFloat(product.price) * 0.7;
-                                newPrice = estimatedCost * (1 + parseFloat(rule.value) / 100);
+                            case "fixed_margin": {
+                                // DANGER: this FABRICATES a cost — it is a pricing
+                                // heuristic (assume cost ≈ 70% of list price), NOT the
+                                // product's real acquisition cost. It exists only to
+                                // suggest a price and MUST NEVER reach the accounting
+                                // ledger, a COGS figure, or a profit calculation.
+                                // The real cost is `products.costPrice` resolved through
+                                // accounting-engine's buildCostResolver, where an unknown
+                                // cost stays NULL instead of being invented like this.
+                                // Deliberately named `assumedCostForPricingOnly` so a
+                                // future reader cannot mistake it for cost evidence.
+                                const assumedCostForPricingOnly = parseFloat(product.price) * 0.7;
+                                newPrice = assumedCostForPricingOnly * (1 + parseFloat(rule.value) / 100);
                                 break;
+                            }
                             default:
                                 continue;
                         }

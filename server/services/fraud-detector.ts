@@ -3,6 +3,9 @@ import { db } from "../db.js";
 import { orders, users, orderItems, products } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
+// Canonical order-financial definitions — risk thresholds are stated in the amount
+// the customer actually pays.
+import { orderCollectedAmount } from "../../shared/order-financials.js";
 
 /**
  * Fraud Detector Service
@@ -108,7 +111,9 @@ export class FraudDetector {
         }
 
         // 2. قيمة طلب عالية
-        const orderTotal = parseFloat(order.total || "0");
+        // The thresholds below are stated in what the customer actually pays, so the
+        // comparison uses the collected (rounding-aware) amount, not the raw total.
+        const orderTotal = orderCollectedAmount(order);
         if (orderTotal > 500000) {
             flags.push("قيمة طلب عالية جداً (> 500,000)");
             scores.highValue = 25;
