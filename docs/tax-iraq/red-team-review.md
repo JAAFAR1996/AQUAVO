@@ -103,18 +103,44 @@ FROM public.cash_settlements WHERE status = 'reconciled';
 - الأرقام **1,011,085 / 97,500 / 913,585** هي **بيانات fixture داخل ملف اختبار**، ولم تكن يوماً بيانات Production. الفريق الأحمر عاملها كأنها إنتاجية، وهذا خطأ في تقريره.
 - **لا يوجد double-entry مثبت في Production**، ولا مبالغة قدرها 1,011,085 ديناراً، ولا «50% من الملف».
 
-#### ✅ الشق البنيوي: **صحيح ويبقى قائماً**
+#### 🔴 الشق البنيوي: **مدحوض أيضاً — الحماية كانت قائمة**
 
-غياب `UNIQUE` و`CHECK` كان **خطراً حقيقياً** — لا شيء كان يمنع إدخال كشف ناقل مرتين، ولا شيء كان يرفض مستنداً يخرق المعادلة. أن Production نظيف اليوم **حظٌّ تشغيلي لا ضمان بنيوي**.
+استُخرجت تعريفات القيود الفعلية من Production بـ`pg_get_constraintdef` (قراءة فقط، 2026-07-28):
 
-**إعادة التصنيف:**
+| القيد | التعريف | مُتحقَّق منه |
+|---|---|---|
+| `cash_settlements_settlement_number_key` | `UNIQUE (settlement_number)` — **عالمياً** | ✅ |
+| `cash_settlements_net_formula_check` | `CHECK (net_amount = gross_amount - fees_amount)` — **كل الصفوف، كل الحالات** | ✅ |
+| `cash_settlements_amount_check` | `CHECK (gross >= 0 AND fees >= 0 AND net >= 0)` | ✅ |
+| `cash_settlements_status_check` | `CHECK (status IN ('draft','received','reconciled','closed','rejected'))` | ✅ |
+
+**أي أن B-4ب و B-5 كانا محميين بالكامل في قاعدة Production قبل هذا العمل.** لا شيء كان يستطيع إدخال كشف ناقل مرتين، ولا إدخال مستند يخرق المعادلة — ولا حتى كمسودة.
+
+#### الخلل الحقيقي: **Schema Drift**
+
+`shared/schema.ts` **لم يكن يعلن أياً من القيود الأربعة**، فبدا الجدول بلا حماية لكل من يقرأ الملف. الفريق الأحمر قرأ الملف — لا القاعدة — واستنتج خطرين غير قائمين.
+
+**وأنا بنيت على استنتاجه دون فحص Production أولاً**، فكتبت `add_cash_settlement_integrity.sql` لإضافة حماية موجودة، **وبصيغة أضعف**:
+
+| ما كتبتُه | ما في Production | الحكم |
+|---|---|---|
+| `UNIQUE(carrier, settlement_number)` | `UNIQUE(settlement_number)` عالمي | **أضعف** — يسمح بنفس الرقم تحت تهجئة ناقل مختلفة |
+| `CHECK` على `reconciled` فقط، `NOT VALID` | كل الحالات، مُتحقَّق منه | **أضعف** — يعفي المسودات ولا يفحص التاريخ |
+
+**الإجراء المتخذ:**
+- الهجرة وrollbackها **حُذفتا من الدفعة** ولن تُطبَّقا.
+- `shared/schema.ts` صُحِّح ليعلن القيود الأربعة كما هي حرفياً.
+- `server/__tests__/schema-contract.test.ts` يمنع اختفاءها أو إضعافها مستقبلاً، ويمنع عودة الاسمين المسحوبين.
+
+**إعادة التصنيف النهائية:**
 
 > ~~«Existing production duplicate»~~
-> **→ «Preventive schema-integrity risk — no current production duplicate found»**
+> ~~«Preventive schema-integrity risk»~~
+> **→ «Not a defect. Production was already protected. The defect was schema drift in `shared/schema.ts`.»**
 
-**الرد:** أُضيف `UNIQUE(carrier, settlement_number)` و`CHECK` للمعادلة عبر migration غير هدّامة، **وقائياً لا علاجياً**. وبما أن Production لا يحوي تكراراً، فإن الحارس الذي يُجهض التطبيق عند التكرار **لن يُفعَّل** — الهجرة ستُطبَّق نظيفة.
-
-**درس منهجي:** اعتراض الفريق الأحمر استند إلى بيانات اختبار عوملت كإنتاج. الاعتراضات الوقائعية يجب أن تُقابَل ببيانات Production قبل قبولها — وهو ما حدث هنا.
+**درسان منهجيان:**
+1. اعتراض الفريق الأحمر الوقائعي استند إلى بيانات اختبار عوملت كإنتاج.
+2. **واعتراضه البنيوي استند إلى ملف Schema عومل كوصف للقاعدة الحية.** كلاهما كان يجب أن يُقابَل بفحص Production قبل كتابة أي كود — وهو ما لم أفعله في حينه.
 
 ## B-5 — `gross = fees + net` توثيق لا رقابة ✅ **مُغلق**
 

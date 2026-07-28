@@ -236,14 +236,32 @@ export const shippingSettlements = pgTable("shipping_settlements", {
  *     gross_amount = fees_amount + net_amount
  * so the carrier's fee is money it KEEPS, never money it still holds for us.
  */
+/**
+ * CANONICAL carrier cash. The integrity constraints below are NOT aspirational:
+ * they are transcribed verbatim from the live production database via
+ * `pg_get_constraintdef`, read-only, on 2026-07-28.
+ *
+ * SCHEMA DRIFT, corrected here. This file previously declared none of them,
+ * which made the table look unprotected. An adversarial review read this file,
+ * concluded that duplicate settlements and broken gross/fees/net arithmetic
+ * were both possible, and a migration was written to "add" protection that had
+ * existed in production all along — and in a WEAKER form (unique scoped to
+ * carrier instead of global; the arithmetic check NOT VALID instead of
+ * validated). That migration was withdrawn. The lesson is recorded because the
+ * failure mode was not the missing constraint, it was trusting this file as a
+ * description of the database.
+ *
+ * Keep these declarations byte-faithful to production. `schema-contract.test.ts`
+ * fails if any of them is removed or weakened.
+ */
 export const cashSettlements = pgTable("cash_settlements", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   /**
-   * UNIQUE per carrier — see migrations/add_cash_settlement_integrity.sql.
-   * Without it, a re-entered carrier statement inflates recorded collections
-   * with no way to distinguish it from two genuine equal settlements.
+   * UNIQUE GLOBALLY — not per carrier. Production constraint
+   * `cash_settlements_settlement_number_key`: UNIQUE (settlement_number).
+   * Prevents a re-entered carrier statement from inflating recorded collections.
    */
-  settlementNumber: text("settlement_number").notNull(),
+  settlementNumber: text("settlement_number").notNull().unique(),
   carrier: text("carrier").notNull(),
   /** Only `reconciled` rows count as completed cash. */
   status: text("status").notNull().default("draft"),
@@ -261,7 +279,26 @@ export const cashSettlements = pgTable("cash_settlements", {
   createdBy: text("created_by"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-});
+}, (table) => ({
+  /**
+   * `cash_settlements_net_formula_check` — VALIDATED, applies to EVERY row
+   * regardless of status. Algebraically identical to gross = fees + net.
+   * A row breaking it cannot exist, so a "carrier receivable" derived from
+   * gross - fees - net can never be an artefact of a corrupt document.
+   */
+  netFormula: check("cash_settlements_net_formula_check",
+    sql`${table.netAmount} = ${table.grossAmount} - ${table.feesAmount}`),
+  /** `cash_settlements_amount_check` — no negative money. VALIDATED. */
+  amountsNonNegative: check("cash_settlements_amount_check",
+    sql`${table.grossAmount} >= 0 AND ${table.feesAmount} >= 0 AND ${table.netAmount} >= 0`),
+  /**
+   * `cash_settlements_status_check` — VALIDATED. Note the vocabulary is wider
+   * than the two states the accounting engine cares about: only `reconciled`
+   * is counted as completed cash.
+   */
+  statusVocabulary: check("cash_settlements_status_check",
+    sql`${table.status} IN ('draft', 'received', 'reconciled', 'closed', 'rejected')`),
+}));
 
 /**
  * Effective-dated cost versions. Append-only: a cost change writes a NEW row,

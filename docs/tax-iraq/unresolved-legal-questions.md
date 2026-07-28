@@ -220,7 +220,20 @@ FROM public.cash_settlements ORDER BY created_at;
 - **التسويتان مختلفتان في الرقم والمبلغ والتاريخ — وليستا تكراراً.**
 - **لا يوجد double-entry مثبت في Production.**
 
-**الخطر الحقيقي** كان **غياب `UNIQUE` و`CHECK`** — أي أن النظام لم يكن يملك ما يمنع التكرار لو حدث، لا أن التكرار حدث. يُعالَج وقائياً في `add_cash_settlement_integrity.sql`.
+### تصحيح ثانٍ — لم يكن هناك خطر بنيوي أصلاً
+
+في مراجعة لاحقة استُخرجت تعريفات القيود الفعلية من Production عبر `pg_get_constraintdef`، فتبيّن أن الحماية **كانت قائمة قبل هذا العمل كله**:
+
+| القيد | التعريف | مُتحقَّق منه |
+|---|---|---|
+| `cash_settlements_settlement_number_key` | `UNIQUE (settlement_number)` — **عالمياً** | ✅ |
+| `cash_settlements_net_formula_check` | `CHECK (net_amount = gross_amount - fees_amount)` — **على كل الصفوف وكل الحالات** | ✅ |
+| `cash_settlements_amount_check` | `CHECK (gross >= 0 AND fees >= 0 AND net >= 0)` | ✅ |
+| `cash_settlements_status_check` | `CHECK (status IN ('draft','received','reconciled','closed','rejected'))` | ✅ |
+
+**الخلل الحقيقي كان Schema Drift**: `shared/schema.ts` لم يكن يعلن أياً من هذه القيود، فبدا الجدول بلا حماية لمن يقرأ الملف. الفريق الأحمر قرأ الملف واستنتج خطراً غير قائم، وكُتبت هجرة `add_cash_settlement_integrity.sql` لإضافة حماية موجودة أصلاً — **وبصيغة أضعف** (فريد لكل ناقل بدل عالمي، وCHECK بـ`NOT VALID` بدل مُتحقَّق منه).
+
+**الهجرة سُحبت وحُذفت.** وصُحِّح `shared/schema.ts` ليعلن القيود الأربعة كما هي في Production، ويحرسه `server/__tests__/schema-contract.test.ts`.
 
 **لا يمنع TAX FINAL.**
 

@@ -1,7 +1,8 @@
 -- ============================================================================
 -- preflight_phase1a_readonly.sql
 --
--- READ-ONLY. Run BEFORE applying any Phase 1A migration.
+-- READ-ONLY. Run BEFORE applying any Phase 1A migration (three migrations; the
+-- cash-settlement one was withdrawn as redundant).
 -- Contains no DDL, no INSERT/UPDATE/DELETE. Safe to run against production.
 --
 -- Purpose: prove the preconditions each migration depends on, so a migration
@@ -32,19 +33,23 @@ UNION ALL
 SELECT 'constraint', conrelid::regclass::text, conname
 FROM pg_constraint
 WHERE conname IN ('cash_settlements_carrier_number_key','cash_settlements_gross_identity_chk');
+-- NOTE: both names above belong to a WITHDRAWN migration. They must stay absent.
+-- Production's real protection is cash_settlements_settlement_number_key +
+-- cash_settlements_net_formula_check, which pre-date this work.
 
--- ── 2. BLOCKS add_cash_settlement_integrity.sql: duplicate settlement keys ─
--- The migration RAISES rather than deleting a row. Resolve any hit against the
--- carrier's own statements first.
--- ACTUAL 2026-07-28: 0 rows — migration will not abort.
+-- ── 2. Duplicate settlement keys (informational) ───────────────────────────
+-- Production already enforces UNIQUE(settlement_number) globally via
+-- `cash_settlements_settlement_number_key`, so this cannot return rows. Kept as
+-- an independent confirmation that the constraint is doing its job.
+-- ACTUAL 2026-07-28: 0 rows.
 SELECT carrier, settlement_number, count(*) AS occurrences
 FROM public.cash_settlements
 GROUP BY carrier, settlement_number
 HAVING count(*) > 1;
 
--- ── 3. Reconciled rows violating gross = fees + net ────────────────────────
--- The CHECK is NOT VALID so these do not block the apply, but each is a corrupt
--- financial document and must be investigated.
+-- ── 3. Rows violating gross = fees + net (informational) ───────────────────
+-- Production enforces `cash_settlements_net_formula_check` (VALIDATED, all
+-- statuses), so this cannot return rows either. Kept as confirmation.
 -- ACTUAL 2026-07-28: 0 rows.
 SELECT id, settlement_number, carrier,
        gross_amount, fees_amount, net_amount,
