@@ -1,0 +1,17 @@
+// AUTHORITATIVE server typecheck (money/storage layer).
+//
+// `tsconfig.server.json` carries "noCheck": true so the production build never
+// blocks on the ~300 pre-existing strict errors in legacy service/route modules
+// (analytics-tracker, pricing-engine, mcp, …). That legacy debt is real but out
+// of scope for a single effort to clear in one pass.
+//
+// This config turns checking BACK ON over the same server graph so the storage
+// layer is genuinely verified. It is consumed by TOOLS/check-server.mjs, which
+// runs tsc against this config, prints the legacy errors so they stay visible,
+// and FAILS only on errors inside files this effort owns (see OWNED there).
+{
+  "extends": "./tsconfig.server.json",
+  "compilerOptions": {
+    "noCheck": false
+  }
+}

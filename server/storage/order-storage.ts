@@ -3,6 +3,13 @@ import { type Order, type Coupon, type AuditLog, type CartItem, type Favorite, t
 import { eq, desc, and, sql, or, isNull } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { loyaltyStorage, type TransactionalOrderLoyaltyResult } from "./loyalty-storage.js";
+import {
+    buildProductCostSnapshot,
+    lockProductRowForUpdate,
+    toJsonbCostFields,
+    toRelationalCostFields,
+    type LockedProductRow as CanonicalLockedProductRow,
+} from "../services/product-cost-snapshot.js";
 
 const ORDER_NUMBER_MAX_ATTEMPTS = 3;
 
@@ -13,6 +20,30 @@ export const STOCK_ERROR_MAX_REACHED = "وصلت للكمية المتوفرة";
 export function isStockError(message?: string): boolean {
     if (!message) return false;
     return message.includes(STOCK_ERROR_INSUFFICIENT) || message.includes(STOCK_ERROR_MAX_REACHED);
+}
+
+/**
+ * The production database enforces a second, DB-level inventory backstop
+ * (`settings.inventory_ledger_mode='enforce'`): inserting an order line into
+ * `order_items_relational` records a `sale` movement in `inventory_movements`,
+ * and the `prevent_negative_inventory_balance` BEFORE-INSERT trigger RAISEs
+ *   `insufficient canonical inventory balance for product %, variant %, location %`
+ * whenever the canonical running balance (SUM of movement deltas) would go
+ * negative. That is a genuine out-of-stock/availability outcome discovered at
+ * commit time — NOT a server fault — so it must surface as a clean domain
+ * availability conflict (HTTP 409), never as an opaque HTTP 500 with a raw
+ * English Postgres message leaking to the customer.
+ *
+ * See docs/audit/inventory-availability-remediation.md (F-6).
+ */
+export function isCanonicalInventoryBalanceError(error: unknown): boolean {
+    if (!error) return false;
+    const anyErr = error as { message?: unknown; cause?: unknown };
+    const direct = typeof anyErr.message === "string" &&
+        anyErr.message.includes("insufficient canonical inventory balance");
+    if (direct) return true;
+    // Postgres driver errors sometimes wrap the DB message in `cause`.
+    return isCanonicalInventoryBalanceError(anyErr.cause);
 }
 
 interface CreateOrderLineInput {
@@ -31,14 +62,9 @@ type OrderWithLoyalty = Order & {
     actualCashbackUsed?: number;
 };
 
-interface LockedProductRow {
-    id: string;
-    name: string;
-    price: string | number;
-    stock: number | null;
+type LockedProductRow = CanonicalLockedProductRow & {
     variants: ProductVariant[] | null;
-    hasVariants?: boolean;
-}
+};
 
 export class OrderStorage {
     private db = getDb();
@@ -50,16 +76,17 @@ export class OrderStorage {
         return this.db;
     }
 
+    /**
+     * Lock the product row for the duration of the creation transaction.
+     *
+     * F-1 FIX: this used to SELECT only id/name/price/stock/variants/has_variants,
+     * so every cost field read back `undefined` and EVERY storefront line was
+     * frozen as `costStatus:"unknown"` — permanently uncostable. It now delegates
+     * to the canonical `lockProductRowForUpdate`, which is the single SELECT
+     * shared by all creation paths and always carries the cost columns.
+     */
     private async lockProductForUpdate(tx: any, productId: string): Promise<LockedProductRow | undefined> {
-        const result = await tx.execute(sql`
-            SELECT id, name, price, stock, variants, has_variants AS "hasVariants"
-            FROM products
-            WHERE id = ${productId}
-              AND deleted_at IS NULL
-            FOR UPDATE
-        `);
-        const rows = Array.isArray(result) ? result : (result?.rows ?? []);
-        return rows[0] as LockedProductRow | undefined;
+        return await lockProductRowForUpdate(tx, productId) as LockedProductRow | undefined;
     }
 
     private parsePositivePrice(value: unknown, label: string): number {
@@ -103,10 +130,26 @@ export class OrderStorage {
         return byNumber[0];
     }
 
-    async createOrder(order: Partial<Order>): Promise<Order> {
-        const db = this.ensureDb();
-        const [newOrder] = await db.insert(orders).values(order as any).returning();
-        return newOrder;
+    /**
+     * @deprecated UNSAFE — DISABLED. Use {@link createOrderSecure} instead.
+     *
+     * This wrote `orders` with a bare non-transactional insert and never wrote
+     * `order_items_relational`. That is precisely the defect that left 12
+     * production orders (73 lines) with no relational rows between 2026-05-12 and
+     * 2026-06-17, fixed for the storefront by f1b85d4 — but this function kept the
+     * old shape and would silently reintroduce the gap for any new caller.
+     *
+     * It now fails closed rather than corrupting data. Deliberately NOT deleted:
+     * it stays on the storage interface so existing type contracts still compile
+     * and the history remains visible.
+     */
+    async createOrder(_order: Partial<Order>): Promise<Order> {
+        throw new Error(
+            "storage.createOrder() is disabled: it wrote no order_items_relational rows " +
+            "and used no transaction, which caused the 2026-05/06 relational coverage gap. " +
+            "Use storage.createOrderSecure() — it writes orders.items and " +
+            "order_items_relational inside one transaction."
+        );
     }
 
     async updateOrder(id: string, updates: Partial<Order>): Promise<Order | undefined> {
@@ -196,6 +239,9 @@ export class OrderStorage {
             // 1. Calculate totals and validate stock
             let subtotal = 0;
             const orderItemsData: OrderLineItem[] = [];
+            // One timestamp for the whole order so JSONB and relational snapshots agree.
+            const snapshotAt = new Date();
+            const lineSnapshots: ReturnType<typeof buildProductCostSnapshot>[] = [];
 
             // Lock each product row before price/stock validation so concurrent orders cannot oversell.
             for (const item of items) {
@@ -261,6 +307,13 @@ export class OrderStorage {
                 const lineTotal = price * quantity;
                 subtotal += lineTotal;
 
+                // Immutable cost snapshot — freeze the product's current cost onto the
+                // order line so later cost edits can't rewrite this order's profit.
+                // Built by the ONE canonical builder shared with the admin/WhatsApp
+                // path. Verified 0 stays 0; UNKNOWN stays NULL. Never conflated.
+                const snapshot = buildProductCostSnapshot(product, snapshotAt);
+                lineSnapshots.push(snapshot);
+
                 orderItemsData.push({
                     productId: product.id,
                     productName: product.name,
@@ -269,6 +322,7 @@ export class OrderStorage {
                     ...(variantLabel ? { variantLabel } : {}),
                     priceAtPurchase: price,
                     lineTotal,
+                    ...toJsonbCostFields(snapshot),
                 });
             }
 
@@ -348,12 +402,15 @@ export class OrderStorage {
             // Items are also kept inline in orders.items (JSONB) for fast reads.
             if (orderItemsData.length > 0) {
                 await tx.insert(orderItems).values(
-                    orderItemsData.map((line) => ({
+                    orderItemsData.map((line, idx) => ({
                         orderId: newOrder.id,
                         productId: line.productId,
                         quantity: line.quantity,
                         priceAtPurchase: String(line.priceAtPurchase),
                         totalPrice: String(line.lineTotal),
+                        // Same canonical snapshot object that produced the JSONB line,
+                        // so both stores are guaranteed to agree. NULL (not 0) = unknown.
+                        ...toRelationalCostFields(lineSnapshots[idx]),
                         metadata: (line.variantId || line.variantLabel)
                             ? { variantId: line.variantId, variantLabel: line.variantLabel }
                             : null,
@@ -392,6 +449,16 @@ export class OrderStorage {
                         continue;
                     }
                     throw new Error("Order creation failed after repeated order number collisions. Please try again.");
+                }
+
+                // The DB-level enforce-mode canonical ledger rejected the sale
+                // because the item is not actually available (canonical balance
+                // would go negative). The whole transaction has already rolled
+                // back — no order, no oversell. Re-surface it as the canonical
+                // Arabic availability error so the route maps it to a controlled
+                // 409 (never a 500 with a leaked English Postgres message).
+                if (isCanonicalInventoryBalanceError(error)) {
+                    throw new Error(STOCK_ERROR_INSUFFICIENT);
                 }
 
                 throw error;

@@ -190,9 +190,46 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, '');       // Remove leading/trailing hyphens
 }
 
+// All admin sections, keyed by their Radix tab `value`. Used to validate the
+// `?section=` deep-link / history param so a hostile or stale URL can never
+// select a non-existent panel.
+const ADMIN_SECTIONS = [
+  "products", "ai-insights", "ai-monitor", "ai-learnings", "notifications",
+  "coupons", "orders", "invoices", "accounting", "customers", "reviews",
+  "gallery", "audit-logs", "analytics", "security", "settings",
+] as const;
+const ADMIN_SECTION_SET = new Set<string>(ADMIN_SECTIONS);
+
+function readSectionFromUrl(): string {
+  if (typeof window === "undefined") return "products";
+  const s = new URLSearchParams(window.location.search).get("section");
+  return s && ADMIN_SECTION_SET.has(s) ? s : "products";
+}
+
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
+
+  // Active admin section is mirrored into the URL (`?section=`) so a refresh,
+  // a deep link, and browser back/forward all resolve to the right panel.
+  const [activeSection, setActiveSection] = useState<string>(readSectionFromUrl);
+
+  useEffect(() => {
+    const onPop = () => setActiveSection(readSectionFromUrl());
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+
+  const handleSectionChange = (value: string) => {
+    setActiveSection(value);
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("section", value);
+      window.history.pushState({ adminSection: value }, "", url.toString());
+    } catch {
+      /* history API unavailable — in-memory state still switches the panel */
+    }
+  };
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   // Filter states
@@ -632,7 +669,7 @@ export default function AdminDashboard() {
   }, 0);
 
   return (
-    <div className="container mx-auto py-8 px-4" dir="rtl">
+    <div className="container mx-auto py-8 px-4 min-w-0 max-w-full overflow-x-clip" dir="rtl">
       <div className="mb-8 flex justify-between items-center">
         <div>
           <h1 className="text-4xl font-bold mb-2">لوحة تحكم الإدارة</h1>
@@ -722,26 +759,44 @@ export default function AdminDashboard() {
         </Card>
       </div>
 
-      <Tabs defaultValue="products" className="w-full">
+      <Tabs
+        dir="rtl"
+        value={activeSection}
+        onValueChange={handleSectionChange}
+        className="w-full min-w-0 max-w-full"
+      >
 
-        <TabsList className="flex flex-wrap w-full h-auto p-1.5 gap-1.5 bg-muted/60 border border-border/50 rounded-xl justify-start">
-          <TabsTrigger value="products">المنتجات</TabsTrigger>
-          <TabsTrigger value="ai-insights">🤖 AI</TabsTrigger>
-          <TabsTrigger value="ai-monitor">🔍 مراقبة AI</TabsTrigger>
-          <TabsTrigger value="ai-learnings">🧠 تعلم AI</TabsTrigger>
-          <TabsTrigger value="notifications">🔔 الإشعارات</TabsTrigger>
-          <TabsTrigger value="coupons">الكوبونات</TabsTrigger>
-          <TabsTrigger value="orders">الطلبات</TabsTrigger>
-          <TabsTrigger value="invoices">فواتير واتساب</TabsTrigger>
-          <TabsTrigger value="accounting">💰 المحاسب</TabsTrigger>
-          <TabsTrigger value="customers">العملاء</TabsTrigger>
-          <TabsTrigger value="reviews">المراجعات</TabsTrigger>
-          <TabsTrigger value="gallery">المعرض</TabsTrigger>
-          <TabsTrigger value="audit-logs">السجلات</TabsTrigger>
-          <TabsTrigger value="analytics">التحليلات</TabsTrigger>
-          <TabsTrigger value="security">الأمان</TabsTrigger>
-          <TabsTrigger value="settings">الإعدادات</TabsTrigger>
-        </TabsList>
+        {/*
+          Responsive admin nav. The list is capped to the viewport width and
+          wraps onto multiple rows so EVERY section is visible and one tap away
+          at any width — no tab is ever pushed off-screen (the F-7 defect).
+          The wrapper is its own horizontal-scroll context as a defensive
+          fallback, so nav content can never stretch the page and shove tabs
+          out of reach. Radix keeps full keyboard + roving-tabindex support.
+        */}
+        <div className="w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden">
+          <TabsList
+            aria-label="أقسام لوحة التحكم"
+            className="flex flex-wrap w-full min-w-0 max-w-full h-auto p-1.5 gap-1.5 bg-muted/60 border border-border/50 rounded-xl justify-start"
+          >
+            <TabsTrigger value="products" className="min-h-[44px]">المنتجات</TabsTrigger>
+            <TabsTrigger value="orders" className="min-h-[44px]">الطلبات</TabsTrigger>
+            <TabsTrigger value="accounting" className="min-h-[44px]">💰 المحاسب</TabsTrigger>
+            <TabsTrigger value="invoices" className="min-h-[44px]">فواتير واتساب</TabsTrigger>
+            <TabsTrigger value="ai-insights" className="min-h-[44px]">🤖 AI</TabsTrigger>
+            <TabsTrigger value="ai-monitor" className="min-h-[44px]">🔍 مراقبة AI</TabsTrigger>
+            <TabsTrigger value="ai-learnings" className="min-h-[44px]">🧠 تعلم AI</TabsTrigger>
+            <TabsTrigger value="notifications" className="min-h-[44px]">🔔 الإشعارات</TabsTrigger>
+            <TabsTrigger value="coupons" className="min-h-[44px]">الكوبونات</TabsTrigger>
+            <TabsTrigger value="customers" className="min-h-[44px]">العملاء</TabsTrigger>
+            <TabsTrigger value="reviews" className="min-h-[44px]">المراجعات</TabsTrigger>
+            <TabsTrigger value="gallery" className="min-h-[44px]">المعرض</TabsTrigger>
+            <TabsTrigger value="audit-logs" className="min-h-[44px]">السجلات</TabsTrigger>
+            <TabsTrigger value="analytics" className="min-h-[44px]">التحليلات</TabsTrigger>
+            <TabsTrigger value="security" className="min-h-[44px]">الأمان</TabsTrigger>
+            <TabsTrigger value="settings" className="min-h-[44px]">الإعدادات</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* WhatsApp Invoices Tab */}
         <TabsContent value="invoices" className="space-y-4">
@@ -891,8 +946,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Products Table */}
-              <div className="border rounded-lg">
+              {/* Products Table — scrolls horizontally inside its own box so a
+                  wide table never stretches the page (root cause of F-7). */}
+              <div className="border rounded-lg overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

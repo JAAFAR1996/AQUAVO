@@ -9,6 +9,9 @@ import { emailCampaignAI } from "../services/email-campaign-ai.js";
 import { sendEmail } from "../utils/email.js";
 import { runFinanceAudit, getAccountingRowCounts } from "../services/groqFinanceAudit.js";
 import { sendAuditAlert, needsAlert } from "../services/telegramAlert.js";
+import { SecurityStorage } from "../storage/security-storage.js";
+
+const securityStorage = new SecurityStorage();
 
 /**
  * Scheduled Jobs Service
@@ -22,6 +25,7 @@ const jobStatus = {
     inventoryRunning: false,
     autoOrdersRunning: false,
     autoBlogRunning: false,
+    expiredBlocksCleanupRunning: false,
     embeddingsRunning: false,
     smartRemindersRunning: false,
     emailCampaignsRunning: false,
@@ -231,7 +235,30 @@ export function initializeScheduledJobs(): void {
         }
     }, { timezone: "Asia/Baghdad" });
 
+    // ==================== Expired IP-block cleanup every 5 minutes ====================
+    // F-8: deactivate temporary blocks whose expires_at has passed. Uses the SAME
+    // rule as the login middleware (expires_at <= now(), permanent NULL rows never
+    // touched), so a block the middleware already treats as lifted is also cleared
+    // from the admin list/stats. Cheap, idempotent, safe to overlap-guard.
+    cron.schedule("*/5 * * * *", async () => {
+        if (jobStatus.expiredBlocksCleanupRunning) return;
+        jobStatus.expiredBlocksCleanupRunning = true;
+        const t = Date.now();
+        try {
+            const lifted = await securityStorage.deactivateExpiredBlocks();
+            if (lifted > 0) {
+                console.log(`[ScheduledJobs] Expired IP-block cleanup: ${lifted} block(s) lifted`);
+                aiMonitor.log({ event: "cron_job", level: "info", success: true, responseTimeMs: Date.now() - t, details: { job: "expired_blocks_cleanup", status: "completed", lifted } });
+            }
+        } catch (error) {
+            const msg = error instanceof Error ? error.message : String(error);
+            console.error("[ScheduledJobs] Expired IP-block cleanup failed:", msg);
+            aiMonitor.logError(`Cron expired_blocks_cleanup failed: ${msg}`, {}, { event: "cron_job", details: { job: "expired_blocks_cleanup", status: "failed" } } as any);
+        } finally { jobStatus.expiredBlocksCleanupRunning = false; }
+    }, { timezone: "Asia/Baghdad" });
+
     console.log("[ScheduledJobs] Cron jobs initialized successfully");
+    console.log("  - 🔒 Expired IP-block cleanup: every 5 min (Asia/Baghdad)");
     console.log("  - 🧠 Missing Embeddings: 1:30 AM (Asia/Baghdad)");
     console.log("  - Daily Predictions: 2:00 AM (Asia/Baghdad)");
     console.log("  - Churn Analysis: 3:00 AM (Asia/Baghdad)");

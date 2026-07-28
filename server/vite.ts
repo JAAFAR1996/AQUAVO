@@ -21,9 +21,15 @@ export async function setupVite(server: Server, app: Express) {
     configFile: false,
     customLogger: {
       ...viteLogger,
+      // RC-1 FIX: previously this called `process.exit(1)`, so ANY error the Vite
+      // dev logger emitted (a transient transform error, a transitive HMR hiccup,
+      // a single bad request during E2E) tore down the entire Express process.
+      // That made Playwright runs flaky — the app could vanish mid-suite for a
+      // non-fatal reason. We now report the error loudly but keep the process
+      // alive; genuine request failures still surface through the catch-all
+      // handler below (which calls `next(e)` → the Express error middleware).
       error: (msg, options) => {
         viteLogger.error(msg, options);
-        process.exit(1);
       },
     },
     server: serverOptions,

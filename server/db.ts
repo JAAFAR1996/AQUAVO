@@ -50,9 +50,31 @@ import * as schema from "../shared/schema.js";
 
 type DbClient = NeonDatabase<typeof schema>;
 
+import { resolveDatabaseTarget, logResolvedDatabaseTarget, DatabaseTargetError } from "./db-target.js";
+
 const rawDbUrl = process.env.DATABASE_URL ?? "";
 const databaseUrl = rawDbUrl.replace(/[&?]channel_binding=require/g, "") || undefined;
-if (rawDbUrl) console.log("[DB] Connecting to configured database");
+if (rawDbUrl) {
+  // Canonical resolver: identifies the target or fails closed. Logged redacted —
+  // never the connection string.
+  try {
+    logResolvedDatabaseTarget(
+      resolveDatabaseTarget("primary", {
+        // Documented escape hatch for self-hosted / container Postgres whose host
+        // is not a Neon endpoint. Must be set deliberately.
+        allowUnknownEnvironment:
+          process.env.ALLOW_UNIDENTIFIED_DATABASE_TARGET?.trim().toLowerCase() === "true",
+      }),
+    );
+  } catch (error) {
+    if (error instanceof DatabaseTargetError && process.env.NODE_ENV === "test") {
+      // Tests routinely point at PGlite/in-memory URLs that are not Neon endpoints.
+      console.warn(`[DB-TARGET] ${error.code}: ${error.message}`);
+    } else {
+      throw error;
+    }
+  }
+}
 let db: DbClient | null = null;
 
 if (!databaseUrl) {
@@ -74,7 +96,7 @@ if (!databaseUrl) {
   // When Neon auto-suspends and terminates idle connections, the Pool emits
   // an 'error' event. Without this handler, Node.js treats it as an
   // uncaught exception and crashes with exit code 129 (SIGHUP).
-  pool.on('error', (err) => {
+  pool.on('error', (err: Error) => {
     if (err.message?.includes('terminating connection due to administrator command')) {
       console.warn('[DB] Neon terminated idle connection — pool will reconnect automatically');
       return;

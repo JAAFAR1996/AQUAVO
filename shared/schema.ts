@@ -24,6 +24,19 @@ export interface OrderLineItem {
   variantLabel?: string;
   priceAtPurchase: number;
   lineTotal?: number;
+  // Immutable cost snapshot captured at sale time (per unit). When present, the
+  // accounting engine uses these directly instead of re-deriving cost from the
+  // mutable product record — so editing a product's cost later cannot change a
+  // completed order's profit. Absent on orders created before this was added.
+  // NULL cost = UNKNOWN at sale (never treat as 0); costStatus records this.
+  costPrice?: number | null;
+  packagingCost?: number | null;
+  insertCost?: number | null;
+  // `verified_zero` = a human-confirmed cost of exactly 0. Distinct from a 0
+  // that is merely the `DEFAULT '0'` an untouched product is born with — that
+  // one is snapshotted as `unknown` with NULL costs (F-10).
+  costStatus?: "exact" | "verified_zero" | "estimated" | "incomplete" | "unknown";
+  costSource?: "product_current" | "cost_history" | "manual" | "none";
 }
 
 
@@ -96,10 +109,26 @@ export const products = pgTable("products", {
   // Product variants (for products with multiple sizes/options like HYGGER)
   variants: jsonb("variants").$type<ProductVariant[] | null>(),
   hasVariants: boolean("has_variants").notNull().default(false),
-  // Accounting: cost fields (set by admin manually)
-  costPrice: numeric("cost_price").default("0"),
-  packagingCost: numeric("packaging_cost").default("0"),
-  insertCost: numeric("insert_cost").default("0"),
+  // Accounting: cost fields (set by admin manually).
+  // F-10: NO column default. A `DEFAULT '0'` made an untouched product born
+  // holding a zero that is indistinguishable from a deliberate one, which is
+  // exactly the ambiguity the *_resolution columns below exist to remove.
+  // Omitting a cost must yield NULL (= UNKNOWN), never 0.
+  // Requires migrations/drop_product_cost_zero_defaults.sql.
+  costPrice: numeric("cost_price"),
+  packagingCost: numeric("packaging_cost"),
+  insertCost: numeric("insert_cost"),
+  // F-5: what each cost number MEANS. 'known' (>0, real evidence) |
+  // 'verified_zero' (=0, human-confirmed, requires costResolutionNote) |
+  // 'unresolved' (UNKNOWN — accounting treats the value as NULL, never as 0).
+  // NULL is read as 'unresolved'. Requires migrations/add_product_cost_resolution.sql
+  // to be applied BEFORE this code is deployed.
+  costPriceResolution: text("cost_price_resolution"),
+  packagingCostResolution: text("packaging_cost_resolution"),
+  insertCostResolution: text("insert_cost_resolution"),
+  costResolutionNote: text("cost_resolution_note"),
+  costResolutionBy: text("cost_resolution_by"),
+  costResolutionAt: timestamp("cost_resolution_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
   deletedAt: timestamp("deleted_at"),
@@ -419,6 +448,16 @@ export const orderItems = pgTable("order_items_relational", {
   quantity: integer("quantity").notNull(),
   priceAtPurchase: numeric("price_at_purchase").notNull(), // Snapshot of price
   totalPrice: numeric("total_price").notNull(),
+  // Immutable per-unit cost snapshot captured at sale time (mirrors the JSONB
+  // orders.items snapshot). NULLABLE — NULL means cost was UNKNOWN at sale, never 0.
+  unitCostPrice: numeric("unit_cost_price"),
+  unitPackagingCost: numeric("unit_packaging_cost"),
+  unitInsertCost: numeric("unit_insert_cost"),
+  costSnapshotStatus: text("cost_snapshot_status"),       // exact|estimated|incomplete|unknown
+  costSnapshotSource: text("cost_snapshot_source"),       // product_current|cost_history|manual|none
+  costSnapshotConfidence: text("cost_snapshot_confidence"),// high|medium|low (NULL when unknown)
+  costSnapshotVersion: integer("cost_snapshot_version"),
+  costSnapshotAt: timestamp("cost_snapshot_at"),
   metadata: jsonb("metadata"), // For variants like size, color
 }, (table) => ({
   productIdIdx: index("order_items_product_id_idx").on(table.productId),
@@ -862,7 +901,11 @@ export const loginAttempts = pgTable("login_attempts", {
   ipAddress: text("ip_address"), // عنوان IP
   userAgent: text("user_agent"), // معلومات المتصفح
   failureReason: text("failure_reason"), // سبب الفشل (كلمة مرور خاطئة، حساب غير موجود...)
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  // F-8: timestamptz (not naked `timestamp`) — this column feeds the block
+  // decision (failed-attempts-in-last-hour). A tz-less column round-trips a JS
+  // Date through the driver with a local-offset skew; timestamptz stores an
+  // absolute instant so the "last hour" window is correct in any server tz.
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   emailIdx: index("login_attempts_email_idx").on(table.email),
   ipIdx: index("login_attempts_ip_idx").on(table.ipAddress),
@@ -876,10 +919,17 @@ export const blockedIPs = pgTable("blocked_ips", {
   ipAddress: text("ip_address").notNull().unique(),
   reason: text("reason").notNull(), // سبب الحظر
   failedAttempts: integer("failed_attempts").default(0), // عدد المحاولات الفاشلة
-  blockedAt: timestamp("blocked_at").defaultNow().notNull(),
-  expiresAt: timestamp("expires_at"), // null = حظر دائم
+  // F-8: ALL three timestamps are timestamptz. `expires_at` is the load-bearing
+  // one — a naked `timestamp` column stored the JS Date's UTC wall-clock but was
+  // read back interpreted as Asia/Baghdad local (+03:00), so a row expiring
+  // 09:54Z was served as 12:54Z and the block never lifted. timestamptz carries
+  // an absolute instant, so writes and reads agree regardless of session tz.
+  // NOTE: expiry is ALWAYS compared in-DB against now() (see security-storage),
+  // never against a JS clock — server clock skew must not extend a block.
+  blockedAt: timestamp("blocked_at", { withTimezone: true }).defaultNow().notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }), // null = حظر دائم (permanent)
   isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   ipIdx: index("blocked_ips_ip_idx").on(table.ipAddress),
   isActiveIdx: index("blocked_ips_is_active_idx").on(table.isActive),
@@ -2813,3 +2863,261 @@ export const socialInteractions = pgTable('social_interactions', {
 export const insertSocialInteractionSchema = createInsertSchema(socialInteractions);
 export type SocialInteraction = typeof socialInteractions.$inferSelect;
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Per-order fulfillment-cost system (additive). Mirrors add_fulfillment_costing.sql.
+// Money columns are NULLABLE — NULL means UNKNOWN (never 0). Snapshots immutable.
+// Many fulfillment EVENTS per order; stock derived from an immutable movement ledger.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const fulfillmentMaterials = pgTable("fulfillment_materials", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  name: text("name").notNull(),
+  category: text("category"),
+  costComponentType: text("cost_component_type").notNull().default("aquavo_fulfillment_material"),
+  unit: text("unit"),
+  // Mirror of the single active APPROVED material_cost_records row. A DB trigger
+  // rejects any state where these three disagree with that record.
+  currentUnitCost: numeric("current_unit_cost"),        // current approved standard cost; NULL = unknown
+  currentCostPurchaseId: text("current_cost_purchase_id"),
+  currentCostRecordId: text("current_cost_record_id"),
+  currency: text("currency").notNull().default("IQD"),
+  costConfidence: text("cost_confidence"),
+  taxClassification: text("tax_classification"),
+  accountingCode: text("accounting_code"),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const packagingPurchases = pgTable("packaging_purchases", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  quantity: numeric("quantity").notNull(),              // units of use bought
+  totalCost: numeric("total_cost"),                     // NULL = unknown
+  unitCost: numeric("unit_cost"),                       // derived; NULL = unknown
+  currency: text("currency").notNull().default("IQD"),
+  supplier: text("supplier"),
+  purchaseInvoiceUrl: text("purchase_invoice_url"),
+  purchaseDate: timestamp("purchase_date"),
+  reorderThreshold: numeric("reorder_threshold"),
+  approved: boolean("approved").notNull().default(false),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ materialIdx: index("packaging_purchases_material_idx").on(t.materialId) }));
+
+// Profile IDENTITY. A family owns many immutable-once-used VERSIONS.
+export const packagingProfileFamilies = pgTable("packaging_profile_families", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  familyKey: text("family_key").notNull(),
+  name: text("name").notNull(),
+  appliesTo: jsonb("applies_to"),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ keyUidx: uniqueIndex("ppf_key_uidx").on(t.familyKey) }));
+
+// A packaging profile row is a VERSION of a family. Once `locked` (used by a
+// confirmed event) it is immutable — editing creates a new version instead.
+export const packagingProfiles = pgTable("packaging_profiles", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
+  name: text("name").notNull(),
+  appliesTo: jsonb("applies_to"),
+  expectedCost: numeric("expected_cost"),
+  effectiveDate: timestamp("effective_date"),
+  version: integer("version").notNull().default(1),
+  previousVersionId: text("previous_version_id"),
+  supersededById: text("superseded_by_id"),
+  creationReason: text("creation_reason"),
+  locked: boolean("locked").notNull().default(false),
+  lockedAt: timestamp("locked_at"),
+  createdBy: text("created_by"),
+  active: boolean("active").notNull().default(true),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({
+  familyVersionUidx: uniqueIndex("pp_family_version_uidx").on(t.profileFamilyId, t.version),
+  familyIdx: index("pp_family_idx").on(t.profileFamilyId),
+}));
+
+export const packagingProfileItems = pgTable("packaging_profile_items", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  profileId: text("profile_id").references(() => packagingProfiles.id, { onDelete: "cascade" }).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  quantity: numeric("quantity").notNull(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ profileIdx: index("packaging_profile_items_profile_idx").on(t.profileId) }));
+
+export const orderFulfillmentEvents = pgTable("order_fulfillment_events", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventType: text("event_type").notNull().default("original"), // original|reshipment|return_handling|replacement|adjustment
+  sequenceNumber: integer("sequence_number").notNull().default(1),
+  parentEventId: text("parent_event_id"),
+  reversalOfEventId: text("reversal_of_event_id"),
+  idempotencyKey: text("idempotency_key").notNull(),
+  workflowState: text("workflow_state").notNull().default("confirmed"), // not_started|suggested|awaiting_confirmation|confirmed|adjusted|reversed
+  costStatus: text("cost_status").notNull().default("incomplete"),       // exact|estimated|incomplete|unknown
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
+  profileId: text("profile_id").references(() => packagingProfiles.id),
+  profileVersion: integer("profile_version"),
+  draftId: text("draft_id"),
+  expectedCost: numeric("expected_cost"),
+  actualCost: numeric("actual_cost"),
+  variance: numeric("variance"),
+  varianceReason: text("variance_reason"),
+  confidence: text("confidence"),
+  recordedBy: text("recorded_by"),
+  recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+  adjustmentReason: text("adjustment_reason"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  idemUidx: uniqueIndex("ofe_idempotency_uidx").on(t.idempotencyKey),
+  orderIdx: index("ofe_order_idx").on(t.orderId),
+}));
+
+export const orderFulfillmentLines = pgTable("order_fulfillment_lines", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id, { onDelete: "cascade" }).notNull(),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id),
+  materialNameSnapshot: text("material_name_snapshot").notNull(),
+  costComponentType: text("cost_component_type").notNull().default("aquavo_fulfillment_material"),
+  quantity: numeric("quantity").notNull(),
+  unitCostSnapshot: numeric("unit_cost_snapshot"),     // NULL = unknown (never 0)
+  totalCost: numeric("total_cost"),                    // NULL when unit cost unknown
+  source: text("source"),                              // catalog|profile|manual|none
+  costStatus: text("cost_status").notNull().default("unknown"),
+  confidence: text("confidence"),
+  // Manual quick-entry descriptors, frozen with the line (item 8).
+  category: text("category"),
+  description: text("description"),
+  unit: text("unit"),
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  eventIdx: index("ofl_event_idx").on(t.eventId),
+  orderIdx: index("ofl_order_idx").on(t.orderId),
+}));
+
+export const packagingInventoryMovements = pgTable("packaging_inventory_movements", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  purchaseId: text("purchase_id").references(() => packagingPurchases.id),
+  movementType: text("movement_type").notNull(),       // purchase_receipt|fulfillment_usage|damage_waste|return_to_stock|correction|reversal
+  quantity: numeric("quantity").notNull(),             // signed
+  orderId: text("order_id").references(() => orders.id),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id),
+  idempotencyKey: text("idempotency_key").notNull(),
+  // F-4: the order_fulfillment_lines row this movement deducted stock for.
+  // Gives the idempotency key a per-line component so one event may legitimately
+  // list the same material on two lines. NULL for pre-migration rows and for
+  // movements not derived from a fulfillment line (purchases, reversals).
+  // Requires migrations/add_pim_line_identity.sql applied BEFORE deploy.
+  lineId: text("line_id"),
+  sourceDocument: text("source_document"),
+  reversalOfMovementId: text("reversal_of_movement_id"),
+  recordedBy: text("recorded_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({
+  idemUidx: uniqueIndex("pim_idempotency_uidx").on(t.idempotencyKey),
+  materialIdx: index("pim_material_idx").on(t.materialId),
+  // at most ONE movement per fulfillment line (strictly stronger than before)
+  lineUidx: uniqueIndex("pim_line_uidx").on(t.lineId),
+}));
+
+export const fulfillmentAdjustments = pgTable("fulfillment_adjustments", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventId: text("event_id").references(() => orderFulfillmentEvents.id),
+  type: text("type").notNull().default("adjustment"),  // adjustment|reversal
+  amount: numeric("amount"),
+  reason: text("reason").notNull(),
+  recordedBy: text("recorded_by"),
+  recordedAt: timestamp("recorded_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ orderIdx: index("fulfillment_adjustments_order_idx").on(t.orderId) }));
+
+// Per-order sequence ALLOCATION counter. One row per order; allocation is a single
+// atomic INSERT…ON CONFLICT DO UPDATE…RETURNING that row-locks only this order.
+export const orderFulfillmentSequences = pgTable("order_fulfillment_sequences", {
+  orderId: text("order_id").primaryKey().references(() => orders.id),
+  nextSequence: integer("next_sequence").notNull().default(1),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Auditable cost-approval evidence. The SOURCE OF TRUTH for a material's unit cost;
+// fulfillment_materials.current_unit_cost is a mirror of the single active approved row.
+export const materialCostRecords = pgTable("material_cost_records", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id).notNull(),
+  costBasis: text("cost_basis").notNull(),            // purchase_batch | verified_manual_standard
+  purchaseId: text("purchase_id").references(() => packagingPurchases.id),
+  unitCost: numeric("unit_cost"),                     // NULL = unknown; 0 only when verified+approved
+  currency: text("currency").notNull().default("IQD"),
+  approvalStatus: text("approval_status").notNull().default("pending"),
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  effectiveDate: timestamp("effective_date").notNull().defaultNow(),
+  reason: text("reason").notNull(),
+  evidenceUrl: text("evidence_url"),
+  supersededById: text("superseded_by_id"),
+  supersededAt: timestamp("superseded_at"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => ({ materialIdx: index("mcr_material_idx").on(t.materialId) }));
+
+// ── Mutable preparation DRAFTS (never accounting events) ─────────────────────
+// A draft has NO effect on profit, fulfillment totals, packaging stock or reports.
+// Confirmation converts it into ONE immutable event and marks the draft consumed.
+export const fulfillmentPreparationDrafts = pgTable("fulfillment_preparation_drafts", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  orderId: text("order_id").references(() => orders.id).notNull(),
+  eventType: text("event_type").notNull().default("original"),
+  state: text("state").notNull().default("suggested"), // suggested|editing|awaiting_confirmation|consumed|discarded
+  profileFamilyId: text("profile_family_id").references(() => packagingProfileFamilies.id),
+  profileId: text("profile_id").references(() => packagingProfiles.id),
+  profileVersion: integer("profile_version"),
+  suggestionReason: text("suggestion_reason"),
+  expectedCost: numeric("expected_cost"),
+  costStatus: text("cost_status").notNull().default("unknown"),
+  confirmedEventId: text("confirmed_event_id"),
+  consumedAt: timestamp("consumed_at"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ orderIdx: index("fpd_order_idx").on(t.orderId) }));
+
+export const fulfillmentPreparationDraftLines = pgTable("fulfillment_preparation_draft_lines", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  draftId: text("draft_id").references(() => fulfillmentPreparationDrafts.id, { onDelete: "cascade" }).notNull(),
+  materialId: text("material_id").references(() => fulfillmentMaterials.id), // NULL = named manual line
+  materialName: text("material_name").notNull(),
+  category: text("category"),
+  description: text("description"),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit"),
+  unitCost: numeric("unit_cost"),                     // NULL = unknown (never 0)
+  costStatus: text("cost_status").notNull().default("unknown"),
+  source: text("source").notNull().default("manual"), // catalog|profile|manual
+  note: text("note"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+}, (t) => ({ draftIdx: index("fpdl_draft_idx").on(t.draftId) }));
+
+export type PackagingProfileFamily = typeof packagingProfileFamilies.$inferSelect;
+export type OrderFulfillmentSequence = typeof orderFulfillmentSequences.$inferSelect;
+export type MaterialCostRecord = typeof materialCostRecords.$inferSelect;
+export type FulfillmentPreparationDraft = typeof fulfillmentPreparationDrafts.$inferSelect;
+export type FulfillmentPreparationDraftLine = typeof fulfillmentPreparationDraftLines.$inferSelect;
+export type FulfillmentMaterial = typeof fulfillmentMaterials.$inferSelect;
+export type PackagingPurchase = typeof packagingPurchases.$inferSelect;
+export type PackagingProfile = typeof packagingProfiles.$inferSelect;
+export type PackagingProfileItem = typeof packagingProfileItems.$inferSelect;
+export type OrderFulfillmentEvent = typeof orderFulfillmentEvents.$inferSelect;
+export type OrderFulfillmentLine = typeof orderFulfillmentLines.$inferSelect;
+export type PackagingInventoryMovement = typeof packagingInventoryMovements.$inferSelect;
+export type FulfillmentAdjustment = typeof fulfillmentAdjustments.$inferSelect;

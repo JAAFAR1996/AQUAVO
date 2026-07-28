@@ -32,6 +32,14 @@ import {
 import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { handleOAuthRegister, handleOAuthRegisterOptions, verifyMcpToken } from "./oauth.js";
+// ── Canonical accounting engine ──────────────────────────────────────────────
+// Every money figure an MCP finance tool reports MUST come from the engine, so
+// an assistant reading these tools cannot quote a different revenue or profit
+// than the accounting page. The previous SQL here summed rounded_total for
+// statuses IN ('delivered','confirmed') — 'confirmed' is NOT realized revenue,
+// and shipping was never deducted.
+import { computePeriodFinancials, getRealizedOrdersForPeriod, lineQuantity, type OrderLineItem } from "../services/accounting-engine.js";
+import { toMoney } from "../../shared/order-financials.js";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -992,11 +1000,22 @@ function buildMcpServer(auth: McpAuthInfo): Server {
             total: sql<number>`SUM(${schema.orders.roundedTotal}::numeric)`,
           }).from(schema.orders).where(conditions.length ? and(...conditions) : undefined)
             .groupBy(schema.orders.status).orderBy(desc(sql`COUNT(*)`));
-          const [overall] = await db.select({
-            total_orders: sql<number>`COUNT(*)`,
-            total_revenue: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric ELSE 0 END)`,
-            avg_order_value: sql<number>`AVG(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric END)`,
-          }).from(schema.orders).where(conditions.length ? and(...conditions) : undefined);
+          const [counts] = await db.select({ total_orders: sql<number>`COUNT(*)` })
+            .from(schema.orders).where(conditions.length ? and(...conditions) : undefined);
+          // Revenue/AOV from the canonical engine: realized orders only,
+          // collected − shipping.
+          const summaryStart = date_from ? new Date(date_from) : new Date(0);
+          const summaryEnd = date_to ? new Date(date_to) : new Date();
+          const summaryFin = await computePeriodFinancials(db, summaryStart, summaryEnd);
+          const overall = {
+            total_orders: Number(counts?.total_orders ?? 0),
+            total_revenue: summaryFin.revenue,
+            avg_order_value: summaryFin.deliveredOrders > 0
+              ? Math.round(summaryFin.revenue / summaryFin.deliveredOrders)
+              : 0,
+            realized_orders: summaryFin.deliveredOrders,
+            revenue_basis: "realized_collected_minus_shipping",
+          };
           return text({ by_status: byStatus, overall });
         }
 
@@ -1048,11 +1067,16 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           const period = a.period ?? "30d";
           const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
           const since = new Date(); since.setDate(since.getDate() - days);
-          const [revenue] = await db.select({
-            orders_count: sql<number>`COUNT(*)`,
-            revenue: sql<number>`SUM(${schema.orders.roundedTotal}::numeric)`,
-            avg_order: sql<number>`AVG(${schema.orders.roundedTotal}::numeric)`,
-          }).from(schema.orders).where(and(gte(schema.orders.createdAt, since), sql`${schema.orders.status} IN ('delivered', 'confirmed')`));
+          // Canonical realized financials for the window.
+          const dashFin = await computePeriodFinancials(db, since, new Date());
+          const revenue = {
+            orders_count: dashFin.deliveredOrders,
+            revenue: dashFin.revenue,
+            avg_order: dashFin.deliveredOrders > 0
+              ? Math.round(dashFin.revenue / dashFin.deliveredOrders)
+              : 0,
+            revenue_basis: "realized_collected_minus_shipping",
+          };
           const [pendingOrders] = await db.select({ count: sql<number>`COUNT(*)` }).from(schema.orders).where(eq(schema.orders.status, "pending"));
           const [newCustomers] = await db.select({ count: sql<number>`COUNT(*)` }).from(schema.users).where(and(gte(schema.users.createdAt, since), isNull(schema.users.deletedAt), eq(schema.users.role, "user")));
           const [totalCustomers] = await db.select({ count: sql<number>`COUNT(*)` }).from(schema.users).where(and(isNull(schema.users.deletedAt), eq(schema.users.role, "user")));
@@ -1065,16 +1089,43 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           const period = a.period ?? "30d";
           const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
           const since = new Date(); since.setDate(since.getDate() - days);
-          const [breakdown] = await db.select({
+          // Order-source split stays a plain count query; every MONEY figure
+          // comes from the engine.
+          const [counts] = await db.select({
             total_orders: sql<number>`COUNT(*)`,
-            confirmed_orders: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN 1 ELSE 0 END)`,
-            total_revenue: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.roundedTotal}::numeric ELSE 0 END)`,
-            total_shipping: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.shippingCost}::numeric ELSE 0 END)`,
-            total_discounts: sql<number>`SUM(CASE WHEN ${schema.orders.status} IN ('delivered','confirmed') THEN ${schema.orders.discountTotal}::numeric ELSE 0 END)`,
             whatsapp_orders: sql<number>`SUM(CASE WHEN ${schema.orders.source} = 'whatsapp' THEN 1 ELSE 0 END)`,
             website_orders: sql<number>`SUM(CASE WHEN ${schema.orders.source} = 'website' THEN 1 ELSE 0 END)`,
           }).from(schema.orders).where(gte(schema.orders.createdAt, since));
-          return text({ period, ...breakdown });
+          const now = new Date();
+          const fin = await computePeriodFinancials(db, since, now);
+          const realized = await getRealizedOrdersForPeriod(db, since, now);
+          const total_shipping = Math.round(
+            realized.reduce((s, o) => s + toMoney(o.shippingCost), 0)
+          );
+          const total_discounts = Math.round(
+            realized.reduce((s, o) => s + toMoney(o.discountTotal), 0)
+          );
+          return text({
+            period,
+            total_orders: Number(counts?.total_orders ?? 0),
+            confirmed_orders: fin.deliveredOrders,
+            total_revenue: fin.revenue,
+            total_shipping,
+            total_discounts,
+            total_box_cost: fin.packaging,
+            cogs: fin.cogs,
+            gross_profit: fin.grossProfit,
+            expenses_total: fin.expensesTotal,
+            final_net_profit: fin.finalNetProfit,
+            // NULL means UNKNOWN: these are non-null ONLY when every realized
+            // order's cost was fully known. Never read a null as zero.
+            exact_cogs: fin.exactCogs,
+            exact_final_net_profit: fin.exactFinalNetProfit,
+            cost_status: fin.costStatus,
+            orders_with_incomplete_cost: fin.ordersWithIncompleteCost,
+            whatsapp_orders: Number(counts?.whatsapp_orders ?? 0),
+            website_orders: Number(counts?.website_orders ?? 0),
+          });
         }
 
         case "get_top_products": {
@@ -1082,16 +1133,18 @@ function buildMcpServer(auth: McpAuthInfo): Server {
           const limit = Number(a.limit ?? 10);
           const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
           const since = new Date(); since.setDate(since.getDate() - days);
-          const recentOrders = await db.select({ items: schema.orders.items }).from(schema.orders)
-            .where(and(gte(schema.orders.createdAt, since), sql`${schema.orders.status} IN ('delivered', 'confirmed')`));
+          // Realized orders only, via the canonical filter (was a literal
+          // IN ('delivered','confirmed') — 'confirmed' is not realized revenue).
+          const recentOrders = await getRealizedOrdersForPeriod(db, since, new Date());
           const sales: Record<string, { qty: number; revenue: number }> = {};
           for (const order of recentOrders) {
             if (!Array.isArray(order.items)) continue;
-            for (const item of order.items as any[]) {
+            for (const item of order.items as OrderLineItem[]) {
               if (!item.productId) continue;
               if (!sales[item.productId]) sales[item.productId] = { qty: 0, revenue: 0 };
-              sales[item.productId].qty += Number(item.quantity) || 1;
-              sales[item.productId].revenue += (Number(item.priceAtPurchase) || 0) * (Number(item.quantity) || 1);
+              const qty = lineQuantity(item);
+              sales[item.productId].qty += qty;
+              sales[item.productId].revenue += toMoney(item.priceAtPurchase) * qty;
             }
           }
           const sorted = Object.entries(sales).sort((a, b) => b[1].qty - a[1].qty).slice(0, limit);
