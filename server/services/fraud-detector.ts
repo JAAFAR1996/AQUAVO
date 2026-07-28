@@ -1,6 +1,6 @@
 import { groqClient } from "./groq-client.js";
 import { db } from "../db.js";
-import { orders, users, orderItems, products } from "../../shared/schema.js";
+import { orders, users, orderItems, orderItemsPreMigrationColumns, products } from "../../shared/schema.js";
 import { eq, desc, and, gte, sql, count } from "drizzle-orm";
 import { aiMonitor } from "./ai-monitor.js";
 // Canonical order-financial definitions — risk thresholds are stated in the amount
@@ -50,7 +50,8 @@ export class FraudDetector {
 
             // جلب منتجات الطلب
             const items = await db
-                .select()
+                // DEPLOYMENT COMPATIBILITY: pre-migration projection. See shared/schema.ts.
+                .select(orderItemsPreMigrationColumns)
                 .from(orderItems)
                 .where(eq(orderItems.orderId, orderId));
 

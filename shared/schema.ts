@@ -238,6 +238,11 @@ export const shippingSettlements = pgTable("shipping_settlements", {
  */
 export const cashSettlements = pgTable("cash_settlements", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  /**
+   * UNIQUE per carrier — see migrations/add_cash_settlement_integrity.sql.
+   * Without it, a re-entered carrier statement inflates recorded collections
+   * with no way to distinguish it from two genuine equal settlements.
+   */
   settlementNumber: text("settlement_number").notNull(),
   carrier: text("carrier").notNull(),
   /** Only `reconciled` rows count as completed cash. */
@@ -258,13 +263,34 @@ export const cashSettlements = pgTable("cash_settlements", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+/**
+ * Effective-dated cost versions. Append-only: a cost change writes a NEW row,
+ * it never edits an old one (mission §11 "قواعد كلفة المنتج").
+ *
+ * Cost columns are NULLABLE and carry no DEFAULT — see
+ * migrations/fix_product_cost_history_nullable.sql. Before that fix they were
+ * `NOT NULL DEFAULT '0'`, which made a genuinely-zero historical cost
+ * indistinguishable from an unrecorded one (Red Team M-6). NULL means "not
+ * recorded"; a stored 0 means zero ONLY when its resolution says verified_zero.
+ */
 export const productCostHistory = pgTable("product_cost_history", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: text("product_id").references(() => products.id).notNull(),
-  costPrice: numeric("cost_price").notNull().default("0"),
-  packagingCost: numeric("packaging_cost").notNull().default("0"),
-  insertCost: numeric("insert_cost").notNull().default("0"),
+  costPrice: numeric("cost_price"),
+  packagingCost: numeric("packaging_cost"),
+  insertCost: numeric("insert_cost"),
+  costPriceResolution: text("cost_price_resolution"),        // known|verified_zero|unresolved
+  packagingCostResolution: text("packaging_cost_resolution"),
+  insertCostResolution: text("insert_cost_resolution"),
+  costResolutionNote: text("cost_resolution_note"),
   effectiveFrom: timestamp("effective_from").notNull(),
+  // Evidence chain — a cost version with no evidence can never support an
+  // `exact` snapshot on a sale line.
+  purchaseLotId: text("purchase_lot_id"),
+  evidenceIds: jsonb("evidence_ids"),
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  reason: text("reason"),
   note: text("note"),
   changedBy: text("changed_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -272,6 +298,26 @@ export const productCostHistory = pgTable("product_cost_history", {
   productIdIdx: index("pch_product_id_idx").on(table.productId),
   effectiveFromIdx: index("pch_effective_from_idx").on(table.effectiveFrom),
 }));
+
+/**
+ * DEPLOYMENT-COMPATIBLE PROJECTION for `product_cost_history`.
+ *
+ * Same reasoning as `orderItemsPreMigrationColumns`: the resolution/evidence
+ * columns are declared above, but fix_product_cost_history_nullable.sql has not
+ * been applied to production. Any read path that must work on both schema
+ * versions selects through this projection.
+ */
+export const productCostHistoryPreMigrationColumns = {
+  id: productCostHistory.id,
+  productId: productCostHistory.productId,
+  costPrice: productCostHistory.costPrice,
+  packagingCost: productCostHistory.packagingCost,
+  insertCost: productCostHistory.insertCost,
+  effectiveFrom: productCostHistory.effectiveFrom,
+  note: productCostHistory.note,
+  changedBy: productCostHistory.changedBy,
+  createdAt: productCostHistory.createdAt,
+} as const;
 
 export const expenses = pgTable("expenses", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -504,11 +550,54 @@ export const orderItems = pgTable("order_items_relational", {
   costSnapshotConfidence: text("cost_snapshot_confidence"),// high|medium|low (NULL when unknown)
   costSnapshotVersion: integer("cost_snapshot_version"),
   costSnapshotAt: timestamp("cost_snapshot_at"),
+  // Immutable per-unit SALE PRICE snapshot — mission §11. `priceAtPurchase`
+  // above records WHAT was charged; these record where that figure came from
+  // and when it was frozen, so a historical order can be proven not to have
+  // been recomputed from today's catalogue.
+  // NULLABLE — NULL means "never snapshotted" (the 182 historical lines).
+  // Never backfilled from products.price.
+  unitSalePriceSnapshot: numeric("unit_sale_price_snapshot"),
+  discountSnapshot: numeric("discount_snapshot"),
+  finalUnitSalePriceSnapshot: numeric("final_unit_sale_price_snapshot"),
+  salePriceSnapshotAt: timestamp("sale_price_snapshot_at"),
+  salePriceSource: text("sale_price_source"),             // product_current|price_history|manual|none
   metadata: jsonb("metadata"), // For variants like size, color
 }, (table) => ({
   productIdIdx: index("order_items_product_id_idx").on(table.productId),
   orderIdIdx: index("order_items_order_id_idx").on(table.orderId),
 }));
+
+/**
+ * DEPLOYMENT-COMPATIBLE PROJECTION for `order_items_relational`.
+ *
+ * Drizzle's bare `db.select().from(orderItems)` emits every column named in the
+ * schema above. The sale-price snapshot columns are declared here but the
+ * migration that creates them (add_order_item_sale_price_snapshot.sql) has NOT
+ * been applied to production. A bare select would therefore compile a query
+ * against columns the live database does not have, and fail on deploy — before
+ * the migration ever runs.
+ *
+ * Use this projection in any read path that must work on BOTH schema versions.
+ * Once the migration is applied and verified in production, callers can be
+ * widened deliberately, one at a time.
+ */
+export const orderItemsPreMigrationColumns = {
+  id: orderItems.id,
+  orderId: orderItems.orderId,
+  productId: orderItems.productId,
+  quantity: orderItems.quantity,
+  priceAtPurchase: orderItems.priceAtPurchase,
+  totalPrice: orderItems.totalPrice,
+  unitCostPrice: orderItems.unitCostPrice,
+  unitPackagingCost: orderItems.unitPackagingCost,
+  unitInsertCost: orderItems.unitInsertCost,
+  costSnapshotStatus: orderItems.costSnapshotStatus,
+  costSnapshotSource: orderItems.costSnapshotSource,
+  costSnapshotConfidence: orderItems.costSnapshotConfidence,
+  costSnapshotVersion: orderItems.costSnapshotVersion,
+  costSnapshotAt: orderItems.costSnapshotAt,
+  metadata: orderItems.metadata,
+} as const;
 
 export const payments = pgTable("payments", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),

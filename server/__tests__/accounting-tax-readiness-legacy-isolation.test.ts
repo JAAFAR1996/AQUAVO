@@ -20,6 +20,7 @@ import {
   computeCarrierBalance,
   computeTaxReadiness,
   TAX_NOT_READY_WARNING_AR,
+  TAX_READINESS_ENGINE_PENDING_AR,
   type CostResolver,
   type OrderRow,
 } from "../services/accounting-engine";
@@ -123,12 +124,56 @@ describe("tax readiness", () => {
     expect(r.taxReportReady).toBe(false);
   });
 
-  it("is true only when every counted line is an exact snapshot", () => {
+  it("reports full cost-snapshot coverage separately from tax readiness", () => {
     const r = computeTaxReadiness({
       exactCostLines: 182, estimatedHistoryLines: 0, estimatedReferenceLines: 0, unknownCostLines: 0,
     });
-    expect(r.taxReportReady).toBe(true);
-    expect(r.taxReadinessWarning).toBeNull();
+    // Cost coverage is complete — that much is true and is reported honestly.
+    expect(r.costSnapshotsComplete).toBe(true);
+    // ...but coverage is condition 8 of 23. RED TEAM M-10: before this pin,
+    // the first fully-exact month would have flipped taxReportReady to true
+    // and unlocked period close with no tax profile, no approved chart of
+    // accounts, no fiscal year and no accountant approval.
+    expect(r.taxReportReady).toBe(false);
+    expect(r.taxReadinessWarning).toBe(TAX_READINESS_ENGINE_PENDING_AR);
+  });
+
+  it("distinguishes 'costs are estimates' from 'readiness engine not built'", () => {
+    // A data problem the owner can fix with invoices...
+    const estimated = computeTaxReadiness({
+      exactCostLines: 0, estimatedHistoryLines: 39, estimatedReferenceLines: 143, unknownCostLines: 0,
+    });
+    expect(estimated.taxReadinessWarning).toBe(TAX_NOT_READY_WARNING_AR);
+    // ...versus a system limitation the owner cannot. Collapsing the two into
+    // one message would send the owner hunting for invoices that would not
+    // help, or waiting on code that is not the binding constraint.
+    const covered = computeTaxReadiness({
+      exactCostLines: 10, estimatedHistoryLines: 0, estimatedReferenceLines: 0, unknownCostLines: 0,
+    });
+    expect(covered.taxReadinessWarning).toBe(TAX_READINESS_ENGINE_PENDING_AR);
+    expect(estimated.taxReadinessWarning).not.toBe(covered.taxReadinessWarning);
+  });
+
+  it("cannot be made ready by any input — the pin is not data-dependent", () => {
+    // Exhaustive over the shape of the input: no combination of counters may
+    // produce a true. The only way to flip it is to ship the readiness engine
+    // and change FULL_TAX_READINESS_ENGINE_IMPLEMENTED deliberately.
+    for (const exact of [0, 1, 182, 10_000]) {
+      for (const est of [0, 1, 39]) {
+        for (const ref of [0, 143]) {
+          for (const unk of [0, 1]) {
+            const r = computeTaxReadiness({
+              exactCostLines: exact,
+              estimatedHistoryLines: est,
+              estimatedReferenceLines: ref,
+              unknownCostLines: unk,
+            });
+            expect(r.taxReportReady).toBe(false);
+            expect(r.taxReadinessWarning).not.toBeNull();
+          }
+        }
+      }
+    }
   });
 });
 

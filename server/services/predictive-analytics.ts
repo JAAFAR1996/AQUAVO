@@ -4,6 +4,7 @@ import {
     predictedNeeds,
     orders,
     orderItems,
+    orderItemsPreMigrationColumns,
     products,
     users,
     type InsertPredictedNeed,
@@ -418,7 +419,8 @@ export class PredictiveAnalytics {
             for (const prediction of pendingPredictions) {
                 // Check if user bought this product after prediction
                 const purchase = await db
-                    .select()
+                    // DEPLOYMENT COMPATIBILITY: pre-migration projection. See shared/schema.ts.
+                    .select(orderItemsPreMigrationColumns)
                     .from(orderItems)
                     .innerJoin(orders, eq(orderItems.orderId, orders.id))
                     .where(

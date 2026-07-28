@@ -2,7 +2,7 @@ import type { Router as RouterType, Request, Response, NextFunction } from "expr
 import { Router } from "express";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, users, products, orderItems, productViews, cartSessions } from "../../shared/schema.js";
+import { orders, users, products, orderItems, orderItemsPreMigrationColumns, productViews, cartSessions } from "../../shared/schema.js";
 import { sql, desc, gte, count, sum, eq, and, gt, inArray } from "drizzle-orm";
 import { pageViews } from "../../shared/schema.js";
 import { REALIZED_STATUSES, isRealizedStatus } from "../../shared/order-financials.js";
@@ -442,7 +442,8 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
 
         // 4. Demand Forecasts (based on historical sales)
         const allOrderItems = await db
-            .select()
+            // DEPLOYMENT COMPATIBILITY: pre-migration projection. See shared/schema.ts.
+            .select(orderItemsPreMigrationColumns)
             .from(orderItems)
             .limit(1000);
 

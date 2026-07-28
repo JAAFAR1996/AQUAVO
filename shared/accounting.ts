@@ -111,6 +111,11 @@ export const taxReadinessSchema = z.object({
   estimatedReferenceLines: z.number(),
   unknownCostLines: z.number(),
   totalFinancialLines: z.number(),
+  /**
+   * Cost-snapshot coverage only — condition 8 of the 23 in the mission spec.
+   * NOT tax readiness. Never render this to the user as "جاهز ضريبياً".
+   */
+  costSnapshotsComplete: z.boolean(),
   taxReportReady: z.boolean(),
   taxReadinessWarning: z.string().nullable(),
 });
@@ -119,6 +124,17 @@ export type TaxReadiness = z.infer<typeof taxReadinessSchema>;
 
 export const TAX_NOT_READY_WARNING_AR =
   "غير صالح كتقرير ضريبي نهائي — الكلف التاريخية تقديرية ولم تُثبت بلقطات كلفة وقت البيع.";
+
+/**
+ * Shown when cost snapshots ARE complete but the 23-condition readiness engine
+ * has not shipped. Distinct from TAX_NOT_READY_WARNING_AR on purpose: estimated
+ * costs are a data problem the owner fixes with invoices; a missing engine is a
+ * system limitation the owner cannot fix. See Red Team M-10.
+ */
+export const TAX_READINESS_ENGINE_PENDING_AR =
+  "غير صالح كتقرير ضريبي نهائي — محرك الجاهزية الضريبية غير منفَّذ بعد. " +
+  "لقطات الكلفة شرط واحد من 23 شرطاً؛ الهوية الضريبية ودليل الحسابات المعتمد " +
+  "والسنة المالية واعتماد المحاسب القانوني وتوثيق المصروفات لم تُنفَّذ بعد.";
 
 /** الوسم الإلزامي لأي تصدير داخلي للمراجعة عندما taxReportReady=false. */
 export const DRAFT_EXPORT_MARK = "DRAFT / ESTIMATED / NOT TAX FINAL";
@@ -276,6 +292,14 @@ export const carrierBalanceSchema = z.object({
   documentedAdjustments: z.number(),
   outstanding: z.number(),
   fullySettled: z.boolean(),
+  /**
+   * Reconciled rows breaking gross = fees + net. A corrupt document, not a
+   * receivable — surfaced as an exception so it is investigated, not banked.
+   * See Red Team B-5.
+   */
+  invariantViolationCount: z.number(),
+  invariantViolationAmount: z.number(),
+  hasInvariantViolation: z.boolean(),
 });
 
 export type CarrierBalance = z.infer<typeof carrierBalanceSchema>;

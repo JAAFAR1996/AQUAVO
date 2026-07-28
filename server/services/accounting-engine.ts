@@ -12,6 +12,7 @@ import {
   orders,
   products,
   productCostHistory,
+  productCostHistoryPreMigrationColumns,
   orderReturnEvents,
   expenses,
   manualInvoices,
@@ -19,6 +20,7 @@ import {
   orderFulfillmentEvents,
   orderFulfillmentLines,
   orderItems,
+  orderItemsPreMigrationColumns,
 } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull, sql } from "drizzle-orm";
 import type { AccountingPeriod } from "../../shared/accounting.js";
@@ -43,7 +45,17 @@ export const REALIZED_STATUS_SQL = sql`(${sql.join(REALIZED_STATUSES.map((s) => 
 export type Db = NonNullable<ReturnType<typeof getDb>>;
 export type OrderRow = typeof orders.$inferSelect;
 export type ProductRow = typeof products.$inferSelect;
-export type CostHistoryRow = typeof productCostHistory.$inferSelect;
+/**
+ * Only the columns this engine reads, and only the columns that exist in
+ * production today. Deliberately NOT `$inferSelect`: that would include the
+ * resolution/evidence columns added by fix_product_cost_history_nullable.sql,
+ * and the type would then permit a query the live database cannot answer.
+ */
+export type CostHistoryRow = Pick<
+  typeof productCostHistory.$inferSelect,
+  | "id" | "productId" | "costPrice" | "packagingCost" | "insertCost"
+  | "effectiveFrom" | "note" | "changedBy" | "createdAt"
+>;
 
 export interface OrderLineItem {
   productId?: string;
@@ -233,6 +245,17 @@ export interface CarrierBalance {
   documentedAdjustments: number;
   outstanding: number;
   fullySettled: boolean;
+  /**
+   * RED TEAM B-5. Reconciled rows where gross <> fees + net. Such a row is an
+   * arithmetically impossible document, NOT money owed by the carrier — the
+   * two must never share a representation. Reported as an exception so the
+   * corrupt document is investigated rather than banked.
+   */
+  invariantViolationCount: number;
+  /** Signed total of (gross - fees - net) contributed by violating rows. */
+  invariantViolationAmount: number;
+  /** True when any reconciled row breaks the identity. Blocks tax finality. */
+  hasInvariantViolation: boolean;
 }
 
 type ReconciledSettlementRow = {
@@ -250,8 +273,26 @@ export function computeCarrierBalance(
   const grossCustomerCollections = reconciled.reduce((sum, s) => sum + toNumber(s.grossAmount), 0);
   const carrierFees = reconciled.reduce((sum, s) => sum + toNumber(s.feesAmount), 0);
   const netCashReceived = reconciled.reduce((sum, s) => sum + toNumber(s.netAmount), 0);
+
+  // Per-row integrity check. Deliberately per-row, not on the totals: two rows
+  // with equal and opposite errors would net to zero and hide both.
+  let invariantViolationCount = 0;
+  let invariantViolationAmount = 0;
+  for (const s of reconciled) {
+    const delta = toNumber(s.grossAmount) - toNumber(s.feesAmount) - toNumber(s.netAmount);
+    if (delta !== 0) {
+      invariantViolationCount++;
+      invariantViolationAmount += delta;
+    }
+  }
+
   // NOT clamped to zero: a genuine shortfall in the recorded settlements must
   // stay visible rather than be hidden behind a max(0, …).
+  //
+  // `outstanding` is left as the raw arithmetic on purpose — subtracting the
+  // violating rows out of it would silently restate a reported balance. The
+  // violation is surfaced alongside instead, so a reader can see that part of
+  // this figure originates in a broken document rather than in unpaid cash.
   const outstanding = grossCustomerCollections - carrierFees - netCashReceived;
   return {
     grossCustomerCollections,
@@ -259,7 +300,11 @@ export function computeCarrierBalance(
     netCashReceived,
     documentedAdjustments,
     outstanding,
-    fullySettled: outstanding === 0,
+    // A file with a corrupt settlement document is not settled, even at zero.
+    fullySettled: outstanding === 0 && invariantViolationCount === 0,
+    invariantViolationCount,
+    invariantViolationAmount,
+    hasInvariantViolation: invariantViolationCount > 0,
   };
 }
 
@@ -279,6 +324,14 @@ export interface TaxReadiness {
   estimatedReferenceLines: number;
   unknownCostLines: number;
   totalFinancialLines: number;
+  /**
+   * Cost-snapshot coverage ONLY — every counted line carries an
+   * `exact_snapshot`. This is condition 8 of the 23 in the mission spec §5.
+   * It is NOT tax readiness, and must never be rendered to the user as if it
+   * were. Exposed separately so the UI can show honest progress while
+   * `taxReportReady` stays pinned false.
+   */
+  costSnapshotsComplete: boolean;
   taxReportReady: boolean;
   /** Shown verbatim in the UI whenever `taxReportReady` is false. */
   taxReadinessWarning: string | null;
@@ -286,6 +339,29 @@ export interface TaxReadiness {
 
 export const TAX_NOT_READY_WARNING_AR =
   "غير صالح كتقرير ضريبي نهائي — الكلف التاريخية تقديرية ولم تُثبت بلقطات كلفة وقت البيع.";
+
+export const TAX_READINESS_ENGINE_PENDING_AR =
+  "غير صالح كتقرير ضريبي نهائي — محرك الجاهزية الضريبية غير منفَّذ بعد. " +
+  "لقطات الكلفة شرط واحد من 23 شرطاً؛ الهوية الضريبية ودليل الحسابات المعتمد " +
+  "والسنة المالية واعتماد المحاسب القانوني وتوثيق المصروفات لم تُنفَّذ بعد.";
+
+/**
+ * RED TEAM M-10 — FALSE-READINESS PIN.
+ *
+ * The mission spec §5 defines 23 conditions for `taxReportReady`. Only one of
+ * them (exact cost snapshots on every line) is implemented today. Phase 1 makes
+ * NEW orders capture exact snapshots, which means the first fully-exact month
+ * would otherwise flip this flag to `true` and unlock period close and final
+ * export — with no tax profile, no approved chart of accounts (نظام مسك الدفاتر
+ * م.3/ثالثاً), no fiscal year, no accountant approval, and no expense
+ * documentation. That is 22 conditions short.
+ *
+ * A gate that reports a guarantee it does not enforce is worse than no gate:
+ * it misleads the owner, the accountant, and the inspector at once. So the flag
+ * is pinned `false` at the source until the full readiness engine ships and
+ * flips this constant. Do not flip it to unblock a demo.
+ */
+export const FULL_TAX_READINESS_ENGINE_IMPLEMENTED = false;
 
 export function computeTaxReadiness(input: {
   exactCostLines: number;
@@ -298,12 +374,24 @@ export function computeTaxReadiness(input: {
     input.estimatedHistoryLines +
     input.estimatedReferenceLines +
     input.unknownCostLines;
-  const taxReportReady = totalFinancialLines > 0 && input.exactCostLines === totalFinancialLines;
+  const costSnapshotsComplete =
+    totalFinancialLines > 0 && input.exactCostLines === totalFinancialLines;
+  const taxReportReady = FULL_TAX_READINESS_ENGINE_IMPLEMENTED && costSnapshotsComplete;
+  // Two distinct failures, two distinct messages: estimated costs are a DATA
+  // problem the owner can fix with invoices; a missing readiness engine is a
+  // SYSTEM limitation the owner cannot fix. Collapsing them would misdirect
+  // the remediation effort.
+  const taxReadinessWarning = taxReportReady
+    ? null
+    : costSnapshotsComplete
+      ? TAX_READINESS_ENGINE_PENDING_AR
+      : TAX_NOT_READY_WARNING_AR;
   return {
     ...input,
     totalFinancialLines,
+    costSnapshotsComplete,
     taxReportReady,
-    taxReadinessWarning: taxReportReady ? null : TAX_NOT_READY_WARNING_AR,
+    taxReadinessWarning,
   };
 }
 
@@ -678,8 +766,13 @@ const VALID_SOURCES: readonly string[] = ["product_current", "cost_history", "ma
 /** Batch-load the relational cost snapshots for a set of orders. */
 export async function buildRelationalLineResolver(db: Db, orderIds: Set<string>): Promise<RelationalLineResolver> {
   if (orderIds.size === 0) return { get: () => undefined };
+  // DEPLOYMENT COMPATIBILITY — explicit projection. See the note in
+  // buildCostResolver: add_order_item_sale_price_snapshot.sql adds columns that
+  // production does not yet have, and a bare select() would query them and fail
+  // on deploy, before the migration runs. This projection is valid both before
+  // and after that migration.
   const rows = await db
-    .select()
+    .select(orderItemsPreMigrationColumns)
     .from(orderItems)
     .where(inArray(orderItems.orderId, [...orderIds]));
   const byOrder = new Map<string, RelationalLineSnapshot[]>();
@@ -854,8 +947,21 @@ export async function buildCostResolver(db: Db, productIds: Set<string>): Promis
     const productRows = await db.select().from(products).where(inArray(products.id, ids));
     for (const product of productRows) productMap.set(product.id, product);
 
+    // DEPLOYMENT COMPATIBILITY — explicit projection, deliberately narrow.
+    //
+    // `db.select()` with no projection makes Drizzle emit every column named in
+    // the schema definition. fix_product_cost_history_nullable.sql adds
+    // resolution/evidence columns to this table, and that migration is NOT yet
+    // applied to production. A bare select() would therefore compile a query
+    // referencing `cost_price_resolution` against a database that does not have
+    // it, and every accounting read would fail the moment this deploys —
+    // before the migration runs.
+    //
+    // Listing only the pre-existing columns keeps this query valid BOTH before
+    // and after the migration. Widen it in a later change, once the migration
+    // has been applied and verified in production.
     const historyRows = await db
-      .select()
+      .select(productCostHistoryPreMigrationColumns)
       .from(productCostHistory)
       .where(inArray(productCostHistory.productId, ids))
       .orderBy(desc(productCostHistory.effectiveFrom), desc(productCostHistory.createdAt));
