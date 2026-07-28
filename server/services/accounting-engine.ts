@@ -209,6 +209,104 @@ export const COST_BASIS_LABEL_AR: Readonly<Record<CostBasis, string>> = {
   unknown: "الكلفة غير متوفرة",
 };
 
+/**
+ * CANONICAL carrier cash position.
+ *
+ * Source of truth: `cash_settlements` rows with status='reconciled'. Nothing
+ * else. The legacy `shipping_settlements` log and `orders.shipping_cost` are
+ * operational records that under-record real cash; reading either produced a
+ * phantom outstanding balance.
+ *
+ * Invariant every reconciled row satisfies: gross = fees + net. The carrier's
+ * fee is money it KEEPS, so it is subtracted — never reported as a receivable.
+ *
+ * Returns (approved return refunds) are NOT subtracted here. A refund is already
+ * reflected in the reconciled gross/net figures; deducting it again would charge
+ * the carrier twice for the same money. It is surfaced separately, as
+ * information, in `documentedAdjustments`.
+ */
+export interface CarrierBalance {
+  grossCustomerCollections: number;
+  carrierFees: number;
+  netCashReceived: number;
+  /** Informational only — never subtracted from `outstanding`. */
+  documentedAdjustments: number;
+  outstanding: number;
+  fullySettled: boolean;
+}
+
+type ReconciledSettlementRow = {
+  status: string | null;
+  grossAmount: string | number | null;
+  feesAmount: string | number | null;
+  netAmount: string | number | null;
+};
+
+export function computeCarrierBalance(
+  rows: ReconciledSettlementRow[],
+  documentedAdjustments: number,
+): CarrierBalance {
+  const reconciled = rows.filter((s) => s.status === "reconciled");
+  const grossCustomerCollections = reconciled.reduce((sum, s) => sum + toNumber(s.grossAmount), 0);
+  const carrierFees = reconciled.reduce((sum, s) => sum + toNumber(s.feesAmount), 0);
+  const netCashReceived = reconciled.reduce((sum, s) => sum + toNumber(s.netAmount), 0);
+  // NOT clamped to zero: a genuine shortfall in the recorded settlements must
+  // stay visible rather than be hidden behind a max(0, …).
+  const outstanding = grossCustomerCollections - carrierFees - netCashReceived;
+  return {
+    grossCustomerCollections,
+    carrierFees,
+    netCashReceived,
+    documentedAdjustments,
+    outstanding,
+    fullySettled: outstanding === 0,
+  };
+}
+
+/**
+ * TAX READINESS.
+ *
+ * A period is tax-final ONLY when every counted sale line carries an immutable
+ * cost snapshot taken at the moment of sale (`exact_snapshot`). Costs recovered
+ * from `product_cost_history` or from the product's current database cost are
+ * ESTIMATES: they are good enough to steer the business, and not good enough to
+ * file. An estimate must never be promoted to evidence by rounding, defaulting,
+ * or an empty period reading as "ready" — hence the `> 0` guard.
+ */
+export interface TaxReadiness {
+  exactCostLines: number;
+  estimatedHistoryLines: number;
+  estimatedReferenceLines: number;
+  unknownCostLines: number;
+  totalFinancialLines: number;
+  taxReportReady: boolean;
+  /** Shown verbatim in the UI whenever `taxReportReady` is false. */
+  taxReadinessWarning: string | null;
+}
+
+export const TAX_NOT_READY_WARNING_AR =
+  "غير صالح كتقرير ضريبي نهائي — الكلف التاريخية تقديرية ولم تُثبت بلقطات كلفة وقت البيع.";
+
+export function computeTaxReadiness(input: {
+  exactCostLines: number;
+  estimatedHistoryLines: number;
+  estimatedReferenceLines: number;
+  unknownCostLines: number;
+}): TaxReadiness {
+  const totalFinancialLines =
+    input.exactCostLines +
+    input.estimatedHistoryLines +
+    input.estimatedReferenceLines +
+    input.unknownCostLines;
+  const taxReportReady = totalFinancialLines > 0 && input.exactCostLines === totalFinancialLines;
+  return {
+    ...input,
+    totalFinancialLines,
+    taxReportReady,
+    taxReadinessWarning: taxReportReady ? null : TAX_NOT_READY_WARNING_AR,
+  };
+}
+
 export interface ProductCost {
   productId: string;
   name: string;

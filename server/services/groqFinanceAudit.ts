@@ -11,10 +11,14 @@ function getFinanceGroqClient(): Groq {
   if (!key) throw new Error("FINANCE_GROQ_API_KEY غير مُعدّ. أضفه إلى ملف .env لتشغيل التدقيق.");
   return new Groq({ apiKey: key });
 }
+// LEGACY ISOLATION (2026-07-28): `shipping_settlements` is deliberately NOT
+// imported. It under-records real cash, and the auditor reading it produced the
+// same phantom carrier balance as the accounting page. Carrier money comes from
+// `cash_settlements` rows with status='reconciled'.
 import {
   orders,
   products,
-  shippingSettlements,
+  cashSettlements,
   orderReturnEvents,
   expenses,
 } from "../../shared/schema.js";
@@ -29,6 +33,7 @@ import {
   buildCostResolver,
   calcOrderProfit,
   collectProductIds,
+  computeCarrierBalance,
   computePeriodFinancials,
   eventSalesReturnDeduction,
   getRealizedOrdersForPeriod,
@@ -59,10 +64,17 @@ export interface FinanceSnapshot {
   /** finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss */
   finalNetProfit: number;
   cogsBasis: "approximate_current_cost" | "unavailable";
-  // COD settlement
+  // COD settlement — all from reconciled cash_settlements.
   deliveredNetTotal: number;
+  /** Total collected from customers, before the carrier's fee. */
+  grossCustomerCollections: number;
+  /** The carrier's own fee — money it KEEPS, never a receivable. */
+  carrierFees: number;
+  /** Cash actually received by AQUAVO (= carrierBalance.netCashReceived). */
   receivedCashTotal: number;
+  /** Informational only — NOT subtracted from `pendingSettlement`. */
   approvedReturnDeductions: number;
+  /** = gross − fees − net. Not clamped: a real shortfall must stay visible. */
   pendingSettlement: number;
   // Returns
   verifiedReturnEventsCount: number;
@@ -182,7 +194,7 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   const [allOrders, settlements, returnEvents, expenseRows, activeProducts, deliveredOrders, fin] =
     await Promise.all([
       db.select().from(orders),
-      db.select().from(shippingSettlements),
+      db.select().from(cashSettlements),
       db.select().from(orderReturnEvents),
       db.select().from(expenses),
       db.select().from(products).where(isNull(products.deletedAt)),
@@ -202,8 +214,7 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   const deliveredNetTotal = fin.revenue;
   const netRevenue = deliveredNetTotal;
 
-  // COD settlement
-  const receivedCashTotal = Math.round(settlements.reduce((s, e) => s + toNum(e.amount), 0));
+  // COD settlement — canonical source: reconciled cash_settlements only.
   const deliveredIds = new Set(deliveredOrders.map(o => o.id));
   const verifiedEvents = returnEvents.filter(e => e.status === "verified");
   const recordedEvents = returnEvents.filter(e => e.status === "recorded");
@@ -214,7 +225,14 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
       .filter(e => deliveredIds.has(e.orderId))
       .reduce((s, e) => s + eventSalesReturnDeduction(e), 0)
   );
-  const pendingSettlement = Math.max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions);
+  // The carrier's position comes from the reconciled settlements themselves, NOT
+  // from (delivered − received): the latter compared two different ledgers and
+  // reported the carrier's own fee as an outstanding receivable. Approved return
+  // refunds are informational here — deducting them again would charge the
+  // carrier twice for money already reflected in the reconciled figures.
+  const carrierBalance = computeCarrierBalance(settlements, approvedReturnDeductions);
+  const receivedCashTotal = Math.round(carrierBalance.netCashReceived);
+  const pendingSettlement = Math.round(carrierBalance.outstanding);
 
   // Return losses (verified only) — split: revenue reversal vs actual loss.
   // Both come from computePeriodFinancials, which applies the canonical
@@ -317,6 +335,8 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
     finalNetProfit,
     cogsBasis,
     deliveredNetTotal,
+    grossCustomerCollections: Math.round(carrierBalance.grossCustomerCollections),
+    carrierFees: Math.round(carrierBalance.carrierFees),
     receivedCashTotal,
     approvedReturnDeductions,
     pendingSettlement,
@@ -357,28 +377,36 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
   // component added twice, a sign flipped) is off by thousands of dinars, not by 4.
   const ROUNDING_DRIFT_TOLERANCE = 4;
 
-  // 1. pendingSettlement formula
-  const computedPending = Math.max(
-    0,
-    snapshot.deliveredNetTotal - snapshot.receivedCashTotal - snapshot.approvedReturnDeductions
-  );
+  // 1. pendingSettlement formula.
+  //
+  // The carrier's position is derived from the carrier's OWN reconciled
+  // settlements, not from (deliveredNetTotal − received). The old form compared
+  // two different ledgers — delivered orders against recorded cash — and so
+  // reported the carrier's fee, and every unrecorded settlement, as an
+  // outstanding receivable. It is NOT clamped to zero: a real shortfall must
+  // stay visible instead of being hidden behind a max(0, …).
+  const computedPending =
+    snapshot.grossCustomerCollections - snapshot.carrierFees - snapshot.receivedCashTotal;
   checks.push({
     name: "pendingSettlement formula",
     passed: Math.abs(computedPending - snapshot.pendingSettlement) < 1,
     expected: computedPending,
     actual: snapshot.pendingSettlement,
-    note: "pending = max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions)",
+    note: "pending = grossCustomerCollections - carrierFees - receivedCashTotal (reconciled cash_settlements)",
   });
 
-  // 2. Settlement components balance
+  // 2. Settlement components balance: the carrier's gross is fully accounted for
+  // as fee + cash received + still outstanding. Return refunds are deliberately
+  // ABSENT — they are already reflected in the reconciled figures, and adding
+  // them here would charge the carrier twice for the same money.
   const settlementSum =
-    snapshot.receivedCashTotal + snapshot.approvedReturnDeductions + snapshot.pendingSettlement;
+    snapshot.carrierFees + snapshot.receivedCashTotal + snapshot.pendingSettlement;
   checks.push({
     name: "settlement components balance",
-    passed: Math.abs(settlementSum - snapshot.deliveredNetTotal) <= 1,
-    expected: snapshot.deliveredNetTotal,
+    passed: Math.abs(settlementSum - snapshot.grossCustomerCollections) <= 1,
+    expected: snapshot.grossCustomerCollections,
     actual: settlementSum,
-    note: "receivedCash + returnDeductions + pending must equal deliveredNetTotal",
+    note: "carrierFees + receivedCash + pending must equal grossCustomerCollections",
   });
 
   // 3. Approved return deductions do not exceed delivered net total
@@ -524,9 +552,11 @@ export async function runGroqAudit(
 
 == تسوية COD ==
 إجمالي ما يستحقه البائع (مسلّمات - رسوم شحن): ${snapshot.deliveredNetTotal.toLocaleString("en-US")} د.ع
-المبلغ المستلم من شركات الشحن: ${snapshot.receivedCashTotal.toLocaleString("en-US")} د.ع
-خصومات الراجعات المعتمدة (refundAmount للمسلّمات): ${snapshot.approvedReturnDeductions.toLocaleString("en-US")} د.ع
-المبلغ المعلّق (غير مستلم بعد): ${snapshot.pendingSettlement.toLocaleString("en-US")} د.ع
+المقبوض من الزبائن (تسويات مطابَقة): ${snapshot.grossCustomerCollections.toLocaleString("en-US")} د.ع
+أجور شركة التوصيل (تأخذها لنفسها — ليست رصيداً باقياً): ${snapshot.carrierFees.toLocaleString("en-US")} د.ع
+الصافي المستلم فعلاً: ${snapshot.receivedCashTotal.toLocaleString("en-US")} د.ع
+خصومات الراجعات المعتمدة (للمعلومة فقط — غير مخصومة من رصيد الشركة): ${snapshot.approvedReturnDeductions.toLocaleString("en-US")} د.ع
+الباقي عند الشركة: ${snapshot.pendingSettlement.toLocaleString("en-US")} د.ع
 
 == الراجعات والخسائر ==
 أحداث إرجاع معتمدة: ${snapshot.verifiedReturnEventsCount}
@@ -608,7 +638,7 @@ export async function getAccountingRowCounts(): Promise<AccountingRowCounts> {
   const [[{ value: ordersCount }], [{ value: settlementsCount }], [{ value: eventsCount }], [{ value: expensesCount }]] =
     await Promise.all([
       db.select({ value: count() }).from(orders),
-      db.select({ value: count() }).from(shippingSettlements),
+      db.select({ value: count() }).from(cashSettlements),
       db.select({ value: count() }).from(orderReturnEvents),
       db.select({ value: count() }).from(expenses),
     ]);

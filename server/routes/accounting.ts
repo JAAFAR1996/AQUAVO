@@ -2,14 +2,18 @@ import { Router, type Request, type Response, type NextFunction } from "express"
 import { z } from "zod";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
-import { orders, products, shippingSettlements, cashSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
+// LEGACY ISOLATION (2026-07-28): `shipping_settlements` is a legacy operational
+// log that under-records real cash. It is deliberately NOT imported here — the
+// accountant path reads carrier money exclusively from `cash_settlements` rows
+// with status='reconciled'. Re-adding that import re-introduces a phantom
+// carrier balance and is rejected by the accounting tests.
+import { orders, products, cashSettlements, productCostHistory, orderReturnEvents, expenses, manualInvoices, accountingManualAdjustments, accountingPeriodCloses } from "../../shared/schema.js";
 import { and, gte, lte, inArray, eq, desc, isNull } from "drizzle-orm";
 import {
   accountingCostHistoryInputSchema,
   accountingCostInputSchema,
   accountingCostUpdateSchema,
   accountingPeriodSchema,
-  accountingSettlementInputSchema,
   orderReturnEventInputSchema,
   orderReturnEventStatusUpdateSchema,
   manualAdjustmentCreateSchema,
@@ -62,6 +66,13 @@ import {
   monthKeyToRange,
   serializeCostHistory,
   buildLedger,
+  // Carrier cash + tax readiness live in the engine (strict-typechecked, unit
+  // tested) so no consumer has to boot Express to reason about the money.
+  computeCarrierBalance,
+  computeTaxReadiness,
+  TAX_NOT_READY_WARNING_AR,
+  type CarrierBalance,
+  type TaxReadiness,
   type Db,
   type OrderRow,
   type ProductProfit,
@@ -69,7 +80,8 @@ import {
 
 // Re-exported so existing consumers (e.g. cost-snapshot.test.ts) that import
 // `lineCostSnapshot` from this route module keep working after the extraction.
-export { lineCostSnapshot };
+export { lineCostSnapshot, computeCarrierBalance, computeTaxReadiness, TAX_NOT_READY_WARNING_AR };
+export type { CarrierBalance, TaxReadiness };
 
 const router = Router();
 router.use(requireAdmin);
@@ -89,6 +101,33 @@ function getAccountingDb(res: Response): Db | null {
   return db;
 }
 
+
+/**
+ * Tax readiness for an arbitrary date range, recomputed from the same engine the
+ * dashboard uses. The period-close endpoint calls this so a final close cannot be
+ * performed from the API even if a client ignores the disabled button.
+ */
+async function taxReadinessForRange(db: Db, start: Date, end: Date): Promise<TaxReadiness> {
+  const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
+  const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+  let exactCostLines = 0;
+  let estimatedHistoryLines = 0;
+  let estimatedReferenceLines = 0;
+  let unknownCostLines = 0;
+  for (const order of realizedOrders) {
+    const profit = calcOrderProfit(order, costs);
+    exactCostLines += profit.exactCostLines;
+    estimatedHistoryLines += profit.estimatedHistoryLines;
+    estimatedReferenceLines += profit.estimatedReferenceLines;
+    unknownCostLines += profit.unknownCostLines;
+  }
+  return computeTaxReadiness({
+    exactCostLines,
+    estimatedHistoryLines,
+    estimatedReferenceLines,
+    unknownCostLines,
+  });
+}
 
 function getPeriodQuery(req: Request): { period: AccountingPeriod; from?: string; to?: string } {
   const rawPeriod = typeof req.query.period === "string" ? req.query.period : "month";
@@ -135,6 +174,11 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     let totalLoyalty = 0;
     let missingCostLines = 0;
     let missingProductLines = 0;
+    // Cost-basis coverage across every counted sale line — the input to tax readiness.
+    let exactCostLines = 0;
+    let estimatedHistoryLines = 0;
+    let estimatedReferenceLines = 0;
+    let unknownCostLines = 0;
 
     for (const order of realizedOrders) {
       const profit = calcOrderProfit(order, costs);
@@ -146,7 +190,18 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       totalLoyalty += profit.loyaltyDiscount;
       missingCostLines += profit.missingCostLines;
       missingProductLines += profit.missingProductLines;
+      exactCostLines += profit.exactCostLines;
+      estimatedHistoryLines += profit.estimatedHistoryLines;
+      estimatedReferenceLines += profit.estimatedReferenceLines;
+      unknownCostLines += profit.unknownCostLines;
     }
+
+    const taxReadiness = computeTaxReadiness({
+      exactCostLines,
+      estimatedHistoryLines,
+      estimatedReferenceLines,
+      unknownCostLines,
+    });
 
     const deliveredCount = allOrders.filter((o) => o.status === "delivered").length;
     const cancelledCount = allOrders.filter((o) => CANCELLED_STATUSES.includes(o.status as (typeof CANCELLED_STATUSES)[number])).length;
@@ -217,6 +272,8 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
         costsComplete: missingCostLines === 0 && missingProductLines === 0,
         missingCostLines,
         missingProductLines,
+        // ── Tax readiness — false until every counted line is an exact snapshot ──
+        ...taxReadiness,
         totalReturnEvents: returnEventsInPeriod.length,
         verifiedReturnEvents: verifiedReturnRows.length,
         // ── Return breakdown (split model) ──
@@ -481,9 +538,8 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const [allCodOrders, settlements, verifiedReturnEvents, cashSettlementRows] = await Promise.all([
+    const [allCodOrders, verifiedReturnEvents, cashSettlementRows] = await Promise.all([
       db.select().from(orders),
-      db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt)),
       db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
       db.select().from(cashSettlements).orderBy(desc(cashSettlements.createdAt)),
     ]);
@@ -497,31 +553,19 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
     const totalDelivered = deliveredOrders.reduce((sum, order) => sum + orderNetAmount(order), 0);
     const totalInTransit = inTransitOrders.reduce((sum, order) => sum + orderNetAmount(order), 0);
     const totalCod = totalDelivered;
-    // المبلغ المستلم = مجموع كل الدفعات المسجّلة من شركات الشحن
-    const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
-    // خصومات الراجعات المعتمدة — مبالغ مُستردة مرتبطة بطلبيات مسلّمة فقط
+    // خصومات الراجعات المعتمدة — معلومة منفصلة تُعرض بقسم المرتجعات.
+    // لا تُخصم من رصيد شركة التوصيل: المبلغ المرتجع منعكس أصلاً في أرقام
+    // التسوية المطابَقة، وخصمه ثانيةً يُحمّل الشركة نفس المبلغ مرتين.
     const deliveredOrderIds = new Set(deliveredOrders.map((o) => o.id));
     const approvedReturnDeductions = verifiedReturnEvents
       .filter((e) => deliveredOrderIds.has(e.orderId))
       .reduce((sum, e) => sum + toNumber(e.refundAmount), 0);
 
-    // ── رصيد شركة التوصيل ──────────────────────────────────────────────────
-    // المصدر الرسمي: cash_settlements بحالة 'reconciled' فقط.
-    // جدول shipping_settlements و orders.shipping_cost سجلّات تشغيلية قديمة
-    // وناقصة — قراءتها كانت تُظهر رصيداً وهمياً باقياً عند الشركة.
-    const reconciled = cashSettlementRows.filter((s) => s.status === "reconciled");
-    // المقبوض من الزبائن (إجمالي) — قبل خصم أي أجور.
-    const grossCustomerCollections = reconciled.reduce((sum, s) => sum + toNumber(s.grossAmount), 0);
-    // أجور شركة التوصيل — الشركة تأخذها لنفسها، فهي ليست مبلغاً باقياً عندها.
-    const carrierFees = reconciled.reduce((sum, s) => sum + toNumber(s.feesAmount), 0);
-    // الصافي المستلم فعلاً من قبل AQUAVO.
-    const netCashReceived = reconciled.reduce((sum, s) => sum + toNumber(s.netAmount), 0);
-    const documentedAdjustments = approvedReturnDeductions;
-    // الباقي عند الشركة. لا يُقصّ إلى صفر: أي نقص حقيقي في التسويات المسجّلة
-    // يجب أن يظهر بدل أن يُخفى.
-    const carrierOutstanding =
-      grossCustomerCollections - carrierFees - netCashReceived - documentedAdjustments;
-    const totalPending = carrierOutstanding;
+    // ── رصيد شركة التوصيل — المصدر الوحيد cash_settlements (reconciled) ──────
+    const carrierBalance = computeCarrierBalance(cashSettlementRows, approvedReturnDeductions);
+    // المبلغ المستلم = الصافي المستلم فعلاً من التسويات المطابَقة.
+    const totalReceived = carrierBalance.netCashReceived;
+    const totalPending = carrierBalance.outstanding;
 
     res.json({
       success: true,
@@ -532,22 +576,24 @@ router.get("/cod-summary", async (_req: Request, res: Response, next: NextFuncti
         totalReceived,
         approvedReturnDeductions,
         totalPending,
-        // الأرقام الأربعة المعروضة في اللوحة — كل واحد مشتق من قاعدة البيانات.
-        carrierBalance: {
-          grossCustomerCollections,
-          carrierFees,
-          netCashReceived,
-          documentedAdjustments,
-          outstanding: carrierOutstanding,
-          fullySettled: carrierOutstanding === 0,
-        },
-        settlements: settlements.map((settlement) => ({
-          id: settlement.id,
-          carrier: settlement.carrier,
-          amount: toNumber(settlement.amount),
-          notes: settlement.notes,
-          createdAt: toDate(settlement.createdAt).toISOString(),
-        })),
+        // الأرقام الأربعة المعروضة في اللوحة — كل واحد مشتق من cash_settlements.
+        carrierBalance,
+        // التسويات المعروضة تأتي من cash_settlements فقط.
+        settlements: cashSettlementRows
+          .filter((s) => s.status === "reconciled")
+          .map((settlement) => ({
+            id: settlement.id,
+            settlementNumber: settlement.settlementNumber,
+            carrier: settlement.carrier,
+            status: settlement.status,
+            grossAmount: toNumber(settlement.grossAmount),
+            feesAmount: toNumber(settlement.feesAmount),
+            netAmount: toNumber(settlement.netAmount),
+            // `amount` = الصافي المستلم — يبقى للتوافق مع المستهلكين القدامى.
+            amount: toNumber(settlement.netAmount),
+            notes: settlement.notes,
+            createdAt: toDate(settlement.createdAt).toISOString(),
+          })),
       },
     });
   } catch (err) {
@@ -772,14 +818,13 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const [allOrders, settlements, verifiedReturnEvents] = await Promise.all([
+    const [allOrders, cashSettlementRows, verifiedReturnEvents] = await Promise.all([
       db.select().from(orders),
-      db.select().from(shippingSettlements),
+      db.select().from(cashSettlements),
       db.select().from(orderReturnEvents).where(eq(orderReturnEvents.status, "verified")),
     ]);
 
     const deliveredOrders = allOrders.filter((o) => o.status === "delivered");
-    const totalReceived = settlements.reduce((sum, s) => sum + toNumber(s.amount), 0);
 
     const orderNetAmount = (order: OrderRow) =>
       orderCollectedAmount(order) - toNumber(order.shippingCost);
@@ -794,7 +839,11 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
       deductionByOrder.set(e.orderId, (deductionByOrder.get(e.orderId) ?? 0) + toNumber(e.refundAmount));
     }
     const approvedReturnDeductions = [...deductionByOrder.values()].reduce((s, v) => s + v, 0);
-    const totalPending = Math.max(0, totalDelivered - totalReceived - approvedReturnDeductions);
+    // نفس المصدر الرسمي المستخدم في /cod-summary — cash_settlements المطابَقة.
+    // المرتجعات معلومة منفصلة ولا تُخصم من رصيد الشركة.
+    const carrierBalance = computeCarrierBalance(cashSettlementRows, approvedReturnDeductions);
+    const totalReceived = carrierBalance.netCashReceived;
+    const totalPending = carrierBalance.outstanding;
 
     const result = deliveredOrders
       .sort((a, b) => toDate(b.createdAt).getTime() - toDate(a.createdAt).getTime())
@@ -822,6 +871,7 @@ router.get("/cod-details", async (_req: Request, res: Response, next: NextFuncti
         totalReceived,
         approvedReturnDeductions,
         totalPending,
+        carrierBalance,
       },
     });
   } catch (err) {
@@ -890,55 +940,20 @@ router.get("/returned-orders", async (_req: Request, res: Response, next: NextFu
   }
 });
 
-router.post("/settlements", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-  try {
-    const db = getAccountingDb(res);
-    if (!db) return;
-
-    const parsed = accountingSettlementInputSchema.safeParse(req.body);
-    if (!parsed.success) {
-      res.status(400).json({ success: false, message: "بيانات الدفعة غير صالحة", errors: parsed.error.flatten() });
-      return;
-    }
-
-    const { carrier, amount, notes, orderIds } = parsed.data;
-    const actor = actorFromRequest(req);
-    const coveredOrderIds = Array.isArray(orderIds) && orderIds.length > 0 ? orderIds : null;
-    const [settlement] = await db
-      .insert(shippingSettlements)
-      .values({ carrier, amount: String(amount), notes: notes ?? null, coveredOrderIds })
-      .returning();
-
-    if (Array.isArray(orderIds) && orderIds.length > 0) {
-      await db.update(orders).set({ codReceived: true }).where(inArray(orders.id, orderIds));
-    }
-
-    // Audit: settlements move real cash — record who entered what and which orders it covers.
-    await recordFinancialChange(db, {
-      entityType: "settlement",
-      entityId: settlement.id,
-      action: "create",
-      fieldName: "amount",
-      oldValue: null,
-      newValue: { carrier, amount, notes: notes ?? null, orderIds: orderIds ?? [] },
-      reason: notes ?? null,
-      performedBy: actor.id,
-      performedByName: actor.name,
-    });
-
-    res.status(201).json({
-      success: true,
-      data: {
-        id: settlement.id,
-        carrier: settlement.carrier,
-        amount: toNumber(settlement.amount),
-        notes: settlement.notes,
-        createdAt: toDate(settlement.createdAt).toISOString(),
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
+/**
+ * RETIRED (2026-07-28). This endpoint wrote into the legacy
+ * `shipping_settlements` log, which is being archived out of `public`. A single
+ * amount cannot express the canonical settlement shape (gross = fees + net), so
+ * accepting one here would create a row that the carrier-balance formula must
+ * then guess at. It fails closed with 410 rather than writing an ambiguous
+ * record — no money is moved and no accounting figure changes.
+ */
+router.post("/settlements", async (_req: Request, res: Response): Promise<void> => {
+  res.status(410).json({
+    success: false,
+    message:
+      "تسجيل الدفعات من هنا متوقف — التسويات تُسجَّل في cash_settlements بحقول (إجمالي، أجور، صافي) وتُعتمد بحالة reconciled.",
+  });
 });
 
 router.get("/settlements", async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -946,13 +961,23 @@ router.get("/settlements", async (_req: Request, res: Response, next: NextFuncti
     const db = getAccountingDb(res);
     if (!db) return;
 
-    const list = await db.select().from(shippingSettlements).orderBy(desc(shippingSettlements.createdAt));
+    // المصدر الوحيد: cash_settlements المطابَقة. لا قراءة من shipping_settlements.
+    const list = await db
+      .select()
+      .from(cashSettlements)
+      .where(eq(cashSettlements.status, "reconciled"))
+      .orderBy(desc(cashSettlements.createdAt));
     res.json({
       success: true,
       data: list.map((settlement) => ({
         id: settlement.id,
+        settlementNumber: settlement.settlementNumber,
         carrier: settlement.carrier,
-        amount: toNumber(settlement.amount),
+        status: settlement.status,
+        grossAmount: toNumber(settlement.grossAmount),
+        feesAmount: toNumber(settlement.feesAmount),
+        netAmount: toNumber(settlement.netAmount),
+        amount: toNumber(settlement.netAmount),
         notes: settlement.notes,
         createdAt: toDate(settlement.createdAt).toISOString(),
       })),
@@ -1391,6 +1416,21 @@ router.post("/periods/close", async (req: Request, res: Response, next: NextFunc
       .limit(1);
     if (existing.length > 0 && existing[0].status === "closed") {
       res.status(409).json({ success: false, message: "هذه الفترة مغلقة بالفعل" });
+      return;
+    }
+
+    // TAX GATE. Closing a period freezes figures that are then treated as final.
+    // While any counted line is costed from an estimate rather than an immutable
+    // sale-time snapshot, those figures are not filable — the close is refused
+    // here as well as in the UI, so a client that ignores the disabled button
+    // still cannot produce a "final" period. Mirrors the production DB trigger.
+    const readiness = await taxReadinessForRange(db, range.start, range.end);
+    if (!readiness.taxReportReady) {
+      res.status(409).json({
+        success: false,
+        message: readiness.taxReadinessWarning ?? TAX_NOT_READY_WARNING_AR,
+        data: { taxReadiness: readiness },
+      });
       return;
     }
 
@@ -1985,6 +2025,7 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
 
     let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, missingCostLines = 0;
+    let exactCostLines = 0, estimatedHistoryLines = 0, estimatedReferenceLines = 0, unknownCostLines = 0;
     const profitByProduct: Record<string, {
       name: string; unitsSold: number; revenue: number; cogs: number; packaging: number; netProfit: number;
     }> = {};
@@ -1995,6 +2036,10 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
       totalCogs += profit.cogs;
       totalPackaging += profit.packaging;
       missingCostLines += profit.missingCostLines;
+      exactCostLines += profit.exactCostLines;
+      estimatedHistoryLines += profit.estimatedHistoryLines;
+      estimatedReferenceLines += profit.estimatedReferenceLines;
+      unknownCostLines += profit.unknownCostLines;
 
       const items = getOrderItems(order);
       const subtotal = orderSubtotal(items);
@@ -2162,7 +2207,16 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     const lowStockProducts = lowStockList.sort((a, b) => a.stock - b.stock).slice(0, 10);
 
     // ── 6. Warnings ────────────────────────────────────────────────────
+    const taxReadiness = computeTaxReadiness({
+      exactCostLines,
+      estimatedHistoryLines,
+      estimatedReferenceLines,
+      unknownCostLines,
+    });
     const notes: Array<{ type: "warning" | "info"; message: string }> = [];
+    if (!taxReadiness.taxReportReady) {
+      notes.push({ type: "warning", message: TAX_NOT_READY_WARNING_AR });
+    }
     if (!costsComplete) {
       notes.push({ type: "warning", message: `${missingCostLines} سطر منتج بدون كلفة — أرقام الربح غير دقيقة` });
     }
@@ -2278,6 +2332,11 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
           comingSoonCount,
         },
         notes,
+        // Tax readiness travels WITH the report, so any export carries its own
+        // status rather than relying on the exporter to remember.
+        taxReadiness,
+        // Explicit, machine-readable marking for internal review exports.
+        reportGrade: taxReadiness.taxReportReady ? "FINAL" : "DRAFT / ESTIMATED / NOT TAX FINAL",
         generatedAt: new Date().toISOString(),
       }, (_k, v) => (typeof v === "bigint" ? Number(v) : v))),
     });

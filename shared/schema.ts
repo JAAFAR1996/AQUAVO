@@ -202,6 +202,19 @@ export const orders = pgTable("orders", {
   sourceIdx: index("orders_source_idx").on(table.source),
 }));
 
+/**
+ * @deprecated LEGACY — ARCHIVED 2026-07-28.
+ *
+ * Operational carrier-payment log that under-records real cash. It is NOT a
+ * financial source of truth and has NO runtime reader left: the accountant path
+ * and the AI finance auditor both read `cashSettlements` (status='reconciled').
+ *
+ * The table is moved to `archive.shipping_settlements` by
+ * migrations/isolate_legacy_shipping_settlements.sql and is excluded from
+ * `drizzle.config.ts` tablesFilter so `db:push` cannot recreate it in `public`.
+ * The definition is kept only so the archived rows remain typed for audit.
+ * DO NOT query it from application code.
+ */
 export const shippingSettlements = pgTable("shipping_settlements", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   carrier: text("carrier").notNull(),

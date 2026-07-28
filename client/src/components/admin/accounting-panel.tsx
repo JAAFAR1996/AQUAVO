@@ -1,12 +1,5 @@
 import { useState } from "react";
 
-/** تسميات مصدر الكلفة — مطابقة لِـ COST_BASIS_LABEL_AR في محرك المحاسبة. */
-const COST_BASIS_LABEL_AR: Record<string, string> = {
-  exact_snapshot: "كلفة الطلب الأصلية",
-  estimated_history: "تقديري من سجل الكلفة بتاريخ البيع",
-  estimated_database_reference: "تقديري من آخر كلفة محفوظة بقاعدة البيانات",
-  unknown: "الكلفة غير متوفرة",
-};
 /** كلفة/ربح/هامش غير معروف يُعرض "—" ولا يُعرض صفراً أبداً. */
 const fmtOrDash = (v: number | null | undefined, f: (n: number) => string) =>
   v == null ? "—" : f(v);
@@ -26,8 +19,13 @@ import {
   accountingCostHistoryResponseSchema,
   accountingOrdersResponseSchema,
   accountingProductsResponseSchema,
+  accountingReturnedOrdersSchema,
   accountingSummarySchema,
+  COST_BASIS_UI_LABEL_AR,
+  DRAFT_EXPORT_MARK,
+  TAX_NOT_READY_WARNING_AR,
   type AccountingCodSummary,
+  type AccountingReturnedOrders,
   type AccountingCostHistoryEntry,
   type AccountingOrderProfit,
   type AccountingPeriod,
@@ -122,8 +120,6 @@ export default function AccountingPanel() {
   const [costs, setCosts] = useState({ costPrice: 0, packagingCost: 0, insertCost: 0 });
   const [newCostDate, setNewCostDate] = useState("");
   const [costHistory, setCostHistory] = useState<AccountingCostHistoryEntry[]>([]);
-  const [showSettlement, setShowSettlement] = useState(false);
-  const [settlementForm, setSettlementForm] = useState({ carrier: "", amount: "", notes: "" });
   const [savingBox, setSavingBox] = useState<string | null>(null);
 
   // ─── Queries ───────────────────────────────────────────────────────────────
@@ -140,6 +136,12 @@ export default function AccountingPanel() {
   const { data: codData } = useQuery<AccountingCodSummary>({
     queryKey: ["acc-cod"],
     queryFn: () => fetchAccounting("/api/admin/accounting/cod-summary", accountingCodSummarySchema),
+  });
+
+  // المرتجعات — قسم منفصل تماماً. لا تُخصم من رصيد شركة التوصيل.
+  const { data: returnedData } = useQuery<AccountingReturnedOrders>({
+    queryKey: ["acc-returned-orders"],
+    queryFn: () => fetchAccounting("/api/admin/accounting/returned-orders", accountingReturnedOrdersSchema),
   });
 
   const { data: orderRows = [], isLoading: loadingOrders } = useQuery<AccountingOrderProfit[]>({
@@ -168,30 +170,6 @@ export default function AccountingPanel() {
       setEditProduct(null);
     },
     onError: () => toast({ title: "خطأ في الحفظ", variant: "destructive" }),
-  });
-
-  const createSettlement = useMutation({
-    mutationFn: async () => {
-      if (!settlementForm.carrier || !settlementForm.amount) throw new Error("بيانات ناقصة");
-      const r = await fetch("/api/admin/accounting/settlements", {
-        method: "POST",
-        headers: addCsrfHeader({ "Content-Type": "application/json" }),
-        credentials: "include",
-        body: JSON.stringify({
-          carrier: settlementForm.carrier,
-          amount: Number(settlementForm.amount),
-          notes: settlementForm.notes || undefined,
-        }),
-      });
-      if (!r.ok) throw new Error("فشل تسجيل الدفعة");
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["acc-cod"] });
-      setShowSettlement(false);
-      setSettlementForm({ carrier: "", amount: "", notes: "" });
-      toast({ title: "تم تسجيل الدفعة" });
-    },
-    onError: () => toast({ title: "خطأ", description: "فشل تسجيل الدفعة", variant: "destructive" }),
   });
 
   const saveBoxCost = async (orderId: string, boxCost: number) => {
@@ -262,6 +240,27 @@ export default function AccountingPanel() {
         </div>
       )}
 
+      {/* ══ جاهزية التقرير الضريبي — تُعرض قبل أي رقم ══ */}
+      {summary && !summary.taxReportReady && (
+        <div style={{
+          background: "#ef444412", border: "1.5px solid #ef444455", borderRadius: 10,
+          padding: "12px 16px", color: "#fca5a5", fontSize: 13, lineHeight: 1.8,
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>
+            {summary.taxReadinessWarning ?? TAX_NOT_READY_WARNING_AR}
+          </div>
+          <div style={{ color: "#94a3b8", fontSize: 12 }}>
+            أسطر بكلفة مؤكدة: {fmtNum(summary.exactCostLines)} من {fmtNum(summary.totalFinancialLines)}
+            {summary.estimatedHistoryLines > 0 && ` · تقديري من تاريخ الكلفة: ${fmtNum(summary.estimatedHistoryLines)}`}
+            {summary.estimatedReferenceLines > 0 && ` · تقديري من مرجع قاعدة البيانات: ${fmtNum(summary.estimatedReferenceLines)}`}
+            {summary.unknownCostLines > 0 && ` · بلا كلفة: ${fmtNum(summary.unknownCostLines)}`}
+          </div>
+          <div style={{ color: "#94a3b8", fontSize: 12, marginTop: 4 }}>
+            الأرقام أدناه للإدارة الداخلية فقط — {DRAFT_EXPORT_MARK}. إغلاق الفترة والاعتماد النهائي والتصدير الضريبي معطّلة.
+          </div>
+        </div>
+      )}
+
       {/* ══════════════════════════════════════════════════════════════════════
           قسم ١: صحة العمل
       ══════════════════════════════════════════════════════════════════════ */}
@@ -299,9 +298,10 @@ export default function AccountingPanel() {
               <KpiCard label="نسبة RTO (إرجاع)" value={`${summary.rtoRate}%`} color={summary.rtoRate > 20 ? "#ef4444" : "#f59e0b"} />
               <KpiCard label="متوسط قيمة الطلب" value={fmt(summary.aov)} color="var(--aqv-warning)" />
             </div>
-            {!summary.costsComplete && (
+            {!summary.taxReportReady && (
               <div style={{ marginTop: 10, background: "#f59e0b15", border: "1px solid #f59e0b40", borderRadius: 8, padding: "8px 14px", color: "#fcd34d", fontSize: 12 }}>
-                الربح التقديري — محسوب من أفضل كلفة متوفرة في قاعدة البيانات، وليس لقطة تاريخية كاملة{summary.unknownCostProducts ? ` · ${summary.unknownCostProducts} منتجاً بلا كلفة معروفة` : ""}
+                ربح تقديري — غير نهائي وغير صالح للضريبة. محسوب من أفضل كلفة متوفرة في قاعدة البيانات،
+                وليس من لقطات كلفة وقت البيع{summary.unknownCostProducts ? ` · ${summary.unknownCostProducts} منتجاً بلا كلفة معروفة` : ""}
               </div>
             )}
           </>
@@ -313,43 +313,54 @@ export default function AccountingPanel() {
       ══════════════════════════════════════════════════════════════════════ */}
       <div>
         <SectionTitle>وين فلوسك هسّه — شركة الشحن</SectionTitle>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 12 }}>
+        {/* الأرقام الأربعة — مشتقة من cash_settlements بحالة reconciled فقط.
+            أجور الشركة مبلغ تأخذه لنفسها، فهي مطروحة ولا تُعرض كرصيد باقٍ. */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 12 }}>
           <KpiCard
-            label="باقي عند الشركة (يجب تدفع لك)"
-            value={fmt(codData?.totalPending ?? 0)}
-            color="#ef4444"
+            label="المقبوض من الزبائن"
+            value={fmt(codData?.carrierBalance.grossCustomerCollections ?? 0)}
+            color="#0B93A6"
             big
           />
           <KpiCard
-            label="استلمت من الشركة"
-            value={fmt(codData?.totalReceived ?? 0)}
+            label="أجور شركة التوصيل"
+            value={fmt(codData?.carrierBalance.carrierFees ?? 0)}
+            sub="تأخذها الشركة لنفسها — ليست رصيداً باقياً"
+            color="#f59e0b"
+            big
+          />
+          <KpiCard
+            label="الصافي المستلم"
+            value={fmt(codData?.carrierBalance.netCashReceived ?? 0)}
             color="#22c55e"
             big
           />
           <KpiCard
-            label="في الطريق (لسه ما وصل للزبون)"
-            value={fmt(codData?.totalInTransit ?? 0)}
-            color="#f97316"
+            label="الباقي عند الشركة"
+            value={fmt(codData?.carrierBalance.outstanding ?? 0)}
+            sub={codData?.carrierBalance.fullySettled ? "تمت التسوية الكاملة" : "نقص في التسويات المسجّلة"}
+            color={codData?.carrierBalance.fullySettled ? "#22c55e" : "#ef4444"}
             big
           />
         </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(1, 1fr)", gap: 10, marginBottom: 12 }}>
+          <KpiCard
+            label="في الطريق (لسه ما وصل للزبون)"
+            value={fmt(codData?.totalInTransit ?? 0)}
+            color="#f97316"
+          />
+        </div>
 
-        {/* سجل الدفعات */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <div style={{ color: "#94a3b8", fontSize: 12 }}>دفعات مسجّلة من شركات الشحن</div>
-          <button
-            onClick={() => setShowSettlement(true)}
-            style={{ padding: "5px 14px", borderRadius: 7, background: "#0B93A6", color: "#fff", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
-          >
-            سجّل دفعة جديدة
-          </button>
+        {/* سجل التسويات — من cash_settlements المطابَقة حصراً */}
+        <div style={{ color: "#94a3b8", fontSize: 12, marginBottom: 8 }}>
+          التسويات المطابَقة (cash_settlements — reconciled)
         </div>
         {(codData?.settlements ?? []).length > 0 ? (
           <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
             <table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead>
                 <tr style={{ background: "#0B1E28" }}>
-                  {["شركة الشحن", "المبلغ", "ملاحظات", "التاريخ"].map(h => (
+                  {["شركة الشحن", "المقبوض", "الأجور", "الصافي", "التاريخ"].map(h => (
                     <th key={h} style={{ padding: "8px 14px", textAlign: "right", color: "#94a3b8", fontSize: 11 }}>{h}</th>
                   ))}
                 </tr>
@@ -358,8 +369,9 @@ export default function AccountingPanel() {
                 {codData!.settlements.map(s => (
                   <tr key={s.id} style={{ borderTop: "1px solid #1e3a5f20" }}>
                     <td style={{ padding: "9px 14px", color: "#fff", fontSize: 13 }}>{s.carrier}</td>
-                    <td style={{ padding: "9px 14px", color: "#22c55e", fontSize: 13 }}>{fmt(s.amount)}</td>
-                    <td style={{ padding: "9px 14px", color: "#94a3b8", fontSize: 12 }}>{s.notes ?? "—"}</td>
+                    <td style={{ padding: "9px 14px", color: "#0B93A6", fontSize: 13 }}>{fmt(s.grossAmount ?? s.amount)}</td>
+                    <td style={{ padding: "9px 14px", color: "#f59e0b", fontSize: 13 }}>{fmt(s.feesAmount ?? 0)}</td>
+                    <td style={{ padding: "9px 14px", color: "#22c55e", fontSize: 13 }}>{fmt(s.netAmount ?? s.amount)}</td>
                     <td style={{ padding: "9px 14px", color: "#64748b", fontSize: 12 }}>
                       {new Date(s.createdAt).toLocaleDateString("ar-IQ")}
                     </td>
@@ -369,7 +381,62 @@ export default function AccountingPanel() {
             </table>
           </div>
         ) : (
-          <div style={{ color: "#64748b", fontSize: 12, padding: "8px 0" }}>لا توجد دفعات مسجّلة بعد</div>
+          <div style={{ color: "#64748b", fontSize: 12, padding: "8px 0" }}>لا توجد تسويات مطابَقة بعد</div>
+        )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          قسم ٢-ب: المرتجعات — منفصلة تماماً عن رصيد شركة التوصيل
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div>
+        <SectionTitle>المرتجعات</SectionTitle>
+        <div style={{
+          background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 8,
+          padding: "8px 14px", color: "#94a3b8", fontSize: 12, marginBottom: 10, lineHeight: 1.7,
+        }}>
+          المرتجعات معلومة منفصلة ولا تُخصم من رصيد شركة التوصيل — مبلغ المرتجع منعكس أصلاً
+          في أرقام التسوية المطابَقة، وخصمه ثانيةً يُحمّل الشركة نفس المبلغ مرتين.
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, marginBottom: 12 }}>
+          <KpiCard
+            label="عدد الطلبات المرتجعة"
+            value={fmtNum(returnedData?.totalCount ?? 0)}
+            color="#a855f7"
+          />
+          <KpiCard
+            label="مبالغ المرتجعات الموثّقة"
+            value={fmt(codData?.carrierBalance.documentedAdjustments ?? 0)}
+            sub="للمعلومة فقط — غير مخصومة من رصيد الشركة"
+            color="#a855f7"
+          />
+        </div>
+        {(returnedData?.orders ?? []).length > 0 ? (
+          <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 10, overflow: "hidden" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr style={{ background: "#0B1E28" }}>
+                  {["رقم الطلب", "الزبون", "قيمة الطلب", "المبلغ المرتجع", "التاريخ"].map(h => (
+                    <th key={h} style={{ padding: "8px 14px", textAlign: "right", color: "#94a3b8", fontSize: 11 }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {returnedData!.orders.slice(0, 20).map(o => (
+                  <tr key={o.orderId} style={{ borderTop: "1px solid #1e3a5f20" }}>
+                    <td style={{ padding: "9px 14px", color: "#94a3b8", fontSize: 12, fontFamily: "monospace" }}>{o.orderNumber ?? "—"}</td>
+                    <td style={{ padding: "9px 14px", color: "#fff", fontSize: 13 }}>{o.customerName ?? "زبون"}</td>
+                    <td style={{ padding: "9px 14px", color: "#94a3b8", fontSize: 13 }}>{fmt(o.orderTotal)}</td>
+                    <td style={{ padding: "9px 14px", color: "#a855f7", fontSize: 13 }}>{fmt(o.refundAmount)}</td>
+                    <td style={{ padding: "9px 14px", color: "#64748b", fontSize: 12 }}>
+                      {new Date(o.createdAt).toLocaleDateString("ar-IQ")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div style={{ color: "#64748b", fontSize: 12, padding: "8px 0" }}>لا توجد طلبات مرتجعة</div>
         )}
       </div>
 
@@ -419,7 +486,7 @@ export default function AccountingPanel() {
                             marginTop: 2,
                           }}
                         >
-                          {COST_BASIS_LABEL_AR[row.costBasis]}
+                          {COST_BASIS_UI_LABEL_AR[row.costBasis]}
                         </div>
                       )}
                     </td>
@@ -578,7 +645,15 @@ export default function AccountingPanel() {
                         }}>
                           {row.margin}%
                         </span>
-                        {!row.costsComplete && <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 2 }}>كلفة ناقصة</div>}
+                        {/* سطر تقديري ليس سطراً ناقصاً. "كلفة غير متوفرة" محجوزة
+                            للأسطر التي لا كلفة لها إطلاقاً (unknown). */}
+                        {(row.unknownCostLines ?? 0) > 0 ? (
+                          <div style={{ fontSize: 9, color: "#f59e0b", marginTop: 2 }}>كلفة غير متوفرة</div>
+                        ) : (row.estimatedHistoryLines ?? 0) > 0 ? (
+                          <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>كلفة تقديرية من تاريخ الكلفة</div>
+                        ) : (row.estimatedReferenceLines ?? 0) > 0 ? (
+                          <div style={{ fontSize: 9, color: "#94a3b8", marginTop: 2 }}>كلفة تقديرية من مرجع قاعدة البيانات</div>
+                        ) : null}
                       </td>
                     </tr>
                   ))}
@@ -588,46 +663,6 @@ export default function AccountingPanel() {
           </div>
         )}
       </div>
-
-      {/* ══ Settlement Dialog ══ */}
-      {showSettlement && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
-          <div style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", borderRadius: 12, padding: 24, width: 360, maxWidth: "92vw" }} dir="rtl">
-            <div style={{ color: "#fff", fontSize: 15, fontWeight: 700, marginBottom: 16 }}>تسجيل دفعة من شركة الشحن</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <input
-                placeholder="اسم شركة الشحن"
-                value={settlementForm.carrier}
-                onChange={e => setSettlementForm(p => ({ ...p, carrier: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
-              />
-              <input
-                type="number"
-                placeholder="المبلغ (د.ع)"
-                value={settlementForm.amount}
-                onChange={e => setSettlementForm(p => ({ ...p, amount: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
-              />
-              <input
-                placeholder="ملاحظات (اختياري)"
-                value={settlementForm.notes}
-                onChange={e => setSettlementForm(p => ({ ...p, notes: e.target.value }))}
-                style={{ padding: "9px 12px", borderRadius: 7, background: "#0B1E28", border: "1px solid #1e3a5f", color: "#fff", fontSize: 13 }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 18 }}>
-              <button onClick={() => setShowSettlement(false)} style={{ padding: "7px 16px", borderRadius: 7, background: "#1e3a5f", color: "#94a3b8", border: "none", cursor: "pointer" }}>إلغاء</button>
-              <button
-                onClick={() => createSettlement.mutate()}
-                disabled={createSettlement.isPending}
-                style={{ padding: "7px 18px", borderRadius: 7, background: "#0B93A6", color: "#fff", border: "none", cursor: createSettlement.isPending ? "wait" : "pointer", opacity: createSettlement.isPending ? 0.7 : 1, fontWeight: 600 }}
-              >
-                {createSettlement.isPending ? "جاري الحفظ..." : "حفظ"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* ══ Edit Cost Dialog ══ */}
       <Dialog open={!!editProduct} onOpenChange={() => setEditProduct(null)}>
