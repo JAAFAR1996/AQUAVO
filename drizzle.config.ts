@@ -27,7 +27,10 @@ export default defineConfig({
     "password_reset_tokens",
     "products",
     "orders",
-    "shipping_settlements",
+    // `shipping_settlements` is deliberately ABSENT (2026-07-28). It is archived
+    // to `archive.shipping_settlements` by
+    // migrations/isolate_legacy_shipping_settlements.sql; listing it here would
+    // let `db:push` recreate it in `public` and silently undo the isolation.
     "product_cost_history",
     "expenses",
     "reviews",

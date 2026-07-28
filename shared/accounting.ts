@@ -27,6 +27,30 @@ export const accountingSettlementInputSchema = z.object({
   orderIds: z.array(z.string().min(1)).optional(),
 });
 
+/** درجات هرم حلّ الكلفة — مطابقة لـ CostBasis في محرك المحاسبة. */
+export const costBasisSchema = z.enum([
+  "exact_snapshot",
+  "estimated_history",
+  "estimated_database_reference",
+  "unknown",
+]);
+export type CostBasisValue = z.infer<typeof costBasisSchema>;
+
+/**
+ * WORDING SHOWN TO THE OPERATOR.
+ *
+ * Deliberately distinct from the engine's `COST_BASIS_LABEL_AR`: an estimate is
+ * named an estimate ("كلفة تقديرية"), and "كلفة غير متوفرة" is reserved for
+ * `unknown` alone. An estimated line is NOT a missing cost, and must never be
+ * labelled "كلفة ناقصة".
+ */
+export const COST_BASIS_UI_LABEL_AR: Readonly<Record<CostBasisValue, string>> = {
+  exact_snapshot: "كلفة الطلب الأصلية",
+  estimated_history: "كلفة تقديرية من تاريخ الكلفة",
+  estimated_database_reference: "كلفة تقديرية من مرجع قاعدة البيانات",
+  unknown: "كلفة غير متوفرة",
+};
+
 export const accountingCompletenessSchema = z.object({
   costsComplete: z.boolean(),
   missingCostLines: z.number(),
@@ -73,7 +97,33 @@ export const whatsappInvoiceDrilldownSchema = z.object({
   invoices: z.array(whatsappInvoiceDrilldownItemSchema),
 });
 
-export const accountingSummarySchema = accountingCompletenessSchema.extend({
+/**
+ * TAX READINESS.
+ *
+ * `taxReportReady` is true only when every counted sale line was costed from an
+ * immutable sale-time snapshot. Costs recovered from cost history or from the
+ * product's current database cost are estimates — usable for steering the
+ * business, not for filing. An empty period is NOT ready (`totalFinancialLines > 0`).
+ */
+export const taxReadinessSchema = z.object({
+  exactCostLines: z.number(),
+  estimatedHistoryLines: z.number(),
+  estimatedReferenceLines: z.number(),
+  unknownCostLines: z.number(),
+  totalFinancialLines: z.number(),
+  taxReportReady: z.boolean(),
+  taxReadinessWarning: z.string().nullable(),
+});
+
+export type TaxReadiness = z.infer<typeof taxReadinessSchema>;
+
+export const TAX_NOT_READY_WARNING_AR =
+  "غير صالح كتقرير ضريبي نهائي — الكلف التاريخية تقديرية ولم تُثبت بلقطات كلفة وقت البيع.";
+
+/** الوسم الإلزامي لأي تصدير داخلي للمراجعة عندما taxReportReady=false. */
+export const DRAFT_EXPORT_MARK = "DRAFT / ESTIMATED / NOT TAX FINAL";
+
+export const accountingSummarySchema = accountingCompletenessSchema.extend(taxReadinessSchema.shape).extend({
   period: z.string(),
   totalOrders: z.number(),
   websiteOrdersCount: z.number(),    // totalOrders minus WhatsApp-sourced orders
@@ -126,9 +176,7 @@ export const accountingProductProfitSchema = accountingCompletenessSchema.extend
   packagingCost: z.number(),
   insertCost: z.number(),
   /** أي درجة من هرم الكلفة أنتجت هذا الرقم — لتمييز التقديري عن المؤكد. */
-  costBasis: z
-    .enum(["exact_snapshot", "estimated_history", "estimated_database_reference", "unknown"])
-    .optional(),
+  costBasis: costBasisSchema.optional(),
 });
 
 // Extended schema used by the product profitability tab — includes all products,
@@ -186,16 +234,51 @@ export const accountingOrderProfitSchema = accountingCompletenessSchema.extend({
   boxCost: z.number(),
   netProfit: z.number(),
   margin: z.number(),
+  // Cost-basis coverage for this order's lines. An estimated line is a REAL cost
+  // from a weaker source — not a missing one — so the UI must label it as an
+  // estimate and reserve "غير متوفرة" for `unknownCostLines`.
+  exactCostLines: z.number().optional(),
+  estimatedHistoryLines: z.number().optional(),
+  estimatedReferenceLines: z.number().optional(),
+  unknownCostLines: z.number().optional(),
   items: z.array(accountingOrderItemSchema),
 });
 
+/**
+ * A completed carrier settlement, as displayed. Sourced ONLY from
+ * `cash_settlements` rows with status='reconciled' — never from the legacy
+ * `shipping_settlements` log.
+ */
 export const accountingShippingSettlementSchema = z.object({
   id: z.string(),
+  settlementNumber: z.string().optional(),
   carrier: z.string(),
+  status: z.string().optional(),
+  grossAmount: z.coerce.number().optional(),
+  feesAmount: z.coerce.number().optional(),
+  netAmount: z.coerce.number().optional(),
+  /** = netAmount. Kept for existing consumers. */
   amount: z.coerce.number(),
   notes: z.string().nullable(),
   createdAt: z.string(),
 });
+
+/**
+ * The carrier's cash position. `outstanding` = gross − fees − net.
+ * Approved return refunds are NOT subtracted: they are already reflected in the
+ * reconciled figures, and deducting them again would charge the carrier twice.
+ * They appear as `documentedAdjustments` — information only.
+ */
+export const carrierBalanceSchema = z.object({
+  grossCustomerCollections: z.number(),
+  carrierFees: z.number(),
+  netCashReceived: z.number(),
+  documentedAdjustments: z.number(),
+  outstanding: z.number(),
+  fullySettled: z.boolean(),
+});
+
+export type CarrierBalance = z.infer<typeof carrierBalanceSchema>;
 
 export const accountingCodSummarySchema = z.object({
   totalCod: z.number(),
@@ -204,6 +287,7 @@ export const accountingCodSummarySchema = z.object({
   totalReceived: z.number(),
   approvedReturnDeductions: z.number(),
   totalPending: z.number(),
+  carrierBalance: carrierBalanceSchema,
   settlements: z.array(accountingShippingSettlementSchema),
 });
 
@@ -242,6 +326,7 @@ export const accountingCodDetailsSchema = z.object({
   totalReceived: z.number(),
   approvedReturnDeductions: z.number(),
   totalPending: z.number(),
+  carrierBalance: carrierBalanceSchema.optional(),
 });
 
 export const accountingReturnedOrderSchema = z.object({
@@ -499,6 +584,9 @@ export const accountingReportSchema = z.object({
     type: z.enum(["warning", "info"]),
     message: z.string(),
   })),
+  taxReadiness: taxReadinessSchema.optional(),
+  /** "FINAL" only when taxReadiness.taxReportReady — otherwise the DRAFT mark. */
+  reportGrade: z.string().optional(),
   generatedAt: z.string(),
 });
 

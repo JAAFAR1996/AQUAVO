@@ -223,11 +223,16 @@ describe("consolidation — consumers agree with the engine", () => {
     const totalCogs = fin.cogs + fin.packaging;
     const grossProfit = fin.revenue - totalCogs;
 
+    // Carrier position comes from reconciled cash_settlements: gross = fees +
+    // net + outstanding. The approved return refund is present but must NOT
+    // affect the outstanding balance — it is already inside these figures.
     const snapshot = {
       deliveredNetTotal: fin.revenue,
-      receivedCashTotal: 0,
+      grossCustomerCollections: 10_000,
+      carrierFees: 1_000,
+      receivedCashTotal: 9_000,
       approvedReturnDeductions: 2000,
-      pendingSettlement: Math.max(0, fin.revenue - 0 - 2000),
+      pendingSettlement: 0,
       profitAfterExpensesBeforeReturns: grossProfit - fin.expensesTotal,
       salesReturnDeduction: fin.salesReturnDeduction,
       actualReturnLoss: fin.actualReturnLoss,

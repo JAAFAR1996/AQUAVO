@@ -2,6 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { addCsrfHeader } from "@/lib/csrf";
+import {
+  accountingSummarySchema,
+  TAX_NOT_READY_WARNING_AR,
+  type AccountingSummary,
+} from "@shared/accounting";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,6 +89,23 @@ export function FinancePeriodClose() {
     staleTime: 30_000,
   });
 
+  // TAX GATE. A period close freezes figures that are then read as final. While
+  // any counted line is costed from an estimate rather than an immutable
+  // sale-time snapshot, closing is blocked here AND server-side (409) — the
+  // button is not the only guard, it is just the honest one.
+  const { data: taxSummary } = useQuery<AccountingSummary>({
+    queryKey: ["finance-tax-readiness", "year"],
+    queryFn: async () => {
+      const res = await fetch("/api/admin/accounting/summary?period=year", { credentials: "include" });
+      const json = await res.json().catch(() => null);
+      if (!res.ok || !json?.success) throw new Error(json?.message ?? `خطأ ${res.status}`);
+      return accountingSummarySchema.parse(json.data);
+    },
+    staleTime: 30_000,
+  });
+  // Unknown readiness is treated as NOT ready — never fail open on a final close.
+  const taxReportReady = taxSummary?.taxReportReady === true;
+
   const closedKeys = new Set((periods ?? []).filter(p => p.status === "closed").map(p => p.periodKey));
   const candidates = closableMonths(closedKeys);
 
@@ -145,20 +167,42 @@ export function FinancePeriodClose() {
         </div>
       </div>
 
+      {!taxReportReady && (
+        <div style={{
+          background: "#ef444412", border: "1.5px solid #ef444455", color: "#fca5a5",
+          padding: "12px 16px", borderRadius: 8, fontSize: 12, lineHeight: 1.8, marginBottom: 16,
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>
+            {taxSummary?.taxReadinessWarning ?? TAX_NOT_READY_WARNING_AR}
+          </div>
+          <div style={{ color: "#94a3b8" }}>
+            إغلاق الفترة والاعتماد النهائي معطّلان حتى تصبح كل الأسطر المحتسبة بكلفة مؤكدة
+            {taxSummary
+              ? ` (حالياً ${taxSummary.exactCostLines} من ${taxSummary.totalFinancialLines})`
+              : ""}.
+          </div>
+        </div>
+      )}
+
       {/* Close a new period */}
       <div style={S.card}>
         <div style={S.sectionTitle}>إغلاق فترة جديدة</div>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <select style={S.select} value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)}>
+          <select style={S.select} value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} disabled={!taxReportReady}>
             <option value="">اختر الشهر...</option>
             {candidates.map((c) => (
               <option key={c.key} value={c.key}>{c.label}</option>
             ))}
           </select>
           <button
-            style={{ ...S.btnPrimary, opacity: selectedMonth && !closeMutation.isPending ? 1 : 0.5, cursor: selectedMonth ? "pointer" : "not-allowed" }}
-            disabled={!selectedMonth || closeMutation.isPending}
-            onClick={() => selectedMonth && closeMutation.mutate(selectedMonth)}
+            data-testid="close-period-button"
+            style={{
+              ...S.btnPrimary,
+              opacity: taxReportReady && selectedMonth && !closeMutation.isPending ? 1 : 0.5,
+              cursor: taxReportReady && selectedMonth ? "pointer" : "not-allowed",
+            }}
+            disabled={!taxReportReady || !selectedMonth || closeMutation.isPending}
+            onClick={() => taxReportReady && selectedMonth && closeMutation.mutate(selectedMonth)}
           >
             {closeMutation.isPending ? "جاري الإغلاق..." : "إغلاق الفترة وتجميد الأرقام"}
           </button>

@@ -2,7 +2,9 @@ import type { ZodType } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import {
   accountingReportSchema,
+  DRAFT_EXPORT_MARK,
   EXPENSE_CATEGORY_LABELS,
+  TAX_NOT_READY_WARNING_AR,
   type AccountingReport,
   type AccountingPeriod,
 } from "@shared/accounting";
@@ -111,9 +113,18 @@ const TD = ({ children, color }: { children: React.ReactNode; color?: string }) 
 
 function exportCSV(report: AccountingReport, period: Period) {
   const s = report.summary;
+  // The internal review export stays available, but it carries its own status:
+  // a file that leaves this screen must say what it is, on its first line.
+  const taxReady = report.taxReadiness?.taxReportReady === true;
+  const grade = report.reportGrade ?? (taxReady ? "FINAL" : DRAFT_EXPORT_MARK);
   const rows: (string | number)[][] = [
+    [grade],
+    ...(taxReady ? [] : [[TAX_NOT_READY_WARNING_AR]]),
     ["تقرير مالي AQUAVO", PERIOD_LABELS[period]],
     ["تاريخ الإنشاء", report.generatedAt],
+    ...(report.taxReadiness
+      ? [["أسطر بكلفة مؤكدة", `${report.taxReadiness.exactCostLines} / ${report.taxReadiness.totalFinancialLines}`]]
+      : []),
     [],
     ["الإيرادات", s.revenue],
     ["كلفة البضاعة", s.totalCogs],
@@ -141,7 +152,7 @@ function exportCSV(report: AccountingReport, period: Period) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `aquavo-report-${period}-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.download = `aquavo-report-${taxReady ? "final" : "DRAFT-NOT-TAX-FINAL"}-${period}-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -190,7 +201,15 @@ export function FinanceReport({ period }: { period: Period }) {
             تم الإنشاء: {new Date(report.generatedAt).toLocaleString("ar-IQ")}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {report.taxReadiness?.taxReportReady !== true && (
+            <span style={{
+              background: "#ef444420", border: "1px solid #ef444455", color: "#fca5a5",
+              padding: "6px 10px", borderRadius: 8, fontSize: 10, fontWeight: 700, letterSpacing: 0.5,
+            }}>
+              {report.reportGrade ?? DRAFT_EXPORT_MARK}
+            </span>
+          )}
           <button
             onClick={() => exportCSV(report, period)}
             style={{ background: "#0d1f3c", border: "1px solid #1e3a5f", color: "#94a3b8", padding: "7px 14px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}
