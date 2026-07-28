@@ -24,8 +24,24 @@ export const PRODUCTION_WEB_HOSTS = [
     ['fist', 'live.vercel.app'].join('-'),
 ];
 
-/** The ONLY remote database endpoint E2E is allowed to use (verify child branch). */
-export const ALLOWED_DB_ENDPOINT_PREFIX = 'ep-rapid-breeze-a46glg7f';
+/**
+ * The ONLY remote database endpoints E2E is allowed to use. Each entry is a
+ * verify/certification CHILD branch of production — never production itself,
+ * which stays blocked by PRODUCTION_DB_MARKERS above regardless of this list.
+ *
+ *   ep-rapid-breeze-a46glg7f — accounting-fulfillment-verify-20260723
+ *                              (br-round-dust-a4t0kt58)
+ *   ep-rough-smoke-a4umy5in  — playwright-final-certification-20260724
+ *                              (br-cool-bar-a4x1pig5), direct child of
+ *                              production taken after the product cleanup
+ */
+export const ALLOWED_DB_ENDPOINT_PREFIXES = [
+    'ep-rapid-breeze-a46glg7f',
+    'ep-rough-smoke-a4umy5in',
+];
+
+/** @deprecated retained so any existing importer keeps resolving. */
+export const ALLOWED_DB_ENDPOINT_PREFIX = ALLOWED_DB_ENDPOINT_PREFIXES[0];
 
 /** Hostname of a URL, or '' when unparseable. Never returns credentials. */
 export function safeHost(url) {
@@ -78,11 +94,12 @@ export function assertNonProductionDatabase(url, context = 'E2E') {
     }
     const host = safeHost(url);
     const ep = endpointId(url);
-    const allowed = LOCAL_WEB_HOSTS.has(host) || ep.startsWith(ALLOWED_DB_ENDPOINT_PREFIX);
+    const allowed = LOCAL_WEB_HOSTS.has(host) ||
+        ALLOWED_DB_ENDPOINT_PREFIXES.some((p) => ep.startsWith(p));
     if (!allowed) {
         throw new Error(
             `[${context}] REFUSING TO RUN: DATABASE_URL endpoint '${ep}' is not on the E2E allow-list ` +
-            `(localhost or ${ALLOWED_DB_ENDPOINT_PREFIX}*).`
+            `(localhost or one of ${ALLOWED_DB_ENDPOINT_PREFIXES.join(', ')}).`
         );
     }
     return { host, endpoint: ep };
