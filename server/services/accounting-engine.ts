@@ -399,7 +399,15 @@ export interface OrderProfit {
   estimatedCostLines: number; // >0 means some COGS was estimated, not from an immutable snapshot
   unknownCostLines: number;   // lines with NO cost evidence at all
   incompleteCostLines: number;// lines with partial cost evidence
-  verifiedZeroLines: number;  // lines whose zero cost is human-confirmed
+  verifiedZeroLines: number;
+  /** Lines whose cost came from the line's own immutable snapshot. */
+  exactCostLines: number;
+  /** Lines costed from date-valid product_cost_history. */
+  estimatedHistoryLines: number;
+  /** Lines costed from a non-date-valid database reference. */
+  estimatedReferenceLines: number;
+  /** DISTINCT products with no usable cost anywhere (never a line count). */
+  missingCostProducts: number;  // lines whose zero cost is human-confirmed
   /** F-3: which store supplied the cost snapshots for this order. */
   costSourceOfTruth: "relational" | "jsonb";
   /** F-3: false = relational rows exist but disagree with the JSONB lines. */
@@ -1076,6 +1084,14 @@ export function calcOrderProfit(
   let verifiedZeroLines = 0;
   let missingProductLines = 0;
   let estimatedCostLines = 0; // lines with no immutable snapshot → cost estimated from history/current
+  // Coverage by cost-resolution rung, so the operator can see how much of the
+  // number is hard evidence versus a database estimate.
+  let exactCostLines = 0;
+  let estimatedHistoryLines = 0;
+  let estimatedReferenceLines = 0;
+  // Distinct products with NO usable cost anywhere — counted by product id, not
+  // by line, so 182 lines across 79 products can never be reported as 182.
+  const unknownCostProductIds = new Set<string>();
   const resolvedItems: OrderProfitItem[] = [];
   let worst: CostSnapshotStatus = "exact";
 
@@ -1096,10 +1112,24 @@ export function calcOrderProfit(
     const cost = snapshot ?? costs.getEffective(item.productId, createdAt);
     if (!snapshot) estimatedCostLines++;
     if (!cost) {
-      missingProductLines++;
+      // The PRODUCT is known — it is right there on the order line. What is
+      // missing is COST EVIDENCE, and the two must not be conflated: counting
+      // this as a missing product hid it from missingCostLines entirely, so an
+      // order with no usable cost reported zero missing cost lines.
+      missingCostLines++;
+      unknownCostLines++;
+      unknownCostProductIds.add(item.productId);
+      worst = worstStatus(worst, "unknown");
       resolvedItems.push({ productId: item.productId, name: item.productId, qty, priceAtPurchase: price,
         unitCostPrice: null, unitPackagingCost: null, unitInsertCost: null, costStatus: "unknown" });
       continue;
+    }
+    // Coverage by which rung of the hierarchy produced this line's cost.
+    switch (cost.costBasis) {
+      case "exact_snapshot": exactCostLines++; break;
+      case "estimated_history": estimatedHistoryLines++; break;
+      case "estimated_database_reference": estimatedReferenceLines++; break;
+      default: break; // `unknown` is counted below, where the cost is inspected
     }
 
     // COMPONENT-WISE evidence. An unknown (null) component is NEVER coerced to
@@ -1122,7 +1152,10 @@ export function calcOrderProfit(
     if (cost.costPrice == null) {
       lineStatus = unknownComponents === components.length ? "unknown" : "incomplete";
       missingCostLines++;
-      if (lineStatus === "unknown") unknownCostLines++; else incompleteCostLines++;
+      if (lineStatus === "unknown") {
+        unknownCostLines++;
+        unknownCostProductIds.add(item.productId);
+      } else incompleteCostLines++;
     } else if (unknownComponents > 0) {
       lineStatus = "incomplete";
       missingCostLines++;
@@ -1220,6 +1253,11 @@ export function calcOrderProfit(
     unknownCostLines,
     incompleteCostLines,
     verifiedZeroLines,
+    // Cost-basis coverage. Lines by rung, plus DISTINCT products with no cost.
+    exactCostLines,
+    estimatedHistoryLines,
+    estimatedReferenceLines,
+    missingCostProducts: unknownCostProductIds.size,
     costSourceOfTruth: reconciliation.sourceOfTruth,
     sourceReconciled: reconciliation.reconciled,
     costStatus: orderCostStatus,

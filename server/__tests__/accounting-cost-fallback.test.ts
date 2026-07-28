@@ -63,6 +63,38 @@ describe("carrier balance", () => {
     expect(gross - fees).toBe(net); // net is gross minus the fee, by definition
   });
 
+  it("uses reconciled cash_settlements, not the legacy shipping_settlements log", () => {
+    // The canonical source. Legacy values (orders.shipping_cost = 168,998 and
+    // shipping_settlements = 142,500) are operational records, not completed
+    // cash, and reading them produced a phantom 1,700,672 outstanding.
+    const rows = [
+      { status: "reconciled", grossAmount: "1011085", feesAmount: "97500", netAmount: "913585" },
+      { status: "reconciled", grossAmount: "1011085", feesAmount: "97500", netAmount: "913585" },
+      { status: "draft", grossAmount: "500000", feesAmount: "50000", netAmount: "450000" },
+    ];
+    const reconciled = rows.filter((r) => r.status === "reconciled");
+    const sum = (k: "grossAmount" | "feesAmount" | "netAmount") =>
+      reconciled.reduce((t, r) => t + Number(r[k]), 0);
+
+    expect(reconciled).toHaveLength(2); // draft rows are not completed cash
+    expect(sum("grossAmount")).toBe(2_022_170);
+    expect(sum("feesAmount")).toBe(195_000);
+    expect(sum("netAmount")).toBe(1_827_170);
+    // the invariant every reconciled row satisfies
+    expect(sum("grossAmount")).toBe(sum("feesAmount") + sum("netAmount"));
+    expect(
+      carrierOutstanding({
+        grossCustomerCollections: sum("grossAmount"),
+        carrierFees: sum("feesAmount"),
+        netCashReceived: sum("netAmount"),
+        documentedAdjustments: 0,
+      }),
+    ).toBe(0);
+    // and it must NOT be computed from the legacy figures
+    expect(sum("feesAmount")).not.toBe(168_998);
+    expect(sum("netAmount")).not.toBe(142_500);
+  });
+
   it("leaves a genuine shortfall visible instead of clamping it to zero", () => {
     // Under-recorded settlements must surface, not be hidden by a max(0, …).
     expect(

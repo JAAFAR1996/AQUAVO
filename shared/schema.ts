@@ -212,6 +212,39 @@ export const shippingSettlements = pgTable("shipping_settlements", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+/**
+ * CANONICAL completed carrier cash settlement.
+ *
+ * This — not `shipping_settlements` — is the source of truth for money actually
+ * settled with a carrier. `shipping_settlements` is a legacy operational log and
+ * under-records; reading it produced a phantom outstanding balance.
+ *
+ * The invariant every reconciled row satisfies:
+ *     gross_amount = fees_amount + net_amount
+ * so the carrier's fee is money it KEEPS, never money it still holds for us.
+ */
+export const cashSettlements = pgTable("cash_settlements", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()`),
+  settlementNumber: text("settlement_number").notNull(),
+  carrier: text("carrier").notNull(),
+  /** Only `reconciled` rows count as completed cash. */
+  status: text("status").notNull().default("draft"),
+  /** Total collected from customers, before the carrier's fee. */
+  grossAmount: numeric("gross_amount").notNull().default("0"),
+  /** The carrier's own fee — deducted, never a receivable. */
+  feesAmount: numeric("fees_amount").notNull().default("0"),
+  /** Cash actually received by AQUAVO. */
+  netAmount: numeric("net_amount").notNull().default("0"),
+  currency: text("currency").notNull().default("IQD"),
+  receivedAt: timestamp("received_at", { withTimezone: true }),
+  bankReference: text("bank_reference"),
+  evidence: jsonb("evidence").notNull().default(sql`'{}'::jsonb`),
+  notes: text("notes"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const productCostHistory = pgTable("product_cost_history", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()`),
   productId: text("product_id").references(() => products.id).notNull(),
