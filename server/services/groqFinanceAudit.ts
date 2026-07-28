@@ -20,6 +20,24 @@ import {
 } from "../../shared/schema.js";
 import { count, isNull } from "drizzle-orm";
 import { z } from "zod";
+// ── Canonical accounting engine + primitives ────────────────────────────────
+// Every number the AI auditor reads MUST come from the same engine the
+// accounting page reads, otherwise the audit would police a second, divergent
+// set of books. This file previously re-implemented collected-amount, the
+// delivered filter, COGS and the return-loss split locally.
+import {
+  buildCostResolver,
+  calcOrderProfit,
+  collectProductIds,
+  computePeriodFinancials,
+  eventSalesReturnDeduction,
+  getRealizedOrdersForPeriod,
+} from "./accounting-engine.js";
+import {
+  orderCollectedAmount,
+  toMoney,
+  toMoneyOrNull,
+} from "../../shared/order-financials.js";
 
 // ─── Snapshot ────────────────────────────────────────────────────────────────
 
@@ -130,21 +148,28 @@ export function getLastAuditResult(): FinanceAuditResult | null {
   return lastAuditResult;
 }
 
-// ─── Helpers (mirror accounting.ts — no import to avoid coupling) ─────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+// `toNum` is the local alias for the canonical money coercion. Cost EVIDENCE
+// must use toMoneyOrNull instead — an unknown cost is never 0 here.
+const toNum = toMoney;
 
-function toNum(v: unknown): number {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : 0;
-}
-
+/** @deprecated Superseded by shared/order-financials.orderCollectedAmount.
+ *  Kept for the gated deletion phase; no live caller. */
 function collectedAmount(order: { roundedTotal?: unknown; total: unknown }): number {
   if (order.roundedTotal != null) return toNum(order.roundedTotal);
   return Math.round(toNum(order.total) / 250) * 250;
 }
+void collectedAmount;
 
+/** @deprecated Superseded by accounting-engine.calcOrderProfit().revenue
+ *  (collected − shipping). Kept for the gated deletion phase; no live caller. */
 function netAmount(order: { roundedTotal?: unknown; total: unknown; shippingCost: unknown }): number {
   return collectedAmount(order) - toNum(order.shippingCost);
 }
+void netAmount;
+
+/** Full-history range — the snapshot's scope is always `all_time`. */
+const ALL_TIME_START = new Date(0);
 
 // ─── Snapshot builder ────────────────────────────────────────────────────────
 
@@ -152,33 +177,29 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   const db = getDb();
   if (!db) throw new Error("Database not available");
 
-  const [allOrders, settlements, returnEvents, expenseRows, activeProducts] = await Promise.all([
-    db.select().from(orders),
-    db.select().from(shippingSettlements),
-    db.select().from(orderReturnEvents),
-    db.select().from(expenses),
-    db.select().from(products).where(isNull(products.deletedAt)),
-  ]);
+  const now = new Date();
 
-  // Build a quick cost map from current product data
-  const productCostMap = new Map<string, { costPrice: number; packagingCost: number; insertCost: number }>();
-  for (const p of activeProducts) {
-    productCostMap.set(p.id, {
-      costPrice: toNum(p.costPrice),
-      packagingCost: toNum(p.packagingCost),
-      insertCost: toNum(p.insertCost),
-    });
-  }
+  const [allOrders, settlements, returnEvents, expenseRows, activeProducts, deliveredOrders, fin] =
+    await Promise.all([
+      db.select().from(orders),
+      db.select().from(shippingSettlements),
+      db.select().from(orderReturnEvents),
+      db.select().from(expenses),
+      db.select().from(products).where(isNull(products.deletedAt)),
+      // Canonical realized-order filter (REALIZED_STATUSES + financiallyCounted override).
+      getRealizedOrdersForPeriod(db, ALL_TIME_START, now),
+      // Canonical P&L for the same (all-time) window — the SAME numbers the
+      // accounting page shows, so the auditor cannot police a different ledger.
+      computePeriodFinancials(db, ALL_TIME_START, now),
+    ]);
 
-  // Delivered orders (respecting manual financiallyCounted overrides)
-  const deliveredOrders = allOrders.filter(o => {
-    const fc = (o as any).financiallyCounted;
-    if (fc === false) return false;
-    if (fc === true) return true;
-    return o.status === "delivered";
-  });
-  const grossRevenue = Math.round(deliveredOrders.reduce((s, o) => s + collectedAmount(o), 0));
-  const deliveredNetTotal = Math.round(deliveredOrders.reduce((s, o) => s + netAmount(o), 0));
+  // Collected (before shipping deduction) via the ONE collected-amount definition.
+  const grossRevenue = Math.round(
+    deliveredOrders.reduce((s, o) => s + orderCollectedAmount(o), 0)
+  );
+  // Net (collected − shipping) — identical to calcOrderProfit().revenue summed,
+  // which is exactly what computePeriodFinancials reports as `revenue`.
+  const deliveredNetTotal = fin.revenue;
   const netRevenue = deliveredNetTotal;
 
   // COD settlement
@@ -186,33 +207,21 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   const deliveredIds = new Set(deliveredOrders.map(o => o.id));
   const verifiedEvents = returnEvents.filter(e => e.status === "verified");
   const recordedEvents = returnEvents.filter(e => e.status === "recorded");
+  // COD settlement deduction — canonical refund rule, restricted to realized
+  // orders because only those were ever billed to the carrier.
   const approvedReturnDeductions = Math.round(
     verifiedEvents
       .filter(e => deliveredIds.has(e.orderId))
-      .reduce((s, e) => s + toNum(e.refundAmount), 0)
+      .reduce((s, e) => s + eventSalesReturnDeduction(e), 0)
   );
   const pendingSettlement = Math.max(0, deliveredNetTotal - receivedCashTotal - approvedReturnDeductions);
 
-  // Return losses (verified only) — split: revenue reversal vs actual loss
-  type ReturnEventRow = typeof returnEvents[number];
-
-  function evtSalesReturnDeduction(e: ReturnEventRow): number {
-    return toNum(e.refundAmount);
-  }
-
-  function evtActualReturnLoss(e: ReturnEventRow): number {
-    const opLoss = toNum(e.deliveryCostLoss) + toNum(e.returnShippingCost) + toNum(e.packagingLoss);
-    const writeOff = toNum(e.productWriteOffAmount);
-    const productCost = e.restocked !== true ? toNum(e.cogsLoss) : 0;
-    return opLoss + writeOff + productCost;
-  }
-
-  const salesReturnDeduction = Math.round(
-    verifiedEvents
-      .filter(e => deliveredIds.has(e.orderId))
-      .reduce((s, e) => s + evtSalesReturnDeduction(e), 0)
-  );
-  const actualReturnLoss = Math.round(verifiedEvents.reduce((s, e) => s + evtActualReturnLoss(e), 0));
+  // Return losses (verified only) — split: revenue reversal vs actual loss.
+  // Both come from computePeriodFinancials, which applies the canonical
+  // eventSalesReturnDeduction / eventActualReturnLoss rules (restocked product
+  // COGS is recovered to inventory, never counted as P&L loss).
+  const salesReturnDeduction = fin.salesReturnDeduction;
+  const actualReturnLoss = fin.actualReturnLoss;
   const totalReturnFinancialImpact = salesReturnDeduction + actualReturnLoss;
   const refundAmount = salesReturnDeduction;
 
@@ -233,35 +242,28 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
     }
   }
 
-  // Approximate COGS (current product cost, not historical)
-  let totalCogs = 0;
+  // COGS from the canonical engine (immutable per-line snapshots first, then the
+  // effective-dated cost resolver). `totalCogs` keeps its historical meaning here:
+  // product COGS + per-order box/packaging cost.
+  const costResolver = await buildCostResolver(db, collectProductIds(deliveredOrders));
   let missingCostLines = 0;
   for (const order of deliveredOrders) {
-    const items = Array.isArray(order.items)
-      ? (order.items as Array<{ productId?: string; quantity?: unknown }>)
-      : [];
-    for (const item of items) {
-      const costs = item.productId ? productCostMap.get(item.productId) : undefined;
-      const qty = toNum(item.quantity ?? 1);
-      if (!costs || costs.costPrice <= 0) {
-        missingCostLines++;
-      } else {
-        totalCogs += (costs.costPrice + costs.packagingCost + costs.insertCost) * qty;
-      }
-    }
-    totalCogs += toNum((order as Record<string, unknown>).boxCost);
+    const p = calcOrderProfit(order, costResolver);
+    // A line whose product is unknown is just as much a missing cost line.
+    missingCostLines += p.missingCostLines + p.missingProductLines;
   }
-  totalCogs = Math.round(totalCogs);
+  const totalCogs = fin.cogs + fin.packaging;
   const cogsBasis: FinanceSnapshot["cogsBasis"] =
     missingCostLines === 0 ? "approximate_current_cost" : "unavailable";
   const costsComplete = missingCostLines === 0;
 
-  // P&L
+  // P&L — every figure below is the engine's, so the AI auditor and the
+  // accounting page can never quote different profits.
   const grossProfit = netRevenue - totalCogs;
-  const expensesTotal = Math.round(expenseRows.reduce((s, e) => s + toNum(e.amount), 0));
+  const expensesTotal = fin.expensesTotal;
   const profitBeforeExpensesAndReturns = grossProfit;
   const profitAfterExpensesBeforeReturns = grossProfit - expensesTotal;
-  const finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss;
+  const finalNetProfit = fin.finalNetProfit;
 
   // Inventory
   let inventoryValueAtCost = 0;
@@ -269,13 +271,15 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
   let outOfStockCount = 0;
   for (const p of activeProducts) {
     const salePrice = toNum(p.price);
-    const costPrice = toNum(p.costPrice);
+    // Cost EVIDENCE: null means UNKNOWN and is excluded from the valuation —
+    // never coerced to 0, which would understate inventory silently.
+    const costPrice = toMoneyOrNull(p.costPrice);
     const stock = Number(p.stock ?? 0);
     const threshold = Number(p.lowStockThreshold ?? 10);
     if (salePrice <= 0) continue;
     if (stock === 0) outOfStockCount++;
     else if (stock <= threshold) lowStockCount++;
-    if (costPrice > 0) inventoryValueAtCost += costPrice * stock;
+    if (costPrice != null && costPrice > 0) inventoryValueAtCost += costPrice * stock;
   }
 
   // System notes
@@ -340,6 +344,19 @@ export async function buildFinanceSnapshot(): Promise<FinanceSnapshot> {
 export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] {
   const checks: InvariantCheck[] = [];
 
+  // Rounding-drift budget for invariant #4.
+  //
+  // `finalNetProfit` is ONE Math.round() of the engine's exact expression, but
+  // `computedFinal` re-derives the same quantity from SIX values the engine rounded
+  // independently for display (revenue, cogs, packaging, expensesTotal,
+  // salesReturnDeduction, actualReturnLoss). Each contributes up to 0.5 of error, so
+  // the two can legitimately differ by up to 6 × 0.5 + 0.5 = 3.5 with no defect
+  // present. A tolerance of 1 therefore produces FALSE invariant failures — the AI
+  // auditor would report a phantom accounting problem. 4 is the smallest integer
+  // that cannot false-fail. It is still a real check: a genuine formula error (a
+  // component added twice, a sign flipped) is off by thousands of dinars, not by 4.
+  const ROUNDING_DRIFT_TOLERANCE = 4;
+
   // 1. pendingSettlement formula
   const computedPending = Math.max(
     0,
@@ -378,7 +395,7 @@ export function runInvariantChecks(snapshot: FinanceSnapshot): InvariantCheck[] 
     snapshot.profitAfterExpensesBeforeReturns - snapshot.salesReturnDeduction - snapshot.actualReturnLoss;
   checks.push({
     name: "return loss affects profit once only",
-    passed: Math.abs(computedFinal - snapshot.finalNetProfit) < 1,
+    passed: Math.abs(computedFinal - snapshot.finalNetProfit) <= ROUNDING_DRIFT_TOLERANCE,
     expected: computedFinal,
     actual: snapshot.finalNetProfit,
     note: "finalNetProfit = profitAfterExpensesBeforeReturns - salesReturnDeduction - actualReturnLoss",

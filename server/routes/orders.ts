@@ -362,11 +362,20 @@ export function createOrderRouter(): RouterType {
                     return;
                 }
             }
-            // Convert known validation errors to 400 (stock issues surface the
-            // clean Arabic message produced by order-storage).
+            // A stock/availability rejection is a conflict with the current
+            // inventory state, not a malformed request. This includes the
+            // DB-level enforce-mode canonical-ledger backstop, which
+            // order-storage has already translated to the clean Arabic
+            // STOCK_ERROR_INSUFFICIENT message. Return 409 (matching the cart
+            // route's OUT_OF_STOCK convention) so a normal out-of-stock race
+            // never surfaces as an opaque HTTP 500.
+            if (isStockError(err.message) ||
+                err.message?.includes('Insufficient stock')) {
+                res.status(409).json({ message: err.message, code: "OUT_OF_STOCK" });
+                return;
+            }
+            // Genuine client/validation faults stay 400.
             if (err.message?.includes('not found') ||
-                err.message?.includes('Insufficient stock') ||
-                isStockError(err.message) ||
                 err.message?.includes('Invalid')) {
                 res.status(400).json({ message: err.message });
                 return;

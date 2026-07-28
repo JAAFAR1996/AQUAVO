@@ -39,6 +39,7 @@ import {
 import { addCsrfHeader } from "@/lib/csrf";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { OrderReturnAdjustmentModal } from "@/components/admin/order-return-adjustment-modal";
+import { OrderFulfillmentPanel } from "@/components/admin/fulfillment";
 
 interface OrderItem {
   productId: string;
@@ -363,8 +364,9 @@ export function OrdersManagement() {
         </Select>
       </div>
 
-      {/* Orders Table */}
-      <div className="border rounded-lg">
+      {/* Orders Table — scrolls horizontally inside its own box on narrow
+          screens so the wide table never stretches the page. */}
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -801,6 +803,8 @@ export function OrdersManagement() {
                   </div>
                 </div>
               )}
+
+              <OrderFulfillmentPanel orderId={selectedOrder.id} />
 
               <div className="text-center text-xs text-muted-foreground border-t pt-4">
                 <p>شكراً لتسوقكم من AQUAVO</p>

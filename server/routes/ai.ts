@@ -5,6 +5,12 @@ import { getDb } from "../db.js";
 import * as schema from "../../shared/schema.js";
 import { count, lt, and, gt, eq, inArray } from "drizzle-orm";
 import { getSession } from "../middleware/auth.js";
+// Canonical order-financial definitions — the chatbot must quote the SAME money as
+// the accounting page, so it never derives a revenue figure of its own.
+import { orderCollectedAmount, isRealizedStatus } from "../../shared/order-financials.js";
+// Canonical order-financial definitions — the chatbot must quote the SAME money as
+// the accounting page, so it never derives a revenue figure of its own.
+import { orderCollectedAmount, isRealizedStatus } from "../../shared/order-financials.js";
 
 const router = Router();
 
@@ -175,19 +181,24 @@ router.post("/chat", aiRateLimiter, async (req: Request, res: Response) => {
                     let todayRevenue = 0;
                     let todayOrders = 0;
 
+                    // Revenue counts REALIZED orders only, at the amount actually
+                    // collected (rounding-aware). This previously summed the raw
+                    // `total` of EVERY order in the window, including cancelled ones,
+                    // so the chatbot quoted a higher revenue than the accounting page.
                     const totalRevenue = recentOrders.reduce((sum, order) => {
+                        if (!isRealizedStatus(order.status)) return sum;
+                        const collected = orderCollectedAmount(order);
                         const orderDate = new Date(order.createdAt);
-                        const orderTotal = parseFloat(order.total) || 0;
 
                         if (orderDate >= todayStart) {
-                            todayRevenue += orderTotal;
+                            todayRevenue += collected;
                             todayOrders++;
                         }
 
-                        return sum + orderTotal;
+                        return sum + collected;
                     }, 0);
 
-                    const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
+                    const completedOrders = recentOrders.filter(o => isRealizedStatus(o.status)).length;
                     const pendingOrders = recentOrders.filter(o => o.status === 'pending').length;
                     const processingOrders = recentOrders.filter(o => o.status === 'processing').length;
 

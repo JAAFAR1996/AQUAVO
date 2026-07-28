@@ -204,62 +204,122 @@ export class InvoiceStorage {
     return updated;
   }
 
-  /** إنشاء Order من الفاتورة المقبولة */
+  /**
+   * إنشاء Order من الفاتورة المقبولة (admin / WhatsApp path).
+   *
+   * F-2 FIX: this path previously wrote NO cost snapshot at all — not in
+   * `orders.items` (JSONB) and not in `order_items_relational`. It therefore
+   * disagreed with the storefront on a core invariant. It now locks each product
+   * row FOR UPDATE via the canonical `lockProductRowForUpdate` and freezes the
+   * snapshot with the canonical `buildProductCostSnapshot`, identical to
+   * `createOrderSecure`. Verified 0 stays 0; UNKNOWN stays NULL.
+   */
   private async createOrderFromInvoice(invoice: ManualInvoice): Promise<string> {
     const db = this.ensureDb();
-    const { orders, orderItems } = await import("../../shared/schema.js");
+    const { orders, orderItems, products } = await import("../../shared/schema.js");
+    const { eq: eqORM, sql: sqlORM } = await import("drizzle-orm");
+    const {
+      buildProductCostSnapshot,
+      lockProductRowForUpdate,
+      toJsonbCostFields,
+      toRelationalCostFields,
+    } = await import("../services/product-cost-snapshot.js");
     const orderId = randomUUID();
 
-    // Create order (only columns that exist in the Drizzle schema)
-    await db.insert(orders).values({
-      id: orderId,
-      orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
-      userId: null,
-      status: "pending",
-      total: invoice.total,
-      shippingCost: invoice.delivery,
-      customerName: invoice.customerName,
-      customerPhone: invoice.customerPhone,
-      shippingAddress: invoice.customerCity
-        ? `${invoice.customerCity}${invoice.customerAddress ? ` - ${invoice.customerAddress}` : ""}`
-        : (invoice.customerAddress || null),
-      source: "whatsapp",
-      items: (invoice.items as any[]).map((i) => ({
-        productId: i.productId,
-        productName: i.name,
-        quantity: i.quantity,
-        priceAtPurchase: i.unitPrice,
-        variantLabel: i.variantLabel || undefined,
-        variantId: i.variantId || undefined
-      })),
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    // Same deployment guard as the storefront: this path now writes cost-snapshot
+    // columns, so refuse up front if the migration has not been applied rather
+    // than failing one confirmed invoice at a time.
+    const { getSchemaReadiness, assertOrderCreationReady } =
+      await import("../services/schema-readiness.js");
+    assertOrderCreationReady(await getSchemaReadiness(db as any));
+
+    // Order + items + stock deduction are wrapped in ONE transaction so a mid-loop
+    // failure can't leave a half-created order with partially deducted stock.
+    await db.transaction(async (tx) => {
+      const snapshotAt = new Date();
+      const invoiceLines = (invoice.items as any[]) ?? [];
+
+      // 1. Lock every product row FIRST and freeze its cost snapshot, inside the
+      //    same transaction that will deduct its stock.
+      const lines = [] as Array<{ raw: any; snapshot: ReturnType<typeof buildProductCostSnapshot> }>;
+      for (const item of invoiceLines) {
+        const locked = await lockProductRowForUpdate(tx as any, item.productId);
+        if (!locked) {
+          // Fail closed: an invoice line pointing at a missing/deleted product
+          // must abort the whole confirmation rather than create an uncostable order.
+          throw Object.assign(
+            new Error(`المنتج غير موجود ضمن الفاتورة (${item.productId})`),
+            { status: 400 },
+          );
+        }
+        lines.push({ raw: item, snapshot: buildProductCostSnapshot(locked, snapshotAt) });
+      }
+
+      // 2. Create order (only columns that exist in the Drizzle schema).
+      // Carry the invoice discount onto the order so order-based reporting sees it.
+      await tx.insert(orders).values({
+        id: orderId,
+        orderNumber: invoice.invoiceNo,  // نفس رقم الفاتورة = نفس تسلسل طلبات الموقع
+        userId: null,
+        status: "pending",
+        total: invoice.total,
+        shippingCost: invoice.delivery,
+        discountTotal: invoice.discount ?? undefined,
+        customerName: invoice.customerName,
+        customerPhone: invoice.customerPhone,
+        // orders.shippingAddress is a typed JSONB object ({ addressLine1, city,
+        // country }), NOT a string. The manual-invoice path previously wrote a
+        // concatenated string, which both violated the declared column type and
+        // disagreed at runtime with every reader that destructures the object.
+        // Build the object the schema declares; country defaults to IQ (Iraq-only
+        // storefront). Null when the invoice carries no address at all.
+        shippingAddress:
+          invoice.customerCity || invoice.customerAddress
+            ? {
+                addressLine1: invoice.customerAddress ?? "",
+                city: invoice.customerCity ?? "",
+                country: "IQ",
+              }
+            : null,
+        source: "whatsapp",
+        items: lines.map(({ raw, snapshot }) => ({
+          productId: raw.productId,
+          productName: raw.name,
+          quantity: raw.quantity,
+          priceAtPurchase: raw.unitPrice,
+          lineTotal: Number(raw.unitPrice) * Number(raw.quantity),
+          variantLabel: raw.variantLabel || undefined,
+          variantId: raw.variantId || undefined,
+          ...toJsonbCostFields(snapshot),
+        })),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // 3. Relational lines carry the SAME snapshot objects → the two stores agree.
+      for (const { raw: item, snapshot } of lines) {
+        await tx.insert(orderItems).values({
+          id: randomUUID(),
+          orderId,
+          productId: item.productId,
+          quantity: item.quantity,
+          priceAtPurchase: String(item.unitPrice),
+          totalPrice: String(item.unitPrice * item.quantity),
+          ...toRelationalCostFields(snapshot),
+          metadata: {
+            productName: item.name,
+            variantLabel: item.variantLabel ?? null,
+            variantId: item.variantId ?? null,
+          },
+        } as any);
+
+        // Deduct stock — parameterized (no string interpolation / injection).
+        await tx
+          .update(products)
+          .set({ stock: sqlORM`GREATEST(${products.stock} - ${item.quantity}, 0)`, updatedAt: new Date() })
+          .where(eqORM(products.id, item.productId));
+      }
     });
-
-    // Create order items + deduct stock
-    const { products } = await import("../../shared/schema.js");
-    const { eq: eqORM } = await import("drizzle-orm");
-
-    for (const item of (invoice.items as any[])) {
-      await db.insert(orderItems).values({
-        id: randomUUID(),
-        orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        priceAtPurchase: String(item.unitPrice),
-        totalPrice: String(item.unitPrice * item.quantity),
-        metadata: {
-          productName: item.name,
-          variantLabel: item.variantLabel ?? null,
-          variantId: item.variantId ?? null,
-        },
-      } as any);
-
-      // Deduct stock
-      await db.execute(
-        `UPDATE products SET stock = GREATEST(stock - ${item.quantity}, 0), updated_at = NOW() WHERE id = '${item.productId}'` as any
-      );
-    }
 
     return orderId;
   }

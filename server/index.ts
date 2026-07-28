@@ -24,7 +24,8 @@ Sentry.init({
   },
 });
 
-import dotenv from 'dotenv';
+// NOTE: no dotenv here on purpose — env loading is owned by ./env.js (imported
+// at the top of this file) which protects database targets from .env override.
 import http from "http";
 import express, { Request, Response, NextFunction } from "express";
 import session from "express-session";
@@ -367,7 +368,39 @@ app.use((req: Request, res: Response, next: NextFunction) => {
     initializeScheduledJobs();
   }
 
+  // Stable startup: a failure to bind the port must be reported clearly rather
+  // than surfacing as an unhandled 'error' event that crashes the process with an
+  // opaque stack. Playwright's global-setup waits on /health, so a clean, logged
+  // bind failure lets the harness fail fast with a readable reason.
+  httpServer.on("error", (err: NodeJS.ErrnoException) => {
+    if (err.code === "EADDRINUSE") {
+      console.error(`[STARTUP] Port ${port} is already in use — refusing to start a second server on it.`);
+    } else {
+      console.error("[STARTUP] HTTP server error:", err);
+    }
+    process.exit(1);
+  });
+
   httpServer.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
+
+  // Stable shutdown: close the HTTP server on the signals Playwright / process
+  // managers use to stop it, so the port is released deterministically between
+  // E2E runs instead of lingering until an OS timeout.
+  let shuttingDown = false;
+  const gracefulShutdown = (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    log(`received ${signal}, shutting down`);
+    const forceExit = setTimeout(() => process.exit(0), 5000);
+    forceExit.unref?.();
+    httpServer.close(() => {
+      clearTimeout(forceExit);
+      process.exit(0);
+    });
+  };
+  for (const signal of ["SIGTERM", "SIGINT"] as const) {
+    process.on(signal, () => gracefulShutdown(signal));
+  }
 })();

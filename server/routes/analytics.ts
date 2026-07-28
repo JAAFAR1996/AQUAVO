@@ -3,10 +3,27 @@ import { Router } from "express";
 import { requireAdmin } from "../middleware/auth.js";
 import { getDb } from "../db.js";
 import { orders, users, products, orderItems, productViews, cartSessions } from "../../shared/schema.js";
-import { sql, desc, gte, count, sum, eq, and, gt } from "drizzle-orm";
+import { sql, desc, gte, count, sum, eq, and, gt, inArray } from "drizzle-orm";
 import { pageViews } from "../../shared/schema.js";
+import { REALIZED_STATUSES, isRealizedStatus } from "../../shared/order-financials.js";
+import { REALIZED_STATUS_SQL } from "../services/accounting-engine.js";
 
 const router = Router();
+
+// Canonical realized-revenue SQL — delivered orders only, collected amount
+// (rounded_total, or total rounded to nearest 250) minus shipping charged.
+// This MUST mirror orderCollectedAmount()/isRealizedStatus() in
+// shared/order-financials.ts (Stage A: analytics previously summed orders.total
+// across ALL statuses, counting cancelled/pending orders as revenue).
+const realizedRevenueExpr = sql<string>`COALESCE(SUM(
+  COALESCE(${orders.roundedTotal}, ROUND(${orders.total}::numeric / 250) * 250)
+  - COALESCE(${orders.shippingCost}, 0)
+), 0)`;
+const REALIZED = [...REALIZED_STATUSES];
+// Parenthesised SQL list of the canonical realized statuses, for use inside a raw
+// CASE WHEN ... IN (...) expression. Defined ONCE in the accounting engine so the
+// three places that need it cannot drift apart.
+const REALIZED_SQL = REALIZED_STATUS_SQL;
 
 // ─── Real-time Presence Store ─────────────────────────────────────────────────
 // Key = sessionId, Value = { pagePath, userId, ts }
@@ -80,29 +97,37 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
         const previousStartDate = new Date(startDate);
         previousStartDate.setDate(previousStartDate.getDate() - days);
 
-        // Get orders in period
+        // Total orders placed in period (ALL statuses) — drives volume & conversion.
         const ordersInPeriod = await db
-            .select({
-                totalOrders: count(),
-                totalRevenue: sum(orders.total),
-            })
+            .select({ totalOrders: count() })
             .from(orders)
             .where(gte(orders.createdAt, startDate));
-
         const currentOrders = ordersInPeriod[0]?.totalOrders || 0;
-        const currentRevenue = Number(ordersInPeriod[0]?.totalRevenue) || 0;
 
-        // Get orders in previous period for comparison
+        // Realized revenue in period (delivered only, collected − shipping).
+        const realizedInPeriod = await db
+            .select({ realizedRevenue: realizedRevenueExpr, realizedOrders: count() })
+            .from(orders)
+            .where(and(gte(orders.createdAt, startDate), inArray(orders.status, REALIZED)));
+        const currentRevenue = Number(realizedInPeriod[0]?.realizedRevenue) || 0;
+        const currentRealizedOrders = realizedInPeriod[0]?.realizedOrders || 0;
+
+        // Previous period for comparison (same realized definition).
         const previousOrdersData = await db
-            .select({
-                totalOrders: count(),
-                totalRevenue: sum(orders.total),
-            })
+            .select({ totalOrders: count() })
             .from(orders)
             .where(and(gte(orders.createdAt, previousStartDate), sql`${orders.createdAt} < ${startDate}`));
-
         const previousOrders = previousOrdersData[0]?.totalOrders || 0;
-        const previousRevenue = Number(previousOrdersData[0]?.totalRevenue) || 0;
+
+        const realizedPrevious = await db
+            .select({ realizedRevenue: realizedRevenueExpr })
+            .from(orders)
+            .where(and(
+                gte(orders.createdAt, previousStartDate),
+                sql`${orders.createdAt} < ${startDate}`,
+                inArray(orders.status, REALIZED),
+            ));
+        const previousRevenue = Number(realizedPrevious[0]?.realizedRevenue) || 0;
 
         // Calculate changes
         const ordersChange = previousOrders > 0 ? ((currentOrders - previousOrders) / previousOrders) * 100 : 0;
@@ -160,13 +185,20 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
             : 0;
         const conversionRate = Math.min(rawConversionRate, 100); // لا يتجاوز 100%
 
-        const averageOrderValue = currentOrders > 0 ? currentRevenue / currentOrders : 0;
+        // AOV over realized (delivered) orders so revenue and denominator agree.
+        const averageOrderValue = currentRealizedOrders > 0 ? currentRevenue / currentRealizedOrders : 0;
 
         // جلب بيانات المبيعات اليومية الحقيقية من قاعدة البيانات
+        // Daily realized revenue (delivered only, collected − shipping) + all-order count.
         const dailySalesData = await db
             .select({
                 date: sql<string>`(${orders.createdAt})::date::text`,
-                revenue: sum(orders.total),
+                // Status list comes from REALIZED_STATUSES — never a literal
+                // 'delivered', so a change to the canonical list reaches here.
+                revenue: sql<string>`COALESCE(SUM(CASE WHEN ${orders.status} IN ${REALIZED_SQL}
+                    THEN COALESCE(${orders.roundedTotal}, ROUND(${orders.total}::numeric / 250) * 250)
+                         - COALESCE(${orders.shippingCost}, 0)
+                    ELSE 0 END), 0)`,
                 orderCount: count(),
             })
             .from(orders)
@@ -210,7 +242,10 @@ router.get("/", requireAdmin, async (req: Request<object, object, object, Analyt
             .from(orderItems)
             .innerJoin(orders, eq(orders.id, orderItems.orderId))
             .leftJoin(products, eq(products.id, orderItems.productId))
-            .where(gte(orders.createdAt, startDate))
+            // NOTE: reads order_items_relational — Stage A found ~12 orders exist only
+            // in orders.items JSONB and are missing here (reconciliation is a later
+            // increment). Delivered-only filter keeps this consistent with revenue.
+            .where(and(gte(orders.createdAt, startDate), inArray(orders.status, REALIZED)))
             .groupBy(orderItems.productId, products.name)
             .orderBy(desc(sum(orderItems.quantity)))
             .limit(10);
@@ -368,7 +403,8 @@ router.get("/insights", requireAdmin, async (_req: Request, res: Response, next:
             .where(gte(orders.createdAt, thirtyDaysAgo));
 
         const totalOrders = allOrdersData[0]?.count || 0;
-        const completedOrders = recentOrders.filter(o => o.status === 'delivered').length;
+        // Canonical realized check — not a local 'delivered' literal.
+        const completedOrders = recentOrders.filter(o => isRealizedStatus(o.status)).length;
 
         // Calculate cart abandonment from real completion rate only
         const completionRate = totalOrders > 0 ? (completedOrders / totalOrders) : 0;

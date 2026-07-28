@@ -2,6 +2,7 @@ import { type Product, type Review, type ReviewRating, type Discount, type FishS
 import { eq, desc, and, gte, lte, sql, isNull, notInArray, gt, inArray, or } from "drizzle-orm";
 import { getDb } from "../db.js";
 import { randomUUID } from "crypto";
+import { normalizeProductCostWrite } from "../services/product-cost-snapshot.js";
 
 export interface ProductFilters {
     category?: string | string[];
@@ -264,13 +265,19 @@ export class ProductStorage {
         }
 
         // Sanitize numeric fields - convert empty strings to undefined
-        const sanitizedProduct = {
+        const sanitizedProduct = normalizeProductCostWrite({
             ...product,
             id: product.id || randomUUID(),
             price: product.price === '' ? undefined : product.price,
             originalPrice: product.originalPrice === '' ? undefined : product.originalPrice,
             rating: product.rating === '' ? '0' : product.rating,
-        };
+            // F-10: a product created without cost evidence is UNKNOWN, not 0.
+            // Made explicit here so the row is correct even on a database that
+            // still carries the legacy `cost_price numeric DEFAULT '0'`.
+            costPrice: product.costPrice ?? null,
+            packagingCost: product.packagingCost ?? null,
+            insertCost: product.insertCost ?? null,
+        });
 
         const result = await db.insert(products).values(sanitizedProduct as any).returning();
         return result[0];
@@ -292,7 +299,10 @@ export class ProductStorage {
         }
 
         // Sanitize numeric fields - convert empty strings to undefined
-        const sanitizedUpdates = { ...updates };
+        // F-10: a cost written here carries its resolution, so an edit can never
+        // leave an unexplained zero behind. Keys the caller did not touch are
+        // left untouched.
+        const sanitizedUpdates = normalizeProductCostWrite({ ...updates });
         if (sanitizedUpdates.price === '') sanitizedUpdates.price = undefined;
         if (sanitizedUpdates.originalPrice === '') sanitizedUpdates.originalPrice = undefined;
         if (sanitizedUpdates.rating === '') sanitizedUpdates.rating = '0';

@@ -6,6 +6,8 @@
 
 import { eq, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
+// Canonical realized-status set, so this eligibility query cannot drift from accounting.
+import { REALIZED_STATUS_SQL } from "../services/accounting-engine.js";
 import {
   users,
   orders,
@@ -170,7 +172,9 @@ export class BadgeEngine {
     const deliveredOrders = await db
       .select({ count: sql<number>`count(*)` })
       .from(orders)
-      .where(sql`${orders.userId} = ${userId} AND ${orders.status} = 'delivered'`);
+      // Eligibility means the customer actually RECEIVED an order. Bound to the
+      // canonical realized-status set so a literal here cannot drift from accounting.
+      .where(sql`${orders.userId} = ${userId} AND ${orders.status} IN ${REALIZED_STATUS_SQL}`);
     const ordersCount = Number(deliveredOrders[0]?.count ?? 0);
 
     // عدد الإحالات

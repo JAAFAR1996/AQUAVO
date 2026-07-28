@@ -136,7 +136,11 @@ export class SecurityStorage {
                 ? lockoutDurations[lockoutDurations.length - 1]
                 : lockoutDurations[failedCount];
 
-            const expiresAt = new Date(Date.now() + durationSeconds * 1000);
+            // F-8: the expiry instant is computed by the DATABASE clock
+            // (now() + N seconds), never `new Date(Date.now() + …)`. A skewed
+            // server clock must not be able to lengthen (or shorten) a block —
+            // duration semantics belong to one authoritative clock, the DB's.
+            const expiresAtSql = sql`now() + make_interval(secs => ${durationSeconds})`;
 
             // Upsert blocked IP
             await db.insert(blockedIPs)
@@ -144,94 +148,130 @@ export class SecurityStorage {
                     ipAddress,
                     reason: `تجاوز ${failedCount} محاولات دخول فاشلة - حظر ${durationSeconds < 60 ? durationSeconds + ' ثانية' : Math.floor(durationSeconds / 60) + ' دقيقة'}`,
                     failedAttempts: failedCount,
-                    expiresAt,
+                    expiresAt: expiresAtSql,
                     isActive: true,
                 })
                 .onConflictDoUpdate({
                     target: blockedIPs.ipAddress,
                     set: {
                         failedAttempts: failedCount,
-                        expiresAt,
+                        expiresAt: expiresAtSql,
                         isActive: true,
-                        blockedAt: new Date(),
+                        blockedAt: sql`now()`,
                     },
                 });
         }
     }
 
-    // Check if IP is blocked
+    // ── Canonical "is this block still in force?" predicate ───────────────────
+    // The SINGLE source of truth shared by the middleware read-path, getBlockInfo,
+    // getBlockedIPs and the cleanup job. Evaluated by Postgres against now():
+    //   • expires_at IS NULL  → PERMANENT block, always in force
+    //   • expires_at > now()  → temporary block, still active
+    //   • expires_at <= now() → expired, no longer in force
+    // Using now() (DB clock) means no JS/server clock and no tz interpretation
+    // can ever change the outcome.
+    private stillBlockedPredicate() {
+        return sql`(${blockedIPs.expiresAt} IS NULL OR ${blockedIPs.expiresAt} > now())`;
+    }
+
+    // Check if IP is blocked. The active/expired decision is made by Postgres
+    // against now() — the app never compares timestamps on the JS clock.
     async isIPBlocked(ipAddress: string): Promise<boolean> {
         const db = this.ensureDb();
 
         const [blocked] = await db
-            .select()
+            .select({ id: blockedIPs.id })
             .from(blockedIPs)
             .where(
                 and(
                     eq(blockedIPs.ipAddress, ipAddress),
-                    eq(blockedIPs.isActive, true)
+                    eq(blockedIPs.isActive, true),
+                    this.stillBlockedPredicate()
                 )
             )
             .limit(1);
 
-        if (!blocked) return false;
-
-        // Check if block has expired
-        if (blocked.expiresAt && blocked.expiresAt < new Date()) {
-            // Unblock expired IP
-            await db.update(blockedIPs)
-                .set({ isActive: false })
-                .where(eq(blockedIPs.id, blocked.id));
+        if (!blocked) {
+            // Self-heal: flip any now-expired row for this IP to inactive so the
+            // admin list and stats stay truthful. Same rule as the read above.
+            await this.deactivateExpiredBlocks(ipAddress);
             return false;
         }
 
         return true;
     }
 
-    // Get block info with expiry time for countdown timer
+    // Get block info with expiry time for countdown timer. remainingSeconds is
+    // computed in-DB (extract(epoch from expires_at - now())) so the countdown
+    // reflects the same clock that decides the block, never the client's.
     async getBlockInfo(ipAddress: string): Promise<{ isBlocked: boolean; expiresAt: Date | null; remainingSeconds: number } | null> {
         const db = this.ensureDb();
 
         const [blocked] = await db
-            .select()
+            .select({
+                expiresAt: blockedIPs.expiresAt,
+                remainingSeconds: sql<number>`GREATEST(0, CEIL(EXTRACT(EPOCH FROM (${blockedIPs.expiresAt} - now()))))::int`,
+            })
             .from(blockedIPs)
             .where(
                 and(
                     eq(blockedIPs.ipAddress, ipAddress),
-                    eq(blockedIPs.isActive, true)
+                    eq(blockedIPs.isActive, true),
+                    this.stillBlockedPredicate()
                 )
             )
             .limit(1);
 
-        if (!blocked) return null;
-
-        // Check if block has expired
-        if (blocked.expiresAt && blocked.expiresAt < new Date()) {
-            // Unblock expired IP
-            await db.update(blockedIPs)
-                .set({ isActive: false })
-                .where(eq(blockedIPs.id, blocked.id));
+        if (!blocked) {
+            await this.deactivateExpiredBlocks(ipAddress);
             return null;
         }
-
-        const remainingSeconds = blocked.expiresAt
-            ? Math.max(0, Math.ceil((blocked.expiresAt.getTime() - Date.now()) / 1000))
-            : 0;
 
         return {
             isBlocked: true,
             expiresAt: blocked.expiresAt,
-            remainingSeconds
+            // NULL expires_at (permanent) yields NULL from the extract → 0.
+            remainingSeconds: blocked.remainingSeconds ?? 0,
         };
     }
 
-    // Get all blocked IPs
+    // Deactivate expired blocks. Applies the EXACT same rule the middleware uses
+    // (expires_at <= now(); permanent NULL rows are never touched). Callable for
+    // a single IP (self-heal) or, with no argument, as the periodic cleanup job.
+    // Returns the number of rows lifted. PERMANENT blocks (expires_at IS NULL)
+    // are excluded by construction — they can only be lifted by an explicit
+    // unblockIP().
+    async deactivateExpiredBlocks(ipAddress?: string): Promise<number> {
+        const db = this.ensureDb();
+        const conditions = [
+            eq(blockedIPs.isActive, true),
+            sql`${blockedIPs.expiresAt} IS NOT NULL`,
+            sql`${blockedIPs.expiresAt} <= now()`,
+        ];
+        if (ipAddress) conditions.push(eq(blockedIPs.ipAddress, ipAddress));
+
+        const lifted = await db.update(blockedIPs)
+            .set({ isActive: false })
+            .where(and(...conditions))
+            .returning({ id: blockedIPs.id });
+
+        return lifted.length;
+    }
+
+    // Get all blocked IPs currently in force (temporary-not-yet-expired OR
+    // permanent). Expired-but-still-flagged rows are excluded by the predicate.
     async getBlockedIPs(): Promise<BlockedIP[]> {
         const db = this.ensureDb();
         return await db
             .select()
             .from(blockedIPs)
-            .where(eq(blockedIPs.isActive, true))
+            .where(
+                and(
+                    eq(blockedIPs.isActive, true),
+                    this.stillBlockedPredicate()
+                )
+            )
             .orderBy(desc(blockedIPs.blockedAt));
     }
 
@@ -284,11 +324,12 @@ export class SecurityStorage {
                 )
             );
 
-        // Blocked IPs count
+        // Blocked IPs count — same in-force rule as getBlockedIPs so the number
+        // and the list can never disagree (an expired row is not "blocked").
         const [blockedResult] = await db
             .select({ count: count() })
             .from(blockedIPs)
-            .where(eq(blockedIPs.isActive, true));
+            .where(and(eq(blockedIPs.isActive, true), this.stillBlockedPredicate()));
 
         // Suspicious IPs (multiple failed attempts)
         const suspiciousIPs = await db

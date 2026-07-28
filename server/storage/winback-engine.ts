@@ -12,6 +12,8 @@
 
 import { eq, sql, desc } from "drizzle-orm";
 import { getDb } from "../db.js";
+// Canonical realized-status set, so this eligibility query cannot drift from accounting.
+import { REALIZED_STATUS_SQL } from "../services/accounting-engine.js";
 import {
   users,
   orders,
@@ -77,7 +79,8 @@ export class WinbackEngine {
     const [lastOrder] = await db
       .select()
       .from(orders)
-      .where(sql`${orders.userId} = ${userId} AND ${orders.status} = 'delivered'`)
+      // "Last order they actually RECEIVED" — bound to the canonical realized set.
+      .where(sql`${orders.userId} = ${userId} AND ${orders.status} IN ${REALIZED_STATUS_SQL}`)
       .orderBy(desc(orders.createdAt))
       .limit(1);
 
