@@ -4,6 +4,7 @@ import {
     returnRequests,
     orders,
     orderItems,
+    orderItemsPreMigrationColumns,
     products,
     type InsertReturnRequest,
 } from "../../shared/schema.js";
@@ -46,7 +47,8 @@ export class ReturnsHandler {
 
             // Validate product was in order
             const orderItem = await db
-                .select()
+                // DEPLOYMENT COMPATIBILITY: pre-migration projection. See shared/schema.ts.
+                .select(orderItemsPreMigrationColumns)
                 .from(orderItems)
                 .where(
                     and(

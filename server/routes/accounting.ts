@@ -57,6 +57,7 @@ import {
   lineQuantity,
   orderSubtotal,
   buildCostResolver,
+  buildRelationalLineResolver,
   collectProductIds,
   getOrdersForPeriod,
   buildWhatsappInvoiceBreakdown,
@@ -110,12 +111,19 @@ function getAccountingDb(res: Response): Db | null {
 async function taxReadinessForRange(db: Db, start: Date, end: Date): Promise<TaxReadiness> {
   const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
   const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+  // RED TEAM B-1: the relational snapshot is the declared source of truth for
+  // cost (see the F-3 policy note in accounting-engine.ts). Omitting it here
+  // let the tax gate count a JSONB line as `exact` while the relational row
+  // said `unknown` — two different readiness numbers from one database, with
+  // the weaker one governing period close. It is now built and passed on every
+  // path that produces a readiness figure.
+  const relational = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
   let exactCostLines = 0;
   let estimatedHistoryLines = 0;
   let estimatedReferenceLines = 0;
   let unknownCostLines = 0;
   for (const order of realizedOrders) {
-    const profit = calcOrderProfit(order, costs);
+    const profit = calcOrderProfit(order, costs, undefined, relational.get(order.id));
     exactCostLines += profit.exactCostLines;
     estimatedHistoryLines += profit.estimatedHistoryLines;
     estimatedReferenceLines += profit.estimatedReferenceLines;
@@ -166,6 +174,8 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
       }
     }
     const costs = await buildCostResolver(db, mergedProductIds);
+    // RED TEAM B-1: same source of truth as computePeriodFinancials.
+    const relational = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
 
     let totalRevenue = 0;
     let totalCogs = 0;
@@ -181,7 +191,7 @@ router.get("/summary", async (req: Request, res: Response, next: NextFunction): 
     let unknownCostLines = 0;
 
     for (const order of realizedOrders) {
-      const profit = calcOrderProfit(order, costs);
+      const profit = calcOrderProfit(order, costs, undefined, relational.get(order.id));
       totalRevenue += profit.revenue;
       totalCogs += profit.cogs;
       totalPackaging += profit.packaging;
@@ -523,8 +533,10 @@ router.get("/orders", async (req: Request, res: Response, next: NextFunction): P
     const { start, end } = periodRange(period, from, to);
     const allOrders = await getOrdersForPeriod(db, start, end);
     const costs = await buildCostResolver(db, collectProductIds(allOrders));
+    // RED TEAM B-1: same source of truth as computePeriodFinancials.
+    const relational = await buildRelationalLineResolver(db, new Set(allOrders.map((o) => o.id)));
     const result = allOrders
-      .map((order) => calcOrderProfit(order, costs))
+      .map((order) => calcOrderProfit(order, costs, undefined, relational.get(order.id)))
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     res.json({ success: true, data: result });
@@ -1106,8 +1118,12 @@ router.get("/cost-history/:productId", async (req: Request, res: Response, next:
     if (!db) return;
 
     const { productId } = req.params as { productId: string };
+    // DEPLOYMENT COMPATIBILITY: explicit projection of the pre-migration
+    // columns only. fix_product_cost_history_nullable.sql adds columns that
+    // production does not have yet; a bare select() would query them and fail
+    // on deploy. See the note in accounting-engine.buildCostResolver.
     const history = await db
-      .select()
+      .select(productCostHistoryPreMigrationColumns)
       .from(productCostHistory)
       .where(eq(productCostHistory.productId, productId))
       .orderBy(desc(productCostHistory.effectiveFrom), desc(productCostHistory.createdAt));
@@ -1295,8 +1311,10 @@ router.get("/report-timeseries", async (req: Request, res: Response, next: NextF
     // Realized orders → revenue / cogs / profit per bucket
     const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
     const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+    // RED TEAM B-1: same source of truth as computePeriodFinancials.
+    const relational = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
     for (const order of realizedOrders) {
-      const p = calcOrderProfit(order, costs);
+      const p = calcOrderProfit(order, costs, undefined, relational.get(order.id));
       const b = buckets.get(bucketKey(toDate(order.createdAt)));
       if (!b) continue;
       b.revenue += p.revenue;
@@ -1423,7 +1441,21 @@ router.post("/periods/close", async (req: Request, res: Response, next: NextFunc
     // While any counted line is costed from an estimate rather than an immutable
     // sale-time snapshot, those figures are not filable — the close is refused
     // here as well as in the UI, so a client that ignores the disabled button
-    // still cannot produce a "final" period. Mirrors the production DB trigger.
+    // still cannot produce a "final" period.
+    //
+    // ⚠️ APPLICATION-LEVEL ONLY (Red Team B-7). An earlier version of this
+    // comment claimed this "mirrors the production DB trigger". No such trigger
+    // exists: `grep "CREATE TRIGGER" migrations/*.sql` returns 11 triggers, all
+    // on fulfillment/packaging tables, and none on `accounting_period_closes`,
+    // `orders`, or `expenses`. The claim was removed rather than left to
+    // mislead a reader into trusting a control that is not there.
+    //
+    // Consequence, stated plainly: any writer that does not pass through this
+    // route — drizzle-kit, `db:push`, the MCP server, a psql session, or
+    // another route — can still mutate a row inside a closed period, and the
+    // frozen snapshot will drift silently. `GET /periods` surfaces the drift
+    // after the fact; nothing prevents it. The period-close trigger and the
+    // closed-period check on `POST /expenses` are scheduled with `fiscal_years`.
     const readiness = await taxReadinessForRange(db, range.start, range.end);
     if (!readiness.taxReportReady) {
       res.status(409).json({
@@ -1628,8 +1660,9 @@ router.get("/cost-history-audit", async (_req: Request, res: Response, next: Nex
     }
 
     // Fetch ALL cost history rows
+    // DEPLOYMENT COMPATIBILITY: explicit projection — see above.
     const allHistory = await db
-      .select()
+      .select(productCostHistoryPreMigrationColumns)
       .from(productCostHistory)
       .orderBy(productCostHistory.effectiveFrom);
 
@@ -2023,6 +2056,10 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     // ── 1. Delivered orders + per-product profit ───────────────────────
     const realizedOrders = await getRealizedOrdersForPeriod(db, start, end);
     const costs = await buildCostResolver(db, collectProductIds(realizedOrders));
+    // RED TEAM B-1: same source of truth as computePeriodFinancials. This route
+    // stamps `reportGrade` from the readiness figure, so a divergence here would
+    // mislabel an exported report.
+    const relational = await buildRelationalLineResolver(db, new Set(realizedOrders.map((o) => o.id)));
 
     let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, missingCostLines = 0;
     let exactCostLines = 0, estimatedHistoryLines = 0, estimatedReferenceLines = 0, unknownCostLines = 0;
@@ -2031,7 +2068,7 @@ router.get("/report", async (req: Request, res: Response, next: NextFunction): P
     }> = {};
 
     for (const order of realizedOrders) {
-      const profit = calcOrderProfit(order, costs);
+      const profit = calcOrderProfit(order, costs, undefined, relational.get(order.id));
       totalRevenue += profit.revenue;
       totalCogs += profit.cogs;
       totalPackaging += profit.packaging;
