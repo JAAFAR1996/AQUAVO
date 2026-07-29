@@ -80,6 +80,32 @@ describe("auto order processor stays quarantined", () => {
     expect(updateBody).not.toMatch(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/);
   });
 
+  it("no status-change handler creates a shipment, deducts stock or runs fulfilment", () => {
+    // The admin order route is the only place that reacts to a status change
+    // (admin.ts ~241-345). Its handlers do loyalty points and an IP block —
+    // nothing that could produce a second shipment or stock movement. If that
+    // ever changes, the DB lifecycle guard becomes the only thing standing
+    // between a status edit and duplicated fulfilment, so this test pins it.
+    const admin = read("server/routes/admin.ts");
+    const start = admin.indexOf("const oldStatus = previousOrder?.status");
+    expect(start).toBeGreaterThan(-1);
+    const handlers = admin.slice(start, start + 6000);
+
+    expect(handlers).not.toMatch(/fulfillmentService|createFulfillment|confirmFulfillment/i);
+    expect(handlers).not.toMatch(/stock:\s*\w*\s*[-+]\s*quantity/);
+    expect(handlers).not.toMatch(/inventory_movements|insert\(inventoryMovements\)/i);
+    expect(handlers).not.toMatch(/sendOrderNotification/);
+  });
+
+  it("the new-order notification fires only on creation, never on status change", () => {
+    // A delivered order pushed back to pending must not re-announce itself as a
+    // new order. The call lives in the creation route only.
+    const orders = read("server/routes/orders.ts");
+    expect(orders).toMatch(/sendOrderNotification/);
+    const admin = read("server/routes/admin.ts");
+    expect(admin).not.toMatch(/sendOrderNotification/);
+  });
+
   it("fulfillment declares idempotency against double cost/stock", () => {
     const svc = read("server/services/fulfillment-service.ts");
     expect(svc).toMatch(/never double cost or double stock deduction/i);
