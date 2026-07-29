@@ -253,7 +253,26 @@ LANGUAGE plpgsql
 AS $guard$
 DECLARE
   v_changed boolean;
+  v_old_s   text;
+  v_new_s   text;
 BEGIN
+  -- ── GAP 5: creating an already-realized order ────────────────────────────
+  -- A row inserted straight into a realized state has never been through the
+  -- order lifecycle: no stock reservation, no cost snapshot, no fulfilment.
+  -- Worse, the INSERT guard on order_items_relational would then refuse its own
+  -- lines, leaving an order with amounts and an items JSONB but no line rows.
+  -- The legitimate sequence is: create open -> add lines -> compute -> deliver.
+  IF TG_OP = 'INSERT' THEN
+    IF is_financially_realized_order(NEW.status, NEW.financially_counted) THEN
+      PERFORM raise_financial_history_frozen(
+        format('cannot INSERT an order already in a realized state '
+               '(status=%s, financially_counted=%s). Create the order open, add '
+               'its lines, then transition it.',
+               COALESCE(NEW.status, 'null'), COALESCE(NEW.financially_counted::text, 'null')));
+    END IF;
+    RETURN NEW;
+  END IF;
+
   -- Judged on the OLD row: an order that WAS realized stays governed here.
   IF NOT is_financially_realized_order(OLD.status, OLD.financially_counted) THEN
     RETURN CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
@@ -276,6 +295,39 @@ BEGIN
              'an unrealized state (attempted status=%s, financially_counted=%s)',
              OLD.id, COALESCE(OLD.status, 'unknown'),
              COALESCE(NEW.status, 'unknown'), COALESCE(NEW.financially_counted::text, 'null')));
+  END IF;
+
+  -- ── GAP 6: LIFECYCLE, independent of the money ───────────────────────────
+  -- The rule above is about AMOUNTS. It is not enough on its own, because
+  -- financially_counted=true keeps an order "realized" no matter what status it
+  -- is given — and 39 of 43 production orders carry that flag. So
+  -- delivered -> pending would have passed the money check while returning the
+  -- order to the open pipeline, where it could be picked up for a second
+  -- shipment, a second stock deduction, or a fresh order notification.
+  --
+  -- Delivery is therefore terminal as a LIFECYCLE fact. Once an order has
+  -- reached a delivered/returned state it may only move within that set.
+  --
+  -- The permitted targets are taken from what the system actually does, not
+  -- invented: 'returned' is present in production data (2 orders), and
+  -- 'rejected_returned' is classified as a post-delivery return outcome by the
+  -- accounting reader (RETURN_STATUSES in server/routes/accounting.ts), though
+  -- no row currently uses it. Reversing a return (returned -> delivered) is NOT
+  -- permitted; no code path performs it.
+  --
+  -- Carrier, cod_received, payment status and addresses stay editable WITHOUT a
+  -- status change, so genuine post-delivery collection work is unaffected.
+  v_old_s := lower(btrim(COALESCE(OLD.status, '')));
+  v_new_s := lower(btrim(COALESCE(NEW.status, '')));
+
+  IF v_old_s IN ('delivered', 'returned', 'rejected_returned')
+     AND v_new_s IS DISTINCT FROM v_old_s
+     AND v_new_s NOT IN ('returned', 'rejected_returned') THEN
+    PERFORM raise_financial_history_frozen(
+      format('order %s has reached the terminal state "%s"; moving it to "%s" would '
+             'return it to the open pipeline and risk a second shipment, a second '
+             'stock deduction or a duplicate notification. Permitted targets: '
+             'returned, rejected_returned.', OLD.id, v_old_s, v_new_s));
   END IF;
 
   v_changed :=
@@ -307,7 +359,7 @@ $guard$;
 DROP TRIGGER IF EXISTS order_financial_history_immutable ON orders;
 
 CREATE TRIGGER order_financial_history_immutable
-  BEFORE UPDATE OR DELETE ON orders
+  BEFORE INSERT OR UPDATE OR DELETE ON orders
   FOR EACH ROW
   EXECUTE FUNCTION guard_order_financial_history();
 

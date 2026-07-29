@@ -499,6 +499,135 @@ describe("ATTACK 4 — edit with non-exact cost", () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LIFECYCLE — separate from the money.
+//
+// financially_counted=true keeps an order "realized" whatever status it is
+// given, and 39 of 43 production orders carry that flag. So the money rule
+// alone would have permitted delivered -> pending: amounts frozen, but the
+// order back in the open pipeline, eligible for a second shipment, a second
+// stock deduction, or a duplicate notification.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("LIFECYCLE — delivery is terminal, even with financially_counted=true", () => {
+  let pg: PGlite;
+  beforeEach(async () => {
+    pg = await db();
+    // The exact production shape: delivered AND explicitly counted.
+    await pg.exec(`UPDATE orders SET financially_counted=true WHERE id='o-done'`);
+  });
+
+  for (const target of ["pending", "confirmed", "processing", "shipped",
+                        "cancelled", "rejected", "rejected_carrier"]) {
+    it(`refuses delivered + financially_counted=true -> ${target}`, async () => {
+      await expect(pg.exec(`UPDATE orders SET status='${target}' WHERE id='o-done'`))
+        .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+    });
+  }
+
+  it("ALLOWS delivered -> returned", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    const r = await pg.query<{ status: string }>(`SELECT status FROM orders WHERE id='o-done'`);
+    expect(r.rows[0].status).toBe("returned");
+  });
+
+  it("ALLOWS delivered -> rejected_returned", async () => {
+    await pg.exec(`UPDATE orders SET status='rejected_returned' WHERE id='o-done'`);
+    const r = await pg.query<{ status: string }>(`SELECT status FROM orders WHERE id='o-done'`);
+    expect(r.rows[0].status).toBe("rejected_returned");
+  });
+
+  it("refuses returned -> pending", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    await expect(pg.exec(`UPDATE orders SET status='pending' WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("refuses returned -> delivered (a return is not reversible)", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    await expect(pg.exec(`UPDATE orders SET status='delivered' WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("ALLOWS carrier alone", async () => {
+    await pg.exec(`UPDATE orders SET carrier='alsaqr' WHERE id='o-done'`);
+    const r = await pg.query<{ carrier: string }>(`SELECT carrier FROM orders WHERE id='o-done'`);
+    expect(r.rows[0].carrier).toBe("alsaqr");
+  });
+
+  it("ALLOWS cod_received alone", async () => {
+    await pg.exec(`UPDATE orders SET cod_received=true WHERE id='o-done'`);
+    const r = await pg.query<{ cod_received: boolean }>(
+      `SELECT cod_received FROM orders WHERE id='o-done'`);
+    expect(r.rows[0].cod_received).toBe(true);
+  });
+
+  it("after a refused transition, status, money and lines are unchanged", async () => {
+    const before = await pg.query<Record<string, unknown>>(
+      `SELECT o.status, o.rounded_total, oi.price_at_purchase, oi.quantity
+       FROM orders o JOIN order_items_relational oi ON oi.order_id=o.id WHERE o.id='o-done'`);
+    await expect(pg.exec(`UPDATE orders SET status='processing' WHERE id='o-done'`)).rejects.toThrow();
+    const after = await pg.query<Record<string, unknown>>(
+      `SELECT o.status, o.rounded_total, oi.price_at_purchase, oi.quantity
+       FROM orders o JOIN order_items_relational oi ON oi.order_id=o.id WHERE o.id='o-done'`);
+    expect(after.rows[0]).toEqual(before.rows[0]);
+  });
+});
+
+describe("LIFECYCLE — an order cannot be CREATED already realized", () => {
+  let pg: PGlite;
+  beforeEach(async () => { pg = await db(); });
+
+  const mkOrder = (id: string, status: string, fc: string) => `
+    INSERT INTO orders (id, status, financially_counted, total, rounded_total,
+                        shipping_cost, box_cost, discount_total, items, customer_name)
+    VALUES ('${id}', '${status}', ${fc}, 25000, 25000, 5000, 0, 0,
+            '[{"productId":"p1","quantity":1,"priceAtPurchase":20000}]'::jsonb, 'X')`;
+
+  it("ALLOWS creating a pending order", async () => {
+    await pg.exec(mkOrder("n-open", "pending", "NULL"));
+    const r = await pg.query<{ n: number }>(`SELECT count(*)::int AS n FROM orders WHERE id='n-open'`);
+    expect(r.rows[0].n).toBe(1);
+  });
+
+  it("REFUSES creating a delivered order", async () => {
+    await expect(pg.exec(mkOrder("n-del", "delivered", "NULL")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES creating a returned order", async () => {
+    await expect(pg.exec(mkOrder("n-ret", "returned", "NULL")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES creating a pending order with financially_counted=true", async () => {
+    await expect(pg.exec(mkOrder("n-fc", "pending", "true")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("a refused order INSERT leaves no order and no lines", async () => {
+    const before = await pg.query<{ o: number; l: number }>(
+      `SELECT (SELECT count(*)::int FROM orders) o, (SELECT count(*)::int FROM order_items_relational) l`);
+    await expect(pg.exec(mkOrder("ghost", "delivered", "true"))).rejects.toThrow();
+    const after = await pg.query<{ o: number; l: number }>(
+      `SELECT (SELECT count(*)::int FROM orders) o, (SELECT count(*)::int FROM order_items_relational) l`);
+    expect(after.rows[0]).toEqual(before.rows[0]);
+  });
+
+  it("the create-open-then-deliver sequence works — the real order lifecycle", async () => {
+    // This is what the website and manual-invoice paths do, so they are
+    // unaffected by the INSERT guard.
+    await pg.exec(mkOrder("n-flow", "pending", "NULL"));
+    await pg.exec(`INSERT INTO order_items_relational
+      (id, order_id, product_id, quantity, price_at_purchase, total_price, cost_snapshot_status)
+      VALUES ('n-flow-l', 'n-flow', 'p1', 1, 20000, 20000, 'unknown')`);
+    await pg.exec(`UPDATE orders SET status='delivered' WHERE id='n-flow'`);
+    // ...and it is frozen from that point on.
+    await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='n-flow-l'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+});
+
 describe("migration hygiene", () => {
   it("is idempotent and rolls back cleanly", async () => {
     const pg = await db();

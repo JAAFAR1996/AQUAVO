@@ -63,6 +63,29 @@ describe("auto order processor stays quarantined", () => {
     }
   });
 
+  it("no reprocessing path keys off an order status transition", () => {
+    // Companion to the DB lifecycle guard. Even before that guard, stock is
+    // deducted ONLY inside createOrderSecure (order-storage.ts), never in a
+    // status-change handler — so moving an order between statuses cannot
+    // deduct stock a second time. This test fails if a future change starts
+    // deducting stock from a status handler, which would make the lifecycle
+    // guard load-bearing for stock correctness rather than merely belt-and-braces.
+    const orderStorage = read("server/storage/order-storage.ts");
+    const deductions = orderStorage.match(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/g) ?? [];
+    expect(deductions.length).toBeGreaterThan(0);
+
+    // updateOrder is the status-change path. It must not touch product stock.
+    const updateFn = orderStorage.slice(orderStorage.indexOf("async updateOrder"));
+    const updateBody = updateFn.slice(0, updateFn.indexOf("\n    async ") + 1 || 4000);
+    expect(updateBody).not.toMatch(/stock:\s*(?:currentStock|variantStock)\s*-\s*quantity/);
+  });
+
+  it("fulfillment declares idempotency against double cost/stock", () => {
+    const svc = read("server/services/fulfillment-service.ts");
+    expect(svc).toMatch(/never double cost or double stock deduction/i);
+    expect(svc).toMatch(/idem/i);
+  });
+
   it("still carries the deprecation marker explaining WHY", () => {
     // If someone deletes the explanation, the next reader may "fix" the throw.
     expect(source).toMatch(/@deprecated\s+QUARANTINED/);
