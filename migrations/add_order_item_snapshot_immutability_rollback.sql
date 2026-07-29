@@ -23,9 +23,14 @@ DROP TRIGGER IF EXISTS order_item_financial_history_immutable ON order_items_rel
 -- Legacy name from the first design, in case an older version was applied.
 DROP TRIGGER IF EXISTS order_item_cost_snapshot_immutable ON order_items_relational;
 
+DROP TRIGGER IF EXISTS fca_append_only ON financial_correction_audit;
+DROP TRIGGER IF EXISTS fcr_append_only ON financial_correction_requests;
+
 DROP FUNCTION IF EXISTS guard_order_financial_history();
 DROP FUNCTION IF EXISTS guard_order_item_financial_history();
 DROP FUNCTION IF EXISTS guard_order_item_cost_snapshot();
+DROP FUNCTION IF EXISTS guard_correction_tables_append_only();
+DROP FUNCTION IF EXISTS raise_financial_history_frozen(text);
 DROP FUNCTION IF EXISTS assert_financial_correction_authorized(text, text, text);
 DROP FUNCTION IF EXISTS is_financially_realized_order(text, boolean);
 
@@ -66,7 +71,8 @@ BEGIN
   WHERE NOT tgisinternal
     AND tgname IN ('order_item_financial_history_immutable',
                    'order_financial_history_immutable',
-                   'order_item_cost_snapshot_immutable');
+                   'order_item_cost_snapshot_immutable',
+                   'fca_append_only', 'fcr_append_only');
   IF n <> 0 THEN
     RAISE EXCEPTION 'ROLLBACK INCOMPLETE: % trigger(s) still present', n;
   END IF;

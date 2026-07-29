@@ -49,7 +49,14 @@ const BASE = `
   );
 `;
 
-/** Seeds one OPEN order and one REALIZED order, both with NON-exact costs. */
+/**
+ * Seeds one OPEN order and one REALIZED order, both with NON-exact costs.
+ *
+ * Follows the real lifecycle: both orders are created 'pending', their lines
+ * are written, and only then is one delivered. Seeding a delivered order and
+ * THEN inserting its lines is now (correctly) refused by the INSERT guard —
+ * which is exactly the hole this revision closes.
+ */
 const SEED = `
   INSERT INTO products (id, price, cost_price) VALUES ('p1', 20000, 5000);
 
@@ -58,11 +65,11 @@ const SEED = `
   VALUES
     ('o-open', 'pending', 25000, 25000, 5000, 0, 0,
       '[{"productId":"p1","quantity":1,"priceAtPurchase":20000}]'::jsonb, 'OPEN'),
-    ('o-done', 'delivered', 25000, 25000, 5000, 0, 0,
+    ('o-done', 'pending', 25000, 25000, 5000, 0, 0,
       '[{"productId":"p1","quantity":1,"priceAtPurchase":20000}]'::jsonb, 'DONE');
 
-  -- UNKNOWN cost on the realized order, INCOMPLETE on the open one:
-  -- neither is 'exact', which is the whole point.
+  -- UNKNOWN cost on the order that will be realized, INCOMPLETE on the open
+  -- one: neither is 'exact', which is the whole point.
   INSERT INTO order_items_relational
     (id, order_id, product_id, quantity, price_at_purchase, total_price,
      unit_cost_price, unit_packaging_cost, unit_insert_cost,
@@ -70,6 +77,9 @@ const SEED = `
   VALUES
     ('l-open', 'o-open', 'p1', 1, 20000, 20000, 5000, NULL, NULL, 'incomplete', 'product_current'),
     ('l-done', 'o-done', 'p1', 1, 20000, 20000, NULL, NULL, NULL, 'unknown', 'none');
+
+  -- pending -> delivered is a legitimate forward transition and freezes the order.
+  UPDATE orders SET status = 'delivered' WHERE id = 'o-done';
 `;
 
 async function db(): Promise<PGlite> {
@@ -164,13 +174,13 @@ describe("(2,3) a REALIZED order is frozen — with an UNKNOWN cost", () => {
     it(`refuses to change ${field}`, async () => {
       await expect(
         pg.exec(`UPDATE order_items_relational ${setClause} WHERE id='l-done'`)
-      ).rejects.toThrow(/immutable/i);
+      ).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
     });
   }
 
   it("refuses DELETE of a realized line", async () => {
     await expect(pg.exec(`DELETE FROM order_items_relational WHERE id='l-done'`))
-      .rejects.toThrow(/immutable/i);
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 
   it("still allows a NON-financial edit (metadata)", async () => {
@@ -187,14 +197,14 @@ describe("(4) protection holds for an INCOMPLETE cost too", () => {
     await pg.exec(`UPDATE orders SET status='delivered' WHERE id='o-open'`);
     // l-open is 'incomplete' — the most common real production shape.
     await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-open'`))
-      .rejects.toThrow(/immutable/i);
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 
   it("freezes via financially_counted even while status is pending", async () => {
     const pg = await db();
     await pg.exec(`UPDATE orders SET financially_counted = true WHERE id='o-open'`);
     await expect(pg.exec(`UPDATE order_items_relational SET quantity=9 WHERE id='l-open'`))
-      .rejects.toThrow(/immutable/i);
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 });
 
@@ -230,7 +240,7 @@ describe("(6,7) order-level financial fields are protected", () => {
   for (const [field, setClause] of orderFields) {
     it(`refuses to change orders.${field}`, async () => {
       await expect(pg.exec(`UPDATE orders ${setClause} WHERE id='o-done'`))
-        .rejects.toThrow(/immutable/i);
+        .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
     });
   }
 
@@ -245,7 +255,7 @@ describe("(6,7) order-level financial fields are protected", () => {
     // Judged on the OLD row, so this cannot launder an edit.
     await expect(
       pg.exec(`UPDATE orders SET status='pending', rounded_total=1 WHERE id='o-done'`)
-    ).rejects.toThrow(/immutable/i);
+    ).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 });
 
@@ -255,83 +265,240 @@ describe("(9) a return does not reopen the original sale", () => {
     const pg = await db();
     await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
     await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done'`))
-      .rejects.toThrow(/immutable/i);
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
     await expect(pg.exec(`UPDATE orders SET rounded_total=1 WHERE id='o-done'`))
-      .rejects.toThrow(/immutable/i);
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 });
 
 // ───────────────────────────────────────────────────────────────────────────
-describe("(10) the correction path is the ONLY way through", () => {
+describe("(10) PHASE 1A HAS NO BYPASS — nothing unlocks a realized order", () => {
   let pg: PGlite;
   beforeEach(async () => { pg = await db(); });
 
-  it("a bare session GUC authorizes nothing", async () => {
-    // The GUC only names a correction id. Authority comes from an approved row.
+  it("a session GUC unlocks nothing", async () => {
     await expect(pg.exec(`
       SET LOCAL aquavo.correction_id = 'CR-1';
       UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done';
-    `)).rejects.toThrow(/immutable/i);
+    `)).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 
-  it("an UNAPPROVED correction request is refused", async () => {
+  it("an APPROVED correction row still unlocks nothing", async () => {
+    // The previous design accepted this. Withdrawn because the workflow never
+    // stamped applied_at, never checked field/old/new against the actual
+    // change, and could be replayed — so one approved request authorized any
+    // field, to any value, any number of times.
     await pg.exec(`INSERT INTO financial_correction_requests
-      (correction_id, order_id, order_item_id, table_name, field_name, reason, requested_by)
-      VALUES ('CR-2','o-done','l-done','order_items_relational','price_at_purchase','typo','me')`);
+      (correction_id, order_id, order_item_id, table_name, field_name, old_value, new_value,
+       reason, requested_by, approved_by, approved_at)
+      VALUES ('CR-2','o-done','l-done','order_items_relational','price_at_purchase','20000','19000',
+              'supplier invoice','data-reviewer','accountant',now())`);
     await expect(pg.exec(`
       SET LOCAL aquavo.correction_id = 'CR-2';
-      UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done';
-    `)).rejects.toThrow(/immutable/i);
-  });
-
-  it("an approved request for a DIFFERENT order does not authorize this one", async () => {
-    await pg.exec(`INSERT INTO financial_correction_requests
-      (correction_id, order_id, table_name, field_name, reason, requested_by, approved_by, approved_at)
-      VALUES ('CR-3','o-open','order_items_relational','price_at_purchase','x','me','boss',now())`);
-    await expect(pg.exec(`
-      SET LOCAL aquavo.correction_id = 'CR-3';
-      UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done';
-    `)).rejects.toThrow(/immutable/i);
-  });
-
-  it("an APPROVED, matching request succeeds and records before/after evidence", async () => {
-    await pg.exec(`INSERT INTO financial_correction_requests
-      (correction_id, order_id, order_item_id, table_name, field_name, reason,
-       requested_by, approved_by, approved_at, evidence_document_id)
-      VALUES ('CR-4','o-done','l-done','order_items_relational','price_at_purchase',
-              'supplier invoice proves 19000','data-reviewer','accountant',now(),'DOC-1')`);
-    await pg.exec(`
-      SET LOCAL aquavo.correction_id = 'CR-4';
       UPDATE order_items_relational SET price_at_purchase=19000 WHERE id='l-done';
-    `);
-    const ev = await pg.query<{ correction_id: string; before_row: { price_at_purchase: string } }>(
-      `SELECT correction_id, before_row FROM financial_correction_audit`);
-    expect(ev.rows).toHaveLength(1);
-    expect(ev.rows[0].correction_id).toBe("CR-4");
-    // The ORIGINAL value survives — §11 "احتفظ بالرقم السابق".
-    expect(Number(ev.rows[0].before_row.price_at_purchase)).toBe(20000);
+    `)).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 
-  it("authorization does not leak into a later transaction", async () => {
-    await pg.exec(`INSERT INTO financial_correction_requests
-      (correction_id, order_id, table_name, field_name, reason, requested_by, approved_by, approved_at)
-      VALUES ('CR-5','o-done','order_items_relational','price_at_purchase','x','me','boss',now())`);
-    await pg.exec(`
-      SET LOCAL aquavo.correction_id = 'CR-5';
-      UPDATE order_items_relational SET price_at_purchase=18000 WHERE id='l-done';
-    `);
-    await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done'`))
-      .rejects.toThrow(/immutable/i);
+  it("the guard functions read no session setting at all", async () => {
+    const r = await pg.query<{ n: number }>(`
+      SELECT count(*)::int AS n FROM pg_proc
+      WHERE proname IN ('guard_order_item_financial_history','guard_order_financial_history')
+        AND prosrc ILIKE '%current_setting%'`);
+    expect(r.rows[0].n).toBe(0);
   });
 
-  it("a correction request cannot be recorded without a reason", async () => {
+  it("a request cannot be self-approved", async () => {
     await expect(pg.exec(`INSERT INTO financial_correction_requests
+      (correction_id, order_id, table_name, field_name, reason, requested_by, approved_by, approved_at)
+      VALUES ('CR-3','o-done','orders','total','x','same','same',now())`)).rejects.toThrow();
+  });
+
+  it("correction audit rows cannot be updated or deleted", async () => {
+    await pg.exec(`INSERT INTO financial_correction_audit
+      (correction_id, table_name, row_id, operation, before_row)
+      VALUES ('CR-4','orders','o-done','update','{}'::jsonb)`);
+    await expect(pg.exec(`UPDATE financial_correction_audit SET row_id='x'`))
+      .rejects.toThrow(/append-only/i);
+    await expect(pg.exec(`DELETE FROM financial_correction_audit`))
+      .rejects.toThrow(/append-only/i);
+  });
+
+  it("correction requests cannot be deleted", async () => {
+    await pg.exec(`INSERT INTO financial_correction_requests
       (correction_id, order_id, table_name, field_name, reason, requested_by)
-      VALUES ('CR-6','o-done','orders','total','   ','me')`)).rejects.toThrow();
+      VALUES ('CR-5','o-done','orders','total','x','me')`);
+    await expect(pg.exec(`DELETE FROM financial_correction_requests`))
+      .rejects.toThrow(/append-only/i);
   });
 });
 
-// ───────────────────────────────────────────────────────────────────────────
+describe("ATTACK 1 — unfreeze then edit", () => {
+  let pg: PGlite;
+  beforeEach(async () => { pg = await db(); });
+
+  for (const [label, stmt] of [
+    ["delivered -> pending",   `UPDATE orders SET status='pending' WHERE id='o-done'`],
+    ["delivered -> confirmed", `UPDATE orders SET status='confirmed' WHERE id='o-done'`],
+    ["delivered -> cancelled", `UPDATE orders SET status='cancelled' WHERE id='o-done'`],
+  ] as Array<[string, string]>) {
+    it(`refuses ${label}`, async () => {
+      await expect(pg.exec(stmt)).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+    });
+  }
+
+  it("refuses returned -> processing", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    await expect(pg.exec(`UPDATE orders SET status='processing' WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("refuses rejected_returned -> pending", async () => {
+    await pg.exec(`UPDATE orders SET status='rejected_returned' WHERE id='o-done'`);
+    await expect(pg.exec(`UPDATE orders SET status='pending' WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("refuses financially_counted true -> false when it was the reason", async () => {
+    await pg.exec(`UPDATE orders SET financially_counted=true WHERE id='o-open'`);
+    await expect(pg.exec(`UPDATE orders SET financially_counted=false WHERE id='o-open'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("ALLOWS delivered -> returned (both states remain realized)", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    const r = await pg.query<{ status: string }>(`SELECT status FROM orders WHERE id='o-done'`);
+    expect(r.rows[0].status).toBe("returned");
+  });
+
+  it("carrier / cod_received do not unfreeze anything", async () => {
+    await pg.exec(`UPDATE orders SET carrier='x', cod_received=true WHERE id='o-done'`);
+    await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("the two-step attack fails atomically and changes nothing", async () => {
+    await expect(pg.exec(`
+      UPDATE orders SET status='pending' WHERE id='o-done';
+      UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done';
+    `)).rejects.toThrow();
+    const r = await pg.query<{ status: string; price_at_purchase: string }>(
+      `SELECT o.status, oi.price_at_purchase FROM orders o
+       JOIN order_items_relational oi ON oi.order_id=o.id WHERE o.id='o-done'`);
+    expect(r.rows[0].status).toBe("delivered");
+    expect(Number(r.rows[0].price_at_purchase)).toBe(20000);
+  });
+});
+
+describe("ATTACK 2 — INSERT a line into a realized order", () => {
+  let pg: PGlite;
+  beforeEach(async () => { pg = await db(); });
+
+  const insertLine = (orderId: string, id: string) => `
+    INSERT INTO order_items_relational
+      (id, order_id, product_id, quantity, price_at_purchase, total_price, cost_snapshot_status)
+    VALUES ('${id}', '${orderId}', 'p1', 5, 99999, 499995, 'unknown')`;
+
+  it("ALLOWS a line on a pending order", async () => {
+    await pg.exec(insertLine("o-open", "new-open"));
+    const r = await pg.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM order_items_relational WHERE id='new-open'`);
+    expect(r.rows[0].n).toBe(1);
+  });
+
+  it("REFUSES a line on a delivered order", async () => {
+    await expect(pg.exec(insertLine("o-done", "new-done")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES a line on a returned order", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    await expect(pg.exec(insertLine("o-done", "new-ret")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES a line on a financially_counted order", async () => {
+    await pg.exec(`UPDATE orders SET financially_counted=true WHERE id='o-open'`);
+    await expect(pg.exec(insertLine("o-open", "new-fc")))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("a refused INSERT leaves no partial row and no totals change", async () => {
+    const before = await pg.query<{ n: number; total: string }>(
+      `SELECT (SELECT count(*)::int FROM order_items_relational) AS n,
+              (SELECT rounded_total FROM orders WHERE id='o-done') AS total`);
+    await expect(pg.exec(insertLine("o-done", "ghost"))).rejects.toThrow();
+    const after = await pg.query<{ n: number; total: string }>(
+      `SELECT (SELECT count(*)::int FROM order_items_relational) AS n,
+              (SELECT rounded_total FROM orders WHERE id='o-done') AS total`);
+    expect(after.rows[0].n).toBe(before.rows[0].n);
+    expect(after.rows[0].total).toBe(before.rows[0].total);
+  });
+
+  it("re-parenting an open line onto a realized order is refused", async () => {
+    await expect(pg.exec(`UPDATE order_items_relational SET order_id='o-done' WHERE id='l-open'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+});
+
+describe("ATTACK 3 — delete realized data", () => {
+  let pg: PGlite;
+  beforeEach(async () => { pg = await db(); });
+
+  it("REFUSES DELETE of a delivered order", async () => {
+    await expect(pg.exec(`DELETE FROM orders WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES DELETE of a returned order", async () => {
+    await pg.exec(`UPDATE orders SET status='returned' WHERE id='o-done'`);
+    await expect(pg.exec(`DELETE FROM orders WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("REFUSES DELETE of a realized order LINE", async () => {
+    await expect(pg.exec(`DELETE FROM order_items_relational WHERE id='l-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("no delete path erases the financial evidence", async () => {
+    await expect(pg.exec(`DELETE FROM orders`)).rejects.toThrow();
+    const r = await pg.query<{ orders: number; lines: number }>(
+      `SELECT (SELECT count(*)::int FROM orders) AS orders,
+              (SELECT count(*)::int FROM order_items_relational) AS lines`);
+    expect(r.rows[0].orders).toBe(2);
+    expect(r.rows[0].lines).toBe(2);
+  });
+
+  it("ALLOWS deleting an open order (normal behaviour preserved)", async () => {
+    await pg.exec(`DELETE FROM order_items_relational WHERE id='l-open'`);
+    await pg.exec(`DELETE FROM orders WHERE id='o-open'`);
+    const r = await pg.query<{ n: number }>(`SELECT count(*)::int AS n FROM orders`);
+    expect(r.rows[0].n).toBe(1);
+  });
+});
+
+describe("ATTACK 4 — edit with non-exact cost", () => {
+  let pg: PGlite;
+  beforeEach(async () => { pg = await db(); });
+
+  it("price_at_purchase frozen with cost_snapshot_status='unknown'", async () => {
+    await expect(pg.exec(`UPDATE order_items_relational SET price_at_purchase=1 WHERE id='l-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("total_price frozen with cost_snapshot_status='incomplete'", async () => {
+    await pg.exec(`UPDATE orders SET status='delivered' WHERE id='o-open'`);
+    await expect(pg.exec(`UPDATE order_items_relational SET total_price=1 WHERE id='l-open'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+
+  it("orders.items cannot be rewritten after a failed unfreeze", async () => {
+    await expect(pg.exec(`UPDATE orders SET status='pending' WHERE id='o-done'`)).rejects.toThrow();
+    await expect(pg.exec(`UPDATE orders SET items='[]'::jsonb WHERE id='o-done'`))
+      .rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
+  });
+});
+
 describe("migration hygiene", () => {
   it("is idempotent and rolls back cleanly", async () => {
     const pg = await db();

@@ -387,7 +387,7 @@ describe("PHASE 1A — order creation AFTER the migrations are applied", () => {
     // regardless, which is the whole point of the corrected design.
     await expect(
       pg.exec(`UPDATE order_items_relational SET price_at_purchase = 1`),
-    ).rejects.toThrow(/immutable/i);
+    ).rejects.toThrow(/FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED/);
   });
 
   it("SCOPE STATEMENT: this does NOT prove end-to-end §11 protection", () => {

@@ -3,38 +3,38 @@
 --
 -- MISSION §11 — "ممنوع إعادة حساب الماضي".
 --
--- WHAT CHANGED, AND WHY (design correction before production)
--- -----------------------------------------------------------
--- The first version of this migration froze a line only when its cost snapshot
--- was 'exact' or 'verified_zero'. Read-only inspection of production then
--- showed that 0 of 114 active products can currently produce either status:
--- 29 have a known purchase cost, but packaging_cost_resolution and
--- insert_cost_resolution are 'unresolved' for ALL of them, so every real line
--- lands as 'incomplete' or 'unknown'.
+-- DESIGN HISTORY (both corrections made before production)
+-- --------------------------------------------------------
+-- v1 froze a line only when its cost snapshot was 'exact'/'verified_zero'.
+-- Production has 0 of 114 active products able to produce either status, so it
+-- protected nothing: price_at_purchase, quantity and total_price were editable
+-- on every order in the database.
 --
--- The practical effect was that the guard protected nothing:
--- `price_at_purchase`, `quantity` and `total_price` were editable on every
--- order in the database.
+-- v2 rebound the freeze to the ORDER'S financial state. Review then found four
+-- remaining routes to rewriting history, all closed here:
+--   (1) UNFREEZE — flipping delivered -> pending in one statement, then editing
+--       freely in the next. The freeze was evaluated per-statement, not sticky.
+--   (2) INSERT — the guard covered UPDATE/DELETE only, so a brand-new line
+--       could be appended to a delivered order, inventing revenue.
+--   (3) DELETE — an entire realized order could be removed, taking its lines
+--       (and the financial evidence) with it.
+--   (4) CORRECTION BYPASS — a session GUC plus an approved row unlocked edits,
+--       but the workflow was incomplete: applied_at was never stamped, a
+--       correction_id could be replayed, and the request's field/old/new values
+--       were never checked against the actual change, so a request to fix one
+--       field authorized changing any field to any value.
 --
--- The freeze is therefore rebound to the ORDER'S FINANCIAL STATE, not to cost
--- completeness. An unknown COST must remain honestly unknown — but that is no
--- licence to rewrite the SALE price or the quantity that was actually shipped.
+-- PHASE 1A POSITION: THERE IS NO BYPASS. Every financial mutation of a realized
+-- order is refused, unconditionally. No GUC, no session flag, no role, no
+-- approved row opens it. The correction tables ship as future structure only
+-- and are deliberately NOT consulted by any trigger.
+-- The audited correction path arrives in a separate migration and must satisfy
+-- the requirements listed at the bottom of this file before it is enabled.
 --
--- FROZEN WHEN (mirrors isFinanciallyRealizedOrder in shared/order-financials.ts;
--- the two must not drift):
---     orders.status = 'delivered'                      (REALIZED_STATUSES)
---  OR orders.status IN ('returned','rejected_returned') (post-delivery; makes
---                                                        the freeze sticky, so a
---                                                        return cannot reopen the
---                                                        original sale)
---  OR orders.financially_counted IS TRUE                (explicit operator include)
---
--- NOT frozen: pending / confirmed / processing / shipped / cancelled /
--- rejected / rejected_carrier — ordinary order editing keeps working.
---
--- Also fixes (Red Team M-5): order_items_cost_status_chk omitted
--- 'verified_zero', a value the TypeScript type and buildProductCostSnapshot
--- both emit.
+-- FROZEN WHEN (mirrors isFinanciallyRealizedOrder in shared/order-financials.ts):
+--     orders.status = 'delivered'
+--  OR orders.status IN ('returned','rejected_returned')
+--  OR orders.financially_counted IS TRUE
 --
 -- EXECUTION CONTRACT: no top-level BEGIN/COMMIT — the executor wraps the file.
 -- Idempotent. NOT APPLIED TO PRODUCTION BY THIS CHANGE.
@@ -52,8 +52,7 @@ ALTER TABLE order_items_relational
     OR cost_snapshot_status IN ('exact', 'verified_zero', 'estimated', 'incomplete', 'unknown')
   ) NOT VALID;
 
--- ── 2. The shared realization predicate, in SQL ────────────────────────────
--- One definition, used by every guard below. IMMUTABLE so it can be inlined.
+-- ── 2. The shared realization predicate ────────────────────────────────────
 CREATE OR REPLACE FUNCTION is_financially_realized_order(
   p_status text,
   p_financially_counted boolean
@@ -69,10 +68,9 @@ COMMENT ON FUNCTION is_financially_realized_order(text, boolean) IS
   'Mirrors isFinanciallyRealizedOrder() in shared/order-financials.ts. Freezing '
   'depends on the ORDER''S financial state, never on cost completeness.';
 
--- ── 3. Correction-request ledger (fail-closed) ─────────────────────────────
--- The full correction UI is out of scope for Phase 1A. What ships now is the
--- evidence table plus a guard that refuses every unapproved edit, so history
--- cannot be rewritten while the workflow is still being built.
+-- ── 3. Correction tables — FUTURE STRUCTURE, INERT IN PHASE 1A ─────────────
+-- Created so the shape is settled and reviewable. NO trigger reads them, so a
+-- row here grants nothing. See FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED.
 CREATE TABLE IF NOT EXISTS financial_correction_requests (
   correction_id        text PRIMARY KEY,
   order_id             text NOT NULL,
@@ -95,13 +93,16 @@ CREATE TABLE IF NOT EXISTS financial_correction_requests (
     (approved_by IS NULL AND approved_at IS NULL)
     OR (approved_by IS NOT NULL AND approved_at IS NOT NULL)
   ),
-  CONSTRAINT fcr_reason_nonblank CHECK (btrim(reason) <> '')
+  CONSTRAINT fcr_reason_nonblank CHECK (btrim(reason) <> ''),
+  -- An approver who is also the requester is not an approval.
+  CONSTRAINT fcr_separate_approver CHECK (approved_by IS NULL OR approved_by <> requested_by)
 );
 
 COMMENT ON TABLE financial_correction_requests IS
-  'Append-only evidence for every authorized change to realized financial data. '
-  'A correction that left no row here did not happen through the approved path. '
-  'Mission §11 "تصحيح خطأ تاريخي".';
+  'FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED — Phase 1A ships this table as '
+  'future structure only. No trigger consults it; inserting an approved row '
+  'grants no permission whatsoever. The enabling migration must first guarantee '
+  'single-use, atomic applied_at, and table/row/field/old/new matching.';
 
 CREATE TABLE IF NOT EXISTS financial_correction_audit (
   id            bigserial PRIMARY KEY,
@@ -116,77 +117,96 @@ CREATE TABLE IF NOT EXISTS financial_correction_audit (
   CONSTRAINT fca_op_chk CHECK (operation IN ('update', 'delete'))
 );
 
--- ── 4. Authorization check ─────────────────────────────────────────────────
--- Deliberately NOT a bare session flag. The GUC only names a correction id; the
--- authority comes from a row that must already exist, be approved, and match
--- this exact order. A forgotten `SET` authorizes nothing on its own.
-CREATE OR REPLACE FUNCTION assert_financial_correction_authorized(
-  p_order_id text,
-  p_row_id   text,
-  p_table    text
-) RETURNS text
+-- Append-only, enforced. An audit trail that can be edited is not evidence.
+CREATE OR REPLACE FUNCTION guard_correction_tables_append_only()
+RETURNS trigger
 LANGUAGE plpgsql
 AS $$
-DECLARE
-  v_correction_id text;
-  v_ok            boolean;
 BEGIN
-  v_correction_id := NULLIF(btrim(current_setting('aquavo.correction_id', true)), '');
-  IF v_correction_id IS NULL THEN
-    RETURN NULL;
-  END IF;
-
-  SELECT true INTO v_ok
-  FROM financial_correction_requests r
-  WHERE r.correction_id = v_correction_id
-    AND r.order_id      = p_order_id
-    AND r.table_name    = p_table
-    AND r.approved_by   IS NOT NULL
-    AND r.approved_at   IS NOT NULL
-    AND r.applied_at    IS NULL
-    AND (r.order_item_id IS NULL OR r.order_item_id = p_row_id)
-  LIMIT 1;
-
-  IF COALESCE(v_ok, false) THEN
-    RETURN v_correction_id;
-  END IF;
-  RETURN NULL;
+  RAISE EXCEPTION
+    '% is append-only: UPDATE and DELETE are not permitted on correction evidence.',
+    TG_TABLE_NAME
+    USING ERRCODE = 'raise_exception';
 END
 $$;
 
--- ── 5. Guard: order_items_relational ───────────────────────────────────────
+DROP TRIGGER IF EXISTS fca_append_only ON financial_correction_audit;
+CREATE TRIGGER fca_append_only
+  BEFORE UPDATE OR DELETE ON financial_correction_audit
+  FOR EACH ROW EXECUTE FUNCTION guard_correction_tables_append_only();
+
+DROP TRIGGER IF EXISTS fcr_append_only ON financial_correction_requests;
+CREATE TRIGGER fcr_append_only
+  BEFORE DELETE ON financial_correction_requests
+  FOR EACH ROW EXECUTE FUNCTION guard_correction_tables_append_only();
+
+-- ── 4. The single refusal ──────────────────────────────────────────────────
+CREATE OR REPLACE FUNCTION raise_financial_history_frozen(p_detail text)
+RETURNS void
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RAISE EXCEPTION
+    'البيانات المالية للطلب محققة ومجمدة. مسار التصحيح المدقق غير منفذ حالياً، لذلك لا يسمح بالتعديل المباشر. [FINANCIAL_CORRECTION_WORKFLOW_NOT_IMPLEMENTED] %',
+    p_detail
+    USING ERRCODE = 'raise_exception';
+END
+$$;
+
+-- ── 5. Guard: order_items_relational (INSERT + UPDATE + DELETE) ────────────
 CREATE OR REPLACE FUNCTION guard_order_item_financial_history()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $guard$
 DECLARE
-  v_status     text;
-  v_counted    boolean;
-  v_realized   boolean;
-  v_changed    boolean;
-  v_correction text;
-  v_row        order_items_relational%ROWTYPE;
+  v_order_id text;
+  v_status   text;
+  v_counted  boolean;
+  v_changed  boolean;
 BEGIN
-  v_row := CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
+  v_order_id := CASE TG_OP WHEN 'INSERT' THEN NEW.order_id ELSE OLD.order_id END;
 
   SELECT o.status, o.financially_counted INTO v_status, v_counted
-  FROM orders o WHERE o.id = OLD.order_id;
+  FROM orders o WHERE o.id = v_order_id;
 
-  v_realized := is_financially_realized_order(v_status, v_counted);
-  IF NOT v_realized THEN
-    -- Open order: normal editing is allowed and must keep working.
-    RETURN v_row;
+  -- RE-PARENTING is an INSERT in disguise: moving an editable line from an open
+  -- order onto a realized one would append revenue to frozen history without
+  -- ever running an INSERT. The DESTINATION parent must be checked too.
+  IF TG_OP = 'UPDATE' AND NEW.order_id IS DISTINCT FROM OLD.order_id THEN
+    DECLARE
+      v_new_status  text;
+      v_new_counted boolean;
+    BEGIN
+      SELECT o.status, o.financially_counted INTO v_new_status, v_new_counted
+      FROM orders o WHERE o.id = NEW.order_id;
+
+      IF is_financially_realized_order(v_new_status, v_new_counted) THEN
+        PERFORM raise_financial_history_frozen(
+          format('cannot re-parent line %s onto realized order %s (status=%s)',
+                 OLD.id, NEW.order_id, COALESCE(v_new_status, 'unknown')));
+      END IF;
+    END;
+  END IF;
+
+  IF NOT is_financially_realized_order(v_status, v_counted) THEN
+    RETURN CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+
+  -- GAP 2: appending a line to a realized order invents revenue and COGS out
+  -- of nothing. There is no legitimate reason for it outside a correction.
+  IF TG_OP = 'INSERT' THEN
+    PERFORM raise_financial_history_frozen(
+      format('cannot INSERT a line into realized order %s (status=%s)',
+             v_order_id, COALESCE(v_status, 'unknown')));
   END IF;
 
   IF TG_OP = 'UPDATE' THEN
-    -- Every column that participates in a historical financial figure. Note
-    -- this list is NOT conditioned on cost status: an unknown cost is still
-    -- frozen, because the SALE price and quantity are facts regardless.
     v_changed :=
          OLD.product_id                     IS DISTINCT FROM NEW.product_id
       OR OLD.quantity                       IS DISTINCT FROM NEW.quantity
       OR OLD.price_at_purchase              IS DISTINCT FROM NEW.price_at_purchase
       OR OLD.total_price                    IS DISTINCT FROM NEW.total_price
+      OR OLD.order_id                       IS DISTINCT FROM NEW.order_id
       OR OLD.unit_cost_price                IS DISTINCT FROM NEW.unit_cost_price
       OR OLD.unit_packaging_cost            IS DISTINCT FROM NEW.unit_packaging_cost
       OR OLD.unit_insert_cost               IS DISTINCT FROM NEW.unit_insert_cost
@@ -204,27 +224,17 @@ BEGIN
     IF NOT v_changed THEN
       RETURN NEW;  -- non-financial edit (e.g. metadata) stays allowed
     END IF;
+
+    PERFORM raise_financial_history_frozen(
+      format('order line %s belongs to realized order %s (status=%s)',
+             OLD.id, v_order_id, COALESCE(v_status, 'unknown')));
   END IF;
 
-  v_correction := assert_financial_correction_authorized(OLD.order_id, OLD.id, 'order_items_relational');
-
-  IF v_correction IS NULL THEN
-    RAISE EXCEPTION
-      'order line % belongs to a financially realized order (status=%) and its '
-      'historical financial fields are immutable. Changing a product price or '
-      'cost must never alter a past order (mission §11). To correct a proven '
-      'error, insert an APPROVED row into financial_correction_requests and '
-      'replay inside one transaction with aquavo.correction_id set.',
-      OLD.id, COALESCE(v_status, 'unknown')
-      USING ERRCODE = 'raise_exception';
-  END IF;
-
-  INSERT INTO financial_correction_audit
-    (correction_id, table_name, row_id, operation, before_row, after_row)
-  VALUES (v_correction, 'order_items_relational', OLD.id, lower(TG_OP),
-          to_jsonb(OLD), CASE TG_OP WHEN 'DELETE' THEN NULL ELSE to_jsonb(NEW) END);
-
-  RETURN v_row;
+  -- DELETE of a realized line destroys the evidence for a booked sale.
+  PERFORM raise_financial_history_frozen(
+    format('cannot DELETE line %s of realized order %s (status=%s)',
+           OLD.id, v_order_id, COALESCE(v_status, 'unknown')));
+  RETURN NULL;
 END
 $guard$;
 
@@ -232,27 +242,40 @@ DROP TRIGGER IF EXISTS order_item_cost_snapshot_immutable ON order_items_relatio
 DROP TRIGGER IF EXISTS order_item_financial_history_immutable ON order_items_relational;
 
 CREATE TRIGGER order_item_financial_history_immutable
-  BEFORE UPDATE OR DELETE ON order_items_relational
+  BEFORE INSERT OR UPDATE OR DELETE ON order_items_relational
   FOR EACH ROW
   EXECUTE FUNCTION guard_order_item_financial_history();
 
--- ── 6. Guard: orders (order-level financial fields) ────────────────────────
--- Protecting only the line table would be pointless: revenue is read from
--- orders.rounded_total, shipping from orders.shipping_cost, packaging from
--- orders.box_cost, and the JSONB orders.items is a second copy of the lines.
--- Any of those could rewrite a historical report on its own.
+-- ── 6. Guard: orders (UPDATE + DELETE, and STICKY realization) ─────────────
 CREATE OR REPLACE FUNCTION guard_order_financial_history()
 RETURNS trigger
 LANGUAGE plpgsql
 AS $guard$
 DECLARE
-  v_changed    boolean;
-  v_correction text;
+  v_changed boolean;
 BEGIN
-  -- Judge on the OLD row: an order that was realized cannot be edited by first
-  -- flipping its own status in the same statement.
+  -- Judged on the OLD row: an order that WAS realized stays governed here.
   IF NOT is_financially_realized_order(OLD.status, OLD.financially_counted) THEN
-    RETURN NEW;
+    RETURN CASE TG_OP WHEN 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+
+  -- GAP 3: deleting a realized order erases a booked sale and its lines.
+  IF TG_OP = 'DELETE' THEN
+    PERFORM raise_financial_history_frozen(
+      format('cannot DELETE realized order %s (status=%s)', OLD.id, COALESCE(OLD.status, 'unknown')));
+  END IF;
+
+  -- GAP 1: realization is STICKY. Any transition that would make the order
+  -- un-realized is refused outright — otherwise history could be rewritten in
+  -- two statements: unfreeze, then edit. This also covers flipping
+  -- financially_counted from true to false when that flag was the sole reason
+  -- the order was realized.
+  IF NOT is_financially_realized_order(NEW.status, NEW.financially_counted) THEN
+    PERFORM raise_financial_history_frozen(
+      format('order %s is financially realized (status=%s) and cannot be moved back to '
+             'an unrealized state (attempted status=%s, financially_counted=%s)',
+             OLD.id, COALESCE(OLD.status, 'unknown'),
+             COALESCE(NEW.status, 'unknown'), COALESCE(NEW.financially_counted::text, 'null')));
   END IF;
 
   v_changed :=
@@ -268,28 +291,15 @@ BEGIN
     OR OLD.rounding_cashback IS DISTINCT FROM NEW.rounding_cashback
     OR OLD.items             IS DISTINCT FROM NEW.items;
 
-  IF NOT v_changed THEN
-    -- status / carrier / cod_received / addresses stay editable: fulfilment
-    -- facts change after delivery, financial facts do not.
-    RETURN NEW;
+  IF v_changed THEN
+    PERFORM raise_financial_history_frozen(
+      format('order %s is financially realized (status=%s); total, rounded_total, '
+             'shipping_cost, box_cost, discount_total, coupon/loyalty amounts and '
+             'items are immutable', OLD.id, COALESCE(OLD.status, 'unknown')));
   END IF;
 
-  v_correction := assert_financial_correction_authorized(OLD.id, OLD.id, 'orders');
-
-  IF v_correction IS NULL THEN
-    RAISE EXCEPTION
-      'order % is financially realized (status=%) and its financial fields '
-      '(total, rounded_total, shipping_cost, box_cost, discount_total, '
-      'coupon/loyalty amounts, items) are immutable. Use an approved '
-      'financial_correction_requests row.',
-      OLD.id, COALESCE(OLD.status, 'unknown')
-      USING ERRCODE = 'raise_exception';
-  END IF;
-
-  INSERT INTO financial_correction_audit
-    (correction_id, table_name, row_id, operation, before_row, after_row)
-  VALUES (v_correction, 'orders', OLD.id, 'update', to_jsonb(OLD), to_jsonb(NEW));
-
+  -- Fulfilment facts (carrier, cod_received, address, delivered->returned)
+  -- remain editable: they genuinely change after delivery.
   RETURN NEW;
 END
 $guard$;
@@ -297,20 +307,42 @@ $guard$;
 DROP TRIGGER IF EXISTS order_financial_history_immutable ON orders;
 
 CREATE TRIGGER order_financial_history_immutable
-  BEFORE UPDATE ON orders
+  BEFORE UPDATE OR DELETE ON orders
   FOR EACH ROW
   EXECUTE FUNCTION guard_order_financial_history();
 
--- ── 7. Verify both guards are installed ────────────────────────────────────
+-- ── 7. Verify ──────────────────────────────────────────────────────────────
 DO $verify$
 DECLARE
   n integer;
 BEGIN
   SELECT count(*) INTO n FROM pg_trigger
   WHERE NOT tgisinternal
-    AND tgname IN ('order_item_financial_history_immutable', 'order_financial_history_immutable');
-  IF n <> 2 THEN
-    RAISE EXCEPTION 'ABORT: expected 2 immutability triggers, found %', n;
+    AND tgname IN ('order_item_financial_history_immutable', 'order_financial_history_immutable',
+                   'fca_append_only', 'fcr_append_only');
+  IF n <> 4 THEN
+    RAISE EXCEPTION 'ABORT: expected 4 guard triggers, found %', n;
+  END IF;
+
+  -- The bypass must be gone. If a future edit reintroduces a GUC read in these
+  -- guards, this migration should be re-reviewed rather than silently shipped.
+  IF EXISTS (
+    SELECT 1 FROM pg_proc
+    WHERE proname IN ('guard_order_item_financial_history', 'guard_order_financial_history')
+      AND prosrc ILIKE '%current_setting%'
+  ) THEN
+    RAISE EXCEPTION 'ABORT: a guard function reads a session setting — Phase 1A must have NO bypass';
   END IF;
 END
 $verify$;
+
+-- ============================================================================
+-- BEFORE THE CORRECTION PATH MAY BE ENABLED (separate migration), it must:
+--   * require an approver distinct from the requester;
+--   * match table, row, field, old_value and new_value against the actual change;
+--   * be single-use, with applied_at stamped atomically in the same transaction;
+--   * record before_hash and after_hash;
+--   * keep both audit tables append-only;
+--   * reset TAX FINAL to false pending accountant review;
+--   * ship with replay, field-escalation and value-substitution attack tests.
+-- ============================================================================
