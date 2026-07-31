@@ -1,160 +1,135 @@
-/**
- * EmbeddedVariantSelector - For products with variants stored in the product record
- * Shows size/power options that update price without page navigation
- */
-import { useState, useMemo } from "react";
-import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { type ProductVariant } from "@/types";
+import { useMemo } from "react";
 import { Check, Sparkles, Tag } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { ProductVariant } from "@/types";
+import { extractVariantDimensions, isMultiDimensionVariantSet } from "@/lib/variant-dimensions";
+
 interface EmbeddedVariantSelectorProps {
-    variants: ProductVariant[];
-    selectedVariantId: string;
-    onVariantSelect: (variant: ProductVariant) => void;
-    title?: string;
-    productCategory?: string;
+  variants: ProductVariant[];
+  selectedVariantId: string;
+  onVariantSelect: (variant: ProductVariant) => void;
+  title?: string;
+  productCategory?: string;
 }
 
-/**
- * Variant selector for products with embedded variants
- * Compact design similar to HOUYI product style
- */
 export function EmbeddedVariantSelector({
-    variants,
-    selectedVariantId,
-    onVariantSelect,
-    title = "اختر الخصائص",
-    productCategory,
+  variants,
+  selectedVariantId,
+  onVariantSelect,
+  title,
 }: EmbeddedVariantSelectorProps) {
-    if (!variants || variants.length <= 1) {
-        return null;
-    }
+  const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
+  const sortedVariants = useMemo(
+    () => [...variants].sort((a, b) => Number(a.price) - Number(b.price)),
+    [variants],
+  );
 
-    // Sort variants by price (ascending)
-    const sortedVariants = useMemo(() => {
-        return [...variants].sort((a, b) => a.price - b.price);
-    }, [variants]);
+  if (!variants || variants.length <= 1 || isMultiDimensionVariantSet(variants)) return null;
 
-    // Get selected variant for price display
-    const selectedVariant = sortedVariants.find(v => v.id === selectedVariantId) || sortedVariants[0];
+  const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
+  const detectedTitle = dimensions[0]?.label ? `اختار ${dimensions[0].label}` : "اختار الخيار";
 
-    return (
-        <div className="space-y-3" dir="rtl">
-            {/* Header */}
-            <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" aria-hidden="true" />
-                <span className="font-semibold text-sm" id="embedded-variant-title">{title}</span>
-            </div>
+  return (
+    <div className="space-y-3 rounded-xl border border-border bg-card p-4" dir="rtl">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+        <span className="text-sm font-bold" id="embedded-variant-title">{title || detectedTitle}</span>
+      </div>
 
-            {/* Variants as compact buttons */}
-            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="embedded-variant-title">
-                {sortedVariants.map((variant) => {
-                    const isSelected = variant.id === selectedVariantId;
-                    const inStock = variant.stock > 0;
+      <div className="flex flex-wrap gap-2" role="group" aria-labelledby="embedded-variant-title">
+        {sortedVariants.map((variant) => {
+          const selected = variant.id === selectedVariant.id;
+          const inStock = variant.stock > 0;
 
-                    return (
-                        <button
-                            key={variant.id}
-                            type="button"
-                            onClick={() => onVariantSelect(variant)}
-                            disabled={!inStock}
-                            aria-pressed={isSelected}
-                            aria-label={!inStock ? `${variant.label}، غير متوفر` : variant.label}
-                            className={cn(
-                                "relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 min-h-11",
-                                "border-2 hover:shadow-sm",
-                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                                isSelected
-                                    ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                                    : "border-muted bg-background hover:border-primary/50",
-                                !inStock && "opacity-50 cursor-not-allowed line-through"
-                            )}
-                        >
-                            {/* Selection checkmark */}
-                            {isSelected && (
-                                <Check className="inline w-3 h-3 ml-1" aria-hidden="true" />
-                            )}
-                            {variant.label}
-                        </button>
-                    );
-                })}
-            </div>
+          return (
+            <button
+              key={variant.id}
+              type="button"
+              onClick={() => onVariantSelect(variant)}
+              disabled={!inStock}
+              aria-pressed={selected}
+              aria-label={!inStock ? `${variant.label}، غير متوفر` : variant.label}
+              className={cn(
+                "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
+                selected
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-foreground hover:border-primary/50",
+                !inStock && "cursor-not-allowed opacity-45 line-through",
+              )}
+            >
+              {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
+              {variant.label}
+            </button>
+          );
+        })}
+      </div>
 
-            {/* Price display */}
-            <div className="flex items-center gap-2 pt-2" aria-live="polite">
-                <Tag className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
-                <span className="text-sm text-muted-foreground">السعر:</span>
-                <span className="font-bold text-primary">
-                    {Number(selectedVariant.price).toLocaleString('en-US')} د.ع
-                </span>
-                {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
-                    <>
-                        <span className="text-sm text-muted-foreground line-through">
-                            {selectedVariant.originalPrice.toLocaleString()}
-                        </span>
-                        <Badge variant="destructive" className="text-[10px]">
-                            خصم {Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)}%
-                        </Badge>
-                    </>
-                )}
-            </div>
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
+        <span className="inline-flex items-center gap-2">
+          <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+          <span className="text-muted-foreground">السعر:</span>
+          <span className="font-bold text-primary">{Number(selectedVariant.price).toLocaleString("en-US")} د.ع</span>
+        </span>
 
-            {/* Stock status */}
-            <div className="flex items-center gap-2 text-sm">
-                {selectedVariant.stock > 0 ? (
-                    <>
-                        <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
-                        <span className="text-green-600 dark:text-green-400">
-                            متوفر ({selectedVariant.stock} قطعة)
-                        </span>
-                    </>
-                ) : (
-                    <span className="text-red-500">غير متوفر</span>
-                )}
-            </div>
-        </div>
-    );
+        {selectedVariant.originalPrice && selectedVariant.originalPrice > selectedVariant.price && (
+          <>
+            <span className="text-sm text-muted-foreground line-through">
+              {Number(selectedVariant.originalPrice).toLocaleString("en-US")} د.ع
+            </span>
+            <Badge variant="destructive" className="text-[10px]">
+              خصم {Math.round(((selectedVariant.originalPrice - selectedVariant.price) / selectedVariant.originalPrice) * 100)}%
+            </Badge>
+          </>
+        )}
+
+        <span className="basis-full text-xs sm:mr-auto sm:basis-auto">
+          {selectedVariant.stock > 0 ? (
+            <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+              <Check className="h-3.5 w-3.5" aria-hidden="true" />
+              متوفر ({selectedVariant.stock} قطعة)
+            </span>
+          ) : (
+            <span className="text-destructive">غير متوفر حالياً</span>
+          )}
+        </span>
+      </div>
+    </div>
+  );
 }
 
-/**
- * Compact version for quick display
- */
 export function EmbeddedVariantSelectorCompact({
-    variants,
-    selectedVariantId,
-    onVariantSelect,
+  variants,
+  selectedVariantId,
+  onVariantSelect,
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
-    if (!variants || variants.length <= 1) {
-        return null;
-    }
+  if (!variants || variants.length <= 1) return null;
 
-    return (
-        <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات المنتج">
-            {variants.map((variant) => {
-                const isSelected = variant.id === selectedVariantId;
-
-                return (
-                    <button
-                        key={variant.id}
-                        type="button"
-                        onClick={() => onVariantSelect(variant)}
-                        disabled={variant.stock <= 0}
-                        aria-pressed={isSelected}
-                        aria-label={variant.stock <= 0 ? `${variant.label}، غير متوفر` : variant.label}
-                        className={cn(
-                            "px-3 py-1.5 rounded-full text-sm font-medium transition-all min-h-11",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                            isSelected
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground",
-                            variant.stock <= 0 && "opacity-50 cursor-not-allowed"
-                        )}
-                    >
-                        {variant.label}
-                    </button>
-                );
-            })}
-        </div>
-    );
+  return (
+    <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات المنتج">
+      {variants.map((variant) => {
+        const selected = variant.id === selectedVariantId;
+        return (
+          <button
+            key={variant.id}
+            type="button"
+            onClick={() => onVariantSelect(variant)}
+            disabled={variant.stock <= 0}
+            aria-pressed={selected}
+            aria-label={variant.stock <= 0 ? `${variant.label}، غير متوفر` : variant.label}
+            className={cn(
+              "min-h-11 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+              selected
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground",
+              variant.stock <= 0 && "cursor-not-allowed opacity-45",
+            )}
+          >
+            {variant.label}
+          </button>
+        );
+      })}
+    </div>
+  );
 }
