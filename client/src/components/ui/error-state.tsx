@@ -89,7 +89,7 @@ export const errorMessages = {
         description: "أضف بعض المنتجات إلى سلتك للمتابعة.",
     },
     outOfStock: {
-        title: "نفذت الكمية",
+        title: "نفدت الكمية",
         description: "للأسف هذا المنتج غير متوفر حالياً. يمكنك الاشتراك للإشعار عند توفره.",
     },
 };

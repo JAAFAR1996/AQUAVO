@@ -374,7 +374,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const currentQty = items.find((item) => item.id === cartItemId)?.quantity ?? 0;
 
     if (stockKnown && available <= 0) {
-      toast({ title: "غير متوفر", description: "نفذت الكمية", variant: "destructive" });
+      toast({ title: "غير متوفر", description: "نفدت الكمية", variant: "destructive" });
       return false;
     }
     if (currentQty + quantity > available) {
@@ -593,7 +593,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (knownStock != null && Number.isFinite(knownStock) && quantity > knownStock) {
       toast({
         title: "غير متوفر",
-        description: knownStock <= 0 ? "نفذت الكمية" : "وصلت للكمية المتوفرة",
+        description: knownStock <= 0 ? "نفدت الكمية" : "وصلت للكمية المتوفرة",
         variant: "destructive",
       });
       return;
