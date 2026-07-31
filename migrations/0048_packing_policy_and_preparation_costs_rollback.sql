@@ -1,8 +1,22 @@
 -- ROLLBACK 0048.
--- Removes the policy settings and the two seeded preparation materials ONLY IF
--- they were never used. A material referenced by any fulfillment line is left
--- alone: that line is a frozen historical fact and its material must stay
--- readable. In that case the material is archived instead of deleted.
+--
+-- Removes the policy settings and RETIRES the two seeded preparation materials.
+--
+-- It does NOT delete their cost records. `mcr_approved_guard` refuses to delete
+-- an approved material_cost_record — "approved cost records are evidence and
+-- cannot be deleted" — and that guard is right: an approved cost is an assertion
+-- somebody made, and un-asserting it by deletion destroys the audit trail. An
+-- earlier version of this file tried to delete them and was caught by the
+-- migration integration test.
+--
+-- So the materials are archived and deactivated rather than dropped. They vanish
+-- from new plans and from the admin's active list, every historical snapshot
+-- referencing them stays readable, and re-applying 0048 revives them in place
+-- rather than creating duplicates.
+--
+-- A material that was never costed and never used is genuinely deletable; that
+-- case is handled last.
+
 BEGIN;
 
 DELETE FROM settings WHERE key IN (
@@ -11,19 +25,14 @@ DELETE FROM settings WHERE key IN (
   'packing_min_contact_area_mm2','carton_planner_enabled','carton_reservations_enabled');
 
 UPDATE fulfillment_materials
-   SET archived_at = COALESCE(archived_at, now()), active = false
- WHERE sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD')
-   AND EXISTS (SELECT 1 FROM order_fulfillment_lines l WHERE l.material_id = fulfillment_materials.id);
-
-DELETE FROM material_cost_records r
- USING fulfillment_materials f
- WHERE r.material_id = f.id
-   AND f.sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD')
-   AND r.created_by = 'migration-0048'
-   AND NOT EXISTS (SELECT 1 FROM order_fulfillment_lines l WHERE l.material_id = f.id);
+   SET archived_at = COALESCE(archived_at, now()),
+       active = false,
+       updated_at = now()
+ WHERE sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD');
 
 DELETE FROM fulfillment_materials f
  WHERE f.sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD')
+   AND NOT EXISTS (SELECT 1 FROM material_cost_records r WHERE r.material_id = f.id)
    AND NOT EXISTS (SELECT 1 FROM order_fulfillment_lines l WHERE l.material_id = f.id)
    AND NOT EXISTS (SELECT 1 FROM packaging_inventory_movements m WHERE m.material_id = f.id);
 

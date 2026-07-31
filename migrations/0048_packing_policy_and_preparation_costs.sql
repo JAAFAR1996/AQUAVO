@@ -31,6 +31,30 @@ SELECT k, v FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM settings s WHERE s.key = seed.k);
 
 -- 2) The two fixed preparation costs -----------------------------------------
+-- Converges rather than duplicates.
+--
+-- Rolling 0048 back archives these materials but cannot delete them — their
+-- approved cost records are evidence and `mcr_approved_guard` refuses deletion.
+-- Rolling 0040 back then drops the `sku` column itself. So on a re-apply the
+-- rows are still there but no longer carry an sku, and a seed keyed only on sku
+-- would insert a second copy of each.
+--
+-- Matching on NAME (which survives every rollback) and re-stamping the sku turns
+-- that into an update. Re-applying revives the archived material in place.
+UPDATE fulfillment_materials f
+   SET sku = m.sku,
+       material_kind = 'consumable',
+       calculation_basis = 'per_order',
+       stock_tracked = false,
+       active = true,
+       archived_at = NULL,
+       updated_at = now()
+  FROM (VALUES
+    ('ملصق السعر',          'PRICE_LABEL'),
+    ('كارت الشكر والتواصل', 'THANK_YOU_SOCIAL_CARD')
+  ) AS m(name, sku)
+ WHERE f.name = m.name AND f.sku IS DISTINCT FROM m.sku;
+
 INSERT INTO fulfillment_materials
   (id, name, category, sku, material_kind, calculation_basis, stock_tracked,
    unit, currency, active, notes)
@@ -42,7 +66,9 @@ FROM (VALUES
   ('كارت الشكر والتواصل',   'insert', 'THANK_YOU_SOCIAL_CARD',
    'يُحتسب مرة واحدة لكل طلب مهما كان عدد الكراتين')
 ) AS m(name, category, sku, notes)
-WHERE NOT EXISTS (SELECT 1 FROM fulfillment_materials f WHERE f.sku = m.sku);
+WHERE NOT EXISTS (
+  SELECT 1 FROM fulfillment_materials f WHERE f.sku = m.sku OR f.name = m.name
+);
 
 -- 3) Their approved, effective-dated costs ------------------------------------
 INSERT INTO material_cost_records
