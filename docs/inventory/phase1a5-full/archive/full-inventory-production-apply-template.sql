@@ -1,0 +1,85 @@
+-- ============================================================================
+-- DEPRECATED — DO NOT EXECUTE
+-- Superseded on 2026-07-30 by docs/inventory/phase1a5-full/canonical/
+-- Kept for provenance only. This file is NOT a source of truth.
+-- ============================================================================
+
+-- ============================================================================
+-- full-inventory-production-apply-template.sql
+-- TARGET: PRODUCTION — br-patient-mouse-a4d4cgr4
+-- Phase 1A.5 FULL | OWNER_CONFIRMED_CURRENT_STOREFRONT_AS_CANONICAL_INVENTORY_TRUTH
+-- ============================================================================
+-- *** TEMPLATE. DO NOT RUN. ***
+-- Preconditions, ALL of which must be true before this file is executed:
+--   1. full-inventory-test-apply.sql ran on br-floral-voice-a4a0c5iu and
+--      full-inventory-test-verify.sql passed every expectation.
+--   2. A fresh backup branch was created from Production at approval time:
+--        neonctl branches create --project-id shiny-tree-43710630 \
+--          --parent br-patient-mouse-a4d4cgr4 \
+--          --name production-backup-before-phase1a5-full-$(date -u +%Y%m%dT%H%M%SZ)
+--      and its branch id, parent id, created timestamp, baseline counts and
+--      baseline fingerprints were recorded.
+--   3. full-inventory-preflight.sql was re-run on Production AFTER the backup,
+--      and the plan it printed is the plan the owner approved.
+--   4. The owner wrote the exact approval phrase for production execution.
+--
+-- The body is byte-identical to full-inventory-test-apply.sql except for the
+-- three constants below. Diff the two files before running — any other
+-- difference means the tested artifact is not the artifact being deployed.
+-- ============================================================================
+
+-- ── The only three lines that differ from the tested file ─────────────────
+\set execution_id  'PHASE1A5-PROD-20260730'
+-- source_id        : 'PHASE-1A5-PRODUCTION'          (was 'PHASE-1A5-TEST')
+-- idempotency_key  : 'phase1a5:production:storefront-truth:<product_id>:<variant_id|NULL>:<execution_id>'
+--                    (was 'phase1a5:test:...')
+-- The STEP 0 duplicate guard checks 'phase1a5:production:%' instead of 'phase1a5:test:%'.
+
+-- ── EXECUTION CONTRACT ───────────────────────────────────────────────────
+--   No top-level BEGIN/COMMIT/ROLLBACK in this file. The executor wraps the
+--   ENTIRE file in ONE transaction. One transaction for the whole run — never
+--   a commit per row. On ANY raised exception: ROLLBACK, stop, report the
+--   failing row, and do not attempt an automatic correction.
+--
+--   Body = full-inventory-test-apply.sql STEP 0 through STEP 5, with:
+--     STEP 0  gates      : enforce mode, MAIN location, 0 pre-existing
+--                          'phase1a5:production:%' keys
+--     STEP 1  plan       : canonical CTE -> TEMP TABLE, abort on any category D,
+--                          advisory locks (hashtextextended of
+--                          product_id|variant_id|location_id — the exact key
+--                          shape used by prevent_negative_inventory_balance),
+--                          re-read under the lock, abort on ANY drift
+--     STEP 2  evidence   : INSERT inventory_reconciliations, status='applied',
+--                          physical_count=NULL, approved_opening_stock=NULL,
+--                          approved_by='owner:jaafar', counted_by/at=NULL
+--     STEP 3  movements  : INSERT inventory_movements,
+--                          movement_type='manual_adjustment',
+--                          source_type='owner_stock_reconciliation',
+--                          quantity_delta computed from the DB, never literal
+--     STEP 4  assertions : written = planned, every row hit its target balance,
+--                          no negative balance, no duplicate settlement per row,
+--                          correct type/source on every written row,
+--                          inventory_ledger_mode still 'enforce'
+--     STEP 5  summary    : per-category counts + net quantity change
+--
+--   Production adds these assertions to STEP 4 before COMMIT:
+--     - orders count and orders fingerprint unchanged vs. the post-backup baseline
+--     - order_items count and fingerprint unchanged
+--     - costs fingerprint unchanged
+--     - notification_log count unchanged
+--     - accounting_audit_trail count unchanged
+--     - cash_settlements count unchanged
+--     - delivered revenue unchanged
+--     - inventory_movements grew by EXACTLY the settlement count
+--     - inventory_reconciliations grew by EXACTLY the settlement count
+--     - zero movements of any type other than manual_adjustment were created
+--
+--   COMMIT only if every assertion passed. Then run
+--   full-inventory-post-verify.sql as a SEPARATE session.
+--
+-- ── NEVER in this file ───────────────────────────────────────────────────
+--   opening_balance · movement_type='adjustment' · UPDATE/DELETE on any
+--   historical inventory_movement · UPDATE of products.stock or
+--   products.variants · DELETE of product_variant_reconciliation · disabling
+--   inventory_ledger_mode · DISABLE TRIGGER · session_replication_role ·
+--   cost or tax corrections · Phase 1B · Snapshot Writer · TAX FINAL.
