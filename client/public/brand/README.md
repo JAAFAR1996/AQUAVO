@@ -1,58 +1,32 @@
-# AQUAVO Brand Logo Package
+# AQUAVO website brand source
 
-## 📁 Contents
+## Canonical identity
 
-### `/logos/` - Logo Variations
-| File | Description | Use Case |
-|------|-------------|----------|
-| `aquavo-logo-print.png` | Primary full logo | Print on devices, documents |
-| `aquavo-horizontal.png` | Horizontal layout | Website headers, emails |
-| `aquavo-vertical.png` | Vertical/stacked | Business cards, small spaces |
-| `aquavo-icon.png` | Icon only (no text) | App icons, favicons, profiles |
+The AQUAVO website uses **AQUAVO Visual Identity v2** as its only approved visual source.
 
-### `/colors/` - Color Versions
-| File | Description | Use Case |
-|------|-------------|----------|
-| `aquavo-white.png` | White version | Dark backgrounds, dark devices |
-| `aquavo-black.png` | Black version | Documents, single-color print |
+Confirmed foundations:
 
----
+- Primary teal: `#0B93A6`
+- FlowLine blue: `#0B64A6`
+- Deep hull: `#0B1E28`
+- Light mode is the default; dark mode remains supported
+- Arabic UI/body: Cairo
+- Hero-scale Arabic display headings: Changa
+- Latin text and numerals: Inter
+- Arabic-first RTL interface
 
-## 🎨 Brand Colors
+Use the transparent v2 SVG/PNG logo assets in this folder. Do not reconstruct or trace the logo from old raster files.
 
-| Color | HEX | RGB | Use |
-|-------|-----|-----|-----|
-| **Primary Cyan** | `#199bb8` | rgb(25, 155, 184) | Main brand color |
-| **Dark Cyan** | `#0d7a94` | rgb(13, 122, 148) | Hover states, accents |
-| **White** | `#FFFFFF` | rgb(255, 255, 255) | Light version |
-| **Black** | `#000000` | rgb(0, 0, 0) | Dark version |
+## Retired material
 
----
+`AQUAVO_BRAND_GUIDELINES.md` and the older cyan `#199bb8` logo-package notes are legacy v1 material. Their cyan/coral/gold palette, dark-only rule, glassmorphism and glow treatments are retired and must not be used for the storefront, design-system generation or future UI work.
 
-## 📐 Usage Guidelines
+When legacy code or documentation conflicts with v2, v2 is authoritative. Record the conflict instead of silently copying the legacy rule.
 
-### ✅ Do's
-- Use provided files without modification
-- Maintain aspect ratio when resizing
-- Keep adequate clear space around logo
-- Use white version on dark backgrounds
+## Storefront principles
 
-### ❌ Don'ts
-- Don't stretch or distort the logo
-- Don't change the colors
-- Don't add effects (shadows, gradients)
-- Don't place on busy backgrounds
-
----
-
-## 📏 Minimum Sizes
-- **Full Logo**: Minimum 150px wide
-- **Icon Only**: Minimum 32px × 32px
-
----
-
-## 📧 Contact
-For brand inquiries: **AQUAVO - مستقبل الأحواض**
-
----
-*Generated: December 30, 2025*
+- One teal primary accent; FlowLine blue is structural/secondary
+- Warm light surface by default, with a fully supported dark option
+- Thin hairlines and restrained elevation
+- No decorative glassmorphism, glow, continuous loops or generic AI gradients
+- Iraqi Arabic, RTL-first, with no emoji in customer-facing interface copy
