@@ -1,5 +1,5 @@
 import { memo, useRef, useState, type MouseEvent } from "react";
-import { ArrowLeft, Eye, Leaf, ShoppingCart } from "lucide-react";
+import { Eye, Leaf, Package, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { CompareButton } from "@/components/products/product-comparison";
@@ -59,13 +59,7 @@ export const ProductCard = memo(function ProductCard({
     : (product.stock ?? 0) <= 0;
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
-    if (isOutOfStock) {
-      const categoryQuery = product.category
-        ? `?category=${encodeURIComponent(product.category)}`
-        : "";
-      setLocation(`/products${categoryQuery}`);
-      return;
-    }
+    if (isOutOfStock) return;
 
     if (requiresVariantChoice) {
       setLocation(`/products/${product.slug}`);
@@ -112,7 +106,7 @@ export const ProductCard = memo(function ProductCard({
   const primaryActionLabel = !hasPrice
     ? "قريباً"
     : isOutOfStock
-      ? "شوف البدائل"
+      ? "نفدت الكمية"
       : requiresVariantChoice
         ? "اختار الخيار"
         : "أضف للسلة";
@@ -120,7 +114,7 @@ export const ProductCard = memo(function ProductCard({
   const primaryActionAriaLabel = !hasPrice
     ? `${product.name} قريباً`
     : isOutOfStock
-      ? `شوف بدائل ${product.name}`
+      ? `${product.name}، نفدت الكمية`
       : requiresVariantChoice
         ? `اختار خيار ${product.name}`
         : `أضف ${product.name} إلى سلة المشتريات`;
@@ -253,10 +247,10 @@ export const ProductCard = memo(function ProductCard({
           className="min-h-11 w-full gap-2 text-xs sm:text-sm"
           onClick={handlePrimaryAction}
           aria-label={primaryActionAriaLabel}
-          disabled={!hasPrice}
+          disabled={!hasPrice || isOutOfStock}
         >
           {isOutOfStock && hasPrice ? (
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            <Package className="h-4 w-4" aria-hidden="true" />
           ) : (
             <ShoppingCart className="h-4 w-4" aria-hidden="true" />
           )}
