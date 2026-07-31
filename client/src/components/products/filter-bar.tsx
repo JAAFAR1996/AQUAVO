@@ -20,48 +20,31 @@ interface FilterBarProps {
     minPrice?: number;
 }
 
-// Quick filter chip
 function QuickFilterChip({
     label,
     icon: Icon,
     selected,
     onClick,
-    color = "default",
 }: {
     label: string;
     icon: React.ElementType;
     selected: boolean;
     onClick: () => void;
-    color?: "default" | "blue" | "orange" | "green";
 }) {
-    const colorClasses = {
-        default: selected
-            ? "bg-foreground text-background border-foreground"
-            : "bg-background text-foreground border-border hover:border-foreground",
-        blue: selected
-            ? "bg-blue-500 text-white border-blue-500"
-            : "bg-background text-foreground border-border hover:border-blue-500",
-        orange: selected
-            ? "bg-orange-500 text-white border-orange-500"
-            : "bg-background text-foreground border-border hover:border-orange-500",
-        green: selected
-            ? "bg-emerald-500 text-white border-emerald-500"
-            : "bg-background text-foreground border-border hover:border-emerald-500",
-    };
-
     return (
         <button
             type="button"
             onClick={onClick}
             aria-pressed={selected}
             className={cn(
-                "inline-flex flex-shrink-0 items-center gap-1 sm:gap-1.5 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 rounded-full text-xs sm:text-sm font-medium",
-                "border transition-all duration-200",
-                "hover:shadow-md active:scale-95",
-                colorClasses[color]
+                "inline-flex min-h-11 flex-shrink-0 items-center gap-1 rounded-full border px-2.5 py-1.5 text-xs font-medium transition-colors sm:gap-1.5 sm:px-4 sm:py-2 sm:text-sm",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                selected
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-foreground hover:border-primary hover:bg-primary/5"
             )}
         >
-            <Icon className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+            <Icon className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
             <span className="whitespace-nowrap">{label}</span>
         </button>
     );
@@ -90,10 +73,8 @@ export function FilterBar({
         onFiltersChange({ ...filters, tags: newTags });
     };
 
-    // Check if price filter is active
     const isPriceActive = filters.priceRange[0] > minPrice || filters.priceRange[1] < maxPrice;
 
-    // Format price for display
     const formatPrice = (value: number) => {
         if (value >= 1000000) {
             return `${(value / 1000000).toFixed(1)}M`;
@@ -105,50 +86,47 @@ export function FilterBar({
     };
 
     return (
-        <div className="flex items-center gap-2 sm:gap-3 py-2 sm:py-4 overflow-x-auto scrollbar-hide">
-            {/* Main Filters Button */}
+        <div className="flex items-center gap-2 overflow-x-auto py-2 scrollbar-hide sm:gap-3 sm:py-4">
             <Button
                 variant="outline"
                 onClick={onOpenFilterModal}
                 className={cn(
-                    "relative flex-shrink-0 rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 text-xs sm:text-sm",
-                    "hover:shadow-md transition-all",
+                    "relative min-h-11 flex-shrink-0 gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-xs sm:gap-2 sm:px-4 sm:py-2 sm:text-sm",
                     activeFiltersCount > 0 && "border-primary bg-primary/5"
                 )}
             >
-                <SlidersHorizontal className="w-4 h-4 flex-shrink-0" />
+                <SlidersHorizontal className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 <span className="whitespace-nowrap">الفلاتر</span>
                 {activeFiltersCount > 0 && (
-                    <Badge
-                        className="h-5 w-5 p-0 flex flex-shrink-0 items-center justify-center rounded-full bg-primary text-white text-xs font-bold"
-                    >
+                    <Badge className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-primary p-0 text-xs font-bold text-primary-foreground">
                         {activeFiltersCount}
                     </Badge>
                 )}
             </Button>
 
-            {/* Price Dropdown */}
             <DropdownMenu open={priceDropdownOpen} onOpenChange={setPriceDropdownOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
                         className={cn(
-                            "flex-shrink-0 rounded-full border-2 gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-1.5 sm:py-2 min-h-11 md:min-h-11 text-xs sm:text-sm",
-                            "hover:shadow-md transition-all",
+                            "min-h-11 flex-shrink-0 gap-1.5 rounded-full border-2 px-2.5 py-1.5 text-xs sm:gap-2 sm:px-4 sm:py-2 sm:text-sm",
                             isPriceActive && "border-primary bg-primary/5"
                         )}
                     >
-                        <DollarSign className="w-4 h-4 flex-shrink-0" />
+                        <DollarSign className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                         <span className="whitespace-nowrap">السعر</span>
-                        <ChevronDown className={cn(
-                            "w-4 h-4 flex-shrink-0 transition-transform",
-                            priceDropdownOpen && "rotate-180"
-                        )} />
+                        <ChevronDown
+                            className={cn(
+                                "h-4 w-4 flex-shrink-0 transition-transform",
+                                priceDropdownOpen && "rotate-180"
+                            )}
+                            aria-hidden="true"
+                        />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-80 p-4">
                     <div className="space-y-4">
-                        <h4 className="font-semibold text-sm">نطاق السعر</h4>
+                        <h4 className="text-sm font-semibold">نطاق السعر</h4>
                         <DualRangeSlider
                             min={minPrice}
                             max={maxPrice}
@@ -171,11 +149,7 @@ export function FilterBar({
                             >
                                 مسح
                             </Button>
-                            <Button
-                                size="sm"
-                                className="flex-1"
-                                onClick={handlePriceApply}
-                            >
+                            <Button size="sm" className="flex-1" onClick={handlePriceApply}>
                                 تطبيق
                             </Button>
                         </div>
@@ -183,28 +157,23 @@ export function FilterBar({
                 </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Divider */}
-            <div className="h-8 w-px flex-shrink-0 bg-border mx-1" />
+            <div className="mx-1 h-8 w-px flex-shrink-0 bg-border" aria-hidden="true" />
 
-            {/* Quick Filters */}
             <QuickFilterChip
                 label="جديد"
                 icon={Sparkles}
-                color="blue"
                 selected={filters.tags.includes("جديد")}
                 onClick={() => toggleTag("جديد")}
             />
             <QuickFilterChip
                 label="الأكثر مبيعاً"
                 icon={TrendingUp}
-                color="orange"
                 selected={filters.tags.includes("الأكثر مبيعاً")}
                 onClick={() => toggleTag("الأكثر مبيعاً")}
             />
             <QuickFilterChip
                 label="صديق للبيئة"
                 icon={Leaf}
-                color="green"
                 selected={filters.tags.includes("صديق للبيئة")}
                 onClick={() => toggleTag("صديق للبيئة")}
             />
