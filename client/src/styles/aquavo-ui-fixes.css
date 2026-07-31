@@ -57,3 +57,14 @@ html.light {
     display: none;
   }
 }
+
+/*
+ * Product page mobile cleanup: the fixed bottom cart bar duplicated the
+ * primary add-to-cart control inside the page and collided with the floating
+ * chat/back-to-top controls. Keep the in-page purchase control as the only CTA.
+ */
+@media (max-width: 767px) {
+  .safe-bottom.fixed.bottom-0 {
+    display: none !important;
+  }
+}
