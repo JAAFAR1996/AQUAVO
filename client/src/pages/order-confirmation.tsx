@@ -13,7 +13,6 @@ import { ttqPurchase } from "@/lib/tiktok-pixel";
 import { metaTrackPurchase } from "@/lib/meta-pixel";
 import { DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
 
-// Proper interface for order data
 interface OrderItem {
     productId: string;
     productName?: string;
@@ -54,24 +53,16 @@ export default function OrderConfirmation() {
     const [, params] = useRoute("/order-confirmation/:id");
     const orderId = params?.id;
 
-    // Primary: full order for the authenticated owner. Guests can use the
-    // stashed post-checkout payload on this device or the verified tracking flow.
     const { data: order, isLoading } = useQuery({
         queryKey: [`/api/orders/${orderId}`],
         enabled: !!orderId,
         retry: false,
     });
 
-    // Freshest complete source for the guest who just checked out, read once.
     const stashed = useMemo(() => readStashedOrder(orderId) as OrderData | undefined, [orderId]);
-
-    // A link opened on another device has no trusted local order payload. Do not
-    // fetch by predictable order number or render a synthetic confirmation;
-    // direct the customer to the two-verifier tracking flow instead.
     const orderData = (order as OrderData | undefined) ?? stashed;
     const loading = isLoading;
 
-    // Fire Purchase pixels only from the authoritative authenticated order.
     useEffect(() => {
         const full = order as OrderData | undefined;
         if (full && full.items && full.items.length > 0) {
@@ -85,7 +76,6 @@ export default function OrderConfirmation() {
                 })),
                 totalValue: full.total,
             });
-            // Meta Pixel: Purchase event (critical for ROAS)
             metaTrackPurchase({
                 orderId: full.orderNumber || full.id,
                 totalIQD: full.total,
@@ -109,15 +99,12 @@ export default function OrderConfirmation() {
                     >
                         <div className="h-1.5 w-full bg-gradient-to-l from-primary to-primary/70" />
                         <div className="p-5 sm:p-6 space-y-5">
-                            {/* Header */}
                             <div className="flex flex-col items-center gap-3">
                                 <Skeleton className="h-12 w-28" />
                                 <Skeleton className="h-7 w-40" />
                                 <Skeleton className="h-4 w-56" />
                             </div>
-                            {/* Order number */}
                             <Skeleton className="h-16 w-full rounded-xl" />
-                            {/* Product row */}
                             <div className="space-y-2">
                                 <Skeleton className="h-3.5 w-24" />
                                 <div className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-2.5">
@@ -129,15 +116,12 @@ export default function OrderConfirmation() {
                                     <Skeleton className="h-4 w-16 shrink-0" />
                                 </div>
                             </div>
-                            {/* Price summary */}
                             <Skeleton className="h-24 w-full rounded-xl" />
-                            {/* Facts / customer info */}
                             <div className="grid grid-cols-2 gap-2">
                                 <Skeleton className="h-14 w-full rounded-lg" />
                                 <Skeleton className="h-14 w-full rounded-lg" />
                                 <Skeleton className="col-span-2 h-14 w-full rounded-lg" />
                             </div>
-                            {/* Actions */}
                             <div className="space-y-2.5 pt-1">
                                 <Skeleton className="h-11 w-full rounded-md" />
                                 <Skeleton className="h-11 w-full rounded-md" />
@@ -207,12 +191,10 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         setTimeout(() => setCopied(false), 2000);
     };
 
-    // Calculate breakdown from order data
     const shippingCost = Number(orderData?.shippingCost || 0);
     const discountAmount = Number(orderData?.discountTotal || 0);
     const subtotal = items.reduce((sum, item) => sum + (Number(item.priceAtPurchase || 0) * item.quantity), 0);
 
-    // Prepare invoice data from real order data
     const invoiceData = {
         customerInfo: {
             name: customerName,
@@ -242,8 +224,6 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         orderDate: createdAt,
     };
 
-    // WhatsApp confirmation message — includes the order number, items (with the
-    // chosen variant) and total so the customer can confirm in one tap.
     const itemsText = items
         .map(item => {
             const variant = item.variantLabel ? ` (${item.variantLabel})` : "";
@@ -251,14 +231,11 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
         })
         .join("\n");
     const whatsappText =
-        `مرحباً، أريد تأكيد طلبي رقم ${displayNumber}\n` +
+        `مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${displayNumber}\n` +
         (itemsText ? `\n${itemsText}\n` : "") +
         (total > 0 ? `\nالمبلغ الكلي: ${formatIQD(total)} (الدفع عند الاستلام)` : "");
     const whatsappHref = `${WHATSAPP_URL}?text=${encodeURIComponent(whatsappText)}`;
 
-    // Calm confirmation sequence (Web Animations API — framer-motion + CSS keyframes
-    // are globally disabled in this app). The order already exists; this is purely
-    // visual. Reduced-motion / no-WAAPI → the full dark card is present instantly.
     const cardRef = useRef<HTMLDivElement>(null);
     const markRef = useRef<HTMLImageElement>(null);
     const numRef = useRef<HTMLDivElement>(null);
@@ -284,8 +261,8 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
     return (
         <div className="flex-1 flex flex-col bg-background font-sans">
             <MetaTags
-                title="تأكيد الطلب"
-                description="شكراً لطلبك! تم استلام طلبك بنجاح في AQUAVO"
+                title="طلبك مسجّل"
+                description="تم تسجيل طلبك بنجاح في AQUAVO"
                 noIndex={true}
             />
 
@@ -297,18 +274,17 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                 >
                     <div className="h-1.5 w-full bg-gradient-to-l from-primary to-primary/70" />
                     <div className="p-5 sm:p-6">
-                        {/* AQUAVO mark */}
                         <div className="flex justify-center">
                             <img ref={markRef} src="/brand/aquavo-v2-icon.svg" alt="AQUAVO" className="h-12 w-auto" />
                         </div>
-                        {/* Heading + subtitle (approved dark confirmation) */}
                         <div ref={headingRef} className="mt-3 text-center" role="status" aria-live="polite">
-                            <h1 role="heading" aria-level={1} className="text-2xl font-bold text-foreground">تم إنشاء طلبك</h1>
-                            <p className="mt-1 text-sm text-muted-foreground">شكراً لطلبك — تم استلامه بنجاح</p>
+                            <h1 role="heading" aria-level={1} className="text-2xl font-bold text-foreground">طلبك مسجّل</h1>
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                تم تسجيل الطلب بنجاح. إحنا نجهزه ونتواصل وياك إذا احتجنا معلومة إضافية.
+                            </p>
                         </div>
 
                         <div className="space-y-5">
-                            {/* Order number (resolves ≤250ms) with copy */}
                             <div ref={numRef} className="rounded-xl border border-primary/30 bg-primary/10 p-4 text-center">
                                 <p className="text-xs text-muted-foreground">رقم الطلب</p>
                                 <div className="mt-1 flex items-center justify-center gap-2" dir="ltr">
@@ -324,7 +300,6 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 </div>
                             </div>
 
-                            {/* Products */}
                             {items.length > 0 && (
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
@@ -359,7 +334,6 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 </div>
                             )}
 
-                            {/* Totals + facts (settle) */}
                             <div ref={factsRef} className="space-y-3">
                                 {total > 0 && (
                                     <div className="rounded-xl bg-muted/40 p-4">
@@ -392,7 +366,15 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                 </div>
                             </div>
 
-                            {/* Loyalty rewards */}
+                            <div className="rounded-xl border border-border bg-background p-4">
+                                <h2 className="text-sm font-bold text-foreground">شنو يصير بعدين؟</h2>
+                                <ol className="mt-2 space-y-1.5 text-sm leading-6 text-muted-foreground">
+                                    <li>1. نراجع تفاصيل الطلب ونجهزه.</li>
+                                    <li>2. نتواصل وياك إذا احتجنا توضيح عن العنوان أو المنتج.</li>
+                                    <li>3. الدفع يكون عند الاستلام، والتوصيل خلال {DELIVERY_DAYS}.</li>
+                                </ol>
+                            </div>
+
                             {loyalty && (loyalty.pointsEarned > 0 || loyalty.cashbackEarned > 0) && (
                                 <div className="rounded-xl border border-primary/20 bg-primary/5 p-4">
                                     <div className="mb-3 flex items-center gap-2">
@@ -418,24 +400,14 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     {loyalty.tierUpgraded && (
                                         <div className="mt-3 rounded-lg border border-yellow-400/30 bg-yellow-400/10 p-2 text-center">
                                             <p className="text-sm font-bold text-yellow-700 dark:text-yellow-300">
-                                                تهانينا! ترقيت للمستوى {loyalty.tier === 'diamond' ? 'الماسي' : loyalty.tier === 'gold' ? 'الذهبي' : loyalty.tier === 'silver' ? 'الفضي' : 'البرونزي'}!
+                                                تهانينا! ترقيت للمستوى {loyalty.tier === "diamond" ? "الماسي" : loyalty.tier === "gold" ? "الذهبي" : loyalty.tier === "silver" ? "الفضي" : "البرونزي"}!
                                             </p>
                                         </div>
                                     )}
                                 </div>
                             )}
 
-                            {/* Actions */}
                             <div className="space-y-2.5 pt-1">
-                                <a
-                                    href={whatsappHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md bg-green-600 font-semibold text-white transition-colors hover:bg-green-700"
-                                >
-                                    <MessageCircle className="h-4 w-4" />
-                                    أكد طلبك عبر واتساب
-                                </a>
                                 <Link href="/order-tracking">
                                     <Button className="h-11 w-full bg-primary text-primary-foreground hover:bg-primary/90">
                                         <Truck className="ml-2 h-4 w-4" />
@@ -450,6 +422,15 @@ function ConfirmationContent({ orderId, orderData }: { orderId: string; orderDat
                                     <Printer className="ml-2 h-4 w-4" />
                                     طباعة الفاتورة
                                 </Button>
+                                <a
+                                    href={whatsappHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex h-11 w-full items-center justify-center gap-2 rounded-md border border-border bg-transparent font-semibold text-foreground transition-colors hover:border-primary/45 hover:bg-primary/5"
+                                >
+                                    <MessageCircle className="h-4 w-4 text-primary" />
+                                    تحتاج مساعدة؟ احچي ويانه
+                                </a>
                                 <Link href="/">
                                     <Button className="h-11 w-full text-muted-foreground hover:bg-muted hover:text-foreground" variant="ghost">
                                         <Home className="ml-2 h-4 w-4" />
