@@ -99,4 +99,14 @@ WHERE NOT EXISTS (
   SELECT 1 FROM schema_migrations WHERE version='0049_default_preparation_profile'
 );
 
+-- Re-apply after a rollback must clear the rolled-back flag. The INSERT above is
+-- guarded by NOT EXISTS, so on a re-apply it does nothing and the row keeps the
+-- rolled_back_at its rollback stamped -- leaving the ledger claiming this
+-- migration is rolled back while it is in fact applied. Observed on the Neon
+-- test branch during forward -> rollback -> re-apply.
+UPDATE schema_migrations
+   SET rolled_back_at = NULL, applied_at = now(), applied_by = current_user
+ WHERE version = '0049_default_preparation_profile'
+   AND rolled_back_at IS NOT NULL;
+
 COMMIT;
