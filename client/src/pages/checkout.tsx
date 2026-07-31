@@ -22,6 +22,7 @@ import { CouponSection } from "@/components/cart/checkout/coupon-section";
 import { OrderSummary } from "@/components/cart/checkout/order-summary";
 import { ConfirmationView } from "@/components/cart/checkout/confirmation-view";
 import { CheckoutLoyaltySection } from "@/components/cart/checkout/loyalty-section";
+import { CheckoutSuccessFallback } from "@/components/cart/checkout/checkout-success-fallback";
 
 export default function CheckoutPage() {
   const [, setLocation] = useLocation();
@@ -54,14 +55,12 @@ export default function CheckoutPage() {
     setLoyaltyData(data);
   }, []);
 
-  // Redirect to home if cart is empty
   useEffect(() => {
     if (cartItems.length === 0 && step !== "success") {
       setLocation("/");
     }
   }, [cartItems.length, step]);
 
-  // Auto-fill user data
   useEffect(() => {
     if (user) {
       setCustomerInfo((prev) => ({
@@ -72,7 +71,6 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
-  // Fire begin_checkout events on mount
   useEffect(() => {
     if (cartItems.length > 0) {
       ttqInitiateCheckout(
@@ -125,8 +123,6 @@ export default function CheckoutPage() {
     return iraqiPhoneRegex.test(cleanPhone);
   };
 
-  // Order the fields appear in the form so focus moves to the first invalid
-  // one, top to bottom, regardless of which rule failed.
   const FIELD_ORDER = ["name", "phone", "governorate", "address"] as const;
 
   const validateInfo = (): boolean => {
@@ -143,8 +139,6 @@ export default function CheckoutPage() {
       setFormErrorSummary(`فيه ${Object.keys(newErrors).length} حقول تحتاج تصحيح`);
       const firstInvalidField = FIELD_ORDER.find((field) => newErrors[field]);
       if (firstInvalidField) {
-        // Wait a tick so the error markup (and aria-describedby) is in the DOM
-        // before we move focus to it.
         requestAnimationFrame(() => {
           document.getElementById(firstInvalidField)?.focus();
         });
@@ -179,8 +173,6 @@ export default function CheckoutPage() {
   };
 
   const handleConfirmOrder = async () => {
-    // Guard against double-submission: a second click/Enter while the first
-    // request is still in flight must never fire a second POST.
     if (!agreed || isSubmitting) return;
     setIsSubmitting(true);
     try {
@@ -224,7 +216,6 @@ export default function CheckoutPage() {
       const orderData = await response.json();
       const confirmedTotal = resolveCheckoutTotal(orderData, grandTotal);
 
-      // TikTok Pixel
       ttqPlaceAnOrder(
         cartItems.map((item) => ({
           id: item.productId,
@@ -234,7 +225,6 @@ export default function CheckoutPage() {
         })),
         cartTotal
       );
-      // Meta Pixel
       metaTrackPurchase({
         orderId: orderData.orderNumber || orderData.id || "unknown",
         totalIQD: confirmedTotal,
@@ -242,7 +232,6 @@ export default function CheckoutPage() {
         numItems: cartItems.reduce((sum, i) => sum + i.quantity, 0),
         phone: customerInfo.phone,
       });
-      // GA4
       trackPurchase({
         orderId: orderData.id || "unknown",
         total: confirmedTotal,
@@ -258,14 +247,10 @@ export default function CheckoutPage() {
         orderId: orderData.id,
         orderNumber: orderData.orderNumber ?? orderData.id,
       });
-      // step "success" first so the empty-cart redirect effect doesn't bounce us
-      // home once clearCart() empties the cart.
       setStep("success");
       clearOrderIdempotencyKey();
 
       if (orderData.id) {
-        // Stash the full order so the confirmation page shows a complete invoice
-        // for guests too (their authed order endpoint returns 401).
         const governorateLabel = GOVERNORATES.find((g) => g.value === customerInfo.governorate)?.label;
         stashOrder({
           id: orderData.id,
@@ -317,9 +302,6 @@ export default function CheckoutPage() {
     window.scrollTo(0, 0);
   };
 
-  // Move focus to the current step's heading whenever the step changes, so
-  // keyboard and screen-reader users land on the new content instead of
-  // staying wherever their focus happened to be on the previous step.
   const stepHeadingRef = useRef<HTMLHeadingElement>(null);
   const successHeadingRef = useRef<HTMLHeadingElement>(null);
   const isFirstStepRender = useRef(true);
@@ -388,38 +370,17 @@ export default function CheckoutPage() {
     }
   };
 
-  // Success page
   if (step === "success" && orderResult) {
     return (
-      <div className="min-h-screen bg-background flex flex-col" dir="rtl">
-        <MetaTags title="تم الطلب بنجاح" noIndex />
-        <div className="flex-1 flex items-center justify-center p-6">
-          <div className="max-w-md w-full text-center space-y-6">
-            <div className="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h1 ref={successHeadingRef} tabIndex={-1} className="text-2xl font-bold outline-none">تم استلام طلبك بنجاح</h1>
-            <p className="text-muted-foreground">رقم الطلب: <span className="font-mono font-bold text-foreground">{orderResult.orderNumber}</span></p>
-            <p className="text-sm text-muted-foreground">سنتواصل معك قريباً لتأكيد الطلب</p>
-            <a
-              href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أريد تأكيد طلبي رقم ${orderResult.orderNumber}`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 transition-colors"
-            >
-              أكد طلبك عبر واتساب
-            </a>
-            <div>
-              <Button variant="outline" onClick={() => setLocation("/")} className="gap-2">
-                <ArrowRight className="w-4 h-4" aria-hidden="true" />
-                العودة للرئيسية
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <>
+        <MetaTags title="طلبك مسجّل" noIndex />
+        <CheckoutSuccessFallback
+          orderNumber={orderResult.orderNumber}
+          headingRef={successHeadingRef}
+          onHome={() => setLocation("/")}
+          onTrack={() => setLocation("/order-tracking")}
+        />
+      </>
     );
   }
 
@@ -427,7 +388,6 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-background flex flex-col" dir="rtl">
       <MetaTags title="إتمام الطلب" noIndex />
 
-      {/* Header */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur border-b border-border">
         <div className="container mx-auto px-4 h-14 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => window.history.back()} className="gap-2">
@@ -442,7 +402,6 @@ export default function CheckoutPage() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="flex-1 container mx-auto px-4 pt-6 pb-0 max-w-lg">
         {step === "info" ? (
           <div className="space-y-5">
@@ -509,7 +468,7 @@ export default function CheckoutPage() {
           />
         )}
       </main>
-      {/* Mini footer — trust strip */}
+
       <footer className="container mx-auto px-4 max-w-lg py-6 mt-6 border-t border-border/40 text-center" dir="rtl">
         <p className="text-sm font-semibold text-foreground mb-1">AQUAVO</p>
         <p className="text-xs text-muted-foreground mb-3">AQUAVO — معدات أحواض بريميوم من بغداد لكل العراق</p>
