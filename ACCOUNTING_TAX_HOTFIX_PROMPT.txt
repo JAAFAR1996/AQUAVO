@@ -1,0 +1,109 @@
+﻿أنت تكمل Hotfix مالي شديد الحساسية لمشروع AQUAVO.
+
+المستودع:
+C:\A16
+
+الحالة المؤكدة:
+- main يجب أن يبدأ من:
+  40db01083abe33534e2b5b60b75925f0fb92e0ea
+- Production database هي Neon.
+- لا تعدّل أي مبلغ أو طلب أو كلفة أو تسوية في قاعدة البيانات.
+- يوجد Backup:
+  production-backup-before-legacy-settlement-isolation-20260728
+  br-noisy-wave-a4y62y4w
+- تم تفعيل DB trigger على Production يمنع إغلاق الفترات الضريبية إذا توجد أسطر غير exact.
+- جميع 182 سطر بيع تاريخي غير exact:
+  39 estimated_history
+  143 estimated_database_reference
+  0 exact_snapshot
+  0 unknown
+- المصدر الرسمي لشركة التوصيل:
+  cash_settlements WHERE status = reconciled
+  gross = 2,022,170
+  fees = 195,000
+  net = 1,827,170
+  outstanding = 0
+- shipping_settlements جدول Legacy فقط، مجموعه 152,500، ويجب ألا يؤثر على المحاسب.
+- المرتجعات يجب أن تظهر منفصلة ولا تُخصم مرة ثانية من رصيد شركة التوصيل.
+
+المطلوب:
+
+1. تحقق أن HEAD يساوي 40db01083abe33534e2b5b60b75925f0fb92e0ea أو أحدث main يحتويه.
+2. أنشئ فرع:
+   fix/accounting-tax-readiness-and-legacy-isolation-20260728
+
+3. server/routes/accounting.ts:
+   - احذف أي قراءة مالية أو Promise/query من shipping_settlements.
+   - لا تستخدم orders.shipping_cost كمصدر تسوية.
+   - اقرأ فقط cash_settlements بحالة reconciled.
+   - grossCustomerCollections = sum(grossAmount)
+   - carrierFees = sum(feesAmount)
+   - netCashReceived = sum(netAmount)
+   - carrierOutstanding = grossCustomerCollections - carrierFees - netCashReceived
+   - لا تطرح approvedReturnDeductions أو documentedAdjustments من carrierOutstanding.
+   - documentedAdjustments تبقى معلومة منفصلة فقط.
+   - totalReceived القديم يجب أن يساوي netCashReceived أو يزال لصالح carrierBalance.
+   - settlements المعروضة يجب أن تأتي من cash_settlements فقط.
+   - لا يبقى أي اعتماد Runtime على shipping_settlements.
+
+4. client/src/components/admin/accounting-panel.tsx:
+   - اعرض:
+     المقبوض من الزبائن 2,022,170
+     أجور شركة التوصيل 195,000
+     الصافي المستلم 1,827,170
+     الباقي 0
+   - اعرض المرتجعات بقسم منفصل ولا تخصمها من رصيد الشركة.
+   - لا تعرض عبارة "كلفة ناقصة" لسطور estimated_history أو estimated_database_reference.
+   - استخدم:
+     "كلفة تقديرية من تاريخ الكلفة"
+     "كلفة تقديرية من مرجع قاعدة البيانات"
+   - unknown فقط يعرض "كلفة غير متوفرة".
+   - لا تعرض الأرباح التقديرية على أنها نهائية أو صالحة للضريبة.
+
+5. أضف Tax Readiness واضحة في API والواجهة:
+   - exactCostLines
+   - totalFinancialLines
+   - taxReportReady = totalFinancialLines > 0 && exactCostLines === totalFinancialLines
+   - حالياً يجب أن تكون false.
+   - اعرض تحذيراً عربياً واضحاً:
+     "غير صالح كتقرير ضريبي نهائي — الكلف التاريخية تقديرية ولم تُثبت بلقطات كلفة وقت البيع."
+   - عطّل أي زر إغلاق فترة، اعتماد نهائي، أو تصدير ضريبي نهائي عندما taxReportReady=false.
+   - التصدير الداخلي للمراجعة يمكن أن يبقى، لكن يجب أن يحمل بوضوح:
+     DRAFT / ESTIMATED / NOT TAX FINAL.
+
+6. أضف migrations:
+   - isolate_legacy_shipping_settlements.sql
+   - isolate_legacy_shipping_settlements_rollback.sql
+   المهاجرة تنقل public.shipping_settlements إلى archive.shipping_settlements بدون حذف أي صف.
+   لا تطبق المهاجرة على Production من Claude؛ فقط أضفها واختبرها منطقياً.
+
+7. اختبارات إلزامية:
+   - carrier outstanding يساوي 0 ولا يتأثر بمرتجع 10,000.
+   - لا query أو import Runtime لـ shipping_settlements داخل مسار المحاسب.
+   - estimated lines لا تظهر missing/unknown.
+   - taxReportReady=false عند 0 exact من 182.
+   - final tax close/export disabled عند false.
+   - unknown يبقى null ولا يتحول إلى 0 أو هامش 100%.
+
+8. شغّل:
+   - focused accounting tests، كلها يجب أن تنجح
+   - typecheck gates الأربعة
+   - production build
+   - git diff --check
+   - grep يثبت عدم وجود اعتماد Runtime على shipping_settlements
+
+9. بعد نجاح كل شيء:
+   - commit
+   - push الفرع
+   - ادمجه محلياً إلى main بـ --no-ff
+   - push main
+   - لا تعدّل قاعدة البيانات.
+   - اطبع:
+     branch SHA
+     merge SHA
+     test totals
+     الملفات المعدلة
+     نتيجة grep
+     Vercel deployment إن ظهر
+
+لا تضعف أي اختبار، لا تفبرك كلفة، ولا تعتبر estimated كلفة exact.

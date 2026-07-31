@@ -4,6 +4,7 @@
 import { describe, it, expect, beforeAll, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { cartonCatalogDdl } from "./helpers/packing-migrations.js";
 import express from "express";
 import request from "supertest";
 import { PGlite } from "@electric-sql/pglite";
@@ -97,6 +98,9 @@ beforeAll(async () => {
   await client.exec(base);
   await client.exec(hardening);
   await client.exec(pimLineIdentity);
+  // Migration 0040: the Drizzle model now names these columns, so the test
+  // database must have them or every select() on fulfillment_materials fails.
+  await client.exec(cartonCatalogDdl());
 
   await client.exec(`INSERT INTO products (id,name,price,cost_price,packaging_cost,insert_cost)
     VALUES ('p1','فلتر داخلي','25000','15000','500','0')`);

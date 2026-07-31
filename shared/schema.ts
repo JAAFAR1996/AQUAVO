@@ -3060,6 +3060,26 @@ export const fulfillmentMaterials = pgTable("fulfillment_materials", {
   notes: text("notes"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  // ── carton catalogue (migration 0040) ──────────────────────────────────────
+  // A carton IS a fulfillment material here: bought through packagingPurchases,
+  // costed through materialCostRecords, consumed through the movement ledger.
+  // These are new columns, not existing ones reinterpreted.
+  sku: text("sku"),
+  materialKind: text("material_kind").notNull().default("consumable"), // carton | consumable
+  calculationBasis: text("calculation_basis").notNull().default("per_order"), // per_order | per_carton | per_product_unit
+  stockTracked: boolean("stock_tracked").notNull().default(false),
+  lowStockThreshold: numeric("low_stock_threshold"),
+  // Internal dimensions are what the planner fits against. NULL = unknown.
+  internalLengthCm: numeric("internal_length_cm"),
+  internalWidthCm: numeric("internal_width_cm"),
+  internalHeightCm: numeric("internal_height_cm"),
+  externalLengthCm: numeric("external_length_cm"),
+  externalWidthCm: numeric("external_width_cm"),
+  externalHeightCm: numeric("external_height_cm"),
+  maxWeightKg: numeric("max_weight_kg"),
+  safetyPaddingCm: numeric("safety_padding_cm"),
+  // Soft archive: a material referenced by a historical line is never deleted.
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
 });
 
 export const packagingPurchases = pgTable("packaging_purchases", {

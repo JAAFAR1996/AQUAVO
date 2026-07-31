@@ -35,6 +35,18 @@
     "server/services/fulfillment-draft-service.ts",
     "server/services/packaging-profile-service.ts",
     "server/services/material-cost-service.ts",
-    "server/services/fulfillment-types.test-d.ts"
+    "server/services/fulfillment-types.test-d.ts",
+    "shared/packing-types.ts",
+    "shared/packing-schema.ts",
+    "server/services/carton-geometry-adapter.ts",
+    "server/services/carton-support-analyzer.ts",
+    "server/services/carton-load-distributor.ts",
+    "server/services/carton-safety-validator.ts",
+    "server/services/carton-planner.ts",
+    "server/services/carton-reservation-service.ts",
+    "server/services/packaging-cost-resolver.ts",
+    "server/services/return-packaging-loss-service.ts",
+    "server/services/admin-alert-service.ts",
+    "server/services/packaging-lifecycle.ts"
   ]
 }
