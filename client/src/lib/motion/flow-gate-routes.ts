@@ -19,7 +19,8 @@ export const ELIGIBLE_SECTIONS = [
   "/", // Home
   "/products", // Store
   "/about", // About AQUAVO
-  "/tank-builder", // اختار المناسب (top-level "choose the right gear" section)
+  "/journey", // Canonical guided aquarium setup
+  "/tank-builder", // Backwards-compatible alias that redirects to /journey
   "/order-tracking", // Track order
   "/profile", // Account / Orders (?tab=orders)
 ] as const;
@@ -66,9 +67,10 @@ export function sectionDepth(href: string): number {
 const SECTION_CHUNK: Record<string, () => Promise<unknown>> = {
   "/products": () => import("@/pages/products"),
   "/about": () => import("@/pages/about"),
+  "/journey": () => import("@/pages/journey"),
+  "/tank-builder": () => import("@/pages/aquarium-wizard"),
   "/order-tracking": () => import("@/pages/order-tracking"),
   "/profile": () => import("@/pages/profile"),
-  "/tank-builder": () => import("@/pages/aquarium-wizard"),
 };
 
 export function prefetchSection(href: string): void {
