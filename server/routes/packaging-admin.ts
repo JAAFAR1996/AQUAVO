@@ -420,7 +420,13 @@ router.post(
   }),
 );
 
-const cartonPatchSchema = cartonSchema.partial().extend({ reason: reasonSchema });
+// `active` is patch-only: a carton is created active, and deactivating it is how
+// the owner retires a size without deleting a row that historical plans and
+// consumed movements still reference.
+const cartonPatchSchema = cartonSchema.partial().extend({
+  active: z.boolean().optional(),
+  reason: reasonSchema,
+});
 
 router.patch(
   "/cartons/:id",
@@ -443,6 +449,7 @@ router.patch(
     }
     if (d.name !== undefined) patch.name = d.name;
     if (d.notes !== undefined) patch.notes = d.notes;
+    if (d.active !== undefined) patch.active = d.active;
 
     await db().update(fulfillmentMaterials).set(patch).where(eq(fulfillmentMaterials.id, id));
     await recordFinancialChange({

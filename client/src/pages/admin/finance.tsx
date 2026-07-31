@@ -16,6 +16,7 @@ import { FinanceAuditTrail } from "@/components/admin/finance-audit-trail";
 import { FinanceCharts } from "@/components/admin/finance-charts";
 import { FinancePeriodClose } from "@/components/admin/finance-period-close";
 import { FinanceLedger } from "@/components/admin/finance-ledger";
+import { PackagingSection } from "@/components/admin/packaging";
 
 type Period = "day" | "week" | "month" | "year";
 
@@ -80,6 +81,7 @@ export default function FinancePage() {
           <TabsTrigger value="cost-changes">تغييرات الكلف</TabsTrigger>
           <TabsTrigger value="simulator">حاسبة السيناريوهات</TabsTrigger>
           <TabsTrigger value="cost-audit">تدقيق سجل الكلف</TabsTrigger>
+          <TabsTrigger value="packaging" data-testid="tab-packaging">التغليف والكراتين</TabsTrigger>
           <TabsTrigger value="return-events">الراجعات والخسائر</TabsTrigger>
           <TabsTrigger value="audit">تدقيق محاسبي</TabsTrigger>
           <TabsTrigger value="product-costs">تكاليف المنتجات</TabsTrigger>
@@ -126,6 +128,10 @@ export default function FinancePage() {
 
         <TabsContent value="cost-audit">
           <FinanceCostAudit />
+        </TabsContent>
+
+        <TabsContent value="packaging">
+          <PackagingSection />
         </TabsContent>
 
         <TabsContent value="return-events">
