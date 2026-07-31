@@ -12,6 +12,7 @@ import {
 } from "../services/packaging-cost-resolver.js";
 import {
   ReturnClassificationError,
+  buildClassifiedQuantities,
   classifyAdminRecordedDamage,
   classifyFullReturn,
   isAdditiveReturnLoss,
@@ -167,7 +168,7 @@ describe("returned order — carton only", () => {
   });
 
   it("full return of carton + 50 sticker + 100 card shows a 1,000 loss and nothing else", () => {
-    const cls = classifyFullReturn(SHIPMENT);
+    const cls = classifyFullReturn(SHIPMENT, "ret-1");
     expect(cls).toHaveLength(1);
     expect(cls[0]!.materialNameSnapshot).toBe("كارتونة 27×20×14 سم");
     expect(cls[0]!.lossCategory).toBe("damaged_carton");
@@ -185,14 +186,14 @@ describe("returned order — carton only", () => {
     const originalPreparation = SHIPMENT.reduce((s, l) => s + (l.totalCost ?? 0), 0);
     expect(originalPreparation).toBe(1150);
     // The return classifies 1,000 of that as a loss; it does not remove the 150.
-    expect(totalReturnPackagingLoss(classifyFullReturn(SHIPMENT))).toBe(1000);
+    expect(totalReturnPackagingLoss(classifyFullReturn(SHIPMENT, "ret-1"))).toBe(1000);
   });
 
   it("does not deduct the carton cost a second time", () => {
     const packaging = resolvePackagingCost({ boxCost: 0 }, { eventCount: 1, totalFulfillmentCost: 1150, status: "exact" });
     const beforeReturn = computeOrderProfit({ revenue: 20_000, cogs: 8_000, packaging });
 
-    const cls = classifyFullReturn(SHIPMENT);
+    const cls = classifyFullReturn(SHIPMENT, "ret-1");
     // Classification is display-only: profit is computed from the SAME resolved
     // packaging cost, before and after.
     const afterReturn = computeOrderProfit({ revenue: 20_000, cogs: 8_000, packaging });
@@ -211,21 +212,23 @@ describe("returned order — carton only", () => {
 
   it("handles a full return with several cartons", () => {
     const second: ConsumedLine = { ...CARTON, lineId: "line-carton-2", unitCostSnapshot: 1200, totalCost: 1200 };
-    const cls = classifyFullReturn([CARTON, second, STICKER, CARD]);
+    const cls = classifyFullReturn([CARTON, second, STICKER, CARD], "ret-1");
     expect(cls).toHaveLength(2);
     expect(totalReturnPackagingLoss(cls)).toBe(2200);
   });
 
   it("creates no duplicate classification when the return is processed again", () => {
-    const first = classifyFullReturn(SHIPMENT);
-    const seen = new Set(first.map((c) => c.fulfillmentLineId));
-    expect(classifyFullReturn(SHIPMENT, seen)).toHaveLength(0);
-    expect(classifyFullReturn(SHIPMENT, seen)).toHaveLength(0); // and again
+    const first = classifyFullReturn(SHIPMENT, "ret-1");
+    const classified = buildClassifiedQuantities(
+      first.map((c) => ({ fulfillmentLineId: c.fulfillmentLineId, quantity: c.quantity })),
+    );
+    expect(classifyFullReturn(SHIPMENT, "ret-1", classified)).toHaveLength(0);
+    expect(classifyFullReturn(SHIPMENT, "ret-1", classified)).toHaveLength(0); // and again
   });
 
   it("reports an unknown loss as null rather than under-reporting it", () => {
     const noCost: ConsumedLine = { ...CARTON, unitCostSnapshot: null, totalCost: null, costStatus: "unknown" };
-    expect(totalReturnPackagingLoss(classifyFullReturn([noCost]))).toBeNull();
+    expect(totalReturnPackagingLoss(classifyFullReturn([noCost], "ret-1"))).toBeNull();
   });
 });
 
@@ -242,6 +245,7 @@ describe("partial return", () => {
     const c = classifyAdminRecordedDamage(
       { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "رجع الكارتون متمزق" },
       SHIPMENT,
+      "ret-1",
     );
     expect(c.classificationMode).toBe("admin_recorded");
     expect(c.quantity).toBe(1);
@@ -254,6 +258,7 @@ describe("partial return", () => {
       classifyAdminRecordedDamage(
         { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "" },
         SHIPMENT,
+        "ret-1",
       ),
     ).toThrow(ReturnClassificationError);
   });
@@ -264,6 +269,7 @@ describe("partial return", () => {
         classifyAdminRecordedDamage(
           { fulfillmentLineId: "line-carton", quantity: 3, lossCategory: "damaged_carton", reason: "محاولة تجاوز" },
           SHIPMENT,
+          "ret-1",
         );
       } catch (e) {
         return e as ReturnClassificationError;
@@ -279,6 +285,7 @@ describe("partial return", () => {
         classifyAdminRecordedDamage(
           { fulfillmentLineId: "line-elsewhere", quantity: 1, lossCategory: "damaged_carton", reason: "سطر غريب" },
           SHIPMENT,
+          "ret-1",
         );
       } catch (e) {
         return e as ReturnClassificationError;
@@ -289,13 +296,14 @@ describe("partial return", () => {
   });
 
   it("classifies one carton unit only once", () => {
-    const seen = new Set(["line-carton"]);
+    const classified = buildClassifiedQuantities([{ fulfillmentLineId: "line-carton", quantity: 1 }]);
     const err = (() => {
       try {
         classifyAdminRecordedDamage(
           { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "تكرار" },
           SHIPMENT,
-          seen,
+          "ret-2",
+          classified,
         );
       } catch (e) {
         return e as ReturnClassificationError;
@@ -310,6 +318,7 @@ describe("partial return", () => {
     const c = classifyAdminRecordedDamage(
       { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "وحدة وحدة تلفت" },
       [multi],
+      "ret-1",
     );
     expect(c.originalTotalCostSnapshot).toBe(1000);
   });
@@ -318,6 +327,7 @@ describe("partial return", () => {
     const c = classifyAdminRecordedDamage(
       { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "تالفة" },
       SHIPMENT,
+      "ret-1",
     );
     // The shape itself has no inventory field: a classification cannot express a
     // stock change, which is the structural guarantee behind "never restored".
@@ -336,10 +346,13 @@ describe("full return after an earlier partial carton classification", () => {
     const partial = classifyAdminRecordedDamage(
       { fulfillmentLineId: "line-carton", quantity: 1, lossCategory: "damaged_carton", reason: "تلفت بالإرجاع الجزئي" },
       shipment,
+      "ret-1",
     );
-    const seen = new Set([partial.fulfillmentLineId]);
+    const classified = buildClassifiedQuantities([
+      { fulfillmentLineId: partial.fulfillmentLineId, quantity: partial.quantity },
+    ]);
 
-    const full = classifyFullReturn(shipment, seen);
+    const full = classifyFullReturn(shipment, "ret-2", classified);
     expect(full).toHaveLength(1);
     expect(full[0]!.fulfillmentLineId).toBe("line-carton-2");
 

@@ -19,6 +19,11 @@
 --   * hence this table, whose rows carry is_reclassification_only = true and are
 --     DISPLAYED but never summed into any expense total.
 --
+-- QUANTITY. One shipment line may carry several cartons and they may come back
+-- across separate returns, so a line can be classified more than once. What is
+-- capped is the CUMULATIVE quantity: the sum of all classifications against a
+-- line can never exceed what that line actually consumed.
+--
 -- SCOPE. Automatic classification covers CARTONS ONLY (material_kind='carton').
 -- The price sticker and the thank-you card come back with the order, are not
 -- damaged, and their 50 and 100 IQD stay part of the original fulfillment
@@ -32,10 +37,12 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS order_return_packaging_losses (
   id                   text PRIMARY KEY DEFAULT gen_random_uuid()::text,
   order_id             text NOT NULL REFERENCES orders(id),
-  return_event_id      text REFERENCES order_return_events(id),
+  -- NOT NULL: every classification belongs to a specific return event. That is
+  -- what lets one shipment line be classified across several returns while each
+  -- return event still reports only its own loss.
+  return_event_id      text NOT NULL REFERENCES order_return_events(id),
   fulfillment_event_id text NOT NULL REFERENCES order_fulfillment_events(id),
-  -- The exact consumed line being classified. Carries the uniqueness guarantee.
-  fulfillment_line_id  text REFERENCES order_fulfillment_lines(id),
+  fulfillment_line_id  text NOT NULL REFERENCES order_fulfillment_lines(id),
 
   material_id            text REFERENCES fulfillment_materials(id),
   material_name_snapshot text NOT NULL,
@@ -88,16 +95,60 @@ BEGIN
   END IF;
 END $$;
 
--- One classification per consumed fulfillment line, ever. This is what makes
--- repeated return processing a no-op, makes two partial returns of the same
--- order yield a single carton loss, and stops a full return after a partial
--- carton classification from double-counting the same carton unit.
-CREATE UNIQUE INDEX IF NOT EXISTS orpl_line_uidx
-  ON order_return_packaging_losses(fulfillment_line_id)
-  WHERE fulfillment_line_id IS NOT NULL;
+-- IDEMPOTENCY, not exclusivity.
+--
+-- A first attempt used UNIQUE(fulfillment_line_id) alone. That is wrong once a
+-- shipment line carries more than one carton: two partial returns each bringing
+-- back one carton of a two-carton line are two legitimate classifications, and
+-- the single-column constraint would reject the second.
+--
+-- Scoping uniqueness to the RETURN EVENT keeps the property that actually
+-- matters — processing the same return event twice inserts nothing the second
+-- time — while allowing a line to be classified across several distinct returns.
+-- Over-classification is prevented separately, by cumulative quantity.
+CREATE UNIQUE INDEX IF NOT EXISTS orpl_event_line_uidx
+  ON order_return_packaging_losses(return_event_id, fulfillment_line_id);
 
 CREATE INDEX IF NOT EXISTS orpl_order_idx ON order_return_packaging_losses(order_id);
 CREATE INDEX IF NOT EXISTS orpl_event_idx ON order_return_packaging_losses(fulfillment_event_id);
+CREATE INDEX IF NOT EXISTS orpl_line_idx ON order_return_packaging_losses(fulfillment_line_id);
+CREATE INDEX IF NOT EXISTS orpl_return_event_idx ON order_return_packaging_losses(return_event_id);
+
+-- CUMULATIVE CEILING — no carton unit is ever written off twice.
+--
+-- A CHECK constraint cannot see other rows, so this is a trigger. It sums every
+-- classification already recorded against the same shipment line and refuses an
+-- insert that would push the total past the quantity that line actually
+-- consumed. Two concurrent returns cannot both slip through: the service takes a
+-- transaction-scoped advisory lock on the line before checking, and this trigger
+-- is the backstop for anything that reaches the table by another route.
+CREATE OR REPLACE FUNCTION orpl_enforce_cumulative_quantity() RETURNS trigger AS $BODY$
+DECLARE
+  v_consumed  numeric;
+  v_already   numeric;
+BEGIN
+  SELECT quantity INTO v_consumed
+    FROM order_fulfillment_lines WHERE id = NEW.fulfillment_line_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'fulfillment line % does not exist', NEW.fulfillment_line_id;
+  END IF;
+
+  SELECT COALESCE(SUM(quantity), 0) INTO v_already
+    FROM order_return_packaging_losses
+   WHERE fulfillment_line_id = NEW.fulfillment_line_id;
+
+  IF v_already + NEW.quantity > v_consumed THEN
+    RAISE EXCEPTION
+      'classified quantity (% already + % requested) exceeds the % consumed by fulfillment line %',
+      v_already, NEW.quantity, v_consumed, NEW.fulfillment_line_id;
+  END IF;
+
+  RETURN NEW;
+END; $BODY$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS orpl_cumulative_guard ON order_return_packaging_losses;
+CREATE TRIGGER orpl_cumulative_guard BEFORE INSERT ON order_return_packaging_losses
+  FOR EACH ROW EXECUTE FUNCTION orpl_enforce_cumulative_quantity();
 
 -- Append-only: a classification is evidence. Corrections are new rows, never
 -- silent edits of an existing one.

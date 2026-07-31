@@ -38,6 +38,8 @@ export interface ConsumedLine {
 }
 
 export interface ReturnLossClassification {
+  /** Which return event this classification belongs to. Never inferred. */
+  returnEventId: string;
   fulfillmentEventId: string;
   fulfillmentLineId: string;
   materialId: string | null;
@@ -77,34 +79,70 @@ export function selectAutoClassifiableLines(lines: readonly ConsumedLine[]): Con
 }
 
 /**
- * Build the classification rows for a full return.
+ * How much of a shipment line has already been written off, keyed by line id.
+ * Built from `SUM(quantity) GROUP BY fulfillment_line_id` over every existing
+ * classification for the order — across ALL return events, not just this one.
+ */
+export type ClassifiedQuantities = ReadonlyMap<string, number>;
+
+/** Carton units of this line still available to be classified. Never negative. */
+export function remainingQuantity(
+  line: ConsumedLine,
+  classified: ClassifiedQuantities,
+): number {
+  return Math.max(0, line.quantity - (classified.get(line.lineId) ?? 0));
+}
+
+/** Per-unit cost of a line, used to price a partial write-off correctly. */
+function unitCostOf(line: ConsumedLine): number | null {
+  const unit = toMoneyOrNull(line.unitCostSnapshot);
+  if (unit != null) return unit;
+  const total = toMoneyOrNull(line.totalCost);
+  if (total != null && line.quantity > 0) return total / line.quantity;
+  return null;
+}
+
+/**
+ * Classification rows for a full return.
  *
- * `alreadyClassifiedLineIds` carries whatever an earlier partial return already
- * recorded, so a full return after a partial one tops up the remaining cartons
- * instead of duplicating the one already classified. The database enforces the
- * same rule independently via a unique index on fulfillment_line_id — this is
- * the readable half of that guarantee, not a substitute for it.
+ * Takes only what is LEFT on each carton line. A line carrying two cartons where
+ * an earlier partial return already wrote off one contributes a quantity of one
+ * here, not two — so a full return following a partial one tops up rather than
+ * double-counting. A line already fully classified contributes nothing, which is
+ * also what makes re-processing the same return event a no-op.
+ *
+ * Two independent database guarantees back this up: a unique index on
+ * (return_event_id, fulfillment_line_id) for idempotency, and a BEFORE INSERT
+ * trigger capping the cumulative quantity per line.
  */
 export function classifyFullReturn(
   lines: readonly ConsumedLine[],
-  alreadyClassifiedLineIds: ReadonlySet<string> = new Set(),
+  returnEventId: string,
+  classified: ClassifiedQuantities = new Map(),
 ): ReturnLossClassification[] {
-  return selectAutoClassifiableLines(lines)
-    .filter((l) => !alreadyClassifiedLineIds.has(l.lineId))
-    .map((l) => ({
+  const out: ReturnLossClassification[] = [];
+  for (const l of selectAutoClassifiableLines(lines)) {
+    const remaining = remainingQuantity(l, classified);
+    if (remaining <= 0) continue;
+    const unit = unitCostOf(l);
+    out.push({
+      returnEventId,
       fulfillmentEventId: l.eventId,
       fulfillmentLineId: l.lineId,
       materialId: l.materialId,
       materialNameSnapshot: l.materialName,
-      quantity: l.quantity,
-      originalUnitCostSnapshot: toMoneyOrNull(l.unitCostSnapshot),
-      originalTotalCostSnapshot: toMoneyOrNull(l.totalCost),
+      quantity: remaining,
+      originalUnitCostSnapshot: unit,
+      // Price what is actually being written off, not the whole line.
+      originalTotalCostSnapshot: unit != null ? unit * remaining : null,
       originalCostStatus: l.costStatus,
-      lossCategory: "damaged_carton" as const,
-      classificationMode: "automatic" as const,
-      isReclassificationOnly: true as const,
+      lossCategory: "damaged_carton",
+      classificationMode: "automatic",
+      isReclassificationOnly: true,
       reason: DAMAGED_CARTON_REASON_AR,
-    }));
+    });
+  }
+  return out;
 }
 
 export interface AdminDamageRecord {
@@ -122,6 +160,7 @@ export class ReturnClassificationError extends Error {
       | "LINE_NOT_CONSUMED"
       | "QUANTITY_EXCEEDS_CONSUMED"
       | "ALREADY_CLASSIFIED"
+      | "EXCEEDS_REMAINING"
       | "QUANTITY_NOT_POSITIVE",
   ) {
     super(message);
@@ -136,14 +175,16 @@ export class ReturnClassificationError extends Error {
  * damaged is a fact only the person opening the parcel knows. So the admin names
  * the line and the quantity, and must give a reason.
  *
- * Guards: the line must belong to this shipment, the quantity must be positive
- * and must not exceed what was actually consumed, and a line already classified
- * cannot be classified again — one carton unit is a loss once.
+ * Guards: the line must belong to this shipment, the quantity must be positive,
+ * and it must fit inside what is still UNCLASSIFIED on that line. The last check
+ * is cumulative across every return event on the order — a two-carton line can
+ * be written off across two returns, but never three.
  */
 export function classifyAdminRecordedDamage(
   record: AdminDamageRecord,
   consumedLines: readonly ConsumedLine[],
-  alreadyClassifiedLineIds: ReadonlySet<string> = new Set(),
+  returnEventId: string,
+  classified: ClassifiedQuantities = new Map(),
 ): ReturnLossClassification {
   if (!record.reason || record.reason.trim().length < 3) {
     throw new ReturnClassificationError(
@@ -167,24 +208,27 @@ export function classifyAdminRecordedDamage(
       "QUANTITY_EXCEEDS_CONSUMED",
     );
   }
-  if (alreadyClassifiedLineIds.has(line.lineId)) {
+  const remaining = remainingQuantity(line, classified);
+  if (remaining <= 0) {
     throw new ReturnClassificationError(
-      "هذا السطر مصنّف مسبقاً — وحدة الكارتونة تُصنّف مرة واحدة فقط",
+      "كل كراتين هذا السطر مصنّفة مسبقاً — ولا وحدة تُصنّف مرتين",
       "ALREADY_CLASSIFIED",
+    );
+  }
+  if (record.quantity > remaining) {
+    throw new ReturnClassificationError(
+      `الكمية المطلوبة (${record.quantity}) تتجاوز المتبقي غير المصنّف (${remaining})`,
+      "EXCEEDS_REMAINING",
     );
   }
 
   // Per-unit cost times the confirmed damaged quantity: a partial classification
   // must not carry the whole line's total when only some units came back.
-  const unit = toMoneyOrNull(line.unitCostSnapshot);
-  const total =
-    unit != null
-      ? unit * record.quantity
-      : record.quantity === line.quantity
-        ? toMoneyOrNull(line.totalCost)
-        : null;
+  const unit = unitCostOf(line);
+  const total = unit != null ? unit * record.quantity : null;
 
   return {
+    returnEventId,
     fulfillmentEventId: line.eventId,
     fulfillmentLineId: line.lineId,
     materialId: line.materialId,
@@ -232,4 +276,51 @@ export function totalReturnPackagingLoss(
  */
 export function isAdditiveReturnLoss(source: string | null | undefined): boolean {
   return (source ?? "manual") === "manual";
+}
+
+/**
+ * Cumulative classified quantity per shipment line, from existing rows.
+ *
+ * Deliberately spans every return event on the order: the ceiling is a property
+ * of the LINE, not of any one return. Feed this to `classifyFullReturn` and
+ * `classifyAdminRecordedDamage`.
+ */
+export function buildClassifiedQuantities(
+  existing: readonly { fulfillmentLineId: string; quantity: number }[],
+): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const row of existing) {
+    out.set(row.fulfillmentLineId, (out.get(row.fulfillmentLineId) ?? 0) + row.quantity);
+  }
+  return out;
+}
+
+/**
+ * The loss to store on ONE return event.
+ *
+ * `order_return_events.packaging_loss` describes that event alone. Writing the
+ * order-wide cumulative total there would make an order-level report that sums
+ * its return events count the same carton once per event.
+ */
+export function lossForReturnEvent(
+  classifications: readonly ReturnLossClassification[],
+  returnEventId: string,
+): number | null {
+  return totalReturnPackagingLoss(
+    classifications.filter((c) => c.returnEventId === returnEventId),
+  );
+}
+
+/**
+ * Order-level packaging loss: the sum across DISTINCT return events.
+ *
+ * Safe to add up precisely because each classification belongs to exactly one
+ * return event and the cumulative-quantity ceiling stops any carton unit being
+ * classified twice. It is still a reclassification total — none of it is
+ * subtracted from profit a second time.
+ */
+export function orderLevelReturnPackagingLoss(
+  classifications: readonly ReturnLossClassification[],
+): number | null {
+  return totalReturnPackagingLoss(classifications);
 }

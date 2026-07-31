@@ -5,6 +5,7 @@ BEGIN;
 DROP TRIGGER IF EXISTS orpl_immutable ON order_return_packaging_losses;
 DROP TABLE IF EXISTS order_return_packaging_losses;
 DROP FUNCTION IF EXISTS orpl_block_mutation();
+DROP FUNCTION IF EXISTS orpl_enforce_cumulative_quantity();
 UPDATE schema_migrations SET rolled_back_at = now()
  WHERE version='0045_order_return_packaging_losses' AND rolled_back_at IS NULL;
 COMMIT;

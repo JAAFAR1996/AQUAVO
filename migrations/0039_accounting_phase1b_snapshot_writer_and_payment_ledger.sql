@@ -1,13 +1,27 @@
 -- =============================================================================
 -- 0039_accounting_phase1b_snapshot_writer_and_payment_ledger
 -- =============================================================================
--- GOVERNANCE RECOVERY FILE — reconstructed from LIVE Production definitions.
+-- ⚠ SEMANTIC RECONSTRUCTION — NOT the original migration file.
 --
 -- This migration was applied to Production on 2026-07-30T15:19:58.891Z by
 -- neondb_owner and recorded in public.schema_migrations with checksum
 --   7b76a29582d293d8413b32205afb38400f35faa06127d1a67f40c75f2ea30b11
--- but its SQL file was never committed to git. This file restores the file
--- side of that record. It does NOT re-apply anything to Production.
+-- That checksum belongs to the ORIGINAL artifact, which no longer exists
+-- anywhere reachable: not in this repository, not in any branch or commit of its
+-- history, not in the 176-commit mirror at
+-- Documents/AQUAVO-Backups/git-independence-q2f-20260731/repository-mirror.git,
+-- and not in any release archive on this machine (searched 2026-07-31).
+--
+-- THIS FILE'S OWN SHA-256 IS:
+--   d755fb7ec543bff3113d104b317051d47a7df0978db8ce6f7fcb570f526d661b
+-- It is DIFFERENT from the ledger checksum above and always will be. Byte-level
+-- equality with the original is neither claimed nor achievable — comments,
+-- ordering and whitespace of the original are unknowable. What IS established is
+-- SEMANTIC equivalence: applying this file to a pre-0039 database produces a
+-- catalog identical to Production's, verified object by object (see below).
+--
+-- This restores the FILE side of the governance record so later migrations can
+-- be added safely. It does NOT re-apply anything to Production.
 --
 -- HOW THIS CONTENT WAS DERIVED (no guessing, no invention):
 --   Base   : br-late-thunder-a42sjx9q  "backup-before-accounting-phase1b-20260730"
@@ -209,12 +223,17 @@ UPDATE public.settings
  WHERE key = 'financial_snapshot_writer_enabled' AND value IS DISTINCT FROM 'true';
 
 -- NOTE: public.schema_migrations is deliberately NOT written here. The 0039 row
--- already exists in Production with its original checksum and applied_at. This
--- file is a git-governance recovery, not a re-application. When applying to a
--- FRESH branch that has no 0039 row, register it with:
+-- already exists in Production carrying the ORIGINAL artifact's checksum and
+-- applied_at, and it must stay exactly as it is. This file is a git-governance
+-- recovery, not a re-application.
+--
+-- When applying to a FRESH branch that has no 0039 row, register it under THIS
+-- file's own checksum — never under the original's, which would assert a
+-- byte-equality that does not hold:
 --   INSERT INTO public.schema_migrations (version, checksum, applied_by, notes)
 --   VALUES ('0039_accounting_phase1b_snapshot_writer_and_payment_ledger',
---           '7b76a29582d293d8413b32205afb38400f35faa06127d1a67f40c75f2ea30b11',
---           current_user, 'recovered file, applied to test branch');
+--           'd755fb7ec543bff3113d104b317051d47a7df0978db8ce6f7fcb570f526d661b',
+--           current_user,
+--           'semantic reconstruction; original artifact unavailable; verified by catalog diff');
 
 COMMIT;
