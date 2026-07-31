@@ -1,5 +1,5 @@
 import { memo, useRef, useState, type MouseEvent } from "react";
-import { Eye, Leaf, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Eye, Leaf, ShoppingCart } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { CompareButton } from "@/components/products/product-comparison";
@@ -44,8 +44,6 @@ export const ProductCard = memo(function ProductCard({
   const imgRef = useRef<HTMLImageElement>(null);
   const navLockRef = useRef(false);
 
-  // Warm the PDP data + hero image before the click so the first (cold) click
-  // can run the shared-image transition reliably.
   const prefetchDestination = () => {
     prefetchProductDestination(product.slug, product.thumbnail || product.image);
   };
@@ -60,7 +58,15 @@ export const ProductCard = memo(function ProductCard({
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
     : (product.stock ?? 0) <= 0;
 
-  const handleAddToCart = async (event: MouseEvent<HTMLButtonElement>) => {
+  const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
+    if (isOutOfStock) {
+      const categoryQuery = product.category
+        ? `?category=${encodeURIComponent(product.category)}`
+        : "";
+      setLocation(`/products${categoryQuery}`);
+      return;
+    }
+
     if (requiresVariantChoice) {
       setLocation(`/products/${product.slug}`);
       return;
@@ -69,8 +75,6 @@ export const ProductCard = memo(function ProductCard({
     const added = await addItem(product);
     if (!added) return;
 
-    // Fly a clone of the product image into the cart icon (reduced-motion safe).
-    // Does not open the cart or change cart logic.
     if (motionActive) flyProductToCart(imgRef.current);
 
     toast({
@@ -79,9 +83,6 @@ export const ProductCard = memo(function ProductCard({
     });
   };
 
-  // Card-to-Product continuity via native View Transitions,
-  // reliable on the first (cold) click. Immediate navigation fallback when the
-  // API is unsupported, motion is off, or the user prefers reduced motion.
   const handleCardNavigate = (event: MouseEvent<HTMLAnchorElement>) => {
     trackSelectItem({
       id: product.id,
@@ -90,10 +91,9 @@ export const ProductCard = memo(function ProductCard({
       quantity: 1,
       category: product.category,
     });
-    // Let the default <Link> navigate immediately on the non-motion paths.
     if (!motionActive || !supportsViewTransitions() || prefersReducedMotion()) return;
     event.preventDefault();
-    if (navLockRef.current) return; // lock out duplicate clicks / navigation
+    if (navLockRef.current) return;
     navLockRef.current = true;
     void navigateCardToProduct({
       slug: product.slug,
@@ -107,10 +107,23 @@ export const ProductCard = memo(function ProductCard({
 
   const rawImage = product.thumbnail || product.image;
   const imageSrc = cardImage(rawImage) || "/brand/aquavo-v2-icon.svg";
-  // Only Cloudinary-hosted images have multiple pre-generated widths to pick
-  // from; local assets ship a single fixed-size variant, so srcSet stays
-  // undefined for those and the browser just uses `imageSrc`.
   const imageSrcSet = cardImageSrcSet(rawImage);
+
+  const primaryActionLabel = !hasPrice
+    ? "قريباً"
+    : isOutOfStock
+      ? "شوف البدائل"
+      : requiresVariantChoice
+        ? "اختار الخيار"
+        : "أضف للسلة";
+
+  const primaryActionAriaLabel = !hasPrice
+    ? `${product.name} قريباً`
+    : isOutOfStock
+      ? `شوف بدائل ${product.name}`
+      : requiresVariantChoice
+        ? `اختار خيار ${product.name}`
+        : `أضف ${product.name} إلى سلة المشتريات`;
 
   return (
     <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/60 text-right transition-colors hover:border-primary/50">
@@ -119,20 +132,20 @@ export const ProductCard = memo(function ProductCard({
           <CompareButton
             productId={product.id}
             variant="icon"
-            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+            className="h-11 w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm md:h-11 md:w-11"
           />
           <WishlistButton
             product={product}
             variant="icon"
             size="icon"
-            className="h-11 w-11 md:h-11 md:w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm"
+            className="h-11 w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm md:h-11 md:w-11"
           />
           {onQuickView ? (
             <Button
               type="button"
               size="icon"
               variant="outline"
-              className="hidden h-9 w-9 border-border/70 bg-background/90 shadow-sm backdrop-blur-sm sm:inline-flex"
+              className="hidden h-11 w-11 border-border/70 bg-background/90 shadow-sm backdrop-blur-sm sm:inline-flex"
               onClick={() => onQuickView(product)}
               aria-label={`نظرة سريعة على ${product.name}`}
             >
@@ -236,15 +249,18 @@ export const ProductCard = memo(function ProductCard({
       <CardFooter className="p-3 pt-0 sm:p-4 sm:pt-0">
         <Button
           type="button"
+          variant={isOutOfStock && hasPrice ? "outline" : "default"}
           className="min-h-11 w-full gap-2 text-xs sm:text-sm"
-          onClick={handleAddToCart}
-          aria-label={requiresVariantChoice ? `اختر خيار ${product.name}` : `أضف ${product.name} إلى سلة المشتريات`}
-          disabled={!hasPrice || isOutOfStock}
+          onClick={handlePrimaryAction}
+          aria-label={primaryActionAriaLabel}
+          disabled={!hasPrice}
         >
-          <ShoppingCart className="h-4 w-4" aria-hidden="true" />
-          {hasPrice && !isOutOfStock
-            ? requiresVariantChoice ? "اختار الخيار" : "أضف للسلة"
-            : !hasPrice ? "قريباً" : "نفذت الكمية"}
+          {isOutOfStock && hasPrice ? (
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <ShoppingCart className="h-4 w-4" aria-hidden="true" />
+          )}
+          {primaryActionLabel}
         </Button>
       </CardFooter>
     </Card>
