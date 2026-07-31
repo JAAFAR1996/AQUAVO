@@ -1,0 +1,41 @@
+/*
+ * AQUAVO confirmed UI corrections
+ *
+ * Loaded after index.css so this file can resolve documented token and
+ * accessibility conflicts without re-enabling or redesigning motion.
+ */
+
+:root,
+html.dark,
+html.light {
+  --button-outline: hsl(var(--border));
+  --primary-border: hsl(var(--primary));
+  --secondary-border: hsl(var(--border));
+}
+
+/* AQUAVO v2: teal is the primary action colour in both supported themes. */
+html.light {
+  --primary: 187 88% 35%;
+  --ring: 187 88% 35%;
+}
+
+/* One consistent keyboard focus treatment: 2px teal, 2px offset. */
+:where(
+  a,
+  button,
+  input,
+  textarea,
+  select,
+  summary,
+  [role="button"],
+  [role="link"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [role="tab"],
+  [tabindex]:not([tabindex="-1"])
+):focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+  box-shadow: none;
+}
