@@ -1,485 +1,378 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchProducts, fetchSmartSearch } from "@/lib/api";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { useLocation } from "wouter";
-import { Product } from "@/types";
-import { SearchIcon, Clock, TrendingUp, Package, X, ArrowRight, Sparkles } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import {
+  ArrowLeft,
+  Clock3,
+  FileText,
+  Package,
+  SearchIcon,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { phTrackSearch } from "@/lib/posthog";
-import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
+import { Skeleton } from "@/components/ui/skeleton";
+import { fetchProducts, fetchSmartSearch } from "@/lib/api";
 import { thumbImage } from "@/lib/cloudinary";
+import { formatPrice } from "@/lib/format";
+import { phTrackSearch } from "@/lib/posthog";
+import {
+  buildUnifiedSiteSearchResults,
+  POPULAR_SEARCH_LINKS,
+  type SiteSearchResult,
+} from "@/lib/site-search";
 
 interface GlobalSearchProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-interface SearchResult {
-  id: string;
-  type: "product" | "page" | "fish";
-  title: string;
-  subtitle?: string;
-  image?: string;
-  price?: number;
-  stock?: number;
-  url: string;
-  category?: string;
+const RECENT_SEARCHES_KEY = "aquavo-recent-searches";
+const LEGACY_RECENT_SEARCHES_KEY = "fish-web-recent-searches";
+const MAX_RECENT_SEARCHES = 6;
+
+function readRecentSearches(): string[] {
+  try {
+    const current = localStorage.getItem(RECENT_SEARCHES_KEY);
+    const legacy = localStorage.getItem(LEGACY_RECENT_SEARCHES_KEY);
+    const value = current || legacy;
+    if (!value) return [];
+    const parsed = JSON.parse(value);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter((item): item is string => typeof item === "string").slice(0, MAX_RECENT_SEARCHES);
+  } catch {
+    return [];
+  }
 }
 
-const RECENT_SEARCHES_KEY = "fish-web-recent-searches";
-const MAX_RECENT_SEARCHES = 5;
-
-// Static pages for search
-const staticPages = [
-  { title: "الرئيسية", url: "/", keywords: ["home", "رئيسية", "البداية"] },
-  { title: "المنتجات", url: "/products", keywords: ["products", "منتجات", "متجر"] },
-  { title: "المفضلة", url: "/wishlist", keywords: ["wishlist", "مفضلة", "قائمة"] },
-  { title: "موسوعة الأسماك", url: "/fish-encyclopedia", keywords: ["fish", "encyclopedia", "موسوعة", "أسماك"] },
-
-
-  { title: "الحاسبات", url: "/calculators", keywords: ["calculators", "حاسبات", "حساب"] },
-  { title: "رحلتك", url: "/journey", keywords: ["journey", "رحلة", "دليل"] },
-];
-
-// Popular/Quick Links with Arabic keywords for search
-const popularItems = [
-  { title: "فلاتر المياه", url: SHOP_CATEGORY_LINKS.filters, category: "فلاتر", keywords: ["فلتر", "فلاتر", "filter", "filters", "تصفية"] },
-  { title: "سخانات الحوض", url: SHOP_CATEGORY_LINKS.heaters, category: "سخانات", keywords: ["سخان", "سخانات", "heater", "heaters", "تسخين", "حرارة"] },
-  { title: "الإضاءة LED", url: SHOP_CATEGORY_LINKS.lighting, category: "إضاءة", keywords: ["ضوء", "إضاءة", "ليد", "led", "lighting", "أضواء"] },
-  { title: "الديكورات", url: SHOP_CATEGORY_LINKS.decor, category: "ديكور", keywords: ["ديكور", "زينة", "حجر", "صخور", "decoration"] },
-  { title: "مضخات الهواء", url: SHOP_CATEGORY_LINKS.airPumps, category: "مضخات", keywords: ["مضخة", "هواء", "أكسجين", "pump", "air"] },
-  { title: "أغذية الأسماك", url: SHOP_CATEGORY_LINKS.food, category: "أغذية", keywords: ["طعام", "غذاء", "أكل", "food", "علف"] },
-  { title: "معالجات المياه", url: SHOP_CATEGORY_LINKS.waterTreatment, category: "معالجات", keywords: ["معالج", "كيماوي", "ماء", "treatment", "conditioner"] },
-];
-
-// Fuzzy matching helper
-function fuzzyMatch(text: string, query: string): boolean {
-  const textLower = text.toLowerCase();
-  const queryLower = query.toLowerCase();
-
-  // Direct inclusion
-  if (textLower.includes(queryLower)) return true;
-
-  // Character-by-character fuzzy match
-  let textIndex = 0;
-  let queryIndex = 0;
-
-  while (textIndex < textLower.length && queryIndex < queryLower.length) {
-    if (textLower[textIndex] === queryLower[queryIndex]) {
-      queryIndex++;
-    }
-    textIndex++;
+function saveRecentSearches(values: string[]): void {
+  try {
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(values));
+    localStorage.removeItem(LEGACY_RECENT_SEARCHES_KEY);
+  } catch {
+    // Search remains usable when storage is unavailable.
   }
-
-  return queryIndex === queryLower.length;
 }
 
 export function GlobalSearch({ open, onOpenChange }: GlobalSearchProps) {
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data } = useQuery<{ products: Product[] }>({
-    queryKey: ["products"],
-    queryFn: () => fetchProducts(),
+  const firedSearchRef = useRef("");
+
+  const { data: catalogData, isLoading: isCatalogLoading } = useQuery({
+    queryKey: ["products", "global-search-catalog"],
+    queryFn: () => fetchProducts({ limit: 120 }),
     enabled: open,
     staleTime: 5 * 60 * 1000,
+    retry: false,
   });
 
-  // AI semantic search - debounced, only fires when query is 3+ chars
-  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const { data: smartData, isFetching: isSmartSearching } = useQuery({
+    queryKey: ["smart-search", debouncedQuery],
+    queryFn: () => fetchSmartSearch(debouncedQuery),
+    enabled: open && debouncedQuery.length >= 2,
+    staleTime: 60 * 1000,
+    retry: false,
+  });
+
   useEffect(() => {
-    if (query.trim().length < 3) { setDebouncedQuery(""); return; }
-    const timer = setTimeout(() => setDebouncedQuery(query.trim()), 400);
-    return () => clearTimeout(timer);
+    if (!open) {
+      setQuery("");
+      setDebouncedQuery("");
+      setSelectedIndex(0);
+      return;
+    }
+
+    setRecentSearches(readRecentSearches());
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 60);
+    return () => window.clearTimeout(focusTimer);
+  }, [open]);
+
+  useEffect(() => {
+    const normalized = query.trim();
+    if (normalized.length < 2) {
+      setDebouncedQuery("");
+      return;
+    }
+
+    const timer = window.setTimeout(() => setDebouncedQuery(normalized), 300);
+    return () => window.clearTimeout(timer);
   }, [query]);
 
-  const firedSearchRef = useRef<string>("");
   useEffect(() => {
     if (!debouncedQuery || firedSearchRef.current === debouncedQuery) return;
     firedSearchRef.current = debouncedQuery;
     phTrackSearch({ queryLength: debouncedQuery.length });
   }, [debouncedQuery]);
 
-  const { data: smartData } = useQuery({
-    queryKey: ["smart-search", debouncedQuery],
-    queryFn: () => fetchSmartSearch(debouncedQuery),
-    enabled: debouncedQuery.length >= 3,
-    staleTime: 60 * 1000,
-  });
+  const results = useMemo(
+    () =>
+      buildUnifiedSiteSearchResults({
+        query,
+        semanticProducts: smartData?.products ?? [],
+        catalogProducts: catalogData?.products ?? [],
+        limit: 14,
+      }),
+    [query, smartData?.products, catalogData?.products],
+  );
 
-  const isSemantic = smartData?.semantic ?? false;
-
-  // Load recent searches
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(RECENT_SEARCHES_KEY);
-      if (stored) {
-        setRecentSearches(JSON.parse(stored));
-      }
-    } catch (error) {
-      console.error("Failed to load recent searches:", error);
-    }
-  }, []);
+    setSelectedIndex(0);
+  }, [query, results.length]);
 
-  // Save to recent searches
-  const addToRecentSearches = (searchQuery: string) => {
-    if (!searchQuery.trim()) return;
-
-    const updated = [
-      searchQuery,
-      ...recentSearches.filter((s) => s !== searchQuery),
-    ].slice(0, MAX_RECENT_SEARCHES);
-
-    setRecentSearches(updated);
-    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+  const addRecentSearch = (value: string) => {
+    const normalized = value.trim();
+    if (!normalized) return;
+    const next = [normalized, ...recentSearches.filter((item) => item !== normalized)].slice(0, MAX_RECENT_SEARCHES);
+    setRecentSearches(next);
+    saveRecentSearches(next);
   };
 
   const clearRecentSearches = () => {
     setRecentSearches([]);
-    localStorage.removeItem(RECENT_SEARCHES_KEY);
+    saveRecentSearches([]);
   };
 
-  // Search logic - merges AI semantic results with local fuzzy results
-  const searchResults = useMemo<SearchResult[]>(() => {
-    if (!query.trim()) return [];
+  const navigateToResult = (result: SiteSearchResult) => {
+    addRecentSearch(query || result.title);
+    onOpenChange(false);
+    setLocation(result.url);
+  };
 
-    const lowerQuery = query.toLowerCase();
-    const results: SearchResult[] = [];
-    const seenIds = new Set<string>();
-
-    // AI semantic results come first (higher priority)
-    if (smartData?.products && smartData.products.length > 0) {
-      smartData.products.forEach((product: Product) => {
-        if (seenIds.has(product.id)) return;
-        seenIds.add(product.id);
-        results.push({
-          id: product.id,
-          type: "product",
-          title: product.name,
-          subtitle: product.brand,
-          image: product.image,
-          price: product.price,
-          stock: product.stock,
-          url: `/products/${product.slug}`,
-          category: product.category,
-        });
-      });
-    }
-
-    // Local fuzzy search products (fill remaining slots)
-    (data?.products || []).forEach((product) => {
-      if (seenIds.has(product.id)) return;
-
-      const matchScore =
-        (product.name.toLowerCase().includes(lowerQuery) ? 3 : 0) +
-        (product.brand.toLowerCase().includes(lowerQuery) ? 2 : 0) +
-        (product.category.toLowerCase().includes(lowerQuery) ? 2 : 0) +
-        (fuzzyMatch(product.name, lowerQuery) ? 1 : 0);
-
-      if (matchScore > 0) {
-        seenIds.add(product.id);
-        results.push({
-          id: product.id,
-          type: "product",
-          title: product.name,
-          subtitle: product.brand,
-          image: product.image,
-          price: product.price,
-          stock: product.stock,
-          url: `/products/${product.slug}`,
-          category: product.category,
-        });
-      }
-    });
-
-    // Search pages
-    staticPages.forEach((page) => {
-      const matchesTitle = fuzzyMatch(page.title, lowerQuery);
-      const matchesKeywords = page.keywords.some((keyword) =>
-        fuzzyMatch(keyword, lowerQuery)
-      );
-
-      if (matchesTitle || matchesKeywords) {
-        results.push({
-          id: page.url,
-          type: "page",
-          title: page.title,
-          url: page.url,
-        });
-      }
-    });
-
-    // Search popular category items by keywords
-    popularItems.forEach((item) => {
-      const matchesTitle = fuzzyMatch(item.title, lowerQuery);
-      const matchesCategory = fuzzyMatch(item.category, lowerQuery);
-      const matchesKeywords = item.keywords?.some((keyword) =>
-        fuzzyMatch(keyword, lowerQuery)
-      );
-
-      if (matchesTitle || matchesCategory || matchesKeywords) {
-        if (!results.find(r => r.url === item.url)) {
-          results.push({
-            id: item.url,
-            type: "page",
-            title: item.title,
-            subtitle: item.category,
-            url: item.url,
-          });
-        }
-      }
-    });
-
-    // Sort: in-stock products before coming-soon, pages last
-    results.sort((a, b) => {
-      if (a.type !== "product" && b.type === "product") return 1;
-      if (a.type === "product" && b.type !== "product") return -1;
-      if (a.type === "product" && b.type === "product") {
-        const aInStock = (a.stock ?? 1) > 0;
-        const bInStock = (b.stock ?? 1) > 0;
-        if (aInStock && !bInStock) return -1;
-        if (!aInStock && bInStock) return 1;
-      }
-      return 0;
-    });
-
-    return results.slice(0, 12);
-  }, [query, data, smartData]);
-
-  // Handle keyboard navigation
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!open) return;
+    if (!open) return;
 
-      switch (e.key) {
-        case "ArrowDown":
-          e.preventDefault();
-          setSelectedIndex((prev) =>
-            prev < searchResults.length - 1 ? prev + 1 : prev
-          );
-          break;
-        case "ArrowUp":
-          e.preventDefault();
-          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : prev));
-          break;
-        case "Enter":
-          e.preventDefault();
-          if (searchResults[selectedIndex]) {
-            addToRecentSearches(query);
-            setLocation(searchResults[selectedIndex].url);
-            onOpenChange(false);
-            setQuery("");
-          }
-          break;
-        case "Escape":
-          onOpenChange(false);
-          setQuery("");
-          break;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        setSelectedIndex((current) => Math.min(current + 1, Math.max(0, results.length - 1)));
+      } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        setSelectedIndex((current) => Math.max(0, current - 1));
+      } else if (event.key === "Enter" && results[selectedIndex]) {
+        event.preventDefault();
+        navigateToResult(results[selectedIndex]);
+      } else if (event.key === "Escape") {
+        onOpenChange(false);
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, searchResults, selectedIndex, query, onOpenChange, setLocation]);
+  }, [open, results, selectedIndex, query, recentSearches, onOpenChange]);
 
-  // Reset selected index when query changes
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [query]);
-
-  // Focus input when opened
-  useEffect(() => {
-    if (open) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    } else {
-      setQuery("");
-      setSelectedIndex(0);
-    }
-  }, [open]);
-
-  const handleResultClick = (url: string) => {
-    addToRecentSearches(query);
-    setLocation(url);
-    onOpenChange(false);
-    setQuery("");
-  };
-
-  const handleRecentSearchClick = (search: string) => {
-    setQuery(search);
-    inputRef.current?.focus();
-  };
+  const showLoading = query.trim().length > 0 && isCatalogLoading;
+  const showSearching = query.trim().length >= 2 && isSmartSearching;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] p-0 gap-0">
-        {/* Search Input */}
-        <div className="flex items-center gap-2 p-4 border-b">
-          <SearchIcon className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+      <DialogContent className="gap-0 overflow-hidden p-0 sm:max-w-[680px]" dir="rtl">
+        <DialogTitle className="sr-only">بحث AQUAVO</DialogTitle>
+        <DialogDescription className="sr-only">
+          ابحث بنفس النظام عن المنتجات والأقسام وصفحات المساعدة.
+        </DialogDescription>
+
+        <div className="flex min-h-16 items-center gap-3 border-b border-border px-4">
+          <SearchIcon className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
           <Input
             ref={inputRef}
             type="search"
-            placeholder="ابحث عن المنتجات، الصفحات، المعدات..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="border-0 focus-visible:ring-0 text-lg"
-            aria-label="البحث"
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="اكتب اسم المنتج أو احتياج الحوض..."
+            aria-label="بحث AQUAVO"
+            className="h-12 border-0 bg-transparent px-0 text-base shadow-none focus-visible:ring-0"
           />
+          {showSearching && <Sparkles className="h-4 w-4 animate-pulse text-primary motion-reduce:animate-none" aria-label="جاري البحث الذكي" />}
           {query && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setQuery("")}
-              className="shrink-0"
-              aria-label="مسح البحث"
-            >
-              <X className="w-4 h-4" />
+            <Button type="button" variant="ghost" size="icon" onClick={() => setQuery("")} aria-label="مسح البحث">
+              <X className="h-4 w-4" aria-hidden="true" />
             </Button>
           )}
         </div>
 
-        <ScrollArea className="max-h-[500px]">
-          {/* Search Results */}
-          {query.trim() && searchResults.length > 0 && (
-            <div className="p-2">
-              <div className="text-xs text-muted-foreground px-3 py-2 font-medium flex items-center gap-1.5 justify-end">
-                {isSemantic && <Sparkles className="w-3 h-3 text-primary" />}
-                {isSemantic ? "نتائج ذكية" : "نتائج البحث"} ({searchResults.length})
+        <ScrollArea className="max-h-[min(70vh,560px)]">
+          {query.trim() ? (
+            <div className="p-3">
+              <div className="flex items-center justify-between px-2 py-2 text-xs text-muted-foreground">
+                <span>{results.length > 0 ? `${results.length} نتيجة مرتبة حسب الصلة والتوفر` : "نتائج البحث"}</span>
+                {smartData?.semantic && (
+                  <span className="inline-flex items-center gap-1 text-primary">
+                    <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                    بحث ذكي
+                  </span>
+                )}
               </div>
-              {searchResults.map((result, index) => (
-                <button
-                  key={result.id}
-                  onClick={() => handleResultClick(result.url)}
-                  className={`w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-right ${index === selectedIndex ? "bg-muted" : ""
-                    }`}
-                  aria-label={`انتقل إلى ${result.title}`}
-                >
-                  {result.type === "product" && result.image && (
-                    <img
-                      src={thumbImage(result.image)}
-                      alt={result.title}
-                      loading="lazy"
-                      decoding="async"
-                      className="w-12 h-12 object-contain rounded-md bg-card shrink-0"
-                    />
-                  )}
-                  {result.type === "page" && (
-                    <div className="w-12 h-12 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
-                      <Package className="w-6 h-6 text-primary" />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0 text-right">
-                    <div className="font-medium text-sm truncate">{result.title}</div>
-                    {result.subtitle && (
-                      <div className="text-xs text-muted-foreground truncate">
-                        {result.subtitle}
-                      </div>
-                    )}
-                    {result.type === "product" && result.stock === 0 && (
-                      <div className="text-xs text-muted-foreground mt-1">قريباً</div>
-                    )}
-                  </div>
-                  <Badge variant="secondary" className="shrink-0">
-                    {result.type === "product" ? "منتج" : "صفحة"}
-                  </Badge>
-                </button>
-              ))}
-            </div>
-          )}
 
-          {/* No Results */}
-          {query.trim() && searchResults.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground">
-              <SearchIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-              <p className="font-medium">لا توجد نتائج</p>
-              <p className="text-sm mt-1">جرب البحث بكلمات مختلفة</p>
-            </div>
-          )}
-
-          {/* Default View (Recent + Popular) */}
-          {!query.trim() && (
-            <div className="p-2">
-              {/* Recent Searches */}
-              {recentSearches.length > 0 && (
-                <>
-                  <div className="flex items-center justify-between px-3 py-2">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                      <Clock className="w-4 h-4" />
-                      عمليات البحث الأخيرة
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearRecentSearches}
-                      className="h-auto p-1 text-xs"
-                    >
-                      مسح
-                    </Button>
-                  </div>
-                  {recentSearches.map((search) => (
-                    <button
-                      key={search}
-                      onClick={() => handleRecentSearchClick(search)}
-                      className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors text-right"
-                    >
-                      <Clock className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <span className="flex-1 text-sm">{search}</span>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground shrink-0" />
-                    </button>
+              {showLoading ? (
+                <div className="space-y-2 p-2" role="status" aria-label="جاري تحميل نتائج البحث">
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <Skeleton key={index} className="h-16 w-full rounded-xl" />
                   ))}
-                  <Separator className="my-2" />
-                </>
+                </div>
+              ) : results.length > 0 ? (
+                <div className="space-y-1" role="listbox" aria-label="نتائج البحث">
+                  {results.map((result, index) => {
+                    const isSelected = index === selectedIndex;
+                    return (
+                      <button
+                        key={`${result.type}-${result.id}-${result.url}`}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onMouseEnter={() => setSelectedIndex(index)}
+                        onClick={() => navigateToResult(result)}
+                        className={`flex min-h-16 w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-right transition-colors ${
+                          isSelected
+                            ? "border-primary/40 bg-primary/10"
+                            : "border-transparent hover:border-border hover:bg-muted/60"
+                        }`}
+                      >
+                        {result.type === "product" ? (
+                          <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-border bg-card p-1">
+                            {result.image ? (
+                              <img
+                                src={thumbImage(result.image)}
+                                alt=""
+                                loading="lazy"
+                                className="h-full w-full object-contain"
+                              />
+                            ) : (
+                              <Package className="m-auto h-full w-5 text-muted-foreground" aria-hidden="true" />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-lg border border-primary/20 bg-primary/10 text-primary">
+                            <FileText className="h-5 w-5" aria-hidden="true" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-foreground">{result.title}</p>
+                          {(result.subtitle || result.description) && (
+                            <p className="mt-1 truncate text-xs text-muted-foreground">
+                              {result.subtitle || result.description}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="shrink-0 text-left">
+                          {result.type === "product" && Number(result.price ?? 0) > 0 && (
+                            <p className="text-sm font-bold text-primary">{formatPrice(result.price ?? 0)}</p>
+                          )}
+                          {result.type === "product" && (
+                            <p className={`mt-1 text-[11px] ${(result.stock ?? 0) > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground"}`}>
+                              {(result.stock ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}
+                            </p>
+                          )}
+                          {result.type === "page" && <ArrowLeft className="h-4 w-4 text-primary" aria-hidden="true" />}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center px-6 py-14 text-center">
+                  <SearchIcon className="h-9 w-9 text-muted-foreground" aria-hidden="true" />
+                  <h3 className="mt-4 font-bold">ما لكينا نتيجة مطابقة</h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-muted-foreground">
+                    جرّب اسم أقصر، اسم البراند، أو اكتب احتياج مثل فلتر أو سخان.
+                  </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-5"
+                    onClick={() => {
+                      addRecentSearch(query);
+                      onOpenChange(false);
+                      setLocation(`/search?q=${encodeURIComponent(query.trim())}`);
+                    }}
+                  >
+                    افتح صفحة البحث الكاملة
+                  </Button>
+                </div>
               )}
 
-              {/* Popular Items */}
-              <div className="px-3 py-2">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium mb-2">
-                  <TrendingUp className="w-4 h-4" />
-                  روابط سريعة
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {popularItems.map((item) => (
+              {results.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    addRecentSearch(query);
+                    onOpenChange(false);
+                    setLocation(`/search?q=${encodeURIComponent(query.trim())}`);
+                  }}
+                  className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-border text-sm font-bold text-primary hover:border-primary/45 hover:bg-primary/5"
+                >
+                  شوف النتائج بصفحة كاملة
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-6 p-5">
+              {recentSearches.length > 0 && (
+                <section aria-labelledby="recent-searches-title">
+                  <div className="flex items-center justify-between">
+                    <h3 id="recent-searches-title" className="flex items-center gap-2 text-sm font-bold">
+                      <Clock3 className="h-4 w-4 text-primary" aria-hidden="true" />
+                      آخر عمليات البحث
+                    </h3>
+                    <button type="button" onClick={clearRecentSearches} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+                      <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+                      مسح
+                    </button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {recentSearches.map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setQuery(value)}
+                        className="min-h-10 rounded-full border border-border px-4 text-sm text-foreground hover:border-primary/45 hover:bg-primary/5"
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              <section aria-labelledby="popular-searches-title">
+                <h3 id="popular-searches-title" className="text-sm font-bold">روح مباشرة للقسم</h3>
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {POPULAR_SEARCH_LINKS.map((link) => (
                     <button
-                      key={item.title}
-                      onClick={() => handleResultClick(item.url)}
-                      className="w-full p-3 rounded-lg border hover:bg-muted transition-colors text-right"
+                      key={link.url}
+                      type="button"
+                      onClick={() => {
+                        onOpenChange(false);
+                        setLocation(link.url);
+                      }}
+                      className="flex min-h-12 items-center justify-between rounded-xl border border-border px-4 text-right text-sm font-medium hover:border-primary/45 hover:bg-primary/5"
                     >
-                      <div className="font-medium text-sm">{item.title}</div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        {item.category}
-                      </div>
+                      <span>{link.title}</span>
+                      <ArrowLeft className="h-4 w-4 text-primary" aria-hidden="true" />
                     </button>
                   ))}
                 </div>
-              </div>
+              </section>
             </div>
           )}
         </ScrollArea>
-
-        {/* Footer */}
-        <div className="border-t p-3 flex items-center justify-between text-xs text-muted-foreground">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-muted">↑</kbd>
-              <kbd className="px-1.5 py-0.5 rounded bg-muted">↓</kbd>
-              للتنقل
-            </span>
-            <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 rounded bg-muted">Enter</kbd>
-              للاختيار
-            </span>
-          </div>
-          <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 rounded bg-muted">Esc</kbd>
-            للإغلاق
-          </span>
-        </div>
       </DialogContent>
     </Dialog>
   );
