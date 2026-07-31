@@ -45,6 +45,7 @@ import { createExpensesRouter } from "./routes/expenses.js";
 import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
 import fulfillmentAdminRouter from "./routes/fulfillment-admin.js";
+import packagingAdminRouter from "./routes/packaging-admin.js";
 import { createMcpRouter } from "./routes/mcp.js";
 import { createOAuthRouter } from "./routes/oauth.js";
 import { storage } from "./storage/index.js";
@@ -154,6 +155,9 @@ export async function registerRoutes(
   app.use("/api/admin/finance", createFinanceAuditRouter());
   // Per-order fulfillment costing (materials, profiles, drafts, events, profitability).
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
+  // Carton planner: catalogue, stock, packing data, plans, alerts, return loss.
+  // Admin-guarded and rate-limited inside the router itself.
+  app.use("/api/admin/packaging", packagingAdminRouter);
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error("API Error:", err);
