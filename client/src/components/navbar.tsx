@@ -6,6 +6,7 @@ import {
   Home,
   LogOut,
   Menu,
+  MoreHorizontal,
   Package,
   Search,
   ShoppingCart,
@@ -41,7 +42,7 @@ const GlobalSearch = lazy(() => import("@/components/search/global-search").then
 
 const primaryLinks = [
   { href: "/products", label: "المتجر", icon: Package },
-  { href: "/tank-builder", label: "اختار المناسب", icon: Wrench },
+  { href: "/journey", label: "اختار حسب حوضك", icon: Wrench },
   { href: "/guides", label: "أدلة AQUAVO", icon: BookOpen },
   { href: "/order-tracking", label: "تتبع طلبك", icon: ShoppingCart },
   { href: "/about", label: "منو AQUAVO", icon: User },
@@ -54,6 +55,13 @@ const mobileLinks = [
   { href: "/contact", label: "تواصل ويانا", icon: User },
 ];
 
+const tabletOverflowLinks = [
+  { href: "/order-tracking", label: "تتبع طلبك", icon: ShoppingCart },
+  { href: "/about", label: "منو AQUAVO", icon: User },
+  { href: "/wishlist", label: "المفضلة", icon: Heart },
+  { href: "/contact", label: "تواصل ويانه", icon: User },
+];
+
 export default function Navbar() {
   const [location, setLocation] = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -63,7 +71,6 @@ export default function Navbar() {
   const { totalItems: wishlistCount } = useWishlist();
   const { user, logout } = useAuth();
   const flowGateNav = useFlowGateNav();
-  // Warm an eligible destination on intent so the first click resolves fast.
   const warm = (href: string) => () => { if (isEligibleSection(href)) prefetchSection(href); };
 
   useEffect(() => {
@@ -74,10 +81,6 @@ export default function Navbar() {
     }
   }, []);
 
-  // Idle-warm the single most critical destination (the store) on capable
-  // desktops. This imports the route's JS chunk only — no data fetch, no
-  // mutation — so the first navigation to /products skips a cold chunk load.
-  // Skipped on touch devices and when the user requested reduced data usage.
   useEffect(() => {
     const finePointer = window.matchMedia?.("(pointer: fine)").matches;
     const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
@@ -127,7 +130,7 @@ export default function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="shrink-0 xl:hidden"
+                className="shrink-0 lg:hidden"
                 aria-label="فتح القائمة الرئيسية"
                 aria-expanded={isMenuOpen}
                 aria-controls="mobile-menu"
@@ -135,10 +138,10 @@ export default function Navbar() {
                 <Menu className="h-6 w-6" aria-hidden="true" />
               </Button>
             </SheetTrigger>
-              <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-border bg-background p-0">
-                <SheetHeader className="border-b border-border px-5 py-5 text-right">
-                  <SheetTitle className="text-foreground">القائمة الرئيسية</SheetTitle>
-                  <SheetDescription className="sr-only">روابط المتجر والأدلة وحسابك وخيارات العرض.</SheetDescription>
+            <SheetContent id="mobile-menu" side="right" className="w-[88vw] max-w-sm border-border bg-background p-0">
+              <SheetHeader className="border-b border-border px-5 py-5 text-right">
+                <SheetTitle className="text-foreground">القائمة الرئيسية</SheetTitle>
+                <SheetDescription className="sr-only">روابط المتجر والأدلة وحسابك وخيارات العرض.</SheetDescription>
               </SheetHeader>
               <div className="flex h-full flex-col px-3 py-4">
                 <div className="space-y-1" aria-label="روابط الموقع">
@@ -203,10 +206,11 @@ export default function Navbar() {
             />
           </Link>
 
-          <div className="hidden items-center gap-1 xl:flex">
-            {primaryLinks.map((link) => {
+          <div className="hidden items-center gap-1 lg:flex">
+            {primaryLinks.map((link, index) => {
               const active = location === link.href;
-              const linkClassName = `relative rounded-md px-3 py-2 text-[13px] font-medium transition-colors ${
+              const responsiveVisibility = index >= 3 ? "hidden xl:inline-flex" : "inline-flex";
+              const linkClassName = `relative items-center rounded-md px-2.5 py-2 text-[13px] font-medium transition-colors xl:px-3 ${responsiveVisibility} ${
                 active ? "text-foreground" : "text-foreground/65 hover:text-foreground"
               }`;
               const content = (
@@ -239,16 +243,47 @@ export default function Navbar() {
             })}
           </div>
 
+          <div className="hidden lg:block xl:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="روابط إضافية">
+                  <MoreHorizontal className="h-5 w-5" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel>المزيد</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {tabletOverflowLinks.map((link) => {
+                  const Icon = link.icon;
+                  return (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link href={link.href} className="flex w-full cursor-pointer items-center gap-2">
+                        <Icon className="h-4 w-4" aria-hidden="true" />
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  );
+                })}
+                <DropdownMenuSeparator />
+                <div className="flex items-center justify-between px-2 py-2">
+                  <span className="text-sm text-muted-foreground">المظهر</span>
+                  <ThemeSwitcher />
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
           <div className="ms-auto flex items-center gap-1 sm:gap-2">
             <button
               type="button"
               onClick={() => setIsSearchOpen(true)}
-              className="hidden min-h-10 min-w-48 items-center gap-2 rounded-lg border border-border bg-foreground/5 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/45 hover:text-foreground lg:flex"
+              className="hidden min-h-10 min-w-40 items-center gap-2 rounded-lg border border-border bg-foreground/5 px-3 text-sm text-muted-foreground transition-colors hover:border-primary/45 hover:text-foreground lg:flex xl:min-w-48"
               aria-label="البحث عن منتج (Ctrl+K)"
             >
               <Search className="h-4 w-4" aria-hidden="true" />
-              <span>ابحث عن منتج...</span>
-              <kbd className="ms-auto rounded border border-border px-1.5 py-0.5 font-interface text-[10px]">Ctrl K</kbd>
+              <span className="hidden xl:inline">ابحث عن منتج...</span>
+              <span className="xl:hidden">بحث</span>
+              <kbd className="ms-auto hidden rounded border border-border px-1.5 py-0.5 font-interface text-[10px] xl:inline">Ctrl K</kbd>
             </button>
 
             <Button variant="ghost" size="icon" className="lg:hidden" aria-label="البحث" onClick={() => setIsSearchOpen(true)}>
@@ -428,7 +463,6 @@ export default function Navbar() {
           <GlobalSearch open={isSearchOpen} onOpenChange={setIsSearchOpen} />
         </Suspense>
       )}
-
     </>
   );
 }
