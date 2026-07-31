@@ -32,8 +32,9 @@
     "mcp:http": "tsx server/aquavo-mcp-http.ts",
     "check:accounting": "tsc --noEmit -p tsconfig.accounting.json",
     "check:accounting:routes": "node TOOLS/check-accounting-routes.mjs",
-    "check:all": "npm run check && npm run check:server && npm run check:accounting && npm run check:accounting:routes",
-    "verify:fulfillment": "node TOOLS/verify-fulfillment.mjs"
+    "check:all": "npm run check && npm run check:server && npm run check:accounting && npm run check:accounting:routes && npm run check:migrations",
+    "verify:fulfillment": "node TOOLS/verify-fulfillment.mjs",
+    "check:migrations": "node TOOLS/check-migration-ledger.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
