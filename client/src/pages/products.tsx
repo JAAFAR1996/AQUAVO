@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import { phTrackCategoryClick } from "@/lib/posthog";
 import { useInView } from "@/hooks/use-in-view";
 import { useLocation } from "wouter";
-import { AlertCircle, ArrowUpDown, RefreshCw, Sparkles } from "lucide-react";
+import { AlertCircle, ArrowUpDown, Banknote, Clock, Headphones, RefreshCw, Sparkles, Truck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MetaTags, ItemListSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { ProductCard } from "@/components/products/product-card";
@@ -24,8 +24,14 @@ const ComparisonDrawer = lazy(() => import("@/components/products/product-compar
 
 type SortOption = "default" | "smart" | "price-asc" | "price-desc" | "name-asc" | "rating-desc";
 
+type ActiveFilterChip = {
+  id: string;
+  label: string;
+  onRemove: () => void;
+};
+
 export default function Products() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const { user } = useAuth();
   const searchParams = new URLSearchParams(window.location.search);
   const initialCategory = searchParams.get("category");
@@ -33,11 +39,10 @@ export default function Products() {
   const initialSort = searchParams.get("sort");
   const isRecommendedView = searchParams.get("recommended") === "1";
 
-  // Fetch dynamic attributes (categories, brands, price range)
   const { data: attributes } = useQuery({
     queryKey: ["product-attributes"],
     queryFn: fetchProductAttributes,
-    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
+    staleTime: 1000 * 60 * 10,
   });
 
   const availableCategories = attributes?.categories || [];
@@ -45,33 +50,30 @@ export default function Products() {
   const minPrice = attributes?.minPrice || 0;
   const maxPrice = attributes?.maxPrice || 1000000;
 
-  // Local filter state
   const [filters, setFilters] = useState<FilterState>({
-    priceRange: [0, 1000000], // Temporary default, updated via useEffect
+    priceRange: [0, 1000000],
     categories: initialCategory ? [initialCategory] : [],
     brands: [],
     difficulties: [],
-    tags: initialSort === 'best-selling' ? ["الأكثر مبيعاً"] : [],
+    tags: initialSort === "best-selling" ? ["الأكثر مبيعاً"] : [],
   });
 
   const [sortBy, setSortBy] = useState<SortOption>(
-    initialSort === 'best-selling' ? "rating-desc" : (isRecommendedView && user ? "smart" : user ? "smart" : "default")
+    initialSort === "best-selling" ? "rating-desc" : (isRecommendedView && user ? "smart" : user ? "smart" : "default")
   );
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [displayCount, setDisplayCount] = useState(() => {
-    // Restore displayCount if coming back from a product detail page
     try {
-      const saved = sessionStorage.getItem('aq_products_display_count');
+      const saved = sessionStorage.getItem("aq_products_display_count");
       if (saved) return Math.max(24, parseInt(saved, 10));
     } catch { /* ignore */ }
     return 24;
   });
 
-  // Ref to track whether we've already done the initial scroll restoration
   const scrollRestored = useRef(false);
+  const lastLoadAtRef = useRef(0);
 
-  // Update filters when URL params change
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const category = params.get("category");
@@ -80,31 +82,28 @@ export default function Products() {
     if (category) {
       setFilters(prev => ({
         ...prev,
-        categories: [category]
+        categories: [category],
       }));
     }
 
-    if (sort === 'best-selling') {
+    if (sort === "best-selling") {
       setFilters(prev => ({
         ...prev,
-        tags: prev.tags.includes("الأكثر مبيعاً") ? prev.tags : [...prev.tags, "الأكثر مبيعاً"]
+        tags: prev.tags.includes("الأكثر مبيعاً") ? prev.tags : [...prev.tags, "الأكثر مبيعاً"],
       }));
       setSortBy("rating-desc");
     }
   }, [location]);
 
-  // Initialize price range from attributes once loaded
   useEffect(() => {
     if (attributes && filters.priceRange[1] === 1000000 && attributes.maxPrice !== 1000000) {
       setFilters(prev => ({
         ...prev,
-        priceRange: [attributes.minPrice, attributes.maxPrice]
+        priceRange: [attributes.minPrice, attributes.maxPrice],
       }));
     }
   }, [attributes]);
 
-
-  // Fetch AI personalized boost order (for logged-in users with smart sort)
   const { data: boostData } = useQuery({
     queryKey: ["personalized-order"],
     queryFn: fetchPersonalizedOrder,
@@ -114,69 +113,58 @@ export default function Products() {
 
   const boostIds = boostData?.boostIds ?? [];
 
-  // Prepare query params for backend
   const queryParams = useMemo(() => {
     const params: import("@/types").ProductQueryParams = {};
 
-    // Filters
     if (filters.categories.length > 0) params.category = filters.categories;
     if (filters.brands.length > 0) params.brand = filters.brands;
     if (filters.priceRange[0] > minPrice) params.minPrice = filters.priceRange[0];
     if (filters.priceRange[1] < maxPrice) params.maxPrice = filters.priceRange[1];
 
-    // Search
     if (initialSearch) params.search = initialSearch;
 
     if (filters.tags.includes("جديد")) params.isNew = true;
     if (filters.tags.includes("الأكثر مبيعاً")) params.isBestSeller = true;
 
-    // Sorting
     if (sortBy === "price-asc") { params.sortBy = "price"; params.sortOrder = "asc"; }
     else if (sortBy === "price-desc") { params.sortBy = "price"; params.sortOrder = "desc"; }
     else if (sortBy === "name-asc") { params.sortBy = "name"; params.sortOrder = "asc"; }
     else if (sortBy === "rating-desc") { params.sortBy = "rating"; params.sortOrder = "desc"; }
-    else { params.sortBy = "createdAt"; params.sortOrder = "desc"; } // default & smart (smart reorders client-side)
+    else { params.sortBy = "createdAt"; params.sortOrder = "desc"; }
 
     return params;
   }, [filters, sortBy, initialSearch, minPrice, maxPrice]);
 
-  // Fetch products with backend filtering
   const { data, isLoading: isProductsLoading, isError, refetch: refetchProducts } = useQuery({
     queryKey: ["products", queryParams],
     queryFn: () => fetchProducts(queryParams),
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
     retry: 1,
     retryDelay: 500,
   });
 
   const products = data?.products ?? [];
 
-  // Client-side filtering for unsupported backend filters (Difficulty, specific tags)
   const finalProducts = useMemo(() => {
     let filtered = products.filter(product => {
-      // Difficulty
       if (filters.difficulties.length > 0 && product.difficulty && !filters.difficulties.includes(product.difficulty)) {
         return false;
       }
-      // Eco Friendly Tag
       if (filters.tags.includes("صديق للبيئة") && !product.ecoFriendly) {
         return false;
       }
       return true;
     });
 
-    // Smart sort: boost AI-recommended products to the top
     if (sortBy === "smart" && boostIds.length > 0) {
       const boostSet = new Set(boostIds);
       const boosted = filtered.filter(p => boostSet.has(p.id));
       const rest = filtered.filter(p => !boostSet.has(p.id));
-      // O(1) lookup map instead of O(n) indexOf inside sort
       const orderMap = new Map(boostIds.map((id, i) => [id, i]));
       boosted.sort((a, b) => (orderMap.get(a.id) ?? 999) - (orderMap.get(b.id) ?? 999));
       filtered = [...boosted, ...rest];
     }
 
-    // Always push products without a price ("قريباً") to the bottom
     const hasPrice = (p: Product) => {
       if ((p.price ?? 0) > 0) return true;
       if (p.hasVariants && p.variants?.length) {
@@ -191,7 +179,6 @@ export default function Products() {
     return filtered;
   }, [products, filters.difficulties, filters.tags, sortBy, boostIds]);
 
-  // Load More functionality
   const displayedProducts = useMemo(() => {
     return finalProducts.slice(0, displayCount);
   }, [finalProducts, displayCount]);
@@ -212,26 +199,22 @@ export default function Products() {
 
   const hasMore = displayCount < finalProducts.length;
 
-  // Restore scroll position when coming back from product detail page
   useEffect(() => {
-    // Only attempt to restore if we actually have products rendered
     if (finalProducts.length === 0) return;
     if (scrollRestored.current) return;
     scrollRestored.current = true;
 
-    const savedScroll = sessionStorage.getItem('aq_products_scroll');
+    const savedScroll = sessionStorage.getItem("aq_products_scroll");
     if (!savedScroll) return;
 
-    // Clear stored scroll so it doesn't trigger on fresh visits
-    try { sessionStorage.removeItem('aq_products_scroll'); } catch { /* ignore */ }
+    try { sessionStorage.removeItem("aq_products_scroll"); } catch { /* ignore */ }
 
     const targetY = parseInt(savedScroll, 10);
     if (!targetY || targetY < 10) return;
 
-    // Wait a tiny bit for the DOM layout to settle, then scroll
     const attempt = (retries: number) => {
-      if (window.scrollY >= targetY - 50) return; // already there
-      window.scrollTo({ top: targetY, behavior: 'instant' as ScrollBehavior });
+      if (window.scrollY >= targetY - 50) return;
+      window.scrollTo({ top: targetY, behavior: "instant" as ScrollBehavior });
       if (retries > 0 && window.scrollY < targetY - 50) {
         requestAnimationFrame(() => attempt(retries - 1));
       }
@@ -239,37 +222,35 @@ export default function Products() {
 
     const t = setTimeout(() => attempt(15), 50);
     return () => clearTimeout(t);
-  }, [finalProducts.length]); // run when products are loaded
+  }, [finalProducts.length]);
 
-  // Save displayCount whenever it changes (for scroll restoration)
   useEffect(() => {
     try {
-      sessionStorage.setItem('aq_products_display_count', String(displayCount));
+      sessionStorage.setItem("aq_products_display_count", String(displayCount));
     } catch { /* ignore */ }
   }, [displayCount]);
 
-  // Clear saved state when user navigates away via fresh link (not back button)
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest('a[href]');
+      const target = (e.target as HTMLElement).closest("a[href]");
       if (!target) return;
       const href = (target as HTMLAnchorElement).href;
-      // If they're clicking a product card link, keep the scroll state
-      // If they're clicking something else (category, home, etc.), clear it
-      if (!href.includes('/products/') && !href.includes('/product/')) {
+      if (!href.includes("/products/") && !href.includes("/product/")) {
         try {
-          sessionStorage.removeItem('aq_products_scroll');
-          sessionStorage.removeItem('aq_products_display_count');
+          sessionStorage.removeItem("aq_products_scroll");
+          sessionStorage.removeItem("aq_products_display_count");
         } catch { /* ignore */ }
       }
     };
-    document.addEventListener('click', handleClick);
-    return () => document.removeEventListener('click', handleClick);
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
   }, []);
 
-
   const loadMore = () => {
-    setDisplayCount(prev => prev + 24);
+    const now = Date.now();
+    if (now - lastLoadAtRef.current < 400) return;
+    lastLoadAtRef.current = now;
+    setDisplayCount(prev => Math.min(prev + 24, finalProducts.length));
   };
 
   const { ref: sentinelRef, inView: sentinelInView } = useInView({ threshold: 0.5, once: false });
@@ -280,7 +261,6 @@ export default function Products() {
 
   const isLoading = isProductsLoading;
 
-  // Calculate category counts from ALL products (not filtered)
   const categoryCounts = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach(product => {
@@ -291,7 +271,6 @@ export default function Products() {
     return counts;
   }, [products]);
 
-  // Calculate brand counts from ALL products (not filtered)
   const brandCounts = useMemo(() => {
     const counts = new Map<string, number>();
     products.forEach(product => {
@@ -302,7 +281,6 @@ export default function Products() {
     return counts;
   }, [products]);
 
-  // Active filters count (excluding categories which are shown in scroll bar)
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (Math.abs(filters.priceRange[0] - minPrice) > 1 || Math.abs(filters.priceRange[1] - maxPrice) > 1) count++;
@@ -312,8 +290,6 @@ export default function Products() {
     return count;
   }, [filters, minPrice, maxPrice]);
 
-  // Toggle individual raw category — the CategoryScrollBar handles single-select
-  // at the group level by clearing existing selections before adding the new group.
   const handleCategoryToggle = (category: string) => {
     setFilters(prev => ({
       ...prev,
@@ -324,6 +300,89 @@ export default function Products() {
     phTrackCategoryClick(category);
   };
 
+  const clearAllFilters = () => {
+    setFilters({
+      priceRange: [minPrice, maxPrice],
+      categories: [],
+      brands: [],
+      difficulties: [],
+      tags: [],
+    });
+    setSortBy(user ? "smart" : "default");
+    if (window.location.search) setLocation("/products");
+  };
+
+  const activeFilterChips = useMemo<ActiveFilterChip[]>(() => {
+    const chips: ActiveFilterChip[] = [];
+
+    filters.categories.forEach(category => {
+      chips.push({
+        id: `category:${category}`,
+        label: category,
+        onRemove: () => setFilters(prev => ({
+          ...prev,
+          categories: prev.categories.filter(item => item !== category),
+        })),
+      });
+    });
+
+    filters.brands.forEach(brand => {
+      chips.push({
+        id: `brand:${brand}`,
+        label: brand,
+        onRemove: () => setFilters(prev => ({
+          ...prev,
+          brands: prev.brands.filter(item => item !== brand),
+        })),
+      });
+    });
+
+    filters.difficulties.forEach(difficulty => {
+      chips.push({
+        id: `difficulty:${difficulty}`,
+        label: difficulty,
+        onRemove: () => setFilters(prev => ({
+          ...prev,
+          difficulties: prev.difficulties.filter(item => item !== difficulty),
+        })),
+      });
+    });
+
+    filters.tags.forEach(tag => {
+      chips.push({
+        id: `tag:${tag}`,
+        label: tag,
+        onRemove: () => setFilters(prev => ({
+          ...prev,
+          tags: prev.tags.filter(item => item !== tag),
+        })),
+      });
+    });
+
+    const isPriceFiltered = Math.abs(filters.priceRange[0] - minPrice) > 1 || Math.abs(filters.priceRange[1] - maxPrice) > 1;
+    if (isPriceFiltered) {
+      const numberFormat = new Intl.NumberFormat("en-US");
+      chips.push({
+        id: "price",
+        label: `${numberFormat.format(filters.priceRange[0])}–${numberFormat.format(filters.priceRange[1])} د.ع`,
+        onRemove: () => setFilters(prev => ({
+          ...prev,
+          priceRange: [minPrice, maxPrice],
+        })),
+      });
+    }
+
+    if (initialSearch) {
+      chips.push({
+        id: "search",
+        label: `بحث: ${initialSearch}`,
+        onRemove: () => setLocation("/products"),
+      });
+    }
+
+    return chips;
+  }, [filters, initialSearch, minPrice, maxPrice, setLocation]);
+
   const breadcrumbItems = [
     { name: "الرئيسية", url: "https://www.aquavoiq.com" },
     { name: "المتجر", url: "https://www.aquavoiq.com/products" },
@@ -331,7 +390,7 @@ export default function Products() {
   if (filters.categories.length === 1) {
     breadcrumbItems.push({
       name: filters.categories[0],
-      url: `https://www.aquavoiq.com/products?category=${encodeURIComponent(filters.categories[0])}`
+      url: `https://www.aquavoiq.com/products?category=${encodeURIComponent(filters.categories[0])}`,
     });
   }
 
@@ -347,38 +406,57 @@ export default function Products() {
   }, [displayedProducts]);
 
   return (
-    <div className="flex-1 flex flex-col bg-background font-sans transition-colors duration-300">
+    <div className="flex flex-1 flex-col bg-background font-sans transition-colors duration-300">
       <MetaTags
         title="متجر معدات الأحواض"
         description="اختار معدات حوضك حسب الفئة والسعر والاستخدام. فلاتر وسخانات وإضاءة ومستلزمات عناية، مع الدفع عند الاستلام وتوصيل لكل العراق."
       />
       <BreadcrumbSchema items={breadcrumbItems} />
       {itemListItems.length > 0 && (
-        <ItemListSchema 
+        <ItemListSchema
           name={filters.categories.length === 1 ? `معدات أحواض الزينة - ${filters.categories[0]}` : "جميع منتجات AQUAVO"}
-          items={itemListItems} 
+          items={itemListItems}
         />
       )}
       <main id="main-content" className="container mx-auto flex-1 px-3 pb-12 pt-24 sm:px-4 sm:pt-28" dir="rtl">
-        {/* Header */}
-        <div className="text-center space-y-1 sm:space-y-2 mb-5 sm:mb-6">
+        <div className="mb-5 space-y-1 text-center sm:mb-6 sm:space-y-2">
           <h1 className="text-2xl font-bold text-foreground sm:text-4xl">جهّز حوضك على أساس واضح</h1>
           <p className="text-sm text-muted-foreground sm:text-base">اختار القسم، رتّب النتائج، وشوف المعلومات المتوفرة قبل ما تقرر.</p>
         </div>
 
-        {/* Recommended banner — shown when arriving from a notification */}
+        <section
+          aria-label="معلومات التوصيل والدفع"
+          className="mb-5 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border text-xs sm:grid-cols-4 sm:text-sm"
+        >
+          <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
+            <Banknote className="h-4 w-4 text-primary" aria-hidden="true" />
+            الدفع عند الاستلام
+          </div>
+          <div className="flex min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center">
+            <Truck className="h-4 w-4 text-primary" aria-hidden="true" />
+            التوصيل 5,000 د.ع
+          </div>
+          <div className="hidden min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center sm:flex">
+            <Clock className="h-4 w-4 text-primary" aria-hidden="true" />
+            خلال 24 ساعة
+          </div>
+          <div className="hidden min-h-11 items-center justify-center gap-2 bg-card px-3 py-2 text-center sm:flex">
+            <Headphones className="h-4 w-4 text-primary" aria-hidden="true" />
+            دعم 24/7
+          </div>
+        </section>
+
         {isRecommendedView && (
-          <div className="mb-5 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3 flex items-start gap-3" dir="rtl">
-            <Sparkles className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+          <div className="mb-5 flex items-start gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3" dir="rtl">
+            <Sparkles className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
             <div>
               <p className="text-sm font-semibold text-foreground">منتجات مناسبة إلك</p>
-              <p className="text-xs text-muted-foreground mt-0.5">اختيارات تساعدك تكمل تجهيز حوضك — متوفرة هسه وبسعر واضح.</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">اختيارات تساعدك تكمل تجهيز حوضك — متوفرة هسه وبسعر واضح.</p>
             </div>
           </div>
         )}
 
-        {/* Category Selector — primary navigation */}
-        <div className="mb-5 rounded-xl border border-border/50 overflow-hidden shadow-sm">
+        <div className="mb-5 overflow-hidden rounded-xl border border-border/70">
           <CategoryScrollBar
             categories={availableCategories}
             selectedCategories={filters.categories}
@@ -387,8 +465,7 @@ export default function Products() {
           />
         </div>
 
-        {/* Filter Bar with Quick Filters */}
-        <div className="aq-filter-chamber flex flex-col gap-2 ps-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 mb-4 sm:mb-6" data-tour="products-filter">
+        <div className="aq-filter-chamber mb-4 flex flex-col gap-2 ps-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:gap-4" data-tour="products-filter">
           <FilterBar
             filters={filters}
             onFiltersChange={setFilters}
@@ -398,10 +475,9 @@ export default function Products() {
             minPrice={minPrice}
           />
 
-          {/* Sort & View Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3 justify-between sm:justify-end">
+          <div className="flex items-center justify-between gap-2 sm:justify-end sm:gap-3">
             <div className="flex items-center gap-1 sm:gap-2">
-              <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+              <ArrowUpDown className="h-3 w-3 text-muted-foreground sm:h-4 sm:w-4" aria-hidden="true" />
               <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
                 <SelectTrigger aria-label="ترتيب المنتجات" className="h-11 w-[140px] text-xs sm:w-[170px] sm:text-sm">
                   <SelectValue placeholder="ترتيب حسب" />
@@ -419,24 +495,50 @@ export default function Products() {
           </div>
         </div>
 
-        {/* Results Count */}
         {!isLoading && !isError && (
-          <div className="mb-6 text-sm text-muted-foreground flex items-center gap-2 justify-between">
-            {finalProducts.length > 0 ? (
-              <span>عرض <strong>{displayedProducts.length}</strong> من <strong>{finalProducts.length}</strong> منتج</span>
-            ) : <span />}
-            {sortBy === "smart" && boostIds.length > 0 && (
-              <span className="flex items-center gap-1 text-xs text-primary">
-                <Sparkles className="w-3 h-3" />
-                مرتب حسب اهتماماتك
-              </span>
+          <div className="mb-6 space-y-3">
+            {activeFilterChips.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2" aria-label="الفلاتر المفعلة">
+                {activeFilterChips.map(chip => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    onClick={chip.onRemove}
+                    aria-label={`إزالة فلتر: ${chip.label}`}
+                    className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-primary/35 bg-primary/5 px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-primary hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  >
+                    <span>{chip.label}</span>
+                    <X className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={clearAllFilters}
+                  className="min-h-10 px-2 text-xs font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  مسح الكل
+                </button>
+              </div>
             )}
+
+            <div className="flex items-center justify-between gap-2 text-sm text-muted-foreground">
+              {finalProducts.length > 0 ? (
+                <span aria-live="polite">
+                  عرض <strong>{displayedProducts.length}</strong> من <strong>{finalProducts.length}</strong> منتج
+                </span>
+              ) : <span aria-live="polite">ماكو نتائج بهذي الفلاتر</span>}
+              {sortBy === "smart" && boostIds.length > 0 && (
+                <span className="flex items-center gap-1 text-xs text-primary">
+                  <Sparkles className="h-3 w-3" aria-hidden="true" />
+                  مرتب حسب اهتماماتك
+                </span>
+              )}
+            </div>
           </div>
         )}
 
-        {/* Products Grid - Full Width (No Sidebar) */}
         {isLoading && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
             {Array.from({ length: 10 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
@@ -461,7 +563,7 @@ export default function Products() {
           <>
             {finalProducts.length > 0 ? (
               <>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5">
                   {displayedProducts.map((product, index) => (
                     <div key={product.id} data-tour={index === 0 ? "product-card-first" : undefined} className="h-full min-w-0">
                       <ProductCard
@@ -474,52 +576,43 @@ export default function Products() {
                 </div>
 
                 {hasMore && (
-                  <div ref={sentinelRef} className="h-16 flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                  <div ref={sentinelRef} className="flex min-h-20 items-center justify-center py-5">
+                    <Button type="button" variant="outline" onClick={loadMore}>
+                      شوف المزيد
+                    </Button>
                   </div>
                 )}
 
-                {/* End Message */}
                 {!hasMore && finalProducts.length > 24 && (
-                  <div className="text-center mt-8 p-6 bg-gradient-to-r from-primary/10 to-accent/10 rounded-xl border border-primary/20">
-                    <p className="text-lg font-semibold text-primary">
-                      شاهدت جميع المنتجات المتاحة
+                  <div className="mt-8 rounded-xl border border-border bg-card p-6 text-center">
+                    <p className="text-base font-semibold text-foreground">
+                      هذا كلشي المتوفر هسه
                     </p>
-                    <p className="text-muted-foreground mt-2">
-                      تم عرض {finalProducts.length} منتج
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      عرضنا {finalProducts.length} منتج
                     </p>
                   </div>
                 )}
               </>
             ) : (
-              <div className="text-center py-16 bg-muted/30 rounded-xl">
-                <div className="w-20 h-20 mx-auto bg-muted rounded-full flex items-center justify-center mb-6">
-                  <AlertCircle className="w-10 h-10 text-muted-foreground" />
+              <section className="rounded-xl border border-border bg-card px-5 py-14 text-center" aria-live="polite">
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <AlertCircle className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
                 </div>
-                <h3 className="text-2xl font-bold mb-3">
-                  لم يتم العثور على منتجات
-                </h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  جرب تغيير أو إزالة بعض الفلاتر للحصول على نتائج أكثر
+                <h2 className="mb-3 text-2xl font-bold">
+                  ما لكينا منتجات بهذي الفلاتر
+                </h2>
+                <p className="mx-auto mb-6 max-w-md text-muted-foreground">
+                  شيل فلتر أو اثنين وجرّب، أو امسحهن كلهن حتى تشوف المتوفر.
                 </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setFilters({
-                    priceRange: [minPrice, maxPrice],
-                    categories: [],
-                    brands: [],
-                    difficulties: [],
-                    tags: [],
-                  })}
-                >
-                  مسح جميع الفلاتر
+                <Button variant="outline" onClick={clearAllFilters}>
+                  مسح كل الفلاتر
                 </Button>
-              </div>
+              </section>
             )}
           </>
         ) : null}
       </main>
-
 
       <BackToTop />
 
