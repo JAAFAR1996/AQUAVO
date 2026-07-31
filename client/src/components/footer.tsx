@@ -18,7 +18,7 @@ import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
 
 const shopLinks = [
   { href: "/products", label: "كل المنتجات" },
-  { href: "/tank-builder", label: "اختار حسب حوضك" },
+  { href: "/journey", label: "اختار حسب حوضك" },
   { href: "/deals", label: "العروض المتوفرة" },
   { href: "/order-tracking", label: "تتبع طلبك" },
 ];
