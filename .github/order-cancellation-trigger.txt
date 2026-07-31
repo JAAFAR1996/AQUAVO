@@ -1,1 +1,0 @@
-Trigger the one-shot cancellation patch workflow. This file is removed by the workflow commit.
