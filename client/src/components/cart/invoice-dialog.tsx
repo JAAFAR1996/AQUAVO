@@ -502,15 +502,15 @@ ${clientEnv.siteUrl ? `الرابط: ${clientEnv.siteUrl}` : ""}`.trim();
               </div>
             </div>
 
-            {/* WhatsApp Confirmation — CTA الأساسي بعد الطلب */}
+            {/* WhatsApp support — optional assistance, never order confirmation */}
             <a
-              href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أريد تأكيد طلبي رقم ${shortOrderNumber}`)}`}
+              href={`${WHATSAPP_URL}?text=${encodeURIComponent(`مرحباً، أحتاج مساعدة بخصوص طلبي رقم ${shortOrderNumber}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors text-base no-print print:hidden"
+              className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-6 py-3 text-base font-semibold text-foreground transition-colors hover:bg-muted no-print print:hidden"
             >
               <MessageCircle className="h-5 w-5" />
-              أكد طلبك عبر واتساب
+              تحتاج مساعدة؟ احچي ويانه
             </a>
 
             {/* Action Buttons - hidden in print */}
