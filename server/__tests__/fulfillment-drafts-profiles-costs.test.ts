@@ -9,6 +9,7 @@
 import { describe, it, expect, beforeAll } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { cartonCatalogDdl } from "./helpers/packing-migrations.js";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import * as schema from "../../shared/schema.js";
@@ -54,6 +55,9 @@ beforeAll(async () => {
   await client.exec(base);
   await client.exec(hardening);
   await client.exec(pimLineIdentity);
+  // Migration 0040: the Drizzle model now names these columns, so the test
+  // database must have them or every select() on fulfillment_materials fails.
+  await client.exec(cartonCatalogDdl());
   db = drizzle(client, { schema }) as unknown as FulfillmentDb;
 
   await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit) VALUES
