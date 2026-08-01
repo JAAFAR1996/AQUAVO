@@ -5,6 +5,7 @@ import "./styles/aquavo-ui-fixes.css";
 import "./styles/mobile-product-cleanup.css";
 import "./styles/motion-tokens.css";
 import "./styles/experience-polish.css";
+import "./styles/experience-safety.css";
 import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
