@@ -1,0 +1,531 @@
+/* AQUAVO experience polish — loaders, first-visit reveal and Journey live tank.
+   Loaded after motion-tokens.css so these reviewed surfaces can opt back into
+   composited motion without reopening animation globally. */
+
+.aqv-loader,
+.aqv-loader *,
+.aqv-first-dive,
+.aqv-first-dive *,
+.aqv-page-enter,
+.aqv-journey-preview,
+.aqv-journey-preview *,
+.aqv-journey-intro,
+.aqv-journey-intro * {
+  animation-duration: revert !important;
+  animation-delay: revert !important;
+  animation-iteration-count: revert !important;
+  transition-property: revert !important;
+  transition-duration: revert !important;
+  transition-delay: revert !important;
+  transition-timing-function: revert !important;
+}
+
+/* ───────────────────────── Route waiting: “العمق يتشكّل” ─────────────── */
+.aqv-loader {
+  position: relative;
+  min-height: calc(100svh - var(--aq-header-h, 4rem));
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 14px;
+  overflow: hidden;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  opacity: 0;
+  transition: opacity 220ms var(--aqv-e-precision) !important;
+}
+
+.aqv-loader[data-visible="false"] {
+  visibility: hidden;
+}
+
+.aqv-loader[data-visible="true"] {
+  visibility: visible;
+  opacity: 1;
+}
+
+.aqv-loader__progress {
+  position: fixed;
+  inset-inline: 0;
+  inset-block-start: var(--aq-header-h, 0px);
+  z-index: 45;
+  height: 2px;
+  overflow: hidden;
+  background: rgb(11 147 166 / 12%);
+}
+
+.aqv-loader__progress::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  width: 34%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, #0B93A6 48%, #0B64A6 72%, transparent);
+  transform: translateX(-130%);
+  animation: aqv-depth-progress 1.35s var(--aqv-e-precision) infinite !important;
+}
+
+.aqv-loader__stage {
+  position: relative;
+  width: 116px;
+  height: 84px;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgb(11 147 166 / 42%);
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgb(255 255 255 / 76%), rgb(11 147 166 / 8%));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 42%),
+    inset 0 28px 48px -40px rgb(196 247 255 / 88%),
+    0 18px 46px rgb(11 30 40 / 14%);
+  isolation: isolate;
+}
+
+.dark .aqv-loader__stage {
+  background: linear-gradient(155deg, rgb(18 51 63 / 94%), rgb(11 147 166 / 12%));
+}
+
+.aqv-loader__stage::before {
+  content: "";
+  position: absolute;
+  inset-inline: -8%;
+  inset-block-end: -12%;
+  height: 64%;
+  background: linear-gradient(to bottom, rgb(196 247 255 / 42%), rgb(11 147 166 / 48%));
+  border-block-start: 2px solid rgb(217 251 255 / 86%);
+  transform: translateY(14%);
+  animation: aqv-loader-water 1.8s var(--aqv-e-meniscus) infinite alternate !important;
+  z-index: 0;
+}
+
+.aqv-loader__stage::after {
+  content: "";
+  position: absolute;
+  inset-block: -20%;
+  width: 28%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 46%), transparent);
+  transform: translateX(-220%) skewX(-12deg);
+  animation: aqv-loader-refraction 2.1s ease-in-out infinite !important;
+  z-index: 3;
+}
+
+.aqv-loader__logo {
+  position: relative;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  filter: drop-shadow(0 7px 14px rgb(11 30 40 / 18%));
+}
+
+.aqv-loader__text {
+  margin: 0;
+  font-size: .88rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: hsl(var(--foreground) / .82);
+}
+
+@keyframes aqv-depth-progress {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(390%); }
+}
+
+@keyframes aqv-loader-water {
+  from { transform: translateY(16%) scaleX(1); }
+  to { transform: translateY(4%) scaleX(1.04); }
+}
+
+@keyframes aqv-loader-refraction {
+  0%, 28% { transform: translateX(-220%) skewX(-12deg); opacity: 0; }
+  46% { opacity: .7; }
+  72%, 100% { transform: translateX(430%) skewX(-12deg); opacity: 0; }
+}
+
+/* ───────────────────── First-ever entry: surface split ────────────────── */
+.aqv-first-dive {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.aqv-first-dive::before,
+.aqv-first-dive::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  height: 51%;
+  z-index: -1;
+  background: #0B1E28;
+  animation-duration: 860ms !important;
+  animation-timing-function: cubic-bezier(.16, 1, .3, 1) !important;
+  animation-fill-mode: forwards !important;
+}
+
+.aqv-first-dive::before {
+  inset-block-start: 0;
+  transform-origin: top;
+  animation-name: aqv-first-dive-top !important;
+}
+
+.aqv-first-dive::after {
+  inset-block-end: 0;
+  transform-origin: bottom;
+  animation-name: aqv-first-dive-bottom !important;
+}
+
+.aqv-first-dive__mark {
+  width: 68px;
+  height: 68px;
+  opacity: 0;
+  filter: drop-shadow(0 16px 28px rgb(0 0 0 / 26%));
+  animation: aqv-first-dive-mark 780ms var(--aqv-e-meniscus) forwards !important;
+}
+
+.aqv-first-dive__line {
+  position: absolute;
+  inset-inline: 50%;
+  top: 50%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C4F7FF 24%, #0B93A6 50%, #C4F7FF 76%, transparent);
+  box-shadow: 0 0 24px rgb(196 247 255 / 70%);
+  animation: aqv-first-dive-line 760ms var(--aqv-e-meniscus) forwards !important;
+}
+
+@keyframes aqv-first-dive-line {
+  0% { inset-inline: 50%; opacity: 0; }
+  22% { opacity: 1; }
+  62% { inset-inline: 8%; opacity: 1; }
+  100% { inset-inline: 0; opacity: 0; }
+}
+
+@keyframes aqv-first-dive-mark {
+  0% { opacity: 0; transform: translateY(12px) scale(.8); }
+  24% { opacity: 1; transform: translateY(0) scale(1); }
+  58% { opacity: 1; transform: translateY(0) scale(1.06); }
+  100% { opacity: 0; transform: translateY(-18px) scale(.9); }
+}
+
+@keyframes aqv-first-dive-top {
+  0%, 48% { transform: translateY(0); }
+  100% { transform: translateY(-102%); }
+}
+
+@keyframes aqv-first-dive-bottom {
+  0%, 48% { transform: translateY(0); }
+  100% { transform: translateY(102%); }
+}
+
+/* One clear entrance only. Flow Gate pages render settled to avoid a second
+   fade on top of the branded route transition. */
+.aqv-page-enter {
+  opacity: 1;
+  animation: aqv-page-clarify 260ms var(--aqv-e-precision) both !important;
+}
+
+.aqv-page-settled { opacity: 1; }
+
+@keyframes aqv-page-clarify {
+  from { opacity: .74; filter: brightness(.98); }
+  to { opacity: 1; filter: brightness(1); }
+}
+
+/* ─────────────────────── Journey one-time intro ───────────────────────── */
+.aqv-journey-intro__visual {
+  position: relative;
+  height: 122px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0B1E28 0%, #123B49 100%);
+}
+
+.aqv-journey-intro__visual::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 48%;
+  background: linear-gradient(to bottom, rgb(196 247 255 / 26%), rgb(11 147 166 / 62%));
+  border-block-start: 1px solid rgb(196 247 255 / 76%);
+  animation: aqv-intro-water-settle 900ms var(--aqv-e-meniscus) both !important;
+}
+
+.aqv-journey-intro__visual img {
+  position: relative;
+  z-index: 2;
+  filter: brightness(0) invert(1) drop-shadow(0 10px 20px rgb(0 0 0 / 24%));
+}
+
+.aqv-journey-intro__visual span {
+  position: absolute;
+  inset-inline: 12%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #C4F7FF, transparent);
+  z-index: 3;
+}
+
+@keyframes aqv-intro-water-settle {
+  from { transform: translateY(55%); }
+  to { transform: translateY(0); }
+}
+
+/* ───────────────────────── Journey live aquarium ──────────────────────── */
+.aqv-journey-preview {
+  width: 100%;
+  max-width: 720px;
+  margin-inline: auto;
+  border: 1px solid rgb(11 147 166 / 24%);
+  border-radius: 24px;
+  overflow: hidden;
+  background: hsl(var(--card));
+  box-shadow: 0 22px 58px rgb(11 30 40 / 10%);
+}
+
+.aqv-journey-scene {
+  position: relative;
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 22px 22px 6px;
+  background:
+    linear-gradient(to bottom, rgb(246 244 239 / 96%), rgb(229 232 225 / 94%)),
+    repeating-linear-gradient(90deg, transparent 0 90px, rgb(11 30 40 / 3%) 90px 91px);
+  transition: background-color 420ms var(--aqv-e-precision) !important;
+}
+
+.dark .aqv-journey-scene {
+  background: linear-gradient(to bottom, #132F39, #0B1E28);
+}
+
+.aqv-journey-scene__window {
+  position: absolute;
+  inset-inline-start: 5%;
+  inset-block-start: 24px;
+  width: 88px;
+  height: 108px;
+  border: 6px solid rgb(92 74 60 / 72%);
+  border-radius: 5px;
+  background: linear-gradient(145deg, #D6EFF7, #8BC8D6);
+  opacity: .82;
+  transition: opacity 380ms, filter 380ms !important;
+}
+
+.aqv-journey-scene__window::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, rgb(246 244 239 / 92%) 0 9px, transparent 9px 15px);
+  transform: translateY(-105%);
+  transition: transform 520ms var(--aqv-e-meniscus) !important;
+}
+
+.aqv-journey-scene__window::after {
+  content: "";
+  position: absolute;
+  left: 72px;
+  top: 62px;
+  width: 180px;
+  height: 70px;
+  background: linear-gradient(95deg, rgb(255 210 96 / 26%), transparent 74%);
+  transform: skewX(-18deg);
+  transform-origin: left;
+  opacity: .8;
+  transition: opacity 420ms !important;
+}
+
+.aqv-journey-scene[data-sun-safe="true"] .aqv-journey-scene__window::before {
+  transform: translateY(0);
+}
+.aqv-journey-scene[data-sun-safe="true"] .aqv-journey-scene__window::after { opacity: 0; }
+
+.aqv-journey-scene__vent {
+  position: absolute;
+  inset-inline-end: 7%;
+  inset-block-start: 34px;
+  width: 76px;
+  height: 28px;
+  border: 2px solid rgb(88 104 110 / 42%);
+  border-radius: 5px;
+  background: repeating-linear-gradient(0deg, transparent 0 4px, rgb(88 104 110 / 28%) 4px 6px);
+  opacity: .72;
+  transition: opacity 320ms, transform 320ms !important;
+}
+
+.aqv-journey-scene[data-hvac-safe="true"] .aqv-journey-scene__vent {
+  opacity: .18;
+  transform: translateY(-4px);
+}
+
+.aqv-journey-scene__socket {
+  position: absolute;
+  inset-inline-end: 8%;
+  inset-block-end: 72px;
+  width: 34px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  grid-template-columns: repeat(2, 4px);
+  gap: 6px;
+  border: 2px solid rgb(80 85 86 / 28%);
+  border-radius: 6px;
+  background: #F4F0E8;
+  opacity: .18;
+  transition: opacity 320ms, transform 320ms !important;
+}
+.aqv-journey-scene__socket i { width: 3px; height: 9px; border-radius: 2px; background: #4B4B4B; }
+.aqv-journey-scene[data-power="true"] .aqv-journey-scene__socket { opacity: 1; transform: translateX(-4px); }
+
+.aqv-journey-scene__clearance {
+  position: absolute;
+  inset-inline-end: 2%;
+  inset-block: 88px 56px;
+  width: 52px;
+  border: 1px dashed rgb(11 147 166 / 0%);
+  border-radius: 14px;
+  transition: border-color 320ms, background-color 320ms !important;
+}
+.aqv-journey-scene[data-access="true"] .aqv-journey-scene__clearance {
+  border-color: rgb(11 147 166 / 48%);
+  background: rgb(11 147 166 / 4%);
+}
+
+.aqv-journey-scene[data-quiet="true"] { background-image: linear-gradient(to bottom, rgb(246 244 239 / 98%), rgb(229 232 225 / 96%)); }
+.dark .aqv-journey-scene[data-quiet="true"] { background-image: linear-gradient(to bottom, #132F39, #0B1E28); }
+
+.aqv-jtank__viewport {
+  position: relative;
+  z-index: 4;
+  width: min(100%, 260px);
+  transition: width 620ms var(--aqv-e-meniscus), filter 420ms !important;
+  filter: drop-shadow(0 20px 26px rgb(11 30 40 / 18%));
+}
+.aqv-journey-preview[data-size="medium"] .aqv-jtank__viewport { width: min(100%, 330px); }
+.aqv-journey-preview[data-size="large"] .aqv-jtank__viewport { width: min(100%, 405px); }
+.aqv-journey-preview[data-size="xlarge"] .aqv-jtank__viewport { width: min(100%, 480px); }
+.aqv-jtank__viewport svg { display: block; width: 100%; height: auto; overflow: visible; }
+
+.aqv-jtank__water,
+.aqv-jtank__haze {
+  transition: y 680ms var(--aqv-e-meniscus), height 680ms var(--aqv-e-meniscus), opacity 900ms var(--aqv-e-precision) !important;
+}
+.aqv-jtank__waterline { transition: d 680ms var(--aqv-e-meniscus), opacity 300ms !important; }
+.aqv-jtank__equipment,
+.aqv-jtank__decor,
+.aqv-jtank__light,
+.aqv-jtank__cabinet {
+  animation: aqv-tank-part-in 420ms var(--aqv-e-meniscus) both !important;
+}
+
+.aqv-jtank__fish {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: aqv-fish-arrive 520ms var(--aqv-e-meniscus) both !important;
+}
+
+.aqv-journey-preview[data-summary="true"] .aqv-jtank__viewport {
+  filter: drop-shadow(0 22px 34px rgb(11 147 166 / 30%));
+}
+
+@keyframes aqv-tank-part-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes aqv-fish-arrive {
+  from { opacity: 0; translate: 12px 0; }
+  to { opacity: 1; translate: 0 0; }
+}
+
+.aqv-journey-preview__status {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px 18px;
+  border-block-start: 1px solid rgb(11 147 166 / 16%);
+  background: linear-gradient(180deg, rgb(11 147 166 / 4%), transparent);
+}
+
+.aqv-journey-preview__status > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: .86rem;
+  color: hsl(var(--foreground));
+}
+.aqv-journey-preview__status > div:first-child span { color: hsl(var(--muted-foreground)); font-size: .78rem; }
+
+.aqv-journey-preview__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.aqv-journey-preview__chips span {
+  padding: 5px 9px;
+  border: 1px solid rgb(11 147 166 / 22%);
+  border-radius: 999px;
+  background: rgb(11 147 166 / 7%);
+  color: hsl(var(--foreground) / .78);
+  font-size: .72rem;
+  font-weight: 700;
+}
+.aqv-journey-preview__status small { color: hsl(var(--muted-foreground)); font-size: .68rem; line-height: 1.6; }
+
+@media (max-width: 767px) {
+  .aqv-loader { min-height: calc(100svh - var(--aq-header-h, 4rem)); }
+  .aqv-first-dive__mark { width: 58px; height: 58px; }
+  .aqv-journey-preview { border-radius: 18px; }
+  .aqv-journey-scene { min-height: 244px; padding: 18px 10px 0; }
+  .aqv-journey-scene__window { width: 58px; height: 74px; inset-inline-start: 3%; opacity: .48; }
+  .aqv-journey-scene__window::after { display: none; }
+  .aqv-journey-scene__vent { width: 52px; inset-inline-end: 4%; opacity: .36; }
+  .aqv-journey-scene__clearance { display: none; }
+  .aqv-jtank__viewport,
+  .aqv-journey-preview[data-size="medium"] .aqv-jtank__viewport,
+  .aqv-journey-preview[data-size="large"] .aqv-jtank__viewport,
+  .aqv-journey-preview[data-size="xlarge"] .aqv-jtank__viewport { width: min(100%, 340px); }
+  .aqv-journey-preview[data-size="small"] .aqv-jtank__viewport { width: min(82%, 250px); }
+  .aqv-journey-preview__status > div:first-child { align-items: flex-start; flex-direction: column; gap: 3px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aqv-loader__progress::before,
+  .aqv-loader__stage::before,
+  .aqv-loader__stage::after,
+  .aqv-first-dive::before,
+  .aqv-first-dive::after,
+  .aqv-first-dive__mark,
+  .aqv-first-dive__line,
+  .aqv-page-enter,
+  .aqv-journey-intro__visual::before,
+  .aqv-jtank__equipment,
+  .aqv-jtank__decor,
+  .aqv-jtank__light,
+  .aqv-jtank__cabinet,
+  .aqv-jtank__fish {
+    animation: none !important;
+  }
+  .aqv-first-dive { display: none; }
+  .aqv-page-enter { opacity: 1; filter: none; }
+  .aqv-jtank__viewport,
+  .aqv-jtank__water,
+  .aqv-jtank__haze,
+  .aqv-journey-scene * { transition-duration: 1ms !important; }
+}
+
+/* The live preview is intentionally in normal flow; the previous small progress
+   tank was sticky, but a full visual aquarium must not cover the form. */
+.aqv-journey-tank-shell {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 2 !important;
+  margin-block-end: 28px !important;
+  pointer-events: auto !important;
+}
+
+.aqv-journey-step-panel {
+  margin-block-start: 24px;
+}
