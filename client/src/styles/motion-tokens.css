@@ -1,0 +1,284 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AQUAVO — الإزاحة / Displacement · motion tokens + controlled allow system
+   Loaded after the existing stylesheet so only explicitly approved motion
+   hooks can override the old global no-motion safety backstop.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --aqv-dark: var(--aqv-bg-dark, #0B1E28);
+  --aqv-primary-shade: var(--aqv-primary-dark-shade, #075F6B);
+  --aqv-primary-45: rgb(11 147 166 / .45);
+  --border-hairline: var(--aqv-border, #DDD8CE);
+
+  --aqv-d-press: 100ms;
+  --aqv-d-micro: 190ms;
+  --aqv-d-base: 340ms;
+  --aqv-d-calm: 520ms;
+  --aqv-d-settle: 760ms;
+  --aqv-d-signature: 1200ms;
+  --aqv-d-sim: 2200ms;
+
+  --aqv-e-precision: cubic-bezier(.2, .72, .2, 1);
+  --aqv-e-meniscus: cubic-bezier(.16, .84, .24, 1);
+  --aqv-e-settle: cubic-bezier(.34, 1.42, .4, 1);
+  --aqv-e-reverse: cubic-bezier(.32, 0, .67, 0);
+
+  --aqv-t-lift: -2px;
+  --aqv-t-rise: 10px;
+  --aqv-s-press: .985;
+  --aqv-s-image: 1.025;
+
+  --aqv-o-veil: .94;
+  --aqv-o-scrim: .42;
+  --aqv-o-caustic: .58;
+  --aqv-o-clarify: .30;
+
+  --aqv-b-membrane: 5px;
+  --aqv-b-results: 6px;
+  --aqv-b-variant: 4px;
+  --aqv-b-caustic: 13px;
+
+  --aqv-st-tight: 40ms;
+  --aqv-st-normal: 80ms;
+  --aqv-st-wide: 110ms;
+  --aqv-loop-surface: 6.5s;
+  --aqv-drag-k: .06;
+  --aqv-drag-damp: .86;
+}
+
+/* Controlled allow-list: the legacy global no-motion block stays as a safety
+   net, while these reviewed surfaces opt back into transform/mask motion. */
+[data-aqv-motion],
+[data-aqv-motion] *,
+.aqv-motion,
+.aqv-motion *,
+.aqv-transform,
+.aqv-lift,
+.aqv-lift *,
+.aqv-product-image,
+.aqv-press,
+.aqv-waterline,
+.aqv-membrane,
+.aqv-water-level,
+.aqv-water-drop,
+.aqv-water-haze,
+.aqv-surface-ripple,
+.aqv-light-sweep,
+.aqv-skeleton,
+.aqv-runtime-home,
+.aqv-runtime-home *,
+.aqv-runtime-caustics,
+.aqv-runtime-floor,
+.aqv-runtime-proof-glass,
+.aqv-runtime-proof-glass *,
+.aqv-cart-displacement,
+.aqv-cart-displacement *,
+.aqv-success-surface {
+  animation-duration: revert !important;
+  animation-delay: revert !important;
+  animation-iteration-count: revert !important;
+  transition-property: revert !important;
+  transition-duration: revert !important;
+  transition-delay: revert !important;
+  transition-timing-function: revert !important;
+}
+
+.aqv-transform {
+  transition-property: transform, opacity, color, background-color, border-color, box-shadow !important;
+}
+.aqv-lift {
+  transition: transform var(--aqv-d-micro) var(--aqv-e-precision), border-color var(--aqv-d-micro), box-shadow var(--aqv-d-micro) !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  .aqv-lift:hover { transform: translateY(var(--aqv-t-lift)) !important; }
+  .aqv-lift:hover .aqv-product-image { transform: scale(var(--aqv-s-image)) !important; }
+}
+.aqv-lift:active { transform: scale(var(--aqv-s-press)) !important; }
+.aqv-product-image { transition: transform var(--aqv-d-micro) var(--aqv-e-precision) !important; }
+.aqv-press:active { transform: scale(var(--aqv-s-press)) !important; transition-duration: var(--aqv-d-press) !important; }
+
+.aqv-waterline {
+  height: 2px;
+  transform-origin: center;
+  background: linear-gradient(90deg, transparent, rgb(11 147 166 / .9) 18%, rgb(11 100 166 / .9) 82%, transparent);
+  will-change: transform;
+}
+
+.aqv-membrane { will-change: clip-path, opacity, filter, transform; }
+@keyframes aqv-membrane-in {
+  from { clip-path: inset(0 0 100% 0); opacity: 0; filter: blur(var(--aqv-b-membrane)); transform: translateY(var(--aqv-t-rise)); }
+  to { clip-path: inset(0 0 0% 0); opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+[data-aqv-membrane="in"] { animation: aqv-membrane-in var(--aqv-d-calm) var(--aqv-e-meniscus) both !important; }
+
+.aqv-water-level { transition: height var(--aqv-d-settle) var(--aqv-e-settle) !important; }
+.aqv-water-drop { transition: height var(--aqv-d-settle) var(--aqv-e-precision) !important; }
+.aqv-water-haze { transition: opacity var(--aqv-d-sim) var(--aqv-e-precision) !important; }
+@keyframes aqv-surface-ripple { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.aqv-surface-ripple { animation: aqv-surface-ripple var(--aqv-loop-surface) linear infinite !important; }
+
+@keyframes aqv-light-sweep {
+  0% { transform: translateX(-130%) skewX(-14deg); opacity: 0; }
+  20% { opacity: .5; }
+  70% { opacity: .16; }
+  100% { transform: translateX(240%) skewX(-14deg); opacity: 0; }
+}
+.aqv-light-sweep { animation: aqv-light-sweep 8s cubic-bezier(.4,0,.6,1) infinite !important; }
+
+@keyframes aqv-skeleton { 0%, 100% { opacity: .5; } 50% { opacity: .92; } }
+.aqv-skeleton { animation: aqv-skeleton 1.8s ease-in-out infinite !important; }
+
+[data-aqv-motion-runtime="on"] .aq-site-header {
+  transition: background-color var(--aqv-d-base) var(--aqv-e-precision), border-color var(--aqv-d-base) var(--aqv-e-precision), box-shadow var(--aqv-d-base) var(--aqv-e-precision), backdrop-filter var(--aqv-d-base) var(--aqv-e-precision) !important;
+}
+[data-aqv-motion-runtime="on"] .aq-site-header[data-aqv-scrolled="true"] {
+  box-shadow: 0 12px 30px rgb(11 30 40 / 14%);
+}
+
+.aqv-runtime-home {
+  --aqv-depth-bg: #F6F4EF;
+  --aqv-depth-card: #FFFFFF;
+  --aqv-depth-ink: #232323;
+  --aqv-depth-muted: #6B6B6B;
+  --aqv-depth-border: #DDD8CE;
+  position: relative;
+  isolation: isolate;
+  background: var(--aqv-depth-bg) !important;
+  color: var(--aqv-depth-ink);
+  transition: background-color var(--aqv-d-base) linear, color var(--aqv-d-base) linear !important;
+}
+.aqv-runtime-home .bg-background,
+.aqv-runtime-home .bg-card,
+.aqv-runtime-home [class*="bg-card/"] {
+  background-color: var(--aqv-depth-card) !important;
+  border-color: var(--aqv-depth-border) !important;
+  transition: background-color var(--aqv-d-base) linear, border-color var(--aqv-d-base) linear, color var(--aqv-d-base) linear !important;
+}
+.aqv-runtime-home .text-foreground { color: var(--aqv-depth-ink) !important; }
+.aqv-runtime-home .text-muted-foreground { color: var(--aqv-depth-muted) !important; }
+.aqv-runtime-caustics {
+  position: sticky;
+  inset-block-start: 64px;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 180px;
+  margin-block-end: -180px;
+  pointer-events: none;
+  opacity: .55;
+  mix-blend-mode: screen;
+}
+.aqv-runtime-waterline {
+  position: sticky;
+  inset-block-start: 64px;
+  z-index: 35;
+  width: 100%;
+  pointer-events: none;
+}
+.aqv-runtime-floor {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 140px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(to bottom, transparent, rgb(201 174 140 / 38%));
+  transition: opacity var(--aqv-d-calm) linear !important;
+}
+
+.aqv-runtime-proof-glass {
+  position: relative !important;
+  isolation: isolate;
+  border-radius: 20px;
+  border: 1px solid rgb(11 147 166 / 30%);
+  background: linear-gradient(145deg, rgb(11 30 40 / 4%), rgb(11 147 166 / 7%));
+  box-shadow: inset 0 0 0 1px rgb(196 247 255 / 10%), inset 0 30px 60px -42px rgb(196 247 255 / 42%), 0 22px 55px rgb(11 30 40 / 12%);
+}
+.aqv-runtime-proof-glass > *:not(.aqv-runtime-glass-layer) { position: relative; z-index: 2; }
+.aqv-runtime-glass-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.aqv-runtime-glass-layer canvas { width: 100%; height: 100%; opacity: .48; }
+.aqv-runtime-glass-sweep {
+  position: absolute;
+  inset-block: 0;
+  width: 34%;
+  background: linear-gradient(90deg, transparent, rgb(196 247 255 / 17%), transparent);
+}
+
+.aqv-cart-displacement {
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 8px;
+  border: 1px solid rgb(11 147 166 / 32%);
+  pointer-events: none;
+}
+.aqv-cart-displacement > span {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  height: 0%;
+  background: linear-gradient(to top, rgb(11 100 166 / 52%), rgb(11 147 166 / 30%));
+  transition: height var(--aqv-d-settle) var(--aqv-e-settle) !important;
+}
+.aqv-cart-drain { overflow: hidden; transform-origin: top; }
+
+.aqv-success-surface {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgb(11 147 166 / 92%), rgb(11 100 166 / 94%));
+  transform-origin: top;
+}
+
+.aqv-journey-tank-shell {
+  position: sticky;
+  inset-block-start: 76px;
+  z-index: 25;
+  display: flex;
+  justify-content: center;
+  margin-block-end: 24px;
+  pointer-events: none;
+}
+
+@media (max-width: 767px) {
+  :root { --aqv-b-results: 0px; --aqv-b-variant: 0px; }
+  .aqv-surface-ripple { animation: none !important; }
+  .aqv-light-sweep { animation-iteration-count: 1 !important; }
+  .aqv-water-drop { transition-duration: var(--aqv-d-calm) !important; }
+  .aqv-runtime-caustics { display: none; }
+  .aqv-runtime-waterline { inset-block-start: 64px; }
+  .aqv-journey-tank-shell { inset-block-start: 64px; margin-inline: -1rem; margin-block-end: 16px; }
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (max-width: 767px) {
+    @keyframes aqv-descend { from { background-color: #F6F4EF; } to { background-color: #0B1E28; } }
+    [data-aqv-descent] { animation: aqv-descend 1s linear both !important; animation-timeline: scroll(root block); }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --aqv-d-press: 1ms; --aqv-d-micro: 1ms; --aqv-d-base: 1ms; --aqv-d-calm: 1ms;
+    --aqv-d-settle: 1ms; --aqv-d-signature: 1ms; --aqv-d-sim: 1ms;
+    --aqv-b-membrane: 0px; --aqv-b-results: 0px; --aqv-b-variant: 0px;
+  }
+  [data-aqv-motion], [data-aqv-motion] *, .aqv-motion, .aqv-motion * {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+  [data-aqv-membrane="in"] { animation: none !important; clip-path: none; opacity: 1; filter: none; transform: none; }
+  .aqv-lift:hover { transform: none !important; }
+  .aqv-surface-ripple, .aqv-light-sweep, .aqv-skeleton { animation: none !important; }
+  [data-aqv-caustics] { display: none; }
+}
