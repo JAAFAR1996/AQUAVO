@@ -54,13 +54,22 @@ function frame(timestamp: number) {
       if (consumer.visible) consumer.fn(seconds, dt);
     });
   }
+  if (consumers.size === 0) {
+    raf = 0;
+    last = 0;
+    return;
+  }
   raf = requestAnimationFrame(frame);
 }
 
 export function onFrame(fn: FrameFn, host?: Element | null): () => void {
   const consumer: Consumer = { fn, host, visible: !host };
   consumers.add(consumer);
-  if (host) ensureObserver()?.observe(host);
+  if (host) {
+    const io = ensureObserver();
+    if (io) io.observe(host);
+    else consumer.visible = true;
+  }
   if (!raf) raf = requestAnimationFrame(frame);
 
   return () => {
@@ -106,7 +115,7 @@ export function refractionRing(
   window.setTimeout(() => ring.remove(), 950);
 }
 
-export function clarify(nodes: ArrayLike<Element>, stagger = MOTION.stagger.tight) {
+export function clarify(nodes: ArrayLike<Element>, stagger: number = MOTION.stagger.tight) {
   if (prefersReducedMotion()) return;
   const useBlur = !isCompactViewport();
   Array.prototype.forEach.call(nodes, (node: Element, index: number) => {
