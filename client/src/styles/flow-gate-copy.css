@@ -1,0 +1,12 @@
+/* Temporary source-compatible copy adapter for the existing Flow Gate DOM.
+   The veil is aria-hidden; this changes only its visible hold label. */
+[data-aqv-flowgate="veil"] > div[style*="bottom: 18%"] {
+  font-size: 0 !important;
+}
+
+[data-aqv-flowgate="veil"] > div[style*="bottom: 18%"]::after {
+  content: "العمق يتشكّل…";
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .01em;
+}
