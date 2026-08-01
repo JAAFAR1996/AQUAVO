@@ -88,7 +88,7 @@ function auditLog(event: string, fields: Record<string, string | number | null |
 const DOMAIN_ERROR_STATUS: Array<[RegExp, number]> = [
   [/NOT_FOUND/, 404],
   [/ALREADY_EXISTS|ALREADY_REVERSED|ACTIVE_REVERSAL_EXISTS|DRAFT_CONSUMED|DRAFT_DISCARDED/, 409],
-  [/INSUFFICIENT_STOCK|QUANTITY_INVALID|NEGATIVE_COST|DRAFT_EMPTY|CATEGORY_INVALID|_REQUIRED|_MISMATCH|_INVALID|NOT_PENDING|NOT_SETTLED|MATERIAL_INACTIVE|SELF_REVERSAL|_NEEDS_/, 400],
+  [/INSUFFICIENT_STOCK|QUANTITY_INVALID|NEGATIVE_COST|DRAFT_EMPTY|CATEGORY_INVALID|_REQUIRED|_MISMATCH|_INVALID|NOT_PENDING|NOT_SETTLED|MATERIAL_INACTIVE|SELF_REVERSAL|_NEEDS_|STOCK_OVERRIDE_REMOVED/, 400],
 ];
 
 function wrap(handler: (req: Request, res: Response) => Promise<void>) {
@@ -156,9 +156,18 @@ router.post("/materials", writeLimiter, wrap(async (req, res) => {
   const id = crypto.randomUUID();
   // A new material starts with an UNKNOWN cost. A cost only exists once a
   // material_cost_records row is approved — never at creation time.
+  //
+  // stock_tracked is set EXPLICITLY rather than left to the column default.
+  // Migration 0040 defaults it to false, and the confirmation stock guard now
+  // trusts the flag, so a material created here without it would be silently
+  // exempt from the guard — its stock could go negative with no error and no
+  // override. Materials created through this route are physical consumables;
+  // the accounting-only ones are created through the packaging-admin
+  // preparation-costs route, which sets false on purpose.
   await db().insert(fulfillmentMaterials).values({
     id, name: input.name, category: input.category ?? null, unit: input.unit ?? null,
     accountingCode: input.accountingCode ?? null, notes: input.notes ?? null,
+    stockTracked: true,
   });
   await recordFinancialChange(db() as never, {
     entityType: "fulfillment_material", entityId: id, action: "create",
@@ -533,11 +542,29 @@ router.post("/drafts/:id/discard", writeLimiter, wrap(async (req, res) => {
   res.json({ draft: await discardDraft(db(), idSchema.parse(req.params.id)) });
 }));
 
+/**
+ * Reject a retired negative-stock override instead of ignoring it.
+ *
+ * Zod strips unknown keys silently, so an old client (a cached bundle, a saved
+ * cURL, a script) could keep sending `allowNegativeStock: true` and receive a
+ * 200 while the flag did nothing. That reads as "the override still works" to
+ * whoever is watching, which is worse than a hard failure. Callers must learn
+ * the capability is gone.
+ */
+function rejectStockOverride(body: unknown): void {
+  if (body && typeof body === "object" && "allowNegativeStock" in body) {
+    // Mapped to 400 through DOMAIN_ERROR_STATUS, like every other domain error.
+    throw new Error(
+      "STOCK_OVERRIDE_REMOVED: negative packaging stock is not permitted; restock the material instead",
+    );
+  }
+}
+
 router.post("/drafts/:id/confirm", writeLimiter, wrap(async (req, res) => {
   const draftId = idSchema.parse(req.params.id);
+  rejectStockOverride(req.body);
   const input = z.object({
     varianceReason: z.string().max(1000).optional(),
-    allowNegativeStock: z.boolean().optional(),
   }).parse(req.body ?? {});
   const actor = actorFromRequest(req);
   const result = await confirmDraft(db(), { draftId, recordedBy: actor.id ?? undefined, ...input });
@@ -585,7 +612,6 @@ const confirmSchema = z.object({
   lines: z.array(lineSchema).min(1).max(100),
   varianceReason: z.string().max(1000).optional(),
   adjustmentReason: z.string().max(1000).optional(),
-  allowNegativeStock: z.boolean().optional(),
 });
 
 /**
@@ -596,6 +622,7 @@ const confirmSchema = z.object({
  */
 router.post("/orders/:orderId/events", writeLimiter, wrap(async (req, res) => {
   const orderId = idSchema.parse(req.params.orderId);
+  rejectStockOverride(req.body);
   const input = confirmSchema.parse(req.body ?? {});
   const actor = actorFromRequest(req);
 
@@ -612,7 +639,6 @@ router.post("/orders/:orderId/events", writeLimiter, wrap(async (req, res) => {
     recordedBy: actor.id ?? undefined,
     varianceReason: input.varianceReason,
     adjustmentReason: input.adjustmentReason,
-    allowNegativeStock: input.allowNegativeStock,
   });
 
   if (!result.reused) {

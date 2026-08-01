@@ -34,6 +34,12 @@ import {
   useStockAlerts,
   type CartonView,
 } from "@/hooks/use-packaging";
+import {
+  AddCartonForm,
+  AddPreparationCostForm,
+  CartonEditor,
+  PreparationCostEditor,
+} from "./packaging-forms";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 1. تكاليف تجهيز الطلب
@@ -41,6 +47,7 @@ import {
 
 export function PreparationCostsPanel() {
   const { data, isLoading } = usePreparationCosts();
+  const [openEditor, setOpenEditor] = useState<string | null>(null);
   const items = data?.items ?? [];
 
   return (
@@ -53,6 +60,9 @@ export function PreparationCostsPanel() {
         <p className="text-muted-foreground text-sm">
           تُحتسب داخلياً وتنقص الربح، ولا تغيّر المبلغ المستحق على الزبون إطلاقاً.
         </p>
+        <div className="pt-2">
+          <AddPreparationCostForm />
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading && <p className="text-muted-foreground text-sm">جاري التحميل…</p>}
@@ -63,9 +73,10 @@ export function PreparationCostsPanel() {
           {items.map((c) => (
             <div
               key={c.id}
-              className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
+              className="rounded-md border p-3"
               data-testid={`preparation-cost-${c.sku ?? c.id}`}
             >
+             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 font-medium">
                   {c.name}
@@ -85,6 +96,24 @@ export function PreparationCostsPanel() {
               <div className="text-left font-semibold" dir="ltr" data-testid={`cost-${c.sku ?? c.id}`}>
                 {formatIqd(c.unitCost)}
               </div>
+             </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2"
+                onClick={() => setOpenEditor(openEditor === c.id ? null : c.id)}
+                data-testid={`button-edit-prep-${c.sku ?? c.id}`}
+              >
+                {openEditor === c.id ? "إخفاء التعديل" : "تعديل وكلفة جديدة"}
+              </Button>
+              {openEditor === c.id && (
+                <PreparationCostEditor
+                  materialId={c.id}
+                  currentName={c.name}
+                  currentBasis={c.calculationBasis}
+                  active={c.active}
+                />
+              )}
             </div>
           ))}
         </div>
@@ -178,6 +207,9 @@ export function CartonCatalogPanel() {
           <Boxes className="h-5 w-5" />
           الكراتين ومواد التغليف
         </CardTitle>
+        <div className="pt-2">
+          <AddCartonForm />
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading && <p className="text-muted-foreground text-sm">جاري التحميل…</p>}
@@ -233,9 +265,14 @@ export function CartonCatalogPanel() {
                 onClick={() => setOpen(open === c.id ? null : c.id)}
                 data-testid={`button-toggle-stock-${c.id}`}
               >
-                {open === c.id ? "إخفاء المخزون والحركات" : "المخزون والحركات"}
+                {open === c.id ? "إخفاء المخزون والتعديل" : "المخزون والحركات والتعديل"}
               </Button>
-              {open === c.id && <CartonStockDetail carton={c} />}
+              {open === c.id && (
+                <>
+                  <CartonStockDetail carton={c} />
+                  <CartonEditor cartonId={c.id} active={c.active} current={c} />
+                </>
+              )}
             </div>
           );
         })}

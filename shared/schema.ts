@@ -2812,6 +2812,13 @@ export const orderReturnEvents = pgTable("order_return_events", {
   deliveryCostLoss: numeric("delivery_cost_loss").default("0"),
   returnShippingCost: numeric("return_shipping_cost").default("0"),
   packagingLoss: numeric("packaging_loss").default("0"),
+  // Added by migration 0046 and live in Production, but never modelled here —
+  // so every select() dropped it and the additive/reclassification distinction
+  // was invisible to the accounting engine.
+  //   'manual'               hand-typed historical figure — a real, additive loss
+  //   'fulfillment_snapshot' restates a cost already recognised at shipment —
+  //                          reclassification only, must NOT be deducted again
+  packagingLossSource: text("packaging_loss_source").notNull().default("manual"),
   productWriteOffAmount: numeric("product_write_off_amount").default("0"),
   cogsLoss: numeric("cogs_loss").default("0"),
   restocked: boolean("restocked").default(false),

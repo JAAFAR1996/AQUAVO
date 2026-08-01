@@ -99,6 +99,9 @@ CREATE TABLE order_return_events (
   id text PRIMARY KEY, order_id text NOT NULL, type text NOT NULL, reason text,
   refund_amount numeric DEFAULT '0', delivery_cost_loss numeric DEFAULT '0',
   return_shipping_cost numeric DEFAULT '0', packaging_loss numeric DEFAULT '0',
+  -- Added by migration 0046 and live in Production. Modelled now, so select()
+  -- asks for it and this fixture has to carry it too.
+  packaging_loss_source text NOT NULL DEFAULT 'manual',
   product_write_off_amount numeric DEFAULT '0', cogs_loss numeric DEFAULT '0',
   restocked boolean DEFAULT false, restocked_at timestamp, affected_items jsonb,
   status text DEFAULT 'recorded', note text, created_by text,

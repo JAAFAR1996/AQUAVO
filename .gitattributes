@@ -1,0 +1,9 @@
+# Migrations are checksum-governed: TOOLS/check-migration-ledger.mjs hashes the
+# raw bytes of each .sql file and compares against a recorded checksum, and the
+# 0039 reconstruction checksum is pinned to the Production ledger.
+#
+# On Windows, core.autocrlf=true rewrites LF to CRLF on checkout, which changes
+# those bytes and fails the ledger check on a file whose committed content is
+# byte-identical to what Production expects. Forcing LF in the working tree
+# makes the hash platform-independent instead of pinning a Windows-only value.
+*.sql text eol=lf

@@ -28,6 +28,8 @@ const FORWARD = [
   "0046_return_packaging_loss_source.sql",
   "0047_packing_import_drafts.sql",
   "0048_packing_policy_and_preparation_costs.sql",
+  "0049_default_preparation_profile.sql",
+  "0050_backfill_stock_tracked.sql",
 ];
 
 const ROLLBACK = [...FORWARD].reverse().map((f) => f.replace(/\.sql$/, "_rollback.sql"));
@@ -172,7 +174,8 @@ describe("migrations 0039-0048 apply cleanly", () => {
     // Each feature migration registered itself; 0039 deliberately does not.
     const registered = await count(
       db,
-      `SELECT count(*) n FROM schema_migrations WHERE version LIKE '004%'`,
+      // Range, not LIKE '004%': the feature now spans 0040-0050.
+      `SELECT count(*) n FROM schema_migrations WHERE version >= '0040' AND version < '0051'`,
     );
     expect(registered).toBe(FEATURE_FORWARD.length);
   }, 120_000);
@@ -261,6 +264,86 @@ describe("migrations 0039-0048 apply cleanly", () => {
     expect(r.rows).toHaveLength(1);
     expect(r.rows[0]!.approval_status).toBe("approved");
     expect(r.rows[0]!.cost_basis).toBe("verified_manual_standard");
+  });
+
+  it("0049 creates one default profile family that actually applies the two costs", async () => {
+    const fam = await db.query<{ id: string; applies_to: unknown; active: boolean }>(
+      `SELECT id, applies_to, active FROM packaging_profile_families
+        WHERE family_key='default-preparation'`,
+    );
+    expect(fam.rows).toHaveLength(1);
+    expect(fam.rows[0]!.active).toBe(true);
+    // suggestProfileForOrder only scores a family when applies_to.default is set;
+    // without this the draft opens empty and 50+100 never reach an order.
+    expect(fam.rows[0]!.applies_to).toMatchObject({ default: true });
+
+    const ver = await db.query<{ version: number; expected_cost: string; locked: boolean }>(
+      `SELECT p.version, p.expected_cost, p.locked FROM packaging_profiles p
+         JOIN packaging_profile_families f ON f.id=p.profile_family_id
+        WHERE f.family_key='default-preparation'`,
+    );
+    expect(ver.rows).toHaveLength(1);
+    expect(ver.rows[0]!.version).toBe(1);
+    expect(ver.rows[0]!.locked).toBe(false);
+    expect(Number(ver.rows[0]!.expected_cost)).toBe(150); // 50 + 100, summed from the approved records
+
+    const items = await db.query<{ sku: string; quantity: string }>(
+      `SELECT m.sku, i.quantity FROM packaging_profile_items i
+         JOIN fulfillment_materials m ON m.id=i.material_id
+         JOIN packaging_profiles p ON p.id=i.profile_id
+         JOIN packaging_profile_families f ON f.id=p.profile_family_id
+        WHERE f.family_key='default-preparation' ORDER BY m.sku`,
+    );
+    expect(items.rows.map((r) => r.sku)).toEqual(["PRICE_LABEL", "THANK_YOU_SOCIAL_CARD"]);
+    // Quantity is the profile multiplier. Both materials are per_order, so a
+    // five-carton order still counts each of them exactly once.
+    for (const r of items.rows) expect(Number(r.quantity)).toBe(1);
+  });
+
+  it("0049 is idempotent — re-applying does not create a second family or duplicate items", async () => {
+    await db.exec(sqlOf("0049_default_preparation_profile.sql"));
+    await db.exec(sqlOf("0049_default_preparation_profile.sql"));
+    expect(
+      await count(db, `SELECT count(*) n FROM packaging_profile_families WHERE family_key='default-preparation'`),
+    ).toBe(1);
+    expect(
+      await count(
+        db,
+        `SELECT count(*) n FROM packaging_profiles p JOIN packaging_profile_families f ON f.id=p.profile_family_id
+          WHERE f.family_key='default-preparation'`,
+      ),
+    ).toBe(1);
+    expect(
+      await count(
+        db,
+        `SELECT count(*) n FROM packaging_profile_items i
+           JOIN packaging_profiles p ON p.id=i.profile_id
+           JOIN packaging_profile_families f ON f.id=p.profile_family_id
+          WHERE f.family_key='default-preparation'`,
+      ),
+    ).toBe(2);
+  });
+
+  it("0050 backfills the pre-0040 default without touching the two accounting costs", async () => {
+    // 0040 added stock_tracked NOT NULL DEFAULT false and never backfilled, so
+    // every pre-0040 material reads false. Once the confirmation guard started
+    // trusting that flag, a false on a legacy box silently disabled the guard.
+    const seeded = await db.query<{ sku: string; stock_tracked: boolean }>(
+      `SELECT sku, stock_tracked FROM fulfillment_materials
+        WHERE sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD') ORDER BY sku`,
+    );
+    // These two are genuinely not inventory and must stay untracked.
+    expect(seeded.rows.map((r) => r.stock_tracked)).toEqual([false, false]);
+
+    // Anything else that was sitting on the default is now guarded again.
+    expect(
+      await count(
+        db,
+        `SELECT count(*) n FROM fulfillment_materials
+          WHERE stock_tracked = false AND archived_at IS NULL
+            AND coalesce(sku,'') NOT IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD')`,
+      ),
+    ).toBe(0);
   });
 
   it("seeds the support policy and the kill switches", async () => {
@@ -459,7 +542,7 @@ describe("rollback and re-apply", () => {
 
     const flagged = await count(
       db,
-      `SELECT count(*) n FROM schema_migrations WHERE version LIKE '004%' AND rolled_back_at IS NOT NULL`,
+      `SELECT count(*) n FROM schema_migrations WHERE version >= '0040' AND version < '0051' AND rolled_back_at IS NOT NULL`,
     );
     expect(flagged).toBe(FEATURE_FORWARD.length);
   }, 120_000);

@@ -342,7 +342,9 @@ export function useDiscardDraft(orderId: string, draftId: string | undefined) {
 export function useConfirmDraft(orderId: string, draftId: string | undefined) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (vars: { varianceReason?: string; allowNegativeStock?: boolean }) =>
+    // No negative-stock override. Insufficient packaging stock is a hard failure
+    // the owner resolves by restocking, not by confirming past it.
+    mutationFn: (vars: { varianceReason?: string }) =>
       json<ConfirmResult>("POST", `${BASE}/drafts/${draftId}/confirm`, vars),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: fulfillmentKeys.draft(orderId) });

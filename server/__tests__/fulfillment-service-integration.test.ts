@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import { sql } from "drizzle-orm";
 import * as schema from "../../shared/schema.js";
+import { cartonCatalogDdl } from "./helpers/packing-migrations.js";
 import { confirmFulfillment, reverseFulfillmentEvent } from "../services/fulfillment-service.js";
 
 const ROOT = process.cwd();
@@ -34,6 +35,12 @@ describe("fulfillment service — real transactional integration (Drizzle + PGli
     await client.exec(migration);
     await client.exec(hardening);
     await client.exec(pimLineIdentity);
+    // Migration 0040: the Drizzle model names these columns, so the test
+    // database must have them or every select() on fulfillment_materials fails.
+    await client.exec(cartonCatalogDdl());
+    // Migration 0050: pre-0040 materials are stock-guarded. These fixtures are
+    // legacy-shaped, so mirror that here instead of restating it per INSERT.
+    await client.exec(`ALTER TABLE fulfillment_materials ALTER COLUMN stock_tracked SET DEFAULT true`);
     db = drizzle(client, { schema });
     // Catalog identity + starting stock (a purchase receipt of +100). No
     // current_unit_cost here: after the hardening migration the catalog may only

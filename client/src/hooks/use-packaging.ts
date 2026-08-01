@@ -213,10 +213,22 @@ function newIdempotencyKey(prefix: string): string {
   return `${prefix}-${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 }
 
+export interface CartonInput {
+  name: string;
+  sku: string;
+  internalLengthCm: number;
+  internalWidthCm: number;
+  internalHeightCm: number;
+  maxWeightKg: number;
+  safetyPaddingCm?: number;
+  lowStockThreshold?: number;
+  notes?: string;
+}
+
 export function useCreateCarton() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (input: Omit<Parameters<typeof JSON.stringify>[0] & Record<string, unknown>, never>) => {
+    mutationFn: async (input: CartonInput) => {
       const res = await apiRequest("POST", `${BASE}/cartons`, {
         ...input,
         idempotencyKey: newIdempotencyKey("carton"),
@@ -226,6 +238,199 @@ export function useCreateCarton() {
     onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] }),
   });
 }
+
+export function useUpdateCarton(cartonId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: Partial<CartonInput> & { active?: boolean; reason: string }) => {
+      const res = await apiRequest("PATCH", `${BASE}/cartons/${cartonId}`, input);
+      return res.json();
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] }),
+  });
+}
+
+// ── preparation materials (create / edit / archive) ─────────────────────────
+
+export function useCreatePreparationCost() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      name: string;
+      sku?: string;
+      calculationBasis: CalculationBasis;
+      notes?: string;
+    }) => {
+      const res = await apiRequest("POST", `${BASE}/preparation-costs`, {
+        ...input,
+        idempotencyKey: newIdempotencyKey("prep"),
+      });
+      return res.json();
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] }),
+  });
+}
+
+export function useUpdatePreparationCost(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      name?: string;
+      calculationBasis?: CalculationBasis;
+      active?: boolean;
+      notes?: string;
+      reason: string;
+    }) => {
+      const res = await apiRequest("PATCH", `${BASE}/preparation-costs/${materialId}`, input);
+      return res.json();
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] }),
+  });
+}
+
+/** Soft archive. Audited rows are never hard-deleted. */
+export function useArchivePreparationCost(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { reason: string }) => {
+      const res = await apiRequest("POST", `${BASE}/preparation-costs/${materialId}/archive`, input);
+      return res.json();
+    },
+    onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] }),
+  });
+}
+
+// ── effective costs ─────────────────────────────────────────────────────────
+//
+// Costs deliberately do NOT live under /api/admin/packaging. They go through the
+// fulfillment material-cost service, which is what gives them the approval trail
+// and the effective dating that makes a later price change prospective.
+const FULFILLMENT_BASE = "/api/admin/fulfillment";
+
+export interface MaterialCostRecordView {
+  id: string;
+  unitCost: string | null;
+  costBasis: string;
+  approvalStatus: "pending" | "approved" | "rejected";
+  effectiveDate: string | null;
+  reason: string | null;
+  supersededAt: string | null;
+  createdAt: string;
+}
+
+export function useMaterialCosts(materialId: string | null) {
+  return useQuery<{ current: unknown; history: MaterialCostRecordView[] }>({
+    queryKey: [`${FULFILLMENT_BASE}/materials/${materialId}/costs`],
+    enabled: Boolean(materialId),
+  });
+}
+
+/**
+ * Propose a new effective cost. It is NOT live until approved — an unapproved
+ * cost leaves the material reading «غير معروف» rather than silently taking effect.
+ */
+export function useProposeMaterialCost(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      unitCost: number | null;
+      reason: string;
+      effectiveDate?: string | null;
+    }) => {
+      const res = await apiRequest("POST", `${FULFILLMENT_BASE}/materials/${materialId}/costs`, {
+        costBasis: "verified_manual_standard",
+        unitCost: input.unitCost,
+        reason: input.reason,
+        effectiveDate: input.effectiveDate ?? null,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [`${FULFILLMENT_BASE}/materials/${materialId}/costs`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] });
+    },
+  });
+}
+
+export function useApproveMaterialCost(materialId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { recordId: string; approvalNote?: string }) => {
+      const res = await apiRequest("POST", `${FULFILLMENT_BASE}/cost-records/${input.recordId}/approve`, {
+        approvalNote: input.approvalNote,
+      });
+      return res.json();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [`${FULFILLMENT_BASE}/materials/${materialId}/costs`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/preparation-costs`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] });
+    },
+  });
+}
+
+// ── product packing-data import ─────────────────────────────────────────────
+
+export interface ImportSummaryView {
+  total: number;
+  exact: number;
+  probable: number;
+  ambiguous: number;
+  withHeight: number;
+  withWidth: number;
+  foldableYes: number;
+  stillMissingDepthOrWeight: number;
+  warnings: number;
+}
+
+export interface ImportRowView {
+  rowNumber: number;
+  rawProductName: string | null;
+  packedHeightCm: number | null;
+  packedWidthCm: number | null;
+  foldable: boolean | null;
+  matchedProductId: string | null;
+  matchConfidence: MatchConfidence;
+  matchCandidates: Array<{ id: string; name: string; score: number }>;
+  parseWarnings: string[];
+}
+
+export type ImportRawRow = Record<string, string | number | null>;
+
+/** Upload parsed sheet rows. Server does the matching; nothing is applied yet. */
+export function useUploadPackingImport() {
+  return useMutation({
+    mutationFn: async (input: { fileName: string; sheetName?: string; rows: ImportRawRow[] }) => {
+      const res = await apiRequest("POST", `${BASE}/packing-import`, input);
+      return res.json() as Promise<{
+        draftId: string;
+        summary: ImportSummaryView;
+        rows: ImportRowView[];
+      }>;
+    },
+  });
+}
+
+export function useConfirmPackingImport(draftId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { confirmedRowNumbers: number[]; reason: string }) => {
+      const res = await apiRequest("POST", `${BASE}/packing-import/${draftId}/confirm`, input);
+      return res.json();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [`${BASE}/packing/missing`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/packing-import/${draftId}`] });
+    },
+  });
+}
+
+export const MATCH_CONFIDENCE_LABEL: Record<MatchConfidence, string> = {
+  exact: "مطابقة أكيدة",
+  probable: "مطابقة محتملة — تحتاج تأكيد",
+  ambiguous: "غير محسومة — ما تنطبق",
+};
 
 export function useReceiveCartons(cartonId: string) {
   const qc = useQueryClient();

@@ -467,7 +467,6 @@ export interface ConfirmDraftInput {
   draftId: string;
   recordedBy?: string;
   varianceReason?: string;
-  allowNegativeStock?: boolean;
 }
 
 export interface ConfirmDraftResult extends ConfirmResult {
@@ -525,7 +524,6 @@ export async function confirmDraft(
     lines,
     recordedBy: input.recordedBy,
     varianceReason: input.varianceReason,
-    allowNegativeStock: input.allowNegativeStock,
   });
 
   // Mark consumed and lock the cited profile version so it can never be edited.
