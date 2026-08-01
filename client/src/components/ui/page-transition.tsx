@@ -6,16 +6,15 @@ interface PageTransitionProps {
 }
 
 /**
- * Route content wrapper with a subtle entrance fade (opacity 0 -> 1) on mount.
- * The motion lives in the .aqv-page-enter CSS class and is disabled under
- * prefers-reduced-motion, where content renders plainly at full opacity.
- * Content is in the DOM immediately (only opacity animates), so there is no
- * layout shift and no impact on SEO/content availability.
+ * A direct navigation gets one restrained clarify entrance. When Flow Gate is
+ * already handling the route swap, render settled so two transitions never
+ * stack on the same destination.
  */
 export function PageTransition({ children, className }: PageTransitionProps) {
-  return (
-    <div className={className ? `aqv-page-enter ${className}` : "aqv-page-enter"}>
-      {children}
-    </div>
-  );
+  const flowGateActive =
+    typeof document !== "undefined" && document.querySelector("[data-aqv-flowgate]") !== null;
+  const motionClass = flowGateActive ? "aqv-page-settled" : "aqv-page-enter";
+  const classes = className ? `${motionClass} ${className}` : motionClass;
+
+  return <div className={classes}>{children}</div>;
 }

@@ -78,10 +78,10 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                     </div>
                     {wizardData.tankLiters >= 10 && (
                         <p className="text-sm text-primary font-semibold">
-                            {wizardData.tankLiters <= 30 && "🐟 حوض صغير — مناسب لأسماك البيتا"}
-                            {wizardData.tankLiters > 30 && wizardData.tankLiters <= 80 && "🐠 حوض متوسط — خيار ممتاز للمبتدئين"}
-                            {wizardData.tankLiters > 80 && wizardData.tankLiters <= 200 && "🐡 حوض كبير — مستقر وسهل الصيانة"}
-                            {wizardData.tankLiters > 200 && "🐳 حوض ضخم — للمحترفين!"}
+                            {wizardData.tankLiters <= 30 && "حوض صغير — مناسب لأسماك البيتا"}
+                            {wizardData.tankLiters > 30 && wizardData.tankLiters <= 80 && "حوض متوسط — خيار ممتاز للمبتدئين"}
+                            {wizardData.tankLiters > 80 && wizardData.tankLiters <= 200 && "حوض كبير — مستقر وسهل الصيانة"}
+                            {wizardData.tankLiters > 200 && "حوض ضخم — مناسب للمحترفين"}
                         </p>
                     )}
                 </div>
@@ -172,8 +172,8 @@ export function TankSelection({ wizardData, updateData }: TankSelectionProps) {
                     <div>
                         <div className="font-bold text-foreground mb-1 text-right">نصيحة الخبراء</div>
                         <p className="text-sm text-muted-foreground text-right">
-                            الأحواض الأكبر (100+ لتر) أسهل في الصيانة! المياه الأكثر تعني تقلبات أقل في درجة الحرارة والمعايير الكيميائية.
-                            لا تخف من البدء بحوض أكبر - إنه استثمار أفضل على المدى الطويل.
+                            الأحواض الأكبر (100+ لتر) أسهل في الصيانة. المياه الأكثر تعني تقلبات أقل في درجة الحرارة والمعايير الكيميائية.
+                            لا تخف من البدء بحوض أكبر، فهو استثمار أفضل على المدى الطويل.
                         </p>
                     </div>
                 </div>

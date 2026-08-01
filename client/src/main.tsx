@@ -4,14 +4,26 @@ import "./index.css";
 import "./styles/aquavo-ui-fixes.css";
 import "./styles/mobile-product-cleanup.css";
 import "./styles/motion-tokens.css";
+import "./styles/experience-polish.css";
+import "./styles/experience-safety.css";
+import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 initializeClientEnvSideEffects();
 
+// The previous init screen blocked first paint for a fixed half-second. Keep its
+// legacy branch bypassed while FirstDiveIntro runs over an already rendered app.
+try {
+  window.sessionStorage.setItem("aq_init", "1");
+} catch {
+  // Storage can be unavailable in private/sandboxed contexts.
+}
+
 createRoot(document.getElementById("root")!).render(
   <>
     <App />
+    <FirstDiveIntro />
     <DisplacementRuntime />
   </>,
 );
