@@ -3,11 +3,18 @@ import App from "./App";
 import "./index.css";
 import "./styles/aquavo-ui-fixes.css";
 import "./styles/mobile-product-cleanup.css";
+import "./styles/motion-tokens.css";
+import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 initializeClientEnvSideEffects();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <>
+    <App />
+    <DisplacementRuntime />
+  </>,
+);
 
 // WebMCP: Register site tools for AI agents
 if (typeof navigator !== "undefined" && "modelContext" in navigator) {
