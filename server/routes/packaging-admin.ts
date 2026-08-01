@@ -54,6 +54,7 @@ import {
 import { evaluateStockAlert } from "../services/admin-alert-service.js";
 import { planOrder } from "../services/carton-planner.js";
 import { validatePlanSafety } from "../services/carton-safety-validator.js";
+import { syncPlanCartonsToDraft } from "../services/plan-carton-costing.js";
 import {
   DEFAULT_PACKING_POLICY,
   cmToMm,
@@ -1067,8 +1068,22 @@ router.post(
         });
       }
     }
-    auditLog("plan.validate", { orderId, planId, cartons: result.cartons.length });
-    res.status(201).json({ planId, planHash: result.planHash, costStatus: result.costStatus });
+    // Put the chosen carton into the order's cost snapshot.
+    //
+    // Reserving moves INVENTORY; this moves COST. Without it a carton could be
+    // planned, reserved, consumed and deducted from stock while its price never
+    // reached the order's internal profit.
+    const costing = await syncPlanCartonsToDraft(db(), orderId);
+
+    auditLog("plan.validate", {
+      orderId, planId, cartons: result.cartons.length, costing: costing.detail,
+    });
+    res.status(201).json({
+      planId,
+      planHash: result.planHash,
+      costStatus: result.costStatus,
+      cartonCosting: costing.detail,
+    });
   }),
 );
 
