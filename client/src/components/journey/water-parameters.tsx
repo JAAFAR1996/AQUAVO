@@ -34,19 +34,19 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                                     value: "tap",
                                     label: "ماء الصنبور",
                                     desc: "الأكثر شيوعاً - يحتاج معالج كلور",
-                                    note: "✓ سهل ومتوفر"
+                                    note: "سهل ومتوفر"
                                 },
                                 {
                                     value: "ro",
                                     label: "ماء RO (التناضح العكسي)",
                                     desc: "نقي جداً - مثالي للأسماك الحساسة",
-                                    note: "⚠️ يحتاج إعادة معادن"
+                                    note: "يحتاج إعادة معادن"
                                 },
                                 {
                                     value: "well",
                                     label: "ماء البئر",
                                     desc: "يحتاج اختبار للمعادن الثقيلة",
-                                    note: "⚠️ افحص الجودة أولاً"
+                                    note: "افحص الجودة أولاً"
                                 }
                             ].map((option) => (
                                 <div key={option.value}>
@@ -119,8 +119,8 @@ export function WaterParameters({ wizardData, updateData }: WaterParametersProps
                     <div>
                         <div className="font-bold text-foreground mb-1 text-right">تحذير حيوي</div>
                         <p className="text-sm text-muted-foreground text-right">
-                            <strong>لا تضف الأسماك مباشرة!</strong> يجب أن يكتمل تدوير الحوض أولاً (الخطوة التالية).
-                            إضافة الأسماك بدون تدوير كامل = موت محتم للأسماك بسبب التسمم بالأمونيا.
+                            <strong>لا تضف الأسماك مباشرة.</strong> يجب أن يكتمل تدوير الحوض أولاً (الخطوة التالية).
+                            إضافة الأسماك بدون تدوير كامل قد تسبب تسممها بالأمونيا.
                         </p>
                     </div>
                 </div>
