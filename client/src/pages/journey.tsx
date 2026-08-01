@@ -1,5 +1,4 @@
 import { useRef, useEffect } from "react";
-import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +20,15 @@ import { FishSelection } from "@/components/journey/fish-selection";
 import { MaintenanceSchedule } from "@/components/journey/maintenance-schedule";
 import { JourneySummary } from "@/components/journey/journey-summary";
 
+function readWizardStep(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.localStorage.getItem("wizardStep");
+  } catch {
+    return null;
+  }
+}
+
 function progressTankSize(litres: number): "small" | "medium" | "large" {
   if (litres > 0 && litres <= 60) return "small";
   if (litres > 150) return "large";
@@ -28,7 +36,6 @@ function progressTankSize(litres: number): "small" | "medium" | "large" {
 }
 
 export default function JourneyPage() {
-  const [, setLocation] = useLocation();
   const topRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -59,8 +66,9 @@ export default function JourneyPage() {
     );
   }
 
+  const localStep = readWizardStep();
+
   if (savedPlan && currentStep === 0 && JSON.stringify(wizardData).length < 200) {
-    const localStep = localStorage.getItem("wizardStep");
     if (!localStep) {
       return (
         <SavedPlanView
@@ -76,7 +84,7 @@ export default function JourneyPage() {
     }
   }
 
-  const hasLocalSession = typeof window !== "undefined" && localStorage.getItem("wizardStep") !== null;
+  const hasLocalSession = localStep !== null;
   const showSavedPlan = savedPlan && !hasLocalSession && currentStep === 0;
 
   if (showSavedPlan) {
