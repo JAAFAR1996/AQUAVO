@@ -79,16 +79,18 @@ function setupHomepage() {
   main.appendChild(floor);
 
   let stopCaustics = () => {};
-  let canvas: (HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }) | null = null;
+  let canvas: HTMLCanvasElement | null = null;
   if (!prefersReducedMotion() && !isCompactViewport()) {
-    canvas = document.createElement("canvas") as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void };
+    canvas = document.createElement("canvas");
     canvas.className = "aqv-runtime-caustics";
     canvas.dataset.aqvCaustics = "true";
     canvas.setAttribute("aria-hidden", "true");
     line.insertAdjacentElement("afterend", canvas);
     let depth = 0;
     stopCaustics = mountCaustics(canvas, { depth: () => depth });
-    canvas.__aqvSetDepth = (value: number) => { depth = value; };
+    canvas.dataset.depthRef = "runtime";
+    const setDepth = (value: number) => { depth = value; };
+    (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth = setDepth;
   }
 
   let previous = 0;
@@ -107,7 +109,7 @@ function setupHomepage() {
     main.style.setProperty("--aqv-depth-border", mixHex("#DDD8CE", "#264C58", t));
     floor.style.opacity = String(Math.max(0, (t - 0.74) / 0.26));
     if (canvas) {
-      canvas.__aqvSetDepth?.(t);
+      (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth?.(t);
       canvas.style.opacity = String(0.58 - t * 0.44);
     }
   };
@@ -169,31 +171,35 @@ function setupProductGlass() {
     if (fine) {
       let x = 0;
       let y = 0;
-      let targetX = 0;
-      let targetY = 0;
+      let tx = 0;
+      let ty = 0;
       const move = (event: PointerEvent) => {
         const rect = host.getBoundingClientRect();
-        targetX = ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 18;
-        targetY = ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 12;
+        tx = ((event.clientX - rect.left) / Math.max(1, rect.width) - 0.5) * 18;
+        ty = ((event.clientY - rect.top) / Math.max(1, rect.height) - 0.5) * 12;
       };
-      const leave = () => { targetX = 0; targetY = 0; };
+      const leave = () => { tx = 0; ty = 0; };
       host.addEventListener("pointermove", move, { passive: true });
       host.addEventListener("pointerleave", leave, { passive: true });
       const off = onFrame(() => {
-        x += (targetX - x) * 0.08;
-        y += (targetY - y) * 0.08;
+        x += (tx - x) * 0.08;
+        y += (ty - y) * 0.08;
+        image.style.setProperty("--aqv-glass-x", `${x.toFixed(2)}px`);
+        image.style.setProperty("--aqv-glass-y", `${y.toFixed(2)}px`);
         image.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) scale(var(--tw-scale-x, 1))`;
       }, host);
       cleanupPointer = () => {
         host.removeEventListener("pointermove", move);
         host.removeEventListener("pointerleave", leave);
         off();
+        image.style.removeProperty("--aqv-glass-x");
+        image.style.removeProperty("--aqv-glass-y");
         image.style.transform = "";
       };
     }
 
     const specRows = document.querySelectorAll<HTMLElement>(
-      'main [role="status"], main dl > div, main [data-aqv-spec-row], main [role="tablist"] button',
+      'main [role="status"], main dl > div, main [data-aqv-spec-row], main [role="tablist"] button'
     );
     if (specRows.length) waterlineSweep(specRows, MOTION.stagger.tight);
     return true;
@@ -270,7 +276,8 @@ function tagCardsAndMembranes() {
     if (!card) return;
     card.dataset.aqvMotion = "card";
     card.classList.add("aqv-lift");
-    link.querySelector<HTMLElement>("img")?.classList.add("aqv-product-image");
+    const image = link.querySelector<HTMLElement>("img");
+    image?.classList.add("aqv-product-image");
   });
   document.querySelectorAll<HTMLElement>("main section, main [data-tour]").forEach((node) => {
     if (!node.hasAttribute("data-aqv-membrane")) node.dataset.aqvMembrane = "pending";
@@ -316,7 +323,7 @@ function setupInteractionFeedback() {
     records.forEach((record) => record.addedNodes.forEach((node) => {
       if (!(node instanceof Element)) return;
       if (node.matches("[role='option'], [data-search-result], li")) candidates.push(node);
-      candidates.push(...node.querySelectorAll("[role='option'], [data-search-result]"));
+      candidates.push(...Array.from(node.querySelectorAll("[role='option'], [data-search-result]")));
     }));
     if (candidates.length) clarify(candidates.slice(0, 8));
     tagCardsAndMembranes();
