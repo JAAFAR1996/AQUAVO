@@ -1,17 +1,27 @@
-import { type ReactNode } from "react";
+import { Children, type ReactNode } from "react";
+
+import { Membrane } from "@/components/motion/displacement";
 
 interface PrecisionRevealProps {
   children: ReactNode;
   className?: string;
-  /** Retained for call-site API compatibility; no longer applies any motion. */
   stagger?: boolean;
 }
 
 /**
- * Static section wrapper. Entrance/viewport-triggered motion has been removed
- * site-wide, so content renders immediately with no animation, no scroll
- * observer and no visibility toggling.
+ * AQUAVO membrane reveal. The public API remains unchanged so every existing
+ * homepage call site receives the new motion language without structural edits.
+ * Content is readable before the effect runs, and reduced-motion users see the
+ * final state immediately.
  */
-export function PrecisionReveal({ children, className = "" }: PrecisionRevealProps) {
-  return <div className={className}>{children}</div>;
+export function PrecisionReveal({ children, className = "", stagger = false }: PrecisionRevealProps) {
+  if (!stagger) {
+    return <Membrane className={className}>{children}</Membrane>;
+  }
+
+  return (
+    <div className={className} data-aqv-motion="membrane-stagger">
+      {Children.map(children, (child) => <Membrane>{child}</Membrane>)}
+    </div>
+  );
 }
