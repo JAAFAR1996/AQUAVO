@@ -128,9 +128,8 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                     className="gap-1 px-3 py-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
                                     onClick={() => toggleSpecies(species.id)}
                                 >
-                                    <span>{species.emoji}</span>
                                     <span>{species.nameAr}</span>
-                                    <span className="text-[10px] opacity-60">✕</span>
+                                    <span className="text-[10px] opacity-60">×</span>
                                 </Badge>
                             ))}
                         </div>
@@ -169,7 +168,6 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 {
                                     value: "light",
                                     label: "خفيف",
-                                    emoji: "🌱",
                                     desc: "~1 سم لكل 2 لتر",
                                     badge: "مُوصى به",
                                     badgeColor: "bg-green-500/10 text-green-500",
@@ -177,7 +175,6 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 {
                                     value: "moderate",
                                     label: "معتدل",
-                                    emoji: "⚖️",
                                     desc: "~1 سم لكل 1.5 لتر",
                                     badge: "متوازن",
                                     badgeColor: "bg-amber-500/10 text-amber-500",
@@ -185,7 +182,6 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 {
                                     value: "heavy",
                                     label: "كثيف",
-                                    emoji: "🔥",
                                     desc: "~1 سم لكل 1 لتر",
                                     badge: "خبراء فقط",
                                     badgeColor: "bg-red-500/10 text-red-500",
@@ -205,7 +201,6 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                             "peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-primary/10 peer-data-[state=checked]:shadow-md"
                                         )}
                                     >
-                                        <span className="text-3xl mb-2">{option.emoji}</span>
                                         <div className="font-bold text-foreground mb-1">
                                             {option.label}
                                         </div>
@@ -276,13 +271,13 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                                 {compatibility.minTankSize > (wizardData.tankLiters || 0) && wizardData.tankLiters > 0 && (
                                     <div className="text-sm text-destructive font-bold flex items-center gap-1">
                                         <AlertCircle className="h-4 w-4" />
-                                        ⚠️ بعض الأسماك المختارة تحتاج حوض أكبر ({compatibility.minTankSize} لتر على الأقل)
+                                        بعض الأسماك المختارة تحتاج حوض أكبر ({compatibility.minTankSize} لتر على الأقل)
                                     </div>
                                 )}
                                 {compatibility.minTemp > compatibility.maxTemp && (
                                     <div className="text-sm text-destructive font-bold flex items-center gap-1">
                                         <AlertCircle className="h-4 w-4" />
-                                        ⚠️ بعض الأسماك المختارة غير متوافقة في درجة الحرارة
+                                        بعض الأسماك المختارة غير متوافقة في درجة الحرارة
                                     </div>
                                 )}
                             </div>
@@ -298,7 +293,7 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                     <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-1" />
                     <div>
                         <div className="font-bold text-foreground mb-2 text-right">
-                            التوافق مهم جداً!
+                            التوافق مهم جداً
                         </div>
                         <ul className="text-sm text-muted-foreground space-y-1.5 list-disc list-inside text-right">
                             <li>لا تخلط أسماك عدوانية مع أسماك سلمية</li>
@@ -317,8 +312,8 @@ export function FishSelection({ wizardData, updateData }: FishSelectionProps) {
                             نصيحة الخبراء
                         </div>
                         <p className="text-sm text-muted-foreground text-right">
-                            لا تضف كل الأسماك دفعة واحدة - حتى لو كان حوضك مدوّر!
-                            ابدأ بالأنواع الأقوى (مثل Guppy، Platy) ثم أضف الأنواع الحساسة
+                            لا تضف كل الأسماك دفعة واحدة، حتى لو كان حوضك مدوّراً.
+                            ابدأ بالأنواع الأقوى (مثل Guppy وPlaty)، ثم أضف الأنواع الحساسة
                             (مثل Neon Tetra) بعد شهر.
                         </p>
                     </div>
@@ -379,7 +374,7 @@ function CategoryCard({
                 onClick={onToggle}
             >
                 <div className="flex items-center gap-3">
-                    <span className="text-3xl">{category.emoji}</span>
+                    <Fish className="h-6 w-6 text-primary flex-shrink-0" />
                     <div>
                         <div className="font-bold text-lg text-foreground">
                             {category.nameAr}
@@ -481,7 +476,6 @@ function SpeciesCard({
                         >
                             {isSelected && <Check className="h-3.5 w-3.5 text-primary-foreground" />}
                         </div>
-                        <span className="text-2xl">{species.emoji}</span>
                         <div>
                             <div className="font-bold text-foreground">{species.nameAr}</div>
                             <div className="text-xs text-muted-foreground">
@@ -510,7 +504,6 @@ function SpeciesCard({
                     )}>
                         <Droplets className="h-2.5 w-2.5" />
                         {species.tankMinLiters}+ لتر
-                        {tooSmallTank && " ⚠️"}
                     </span>
                     <span className="text-[11px] text-muted-foreground flex items-center gap-1 bg-muted/50 px-2 py-0.5 rounded-full">
                         <Ruler className="h-2.5 w-2.5" />
@@ -612,13 +605,13 @@ function SpeciesCard({
 // ============================================================
 function getFoodTypeLabel(type: string): string {
     const labels: Record<string, string> = {
-        flakes: "🥣 فليكس (رقائق)",
-        pellets: "💊 بيليتس (حبيبات)",
-        frozen: "🧊 أكل مجمد",
-        live: "🪱 أكل حي",
-        algae: "🌿 طحالب",
-        vegetables: "🥬 خضروات",
-        spirulina: "💚 سبيرولينا",
+        flakes: "فليكس (رقائق)",
+        pellets: "بيليتس (حبيبات)",
+        frozen: "أكل مجمد",
+        live: "أكل حي",
+        algae: "طحالب",
+        vegetables: "خضروات",
+        spirulina: "سبيرولينا",
     };
     return labels[type] || type;
 }
