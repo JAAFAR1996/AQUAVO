@@ -1,4 +1,4 @@
-import { refractionRing, setWaterLevel } from "./displacement";
+import { setWaterLevel } from "./displacement";
 
 /**
  * Compatibility adapter for existing ProductCard call sites.
@@ -6,8 +6,7 @@ import { refractionRing, setWaterLevel } from "./displacement";
  * one refraction ring at the source and a water-level rise inside the real cart.
  */
 export function flyProductToCart(sourceImg: HTMLElement | null): void {
-  const source = sourceImg?.closest<HTMLElement>("button, [role='button'], [data-protected='true']") ?? sourceImg;
-  refractionRing(source, undefined, undefined, 28);
+  if (typeof window === "undefined" || typeof document === "undefined" || !sourceImg) return;
 
   window.setTimeout(() => {
     const cart = document.querySelector<HTMLElement>("[data-aqv-cart-target]");
