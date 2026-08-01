@@ -1,7 +1,7 @@
 // The single mount point for the per-order fulfillment costing UX.
 // Composes: تجهيز الطلب · خطة التغليف المقترحة · تاريخ التجهيز وإعادة الإرسال ·
 // إجمالي تكلفة الطلب.
-import { CartonPlanViewer } from "@/components/admin/packaging";
+import { CartonPlanViewer, ReturnCartonLossPanel } from "@/components/admin/packaging";
 import { FulfillmentDraftPanel } from "./fulfillment-draft-panel";
 import { FulfillmentHistoryPanel } from "./fulfillment-history-panel";
 import { FulfillmentProfitabilityPanel } from "./fulfillment-profitability-panel";
@@ -18,6 +18,9 @@ export function OrderFulfillmentPanel({ orderId }: { orderId: string }) {
         <CartonPlanViewer orderId={orderId} />
       </OrderCartonPlanSection>
       <FulfillmentHistoryPanel orderId={orderId} />
+      {/* Damaged cartons from returns. Reclassification, never a second expense —
+          the panel says so, and eventActualReturnLoss now enforces it. */}
+      <ReturnCartonLossPanel orderId={orderId} />
       <FulfillmentProfitabilityPanel orderId={orderId} />
     </div>
   );

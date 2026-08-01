@@ -31,6 +31,7 @@ import {
   orderCollectedAmount,
   REALIZED_STATUSES,
 } from "../../shared/order-financials.js";
+import { isAdditiveReturnLoss } from "./return-packaging-loss-service.js";
 
 /**
  * The canonical realized-status set as a SQL `IN (...)` list.
@@ -648,6 +649,8 @@ export type ReturnEventLike = {
   deliveryCostLoss: string | number | null;
   returnShippingCost: string | number | null;
   packagingLoss: string | number | null;
+  /** 'manual' (additive) | 'fulfillment_snapshot' (reclassification only). */
+  packagingLossSource?: string | null;
   productWriteOffAmount: string | number | null;
   cogsLoss: string | number | null;
   restocked: boolean | null;
@@ -665,10 +668,19 @@ export function eventSalesReturnDeduction(e: ReturnEventLike): number {
  * cogsLoss: counted only when restocked=false (product NOT back in stock).
  */
 export function eventActualReturnLoss(e: ReturnEventLike): number {
+  // packagingLoss is added only when it is a REAL, additive figure.
+  //
+  // A 'fulfillment_snapshot' loss restates the cost of a carton already expensed
+  // at shipment; adding it here deducts the same money from profit twice. The
+  // damaged-carton report is a reclassification, not a second expense.
+  //
+  // Defaults to additive when the source is absent, matching migration 0046's
+  // column default and keeping every historical hand-typed row counted.
+  const packaging = isAdditiveReturnLoss(e.packagingLossSource) ? toNumber(e.packagingLoss) : 0;
   const opLoss =
     toNumber(e.deliveryCostLoss) +
     toNumber(e.returnShippingCost) +
-    toNumber(e.packagingLoss);
+    packaging;
   const writeOff = toNumber(e.productWriteOffAmount);
   const productCost = e.restocked !== true ? toNumber(e.cogsLoss) : 0;
   return opLoss + writeOff + productCost;
