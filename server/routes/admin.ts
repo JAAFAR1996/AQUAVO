@@ -240,6 +240,34 @@ export function createAdminRouter(): RouterType {
                 const newStatus = updates.status;
                 const oldStatus = previousOrder?.status;
 
+                // 📦 أثر تغيير الحالة على الكراتين: حجز / استهلاك / تحرير
+                //
+                // Deliberately NOT wrapped in a swallowing try/catch like the
+                // audit trail above. Reserving more cartons than exist is a hard
+                // failure: continuing would let the order proceed while carton
+                // stock silently goes negative, which is the exact class of bug
+                // the removal of allowNegativeStock was meant to end.
+                //
+                // Everything else it can hit -- no validated plan, no fulfillment
+                // event, nothing to release -- is a normal outcome that returns a
+                // detail string rather than throwing.
+                if (newStatus && newStatus !== oldStatus) {
+                    const { applyPackagingLifecycle } = await import(
+                        "../services/packaging-lifecycle-runner.js"
+                    );
+                    const outcome = await applyPackagingLifecycle(getDb() as never, {
+                        orderId: order.id,
+                        newStatus,
+                        previousStatus: oldStatus ?? null,
+                        // Resolved here rather than reusing the audit block's
+                        // `actor`, which is scoped inside its own try.
+                        actor: actorFromRequest(req).id,
+                    });
+                    console.log(
+                        `[Admin] packaging lifecycle ${order.id}: ${outcome.action}/${outcome.detail}`,
+                    );
+                }
+
                 // ✅ فك تجميد النقاط عند تأكيد التوصيل
                 if (newStatus === "delivered" && oldStatus !== "delivered") {
                     try {
