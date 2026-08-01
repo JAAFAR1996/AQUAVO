@@ -14,21 +14,21 @@ import type { WizardData } from "@/types/journey";
 const JOURNEY_INTRO_KEY = "aquavo_journey_intro_seen_v3";
 const LEGACY_JOURNEY_TOUR_KEY = "aquavo_tour_seen_journey";
 
-function claimFirstJourneyVisit(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    window.localStorage.setItem(LEGACY_JOURNEY_TOUR_KEY, "true");
-    const seen = window.localStorage.getItem(JOURNEY_INTRO_KEY) === "1";
-    if (!seen) window.localStorage.setItem(JOURNEY_INTRO_KEY, "1");
-    return !seen;
-  } catch {
-    return false;
-  }
-}
-
 export function JourneyFirstVisitIntro() {
-  const [eligible] = useState(claimFirstJourneyVisit);
+  const [eligible, setEligible] = useState(false);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    try {
+      // Retire the older multi-step Joyride tour before its deferred mount runs.
+      window.localStorage.setItem(LEGACY_JOURNEY_TOUR_KEY, "true");
+      if (window.localStorage.getItem(JOURNEY_INTRO_KEY) === "1") return;
+      window.localStorage.setItem(JOURNEY_INTRO_KEY, "1");
+      setEligible(true);
+    } catch {
+      // Storage-restricted browsers skip the optional explanation.
+    }
+  }, []);
 
   useEffect(() => {
     if (!eligible) return;
@@ -120,8 +120,6 @@ const FISH_POSITIONS = [
   { x: 285, y: 158, flip: true },
 ];
 
-type PreviewFish = Pick<FishSpeciesInfo, "id" | "category" | "nameAr">;
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
@@ -150,6 +148,8 @@ function speciesY(species: FishSpeciesInfo, index: number) {
   if (species.category === "labyrinth") return 78 + (index % 2) * 16;
   return FISH_POSITIONS[index % FISH_POSITIONS.length].y;
 }
+
+type PreviewFish = Pick<FishSpeciesInfo, "id" | "category" | "nameAr">;
 
 function buildFish(species: FishSpeciesInfo[], stockingLevel: string, cyclingMethod: string): PreviewFish[] {
   if (species.length === 0 && cyclingMethod === "with-hardy-fish") {
@@ -411,12 +411,12 @@ export function JourneyTankVisualizer({ data, currentStep, total, label }: Journ
             <rect x="30" y="28" width="340" height="190" rx="15" fill="none" stroke="#0B93A6" strokeWidth="3" />
             <path d="M36 218 h328" stroke="#0B1E28" strokeWidth="5" strokeLinecap="round" opacity=".55" />
 
-            {data.lightingType && data.lightingType !== "none" && (
+            {data.lightingType && data.lightingType !== "none" ? (
               <g className="aqv-jtank__light" data-light={data.lightingType} aria-label={data.lightingType}>
                 <rect x="82" y="15" width="236" height="10" rx="5" fill={data.lightingType === "rgb-smart" ? "url(#aqv-rgb-light)" : "#17333D"} />
                 <path d="M105 27 L80 188 M200 27 L200 188 M295 27 L320 188" stroke={data.lightingType === "planted-led" ? "#C7F7D8" : "#E7FBFF"} strokeWidth="18" opacity=".09" />
               </g>
-            )}
+            ) : null}
 
             {hasStableSurface && (
               <g className="aqv-jtank__cabinet" aria-hidden="true">
