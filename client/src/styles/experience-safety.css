@@ -1,0 +1,7 @@
+/* Final accessibility overrides loaded after the experience stylesheet. */
+@media (prefers-reduced-motion: reduce) {
+  .aqv-loader,
+  .aqv-jtank__waterline {
+    transition-duration: 1ms !important;
+  }
+}
