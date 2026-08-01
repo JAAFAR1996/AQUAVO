@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import "./loaders.css";
+import "../../styles/flow-gate-copy.css";
 
 /**
  * Suspense fallback for lazy routes. The marker is present from the first
