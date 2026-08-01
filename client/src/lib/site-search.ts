@@ -118,6 +118,7 @@ export const POPULAR_SEARCH_LINKS = [
 ] as const;
 
 const ARABIC_MARKS = /[\u064B-\u065F\u0670\u06D6-\u06ED]/g;
+const SEARCH_SEPARATORS = /[^0-9a-z\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF]+/gi;
 
 export function normalizeSearchText(value: unknown): string {
   return String(value ?? "")
@@ -129,7 +130,7 @@ export function normalizeSearchText(value: unknown): string {
     .replace(/ؤ/g, "و")
     .replace(/ئ/g, "ي")
     .replace(/ة/g, "ه")
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(SEARCH_SEPARATORS, " ")
     .trim()
     .replace(/\s+/g, " ");
 }
@@ -267,7 +268,11 @@ export function buildUnifiedSiteSearchResults({
     });
   });
 
-  return [...productMap.values(), ...pageResults]
+  const productResults: SiteSearchResult[] = [];
+  productMap.forEach((result) => productResults.push(result));
+
+  return productResults
+    .concat(pageResults)
     .sort((a, b) => {
       if (b.score !== a.score) return b.score - a.score;
       if (a.type !== b.type) return a.type === "product" ? -1 : 1;
