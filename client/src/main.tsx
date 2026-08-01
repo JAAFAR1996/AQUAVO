@@ -11,6 +11,7 @@ import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 
 // Production entry includes the merged immersive Journey and loading experience.
+// Redeploy marker: 2026-08-01T14:29+03:00.
 initializeClientEnvSideEffects();
 
 // The previous init screen blocked first paint for a fixed half-second. Keep its
