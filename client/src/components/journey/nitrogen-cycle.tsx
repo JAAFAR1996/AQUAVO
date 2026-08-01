@@ -21,7 +21,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         دورة النيتروجين (التدوير)
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        أهم خطوة! بدونها ستموت أسماكك. الصبر هنا يساوي النجاح.
+                        هذه أهم خطوة لسلامة الأسماك. الصبر هنا يساوي النجاح.
                     </p>
                 </div>
 
@@ -36,7 +36,8 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                                     label: "تدوير بدون أسماك (الأفضل)",
                                     desc: "باستخدام الأمونيا النقية أو طعام الأسماك",
                                     duration: "4-6 أسابيع",
-                                    safety: "✓ آمن 100%",
+                                    safety: "آمن 100%",
+                                    safe: true,
                                     recommended: true
                                 },
                                 {
@@ -44,21 +45,24 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                                     label: "تدوير مع أسماك قوية",
                                     desc: "عدد قليل من الأسماك المقاومة",
                                     duration: "6-8 أسابيع",
-                                    safety: "⚠️ مرهق للأسماك"
+                                    safety: "مرهق للأسماك",
+                                    safe: false
                                 },
                                 {
                                     value: "seeded",
                                     label: "تدوير بالبذر",
                                     desc: "باستخدام مادة فلتر من حوض قديم",
                                     duration: "2-3 أسابيع",
-                                    safety: "✓ سريع وآمن"
+                                    safety: "سريع وآمن",
+                                    safe: true
                                 },
                                 {
                                     value: "bottled-bacteria",
                                     label: "بكتيريا معبأة",
                                     desc: "منتجات بكتيريا جاهزة",
                                     duration: "1-2 أسبوع",
-                                    safety: "⚠️ نتائج متغيرة"
+                                    safety: "نتائجه متغيرة",
+                                    safe: false
                                 }
                             ].map((option) => (
                                 <div key={option.value} className="relative">
@@ -83,7 +87,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                                             </Badge>
                                             <span className={cn(
                                                 "font-bold",
-                                                option.safety.includes('✓') ? "text-green-500" : "text-amber-500"
+                                                option.safe ? "text-green-500" : "text-amber-500"
                                             )}>
                                                 {option.safety}
                                             </span>
@@ -147,7 +151,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                             { week: "الأسبوع 1-2", event: "ارتفاع الأمونيا", status: "danger" },
                             { week: "الأسبوع 2-3", event: "ظهور النيتريت، انخفاض الأمونيا", status: "warning" },
                             { week: "الأسبوع 3-4", event: "ظهور النترات، انخفاض النيتريت", status: "info" },
-                            { week: "الأسبوع 4-6", event: "اكتمال التدوير - جاهز للأسماك!", status: "success" }
+                            { week: "الأسبوع 4-6", event: "اكتمال التدوير - الحوض جاهز للأسماك", status: "success" }
                         ].map((phase) => (
                             <div key={phase.week} className="flex items-center gap-3 p-3 rounded-lg border bg-card">
                                 <div className={cn(
@@ -175,7 +179,7 @@ export function NitrogenCycle({ wizardData, updateData }: NitrogenCycleProps) {
                         </p>
                         <p className="text-sm text-muted-foreground text-right">
                             اختبر الماء يومياً. عندما تصبح قراءات الأمونيا والنيتريت صفر لمدة 3-5 أيام متتالية،
-                            حوضك جاهز أخيراً لاستقبال الأسماك. لا تتعجل هذه المرحلة!
+                            يصبح حوضك جاهزاً لاستقبال الأسماك. لا تتعجل هذه المرحلة.
                         </p>
                     </div>
                 </div>
