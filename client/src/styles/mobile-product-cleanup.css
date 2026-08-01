@@ -1,0 +1,22 @@
+/* Mobile storefront cleanup
+   Keep the single purchase control inside the product content and remove
+   floating overlays that crowd small screens. */
+
+@media (max-width: 767px) {
+  /* Product details already contains the full quantity + add-to-cart section. */
+  .safe-bottom.fixed.bottom-0.left-0.right-0.z-50 {
+    display: none !important;
+  }
+
+  /* Hide the proactive AI-chat hint. */
+  [class~="bottom-[88px]"][class~="left-6"][class~="z-50"] {
+    display: none !important;
+  }
+
+  /* Hide the floating AI-chat launcher without affecting other controls. */
+  [class~="bottom-6"][class~="left-6"][class~="z-50"]:has(
+      button[aria-label="فتح مساعد AQUAVO الذكي"]
+    ) {
+    display: none !important;
+  }
+}
