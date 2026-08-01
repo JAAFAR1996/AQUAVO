@@ -400,6 +400,20 @@ describe("fulfillment admin API", () => {
     expect(res.status).toBe(404);
   });
 
+  it("creates materials stock-tracked so the confirmation guard actually covers them", async () => {
+    // Regression: this route never set stock_tracked, so every material it made
+    // inherited migration 0040's DEFAULT false. Once the stock guard began
+    // trusting that flag, such a material was silently exempt — its stock could
+    // go negative with no error and, since the override is gone, no way to even
+    // notice. The flag must be set at creation, not left to the column default.
+    const res = await api().post(`${BASE}/materials`).send({ name: "صندوق اختبار", category: "box", unit: "piece" });
+    expect(res.status).toBe(201);
+
+    const row = await client.query<{ stock_tracked: boolean }>(
+      `SELECT stock_tracked FROM fulfillment_materials WHERE id='${res.body.id}'`);
+    expect(row.rows[0]!.stock_tracked).toBe(true);
+  });
+
   it("rejects a retired allowNegativeStock flag instead of silently ignoring it", async () => {
     // An old bundle, a saved cURL or a script may still send the flag. Zod would
     // strip it and return 200, which reads as "the override still works". The

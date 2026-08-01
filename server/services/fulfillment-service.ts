@@ -17,7 +17,7 @@ import { eq, and, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import {
   orderFulfillmentEvents, orderFulfillmentLines, packagingInventoryMovements,
-  fulfillmentAdjustments,
+  fulfillmentAdjustments, fulfillmentMaterials,
 } from "../../shared/schema.js";
 import { toMoneyOrNull } from "../../shared/order-financials.js";
 import { COST_COMPONENTS, type CostComponentType } from "../../shared/cost-components.js";
@@ -235,10 +235,34 @@ export async function confirmFulfillment(
         // loudly here so someone restocks, not be waved through.
         for (const l of frozen) {
           if (!l.materialId) continue;
+
+          // Only STOCK-TRACKED materials have a balance worth checking.
+          //
+          // A price label or a thank-you card is an accounting cost, not
+          // inventory: stock_tracked = false, no movements, and never any.
+          // Summing those yields 0, so guarding them rejected every order that
+          // carried one the moment the default profile started attaching them.
+          //
+          // stock_tracked is the ONLY sound discriminator here. "Has movements"
+          // looks tempting but is wrong: a real carton that has never been
+          // received also has none, and must still fail rather than be waved
+          // through at zero stock.
+          //
+          // Migration 0040 added the column with DEFAULT false and did not
+          // backfill, which would have left every pre-0040 material unguarded.
+          // 0050 backfills them to true, so this flag can be trusted.
+          const [material] = await tx
+            .select({ stockTracked: fulfillmentMaterials.stockTracked })
+            .from(fulfillmentMaterials)
+            .where(eq(fulfillmentMaterials.id, l.materialId))
+            .limit(1);
+          if (!material?.stockTracked) continue;
+
           const balRow = await tx
             .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
             .from(packagingInventoryMovements)
             .where(eq(packagingInventoryMovements.materialId, l.materialId));
+
           const available = Number(balRow[0]?.bal ?? 0);
           const need = Math.abs(Number(l.quantity));
           if (available - need < 0) {

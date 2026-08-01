@@ -29,6 +29,7 @@ const FORWARD = [
   "0047_packing_import_drafts.sql",
   "0048_packing_policy_and_preparation_costs.sql",
   "0049_default_preparation_profile.sql",
+  "0050_backfill_stock_tracked.sql",
 ];
 
 const ROLLBACK = [...FORWARD].reverse().map((f) => f.replace(/\.sql$/, "_rollback.sql"));
@@ -173,7 +174,8 @@ describe("migrations 0039-0048 apply cleanly", () => {
     // Each feature migration registered itself; 0039 deliberately does not.
     const registered = await count(
       db,
-      `SELECT count(*) n FROM schema_migrations WHERE version LIKE '004%'`,
+      // Range, not LIKE '004%': the feature now spans 0040-0050.
+      `SELECT count(*) n FROM schema_migrations WHERE version >= '0040' AND version < '0051'`,
     );
     expect(registered).toBe(FEATURE_FORWARD.length);
   }, 120_000);
@@ -320,6 +322,28 @@ describe("migrations 0039-0048 apply cleanly", () => {
           WHERE f.family_key='default-preparation'`,
       ),
     ).toBe(2);
+  });
+
+  it("0050 backfills the pre-0040 default without touching the two accounting costs", async () => {
+    // 0040 added stock_tracked NOT NULL DEFAULT false and never backfilled, so
+    // every pre-0040 material reads false. Once the confirmation guard started
+    // trusting that flag, a false on a legacy box silently disabled the guard.
+    const seeded = await db.query<{ sku: string; stock_tracked: boolean }>(
+      `SELECT sku, stock_tracked FROM fulfillment_materials
+        WHERE sku IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD') ORDER BY sku`,
+    );
+    // These two are genuinely not inventory and must stay untracked.
+    expect(seeded.rows.map((r) => r.stock_tracked)).toEqual([false, false]);
+
+    // Anything else that was sitting on the default is now guarded again.
+    expect(
+      await count(
+        db,
+        `SELECT count(*) n FROM fulfillment_materials
+          WHERE stock_tracked = false AND archived_at IS NULL
+            AND coalesce(sku,'') NOT IN ('PRICE_LABEL','THANK_YOU_SOCIAL_CARD')`,
+      ),
+    ).toBe(0);
   });
 
   it("seeds the support policy and the kill switches", async () => {
@@ -518,7 +542,7 @@ describe("rollback and re-apply", () => {
 
     const flagged = await count(
       db,
-      `SELECT count(*) n FROM schema_migrations WHERE version LIKE '004%' AND rolled_back_at IS NOT NULL`,
+      `SELECT count(*) n FROM schema_migrations WHERE version >= '0040' AND version < '0051' AND rolled_back_at IS NOT NULL`,
     );
     expect(flagged).toBe(FEATURE_FORWARD.length);
   }, 120_000);

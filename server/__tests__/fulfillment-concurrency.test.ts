@@ -21,6 +21,7 @@ import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
 import { drizzle } from "drizzle-orm/pglite";
 import * as schema from "../../shared/schema.js";
+import { cartonCatalogDdl } from "./helpers/packing-migrations.js";
 import {
   confirmFulfillment, allocateSequenceNumber,
 } from "../services/fulfillment-service.js";
@@ -43,6 +44,12 @@ describe("fulfillment sequencing — concurrency-safe ALLOCATION", () => {
     await client.exec(base);
     await client.exec(hardening);
     await client.exec(pimLineIdentity);
+    // Migration 0040: the Drizzle model names these columns, so the test
+    // database must have them or every select() on fulfillment_materials fails.
+    await client.exec(cartonCatalogDdl());
+    // Migration 0050: pre-0040 materials are stock-guarded. These fixtures are
+    // legacy-shaped, so mirror that here instead of restating it per INSERT.
+    await client.exec(`ALTER TABLE fulfillment_materials ALTER COLUMN stock_tracked SET DEFAULT true`);
     db = drizzle(client, { schema }) as unknown as FulfillmentDb;
     await client.exec(`INSERT INTO fulfillment_materials (id,name,category,unit) VALUES ('cbox','Box','box','piece')`);
     await client.exec(`INSERT INTO packaging_inventory_movements (id,material_id,movement_type,quantity,idempotency_key)

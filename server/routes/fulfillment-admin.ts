@@ -156,9 +156,18 @@ router.post("/materials", writeLimiter, wrap(async (req, res) => {
   const id = crypto.randomUUID();
   // A new material starts with an UNKNOWN cost. A cost only exists once a
   // material_cost_records row is approved — never at creation time.
+  //
+  // stock_tracked is set EXPLICITLY rather than left to the column default.
+  // Migration 0040 defaults it to false, and the confirmation stock guard now
+  // trusts the flag, so a material created here without it would be silently
+  // exempt from the guard — its stock could go negative with no error and no
+  // override. Materials created through this route are physical consumables;
+  // the accounting-only ones are created through the packaging-admin
+  // preparation-costs route, which sets false on purpose.
   await db().insert(fulfillmentMaterials).values({
     id, name: input.name, category: input.category ?? null, unit: input.unit ?? null,
     accountingCode: input.accountingCode ?? null, notes: input.notes ?? null,
+    stockTracked: true,
   });
   await recordFinancialChange(db() as never, {
     entityType: "fulfillment_material", entityId: id, action: "create",
