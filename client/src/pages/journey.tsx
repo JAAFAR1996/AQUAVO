@@ -1,14 +1,17 @@
 import { useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, ArrowRight, ArrowLeft, Save } from "lucide-react";
+import { ArrowRight, ArrowLeft, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PageLoader } from "@/components/ui/loaders";
 import { MetaTags } from "@/components/seo/meta-tags";
 
 import { useJourney } from "@/hooks/use-journey";
 import { JourneyProgress } from "@/components/journey/journey-progress";
 import { SavedPlanView } from "@/components/journey/saved-plan-view";
 import { STEPS } from "@/components/journey/constants";
-import { TankProgress } from "@/components/motion/displacement";
+import {
+  JourneyFirstVisitIntro,
+  JourneyTankVisualizer,
+} from "@/components/journey/journey-experience";
 
 import { TankSelection } from "@/components/journey/tank-selection";
 import { LocationSetup } from "@/components/journey/location-setup";
@@ -29,10 +32,9 @@ function readWizardStep(): string | null {
   }
 }
 
-function progressTankSize(litres: number): "small" | "medium" | "large" {
-  if (litres > 0 && litres <= 60) return "small";
-  if (litres > 150) return "large";
-  return "medium";
+function scrollBehavior(): ScrollBehavior {
+  if (typeof window === "undefined") return "auto";
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
 }
 
 export default function JourneyPage() {
@@ -54,17 +56,10 @@ export default function JourneyPage() {
   } = useJourney();
 
   useEffect(() => {
-    topRef.current?.scrollIntoView({ behavior: "smooth" });
+    topRef.current?.scrollIntoView({ behavior: scrollBehavior() });
   }, [currentStep]);
 
-  if (isLoadingSavedPlan) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="mr-2 text-lg">جاري تحميل رحلتك...</span>
-      </div>
-    );
-  }
+  if (isLoadingSavedPlan) return <PageLoader />;
 
   const localStep = readWizardStep();
 
@@ -117,7 +112,6 @@ export default function JourneyPage() {
   };
 
   const currentLabel = `الخطوة ${currentStep + 1} من ${STEPS.length} — ${STEPS[currentStep]?.title ?? "رحلة الحوض"}`;
-  const tankLitres = Number(wizardData.tankLiters || 0);
 
   return (
     <div className="flex-1 overflow-x-hidden bg-background" ref={topRef} data-aqv-motion="journey">
@@ -126,24 +120,25 @@ export default function JourneyPage() {
         description="خطط لإعداد حوضك المثالي خطوة بخطوة مع دليل AQUAVO التفاعلي - من اختيار الحوض حتى إضافة الأسماك"
         keywords={["إعداد حوض الأسماك", "خطوات إنشاء حوض", "دليل مبتدئين", "AQUAVO"]}
       />
+      <JourneyFirstVisitIntro />
+
       <div className="bg-primary/5 border-b border-primary/10 py-8 md:py-12 mb-8 pt-24">
         <div className="container text-center">
           <h1 className="text-3xl md:text-5xl font-black text-primary mb-4">
             رحلة إنشاء حوضك
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            خطوة بخطوة نحو حوض أحلامك. دعنا نساعدك في اتخاذ القرارات الصحيحة.
+            خطوة بخطوة نحو حوض أحلامك. كل اختيار راح ينعكس مباشرة على المعاينة.
           </p>
         </div>
       </div>
 
       <div className="container max-w-5xl mx-auto px-4">
-        <div className="aqv-journey-tank-shell" aria-label={currentLabel}>
-          <TankProgress
-            step={currentStep}
+        <div className="aqv-journey-tank-shell">
+          <JourneyTankVisualizer
+            data={wizardData}
+            currentStep={currentStep}
             total={STEPS.length}
-            size={progressTankSize(tankLitres)}
-            cyclingStep={5}
             label={currentLabel}
           />
         </div>
@@ -156,19 +151,14 @@ export default function JourneyPage() {
           />
         </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            data-tour="journey-content"
-            data-aqv-membrane
-          >
-            {renderStep()}
-          </motion.div>
-        </AnimatePresence>
+        <div
+          key={currentStep}
+          className="aqv-journey-step-panel"
+          data-tour="journey-content"
+          data-aqv-membrane
+        >
+          {renderStep()}
+        </div>
 
         {currentStep < 8 && (
           <div className="flex justify-between items-center mt-8 gap-4" data-tour="journey-nav" data-aqv-motion="journey-controls">
