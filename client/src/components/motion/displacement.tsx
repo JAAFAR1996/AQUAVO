@@ -1,4 +1,4 @@
-import { Children, useEffect, useRef, type ReactNode } from "react";
+import { Children, useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
   MOTION,
@@ -12,21 +12,18 @@ import { observeMembranes } from "@/lib/motion/membrane";
 export function Membrane({
   children,
   className = "",
-  as: Tag = "div",
 }: {
   children: ReactNode;
   className?: string;
-  as?: "div" | "section" | "li";
 }) {
-  const ref = useRef<HTMLElement | null>(null);
+  const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (ref.current) observeMembranes(ref.current.parentNode ?? document);
   }, []);
-  const T = Tag as any;
   return (
-    <T ref={ref} data-aqv-membrane data-aqv-motion="membrane" className={`aqv-membrane ${className}`}>
+    <div ref={ref} data-aqv-membrane data-aqv-motion="membrane" className={`aqv-membrane ${className}`}>
       {children}
-    </T>
+    </div>
   );
 }
 
@@ -156,9 +153,12 @@ export function SurfaceBreak({ confirmed, children }: { confirmed: boolean; chil
   const stage = useRef<HTMLDivElement>(null);
   const water = useRef<HTMLDivElement>(null);
   const played = useRef(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    if (!confirmed || played.current) return;
+    if (!mounted || !confirmed || played.current) return;
     played.current = true;
     const layer = water.current;
     if (!layer) return;
@@ -178,34 +178,36 @@ export function SurfaceBreak({ confirmed, children }: { confirmed: boolean; chil
       isCompactViewport() ? 420 : 620,
     );
     return () => window.clearTimeout(id);
-  }, [confirmed]);
+  }, [confirmed, mounted]);
 
   return (
     <div ref={stage} style={{ position: "relative" }} data-aqv-motion="surface-break">
       {children}
-      <div
-        ref={water}
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          insetInline: 0,
-          top: 0,
-          height: confirmed ? "100%" : "0%",
-          background: "linear-gradient(to bottom,var(--aqv-primary),var(--aqv-flowline))",
-          pointerEvents: "none",
-          display: "flex",
-          alignItems: "flex-end",
-          justifyContent: "center",
-          paddingBottom: 20,
-          zIndex: 20,
-          borderRadius: "inherit",
-          overflow: "hidden",
-        }}
-      >
-        <span style={{ font: "700 13px Cairo,sans-serif", color: "rgba(255,255,255,.9)" }}>
-          نثبّت الطلب…
-        </span>
-      </div>
+      {mounted && confirmed && !prefersReducedMotion() && (
+        <div
+          ref={water}
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            insetInline: 0,
+            top: 0,
+            height: "100%",
+            background: "linear-gradient(to bottom,var(--aqv-primary),var(--aqv-flowline))",
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            paddingBottom: 20,
+            zIndex: 20,
+            borderRadius: "inherit",
+            overflow: "hidden",
+          }}
+        >
+          <span style={{ font: "700 13px Cairo,sans-serif", color: "rgba(255,255,255,.9)" }}>
+            نثبّت الطلب…
+          </span>
+        </div>
+      )}
     </div>
   );
 }
