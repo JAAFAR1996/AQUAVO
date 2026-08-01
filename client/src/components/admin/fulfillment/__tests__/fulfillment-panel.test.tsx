@@ -242,7 +242,9 @@ describe("FulfillmentDraftPanel", () => {
 
     await user.click(screen.getByTestId("confirm-fulfillment"));
     expect(await screen.findByTestId("confirm-stock-warning")).toBeInTheDocument();
-    expect(screen.getByTestId("confirm-dialog-submit")).toHaveTextContent("تأكيد رغم نقص المخزون");
+    // The override is gone: the button stays "تأكيد" and is unusable.
+    expect(screen.getByTestId("confirm-dialog-submit")).toHaveTextContent("تأكيد");
+    expect(screen.getByTestId("confirm-dialog-submit")).toBeDisabled();
   });
 
   it("shows no stock warning when the projection says stock is sufficient", async () => {
@@ -259,7 +261,7 @@ describe("FulfillmentDraftPanel", () => {
     expect(screen.getByTestId("confirm-dialog-submit")).toHaveTextContent("تأكيد");
   });
 
-  it("still confirms via the explicit override when stock would go negative", async () => {
+  it("cannot confirm at all when stock would go negative — no request is sent", async () => {
     const calls = installFetch({
       draft: () => draftFixture({
         stock: {
@@ -276,11 +278,31 @@ describe("FulfillmentDraftPanel", () => {
     renderWithQuery(<FulfillmentDraftPanel orderId={ORDER_ID} />);
 
     await user.click(await screen.findByTestId("confirm-fulfillment"));
-    await user.click(await screen.findByTestId("confirm-dialog-submit"));
+    const submit = await screen.findByTestId("confirm-dialog-submit");
+    expect(submit).toBeDisabled();
+    await user.click(submit);
 
-    expect(await screen.findByTestId("actual-cost")).toHaveTextContent("500 د.ع");
-    const confirmCall = calls.find((c) => c.url.includes("/confirm"));
-    expect(confirmCall?.body).toMatchObject({ allowNegativeStock: true });
+    // The point: not merely "the flag is false" but that nothing was attempted.
+    // A shortfall is resolved by restocking, not by pushing the request through.
+    expect(calls.find((c) => c.url.includes("/confirm"))).toBeUndefined();
+  });
+
+  it("tells the owner to restock rather than offering a way past the block", async () => {
+    installFetch({
+      draft: () => draftFixture({
+        stock: {
+          wouldGoNegative: true,
+          shortages: [{ materialId: "mat-1", materialName: "صندوق صغير", available: 0, required: 1 }],
+        },
+      }),
+    });
+    const user = userEvent.setup();
+    renderWithQuery(<FulfillmentDraftPanel orderId={ORDER_ID} />);
+
+    await user.click(await screen.findByTestId("confirm-fulfillment"));
+    const warning = await screen.findByTestId("confirm-stock-warning");
+    expect(warning).toHaveTextContent(/زوّد المخزون/);
+    expect(screen.queryByText(/رغم نقص المخزون/)).not.toBeInTheDocument();
   });
 
   it("renders a loading state while the draft is in flight", () => {

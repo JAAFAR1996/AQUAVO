@@ -532,15 +532,24 @@ describe("draft stock projection (warn BEFORE confirming, not after)", () => {
     expect(v.stock.wouldGoNegative).toBe(true);
     // The warning the owner saw is exactly what confirmation then enforces.
     await expect(confirmDraft(db, { draftId: draft.id })).rejects.toThrow(/INSUFFICIENT_STOCK/);
-    // …and the override still works, for the same draft.
-    const forced = await confirmDraft(db, { draftId: draft.id, allowNegativeStock: true });
-    expect(forced.alreadyConfirmed).toBe(false);
-    expect(await balance("s-scarce")).toBe(2 - 9);
+
+    // There is no second attempt that succeeds. The negative-stock override was
+    // removed from every layer, so a rejected draft stays rejected and the
+    // balance is untouched — it never dips below zero.
+    await expect(confirmDraft(db, { draftId: draft.id })).rejects.toThrow(/INSUFFICIENT_STOCK/);
+    expect(await balance("s-scarce")).toBe(2);
   });
 
   it("a consumed draft reports no pending shortage", async () => {
+    // Consumed via a draft that actually fits the available stock, since the
+    // shortage draft above can no longer be forced through.
+    await client.exec(`INSERT INTO orders (id) VALUES ('s-ord-3b') ON CONFLICT DO NOTHING`);
+    const ok = await getOrCreateDraft(db, { orderId: "s-ord-3b", manualOnly: true });
+    await addCatalogLine(db, { draftId: ok.id, materialId: "s-scarce", quantity: 1 });
+    await confirmDraft(db, { draftId: ok.id });
+
     const rows = await client.query<{ id: string }>(
-      `SELECT id FROM fulfillment_preparation_drafts WHERE order_id='s-ord-3' AND state='consumed'`);
+      `SELECT id FROM fulfillment_preparation_drafts WHERE order_id='s-ord-3b' AND state='consumed'`);
     const v = await getDraft(db, rows.rows[0].id);
     expect(v.state).toBe("consumed");
     expect(v.stock.wouldGoNegative).toBe(false);

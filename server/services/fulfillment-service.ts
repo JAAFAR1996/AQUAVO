@@ -150,8 +150,6 @@ export interface ConfirmFulfillmentInput {
   recordedBy?: string;
   varianceReason?: string;
   adjustmentReason?: string;
-  /** Owner-approved override to allow packaging stock to go negative. */
-  allowNegativeStock?: boolean;
 }
 
 export interface ConfirmResult {
@@ -227,19 +225,24 @@ export async function confirmFulfillment(
         const sequenceNumber = await allocateSequenceNumber(tx, input.orderId);
         const eventId = randomUUID();
 
-        // Stock guard: usage must not drive available below 0 unless explicitly overridden.
-        if (!input.allowNegativeStock) {
-          for (const l of frozen) {
-            if (!l.materialId) continue;
-            const balRow = await tx
-              .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
-              .from(packagingInventoryMovements)
-              .where(eq(packagingInventoryMovements.materialId, l.materialId));
-            const available = Number(balRow[0]?.bal ?? 0);
-            const need = Math.abs(Number(l.quantity));
-            if (available - need < 0) {
-              throw new Error(`INSUFFICIENT_STOCK: material ${l.materialId} (available ${available}, need ${need})`);
-            }
+        // Stock guard. Unconditional by design: there is no override.
+        //
+        // This used to be skippable via an `allowNegativeStock` flag surfaced in
+        // the admin UI as «تأكيد رغم نقص المخزون». Negative packaging stock is not
+        // a state the business can be in -- it means a carton was consumed that
+        // does not exist, which silently corrupts both inventory and the cost
+        // snapshots derived from it. An order that cannot be packed must fail
+        // loudly here so someone restocks, not be waved through.
+        for (const l of frozen) {
+          if (!l.materialId) continue;
+          const balRow = await tx
+            .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
+            .from(packagingInventoryMovements)
+            .where(eq(packagingInventoryMovements.materialId, l.materialId));
+          const available = Number(balRow[0]?.bal ?? 0);
+          const need = Math.abs(Number(l.quantity));
+          if (available - need < 0) {
+            throw new Error(`INSUFFICIENT_STOCK: material ${l.materialId} (available ${available}, need ${need})`);
           }
         }
 

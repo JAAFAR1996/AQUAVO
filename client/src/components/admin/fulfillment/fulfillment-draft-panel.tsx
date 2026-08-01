@@ -67,10 +67,14 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
   const unknownLines = draft?.missingCostLines ?? [];
   const hasUnknownCost = unknownLines.length > 0;
 
-  // Server-projected, so the warning shows BEFORE the first attempt. `stockRejected`
+  // Server-projected, so the block shows BEFORE the first attempt. `stockRejected`
   // still covers stock moving between load and confirm.
+  //
+  // This is a BLOCK, not a warning-with-override. The server refuses the confirm
+  // unconditionally, so offering a "confirm anyway" button here would only
+  // produce a guaranteed error.
   const stock = draft?.stock ?? EMPTY_STOCK;
-  const needsStockOverride = stock.wouldGoNegative || stockRejected;
+  const stockBlocked = stock.wouldGoNegative || stockRejected;
 
   const materials = materialsQuery.data ?? [];
   const catalogOptions = useMemo(
@@ -118,11 +122,10 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
     setConfirmOpen(true);
   }
 
-  function runConfirm(allowNegativeStock: boolean) {
+  function runConfirm() {
     confirm.mutate(
       {
         varianceReason: varianceReason.trim() ? varianceReason.trim() : undefined,
-        allowNegativeStock: allowNegativeStock || undefined,
       },
       {
         onSuccess: (res) => {
@@ -383,14 +386,14 @@ export function FulfillmentDraftPanel({ orderId }: { orderId: string }) {
           draft={draft}
           unknownLines={unknownLines}
           shortages={stock.shortages}
-          needsStockOverride={needsStockOverride}
+          stockBlocked={stockBlocked}
           stockRejected={stockRejected}
           pending={confirm.isPending}
           error={confirm.isError ? errorMessage(confirm.error) : null}
           varianceReason={varianceReason}
           onVarianceReason={setVarianceReason}
           onCancel={() => setConfirmOpen(false)}
-          onConfirm={() => runConfirm(needsStockOverride)}
+          onConfirm={() => runConfirm()}
         />
       )}
     </SectionCard>
@@ -506,13 +509,13 @@ function ShortageList({ shortages }: { shortages: StockShortage[] }) {
 }
 
 function ConfirmDialog({
-  draft, unknownLines, shortages, needsStockOverride, stockRejected,
+  draft, unknownLines, shortages, stockBlocked, stockRejected,
   pending, error, varianceReason, onVarianceReason, onCancel, onConfirm,
 }: {
   draft: DraftView;
   unknownLines: string[];
   shortages: StockShortage[];
-  needsStockOverride: boolean;
+  stockBlocked: boolean;
   stockRejected: boolean;
   pending: boolean;
   error: string | null;
@@ -548,13 +551,16 @@ function ConfirmDialog({
           </div>
         )}
 
-        {needsStockOverride && (
+        {stockBlocked && (
           <div
             data-testid="confirm-stock-warning"
             className="rounded-md border border-destructive/50 bg-destructive/10 p-2 text-xs text-destructive"
           >
-            <p className="font-semibold">تحذير: المخزون غير كافٍ</p>
-            <p>التأكيد الآن سيجعل رصيد المخزون بالسالب. تابع فقط إذا كنت متأكداً.</p>
+            <p className="font-semibold">ما يمكن التأكيد: المخزون غير كافٍ</p>
+            <p>
+              رصيد المخزون ما يكفي لهذا التجهيز، وما يصير ينزل بالسالب. زوّد المخزون
+              أو عدّل بنود التجهيز، وبعدها أكّد.
+            </p>
             <ShortageList shortages={shortages} />
           </div>
         )}
@@ -573,8 +579,15 @@ function ConfirmDialog({
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" size="sm" onClick={onCancel}>إلغاء</Button>
-          <Button type="button" size="sm" disabled={pending} onClick={onConfirm} data-testid="confirm-dialog-submit">
-            {pending ? "جاري التأكيد..." : needsStockOverride ? "تأكيد رغم نقص المخزون" : "تأكيد"}
+          <Button
+            type="button"
+            size="sm"
+            // Disabled, not relabelled. There is no server path that accepts this.
+            disabled={pending || stockBlocked}
+            onClick={onConfirm}
+            data-testid="confirm-dialog-submit"
+          >
+            {pending ? "جاري التأكيد..." : "تأكيد"}
           </Button>
         </div>
       </div>

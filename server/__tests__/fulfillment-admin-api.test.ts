@@ -400,6 +400,36 @@ describe("fulfillment admin API", () => {
     expect(res.status).toBe(404);
   });
 
+  it("rejects a retired allowNegativeStock flag instead of silently ignoring it", async () => {
+    // An old bundle, a saved cURL or a script may still send the flag. Zod would
+    // strip it and return 200, which reads as "the override still works". The
+    // caller has to be told the capability is gone.
+    await client.exec(`INSERT INTO orders (id,order_number,total,rounded_total,shipping_cost,items,customer_name,customer_phone)
+      VALUES ('api-ord-ovr','A-1002','30000','30000','5000','[]'::jsonb,'x','y')
+      ON CONFLICT DO NOTHING`);
+    const draftRes = await api().post(`${BASE}/orders/api-ord-ovr/draft`).send({});
+    expect([200, 201]).toContain(draftRes.status);
+
+    const res = await api()
+      .post(`${BASE}/drafts/${draftRes.body.draft.id}/confirm`)
+      .send({ allowNegativeStock: true });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/STOCK_OVERRIDE_REMOVED/);
+  });
+
+  it("rejects the flag on the direct event route too, not just the draft route", async () => {
+    const res = await api()
+      .post(`${BASE}/orders/api-ord-ovr/events`)
+      .send({
+        requestId: "req-override-1",
+        lines: [{ materialName: "صندوق", category: "box", quantity: 1, unitCost: 100, unit: "piece" }],
+        allowNegativeStock: true,
+      });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/STOCK_OVERRIDE_REMOVED/);
+  });
+
   it("exposes an independent, read-only integrity verification", async () => {
     const res = await api().get(`${BASE}/verify`);
     expect(res.status).toBe(200);                     // 409 when an invariant is violated
