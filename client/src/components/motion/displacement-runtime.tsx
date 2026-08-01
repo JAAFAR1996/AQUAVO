@@ -13,6 +13,7 @@ import {
 import { observeMembranes, waterlineSweep } from "@/lib/motion/membrane";
 
 const HOME_ROUTES = new Set(["/", "/ar"]);
+const CART_WATER_CAPACITY = 7;
 
 function mixHex(a: string, b: string, t: number) {
   const read = (hex: string) => [1, 3, 5].map((start) => Number.parseInt(hex.slice(start, start + 2), 16));
@@ -48,7 +49,7 @@ function ensureCartWater() {
     cart.prepend(shell);
   }
   const water = shell.firstElementChild as HTMLElement | null;
-  if (water) water.style.height = `${Math.min(100, (findCartCount(cart) / 7) * 100)}%`;
+  if (water) water.style.height = `${Math.min(100, (findCartCount(cart) / CART_WATER_CAPACITY) * 100)}%`;
 }
 
 function setupHeader() {
@@ -151,7 +152,8 @@ function setupProductGlass() {
     const gallery = document.querySelector<HTMLElement>('[aria-roledescription="معرض صور"]');
     const host = gallery?.querySelector<HTMLElement>('[data-protected="true"] > div');
     const image = host?.querySelector<HTMLImageElement>("img");
-    if (!host || !image || host.dataset.aqvGlass === "true") return false;
+    if (!host || !image) return false;
+    if (host.dataset.aqvGlass === "true") return true;
 
     host.dataset.aqvGlass = "true";
     host.dataset.aqvMotion = "glass";
@@ -231,7 +233,8 @@ function setupSuccessSurface() {
   let timer = 0;
 
   const install = () => {
-    const heading = Array.from(document.querySelectorAll<HTMLElement>("h1")).find((node) => node.textContent?.includes("طلبك مسجّل"));
+    const heading = document.querySelector<HTMLElement>("[data-aqv-order-success]")
+      ?? Array.from(document.querySelectorAll<HTMLElement>("h1")).find((node) => node.textContent?.includes("طلبك مسجّل"));
     if (!heading || heading.dataset.aqvSurfacePlayed === "true") return false;
     heading.dataset.aqvSurfacePlayed = "true";
     if (prefersReducedMotion()) return true;
@@ -317,8 +320,17 @@ function setupInteractionFeedback() {
     }
   };
 
+  let scheduled = 0;
+  const scheduleRefresh = () => {
+    if (scheduled) return;
+    scheduled = window.requestAnimationFrame(() => {
+      scheduled = 0;
+      ensureCartWater();
+      tagCardsAndMembranes();
+    });
+  };
+
   const mutation = new MutationObserver((records) => {
-    ensureCartWater();
     const candidates: Element[] = [];
     records.forEach((record) => record.addedNodes.forEach((node) => {
       if (!(node instanceof Element)) return;
@@ -326,7 +338,7 @@ function setupInteractionFeedback() {
       candidates.push(...Array.from(node.querySelectorAll("[role='option'], [data-search-result]")));
     }));
     if (candidates.length) clarify(candidates.slice(0, 8));
-    tagCardsAndMembranes();
+    scheduleRefresh();
   });
 
   document.addEventListener("click", onClick, true);
@@ -334,6 +346,7 @@ function setupInteractionFeedback() {
   return () => {
     document.removeEventListener("click", onClick, true);
     mutation.disconnect();
+    if (scheduled) window.cancelAnimationFrame(scheduled);
   };
 }
 
@@ -342,12 +355,32 @@ export function DisplacementRuntime() {
 
   useEffect(() => {
     document.documentElement.dataset.aqvMotionRuntime = "on";
-    const cleanups = [setupHeader(), setupInteractionFeedback()];
-    if (HOME_ROUTES.has(location)) cleanups.push(setupHomepage());
-    if (/^\/products\//.test(location) || /^\/product\//.test(location)) cleanups.push(setupProductGlass());
-    if (location.startsWith("/order-confirmation/")) cleanups.push(setupSuccessSurface());
+    let cleanups: Array<() => void> = [];
+    let installed = false;
 
-    return () => cleanups.reverse().forEach((cleanup) => cleanup());
+    const install = () => {
+      if (installed) return true;
+      const headerReady = Boolean(document.querySelector(".aq-site-header"));
+      const mainReady = !HOME_ROUTES.has(location) || Boolean(document.querySelector("main#main-content, main"));
+      if (!headerReady || !mainReady) return false;
+
+      installed = true;
+      cleanups = [setupHeader(), setupInteractionFeedback()];
+      if (HOME_ROUTES.has(location)) cleanups.push(setupHomepage());
+      if (/^\/products\//.test(location) || /^\/product\//.test(location)) cleanups.push(setupProductGlass());
+      if (location.startsWith("/order-confirmation/")) cleanups.push(setupSuccessSurface());
+      return true;
+    };
+
+    const observer = new MutationObserver(() => {
+      if (install()) observer.disconnect();
+    });
+    if (!install()) observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => {
+      observer.disconnect();
+      cleanups.reverse().forEach((cleanup) => cleanup());
+    };
   }, [location]);
 
   return null;
