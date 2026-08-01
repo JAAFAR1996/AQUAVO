@@ -136,6 +136,35 @@ async function reservationStates(orderId: string): Promise<string[]> {
   return r.rows.map((x: { state: string }) => x.state);
 }
 
+/**
+ * The reservation rows as they actually are, state AND quantity.
+ *
+ * reserveCartons writes ONE row per material carrying the whole quantity
+ * (carton-reservation-service.ts:167-181) — reserving 2 cartons is a single row
+ * with quantity=2, not two rows of 1. The invariant this suite cares about is
+ * reserved QUANTITY, so assert on that rather than on how many rows encode it.
+ */
+async function reservationRows(orderId: string): Promise<Array<{ state: string; quantity: number }>> {
+  const r = await poolA.query(
+    `SELECT state, quantity FROM carton_reservations WHERE order_id=$1 ORDER BY state, quantity`,
+    [orderId],
+  );
+  return r.rows.map((x: { state: string; quantity: string | number }) => ({
+    state: x.state,
+    quantity: Number(x.quantity),
+  }));
+}
+
+/** Total quantity this order still holds an ACTIVE claim on, for one material. */
+async function activeReservedQty(orderId: string, materialId: string): Promise<number> {
+  const r = await poolA.query(
+    `SELECT COALESCE(SUM(quantity),0) AS q FROM carton_reservations
+      WHERE order_id=$1 AND material_id=$2 AND state='active'`,
+    [orderId, materialId],
+  );
+  return Number(r.rows[0].q);
+}
+
 function cartonLine(materialId: string, qty: number) {
   return { materialId, materialName: "carton", quantity: qty, unitCost: 1000 };
 }
@@ -300,7 +329,13 @@ describe.skipIf(!RUN)("carton consumption — real PostgreSQL, two connections",
       requestId: `ctest:${RUN_ID}:E:reserve`,
     });
 
-    // 3 on hand, 2 reserved elsewhere => only 1 free. Asking for 2 must fail.
+    // ONE row carrying quantity 2 — not two rows of 1. Asserting the quantity is
+    // the point; the row count is just how reserveCartons happens to encode it.
+    expect(await reservationRows(holder)).toEqual([{ state: "active", quantity: 2 }]);
+    expect(await activeReservedQty(holder, carton)).toBe(2);
+
+    // 3 on hand, 2 reserved elsewhere => only 1 genuinely free.
+    // Asking for 2 must fail.
     await expect(
       confirmFulfillment(dbB, {
         orderId: applicant,
@@ -308,9 +343,14 @@ describe.skipIf(!RUN)("carton consumption — real PostgreSQL, two connections",
         lines: [cartonLine(carton, 2)],
       }),
     ).rejects.toThrow(/INSUFFICIENT_STOCK/);
-    expect(await onHandOf(carton)).toBe(3);
 
-    // Asking for the 1 that genuinely is free must succeed.
+    // Nothing moved, and the holder's claim is intact.
+    expect(await onHandOf(carton)).toBe(3);
+    expect(await movementCount(carton)).toBe(0);
+    expect(await activeReservedQty(holder, carton)).toBe(2);
+    expect((await onHandOf(carton)) - (await activeReservedQty(holder, carton))).toBe(1); // free
+
+    // Asking for the 1 that genuinely IS free must succeed.
     const ok = await confirmFulfillment(dbB, {
       orderId: applicant,
       requestId: `ctest:${RUN_ID}:E:confirm1`,
@@ -318,7 +358,16 @@ describe.skipIf(!RUN)("carton consumption — real PostgreSQL, two connections",
     });
     expect(ok.reused).toBe(false);
     expect(await onHandOf(carton)).toBe(2);
-    expect(await reservationStates(holder)).toEqual(["active", "active"]); // untouched
+    expect(await movementCount(carton)).toBe(1);
+
+    // The holder's reservation is untouched: still active, still quantity 2 —
+    // the applicant consumed free stock, never the holder's claim.
+    expect(await reservationRows(holder)).toEqual([{ state: "active", quantity: 2 }]);
+    expect(await activeReservedQty(holder, carton)).toBe(2);
+    // The applicant never reserved anything, so it has no rows to retire.
+    expect(await reservationRows(applicant)).toEqual([]);
+    // On hand 2, all 2 still claimed by the holder => nothing left free.
+    expect((await onHandOf(carton)) - (await activeReservedQty(holder, carton))).toBe(0);
   }, 120_000);
 
   // F ─────────────────────────────────────────────────────────────────────────
