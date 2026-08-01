@@ -10,6 +10,7 @@ import { FirstDiveIntro } from "./components/effects/first-dive-intro";
 import { DisplacementRuntime } from "./components/motion/displacement-runtime";
 import { initializeClientEnvSideEffects } from "./lib/config/env";
 
+// Production entry includes the merged immersive Journey and loading experience.
 initializeClientEnvSideEffects();
 
 // The previous init screen blocked first paint for a fixed half-second. Keep its
