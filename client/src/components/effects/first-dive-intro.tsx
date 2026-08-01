@@ -2,24 +2,23 @@ import { useEffect, useState } from "react";
 
 const FIRST_DIVE_KEY = "aquavo_first_dive_seen_v2";
 
-function claimFirstDive(): boolean {
-  if (typeof window === "undefined") return false;
-  try {
-    const seen = window.localStorage.getItem(FIRST_DIVE_KEY) === "1";
-    if (!seen) window.localStorage.setItem(FIRST_DIVE_KEY, "1");
-    return !seen;
-  } catch {
-    return false;
-  }
-}
-
 /**
  * One non-blocking brand reveal for the visitor's first-ever browser visit.
  * App content renders underneath immediately; the surface split is decorative,
  * pointer-transparent and permanently suppressed after its first run.
  */
 export function FirstDiveIntro() {
-  const [visible, setVisible] = useState(claimFirstDive);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(FIRST_DIVE_KEY) === "1") return;
+      window.localStorage.setItem(FIRST_DIVE_KEY, "1");
+      setVisible(true);
+    } catch {
+      // Storage-restricted browsers simply skip the decorative first visit.
+    }
+  }, []);
 
   useEffect(() => {
     if (!visible) return;
