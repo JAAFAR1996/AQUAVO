@@ -1,7 +1,6 @@
 import { build as esbuild } from "esbuild";
 import { build as viteBuild } from "vite";
 import { rm, readFile, rename, mkdir } from "fs/promises";
-import { applyOrderCancellationFlow } from "./apply-order-cancellation-flow.js";
 
 // server deps to bundle to reduce openat(2) syscalls
 // which helps cold start times
@@ -34,11 +33,6 @@ const allowlist = [
 ];
 
 async function buildAll() {
-  // The production database rejects hard deletion of audited orders and owns
-  // canonical inventory reversal on `cancelled`. Patch the legacy admin source
-  // before bundling so deployments use the safe cancellation workflow.
-  await applyOrderCancellationFlow();
-
   await rm("dist", { recursive: true, force: true });
 
   console.log("building client...");
