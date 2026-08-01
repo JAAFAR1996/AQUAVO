@@ -52,7 +52,7 @@ export function observeMembranes(scope: ParentNode = document, root?: Element | 
   });
 }
 
-export function waterlineSweep(rows: ArrayLike<Element>, stagger = MOTION.stagger.normal) {
+export function waterlineSweep(rows: ArrayLike<Element>, stagger: number = MOTION.stagger.normal) {
   if (prefersReducedMotion()) return;
   const blur = isCompactViewport() ? 0 : MOTION.blur.variant;
   Array.prototype.forEach.call(rows, (node: Element, index: number) => {
