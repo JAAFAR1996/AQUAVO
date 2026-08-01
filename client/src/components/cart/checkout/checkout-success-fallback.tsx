@@ -30,6 +30,7 @@ export function CheckoutSuccessFallback({
 
             <h1
               id="checkout-success-title"
+              data-aqv-order-success
               ref={headingRef}
               tabIndex={-1}
               className="mt-5 text-2xl font-bold outline-none"
