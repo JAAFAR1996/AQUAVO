@@ -13,12 +13,13 @@
 // counter row are per-order, never global. The unique (order_id, sequence_number)
 // index remains as a backstop against out-of-band writes; it is NOT the allocator.
 import { randomUUID } from "node:crypto";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { getDb } from "../db.js";
 import {
   orderFulfillmentEvents, orderFulfillmentLines, packagingInventoryMovements,
   fulfillmentAdjustments, fulfillmentMaterials,
 } from "../../shared/schema.js";
+import { cartonReservations } from "../../shared/packing-schema.js";
 import { toMoneyOrNull } from "../../shared/order-financials.js";
 import { COST_COMPONENTS, type CostComponentType } from "../../shared/cost-components.js";
 import {
@@ -233,40 +234,92 @@ export async function confirmFulfillment(
         // does not exist, which silently corrupts both inventory and the cost
         // snapshots derived from it. An order that cannot be packed must fail
         // loudly here so someone restocks, not be waved through.
+        //
+        // WHY THE ORDER LOCK ABOVE IS NOT ENOUGH.
+        // `lockOrder` serialises one order against itself. Two DIFFERENT orders
+        // take two different locks, so before this both could read the same last
+        // carton, both pass, and both post a -1 -- driving the ledger negative
+        // with no constraint to stop it. Availability is also DERIVED from two
+        // aggregates (movements minus active reservations), so there is no single
+        // row a SELECT ... FOR UPDATE could pin. The material-scoped advisory lock
+        // below is the same primitive, and the same key convention, that
+        // carton-reservation-service already uses -- so a confirmation and a
+        // reservation contending for one carton now serialise against each other
+        // instead of racing.
+        const needByMaterial = new Map<string, number>();
         for (const l of frozen) {
           if (!l.materialId) continue;
+          // Aggregate per MATERIAL, not per line. Two lines of one event can carry
+          // the same material; checking each against the full balance separately
+          // let their SUM exceed it.
+          needByMaterial.set(
+            l.materialId,
+            (needByMaterial.get(l.materialId) ?? 0) + Math.abs(Number(l.quantity)),
+          );
+        }
 
-          // Only STOCK-TRACKED materials have a balance worth checking.
-          //
-          // A price label or a thank-you card is an accounting cost, not
-          // inventory: stock_tracked = false, no movements, and never any.
-          // Summing those yields 0, so guarding them rejected every order that
-          // carried one the moment the default profile started attaching them.
-          //
-          // stock_tracked is the ONLY sound discriminator here. "Has movements"
-          // looks tempting but is wrong: a real carton that has never been
-          // received also has none, and must still fail rather than be waved
-          // through at zero stock.
-          //
-          // Migration 0040 added the column with DEFAULT false and did not
-          // backfill, which would have left every pre-0040 material unguarded.
-          // 0050 backfills them to true, so this flag can be trusted.
-          const [material] = await tx
-            .select({ stockTracked: fulfillmentMaterials.stockTracked })
+        // Only STOCK-TRACKED materials have a balance worth checking.
+        //
+        // A price label or a thank-you card is an accounting cost, not inventory:
+        // stock_tracked = false, no movements, and never any. Summing those yields
+        // 0, so guarding them rejected every order that carried one the moment the
+        // default profile started attaching them. They are excluded from the locks
+        // as well as the balance check -- but still cost the order exactly once,
+        // because the cost lines below are written for every line regardless.
+        //
+        // stock_tracked is the ONLY sound discriminator here. "Has movements"
+        // looks tempting but is wrong: a real carton that has never been received
+        // also has none, and must still fail rather than be waved through at zero
+        // stock.
+        //
+        // Migration 0040 added the column with DEFAULT false and did not backfill,
+        // which would have left every pre-0040 material unguarded. 0050 backfills
+        // them to true, so this flag can be trusted.
+        const trackedIds: string[] = [];
+        if (needByMaterial.size > 0) {
+          const materials = await tx
+            .select({ id: fulfillmentMaterials.id, stockTracked: fulfillmentMaterials.stockTracked })
             .from(fulfillmentMaterials)
-            .where(eq(fulfillmentMaterials.id, l.materialId))
-            .limit(1);
-          if (!material?.stockTracked) continue;
+            .where(inArray(fulfillmentMaterials.id, [...needByMaterial.keys()]));
+          for (const m of materials) if (m.stockTracked) trackedIds.push(m.id);
+        }
+        // Sorted, so two orders needing the same two cartons can never deadlock by
+        // grabbing them in opposite orders. Same rule as reserveCartons.
+        trackedIds.sort();
 
-          const balRow = await tx
-            .select({ bal: sql<string>`COALESCE(SUM(${packagingInventoryMovements.quantity}), 0)` })
-            .from(packagingInventoryMovements)
-            .where(eq(packagingInventoryMovements.materialId, l.materialId));
+        for (const materialId of trackedIds) {
+          await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${`carton:${materialId}`}))`);
+        }
 
-          const available = Number(balRow[0]?.bal ?? 0);
-          const need = Math.abs(Number(l.quantity));
+        // Re-read both aggregates INSIDE the locks and validate.
+        for (const materialId of trackedIds) {
+          const need = needByMaterial.get(materialId) ?? 0;
+
+          // available(this order) = on_hand - active reservations held by OTHER orders.
+          //
+          // Deliberately NOT `on_hand - all active reservations`: this order's own
+          // reservation is its claim on that carton, so subtracting it would make
+          // reserving a carton the thing that prevents shipping it. Other orders'
+          // claims DO reduce what is free, which is what stops this order eating a
+          // carton someone else already holds.
+          const stockRows = await tx.execute(sql`
+            SELECT
+              COALESCE((SELECT SUM(quantity) FROM packaging_inventory_movements
+                         WHERE material_id = ${materialId}), 0) AS on_hand,
+              COALESCE((SELECT SUM(quantity) FROM carton_reservations
+                         WHERE material_id = ${materialId}
+                           AND state = 'active'
+                           AND order_id <> ${input.orderId}), 0) AS reserved_by_others
+          `);
+          const row = rowsOf<{ on_hand: string | number; reserved_by_others: string | number }>(stockRows)[0];
+          const onHand = Number(row?.on_hand ?? 0);
+          const reservedByOthers = Number(row?.reserved_by_others ?? 0);
+          const available = onHand - reservedByOthers;
+
           if (available - need < 0) {
-            throw new Error(`INSUFFICIENT_STOCK: material ${l.materialId} (available ${available}, need ${need})`);
+            throw new Error(
+              `INSUFFICIENT_STOCK: material ${materialId} (on hand ${onHand}, reserved by other orders ${reservedByOthers}, available ${available}, need ${need})`,
+            );
           }
         }
 
@@ -316,6 +369,30 @@ export async function confirmFulfillment(
               idempotencyKey: `use:${eventId}:${lineId}`, recordedBy: input.recordedBy ?? null,
             });
           }
+        }
+
+        // Close this order's own carton claims in the SAME transaction that just
+        // deducted the stock.
+        //
+        // The negative movement above IS the deduction; this only retires the
+        // claim, so it can never become a second one. Doing it here rather than on
+        // a later status transition removes the window where the stock was already
+        // gone but the reservation still read `active` -- during which the carton
+        // was subtracted twice from what other orders saw as available.
+        //
+        // Restricted to the materials THIS event actually deducted, so an
+        // adjustment covering a label cannot silently retire a carton claim.
+        // `consumeOrderReservations` on the shipping transition stays correct and
+        // becomes a no-op: it reports 0 and treats that as idempotent, not an error.
+        if (trackedIds.length > 0) {
+          await tx
+            .update(cartonReservations)
+            .set({ state: "consumed", consumedEventId: eventId, stateChangedAt: new Date() })
+            .where(and(
+              eq(cartonReservations.orderId, input.orderId),
+              eq(cartonReservations.state, "active"),
+              inArray(cartonReservations.materialId, trackedIds),
+            ));
         }
 
         return {

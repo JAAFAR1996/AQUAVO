@@ -31,7 +31,21 @@ export function readMigration(name: string): string {
   return readFileSync(join(process.cwd(), "migrations", name), "utf8");
 }
 
-/** The carton-catalogue columns, ready to exec after the fulfillment migrations. */
+/**
+ * The carton-catalogue columns AND the reservation table, ready to exec after
+ * the fulfillment migrations.
+ *
+ * 0042 is included because the confirmation stock guard now reads
+ * `carton_reservations` to work out how much stock is actually free — a harness
+ * carrying 0040 alone describes a schema the code no longer targets and fails
+ * with `relation "carton_reservations" does not exist`. Both files are
+ * idempotent (CREATE TABLE IF NOT EXISTS, guarded DO blocks), so a suite that
+ * already applies 0042 itself is unaffected.
+ */
 export function cartonCatalogDdl(): string {
-  return `${SCHEMA_MIGRATIONS_STUB}\n${readMigration("0040_packaging_carton_catalog.sql")}`;
+  return [
+    SCHEMA_MIGRATIONS_STUB,
+    readMigration("0040_packaging_carton_catalog.sql"),
+    readMigration("0042_carton_reservations.sql"),
+  ].join("\n");
 }
