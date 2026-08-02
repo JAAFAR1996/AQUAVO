@@ -1,4 +1,5 @@
 import { readFileSync, writeFileSync } from "node:fs";
+const BASE = "${BASE}";
 
 function replaceOnce(path, pattern, replacement, label) {
   const source = readFileSync(path, "utf8");
