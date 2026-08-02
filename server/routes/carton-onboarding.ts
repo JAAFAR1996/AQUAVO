@@ -17,10 +17,18 @@ const setupLimiter = rateLimit({
   message: { error: "طلبات كثيرة — انتظر دقيقة وحاول مرة ثانية" },
 });
 
+function todayUtc(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 const dateSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ بدء الكلفة غير صالح")
-  .refine((value) => !Number.isNaN(Date.parse(value + "T00:00:00.000Z")), "تاريخ بدء الكلفة غير صالح");
+  .refine((value) => !Number.isNaN(Date.parse(value + "T00:00:00.000Z")), "تاريخ بدء الكلفة غير صالح")
+  .refine(
+    (value) => value <= todayUtc(),
+    "تاريخ بدء الكلفة لا يمكن أن يكون في المستقبل عند إنشاء الكارتونة",
+  );
 
 export const cartonSetupSchema = z.object({
   name: z.string().trim().min(2).max(200),
