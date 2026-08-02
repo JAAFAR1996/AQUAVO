@@ -1,9 +1,10 @@
 name: Finance packaging correction
 
 on:
-  push:
+  pull_request:
     branches:
-      - fix/finance-packaging-onboarding-20260802
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -157,8 +158,9 @@ jobs:
           const candidateFailures = failedKeys(candidate, process.env.GITHUB_WORKSPACE);
           const baselineFailures = failedKeys(baseline, '/tmp/aquavo-base');
           const baselineSet = new Set(baselineFailures);
+          const candidateSet = new Set(candidateFailures);
           const newFailures = candidateFailures.filter((failure) => !baselineSet.has(failure));
-          const resolvedFailures = baselineFailures.filter((failure) => !new Set(candidateFailures).has(failure));
+          const resolvedFailures = baselineFailures.filter((failure) => !candidateSet.has(failure));
           const summary = {
             baseSha: process.env.BASE_SHA,
             candidate: {
