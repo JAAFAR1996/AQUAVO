@@ -1,0 +1,109 @@
+name: Finance packaging correction
+
+on:
+  push:
+    branches:
+      - fix/finance-packaging-onboarding-20260802
+
+permissions:
+  contents: write
+
+concurrency:
+  group: finance-packaging-correction
+  cancel-in-progress: false
+
+jobs:
+  apply-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: fix/finance-packaging-onboarding-20260802
+
+      - name: Prepare one-shot patch script
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/apply-finance-packaging-fix.mjs')
+          source = path.read_text(encoding='utf-8')
+          needle = 'import { readFileSync, writeFileSync } from "node:fs";\n'
+          prelude = '''import { readFileSync, writeFileSync } from "node:fs";
+          const BASE = "${BASE}";
+          const carton = {
+            internalLengthCm: "${carton.internalLengthCm}",
+            internalWidthCm: "${carton.internalWidthCm}",
+            internalHeightCm: "${carton.internalHeightCm}",
+          };
+          '''
+          if source.count(needle) != 1:
+              raise SystemExit('patch prelude insertion point not unique')
+          path.write_text(source.replace(needle, prelude, 1), encoding='utf-8')
+          PY
+
+      - name: Apply scoped code changes
+        run: node .github/scripts/apply-finance-packaging-fix.mjs
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm run check
+
+      - name: Server checks
+        run: pnpm run check:server
+
+      - name: Accounting checks
+        run: pnpm run check:accounting
+
+      - name: Accounting route checks
+        run: pnpm run check:accounting:routes
+
+      - name: Migration checks
+        run: pnpm run check:migrations
+
+      - name: Packaging focused tests
+        run: >-
+          pnpm exec vitest run
+          server/__tests__/carton-onboarding-service.test.ts
+          server/__tests__/carton-onboarding-route.test.ts
+          server/__tests__/packing-data-summary.test.ts
+          server/__tests__/packing-import.test.ts
+          client/src/pages/__tests__/finance-route-contract.test.ts
+          client/src/components/admin/packaging/__tests__/packing-import-preview.test.tsx
+          client/src/components/admin/packaging/__tests__/packaging-ui.test.tsx
+
+      - name: Full test suite
+        run: pnpm run test --run
+
+      - name: Production build
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+
+      - name: Diff whitespace check
+        run: git diff --check
+
+      - name: Commit verified correction
+        run: |
+          rm -f .github/scripts/apply-finance-packaging-fix.mjs
+          rm -f .github/workflows/finance-packaging-fix.yml
+          git config user.name "AQUAVO Automation"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "fix(finance): unify finance and carton onboarding"
+          git push origin HEAD:fix/finance-packaging-onboarding-20260802
