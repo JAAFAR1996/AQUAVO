@@ -11,6 +11,7 @@ import type { FulfillmentDb } from "../services/fulfillment-db.js";
 const ROOT = process.cwd();
 const base = readFileSync(join(ROOT, "migrations/add_fulfillment_costing.sql"), "utf8");
 const hardening = readFileSync(join(ROOT, "migrations/add_fulfillment_hardening.sql"), "utf8");
+const lineIdentity = readFileSync(join(ROOT, "migrations/add_pim_line_identity.sql"), "utf8");
 
 const auditTable = `
 CREATE TABLE IF NOT EXISTS accounting_audit_trail (
@@ -63,6 +64,7 @@ beforeEach(async () => {
   await client.exec(auditTable);
   await client.exec(base);
   await client.exec(hardening);
+  await client.exec(lineIdentity);
   await client.exec(cartonCatalogDdl());
   db = drizzle(client, { schema }) as unknown as FulfillmentDb;
 });
@@ -71,10 +73,10 @@ describe("atomic carton onboarding", () => {
   it("creates the carton, opening ledger movement, approved cost and audit records together", async () => {
     const result = await setupCartonAtomically(db, input(), actor);
     expect(result.replayed).toBe(false);
-    expect(await count("fulfillment_materials", "WHERE material_kind='carton' AND sku='BOX-M'")) .toBe(1);
-    expect(await count("packaging_inventory_movements", "WHERE material_id='" + result.cartonId + "'")) .toBe(1);
-    expect(await count("material_cost_records", "WHERE material_id='" + result.cartonId + "' AND approval_status='approved'")) .toBe(1);
-    expect(await count("accounting_audit_trail", "WHERE entity_id='" + result.cartonId + "'")) .toBeGreaterThanOrEqual(2);
+    expect(await count("fulfillment_materials", "WHERE material_kind='carton' AND sku='BOX-M'")).toBe(1);
+    expect(await count("packaging_inventory_movements", "WHERE material_id='" + result.cartonId + "'")).toBe(1);
+    expect(await count("material_cost_records", "WHERE material_id='" + result.cartonId + "' AND approval_status='approved'")).toBe(1);
+    expect(await count("accounting_audit_trail", "WHERE entity_id='" + result.cartonId + "'")).toBeGreaterThanOrEqual(2);
 
     const stock = await client.query<{ balance: number }>(
       `SELECT COALESCE(SUM(quantity),0)::int AS balance FROM packaging_inventory_movements WHERE material_id=$1`,
@@ -124,7 +126,7 @@ describe("atomic carton onboarding", () => {
       idempotencyKey: "carton-service-test-key-0002",
     }), actor)).rejects.toThrow(/DUPLICATE_CARTON_SKU/);
     expect(await count("fulfillment_materials")).toBe(1);
-    expect(await count("material_cost_records", "WHERE material_id='" + first.cartonId + "'")) .toBe(1);
+    expect(await count("material_cost_records", "WHERE material_id='" + first.cartonId + "'")).toBe(1);
   });
 
   it("does not affect accounting-only non-stock materials", async () => {
@@ -137,7 +139,7 @@ describe("atomic carton onboarding", () => {
     );
     expect(label.rows[0]?.stock_tracked).toBe(false);
     expect(label.rows[0]?.current_unit_cost).toBeNull();
-    expect(await count("packaging_inventory_movements", "WHERE material_id='price-label'")) .toBe(0);
+    expect(await count("packaging_inventory_movements", "WHERE material_id='price-label'")).toBe(0);
   });
 
   it("does not rewrite the first carton's historical cost record", async () => {
