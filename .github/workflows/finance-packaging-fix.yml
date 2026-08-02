@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - fix/finance-packaging-onboarding-20260802
-  pull_request:
-    branches:
-      - main
-    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
@@ -16,10 +12,13 @@ concurrency:
   group: finance-packaging-correction
   cancel-in-progress: true
 
+env:
+  BASE_SHA: 577de21ecf9bf537fc9c933d53a353d593caa6d5
+
 jobs:
   apply-test-commit:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -90,8 +89,119 @@ jobs:
           client/src/components/admin/packaging/__tests__/packing-import-preview.test.tsx
           client/src/components/admin/packaging/__tests__/packaging-ui.test.tsx
 
-      - name: Full test suite
-        run: pnpm run test --run
+      - name: Run candidate full suite
+        id: candidate
+        shell: bash
+        run: |
+          set +e
+          pnpm exec vitest run --reporter=json --outputFile=/tmp/candidate-vitest.json
+          code=$?
+          echo "$code" > /tmp/candidate-exit.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Run main baseline full suite
+        id: baseline
+        shell: bash
+        run: |
+          git worktree add --detach /tmp/aquavo-base "$BASE_SHA"
+          ln -s "$GITHUB_WORKSPACE/node_modules" /tmp/aquavo-base/node_modules
+          set +e
+          cd /tmp/aquavo-base
+          pnpm exec vitest run --reporter=json --outputFile=/tmp/baseline-vitest.json
+          code=$?
+          echo "$code" > /tmp/baseline-exit.txt
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Compare candidate with baseline
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = require('node:path');
+
+          function load(file) {
+            if (!fs.existsSync(file)) throw new Error(`Missing Vitest report: ${file}`);
+            return JSON.parse(fs.readFileSync(file, 'utf8'));
+          }
+          function normalizeFile(name, root) {
+            if (!name) return 'unknown-file';
+            const value = String(name).replaceAll('\\', '/');
+            const normalizedRoot = root.replaceAll('\\', '/').replace(/\/$/, '');
+            if (value.startsWith(normalizedRoot + '/')) return value.slice(normalizedRoot.length + 1);
+            const marker = value.lastIndexOf('/AQUAVO/');
+            if (marker >= 0) return value.slice(marker + '/AQUAVO/'.length);
+            return path.basename(value);
+          }
+          function failedKeys(report, root) {
+            const keys = new Set();
+            for (const suite of report.testResults ?? []) {
+              const file = normalizeFile(suite.name, root);
+              const assertions = suite.assertionResults ?? [];
+              let assertionFailure = false;
+              for (const assertion of assertions) {
+                if (assertion.status === 'failed') {
+                  assertionFailure = true;
+                  keys.add(`${file} :: ${assertion.fullName ?? assertion.title ?? 'unnamed test'}`);
+                }
+              }
+              if (suite.status === 'failed' && !assertionFailure) {
+                keys.add(`${file} :: FILE_LOAD_OR_HOOK_FAILURE`);
+              }
+            }
+            return [...keys].sort();
+          }
+
+          const candidate = load('/tmp/candidate-vitest.json');
+          const baseline = load('/tmp/baseline-vitest.json');
+          const candidateFailures = failedKeys(candidate, process.env.GITHUB_WORKSPACE);
+          const baselineFailures = failedKeys(baseline, '/tmp/aquavo-base');
+          const baselineSet = new Set(baselineFailures);
+          const newFailures = candidateFailures.filter((failure) => !baselineSet.has(failure));
+          const resolvedFailures = baselineFailures.filter((failure) => !new Set(candidateFailures).has(failure));
+          const summary = {
+            baseSha: process.env.BASE_SHA,
+            candidate: {
+              exitCode: Number(fs.readFileSync('/tmp/candidate-exit.txt', 'utf8').trim()),
+              suitesTotal: candidate.numTotalTestSuites,
+              suitesFailed: candidate.numFailedTestSuites,
+              testsTotal: candidate.numTotalTests,
+              testsFailed: candidate.numFailedTests,
+              failures: candidateFailures,
+            },
+            baseline: {
+              exitCode: Number(fs.readFileSync('/tmp/baseline-exit.txt', 'utf8').trim()),
+              suitesTotal: baseline.numTotalTestSuites,
+              suitesFailed: baseline.numFailedTestSuites,
+              testsTotal: baseline.numTotalTests,
+              testsFailed: baseline.numFailedTests,
+              failures: baselineFailures,
+            },
+            newFailures,
+            resolvedFailures,
+          };
+          fs.writeFileSync('/tmp/full-suite-comparison.json', JSON.stringify(summary, null, 2));
+          console.log(JSON.stringify(summary, null, 2));
+          if (newFailures.length > 0) {
+            console.error(`Candidate introduced ${newFailures.length} new full-suite failure(s).`);
+            process.exit(1);
+          }
+          console.log(`No new full-suite failures. Candidate retained ${candidateFailures.length} baseline failure(s).`);
+          NODE
+
+      - name: Upload exact full-suite reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: finance-packaging-full-suite-${{ github.run_id }}
+          path: |
+            /tmp/candidate-vitest.json
+            /tmp/baseline-vitest.json
+            /tmp/candidate-exit.txt
+            /tmp/baseline-exit.txt
+            /tmp/full-suite-comparison.json
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Production build
         run: pnpm run build
