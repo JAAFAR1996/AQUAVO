@@ -46,6 +46,7 @@ import { createInvoiceRouter } from "./routes/invoice.js";
 import { createFinanceAuditRouter } from "./routes/finance-audit.js";
 import fulfillmentAdminRouter from "./routes/fulfillment-admin.js";
 import packagingAdminRouter from "./routes/packaging-admin.js";
+import cartonOnboardingRouter from "./routes/carton-onboarding.js";
 import { createMcpRouter } from "./routes/mcp.js";
 import { createOAuthRouter } from "./routes/oauth.js";
 import { storage } from "./storage/index.js";
@@ -153,10 +154,8 @@ export async function registerRoutes(
   app.use("/api/admin/expenses", createExpensesRouter());
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
-  // Per-order fulfillment costing (materials, profiles, drafts, events, profitability).
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
-  // Carton planner: catalogue, stock, packing data, plans, alerts, return loss.
-  // Admin-guarded and rate-limited inside the router itself.
+  app.use("/api/admin/packaging", cartonOnboardingRouter);
   app.use("/api/admin/packaging", packagingAdminRouter);
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
