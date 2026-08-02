@@ -76,6 +76,7 @@ import {
   summariseImport,
   type RawSheetRow,
 } from "../services/packing-import-service.js";
+import { summarisePackingCompleteness } from "../services/packing-data-summary.js";
 
 const router = Router();
 
@@ -671,35 +672,43 @@ router.get(
   "/packing/missing",
   readLimiter,
   wrap(async (_req, res) => {
-    // The queue the planner's manual-review message links to: anything without a
-    // usable depth or weight can never produce an automatic plan.
     const rows = await db().execute(sql`
       SELECT p.id AS product_id, p.name AS product_name,
              d.variant_id, d.packed_height_cm, d.packed_width_cm,
              d.packed_depth_cm, d.packed_weight_kg,
-             d.can_support_items_above, d.max_supported_weight_above_kg
+             EXISTS (
+               SELECT 1
+                 FROM packing_import_draft_lines line
+                 JOIN packing_import_drafts draft ON draft.id = line.draft_id
+                WHERE line.matched_product_id = p.id
+                  AND line.match_confidence = 'probable'
+                  AND draft.state = 'reviewing'
+             ) AS manual_review
         FROM products p
-        LEFT JOIN product_packing_data d ON d.product_id = p.id
+        LEFT JOIN LATERAL (
+          SELECT packing.variant_id, packing.packed_height_cm, packing.packed_width_cm,
+                 packing.packed_depth_cm, packing.packed_weight_kg
+            FROM product_packing_data packing
+           WHERE packing.product_id = p.id
+           ORDER BY (packing.variant_id IS NULL) DESC, packing.updated_at DESC
+           LIMIT 1
+        ) d ON true
        WHERE p.deleted_at IS NULL
-         AND (d.id IS NULL OR d.packed_depth_cm IS NULL OR d.packed_weight_kg IS NULL
-              OR d.packed_height_cm IS NULL OR d.packed_width_cm IS NULL)
        ORDER BY p.name
-       LIMIT 500
+       LIMIT 5000
     `);
-    const list = Array.isArray(rows) ? rows : ((rows as { rows?: unknown[] }).rows ?? []);
-    res.json({
-      items: (list as Record<string, unknown>[]).map((r) => ({
-        productId: r.product_id,
-        productName: r.product_name,
-        variantId: r.variant_id,
-        missing: [
-          r.packed_height_cm == null ? "packed_height_cm" : null,
-          r.packed_width_cm == null ? "packed_width_cm" : null,
-          r.packed_depth_cm == null ? "packed_depth_cm" : null,
-          r.packed_weight_kg == null ? "packed_weight_kg" : null,
-        ].filter(Boolean),
-      })),
-    });
+    const list = (Array.isArray(rows) ? rows : ((rows as { rows?: unknown[] }).rows ?? [])) as Record<string, unknown>[];
+    const result = summarisePackingCompleteness(list.map((row) => ({
+      productId: String(row.product_id),
+      productName: String(row.product_name),
+      variantId: row.variant_id == null ? null : String(row.variant_id),
+      packedHeightCm: row.packed_height_cm,
+      packedWidthCm: row.packed_width_cm,
+      packedDepthCm: row.packed_depth_cm,
+      packedWeightKg: row.packed_weight_kg,
+      manualReview: row.manual_review === true,
+    })));
+    res.json(result);
   }),
 );
 

@@ -56,7 +56,6 @@ import { AiMonitorPanel } from "@/components/admin/ai-monitor-panel";
 import { AiLearningsPanel } from "@/components/admin/ai-learnings-panel";
 import { ProductVariantsManager } from "@/components/admin/product-variants-manager";
 import InvoicesList from "@/components/admin/invoices-list";
-import AccountingPanel from "@/components/admin/accounting-panel";
 import {
   Plus,
   Pencil,
@@ -195,7 +194,7 @@ function slugify(text: string): string {
 // select a non-existent panel.
 const ADMIN_SECTIONS = [
   "products", "ai-insights", "ai-monitor", "ai-learnings", "notifications",
-  "coupons", "orders", "invoices", "accounting", "customers", "reviews",
+  "coupons", "orders", "invoices", "customers", "reviews",
   "gallery", "audit-logs", "analytics", "security", "settings",
 ] as const;
 const ADMIN_SECTION_SET = new Set<string>(ADMIN_SECTIONS);
@@ -213,6 +212,12 @@ export default function AdminDashboard() {
   // Active admin section is mirrored into the URL (`?section=`) so a refresh,
   // a deep link, and browser back/forward all resolve to the right panel.
   const [activeSection, setActiveSection] = useState<string>(readSectionFromUrl);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("section") === "accounting") {
+      setLocation("/admin/finance");
+    }
+  }, [setLocation]);
 
   useEffect(() => {
     const onPop = () => setActiveSection(readSectionFromUrl());
@@ -685,14 +690,6 @@ export default function AdminDashboard() {
           </div>
           <Button
             variant="outline"
-            className="gap-2 border-green-300 text-green-700 hover:bg-green-50"
-            onClick={() => setLocation('/admin/finance')}
-          >
-            <Calculator className="w-4 h-4" />
-            الدخول إلى المحاسب
-          </Button>
-          <Button
-            variant="outline"
             className="gap-2 border-cyan-300 text-cyan-700 hover:bg-cyan-50"
             onClick={() => setLocation('/admin/partners')}
           >
@@ -781,7 +778,16 @@ export default function AdminDashboard() {
           >
             <TabsTrigger value="products" className="min-h-[44px]">المنتجات</TabsTrigger>
             <TabsTrigger value="orders" className="min-h-[44px]">الطلبات</TabsTrigger>
-            <TabsTrigger value="accounting" className="min-h-[44px]">💰 المحاسب</TabsTrigger>
+            <Button
+              type="button"
+              variant="ghost"
+              className="min-h-[44px] h-auto px-3 py-1.5 text-sm font-medium"
+              onClick={() => setLocation("/admin/finance")}
+              data-testid="link-finance-center"
+            >
+              <Calculator className="ml-2 h-4 w-4" />
+              <span>مركز المالية</span>
+            </Button>
             <TabsTrigger value="invoices" className="min-h-[44px]">فواتير واتساب</TabsTrigger>
             <TabsTrigger value="ai-insights" className="min-h-[44px]">🤖 AI</TabsTrigger>
             <TabsTrigger value="ai-monitor" className="min-h-[44px]">🔍 مراقبة AI</TabsTrigger>
@@ -801,10 +807,6 @@ export default function AdminDashboard() {
         {/* WhatsApp Invoices Tab */}
         <TabsContent value="invoices" className="space-y-4">
           <InvoicesList />
-        </TabsContent>
-
-        <TabsContent value="accounting" className="space-y-4">
-          <AccountingPanel />
         </TabsContent>
 
         {/* AI Insights Tab */}

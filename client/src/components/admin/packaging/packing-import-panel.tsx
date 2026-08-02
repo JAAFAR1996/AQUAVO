@@ -1,54 +1,32 @@
-// أبعاد تغليف المنتجات — استيراد ومراجعة قبل التطبيق.
-//
-// WHY CSV AND NOT .xlsx
-// The repo has no spreadsheet parser, and the npm `xlsx` package is no longer
-// maintained upstream. Adding an unmaintained binary-format parser to a
-// production accounting system to read a file the owner can export as CSV in two
-// clicks is a bad trade. The Arabic headers below survive that export unchanged,
-// so the locked column meanings are preserved exactly.
-//
-// WHAT THIS DELIBERATELY DOES NOT DO
-//   * it never writes product stock — «عدد القطع» is read and shown, and goes
-//     nowhere near inventory;
-//   * it never applies an `ambiguous` row, confirmed or not;
-//   * it never invents depth or weight. The sheet does not carry them, so every
-//     imported product stays incomplete for planning until the owner supplies
-//     them, and the planner keeps failing closed. That is the intended outcome,
-//     not a gap in the import.
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { useMemo, useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Ruler, Upload, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { AlertTriangle, FileSpreadsheet, Ruler, Upload } from "lucide-react";
 import {
   MATCH_CONFIDENCE_LABEL,
+  MISSING_FIELD_LABEL,
   UNKNOWN_LABEL,
   useConfirmPackingImport,
   useMissingPackingData,
   useUploadPackingImport,
-  MISSING_FIELD_LABEL,
   type ImportRawRow,
   type ImportRowView,
   type ImportSummaryView,
+  type MissingPackingRow,
 } from "@/hooks/use-packaging";
 import { translateError } from "./packaging-forms";
 
-/** Header text exactly as the owner's sheet carries it, typo included. */
 const HEADERS = {
   productName: ["اسم المنتج"],
   pieceCount: ["عدد القطع"],
-  // Both spellings accepted: the sheet has the typo, the spec writes it correctly.
   packedHeight: ["طول المنتج مع كارتونة"],
   packedWidth: ["عرض المنتج مع كارتونتة", "عرض المنتج مع كارتونة"],
   foldable: ["هل قابل للطي"],
 } as const;
 
-/**
- * Minimal RFC4180-ish CSV reader: quoted fields, escaped quotes, CRLF, BOM.
- * Enough for a spreadsheet export and nothing more.
- */
 export function parseCsv(text: string): string[][] {
   const src = text.replace(/^﻿/, "");
   const rows: string[][] = [];
@@ -75,8 +53,8 @@ export function parseCsv(text: string): string[][] {
 }
 
 function findColumn(header: string[], names: readonly string[]): number {
-  const norm = (s: string) => s.replace(/\s+/g, " ").trim();
-  return header.findIndex((h) => names.some((n) => norm(h) === norm(n)));
+  const norm = (value: string) => value.replace(/\s+/g, " ").trim();
+  return header.findIndex((cell) => names.some((name) => norm(cell) === norm(name)));
 }
 
 export interface MappedSheet {
@@ -84,228 +62,230 @@ export interface MappedSheet {
   missingHeaders: string[];
 }
 
-/** Map a CSV grid onto the upload contract. Row numbers are 1-based sheet rows. */
 export function mapSheet(grid: string[][]): MappedSheet {
-  if (!grid.length) return { rows: [], missingHeaders: Object.keys(HEADERS) };
+  if (!grid.length) return { rows: [], missingHeaders: [HEADERS.productName[0]] };
   const header = grid[0]!;
-  const idx = {
+  const indexes = {
     productName: findColumn(header, HEADERS.productName),
     pieceCount: findColumn(header, HEADERS.pieceCount),
     packedHeight: findColumn(header, HEADERS.packedHeight),
     packedWidth: findColumn(header, HEADERS.packedWidth),
     foldable: findColumn(header, HEADERS.foldable),
   };
-  // Only the product name is structurally required; the rest may be absent and
-  // simply stay unresolved rather than blocking the whole import.
-  const missingHeaders = idx.productName < 0 ? [HEADERS.productName[0]] : [];
-
+  const missingHeaders = indexes.productName < 0 ? [HEADERS.productName[0]] : [];
   const rows: ImportRawRow[] = [];
-  for (let r = 1; r < grid.length; r++) {
-    const line = grid[r]!;
-    const at = (i: number) => (i >= 0 && line[i] != null && line[i]!.trim() !== "" ? line[i]!.trim() : null);
-    const name = at(idx.productName);
-    if (!name) continue;
+
+  for (let rowIndex = 1; rowIndex < grid.length; rowIndex++) {
+    const line = grid[rowIndex]!;
+    const at = (index: number) => index >= 0 && line[index]?.trim() ? line[index]!.trim() : null;
+    const productName = at(indexes.productName);
+    if (!productName) continue;
     rows.push({
-      rowNumber: r + 1,
-      productName: name,
-      pieceCount: at(idx.pieceCount),
-      packedHeight: at(idx.packedHeight),
-      packedWidth: at(idx.packedWidth),
-      foldable: at(idx.foldable),
-    } as ImportRawRow);
+      rowNumber: rowIndex + 1,
+      productName,
+      pieceCount: at(indexes.pieceCount),
+      packedHeight: at(indexes.packedHeight),
+      packedWidth: at(indexes.packedWidth),
+      foldable: at(indexes.foldable),
+    });
   }
   return { rows, missingHeaders };
 }
 
-function SummaryChips({ s }: { s: ImportSummaryView }) {
+function SummaryChips({ summary }: { summary: ImportSummaryView }) {
   return (
     <div className="flex flex-wrap gap-2 text-xs" data-testid="import-summary">
-      <Badge variant="outline">الكل {s.total}</Badge>
-      <Badge variant="outline">مطابقة أكيدة {s.exact}</Badge>
-      <Badge variant="outline">محتملة {s.probable}</Badge>
-      <Badge variant={s.ambiguous > 0 ? "destructive" : "outline"}>غير محسومة {s.ambiguous}</Badge>
-      <Badge variant="outline">عندها طول {s.withHeight}</Badge>
-      <Badge variant="outline">عندها عرض {s.withWidth}</Badge>
-      {s.warnings > 0 && <Badge variant="destructive">تنبيهات {s.warnings}</Badge>}
+      <Badge variant="outline">الكل {summary.total}</Badge>
+      <Badge variant="outline">مطابقة أكيدة {summary.exact}</Badge>
+      <Badge variant="outline">مطابقة محتملة {summary.probable}</Badge>
+      <Badge variant={summary.ambiguous > 0 ? "destructive" : "outline"}>غير مطابقة أو غامضة {summary.ambiguous}</Badge>
+      {summary.warnings > 0 && <Badge variant="destructive">قيم تحتاج تدقيق {summary.warnings}</Badge>}
+    </div>
+  );
+}
+
+function LocalPreview({ rows }: { rows: ImportRawRow[] }) {
+  return (
+    <div className="space-y-2" data-testid="local-csv-preview">
+      <div className="flex items-center justify-between gap-2">
+        <strong className="text-sm">معاينة الصفوف قبل المطابقة</strong>
+        <Badge variant="outline">{rows.length} صف</Badge>
+      </div>
+      <div className="max-h-72 overflow-auto rounded-md border">
+        <table className="w-full min-w-[620px] text-xs">
+          <thead className="sticky top-0 bg-background">
+            <tr className="border-b">
+              <th className="p-2 text-right">الصف</th>
+              <th className="p-2 text-right">اسم المنتج</th>
+              <th className="p-2 text-right">عدد القطع</th>
+              <th className="p-2 text-right">الارتفاع</th>
+              <th className="p-2 text-right">العرض</th>
+              <th className="p-2 text-right">قابل للطي</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.slice(0, 50).map((row) => (
+              <tr key={String(row.rowNumber)} className="border-b last:border-0">
+                <td className="p-2">{String(row.rowNumber ?? "")}</td>
+                <td className="p-2 font-medium">{String(row.productName ?? "")}</td>
+                <td className="p-2">{String(row.pieceCount ?? "—")}</td>
+                <td className="p-2">{String(row.packedHeight ?? "—")}</td>
+                <td className="p-2">{String(row.packedWidth ?? "—")}</td>
+                <td className="p-2">{String(row.foldable ?? "—")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {rows.length > 50 && <p className="text-xs text-muted-foreground">تظهر أول 50 صف بالمعاينة، وكل الصفوف تُحلل عند المطابقة.</p>}
+    </div>
+  );
+}
+
+function MatchedRows({ rows, confirmed, setConfirmed }: {
+  rows: ImportRowView[];
+  confirmed: Set<number>;
+  setConfirmed: (next: Set<number>) => void;
+}) {
+  return (
+    <div className="max-h-[420px] space-y-2 overflow-auto rounded-md border p-2" data-testid="matched-import-rows">
+      {rows.map((row) => {
+        const probable = row.matchConfidence === "probable";
+        const ambiguous = row.matchConfidence === "ambiguous";
+        return (
+          <div key={row.rowNumber} className="space-y-1 rounded-md border p-2 text-xs" data-testid={`import-row-${row.rowNumber}`}>
+            <div className="flex flex-wrap items-center gap-2">
+              {probable && (
+                <input
+                  type="checkbox"
+                  checked={confirmed.has(row.rowNumber)}
+                  onChange={(event) => {
+                    const next = new Set(confirmed);
+                    if (event.target.checked) next.add(row.rowNumber); else next.delete(row.rowNumber);
+                    setConfirmed(next);
+                  }}
+                  aria-label={`تأكيد الصف ${row.rowNumber}`}
+                />
+              )}
+              <strong>{row.rawProductName}</strong>
+              <Badge variant={ambiguous ? "destructive" : "outline"}>{MATCH_CONFIDENCE_LABEL[row.matchConfidence]}</Badge>
+              <span className="text-muted-foreground">← {row.matchCandidates[0]?.name ?? "لا توجد مطابقة"}</span>
+            </div>
+            <div className="flex flex-wrap gap-3 text-muted-foreground">
+              <span>الارتفاع: {row.packedHeightCm ?? UNKNOWN_LABEL}</span>
+              <span>العرض: {row.packedWidthCm ?? UNKNOWN_LABEL}</span>
+            </div>
+            {row.parseWarnings.length > 0 && <p className="text-destructive">{row.parseWarnings.join("، ")}</p>}
+            {ambiguous && <p className="text-destructive">هذا الصف لن يُطبّق. صحّح الاسم في الملف ثم أعد الاستيراد.</p>}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 export function PackingImportPanel() {
   const [fileName, setFileName] = useState<string | null>(null);
-  const [preview, setPreview] = useState<{
-    draftId: string; summary: ImportSummaryView; rows: ImportRowView[];
-  } | null>(null);
+  const [selectedRows, setSelectedRows] = useState<ImportRawRow[]>([]);
+  const [preview, setPreview] = useState<{ draftId: string; summary: ImportSummaryView; rows: ImportRowView[] } | null>(null);
   const [confirmed, setConfirmed] = useState<Set<number>>(new Set());
   const [reason, setReason] = useState("");
   const [readError, setReadError] = useState<string | null>(null);
-
   const upload = useUploadPackingImport();
   const confirm = useConfirmPackingImport(preview?.draftId ?? "");
 
   async function onFile(file: File) {
-    setReadError(null); setPreview(null); setConfirmed(new Set());
+    setReadError(null);
+    setPreview(null);
+    setConfirmed(new Set());
     setFileName(file.name);
-    const text = await file.text();
-    const { rows, missingHeaders } = mapSheet(parseCsv(text));
-    if (missingHeaders.length) {
-      setReadError(`ما لكيت العمود المطلوب: ${missingHeaders.join("، ")}`);
+    const mapped = mapSheet(parseCsv(await file.text()));
+    if (mapped.missingHeaders.length) {
+      setSelectedRows([]);
+      setReadError(`ما لكيت العمود المطلوب: ${mapped.missingHeaders.join("، ")}`);
       return;
     }
-    if (!rows.length) {
+    if (!mapped.rows.length) {
+      setSelectedRows([]);
       setReadError("الملف ماكو بيه أسطر فيها اسم منتج.");
       return;
     }
+    // اختيار الملف ومعاينته محلي فقط. لا يتم إنشاء مسودة ولا كتابة أي شيء هنا.
+    setSelectedRows(mapped.rows);
+  }
+
+  function analyzeAndMatch() {
+    if (!fileName || selectedRows.length === 0) return;
     upload.mutate(
-      { fileName: file.name, rows },
-      { onSuccess: (d) => setPreview(d) },
+      { fileName, rows: selectedRows },
+      { onSuccess: (data) => { setPreview(data); setConfirmed(new Set()); } },
     );
   }
 
-  const probable = preview?.rows.filter((r) => r.matchConfidence === "probable") ?? [];
-  const ambiguous = preview?.rows.filter((r) => r.matchConfidence === "ambiguous") ?? [];
   const canConfirm = Boolean(preview) && reason.trim().length >= 3 && !confirm.isPending;
 
   return (
     <Card dir="rtl" data-testid="panel-packing-import">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Ruler className="h-5 w-5" />
-          أبعاد تغليف المنتجات
-        </CardTitle>
-        <p className="text-muted-foreground text-sm">
-          استورد ملف القياسات، شوف المعاينة، وبعدين طبّق. ما ينطبق شي قبل ما تأكد.
-        </p>
+        <CardTitle className="flex items-center gap-2 text-lg"><Ruler className="h-5 w-5" />بيانات تغليف المنتجات</CardTitle>
+        <p className="text-sm text-muted-foreground">اختيار الملف لا يكتب بيانات. راجع الصفوف، طابق المنتجات، ثم وافق صراحة قبل التطبيق.</p>
       </CardHeader>
+      <CardContent className="space-y-5">
+        <div className="grid gap-2 sm:grid-cols-4" aria-label="مراحل الاستيراد">
+          {["1. اختيار الملف", "2. معاينة الصفوف", "3. مطابقة وتحقق", "4. موافقة وتطبيق"].map((label) => (
+            <div key={label} className="rounded-md border p-2 text-center text-xs font-medium">{label}</div>
+          ))}
+        </div>
 
-      <CardContent className="space-y-4">
         <Alert>
+          <FileSpreadsheet className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            صدّر الشيت من Excel بصيغة <strong>CSV UTF-8</strong>. العناوين المطلوبة:
-            «اسم المنتج»، «عدد القطع»، «طول المنتج مع كارتونة»، «عرض المنتج مع كارتونتة»،
-            «هل قابل للطي».
-            <br />
-            «عدد القطع» للمعلومة فقط — ما يمس مخزون المنتجات إطلاقاً.
-            <br />
-            الشيت ما يحتوي <strong>السماكة</strong> ولا <strong>الوزن</strong>، فهذولا يبقون
-            ناقصين بعد الاستيراد والمخطط التلقائي يبقى متوقف للمنتجات هاي.
+            استخدم CSV UTF-8. «عدد القطع» للمعلومة فقط وما يمس مخزون المنتجات أو الكراتين أو عدد الوحدات. النظام لا يخمّن الوزن أو السماكة/العمق أو أي قياس ناقص.
           </AlertDescription>
         </Alert>
 
         <div className="flex flex-wrap items-center gap-2">
           <label className="inline-flex">
             <input
-              type="file" accept=".csv,text/csv" className="hidden"
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
               data-testid="input-import-file"
-              onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f); }}
+              onChange={(event) => { const file = event.target.files?.[0]; if (file) void onFile(file); }}
             />
-            <Button asChild variant="outline" size="sm">
-              <span className="cursor-pointer">
-                <Upload className="ml-2 h-4 w-4" />
-                اختيار ملف CSV
-              </span>
-            </Button>
+            <Button asChild variant="outline" size="sm"><span className="cursor-pointer"><Upload className="ml-2 h-4 w-4" />اختيار ملف CSV</span></Button>
           </label>
-          {fileName && <span className="text-muted-foreground text-xs">{fileName}</span>}
-          {upload.isPending && <span className="text-muted-foreground text-xs">جاري التحليل…</span>}
+          {fileName && <span className="text-xs text-muted-foreground">{fileName}</span>}
         </div>
 
-        {readError && (
-          <Alert variant="destructive" data-testid="import-read-error">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription className="text-xs">{readError}</AlertDescription>
-          </Alert>
+        {readError && <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertDescription>{readError}</AlertDescription></Alert>}
+
+        {selectedRows.length > 0 && !preview && (
+          <div className="space-y-3">
+            <LocalPreview rows={selectedRows} />
+            <Button onClick={analyzeAndMatch} disabled={upload.isPending} data-testid="button-analyze-import">
+              {upload.isPending ? "جاري التحليل والمطابقة…" : "تحليل ومطابقة المنتجات"}
+            </Button>
+          </div>
         )}
-        {upload.error != null && (
-          <Alert variant="destructive" data-testid="import-upload-error">
-            <AlertDescription className="text-xs">
-              {translateError(upload.error instanceof Error ? upload.error.message : String(upload.error))}
-            </AlertDescription>
-          </Alert>
-        )}
+
+        {upload.error && <Alert variant="destructive"><AlertDescription>{translateError(upload.error instanceof Error ? upload.error.message : String(upload.error))}</AlertDescription></Alert>}
 
         {preview && (
           <div className="space-y-3" data-testid="import-preview">
-            <SummaryChips s={preview.summary} />
-
-            {ambiguous.length > 0 && (
-              <Alert variant="destructive" data-testid="ambiguous-notice">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  {ambiguous.length} سطر ما انحسم اسم منتجه. هذولا <strong>ما راح ينطبقون</strong>،
-                  حتى لو أشّرتهم — اختيار منتج بالحزر يخرب البيانات. صلّح الأسماء بالشيت وأعد الاستيراد.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {probable.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-sm font-semibold">
-                  مطابقات محتملة — أشّر اللي تريد تأكيده ({confirmed.size}/{probable.length})
-                </div>
-                {probable.map((r) => (
-                  <label
-                    key={r.rowNumber}
-                    className="flex flex-wrap items-center gap-2 rounded-md border p-2 text-xs"
-                    data-testid={`import-row-${r.rowNumber}`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={confirmed.has(r.rowNumber)}
-                      onChange={(e) => setConfirmed((p) => {
-                        const n = new Set(p);
-                        if (e.target.checked) n.add(r.rowNumber); else n.delete(r.rowNumber);
-                        return n;
-                      })}
-                      data-testid={`checkbox-row-${r.rowNumber}`}
-                    />
-                    <span className="font-medium">{r.rawProductName}</span>
-                    <span className="text-muted-foreground">
-                      {r.matchCandidates[0]?.name ?? UNKNOWN_LABEL}
-                    </span>
-                    <Badge variant="outline">{MATCH_CONFIDENCE_LABEL[r.matchConfidence]}</Badge>
-                  </label>
-                ))}
-              </div>
-            )}
-
-            <Input
-              value={reason} onChange={(e) => setReason(e.target.value)}
-              placeholder="سبب الاستيراد (إجباري)" data-testid="input-import-reason"
-            />
-
-            {confirm.error != null && (
-              <Alert variant="destructive" data-testid="import-confirm-error">
-                <AlertDescription className="text-xs">
-                  {translateError(confirm.error instanceof Error ? confirm.error.message : String(confirm.error))}
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {confirm.isSuccess && (
-              <Alert data-testid="import-done">
-                <AlertDescription className="text-xs">
-                  انطبّق الاستيراد. السماكة والوزن لسه ناقصين — راجع «بيانات تغليف ناقصة».
-                </AlertDescription>
-              </Alert>
-            )}
-
+            <SummaryChips summary={preview.summary} />
+            <MatchedRows rows={preview.rows} confirmed={confirmed} setConfirmed={setConfirmed} />
+            <Input value={reason} onChange={(event) => setReason(event.target.value)} placeholder="سبب الاستيراد (إجباري)" data-testid="input-import-reason" />
+            {confirm.error && <Alert variant="destructive"><AlertDescription>{translateError(confirm.error instanceof Error ? confirm.error.message : String(confirm.error))}</AlertDescription></Alert>}
+            {confirm.isSuccess && <Alert data-testid="import-done"><AlertDescription>تم تطبيق الصفوف المقبولة فقط. لم يتغير أي مخزون.</AlertDescription></Alert>}
             <Button
-              size="sm"
               disabled={!canConfirm}
-              onClick={() => confirm.mutate({
-                // Array.from, not spread: the tsconfig target predates
-                // downlevelIteration and spreading a Set fails to compile.
-                confirmedRowNumbers: Array.from(confirmed),
-                reason: reason.trim(),
-              })}
+              onClick={() => confirm.mutate({ confirmedRowNumbers: Array.from(confirmed), reason: reason.trim() })}
               data-testid="button-confirm-import"
             >
-              {confirm.isPending ? "جاري التطبيق…" : "تطبيق الاستيراد"}
+              {confirm.isPending ? "جاري التطبيق…" : "موافقة صريحة وتطبيق البيانات"}
             </Button>
-            <p className="text-muted-foreground text-xs">
-              المطابقات الأكيدة تنطبق تلقائياً. المحتملة تنطبق فقط إذا أشّرتها. غير المحسومة ما تنطبق أبداً.
-            </p>
+            <p className="text-xs text-muted-foreground">المطابقات الأكيدة تُقبل، المحتملة تحتاج تأشيرك، والغامضة لا تُطبّق أبداً.</p>
           </div>
         )}
 
@@ -315,35 +295,75 @@ export function PackingImportPanel() {
   );
 }
 
-/** Current state of the catalogue: who still cannot be planned, and why. */
+type MissingFilter = "all" | "complete" | "incomplete" | "no-weight" | "no-depth" | "review";
+
+function matchesFilter(row: MissingPackingRow, filter: MissingFilter): boolean {
+  if (filter === "complete") return row.complete;
+  if (filter === "incomplete") return !row.complete;
+  if (filter === "no-weight") return row.missing.includes("packed_weight_kg");
+  if (filter === "no-depth") return row.missing.includes("packed_depth_cm");
+  if (filter === "review") return row.manualReview;
+  return true;
+}
+
 function MissingDataQueue() {
   const { data, isLoading } = useMissingPackingData();
+  const [filter, setFilter] = useState<MissingFilter>("all");
   const items = data?.items ?? [];
+  const summary = data?.summary;
+  const filtered = useMemo(() => items.filter((item) => matchesFilter(item, filter)), [items, filter]);
+  const filters: Array<[MissingFilter, string]> = [
+    ["all", "الكل"],
+    ["complete", "مكتملة"],
+    ["incomplete", "ناقصة"],
+    ["no-weight", "بدون وزن"],
+    ["no-depth", "بدون عمق"],
+    ["review", "تحتاج مراجعة"],
+  ];
 
   return (
-    <div className="space-y-2 border-t pt-3" data-testid="missing-data-queue">
-      <div className="flex items-center gap-2 text-sm font-semibold">
-        بيانات تغليف ناقصة
-        {items.length > 0 && <Badge variant="destructive">{items.length}</Badge>}
+    <div className="space-y-4 border-t pt-4" data-testid="missing-data-queue">
+      <div>
+        <h3 className="font-semibold">حالة بيانات التغليف</h3>
+        <p className="text-xs text-muted-foreground">نقص بيانات منتج يمنع التخطيط التلقائي لهذا المنتج فقط، ولا يوقف المتجر بالكامل.</p>
       </div>
-      {isLoading && <p className="text-muted-foreground text-sm">جاري التحميل…</p>}
-      {!isLoading && items.length === 0 && (
-        <p className="text-sm">كل المنتجات عندها بيانات تغليف كاملة.</p>
+
+      {summary && (
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          <Counter label="بدون ارتفاع بعد التغليف" value={summary.withoutHeight} />
+          <Counter label="بدون عرض بعد التغليف" value={summary.withoutWidth} />
+          <Counter label="بدون عمق بعد التغليف" value={summary.withoutDepth} />
+          <Counter label="بدون وزن بعد التغليف" value={summary.withoutWeight} />
+          <Counter label="بيانات مكتملة" value={summary.complete} />
+          <Counter label="تحتاج مراجعة يدوية" value={summary.manualReview} />
+          <Counter label="إجمالي المنتجات المتأثرة بشكل فريد" value={summary.affectedUnique} />
+          <Counter label="إجمالي المنتجات المفحوصة" value={summary.total} />
+        </div>
       )}
-      <ul className="space-y-1">
-        {items.map((m) => (
-          <li
-            key={`${m.productId}-${m.variantId ?? ""}`}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2 text-xs"
-            data-testid={`missing-row-${m.productId}`}
-          >
-            <span className="font-medium">{m.productName}</span>
-            <span className="text-muted-foreground">
-              ناقص: {m.missing.map((f) => MISSING_FIELD_LABEL[f] ?? f).join("، ")}
-            </span>
+
+      <div className="flex flex-wrap gap-2">
+        {filters.map(([value, label]) => (
+          <Button key={value} size="sm" variant={filter === value ? "default" : "outline"} onClick={() => setFilter(value)}>{label}</Button>
+        ))}
+      </div>
+
+      {isLoading && <p className="text-sm text-muted-foreground">جاري التحميل…</p>}
+      {!isLoading && filtered.length === 0 && <p className="text-sm text-muted-foreground">ماكو منتجات ضمن هذا الفلتر.</p>}
+      <ul className="max-h-[420px] space-y-1 overflow-auto">
+        {filtered.map((item) => (
+          <li key={`${item.productId}-${item.variantId ?? ""}`} className="flex flex-wrap items-center justify-between gap-2 rounded-md border p-2 text-xs" data-testid={`missing-row-${item.productId}`}>
+            <span className="font-medium">{item.productName}</span>
+            <div className="flex flex-wrap items-center gap-2">
+              {item.complete ? <Badge variant="outline">مكتملة</Badge> : <span className="text-muted-foreground">ناقص: {item.missing.map((field) => MISSING_FIELD_LABEL[field] ?? field).join("، ")}</span>}
+              {item.manualReview && <Badge variant="secondary">تحتاج مراجعة</Badge>}
+            </div>
           </li>
         ))}
       </ul>
     </div>
   );
+}
+
+function Counter({ label, value }: { label: string; value: number }) {
+  return <div className="rounded-md border p-3"><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 text-xl font-bold">{value}</div></div>;
 }

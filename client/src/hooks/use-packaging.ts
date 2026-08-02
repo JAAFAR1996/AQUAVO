@@ -77,6 +77,19 @@ export interface MissingPackingRow {
   productName: string;
   variantId: string | null;
   missing: string[];
+  complete: boolean;
+  manualReview: boolean;
+}
+
+export interface MissingPackingSummary {
+  withoutHeight: number;
+  withoutWidth: number;
+  withoutDepth: number;
+  withoutWeight: number;
+  complete: number;
+  manualReview: number;
+  affectedUnique: number;
+  total: number;
 }
 
 export interface SafetyRejectionView {
@@ -189,7 +202,9 @@ export function useCartonStock(cartonId: string | null) {
 }
 
 export function useMissingPackingData() {
-  return useQuery<{ items: MissingPackingRow[] }>({ queryKey: [`${BASE}/packing/missing`] });
+  return useQuery<{ items: MissingPackingRow[]; summary: MissingPackingSummary }>({
+    queryKey: [`${BASE}/packing/missing`],
+  });
 }
 
 export function useStockAlerts() {
@@ -236,6 +251,36 @@ export function useCreateCarton() {
       return res.json();
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] }),
+  });
+}
+
+export interface CartonSetupInput {
+  name: string;
+  sku: string;
+  notes?: string;
+  internalLengthCm: number;
+  internalWidthCm: number;
+  internalHeightCm: number;
+  maxWeightKg: number;
+  lowStockThreshold: number;
+  openingQuantity: number;
+  unitCostIqd: number;
+  costEffectiveDate: string;
+  costSource: string;
+  idempotencyKey: string;
+}
+
+export function useSetupCarton() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: CartonSetupInput) => {
+      const res = await apiRequest("POST", `${BASE}/cartons/setup`, input);
+      return res.json();
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] });
+      void qc.invalidateQueries({ queryKey: [`${BASE}/alerts`] });
+    },
   });
 }
 

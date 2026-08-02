@@ -33,17 +33,18 @@ function renderWithClient(ui: ReactElement, seed: Array<[string, unknown]> = [])
 const BASE = "/api/admin/packaging";
 
 describe("التغليف والكراتين is reachable from the finance centre", () => {
-  it("renders the four owner-facing panels as RTL tabs", async () => {
+  it("renders the primary carton workspace and keeps detailed panels under advanced management", async () => {
     const { PackagingSection } = await import("../packaging-section");
     renderWithClient(<PackagingSection />);
 
     const section = screen.getByTestId("section-packaging");
     expect(section).toHaveAttribute("dir", "rtl");
-
-    expect(screen.getByTestId("tab-preparation")).toHaveTextContent("تكاليف تجهيز الطلب");
-    expect(screen.getByTestId("tab-cartons")).toHaveTextContent("أنواع الكراتين");
-    expect(screen.getByTestId("tab-packing")).toHaveTextContent("أبعاد تغليف المنتجات");
-    expect(screen.getByTestId("tab-stock")).toHaveTextContent("مخزون وتنبيهات الكراتين");
+    expect(screen.getByTestId("button-add-carton-primary")).toHaveTextContent("إضافة كارتونة جديدة");
+    expect(screen.getByTestId("advanced-packaging-toggle")).toHaveTextContent("إدارة متقدمة");
+    expect(screen.getByTestId("tab-preparation")).toHaveTextContent("مواد تجهيز الطلب");
+    expect(screen.getByTestId("tab-cartons")).toHaveTextContent("تفاصيل الكراتين");
+    expect(screen.getByTestId("tab-packing")).toHaveTextContent("بيانات تغليف المنتجات");
+    expect(screen.getByTestId("tab-stock")).toHaveTextContent("تنبيهات المخزون");
   });
 
   it("states up front that packaging cost never changes what the customer pays", async () => {
@@ -139,40 +140,51 @@ describe("preparation material data entry", () => {
 });
 
 describe("carton data entry", () => {
-  it("shows an empty state that refuses to invent a carton, and an add form", async () => {
-    const { CartonCatalogPanel } = await import("../packaging-panels");
-    renderWithClient(<CartonCatalogPanel />, [[`${BASE}/cartons`, { items: [] }]]);
+  it("shows the required no-cartons state and unified add action", async () => {
+    const { CartonWorkspace } = await import("../carton-onboarding");
+    renderWithClient(<CartonWorkspace onOpenImport={() => undefined} />, [[`${BASE}/cartons`, { items: [] }]]);
 
-    expect(screen.getByTestId("no-cartons-notice")).toHaveTextContent(/ما يخترع ولا كارتونة/);
-    expect(screen.getByTestId("button-add-carton")).toBeInTheDocument();
+    expect(screen.getByTestId("empty-cartons-state")).toHaveTextContent("ماكو كراتين مسجلة بعد");
+    expect(screen.getByTestId("empty-cartons-state")).toHaveTextContent("أضف أول نوع كارتونة");
+    expect(screen.getByTestId("button-add-carton-primary")).toBeInTheDocument();
   });
 
-  it("requires name, sku and all four measurements before saving", async () => {
+  it("collects carton identity, measurements, safety, stock and cost before review", async () => {
     const user = userEvent.setup();
-    const { CartonCatalogPanel } = await import("../packaging-panels");
-    renderWithClient(<CartonCatalogPanel />, [[`${BASE}/cartons`, { items: [] }]]);
+    const { CartonWorkspace } = await import("../carton-onboarding");
+    renderWithClient(<CartonWorkspace onOpenImport={() => undefined} />, [[`${BASE}/cartons`, { items: [] }]]);
 
-    await user.click(screen.getByTestId("button-add-carton"));
-    const save = screen.getByTestId("button-save-carton");
-    expect(save).toBeDisabled();
+    await user.click(screen.getByTestId("button-add-carton-primary"));
+    await user.click(screen.getByTestId("button-review-carton"));
+    expect(screen.queryByTestId("carton-onboarding-review")).not.toBeInTheDocument();
 
-    await user.type(screen.getByTestId("input-carton-name"), "كارتونة وسط");
-    await user.type(screen.getByTestId("input-carton-sku"), "BOX-M");
-    expect(save).toBeDisabled(); // measurements still missing
+    await user.type(screen.getByTestId("carton-name"), "كارتونة وسط");
+    await user.type(screen.getByTestId("carton-sku"), "BOX-M");
+    await user.type(screen.getByTestId("carton-length"), "27");
+    await user.type(screen.getByTestId("carton-width"), "20");
+    await user.type(screen.getByTestId("carton-height"), "14");
+    await user.type(screen.getByTestId("carton-max-weight"), "8");
+    await user.clear(screen.getByTestId("carton-threshold"));
+    await user.type(screen.getByTestId("carton-threshold"), "5");
+    await user.clear(screen.getByTestId("carton-opening-quantity"));
+    await user.type(screen.getByTestId("carton-opening-quantity"), "20");
+    await user.type(screen.getByTestId("carton-unit-cost"), "1000");
+    await user.type(screen.getByLabelText("ملاحظة أو مصدر الكلفة"), "فاتورة المورد");
+    await user.click(screen.getByTestId("button-review-carton"));
 
-    await user.type(screen.getByTestId("input-carton-internalLengthCm"), "27");
-    await user.type(screen.getByTestId("input-carton-internalWidthCm"), "20");
-    await user.type(screen.getByTestId("input-carton-internalHeightCm"), "14");
-    await user.type(screen.getByTestId("input-carton-maxWeightKg"), "6");
-    expect(save).toBeEnabled();
+    const review = screen.getByTestId("carton-onboarding-review");
+    expect(review).toHaveTextContent("BOX-M");
+    expect(review).toHaveTextContent("27 × 20 × 14 سم");
+    expect(review).toHaveTextContent("20");
+    expect(review).toHaveTextContent("1,000 د.ع");
   });
 
-  it("tells the owner the measurements must be internal", async () => {
+  it("tells the owner that carton measurements are internal", async () => {
     const user = userEvent.setup();
-    const { CartonCatalogPanel } = await import("../packaging-panels");
-    renderWithClient(<CartonCatalogPanel />, [[`${BASE}/cartons`, { items: [] }]]);
-    await user.click(screen.getByTestId("button-add-carton"));
-    expect(screen.getByTestId("form-add-carton")).toHaveTextContent(/داخلية/);
+    const { CartonWorkspace } = await import("../carton-onboarding");
+    renderWithClient(<CartonWorkspace onOpenImport={() => undefined} />, [[`${BASE}/cartons`, { items: [] }]]);
+    await user.click(screen.getByTestId("button-add-carton-primary"));
+    expect(screen.getByTestId("carton-onboarding-form")).toHaveTextContent("القياسات الداخلية");
   });
 });
 
