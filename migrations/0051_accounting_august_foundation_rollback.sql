@@ -1,0 +1,20 @@
+-- 0051_accounting_august_foundation_rollback.sql
+BEGIN;
+DO $$ BEGIN IF EXISTS(SELECT 1 FROM public.order_accounting_facts) THEN RAISE EXCEPTION 'ROLLBACK_BLOCKED: immutable August accounting facts exist';END IF;END $$;
+DROP TRIGGER IF EXISTS expenses_prepare_accounting ON public.expenses;
+DROP TRIGGER IF EXISTS order_accounting_facts_immutable ON public.order_accounting_facts;
+DROP TRIGGER IF EXISTS order_accounting_settlements_immutable ON public.order_accounting_settlements;
+DROP FUNCTION IF EXISTS public.prepare_expense_accounting_fields();
+DROP FUNCTION IF EXISTS public.reject_immutable_accounting_fact_change();
+DROP FUNCTION IF EXISTS public.aquavo_active_cutover();
+DROP TABLE IF EXISTS public.opening_inventory_snapshot;
+DROP TABLE IF EXISTS public.order_accounting_settlements;
+DROP TABLE IF EXISTS public.order_accounting_facts;
+DROP TABLE IF EXISTS public.journal_lines;
+DROP TABLE IF EXISTS public.journal_entries;
+DROP TABLE IF EXISTS public.chart_of_accounts;
+DROP TABLE IF EXISTS public.tax_profiles;
+DROP TABLE IF EXISTS public.evidence_files;
+DROP TABLE IF EXISTS public.accounting_cutovers;
+UPDATE public.schema_migrations SET rolled_back_at=now() WHERE version='0051_accounting_august_foundation';
+COMMIT;
