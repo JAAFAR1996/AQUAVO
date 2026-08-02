@@ -9,6 +9,7 @@
 // client never pulls server modules into its bundle.
 // ─────────────────────────────────────────────────────────────────────────────
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { apiRequest } from "@/lib/queryClient";
 
 const BASE = "/api/admin/packaging";
@@ -270,12 +271,20 @@ export interface CartonSetupInput {
   idempotencyKey: string;
 }
 
+const cartonSetupResponseSchema = z.object({
+  cartonId: z.string(),
+  costRecordId: z.string(),
+  openingMovementId: z.string().nullable(),
+  replayed: z.boolean(),
+  messages: z.array(z.string()),
+});
+
 export function useSetupCarton() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: CartonSetupInput) => {
       const res = await apiRequest("POST", `${BASE}/cartons/setup`, input);
-      return res.json();
+      return cartonSetupResponseSchema.parse(await res.json());
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: [`${BASE}/cartons`] });

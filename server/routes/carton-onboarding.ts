@@ -17,8 +17,15 @@ const setupLimiter = rateLimit({
   message: { error: "طلبات كثيرة — انتظر دقيقة وحاول مرة ثانية" },
 });
 
-function todayUtc(): string {
-  return new Date().toISOString().slice(0, 10);
+export function businessDateInBaghdad(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Baghdad",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 const dateSchema = z
@@ -26,7 +33,7 @@ const dateSchema = z
   .regex(/^\d{4}-\d{2}-\d{2}$/, "تاريخ بدء الكلفة غير صالح")
   .refine((value) => !Number.isNaN(Date.parse(value + "T00:00:00.000Z")), "تاريخ بدء الكلفة غير صالح")
   .refine(
-    (value) => value <= todayUtc(),
+    (value) => value <= businessDateInBaghdad(),
     "تاريخ بدء الكلفة لا يمكن أن يكون في المستقبل عند إنشاء الكارتونة",
   );
 
@@ -40,7 +47,7 @@ export const cartonSetupSchema = z.object({
   maxWeightKg: z.number().finite().positive(),
   lowStockThreshold: z.number().int().nonnegative(),
   openingQuantity: z.number().int().nonnegative(),
-  unitCostIqd: z.number().int().nonnegative(),
+  unitCostIqd: z.number().int().positive(),
   costEffectiveDate: dateSchema,
   costSource: z.string().trim().min(3).max(1000),
   idempotencyKey: z.string().trim().min(16).max(160),
@@ -88,7 +95,7 @@ router.post(
     if (!parsed.success) {
       res.status(400).json({
         error: "VALIDATION_INVALID",
-        message: "راجع الحقول: الكمية والكلفة أعداد صحيحة غير سالبة، والقياسات والوزن أكبر من صفر.",
+        message: "راجع الحقول: الكمية وحد التنبيه أعداد صحيحة غير سالبة، والكلفة والقياسات والوزن أكبر من صفر.",
         details: parsed.error.flatten(),
       });
       return;

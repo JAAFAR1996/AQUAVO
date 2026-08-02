@@ -119,6 +119,17 @@ describe("atomic carton onboarding", () => {
     expect(await count("material_cost_records")).toBe(1);
   });
 
+  it("rejects reuse of an idempotency key when notes or cost source differ", async () => {
+    await setupCartonAtomically(db, input(), actor);
+    await expect(setupCartonAtomically(db, input({ notes: "ملاحظة مختلفة" }), actor))
+      .rejects.toThrow(/IDEMPOTENCY_KEY_REUSED/);
+    await expect(setupCartonAtomically(db, input({ costSource: "مصدر مختلف" }), actor))
+      .rejects.toThrow(/IDEMPOTENCY_KEY_REUSED/);
+    expect(await count("fulfillment_materials")).toBe(1);
+    expect(await count("packaging_inventory_movements")).toBe(1);
+    expect(await count("material_cost_records")).toBe(1);
+  });
+
   it("rejects a duplicate SKU and leaves the first carton untouched", async () => {
     const first = await setupCartonAtomically(db, input(), actor);
     await expect(setupCartonAtomically(db, input({

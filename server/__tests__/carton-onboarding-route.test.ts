@@ -26,6 +26,7 @@ vi.mock("../services/carton-onboarding-service.js", () => ({
 }));
 
 let app: express.Express;
+let businessDateInBaghdad: (now?: Date) => string;
 
 const validBody = {
   name: "كارتونة وسط",
@@ -45,6 +46,7 @@ const validBody = {
 
 beforeAll(async () => {
   const module = await import("../routes/carton-onboarding.js");
+  businessDateInBaghdad = module.businessDateInBaghdad;
   app = express();
   app.use(express.json());
   app.use("/api/admin/packaging", module.default);
@@ -105,6 +107,11 @@ describe("carton onboarding route", () => {
     expect((await post({ ...validBody, openingQuantity: 1.5 })).status).toBe(400);
     expect((await post({ ...validBody, unitCostIqd: 10.5 })).status).toBe(400);
     expect((await post({ ...validBody, unitCostIqd: -1 })).status).toBe(400);
+    expect((await post({ ...validBody, unitCostIqd: 0 })).status).toBe(400);
+  });
+
+  it("uses the Baghdad business date instead of the UTC calendar date", () => {
+    expect(businessDateInBaghdad(new Date("2026-08-01T21:30:00.000Z"))).toBe("2026-08-02");
   });
 
   it("rejects a future cost date so the cost cannot activate early", async () => {
