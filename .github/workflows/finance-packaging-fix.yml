@@ -4,13 +4,17 @@ on:
   push:
     branches:
       - fix/finance-packaging-onboarding-20260802
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
 
 permissions:
   contents: write
 
 concurrency:
   group: finance-packaging-correction
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   apply-test-commit:
