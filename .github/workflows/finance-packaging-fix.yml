@@ -48,7 +48,9 @@ jobs:
           PY
 
       - name: Apply scoped code changes
-        run: node .github/scripts/apply-finance-packaging-fix.mjs
+        run: |
+          node .github/scripts/apply-finance-packaging-fix.mjs
+          node .github/scripts/align-packaging-contract-tests.mjs
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -89,6 +91,7 @@ jobs:
           client/src/pages/__tests__/finance-route-contract.test.ts
           client/src/components/admin/packaging/__tests__/packing-import-preview.test.tsx
           client/src/components/admin/packaging/__tests__/packaging-ui.test.tsx
+          client/src/components/admin/packaging/__tests__/packaging-section.test.tsx
 
       - name: Run candidate full suite
         id: candidate
@@ -216,6 +219,7 @@ jobs:
       - name: Commit verified correction
         run: |
           rm -f .github/scripts/apply-finance-packaging-fix.mjs
+          rm -f .github/scripts/align-packaging-contract-tests.mjs
           rm -f .github/workflows/finance-packaging-fix.yml
           git config user.name "AQUAVO Automation"
           git config user.email "actions@users.noreply.github.com"
