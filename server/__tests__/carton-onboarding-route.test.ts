@@ -107,6 +107,13 @@ describe("carton onboarding route", () => {
     expect((await post({ ...validBody, unitCostIqd: -1 })).status).toBe(400);
   });
 
+  it("rejects a future cost date so the cost cannot activate early", async () => {
+    const response = await post({ ...validBody, costEffectiveDate: "2099-01-01" });
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("VALIDATION_INVALID");
+    expect(state.setup).not.toHaveBeenCalled();
+  });
+
   it("calls the atomic service once for valid input", async () => {
     const response = await post(validBody);
     expect(response.status).toBe(201);
