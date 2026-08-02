@@ -57,11 +57,13 @@ function initialState(): FormState {
 }
 
 function createIdempotencyKey(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
+  const secureCrypto = globalThis.crypto;
+  if (secureCrypto && typeof secureCrypto.randomUUID === "function") {
+    return secureCrypto.randomUUID();
   }
+  if (!secureCrypto) throw new Error("Secure random generator unavailable");
   const bytes = new Uint8Array(24);
-  crypto.getRandomValues(bytes);
+  secureCrypto.getRandomValues(bytes);
   return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
@@ -376,7 +378,14 @@ export function CartonWorkspace({ onOpenImport }: { onOpenImport: () => void }) 
                   </div>
                 </CardHeader>
                 <CardContent className="grid gap-2 text-sm sm:grid-cols-2">
-                  <Value label="القياسات الداخلية" value={carton.internalLengthCm + " × " + carton.internalWidthCm + " × " + carton.internalHeightCm + " سم"} />
+                  <Value
+                    label="القياسات الداخلية"
+                    value={
+                      carton.internalLengthCm != null && carton.internalWidthCm != null && carton.internalHeightCm != null
+                        ? `${carton.internalLengthCm} × ${carton.internalWidthCm} × ${carton.internalHeightCm} سم`
+                        : "غير مكتمل"
+                    }
+                  />
                   <Value label="الموجود فعلياً" value={String(carton.onHand)} />
                   <Value label="المحجوز للطلبات" value={String(carton.reserved)} />
                   <Value label="المتاح فعلياً" value={String(carton.available)} strong />

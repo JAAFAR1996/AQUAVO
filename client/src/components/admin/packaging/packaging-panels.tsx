@@ -35,7 +35,6 @@ import {
   type CartonView,
 } from "@/hooks/use-packaging";
 import {
-  AddCartonForm,
   AddPreparationCostForm,
   CartonEditor,
   PreparationCostEditor,
@@ -207,9 +206,6 @@ export function CartonCatalogPanel() {
           <Boxes className="h-5 w-5" />
           الكراتين ومواد التغليف
         </CardTitle>
-        <div className="pt-2">
-          <AddCartonForm />
-        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {isLoading && <p className="text-muted-foreground text-sm">جاري التحميل…</p>}

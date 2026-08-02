@@ -240,7 +240,7 @@ export function PackingImportPanel() {
         <Alert>
           <FileSpreadsheet className="h-4 w-4" />
           <AlertDescription className="text-xs">
-            استخدم CSV UTF-8. «عدد القطع» للمعلومة فقط، ولا يغيّر مخزون المنتجات أو الكراتين أو عدد الوحدات. النظام لا يخمّن الوزن أو العمق أو أي قياس ناقص.
+            استخدم CSV UTF-8. «عدد القطع» للمعلومة فقط وما يمس مخزون المنتجات أو الكراتين أو عدد الوحدات. النظام لا يخمّن الوزن أو السماكة/العمق أو أي قياس ناقص.
           </AlertDescription>
         </Alert>
 

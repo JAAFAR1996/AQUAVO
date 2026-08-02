@@ -83,7 +83,7 @@ export default function FinancePage() {
           <TabsTrigger value="cost-audit">تدقيق سجل الكلف</TabsTrigger>
           <TabsTrigger value="packaging" data-testid="tab-packaging">التغليف والكراتين</TabsTrigger>
           <TabsTrigger value="return-events">الراجعات والخسائر</TabsTrigger>
-          <TabsTrigger value="audit">تدقيق محاسبي</TabsTrigger>
+          <TabsTrigger value="audit">المراجع الآلي</TabsTrigger>
           <TabsTrigger value="product-costs">تكاليف المنتجات</TabsTrigger>
           <TabsTrigger value="manual-corrections">التصحيح اليدوي</TabsTrigger>
           <TabsTrigger value="audit-trail">سجل التدقيق</TabsTrigger>
@@ -139,7 +139,12 @@ export default function FinancePage() {
         </TabsContent>
 
         <TabsContent value="audit">
-          <FinanceAudit />
+          <div style={{ display: "grid", gap: 12 }}>
+            <p style={{ color: "#94a3b8", fontSize: 12, margin: 0 }}>
+              قراءة فقط — يفحص الأرقام ولا يعدّلها
+            </p>
+            <FinanceAudit />
+          </div>
         </TabsContent>
 
         <TabsContent value="product-costs">
