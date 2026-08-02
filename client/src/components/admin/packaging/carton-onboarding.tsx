@@ -39,6 +39,17 @@ interface FormState {
   costSource: string;
 }
 
+export function businessDateInBaghdad(now: Date = new Date()): string {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Asia/Baghdad",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
 function initialState(): FormState {
   return {
     name: "",
@@ -51,7 +62,7 @@ function initialState(): FormState {
     lowStockThreshold: "0",
     openingQuantity: "0",
     unitCostIqd: "",
-    costEffectiveDate: new Date().toISOString().slice(0, 10),
+    costEffectiveDate: businessDateInBaghdad(),
     costSource: "",
   };
 }
@@ -104,9 +115,11 @@ function validate(form: FormState): string | null {
     [form.unitCostIqd, "كلفة الوحدة"],
   ] as const;
   for (const [raw, label] of integers) {
+    if (raw.trim() === "") return label + " مطلوب.";
     const value = Number(raw);
     if (!Number.isInteger(value) || value < 0) return label + " يجب أن يكون عدداً صحيحاً غير سالب.";
   }
+  if (Number(form.unitCostIqd) <= 0) return "كلفة الوحدة يجب أن تكون أكبر من صفر.";
   if (!form.costEffectiveDate) return "اختر تاريخ بدء الكلفة.";
   if (form.costSource.trim().length < 3) return "اكتب ملاحظة أو مصدر الكلفة.";
   return null;
@@ -166,7 +179,10 @@ export function CartonOnboardingDialog({
   const setup = useSetupCarton();
 
   const payload = idempotencyKey ? toPayload(form, idempotencyKey) : null;
-  const set = (key: keyof FormState) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
+  const set = (key: keyof FormState) => (value: string) => {
+    setIdempotencyKey(null);
+    setForm((current) => ({ ...current, [key]: value }));
+  };
 
   function resetAndClose(nextOpen: boolean) {
     onOpenChange(nextOpen);
@@ -243,7 +259,7 @@ export function CartonOnboardingDialog({
             <section className="space-y-3">
               <h3 className="font-semibold">الكلفة</h3>
               <div className="grid gap-3 sm:grid-cols-2">
-                <Field id="carton-unit-cost" label="كلفة الكارتونة الواحدة (د.ع)" value={form.unitCostIqd} onChange={set("unitCostIqd")} type="number" min="0" step="1" inputMode="numeric" />
+                <Field id="carton-unit-cost" label="كلفة الكارتونة الواحدة (د.ع)" value={form.unitCostIqd} onChange={set("unitCostIqd")} type="number" min="1" step="1" inputMode="numeric" />
                 <Field id="carton-cost-date" label="تاريخ بدء الكلفة" value={form.costEffectiveDate} onChange={set("costEffectiveDate")} type="date" />
               </div>
               <div className="space-y-1.5">
@@ -253,7 +269,7 @@ export function CartonOnboardingDialog({
             </section>
 
             {clientError && (
-              <Alert variant="destructive"><AlertTriangle className="h-4 w-4" /><AlertDescription>{clientError}</AlertDescription></Alert>
+              <Alert variant="destructive" role="alert" aria-live="assertive"><AlertTriangle className="h-4 w-4" /><AlertDescription>{clientError}</AlertDescription></Alert>
             )}
           </div>
         )}
@@ -268,7 +284,7 @@ export function CartonOnboardingDialog({
             <ReviewRow label="كلفة الوحدة" value={formatIqd(payload.unitCostIqd)} />
             <ReviewRow label="تاريخ بدء الكلفة" value={payload.costEffectiveDate} />
             {setup.error && (
-              <Alert variant="destructive"><AlertDescription>{translateError(setup.error instanceof Error ? setup.error.message : String(setup.error))}</AlertDescription></Alert>
+              <Alert variant="destructive" role="alert" aria-live="assertive"><AlertDescription>{translateError(setup.error instanceof Error ? setup.error.message : String(setup.error))}</AlertDescription></Alert>
             )}
           </div>
         )}

@@ -695,7 +695,6 @@ router.get(
         ) d ON true
        WHERE p.deleted_at IS NULL
        ORDER BY p.name
-       LIMIT 5000
     `);
     const list = (Array.isArray(rows) ? rows : ((rows as { rows?: unknown[] }).rows ?? [])) as Record<string, unknown>[];
     const result = summarisePackingCompleteness(list.map((row) => ({

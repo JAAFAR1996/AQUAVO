@@ -61,6 +61,11 @@ function sameDate(value: unknown, expectedDate: string): boolean {
   return new Date(value as string | number | Date).toISOString().slice(0, 10) === expectedDate;
 }
 
+function normalizedText(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  return value.trim() || null;
+}
+
 async function existingReplay(
   db: FulfillmentDb,
   input: CartonOnboardingInput,
@@ -93,6 +98,7 @@ async function existingReplay(
     material.stockTracked === true &&
     material.name === input.name &&
     material.sku === input.sku &&
+    normalizedText(material.notes) === normalizedText(input.notes) &&
     sameNumber(material.internalLengthCm, input.internalLengthCm) &&
     sameNumber(material.internalWidthCm, input.internalWidthCm) &&
     sameNumber(material.internalHeightCm, input.internalHeightCm) &&
@@ -103,6 +109,7 @@ async function existingReplay(
     cost.approvalStatus === "approved" &&
     sameNumber(cost.unitCost, input.unitCostIqd) &&
     sameDate(cost.effectiveDate, input.costEffectiveDate) &&
+    normalizedText(cost.reason) === normalizedText(input.costSource) &&
     (input.openingQuantity === 0 ||
       (movement?.materialId === materialId &&
         movement.movementType === "purchase_receipt" &&

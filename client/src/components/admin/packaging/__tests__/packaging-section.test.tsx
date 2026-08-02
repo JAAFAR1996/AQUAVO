@@ -179,6 +179,25 @@ describe("carton data entry", () => {
     expect(review).toHaveTextContent("1,000 د.ع");
   });
 
+  it("rejects an empty unit cost instead of converting it to zero", async () => {
+    const user = userEvent.setup();
+    const { CartonWorkspace } = await import("../carton-onboarding");
+    renderWithClient(<CartonWorkspace onOpenImport={() => undefined} />, [[`${BASE}/cartons`, { items: [] }]]);
+
+    await user.click(screen.getByTestId("button-add-carton-primary"));
+    await user.type(screen.getByTestId("carton-name"), "كارتونة وسط");
+    await user.type(screen.getByTestId("carton-sku"), "BOX-M");
+    await user.type(screen.getByTestId("carton-length"), "27");
+    await user.type(screen.getByTestId("carton-width"), "20");
+    await user.type(screen.getByTestId("carton-height"), "14");
+    await user.type(screen.getByTestId("carton-max-weight"), "8");
+    await user.type(screen.getByLabelText("ملاحظة أو مصدر الكلفة"), "فاتورة المورد");
+    await user.click(screen.getByTestId("button-review-carton"));
+
+    expect(screen.getByRole("alert")).toHaveTextContent("كلفة الوحدة مطلوب");
+    expect(screen.queryByTestId("carton-onboarding-review")).not.toBeInTheDocument();
+  });
+
   it("tells the owner that carton measurements are internal", async () => {
     const user = userEvent.setup();
     const { CartonWorkspace } = await import("../carton-onboarding");

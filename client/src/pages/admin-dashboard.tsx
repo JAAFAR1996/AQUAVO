@@ -207,7 +207,7 @@ function readSectionFromUrl(): string {
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Active admin section is mirrored into the URL (`?section=`) so a refresh,
   // a deep link, and browser back/forward all resolve to the right panel.
@@ -215,9 +215,9 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("section") === "accounting") {
-      setLocation("/admin/finance");
+      setLocation("/admin/finance", { replace: true });
     }
-  }, [setLocation]);
+  }, [location, setLocation]);
 
   useEffect(() => {
     const onPop = () => setActiveSection(readSectionFromUrl());

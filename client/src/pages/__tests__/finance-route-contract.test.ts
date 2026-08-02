@@ -8,7 +8,8 @@ const finance = readFileSync(join(process.cwd(), "client/src/pages/admin/finance
 describe("finance route contract", () => {
   it("redirects only the retired accounting section to the finance center", () => {
     expect(dashboard).toContain('get("section") === "accounting"');
-    expect(dashboard).toContain('setLocation("/admin/finance")');
+    expect(dashboard).toContain('setLocation("/admin/finance", { replace: true })');
+    expect(dashboard).toContain('const [location, setLocation] = useLocation()');
     expect(dashboard).toContain('"products"');
     expect(dashboard).toContain('"orders"');
     expect(dashboard).toContain('"settings"');
