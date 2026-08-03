@@ -3,7 +3,7 @@ import { bigint, boolean, date, integer, jsonb, numeric, pgTable, text, timestam
 
 /**
  * Canonical accounting schema introduced at the 2026-08-01 Baghdad cutover.
- * Database constraints and triggers remain governed by migrations/0051..0055;
+ * Database constraints and triggers remain governed by migrations/0051..0057;
  * this module prevents Drizzle schema drift and gives application code typed rows.
  */
 export const accountingCutovers = pgTable("accounting_cutovers", {
@@ -148,7 +148,39 @@ export const openingInventorySnapshot = pgTable("opening_inventory_snapshot", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** Columns added to the existing orders table by migration 0052. */
+export const deliveryCompanies = pgTable("delivery_companies", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  companyKey: text("company_key").notNull().unique(),
+  name: text("name").notNull().unique(),
+  defaultFee: numeric("default_fee").notNull().default("5000"),
+  active: boolean("active").notNull().default(true),
+  isDefault: boolean("is_default").notNull().default(false),
+  notes: text("notes"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const accountingMonthlyPositions = pgTable("accounting_monthly_positions", {
+  id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
+  periodKey: text("period_key").notNull(),
+  positionType: text("position_type").notNull(),
+  deliveryCompanyId: text("delivery_company_id"),
+  amount: numeric("amount").notNull().default("0"),
+  grossAmount: numeric("gross_amount").notNull().default("0"),
+  feeAmount: numeric("fee_amount").notNull().default("0"),
+  currency: text("currency").notNull().default("IQD"),
+  evidenceMode: text("evidence_mode").notNull().default("owner_confirmation"),
+  evidenceFileId: text("evidence_file_id"),
+  note: text("note"),
+  status: text("status").notNull().default("confirmed"),
+  confirmedBy: text("confirmed_by"),
+  confirmedAt: timestamp("confirmed_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Columns added to the existing orders table by accounting migrations. */
 export interface AccountingOrderColumns {
   deliveredAt: Date | null;
   carrierFee: string | null;
