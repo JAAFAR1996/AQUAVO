@@ -3,7 +3,7 @@ import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { orders } from "../../shared/schema.js";
 import { getDb } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest, recordFinancialChange } from "../services/accountingAuditTrail.js";
 import { applyPackagingLifecycle, type LifecycleOutcome } from "../services/packaging-lifecycle-runner.js";
 import { orderCollectedAmount } from "../../shared/order-financials.js";
@@ -56,11 +56,7 @@ function rowsOf<T>(result: unknown): T[] {
 
 /**
  * Runtime-only bridge to legacy optional customer-reward modules.
- *
- * The module path is deliberately assembled at runtime so the strict accounting
- * compiler does not absorb the unrelated legacy analytics/storage graph. These
- * effects run only after the financial transaction commits and cannot change or
- * roll back accounting truth.
+ * These effects run only after the financial transaction commits.
  */
 async function importLegacyModule<T>(segments: string[]): Promise<T> {
   const modulePath = segments.join("/");
@@ -123,14 +119,11 @@ async function recordRejectedIp(clientIp: string | null): Promise<void> {
 
 /**
  * Intercepts status transitions before the legacy admin router.
- *
- * The status update, carton reservation/consumption/release, inventory triggers,
- * automatic COD event, immutable accounting fact and journal entries all execute
- * in ONE PostgreSQL transaction. Any failure rolls the whole transition back.
+ * Status, packaging, COD, immutable fact and journals commit atomically.
  */
 export function createAdminOrdersV2Router() {
   const router = Router();
-  router.use(requireAdmin);
+  router.use(requireAccountingAdmin);
 
   router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.body?.status == null) {
