@@ -1,4 +1,5 @@
 type AnyRow = Record<string, any>;
+type PageSpec = { title: string; subtitle: string; body: string };
 
 const BRAND = {
   primary: "#0B93A6",
@@ -34,14 +35,17 @@ function chunks<T>(items: T[], size: number): T[][] {
   return out.length ? out : [[]];
 }
 function table(headers: string[], rows: string[][]): string {
-  return `<table><thead><tr>${headers.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead><tbody>${rows.length
+  const head = headers.map((header) => `<th>${esc(header)}</th>`).join("");
+  const body = rows.length
     ? rows.map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join("")}</tr>`).join("")
-    : `<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات</td></tr>`}</tbody></table>`;
+    : `<tr><td colspan="${headers.length}" class="empty">لا توجد بيانات</td></tr>`;
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 function cards(items: Array<[string, string, string?]>): string {
-  return `<div class="cards">${items.map(([label, value, note]) => `<div class="card"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`).join("")}</div>`;
+  return `<div class="cards">${items.map(([label, value, note]) => (
+    `<div class="card"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`
+  )).join("")}</div>`;
 }
-
 function pageHtml(title: string, subtitle: string, body: string, meta: { period: string; status: string; page: number; pages: number }): string {
   const draft = meta.status !== "tax_final";
   return `<section class="aqv-page" dir="rtl">
@@ -62,16 +66,30 @@ function pageHtml(title: string, subtitle: string, body: string, meta: { period:
 }
 
 const STYLE = `
-  *{box-sizing:border-box} .aqv-page{position:relative;width:794px;height:1123px;overflow:hidden;background:${BRAND.light};color:${BRAND.text};padding:34px 38px 30px;font-family:Cairo,Arial,sans-serif}
+  *{box-sizing:border-box}.aqv-page{position:relative;width:794px;height:1123px;overflow:hidden;background:${BRAND.light};color:${BRAND.text};padding:34px 38px 30px;font-family:Cairo,Arial,sans-serif}
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.brand img{width:205px;height:57px;object-fit:contain;object-position:right center}.issuer{font-size:11px;color:${BRAND.muted};margin-top:7px}.issuer span{font-family:Inter,Arial,sans-serif;direction:ltr;display:inline-block}.meta{text-align:left;display:grid;gap:5px;color:${BRAND.muted};font-family:Inter,Cairo,Arial,sans-serif}.meta strong{font-size:15px;color:${BRAND.text}}.meta span{font-size:11px}.meta small{font-size:9px}
-  .rule{height:2px;background:${BRAND.text};margin:16px 0 18px}.heading h1{margin:0;font-size:21px}.heading p{margin:5px 0 18px;color:${BRAND.muted};font-size:11px;line-height:1.7}
-  main{font-size:11px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.card{background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:7px;padding:11px;min-height:74px}.label{font-size:10px;color:${BRAND.muted}}.value{font-size:17px;font-weight:800;margin-top:5px;color:${BRAND.text}}.note{font-size:8.5px;color:${BRAND.muted};margin-top:4px;line-height:1.5}
-  h2{font-size:14px;margin:14px 0 8px;border-right:4px solid ${BRAND.primary};padding-right:8px}table{width:100%;border-collapse:collapse;background:${BRAND.white};font-size:9px}th{background:#EFECE5;text-align:right;padding:7px;border:1px solid ${BRAND.border};font-weight:700}td{padding:7px;border:1px solid ${BRAND.border};vertical-align:top}.empty{text-align:center;color:${BRAND.muted};padding:24px}.notice{border:1px solid ${BRAND.border};border-radius:7px;background:${BRAND.white};padding:11px;line-height:1.8;margin-bottom:13px}.warning{border-color:${BRAND.warning};color:#7a4618}.ok{border-color:${BRAND.primary};color:#075F6B}.watermark{position:absolute;left:110px;top:450px;transform:rotate(-25deg);font:900 110px Inter,Arial,sans-serif;color:rgba(201,122,46,.08);letter-spacing:12px;z-index:0;pointer-events:none}.aqv-page>*{position:relative;z-index:1}
+  .rule{height:2px;background:${BRAND.text};margin:16px 0 18px}.heading h1{margin:0;font-size:21px}.heading p{margin:5px 0 18px;color:${BRAND.muted};font-size:11px;line-height:1.7}main{font-size:11px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.card{background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:7px;padding:11px;min-height:74px}.label{font-size:10px;color:${BRAND.muted}}.value{font-size:17px;font-weight:800;margin-top:5px;color:${BRAND.text}}.note{font-size:8.5px;color:${BRAND.muted};margin-top:4px;line-height:1.5}
+  h2{font-size:14px;margin:14px 0 8px;border-right:4px solid ${BRAND.primary};padding-right:8px}table{width:100%;border-collapse:collapse;background:${BRAND.white};font-size:9px}th{background:#EFECE5;text-align:right;padding:7px;border:1px solid ${BRAND.border};font-weight:700}td{padding:7px;border:1px solid ${BRAND.border};vertical-align:top}.empty{text-align:center;color:${BRAND.muted};padding:24px}
+  .notice{border:1px solid ${BRAND.border};border-radius:7px;background:${BRAND.white};padding:11px;line-height:1.8;margin-bottom:13px}.warning{border-color:${BRAND.warning};color:#7a4618}.ok{border-color:${BRAND.primary};color:#075F6B}.watermark{position:absolute;left:110px;top:450px;transform:rotate(-25deg);font:900 110px Inter,Arial,sans-serif;color:rgba(201,122,46,.08);letter-spacing:12px;z-index:0;pointer-events:none}.aqv-page>*{position:relative;z-index:1}
   footer{position:absolute;right:38px;left:38px;bottom:24px;border-top:1px dashed ${BRAND.border};padding-top:10px;display:grid;gap:3px;text-align:center;color:${BRAND.muted};font-size:8.5px}footer strong{color:${BRAND.warning};font-size:9.5px}footer small{font-family:Inter,Arial,sans-serif;direction:ltr}
 `;
 
-function buildPages(payload: AnyRow): Array<{ title: string; subtitle: string; body: string }> {
-  const summary = payload.readiness ?? {};
+function appendChunkPages(
+  pages: PageSpec[],
+  groups: AnyRow[][],
+  title: string,
+  subtitle: (index: number) => string,
+  headers: string[],
+  rowBuilder: (row: AnyRow) => string[],
+): void {
+  groups.forEach((group: AnyRow[], index: number) => {
+    pages.push({ title, subtitle: subtitle(index), body: table(headers, group.map((row: AnyRow) => rowBuilder(row))) });
+  });
+}
+
+function buildPages(payload: AnyRow): PageSpec[] {
+  const summary: AnyRow = payload.readiness ?? {};
   const balances: AnyRow[] = payload.liveBalances ?? [];
   const sales: AnyRow[] = payload.sales ?? [];
   const journal: AnyRow[] = payload.journal ?? [];
@@ -79,9 +97,9 @@ function buildPages(payload: AnyRow): Array<{ title: string; subtitle: string; b
   const returns: AnyRow[] = payload.returns ?? [];
   const settlements: AnyRow[] = payload.settlements ?? [];
   const blockers: AnyRow[] = summary.blockers ?? [];
-  const pages: Array<{ title: string; subtitle: string; body: string }> = [];
+  const pages: PageSpec[] = [];
+  const balanceMap = new Map<string, number>(balances.map((row: AnyRow) => [String(row.code), Number(row.balance ?? 0)]));
 
-  const balanceMap = new Map(balances.map((row) => [String(row.code), Number(row.balance ?? 0)]));
   pages.push({
     title: "الملف المحاسبي الشهري",
     subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد آلي ${dateBaghdad(payload.manifest?.generatedAt)}`,
@@ -106,49 +124,42 @@ function buildPages(payload: AnyRow): Array<{ title: string; subtitle: string; b
       ? `الإغلاق التلقائي متوقف لحين معالجة ${blockers.length} نوع من الموانع. النظام يعيد المحاولة يومياً.`
       : "لا توجد موانع محاسبية حالياً. الشهر يُغلق تلقائياً بعد انتهائه حسب توقيت بغداد."}</div>
     <h2>موانع الإغلاق</h2>
-    ${table(["المفتاح", "الوصف", "العدد"], blockers.map((b) => [esc(b.key), esc(b.label), esc(b.count)]))}`,
+    ${table(["المفتاح", "الوصف", "العدد"], blockers.map((row: AnyRow) => [esc(row.key), esc(row.label), esc(row.count)]))}`,
   });
 
-  for (const [index, group] of chunks(sales, 17).entries()) pages.push({
-    title: "سجل المبيعات المتحققة",
-    subtitle: `الجزء ${index + 1} · الإيراد يتحقق عند التسليم فقط` ,
-    body: table(["الطلب", "تاريخ التحقق", "COD", "توصيل الزبون", "أجرة الشركة", "مبيعات المنتجات", "صافي AQUAVO", "التسوية"], group.map((r) => [
-      esc(r.order_number ?? r.order_id), dateBaghdad(r.recognized_at), iqd(r.gross_collected), iqd(r.customer_delivery_fee), iqd(r.carrier_fee), iqd(r.product_revenue), iqd(r.merchant_net), esc(r.settlement_status),
-    ])),
-  });
-
-  for (const [index, group] of chunks(journal, 18).entries()) pages.push({
-    title: "دفتر اليومية",
-    subtitle: `الجزء ${index + 1} · قيود مزدوجة غير قابلة للتعديل، والتصحيح بقيد عكسي`,
-    body: table(["رقم القيد", "التاريخ", "المصدر", "البيان", "مدين", "دائن", "الحالة"], group.map((r) => [
-      esc(r.entry_number), dateBaghdad(r.entry_date), esc(`${r.source_type}/${r.event_kind}`), esc(r.description), iqd(r.total_debit), iqd(r.total_credit), esc(r.status),
-    ])),
-  });
-
-  for (const [index, group] of chunks(expenses, 18).entries()) pages.push({
-    title: "المصاريف",
-    subtitle: `الجزء ${index + 1} · التصنيف الضريبي يبقى للمحاسب في مرحلة TAX FINAL`,
-    body: table(["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"], group.map((r) => [
-      dateBaghdad(r.expense_occurred_at ?? r.expense_date), esc(r.category), esc(r.vendor_name), esc(r.description), iqd(r.amount), esc(r.accounting_status), esc(r.tax_treatment ?? "pending"),
-    ])),
-  });
-
-  for (const [index, group] of chunks(returns, 17).entries()) pages.push({
-    title: "الراجعات والخسائر",
-    subtitle: `الجزء ${index + 1} · الأحداث منشأة من سير الطلب، والمعتمد فقط يدخل الحسابات`,
-    body: table(["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"], group.map((r) => [
-      esc(r.order_id), esc(r.type), esc(r.status), iqd(r.refund_amount), iqd(r.packaging_loss), iqd(r.product_write_off_amount), r.restocked ? "نعم" : "لا", dateBaghdad(r.updated_at),
-    ])),
-  });
+  appendChunkPages(
+    pages, chunks(sales, 17), "سجل المبيعات المتحققة",
+    (index) => `الجزء ${index + 1} · الإيراد يتحقق عند التسليم فقط`,
+    ["الطلب", "تاريخ التحقق", "COD", "توصيل الزبون", "أجرة الشركة", "مبيعات المنتجات", "صافي AQUAVO", "التسوية"],
+    (row) => [esc(row.order_number ?? row.order_id), dateBaghdad(row.recognized_at), iqd(row.gross_collected), iqd(row.customer_delivery_fee), iqd(row.carrier_fee), iqd(row.product_revenue), iqd(row.merchant_net), esc(row.settlement_status)],
+  );
+  appendChunkPages(
+    pages, chunks(journal, 18), "دفتر اليومية",
+    (index) => `الجزء ${index + 1} · قيود مزدوجة غير قابلة للتعديل، والتصحيح بقيد عكسي`,
+    ["رقم القيد", "التاريخ", "المصدر", "البيان", "مدين", "دائن", "الحالة"],
+    (row) => [esc(row.entry_number), dateBaghdad(row.entry_date), esc(`${row.source_type}/${row.event_kind}`), esc(row.description), iqd(row.total_debit), iqd(row.total_credit), esc(row.status)],
+  );
+  appendChunkPages(
+    pages, chunks(expenses, 18), "المصاريف",
+    (index) => `الجزء ${index + 1} · التصنيف الضريبي يبقى للمحاسب في مرحلة TAX FINAL`,
+    ["التاريخ", "الفئة", "الجهة", "الوصف", "المبلغ", "الحالة", "المعالجة الضريبية"],
+    (row) => [dateBaghdad(row.expense_occurred_at ?? row.expense_date), esc(row.category), esc(row.vendor_name), esc(row.description), iqd(row.amount), esc(row.accounting_status), esc(row.tax_treatment ?? "pending")],
+  );
+  appendChunkPages(
+    pages, chunks(returns, 17), "الراجعات والخسائر",
+    (index) => `الجزء ${index + 1} · الأحداث منشأة من سير الطلب، والمعتمد فقط يدخل الحسابات`,
+    ["الطلب", "النوع", "الحالة", "رد المبلغ", "التغليف", "شطب المنتج", "أعيد للمخزون", "التحديث"],
+    (row) => [esc(row.order_id), esc(row.type), esc(row.status), iqd(row.refund_amount), iqd(row.packaging_loss), iqd(row.product_write_off_amount), row.restocked ? "نعم" : "لا", dateBaghdad(row.updated_at)],
+  );
 
   pages.push({
     title: "تسويات شركات التوصيل",
     subtitle: "الإجمالي والأجور والصافي مشتقة من الطلبات، وليست مدخلة يدوياً",
-    body: table(["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"], settlements.map((r) => [
-      esc(r.settlement_number ?? r.id), esc(r.carrier), dateBaghdad(r.received_at ?? r.updated_at), iqd(r.gross_amount), iqd(r.fees_amount), iqd(r.net_amount), esc(r.status),
-    ])),
+    body: table(
+      ["رقم التسوية", "الشركة", "التاريخ", "الإجمالي", "الأجور", "الصافي", "الحالة"],
+      settlements.map((row: AnyRow) => [esc(row.settlement_number ?? row.id), esc(row.carrier), dateBaghdad(row.received_at ?? row.updated_at), iqd(row.gross_amount), iqd(row.fees_amount), iqd(row.net_amount), esc(row.status)]),
+    ),
   });
-
   return pages;
 }
 
@@ -174,7 +185,8 @@ export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
       if (!page) throw new Error("تعذر تجهيز صفحة PDF");
       const images = Array.from(page.querySelectorAll("img"));
       await Promise.all(images.map((img) => img.complete ? Promise.resolve() : new Promise<void>((resolve) => {
-        img.onload = () => resolve(); img.onerror = () => resolve();
+        img.onload = () => resolve();
+        img.onerror = () => resolve();
       })));
       const dataUrl = await toPng(page, { pixelRatio: 1.7, backgroundColor: BRAND.light, cacheBust: true });
       if (index > 0) pdf.addPage();
