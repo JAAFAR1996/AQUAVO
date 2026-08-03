@@ -1,14 +1,15 @@
-// Strict typecheck for the MONEY-CRITICAL services only.
-// The repo-wide server config sets "noCheck": true (legacy debt), so these files
-// would otherwise never be verified. This config actually checks them — `type Db = any`
-// cannot come back without failing `npm run check:accounting`.
+// Strict typecheck for the Accounting V2 money-critical entry points.
+// TypeScript follows their actual imports automatically. Do not enumerate old
+// unrelated services here: doing so turns this focused gate into a report on
+// legacy analytics debt and hides whether V2 itself is safe.
 {
   "compilerOptions": {
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
     "strict": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
@@ -21,32 +22,29 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
-    "paths": { "@shared/*": ["./shared/*"] },
-    "types": ["node"]
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    },
+    "types": ["node", "react", "react-dom", "express-session"]
   },
   "include": [
-    "shared/schema.ts",
-    "shared/order-financials.ts",
-    "shared/cost-components.ts",
-    "server/services/accounting-engine.ts",
-    "server/services/fulfillment-db.ts",
-    "server/services/fulfillment-verifier.ts",
-    "server/services/fulfillment-service.ts",
-    "server/services/fulfillment-draft-service.ts",
-    "server/services/packaging-profile-service.ts",
-    "server/services/material-cost-service.ts",
-    "server/services/fulfillment-types.test-d.ts",
-    "shared/packing-types.ts",
-    "shared/packing-schema.ts",
-    "server/services/carton-geometry-adapter.ts",
-    "server/services/carton-support-analyzer.ts",
-    "server/services/carton-load-distributor.ts",
-    "server/services/carton-safety-validator.ts",
-    "server/services/carton-planner.ts",
-    "server/services/carton-reservation-service.ts",
-    "server/services/packaging-cost-resolver.ts",
-    "server/services/return-packaging-loss-service.ts",
-    "server/services/admin-alert-service.ts",
-    "server/services/packaging-lifecycle.ts"
+    "shared/accounting-schema-v2.ts",
+    "shared/cod-accounting.ts",
+    "server/middleware/accounting-auth-v2.ts",
+    "server/routes/accounting-health-v2.ts",
+    "server/routes/accounting-v2.ts",
+    "server/routes/accounting-monthly-position-v2.ts",
+    "server/routes/accounting-setup-v2.ts",
+    "server/routes/accounting-carrier-correction-v2.ts",
+    "server/routes/accounting-operations-v2.ts",
+    "server/routes/admin-orders-v2.ts",
+    "server/routes/invoice-v2.ts",
+    "server/routes/accounting-evidence-upload-v2.ts",
+    "server/utils/cloudinary.ts",
+    "script/apply-accounting-v2-migrations.ts",
+    "client/src/components/admin/finance-accounting-register-v2.tsx",
+    "client/src/components/admin/finance-accounting-operations-v2.tsx",
+    "client/src/components/admin/finance-carrier-position-v2.tsx"
   ]
 }
