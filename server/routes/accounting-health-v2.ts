@@ -38,21 +38,26 @@ export function createAccountingHealthV2Router() {
           ) AS other_deductions,
           EXISTS(
             SELECT 1 FROM public.schema_migrations
-            WHERE version='0059_accounting_carrier_other_deductions' AND rolled_back_at IS NULL
-          ) AS migration_0059,
-          EXISTS(
-            SELECT 1 FROM public.schema_migrations
             WHERE version='0060_accounting_close_state_machine' AND rolled_back_at IS NULL
           ) AS migration_0060,
           EXISTS(
+            SELECT 1 FROM public.schema_migrations
+            WHERE version='0061_accounting_default_carrier_status_guard' AND rolled_back_at IS NULL
+          ) AS migration_0061,
+          EXISTS(
             SELECT 1 FROM pg_trigger
             WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal
-          ) AS close_state_guard
+          ) AS close_state_guard,
+          EXISTS(
+            SELECT 1 FROM pg_trigger t
+            WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
+              AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
+          ) AS carrier_status_guard
       `);
       const state = rowsOf(result)[0] ?? {};
       const ready = Object.values(state).every(Boolean);
       if (!ready) {
-        res.status(503).json({ message: "ACCOUNTING_V2_MIGRATIONS_0051_TO_0060_REQUIRED", ready: false, checks: state });
+        res.status(503).json({ message: "ACCOUNTING_V2_MIGRATIONS_0051_TO_0061_REQUIRED", ready: false, checks: state });
         return;
       }
       res.json({
@@ -60,7 +65,7 @@ export function createAccountingHealthV2Router() {
         cutover: "2026-08-01",
         timezone: "Asia/Baghdad",
         currency: "IQD",
-        migrationsThrough: "0060",
+        migrationsThrough: "0061",
         checks: state,
       });
     } catch (error) {
