@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "server/middleware/accounting-auth-v2.ts"
+      - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
       - "server/routes/accounting-setup-v2.ts"
