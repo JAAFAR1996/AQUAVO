@@ -48,7 +48,7 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
     facts?: boolean; journal?: boolean; readiness?: boolean; companies?: boolean; positions?: boolean;
   } | undefined;
   if (!state?.facts || !state.journal || !state.readiness || !state.companies || !state.positions) {
-    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0057_REQUIRED"), { statusCode: 503 });
+    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0060_REQUIRED"), { statusCode: 503 });
   }
 }
 
@@ -81,7 +81,7 @@ export function createAccountingV2Router() {
     try {
       const db = getDb();
       await assertV2Schema(db);
-      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0057" });
+      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0060" });
     } catch (error) { next(error); }
   });
 
@@ -200,14 +200,35 @@ export function createAccountingV2Router() {
       const { periodKey } = closeBodySchema.parse(req.body);
       const db = getDb();
       await assertV2Schema(db);
+      const readinessResult = await db!.execute(sql`
+        SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}
+      `);
+      const readinessRow = rowsOf(readinessResult)[0];
+      if (!readinessRow) {
+        res.status(409).json({ message: "لا توجد بيانات جاهزية لهذه الفترة" });
+        return;
+      }
+      const readiness = readinessPayload(readinessRow);
+      if (!readiness.administrativeCloseReady) {
+        res.status(409).json({ message: "لا يمكن إغلاق الشهر قبل معالجة الموانع", blockers: readiness.blockers });
+        return;
+      }
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
         INSERT INTO public.accounting_period_closes(period_key,period_start,period_end,status,closed_by,closed_by_name,snapshot_json,closed_at)
         VALUES(${periodKey},to_date(${periodKey}||'-01','YYYY-MM-DD'),(to_date(${periodKey}||'-01','YYYY-MM-DD')+interval '1 month'),'closed',${actor.id},${actor.name},'{}'::jsonb,clock_timestamp())
-        ON CONFLICT(period_key) DO UPDATE SET status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
+        ON CONFLICT(period_key) DO UPDATE SET
+          status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,
+          closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
+        WHERE public.accounting_period_closes.status <> 'tax_final'
         RETURNING *
       `);
-      res.status(201).json(normalize(rowsOf(result)[0] ?? {}));
+      const row = rowsOf(result)[0];
+      if (!row) {
+        res.status(409).json({ message: "الفترة معتمدة ضريبياً ولا يمكن إعادة إغلاقها أو تغييرها" });
+        return;
+      }
+      res.status(201).json(normalize(row));
     } catch (error) { next(error); }
   });
 
@@ -219,11 +240,13 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
-        UPDATE public.accounting_period_closes SET status='reopened',reopened_by=${actor.id},reopened_reason=${reason},reopened_at=clock_timestamp()
-        WHERE period_key=${periodKey} RETURNING *
+        UPDATE public.accounting_period_closes
+        SET status='reopened',reopened_by=${actor.id},reopened_reason=${reason},reopened_at=clock_timestamp()
+        WHERE period_key=${periodKey} AND status='closed'
+        RETURNING *
       `);
       const row = rowsOf(result)[0];
-      if (!row) { res.status(404).json({ message: "الفترة غير موجودة" }); return; }
+      if (!row) { res.status(409).json({ message: "لا يمكن إعادة الفتح إلا لفترة مغلقة إدارياً" }); return; }
       res.json(normalize(row));
     } catch (error) { next(error); }
   });
@@ -235,11 +258,13 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
-        UPDATE public.accounting_period_closes SET status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
-        WHERE period_key=${periodKey} RETURNING *
+        UPDATE public.accounting_period_closes
+        SET status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
+        WHERE period_key=${periodKey} AND status='closed'
+        RETURNING *
       `);
       const row = rowsOf(result)[0];
-      if (!row) { res.status(404).json({ message: "أغلق الفترة إدارياً أولاً" }); return; }
+      if (!row) { res.status(409).json({ message: "أغلق الفترة إدارياً أولاً، ولا تعتمد فترة معاد فتحها" }); return; }
       res.json(normalize(row));
     } catch (error) { next(error); }
   });
