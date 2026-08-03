@@ -60,26 +60,33 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("requires health through migration 0060", () => {
+  it("requires health through migration 0061", () => {
     const health = read("server/routes/accounting-health-v2.ts");
-    expect(health).toContain("migration_0060");
-    expect(health).toContain("close_state_guard");
-    expect(health).toContain("migrationsThrough: \"0060\"");
-    expect(health).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0060_REQUIRED");
+    expect(health).toContain("migration_0061");
+    expect(health).toContain("carrier_status_guard");
+    expect(health).toContain("migrationsThrough: \"0061\"");
+    expect(health).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0061_REQUIRED");
+  });
+
+  it("keeps the default carrier active during status-only updates", () => {
+    expect(existsSync(join(root, "migrations/0061_accounting_default_carrier_status_guard.sql"))).toBe(true);
+    expect(existsSync(join(root, "migrations/0061_accounting_default_carrier_status_guard_rollback.sql"))).toBe(true);
+    const migration = read("migrations/0061_accounting_default_carrier_status_guard.sql");
+    expect(migration).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
   });
 
   it("runs exact migration files before production deploy and skips previews", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0060"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0061"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
-    expect(runner).toContain('"0060_accounting_close_state_machine.sql"');
+    expect(runner).toContain('"0061_accounting_default_carrier_status_guard.sql"');
 
     const vercel = read("vercel.json");
     expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0060");
+    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061");
     expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
   });
 });
