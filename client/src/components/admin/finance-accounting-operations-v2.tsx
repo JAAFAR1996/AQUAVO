@@ -110,12 +110,11 @@ export function FinanceAccountingOperationsV2({ periodKey }: { periodKey: string
       if (!expenseId) throw new Error("اختر المصروف");
       if (!expenseFile) throw new Error("ارفع فاتورة أو وصل المصروف");
       const evidence = await uploadEvidence(expenseFile);
-      const paidFromAccountCode = paymentSource === "cash" ? "1000" : paymentSource === "bank" ? "1010" : "3200";
       return parseResponse(await fetch(`/api/admin/accounting/v2/expenses/${expenseId}/verify`, {
         method: "POST", credentials: "include", headers: addCsrfHeader({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           vendorName, documentNumber, documentDate, paymentMethod: paymentSource,
-          paidFromAccountCode, businessPurpose, taxTreatment, evidence,
+          businessPurpose, taxTreatment, evidence,
         }),
       }));
     },
@@ -171,7 +170,7 @@ export function FinanceAccountingOperationsV2({ periodKey }: { periodKey: string
           <Field label="تاريخ المستند"><input type="date" style={inputStyle} value={documentDate} onChange={(e) => setDocumentDate(e.target.value)} /></Field>
           <Field label="مصدر الدفع">
             <select style={inputStyle} value={paymentSource} onChange={(e) => setPaymentSource(e.target.value as typeof paymentSource)}>
-              <option value="cash">صندوق AQUAVO</option><option value="bank">الحساب البنكي</option><option value="owner_personal">دفعه المالك شخصياً</option>
+              <option value="cash">صندوق AQUAVO</option><option value="bank">الحساب البنكي</option><option value="owner_personal">دفعه المالك شخصياً — يُثبت كرأس مال</option>
             </select>
           </Field>
           <Field label="الغرض التجاري"><input style={inputStyle} value={businessPurpose} onChange={(e) => setBusinessPurpose(e.target.value)} /></Field>
