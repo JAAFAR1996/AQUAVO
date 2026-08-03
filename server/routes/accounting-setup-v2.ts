@@ -236,10 +236,10 @@ export function createAccountingSetupV2Router() {
 
         await tx.execute(sql`
           INSERT INTO public.fulfillment_materials(
-            id,name,category,cost_component_type,unit,current_unit_cost,currency,cost_confidence,
+            id,name,category,cost_component_type,unit,currency,cost_confidence,
             accounting_code,active,notes,material_kind,calculation_basis,stock_tracked
           ) VALUES(
-            ${materialId},${input.name},'extra','aquavo_fulfillment_material','order',${input.unitCost},'IQD',
+            ${materialId},${input.name},'extra','aquavo_fulfillment_material','order','IQD',
             'owner_confirmed','5100',true,${input.note},'consumable','per_order',false
           )
         `);
@@ -253,7 +253,8 @@ export function createAccountingSetupV2Router() {
           )
         `);
         await tx.execute(sql`
-          UPDATE public.fulfillment_materials SET current_cost_record_id=${costRecordId},updated_at=clock_timestamp()
+          UPDATE public.fulfillment_materials SET
+            current_cost_record_id=${costRecordId},current_unit_cost=${input.unitCost},updated_at=clock_timestamp()
           WHERE id=${materialId}
         `);
 
