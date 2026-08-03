@@ -55,8 +55,9 @@ describe("Accounting V2 reviewed fixes", () => {
     const cod = read("migrations/0052_accounting_cod_delivery_settlements.sql");
     expect(cod).toContain("to_regprocedure('public.post_order_fulfillment_journal(text)') IS NOT NULL");
     const codRollback = read("migrations/0052_accounting_cod_delivery_settlements_rollback.sql");
-    expect(codRollback).toContain("0052_ROLLBACK_BLOCKED: roll back 0059 through 0053 first");
+    expect(codRollback).toContain("0052_ROLLBACK_BLOCKED: roll back 0060 through 0053 first");
     expect(codRollback).toContain("post_order_fulfillment_journal(text)");
+    expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
   it("requires health through migration 0060", () => {
