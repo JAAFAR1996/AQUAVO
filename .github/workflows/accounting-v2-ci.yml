@@ -1,0 +1,66 @@
+name: Accounting V2 CI
+
+on:
+  push:
+    branches:
+      - agent/accounting-cod-august-fix-20260802
+  pull_request:
+    paths:
+      - "server/routes/accounting-v2.ts"
+      - "server/routes/accounting-operations-v2.ts"
+      - "server/routes/admin-orders-v2.ts"
+      - "server/routes/invoice-v2.ts"
+      - "server/routes/upload.ts"
+      - "server/utils/cloudinary.ts"
+      - "shared/accounting-schema-v2.ts"
+      - "shared/cod-accounting.ts"
+      - "client/src/components/admin/finance-accounting-*.tsx"
+      - "client/src/pages/admin/finance.tsx"
+      - "migrations/005*.sql"
+      - "tsconfig.accounting.json"
+      - ".github/workflows/accounting-v2-ci.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: accounting-v2-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Strict accounting typecheck
+        run: pnpm check:accounting
+
+      - name: Accounting contract tests
+        run: pnpm exec vitest run server/__tests__/accounting-cod-v2-contract.test.ts server/__tests__/accounting-v2-wiring-contract.test.ts
+
+      - name: Migration ledger governance
+        run: pnpm check:migrations
+
+      - name: Production build
+        run: pnpm build
