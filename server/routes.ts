@@ -6,6 +6,7 @@ import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createAccountingMonthlyPositionV2Router } from "./routes/accounting-monthly-position-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
 import { createAccountingCarrierCorrectionV2Router } from "./routes/accounting-carrier-correction-v2.js";
 import { createAccountingOperationsV2Router } from "./routes/accounting-operations-v2.js";
@@ -142,6 +143,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/capi", capiRouter);
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", createAccountingMonthlyPositionV2Router());
   app.use("/api/admin/accounting", createAccountingSetupV2Router());
   app.use("/api/admin/accounting", createAccountingCarrierCorrectionV2Router());
   app.use("/api/admin/accounting", createAccountingOperationsV2Router());
