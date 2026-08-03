@@ -1,5 +1,5 @@
 -- 0052_accounting_cod_delivery_settlements_rollback.sql
--- Mandatory reverse order: 0059..0053 must be rolled back before 0052.
+-- Mandatory reverse order: 0060..0053 must be rolled back before 0052.
 BEGIN;
 
 DO $$
@@ -10,9 +10,9 @@ BEGIN
      OR EXISTS(
        SELECT 1 FROM pg_trigger
        WHERE NOT tgisinternal
-         AND tgname IN ('expenses_post_verified_journal','order_returns_post_journal','order_fulfillment_post_journal')
+         AND tgname IN ('expenses_post_verified_journal','order_returns_post_journal','order_fulfillment_post_journal','trg_guard_accounting_period_tax_finalization')
      ) THEN
-    RAISE EXCEPTION '0052_ROLLBACK_BLOCKED: roll back 0059 through 0053 first';
+    RAISE EXCEPTION '0052_ROLLBACK_BLOCKED: roll back 0060 through 0053 first';
   END IF;
 END $$;
 
