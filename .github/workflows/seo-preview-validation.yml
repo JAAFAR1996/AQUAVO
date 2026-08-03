@@ -9,6 +9,7 @@ on:
       - "api/ssr-preview.ts"
       - "api/ssr-preview-advanced.ts"
       - "test/seo-preview-shell.test.tsx"
+      - "test/seo-runtime-entry.test.ts"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
       - ".lighthouserc.preview.cjs"
@@ -49,7 +50,7 @@ jobs:
         run: pnpm run check
 
       - name: Run focused SSR HTML and structured-data tests
-        run: pnpm exec vitest run test/seo-preview-shell.test.tsx --reporter=verbose
+        run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts --reporter=verbose
 
       - name: Verify browser-audit script syntax
         run: node --check scripts/seo-preview-live-audit.mjs
