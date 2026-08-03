@@ -7,8 +7,6 @@ const root = process.cwd();
 const migration = readFileSync(join(root, "migrations/0062_accounting_automation_opening_balances.sql"), "utf8");
 
 const BASE = String.raw`
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TABLE accounting_monthly_positions(
   id text PRIMARY KEY DEFAULT gen_random_uuid()::text,
   period_key text NOT NULL,
