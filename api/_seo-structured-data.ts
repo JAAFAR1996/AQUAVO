@@ -55,65 +55,48 @@ function activeVariants(product: SeoPreviewProduct): SeoPreviewVariant[] {
   });
 }
 
+function defaultVariant(product: SeoPreviewProduct): SeoPreviewVariant | undefined {
+  const variants = activeVariants(product);
+  return variants.find((variant) => Boolean((variant as SeoPreviewVariant & { isDefault?: boolean }).isDefault)) || variants[0];
+}
+
 export function buildProductStructuredData(product: SeoPreviewProduct): object[] {
   const url = `${PRODUCTION_BASE}/products/${encodeURIComponent(product.slug)}`;
   const currency = product.currency || "IQD";
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
-  const variants = activeVariants(product);
-
-  const productEntity = variants.length > 0
-    ? {
-        "@context": "https://schema.org",
-        "@type": "ProductGroup",
-        "@id": `${url}#product-group`,
-        name: product.name,
-        description,
-        url,
-        image: [firstImage(product)],
-        brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
-        category: product.category || undefined,
-        productGroupID: product.id || product.slug,
-        hasVariant: variants.map((variant, index) => {
-          const variantId = variant.id || `variant-${index + 1}`;
-          const variantUrl = `${url}?variant=${encodeURIComponent(variantId)}`;
-          return {
-            "@type": "Product",
-            "@id": `${url}#${encodeURIComponent(variantId)}`,
-            name: `${product.name} - ${variant.label}`,
-            description: `${description} الخيار: ${variant.label}.`,
-            image: [firstImage(product, variant)],
-            sku: variant.sku || `${product.id || product.slug}-${variantId}`,
-            isVariantOf: { "@id": `${url}#product-group` },
-            offers: offer(variantUrl, variant.price, currency, variant.stock),
-          };
-        }),
-      }
-    : {
-        "@context": "https://schema.org",
-        "@type": "Product",
-        "@id": `${url}#product`,
-        name: product.name,
-        description,
-        url,
-        image: [firstImage(product)],
-        sku: product.id || product.slug,
-        brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
-        category: product.category || undefined,
-        offers: offer(url, product.price, currency, product.stock),
-        aggregateRating:
-          (numberValue(product.rating) ?? 0) > 0 && (numberValue(product.reviewCount) ?? 0) > 0
-            ? {
-                "@type": "AggregateRating",
-                ratingValue: numberValue(product.rating),
-                reviewCount: numberValue(product.reviewCount),
-                bestRating: 5,
-                worstRating: 1,
-              }
-            : undefined,
-      };
+  const selected = defaultVariant(product);
+  const productPrice = selected?.price ?? product.price;
+  const productStock = selected?.stock ?? product.stock;
+  const sku = selected?.sku || (selected?.id ? `${product.id || product.slug}-${selected.id}` : product.id || product.slug);
+  const variantLabels = activeVariants(product).map((variant) => variant.label).filter(Boolean) as string[];
 
   return [
-    productEntity,
+    {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "@id": `${url}#product`,
+      name: product.name,
+      description,
+      url,
+      image: [firstImage(product, selected)],
+      sku,
+      brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+      category: product.category || undefined,
+      offers: offer(url, productPrice, currency, productStock),
+      additionalProperty: variantLabels.length > 0
+        ? [{ "@type": "PropertyValue", name: "الخيارات المتوفرة", value: variantLabels.join("، ") }]
+        : undefined,
+      aggregateRating:
+        (numberValue(product.rating) ?? 0) > 0 && (numberValue(product.reviewCount) ?? 0) > 0
+          ? {
+              "@type": "AggregateRating",
+              ratingValue: numberValue(product.rating),
+              reviewCount: numberValue(product.reviewCount),
+              bestRating: 5,
+              worstRating: 1,
+            }
+          : undefined,
+    },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
