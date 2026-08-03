@@ -33,7 +33,7 @@ describe("Accounting V2 automation", () => {
     expect(orderRoute).toContain("automaticReturn");
     expect(service).toContain("AUTO_ORDER_STATUS_REJECTED");
     expect(service).toContain("restocked=true");
-    expect(service).toContain("أجور الناقل لا تعتمد إلا من التسوية");
+    expect(service).toContain("أي أجرة أو اقتطاع تعتمد من كشف شركة التوصيل فقط");
     expect(service).not.toContain("status='verified'");
   });
 
