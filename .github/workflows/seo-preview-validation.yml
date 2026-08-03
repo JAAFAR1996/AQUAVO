@@ -25,6 +25,7 @@ on:
       - "test/seo-preview-shell.test.tsx"
       - "test/seo-runtime-entry.test.ts"
       - "test/seo-production-safety.test.ts"
+      - "scripts/verify-generated-ssr-runtime.ts"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
       - ".lighthouserc.preview.cjs"
@@ -66,6 +67,9 @@ jobs:
 
       - name: Build generated SSR template and server bundle
         run: pnpm run build
+
+      - name: Execute generated semantic runtime
+        run: pnpm exec tsx scripts/verify-generated-ssr-runtime.ts
 
       - name: Run focused SEO HTML, schema, route, and safety tests
         run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts --reporter=verbose
