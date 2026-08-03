@@ -32,6 +32,7 @@
     "shared/accounting-schema-v2.ts",
     "shared/cod-accounting.ts",
     "server/middleware/accounting-auth-v2.ts",
+    "server/routes/accounting-health-v2.ts",
     "server/routes/accounting-v2.ts",
     "server/routes/accounting-monthly-position-v2.ts",
     "server/routes/accounting-setup-v2.ts",
