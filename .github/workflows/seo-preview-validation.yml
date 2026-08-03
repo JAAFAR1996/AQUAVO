@@ -6,7 +6,7 @@ on:
     paths:
       - "api/_seo-preview-shell.tsx"
       - "api/ssr-preview.ts"
-      - "api/__tests__/seo-preview-shell.test.tsx"
+      - "test/seo-preview-shell.test.tsx"
       - "vercel.json"
       - ".github/workflows/seo-preview-validation.yml"
   workflow_dispatch:
@@ -42,4 +42,4 @@ jobs:
         run: pnpm run check
 
       - name: Run focused SSR HTML tests
-        run: pnpm exec vitest run api/__tests__/seo-preview-shell.test.tsx --reporter=verbose
+        run: pnpm exec vitest run test/seo-preview-shell.test.tsx --reporter=verbose
