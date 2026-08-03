@@ -8,9 +8,12 @@ DECLARE
   r public.v_accounting_period_readiness%ROWTYPE;
   p public.tax_profiles%ROWTYPE;
   v_period_end date;
-  v_old_status text:=lower(COALESCE(CASE WHEN TG_OP='UPDATE' THEN OLD.status END,''));
-  v_new_status text:=lower(COALESCE(NEW.status,''));
+  v_old_status text;
+  v_new_status text;
 BEGIN
+  v_old_status:=CASE WHEN TG_OP='UPDATE' THEN lower(COALESCE(OLD.status,'')) ELSE '' END;
+  v_new_status:=lower(COALESCE(NEW.status,''));
+
   IF TG_OP='UPDATE' THEN
     IF v_old_status='tax_final' AND v_new_status IS DISTINCT FROM v_old_status THEN
       RAISE EXCEPTION 'PERIOD_STATE_BLOCKED: tax-final period % is immutable',NEW.period_key;
