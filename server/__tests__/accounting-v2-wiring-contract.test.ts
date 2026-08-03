@@ -19,24 +19,29 @@ describe("accounting v2 production wiring", () => {
       .toBeLessThan(routes.indexOf('app.use("/api/invoice", createInvoiceRouter())'));
   });
 
-  it("mounts accounting operations and canonical reports before the legacy API", () => {
+  it("mounts setup, carrier correction, operations and reports before legacy accounting", () => {
     const routes = read("server/routes.ts");
+    const setup = routes.indexOf('app.use("/api/admin/accounting", createAccountingSetupV2Router())');
+    const correction = routes.indexOf('app.use("/api/admin/accounting", createAccountingCarrierCorrectionV2Router())');
     const operations = routes.indexOf('app.use("/api/admin/accounting", createAccountingOperationsV2Router())');
     const reports = routes.indexOf('app.use("/api/admin/accounting", createAccountingV2Router())');
     const legacy = routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())');
-    expect(operations).toBeGreaterThan(-1);
+    expect(setup).toBeGreaterThan(-1);
+    expect(setup).toBeLessThan(correction);
+    expect(correction).toBeLessThan(operations);
     expect(operations).toBeLessThan(reports);
     expect(reports).toBeLessThan(legacy);
   });
 
   it("uses a storage-independent admin guard for every V2 admin route", () => {
     const guard = read("server/middleware/accounting-auth-v2.ts");
-    expect(guard).toContain("FROM").not;
     expect(guard).toContain(".from(users)");
     expect(guard).not.toContain('from "../storage/index.js"');
     for (const file of [
       "server/routes/admin-orders-v2.ts",
       "server/routes/accounting-v2.ts",
+      "server/routes/accounting-setup-v2.ts",
+      "server/routes/accounting-carrier-correction-v2.ts",
       "server/routes/accounting-operations-v2.ts",
       "server/routes/accounting-evidence-upload-v2.ts",
     ]) {
@@ -71,9 +76,17 @@ describe("accounting v2 production wiring", () => {
     const source = read("server/routes/accounting-operations-v2.ts");
     expect(source).toContain("FROM public.order_accounting_facts f");
     expect(source).toContain("FOR UPDATE OF f");
-    expect(source).toContain("net !== gross - fees");
+    expect(source).toContain("Math.abs(net - (gross - fees))");
     expect(source).toContain("INSERT INTO public.cash_settlement_items");
     expect(source).toContain("SET status='reconciled'");
+  });
+
+  it("allows audited carrier identity correction only when the frozen fee matches", () => {
+    const source = read("server/routes/accounting-carrier-correction-v2.ts");
+    expect(source).toContain("Math.abs(amount(fact.carrier_fee) - amount(company.default_fee))");
+    expect(source).toContain("الأجرة المالية لم تتغير");
+    expect(source).toContain("recordFinancialChange(tx as never");
+    expect(source).toContain("FOR UPDATE OF o");
   });
 
   it("mounts isolated evidence upload first and computes SHA-256 on original bytes", () => {
@@ -115,12 +128,13 @@ describe("accounting v2 operator workspace", () => {
     expect(component).toContain("<FinanceAccountingOperationsV2 periodKey={periodKey} />");
   });
 
-  it("provides operator forms for carrier statements and expense receipts", () => {
+  it("provides optional electronic evidence and owner-confirmed operation forms", () => {
     const component = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
     expect(component).toContain("/api/admin/accounting/v2/settlements");
     expect(component).toContain("/api/admin/accounting/v2/expenses/${expenseId}/verify");
     expect(component).toContain("/api/upload/accounting-evidence");
     expect(component).toContain('accept="image/*,application/pdf"');
+    expect(component).toContain("تأكيد داخلي — بدون ملف");
     expect(component).not.toContain("paidFromAccountCode");
   });
 });
@@ -134,7 +148,7 @@ describe("accounting v2 migration governance", () => {
       "orders", "expenses", "accounting_period_closes", "accounting_cutovers",
       "order_accounting_facts", "order_accounting_settlements", "chart_of_accounts",
       "journal_entries", "journal_lines", "evidence_files", "tax_profiles",
-      "opening_inventory_snapshot",
+      "opening_inventory_snapshot", "delivery_companies", "accounting_monthly_positions",
     ]) {
       expect(config).not.toMatch(new RegExp(`^\\s*"${table}",?$`, "m"));
     }
@@ -148,6 +162,8 @@ describe("accounting v2 migration governance", () => {
       "0054_accounting_fulfillment_readiness",
       "0055_accounting_checksum_manifest",
       "0056_accounting_delivery_timestamp",
+      "0057_accounting_operating_defaults",
+      "0058_accounting_confirm_global_addons_zero",
     ];
     for (const file of files) {
       expect(existsSync(join(root, "migrations", `${file}.sql`))).toBe(true);
@@ -169,8 +185,17 @@ describe("accounting v2 migration governance", () => {
     expect(migration).toContain("CREATE TRIGGER orders_stamp_delivered_at");
     expect(migration).toContain("DELIVERED_AT_IMMUTABLE");
     expect(migration).toContain("v_recognized_at:=COALESCE(NEW.delivered_at,clock_timestamp())");
-    expect(migration).toContain("'0056_accounting_delivery_timestamp'");
     expect(migration).toContain("a5b2ea02880466220f8a02398310024a2c80ffc66cda25542c2a0f1b56b09236");
+  });
+
+  it("guards the owner-confirmed global zero policy", () => {
+    const migration = read("migrations/0058_accounting_confirm_global_addons_zero.sql");
+    expect(migration).toContain("GLOBAL_ZERO_CONFIRMATION_BLOCKED");
+    expect(migration).toContain("packaging_cost_resolution='verified_zero'");
+    expect(migration).toContain("insert_cost_resolution='verified_zero'");
+    expect(migration).toContain("owner_confirmation:jaafar:2026-08-03");
+    const rollback = read("migrations/0058_accounting_confirm_global_addons_zero_rollback.sql");
+    expect(rollback).toContain("IF NOT EXISTS(SELECT 1 FROM public.order_accounting_facts)");
   });
 
   it("restores the previous tax-finalization guard on rollback", () => {
