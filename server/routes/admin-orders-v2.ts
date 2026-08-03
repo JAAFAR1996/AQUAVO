@@ -4,7 +4,6 @@ import { z } from "zod";
 import { orders } from "../../shared/schema.js";
 import { getDb } from "../db.js";
 import { requireAdmin } from "../middleware/auth.js";
-import { storage } from "../storage/index.js";
 import { actorFromRequest, recordFinancialChange } from "../services/accountingAuditTrail.js";
 import { applyPackagingLifecycle, type LifecycleOutcome } from "../services/packaging-lifecycle-runner.js";
 import { orderCollectedAmount } from "../../shared/order-financials.js";
@@ -166,6 +165,12 @@ export function createAdminOrdersV2Router() {
           updatedAt: new Date(),
         } as any).where(sql`${orders.id}=${locked.id}`).returning();
 
+        if (!updated) throw new Error("فشل تحديث الطلب بعد قفله");
+
+        // This is the canonical audit row and is inside the same transaction.
+        // A second legacy storage audit was deliberately removed: it pulled the
+        // entire analytics/storage dependency graph into the money-critical path
+        // without adding stronger evidence.
         await recordFinancialChange(tx as never, {
           entityType: "order",
           entityId: locked.id,
@@ -175,23 +180,11 @@ export function createAdminOrdersV2Router() {
           newValue: input.status,
           reason: input.financialReason ?? `انتقال حالة الطلب: ${oldStatus} → ${input.status}`,
           performedBy: actor.id,
-          performedByName: actor.name,
+          performedByName: actor.name ?? undefined,
         });
 
         return { order: updated, oldStatus, lifecycle, clientIp: locked.client_ip };
       });
-
-      await storage.createAuditLog({
-        userId: actor.id,
-        action: "update",
-        entityType: "order",
-        entityId: result.order.id,
-        changes: {
-          status: parsed.data.status,
-          packagingAction: result.lifecycle.action,
-          packagingDetail: result.lifecycle.detail,
-        },
-      }).catch((error) => console.error("[AdminOrdersV2] audit mirror failed", error));
 
       await runPostCommitCustomerEffects(result.order, result.oldStatus, parsed.data.status);
       if (parsed.data.status === "rejected" && result.oldStatus !== "rejected") {
