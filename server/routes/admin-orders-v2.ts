@@ -8,11 +8,11 @@ import { actorFromRequest, recordFinancialChange } from "../services/accountingA
 import { applyPackagingLifecycle, type LifecycleOutcome } from "../services/packaging-lifecycle-runner.js";
 import { orderCollectedAmount } from "../../shared/order-financials.js";
 
-const numericInput = z.union([z.string(), z.number()]).transform((value) => {
-  const amount = Number(value);
-  if (!Number.isFinite(amount) || amount < 0) throw new Error("قيمة مالية غير صالحة");
-  return amount;
-});
+const numericInput = z.union([z.string(), z.number()])
+  .transform((value) => Number(value))
+  .refine((amount) => Number.isFinite(amount) && amount >= 0, {
+    message: "قيمة مالية غير صالحة",
+  });
 
 const statusTransitionSchema = z.object({
   status: z.string().trim().min(1).max(64),
