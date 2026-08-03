@@ -16,9 +16,9 @@
 - [x] Return verification and reversal keep inventory and journal aligned.
 - [x] Expense verification and reversal remain balanced.
 - [x] Fulfillment cost recognition and reversal remain balanced.
-- [x] Final split migrations 0051–0059 applied in order on Production child branch `br-young-paper-a4ffxuk2`.
-- [ ] Migration 0060 applied and its fail-closed state transitions tested on `br-young-paper-a4ffxuk2`.
-- [x] Forward catalog checked against expected tables, columns, triggers and views through 0059.
+- [x] Final split migrations 0051–0060 applied in order on Production child branch `br-young-paper-a4ffxuk2`.
+- [x] Migration 0060 fail-closed state transitions tested on `br-young-paper-a4ffxuk2`.
+- [x] Forward catalog checked against expected tables, columns, triggers and views through 0060.
 - [x] `delivered_at`, payment occurrence, immutable fact recognition and order journal entry date are identical.
 - [x] Exact-cost smoke order posts 25,000 product revenue, 48 COGS and 150 fulfillment cost with journal difference zero.
 - [x] 0056 rollback retains historical delivery evidence when facts exist, restores the old function, and reapplies cleanly.
@@ -30,9 +30,10 @@
 - [x] 0058 guarded rollback preserves verified-zero evidence after Accounting V2 facts exist and reapplies cleanly.
 - [x] 0059 rejects a carrier fee total that is not a multiple of the configured per-order fee.
 - [x] 0059 guarded rollback blocks when documented other deductions exist and fully rolls back before such evidence exists.
-- [x] Accounting health check returns all checks true through migration 0059 on the temporary branch.
-- [ ] Accounting health check returns all checks true through migration 0060.
-- [ ] Mandatory reverse rollback order documented and enforced: 0060 → 0059 → 0058 → 0057 → 0056 → 0055 → 0054 → 0053 → 0052 → 0051.
+- [x] Accounting health check returns 11/11 true through migration 0060; temporary rows were removed.
+- [x] 0060 rejects missing readiness, open-month close, invalid reopen, incomplete tax approval and tax-final mutation.
+- [x] Mandatory reverse rollback order documented and enforced: 0060 → 0059 → 0058 → 0057 → 0056 → 0055 → 0054 → 0053 → 0052 → 0051.
+- [x] 0052 rollback is blocked while later expense, return, fulfillment or close guards remain active.
 
 ## Owner decisions captured
 
