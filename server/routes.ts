@@ -6,6 +6,7 @@ import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createAccountingOperationsV2Router } from "./routes/accounting-operations-v2.js";
 import { createAccountingV2Router } from "./routes/accounting-v2.js";
 import { createInvoiceV2Router } from "./routes/invoice-v2.js";
 import { createSystemRouter } from "./routes/system.js";
@@ -77,8 +78,6 @@ export async function registerRoutes(
   app.use("/api/products", createProductRouter());
   app.use("/api/orders", createOrderRouter());
 
-  // High-risk financial transitions must intercept the legacy admin router.
-  // Non-status edits call next() and continue to the legacy route.
   app.use("/api/admin", createAdminOrdersV2Router());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
@@ -157,11 +156,11 @@ export async function registerRoutes(
   app.use("/api/capi", capiRouter);
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", createAccountingOperationsV2Router());
   app.use("/api/admin/accounting", createAccountingV2Router());
   app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/admin/expenses", createExpensesRouter());
 
-  // Atomic WhatsApp confirmation intercepts the legacy public invoice router.
   app.use("/api/invoice", createInvoiceV2Router());
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
