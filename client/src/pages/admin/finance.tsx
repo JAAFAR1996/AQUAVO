@@ -10,7 +10,6 @@ import { FinanceReturnEvents } from "@/components/admin/finance-return-events";
 import { FinanceReport } from "@/components/admin/finance-report";
 import { FinanceRecommendations } from "@/components/admin/finance-recommendations";
 import { FinanceAudit } from "@/components/admin/finance-audit";
-import { FinanceProductCosts } from "@/components/admin/finance-product-costs";
 import { FinanceManualCorrections } from "@/components/admin/finance-manual-corrections";
 import { FinanceAuditTrail } from "@/components/admin/finance-audit-trail";
 import { FinanceCharts } from "@/components/admin/finance-charts";
@@ -84,7 +83,6 @@ export default function FinancePage() {
           <TabsTrigger value="packaging" data-testid="tab-packaging">التغليف والكراتين</TabsTrigger>
           <TabsTrigger value="return-events">الراجعات والخسائر</TabsTrigger>
           <TabsTrigger value="audit">المراجع الآلي</TabsTrigger>
-          <TabsTrigger value="product-costs">تكاليف المنتجات</TabsTrigger>
           <TabsTrigger value="manual-corrections">التصحيح اليدوي</TabsTrigger>
           <TabsTrigger value="audit-trail">سجل التدقيق</TabsTrigger>
           <TabsTrigger value="period-close">إغلاق الفترات القديم</TabsTrigger>
@@ -113,7 +111,6 @@ export default function FinancePage() {
             <FinanceAudit />
           </div>
         </TabsContent>
-        <TabsContent value="product-costs"><FinanceProductCosts /></TabsContent>
         <TabsContent value="manual-corrections"><FinanceManualCorrections /></TabsContent>
         <TabsContent value="audit-trail"><FinanceAuditTrail /></TabsContent>
         <TabsContent value="period-close"><FinancePeriodClose /></TabsContent>
