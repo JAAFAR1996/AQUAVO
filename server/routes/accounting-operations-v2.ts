@@ -180,20 +180,26 @@ export function createAccountingOperationsV2Router() {
         if (!carrierName) throw Object.assign(new Error("اختر شركة التوصيل"), { statusCode: 400 });
 
         const factsResult = await tx.execute(sql`
-          SELECT f.*,o.order_number,o.carrier
+          SELECT f.*,o.order_number,o.carrier,
+                 EXISTS(
+                   SELECT 1 FROM public.order_accounting_settlements s
+                   WHERE s.order_fact_id=f.id
+                 ) AS already_settled
           FROM public.order_accounting_facts f
           JOIN public.orders o ON o.id=f.order_id
-          LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id
           WHERE f.order_id IN (${idList})
           FOR UPDATE OF f
         `);
         const facts = rowsOf(factsResult);
-        if (facts.length !== orderIds.length) throw Object.assign(new Error("بعض الطلبات غير موجودة في سجل COD المحاسبي"), { statusCode: 409 });
+        const foundIds = new Set(facts.map((row) => String(row.order_id)));
+        if (facts.length !== orderIds.length || foundIds.size !== orderIds.length
+          || orderIds.some((id) => !foundIds.has(id))) {
+          throw Object.assign(new Error("بعض الطلبات غير موجودة في سجل COD المحاسبي أو مكرّرة"), { statusCode: 409 });
+        }
         for (const fact of facts) {
           if (fact.cash_custody !== "carrier") throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} ليس بعهدة شركة التوصيل`), { statusCode: 409 });
           if (fact.carrier && String(fact.carrier) !== carrierName) throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} تابع لشركة ${String(fact.carrier)}`), { statusCode: 409 });
-          const existing = await tx.execute(sql`SELECT 1 FROM public.order_accounting_settlements WHERE order_fact_id=${String(fact.id)} LIMIT 1`);
-          if (rowsOf(existing).length) throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} مسوّى سابقاً`), { statusCode: 409 });
+          if (fact.already_settled === true) throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} مسوّى سابقاً`), { statusCode: 409 });
         }
         const gross = facts.reduce((sum, row) => sum + amount(row.gross_collected), 0);
         const fees = facts.reduce((sum, row) => sum + amount(row.carrier_fee), 0);
@@ -235,7 +241,8 @@ export function createAccountingOperationsV2Router() {
               settlement_id,order_id,payment_event_id,gross_amount,fee_amount,net_amount,
               reconciliation_status,notes,metadata
             ) VALUES(
-              ${settlementId},${String(fact.order_id)},${String(fact.payment_event_id)},
+              ${settlementId},${String(fact.order_id)},
+              ${fact.payment_event_id == null ? null : String(fact.payment_event_id)},
               ${amount(fact.gross_collected)},${amount(fact.carrier_fee)},${amount(fact.merchant_net)},
               'matched',${`سطر ${line} مطابق لحقيقة البيع`},
               ${JSON.stringify({ orderAccountingFactId: fact.id, orderNumber: fact.order_number })}::jsonb
