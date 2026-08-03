@@ -1,0 +1,45 @@
+name: SEO Preview Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "api/_seo-preview-shell.tsx"
+      - "api/ssr-preview.ts"
+      - "api/__tests__/seo-preview-shell.test.tsx"
+      - "vercel.json"
+      - ".github/workflows/seo-preview-validation.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: seo-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  semantic-html:
+    name: Semantic HTML Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Type-check preview files
+        run: pnpm run check
+
+      - name: Run focused SSR HTML tests
+        run: pnpm exec vitest run api/__tests__/seo-preview-shell.test.tsx --reporter=verbose
