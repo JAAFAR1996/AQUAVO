@@ -1,5 +1,10 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import {
+  AQUAVO_ENTITY,
+  categoryProductsPath,
+  canonicalProductCategory,
+} from "../shared/seo-contract.js";
 
 export type SeoPreviewVariant = {
   id?: string;
@@ -32,20 +37,23 @@ export type SeoPreviewProduct = {
 
 export type SeoPreviewPage =
   | { kind: "home"; products: SeoPreviewProduct[] }
-  | { kind: "products"; products: SeoPreviewProduct[] }
+  | { kind: "products"; products: SeoPreviewProduct[]; category?: string }
   | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[] }
   | { kind: "faq" }
   | { kind: "about" }
-  | { kind: "static"; heading: string; summary: string; path: string }
+  | { kind: "static"; heading: string; summary: string; path: string; paragraphs?: string[] }
   | { kind: "not-found"; path: string };
 
-const faqs = [
-  ["هل AQUAVO يوصّل لكل العراق؟", "نعم، AQUAVO متجر إلكتروني عراقي ويقدّم التوصيل إلى المحافظات المتاحة وفق سياسة الشحن الحالية."],
-  ["هل الدفع عند الاستلام متوفر؟", "الدفع عند الاستلام متوفر للطلبات المؤهلة، وتظهر تفاصيل الطلب والتوصيل قبل التأكيد."],
-  ["شلون أختار الفلتر المناسب؟", "ابدأ بحجم الحوض وعدد الأسماك ونوع وسائط الفلترة، ثم قارن التدفق الفعلي وقدرة الفلتر على حمل الوسائط."],
-  ["شلون أختار السخان؟", "يعتمد اختيار السخان على حجم الحوض وفرق الحرارة بين ماء الحوض والغرفة، مع استخدام ميزان حرارة مستقل للمراقبة."],
-  ["هل المنتجات غير المتوفرة تبقى ظاهرة؟", "قد تبقى صفحة المنتج ظاهرة إذا كان النفاد مؤقتاً، لكن يجب أن توضّح حالة المخزون بوضوح وتعرض بدائل مناسبة."],
-  ["هل يوجد دعم قبل الشراء؟", "يمكن التواصل مع AQUAVO قبل الطلب للمساعدة في اختيار المعدات المتوافقة مع حجم الحوض واحتياجه."],
+export const SEO_FAQ_ITEMS = [
+  [
+    "هل AQUAVO يوصّل لكل العراق؟",
+    `نعم. AQUAVO متجر إلكتروني ويوصل الطلبات إلى جميع محافظات العراق خلال 24 ساعة، وأجور التوصيل الثابتة ${new Intl.NumberFormat("ar-IQ").format(AQUAVO_ENTITY.deliveryFee)} د.ع.`,
+  ],
+  ["هل الدفع عند الاستلام متوفر؟", "نعم، طريقة الدفع المعتمدة هي الدفع النقدي عند الاستلام."],
+  ["هل دعم AQUAVO متوفر طول اليوم؟", "نعم، دعم AQUAVO متوفر 24/7 للاستفسار عن الطلبات واختيار المعدات."],
+  ["شلون أختار الفلتر المناسب؟", "ابدأ بحجم الحوض وعدد الأسماك والحمل الحيوي، ثم قارن التدفق الفعلي ومساحة وسائط الفلترة، مو رقم اللترات المكتوب وحده."],
+  ["شلون أختار السخان؟", "يعتمد اختيار السخان على حجم الحوض وفرق الحرارة بين الماء والغرفة، ويجب مراقبة الحرارة بميزان مستقل."],
+  ["هل AQUAVO يبيع أسماك أو كائنات أو نباتات حية؟", "لا. AQUAVO متخصص في معدات ومستلزمات أحواض الزينة ولا يبيع أسماكاً أو كائنات أو نباتات حية."],
 ] as const;
 
 function numberValue(value: string | number | null | undefined): number | null {
@@ -79,7 +87,7 @@ function formatMoney(value: number, currency = "IQD"): string {
 
 function formatPrice(product: SeoPreviewProduct): string {
   const range = priceRange(product);
-  if (!range) return "السعر متوفر داخل صفحة المنتج";
+  if (!range) return "السعر غير منشور حالياً";
   if (range.min !== range.max) {
     return `من ${formatMoney(range.min, product.currency || "IQD")} إلى ${formatMoney(range.max, product.currency || "IQD")}`;
   }
@@ -100,7 +108,7 @@ function cleanText(value: string | null | undefined, fallback: string): string {
 export function deriveProductCategories(products: SeoPreviewProduct[]): Array<{ name: string; count: number }> {
   const counts = new Map<string, number>();
   for (const product of products) {
-    const name = product.category?.trim();
+    const name = canonicalProductCategory(product.category);
     if (!name) continue;
     counts.set(name, (counts.get(name) || 0) + 1);
   }
@@ -162,7 +170,7 @@ function Categories({ products }: { products: SeoPreviewProduct[] }) {
     <ul className="aq-ssr-categories" aria-label="فئات المنتجات">
       {categories.map(({ name, count }) => (
         <li key={name}>
-          <a href={`/products?category=${encodeURIComponent(name)}`}>{name} <span aria-label={`${count} منتج`}>({count})</span></a>
+          <a href={categoryProductsPath(name)}>{name} <span aria-label={`${count} منتج`}>({count})</span></a>
         </li>
       ))}
     </ul>
@@ -173,9 +181,9 @@ function HomePage({ products }: { products: SeoPreviewProduct[] }) {
   return (
     <main id="main-content">
       <section className="aq-ssr-hero">
-        <p className="aq-ssr-kicker">معدات أحواض الزينة في العراق</p>
+        <p className="aq-ssr-kicker">متجر معدات أحواض أونلاين في العراق</p>
         <h1>مستلزمات أحواض الزينة مع اختيار أوضح ودعم محلي</h1>
-        <p>فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه، مع توصيل داخل العراق ودفع عند الاستلام للطلبات المؤهلة.</p>
+        <p>فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه. التوصيل لكل العراق خلال 24 ساعة بأجور 5,000 د.ع، والدفع عند الاستلام، والدعم متوفر 24/7.</p>
         <div className="aq-ssr-actions"><a href="/products">تصفح المنتجات</a><a href="/guides">اقرأ الأدلة</a></div>
       </section>
       <section aria-labelledby="aq-categories-title">
@@ -189,23 +197,24 @@ function HomePage({ products }: { products: SeoPreviewProduct[] }) {
       </section>
       <section aria-labelledby="aq-answer-title" className="aq-ssr-answer">
         <h2 id="aq-answer-title">شنو تختار لحوضك؟</h2>
-        <p>اختيار المعدات يبدأ من حجم الحوض ونوع الأسماك والحمل الحيوي، مو من السعر وحده. استخدم أدلة AQUAVO للمقارنة بين الفلاتر والسخانات ووسائط الفلترة قبل الطلب.</p>
+        <p>اختيار المعدات يبدأ من حجم الحوض ونوع الأسماك والحمل الحيوي، مو من السعر وحده. أدلة AQUAVO تشرح المقارنة بين الفلاتر والسخانات ووسائط الفلترة قبل الطلب.</p>
         <a href="/guides/new-aquarium-setup-iraq">دليل تجهيز حوض جديد في العراق</a>
       </section>
     </main>
   );
 }
 
-function ProductsPage({ products }: { products: SeoPreviewProduct[] }) {
+function ProductsPage({ products, category }: { products: SeoPreviewProduct[]; category?: string }) {
+  const heading = category ? `منتجات ${category}` : "جميع مستلزمات أحواض الزينة في العراق";
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>المنتجات</span></nav>
-      <h1>جميع مستلزمات أحواض الزينة في العراق</h1>
-      <p>تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة.</p>
-      <Categories products={products} />
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a>{category && <><span>/</span><span>{category}</span></>}</nav>
+      <h1>{heading}</h1>
+      <p>{category ? `المنتجات المسجلة ضمن فئة ${category} مع السعر والمخزون وروابط مباشرة.` : "تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة."}</p>
+      {!category && <Categories products={products} />}
       <section aria-labelledby="aq-all-products-title">
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>
-        <ProductLinks products={products} />
+        {products.length > 0 ? <ProductLinks products={products} /> : <p>لا توجد منتجات منشورة ضمن هذه الفئة حالياً.</p>}
       </section>
     </main>
   );
@@ -214,6 +223,7 @@ function ProductsPage({ products }: { products: SeoPreviewProduct[] }) {
 function ProductPage({ product, related }: { product: SeoPreviewProduct; related: SeoPreviewProduct[] }) {
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const variants = getActiveVariants(product);
+  const category = canonicalProductCategory(product.category);
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
@@ -226,12 +236,13 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
         <dl className="aq-ssr-facts">
           <div><dt>السعر</dt><dd>{formatPrice(product)}</dd></div>
           <div><dt>حالة المخزون</dt><dd>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</dd></div>
-          {product.category && <div><dt>الفئة</dt><dd><a href={`/products?category=${encodeURIComponent(product.category)}`}>{product.category}</a></dd></div>}
+          {category && <div><dt>الفئة</dt><dd><a href={categoryProductsPath(category)}>{category}</a></dd></div>}
           {product.brand && <div><dt>العلامة</dt><dd itemProp="brand">{product.brand}</dd></div>}
         </dl>
         {variants.length > 0 && (
           <section aria-labelledby="aq-variant-title">
-            <h2 id="aq-variant-title">الخيارات المتوفرة</h2>
+            <h2 id="aq-variant-title">الخيارات المسجلة</h2>
+            <p>اختيار المقاس أو النوع يتم داخل صفحة المنتج. الأسعار أدناه تعكس البيانات المسجلة لكل خيار.</p>
             <ul className="aq-ssr-variants">
               {variants.map((variant, index) => (
                 <li key={variant.id || `${variant.label}-${index}`}>
@@ -243,16 +254,13 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
             </ul>
           </section>
         )}
-        <section aria-labelledby="aq-product-answer">
-          <h2 id="aq-product-answer">لمن يناسب هذا المنتج؟</h2>
-          <p>{description}</p>
-        </section>
       </article>
-      <section aria-labelledby="aq-related-title">
-        <h2 id="aq-related-title">منتجات مرتبطة</h2>
-        <ProductLinks products={related} limit={8} />
-      </section>
-      <p><a href="/products">الرجوع إلى جميع المنتجات</a></p>
+      {related.length > 0 && (
+        <section aria-labelledby="aq-related-title">
+          <h2 id="aq-related-title">منتجات مرتبطة</h2>
+          <ProductLinks products={related} limit={6} />
+        </section>
+      )}
     </main>
   );
 }
@@ -260,11 +268,12 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
 function FaqPage() {
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>الأسئلة الشائعة</span></nav>
       <h1>الأسئلة الشائعة عن AQUAVO وأحواض الزينة</h1>
-      <p>إجابات مختصرة عن الطلب والتوصيل واختيار معدات الحوض.</p>
-      <section className="aq-ssr-faq" aria-label="الأسئلة والأجوبة">
-        {faqs.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}
+      <p>إجابات مختصرة ومباشرة عن التوصيل والدفع والدعم واختيار المعدات.</p>
+      <section className="aq-ssr-faq" aria-label="الأسئلة الشائعة">
+        {SEO_FAQ_ITEMS.map(([question, answer]) => (
+          <details key={question}><summary>{question}</summary><p>{answer}</p></details>
+        ))}
       </section>
     </main>
   );
@@ -273,42 +282,40 @@ function FaqPage() {
 function AboutPage() {
   return (
     <main id="main-content">
-      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>عن AQUAVO</span></nav>
       <h1>عن AQUAVO</h1>
-      <p>AQUAVO علامة عراقية ومتجر إلكتروني متخصص في معدات ومستلزمات أحواض الزينة، تابع إلى محل المنبع / AL NABEA SHOP ومقر النشاط في بغداد، العراق.</p>
-      <section aria-labelledby="aq-about-specialty"><h2 id="aq-about-specialty">مجال التخصص</h2><p>الفلاتر، السخانات، الأغذية، الإضاءة، الديكورات، الركائز، مضخات الهواء، معالجات المياه ومستلزمات الصيانة.</p></section>
-      <section aria-labelledby="aq-about-service"><h2 id="aq-about-service">طريقة الخدمة</h2><p>العمل عبر الموقع ووسائل التواصل، مع توفير معلومات تساعد الزبون على اختيار المنتج المناسب قبل الطلب.</p></section>
-      <p><a href="/contact">بيانات التواصل</a> · <a href="/products">تصفح المنتجات</a> · <a href="/guides">الأدلة التعليمية</a></p>
+      <p>AQUAVO، المشغّل قانونياً باسم {AQUAVO_ENTITY.legalName}، متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
+      <p>العمل بالكامل عبر الموقع وواتساب، ولا يوجد محل لاستقبال الزبائن حالياً. AQUAVO لا يبيع أسماكاً أو كائنات أو نباتات حية.</p>
+      <p>التوصيل لكل العراق خلال 24 ساعة بأجور 5,000 د.ع، والدفع عند الاستلام، والدعم متوفر 24/7.</p>
+      <p><a href="/products">تصفح المنتجات</a> · <a href="/contact">تواصل معنا</a></p>
     </main>
   );
 }
 
-function StaticPage({ heading, summary, path }: { heading: string; summary: string; path: string }) {
+function StaticPage({ heading, summary, paragraphs = [] }: { heading: string; summary: string; path: string; paragraphs?: string[] }) {
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
       <h1>{heading}</h1>
       <p>{summary}</p>
-      <p><a href="/products">تصفح المنتجات</a> · <a href="/faq">الأسئلة الشائعة</a> · <a href="/contact">تواصل معنا</a></p>
-      <small>المسار: {path}</small>
+      {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+      <p><a href="/products">تصفح المنتجات</a> · <a href="/faq">الأسئلة الشائعة</a></p>
     </main>
   );
 }
 
-function NotFoundPage({ path }: { path: string }) {
+function NotFoundPage() {
   return (
     <main id="main-content">
       <h1>الصفحة غير موجودة</h1>
       <p>الرابط المطلوب غير متوفر أو تم نقله.</p>
       <p><a href="/">العودة إلى الرئيسية</a> · <a href="/products">تصفح المنتجات</a></p>
-      <small>{path}</small>
     </main>
   );
 }
 
 function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
   return (
-    <div className="aq-ssr-shell" data-aq-ssr-preview="true">
+    <div className="aq-ssr-shell" data-aq-semantic-shell="true">
       <style>{`
         .aq-ssr-shell{min-height:100vh;background:#0B1E28;color:#f7fbfc;font-family:Cairo,Tahoma,sans-serif;line-height:1.75;padding:0 5vw 3rem}
         .aq-ssr-shell *{box-sizing:border-box}.aq-ssr-shell a{color:#67d7e5;text-decoration:none}.aq-ssr-shell a:hover{text-decoration:underline}
@@ -326,12 +333,12 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
       `}</style>
       <SiteHeader />
       {page.kind === "home" && <HomePage products={page.products} />}
-      {page.kind === "products" && <ProductsPage products={page.products} />}
+      {page.kind === "products" && <ProductsPage products={page.products} category={page.category} />}
       {page.kind === "product" && <ProductPage product={page.product} related={page.related} />}
       {page.kind === "faq" && <FaqPage />}
       {page.kind === "about" && <AboutPage />}
-      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} />}
-      {page.kind === "not-found" && <NotFoundPage path={page.path} />}
+      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} paragraphs={page.paragraphs} />}
+      {page.kind === "not-found" && <NotFoundPage />}
       <SiteFooter />
     </div>
   );

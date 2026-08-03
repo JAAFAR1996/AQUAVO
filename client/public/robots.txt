@@ -3,10 +3,16 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 Disallow: /checkout
+Disallow: /cart
 Disallow: /profile
 Disallow: /login
 Disallow: /register
 Disallow: /forgot-password
 Disallow: /reset-password
+Disallow: /order-confirmation/
+Disallow: /invoice/
+Disallow: /search
+Disallow: /wishlist
+Disallow: /compare
 
 Sitemap: https://www.aquavoiq.com/sitemap.xml

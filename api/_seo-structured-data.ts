@@ -1,7 +1,11 @@
 import type { SeoPreviewProduct, SeoPreviewVariant } from "./_seo-preview-shell.js";
+import {
+  AQUAVO_BASE_URL,
+  AQUAVO_ENTITY,
+  canonicalProductCategory,
+} from "../shared/seo-contract.js";
 
-const PRODUCTION_BASE = "https://www.aquavoiq.com";
-const DEFAULT_IMAGE = `${PRODUCTION_BASE}/brand/aquavo-v2-horizontal.png`;
+const DEFAULT_IMAGE = AQUAVO_ENTITY.logoUrl;
 
 function numberValue(value: string | number | null | undefined): number | null {
   if (value === null || value === undefined || value === "") return null;
@@ -21,7 +25,7 @@ function firstImage(product: SeoPreviewProduct, variant?: SeoPreviewVariant): st
       : undefined);
   if (!candidate) return DEFAULT_IMAGE;
   if (/^https?:\/\//i.test(candidate)) return candidate;
-  return `${PRODUCTION_BASE}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
+  return `${AQUAVO_BASE_URL}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
 }
 
 function availability(stock: string | number | null | undefined): string {
@@ -30,19 +34,32 @@ function availability(stock: string | number | null | undefined): string {
     : "https://schema.org/OutOfStock";
 }
 
-function offer(url: string, price: string | number | null | undefined, currency: string, stock: string | number | null | undefined) {
+function shippingDetails() {
   return {
-    "@type": "Offer",
-    url,
-    price: String(Math.max(numberValue(price) ?? 0, 0)),
-    priceCurrency: currency,
-    availability: availability(stock),
-    itemCondition: "https://schema.org/NewCondition",
-    seller: {
-      "@type": "Organization",
-      "@id": `${PRODUCTION_BASE}/#organization`,
-      name: "AQUAVO",
-      url: PRODUCTION_BASE,
+    "@type": "OfferShippingDetails",
+    shippingRate: {
+      "@type": "MonetaryAmount",
+      value: AQUAVO_ENTITY.deliveryFee,
+      currency: AQUAVO_ENTITY.currency,
+    },
+    shippingDestination: {
+      "@type": "DefinedRegion",
+      addressCountry: AQUAVO_ENTITY.countryCode,
+    },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: {
+        "@type": "QuantitativeValue",
+        minValue: 0,
+        maxValue: 0,
+        unitCode: "DAY",
+      },
+      transitTime: {
+        "@type": "QuantitativeValue",
+        minValue: 0,
+        maxValue: AQUAVO_ENTITY.deliveryMaxDays,
+        unitCode: "DAY",
+      },
     },
   };
 }
@@ -60,64 +77,106 @@ function defaultVariant(product: SeoPreviewProduct): SeoPreviewVariant | undefin
   return variants.find((variant) => Boolean((variant as SeoPreviewVariant & { isDefault?: boolean }).isDefault)) || variants[0];
 }
 
+function buildOffer(
+  url: string,
+  price: string | number | null | undefined,
+  currency: string,
+  stock: string | number | null | undefined,
+): object | undefined {
+  const numericPrice = numberValue(price);
+  if (numericPrice === null || numericPrice <= 0) return undefined;
+  return {
+    "@type": "Offer",
+    url,
+    price: String(numericPrice),
+    priceCurrency: currency,
+    availability: availability(stock),
+    itemCondition: "https://schema.org/NewCondition",
+    seller: { "@id": `${AQUAVO_BASE_URL}/#organization` },
+    shippingDetails: shippingDetails(),
+    eligibleRegion: {
+      "@type": "Country",
+      name: AQUAVO_ENTITY.countryName,
+    },
+  };
+}
+
 export function buildProductStructuredData(product: SeoPreviewProduct): object[] {
-  const url = `${PRODUCTION_BASE}/products/${encodeURIComponent(product.slug)}`;
-  const currency = product.currency || "IQD";
+  const url = `${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)}`;
+  const currency = product.currency || AQUAVO_ENTITY.currency;
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
   const selected = defaultVariant(product);
   const productPrice = selected?.price ?? product.price;
   const productStock = selected?.stock ?? product.stock;
   const sku = selected?.sku || (selected?.id ? `${product.id || product.slug}-${selected.id}` : product.id || product.slug);
-  const variantLabels = activeVariants(product).map((variant) => variant.label).filter(Boolean) as string[];
+  const variants = activeVariants(product);
+
+  const productSchema: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${url}#product`,
+    name: product.name,
+    description,
+    url,
+    image: [firstImage(product, selected)],
+    sku,
+    brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
+    category: canonicalProductCategory(product.category) || undefined,
+    offers: buildOffer(url, productPrice, currency, productStock),
+    additionalProperty: variants.length > 0
+      ? variants.map((variant) => ({
+          "@type": "PropertyValue",
+          name: variant.label || "خيار",
+          value: [
+            numberValue(variant.price) !== null ? `${numberValue(variant.price)} ${currency}` : null,
+            (numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر",
+            variant.sku ? `SKU: ${variant.sku}` : null,
+          ].filter(Boolean).join(" — "),
+        }))
+      : undefined,
+    aggregateRating:
+      (numberValue(product.rating) ?? 0) > 0 && (numberValue(product.reviewCount) ?? 0) > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: numberValue(product.rating),
+            reviewCount: numberValue(product.reviewCount),
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
+  };
 
   return [
-    {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "@id": `${url}#product`,
-      name: product.name,
-      description,
-      url,
-      image: [firstImage(product, selected)],
-      sku,
-      brand: product.brand ? { "@type": "Brand", name: product.brand } : undefined,
-      category: product.category || undefined,
-      offers: offer(url, productPrice, currency, productStock),
-      additionalProperty: variantLabels.length > 0
-        ? [{ "@type": "PropertyValue", name: "الخيارات المتوفرة", value: variantLabels.join("، ") }]
-        : undefined,
-      aggregateRating:
-        (numberValue(product.rating) ?? 0) > 0 && (numberValue(product.reviewCount) ?? 0) > 0
-          ? {
-              "@type": "AggregateRating",
-              ratingValue: numberValue(product.rating),
-              reviewCount: numberValue(product.reviewCount),
-              bestRating: 5,
-              worstRating: 1,
-            }
-          : undefined,
-    },
+    productSchema,
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "الرئيسية", item: PRODUCTION_BASE },
-        { "@type": "ListItem", position: 2, name: "المنتجات", item: `${PRODUCTION_BASE}/products` },
+        { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
+        { "@type": "ListItem", position: 2, name: "المنتجات", item: `${AQUAVO_BASE_URL}/products` },
         { "@type": "ListItem", position: 3, name: product.name, item: url },
       ],
     },
   ];
 }
 
-export function buildCollectionStructuredData(products: SeoPreviewProduct[]): object[] {
-  const categories = [...new Set(products.map((product) => product.category?.trim()).filter(Boolean))] as string[];
+export function buildCollectionStructuredData(
+  products: SeoPreviewProduct[],
+  canonicalPath = "/products",
+  name = "مستلزمات أحواض الزينة في العراق",
+): object[] {
+  const categories = [...new Set(products
+    .map((product) => canonicalProductCategory(product.category))
+    .filter(Boolean))] as string[];
+  const url = `${AQUAVO_BASE_URL}${canonicalPath}`;
   return [
     {
       "@context": "https://schema.org",
       "@type": "CollectionPage",
-      name: "مستلزمات أحواض الزينة في العراق",
-      url: `${PRODUCTION_BASE}/products`,
+      name,
+      url,
       inLanguage: "ar-IQ",
+      isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
       mainEntity: {
         "@type": "ItemList",
         numberOfItems: products.length,
@@ -125,18 +184,81 @@ export function buildCollectionStructuredData(products: SeoPreviewProduct[]): ob
           "@type": "ListItem",
           position: index + 1,
           name: product.name,
-          url: `${PRODUCTION_BASE}/products/${encodeURIComponent(product.slug)}`,
+          url: `${AQUAVO_BASE_URL}/products/${encodeURIComponent(product.slug)}`,
         })),
       },
-      about: categories.map((name) => ({ "@type": "Thing", name })),
+      about: categories.map((categoryName) => ({ "@type": "Thing", name: categoryName })),
     },
     {
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
-        { "@type": "ListItem", position: 1, name: "الرئيسية", item: PRODUCTION_BASE },
-        { "@type": "ListItem", position: 2, name: "المنتجات", item: `${PRODUCTION_BASE}/products` },
+        { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
+        { "@type": "ListItem", position: 2, name, item: url },
       ],
     },
   ];
+}
+
+export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[] {
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "OnlineStore",
+      "@id": `${AQUAVO_BASE_URL}/#organization`,
+      name: AQUAVO_ENTITY.brandName,
+      alternateName: [AQUAVO_ENTITY.arabicName, "AQUAVO Iraq"],
+      legalName: AQUAVO_ENTITY.legalName,
+      url: AQUAVO_BASE_URL,
+      logo: AQUAVO_ENTITY.logoUrl,
+      image: AQUAVO_ENTITY.logoUrl,
+      email: AQUAVO_ENTITY.email,
+      telephone: AQUAVO_ENTITY.telephone,
+      currenciesAccepted: AQUAVO_ENTITY.currency,
+      paymentAccepted: AQUAVO_ENTITY.paymentMethod,
+      areaServed: { "@type": "Country", name: AQUAVO_ENTITY.countryName },
+      sameAs: [...AQUAVO_ENTITY.socialProfiles],
+      contactPoint: {
+        "@type": "ContactPoint",
+        telephone: AQUAVO_ENTITY.telephone,
+        contactType: "customer support",
+        availableLanguage: ["Arabic"],
+        areaServed: AQUAVO_ENTITY.countryCode,
+        hoursAvailable: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          opens: "00:00",
+          closes: "23:59",
+        },
+      },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": `${AQUAVO_BASE_URL}/#website`,
+      name: AQUAVO_ENTITY.brandName,
+      alternateName: AQUAVO_ENTITY.arabicName,
+      url: AQUAVO_BASE_URL,
+      inLanguage: "ar-IQ",
+      publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
+      potentialAction: {
+        "@type": "SearchAction",
+        target: `${AQUAVO_BASE_URL}/products?search={search_term_string}`,
+        "query-input": "required name=search_term_string",
+      },
+    },
+    ...buildCollectionStructuredData(products.slice(0, 24), "/", "منتجات AQUAVO"),
+  ];
+}
+
+export function buildFaqStructuredData(items: readonly (readonly [string, string])[]): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map(([name, text]) => ({
+      "@type": "Question",
+      name,
+      acceptedAnswer: { "@type": "Answer", text },
+    })),
+  };
 }

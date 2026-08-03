@@ -8,6 +8,10 @@ import type { IncomingMessage, ServerResponse } from "http";
 import { registerRoutes } from "../server/routes.js";
 import { buildSessionSecret, createSessionStore } from "../server/session-config.js";
 import { corsConfig, sanitizeBody, securityHeaders } from "../server/middleware/security.js";
+import sitemapIndexHandler from "./sitemap-index.js";
+import sitemapPagesHandler from "./sitemap-pages.js";
+import sitemapProductsHandler from "./sitemap-products.js";
+import sitemapGuidesHandler from "./sitemap-guides.js";
 
 type RawBodyRequest = IncomingMessage & { rawBody?: Buffer };
 
@@ -33,6 +37,26 @@ function getRealRoute(req: Request): string {
   }
 }
 
+function getVercelRoute(req: VercelRequest): string {
+  const firstHeader = (value: string | string[] | undefined): string | undefined =>
+    Array.isArray(value) ? value[0] : value;
+  const raw =
+    firstHeader(req.headers["x-invoke-path"]) ||
+    firstHeader(req.headers["x-vercel-original-url"]) ||
+    firstHeader(req.headers["x-original-url"]) ||
+    firstHeader(req.headers["x-forwarded-uri"]) ||
+    req.url ||
+    "/";
+  try {
+    const pathname = raw.startsWith("http://") || raw.startsWith("https://")
+      ? new URL(raw).pathname
+      : raw.split("?", 1)[0];
+    return pathname.startsWith("/") ? pathname : `/${pathname}`;
+  } catch {
+    return "/";
+  }
+}
+
 function getSourceOrigin(req: Request): string | undefined {
   const origin = req.get("origin");
   if (origin) return origin;
@@ -55,13 +79,12 @@ function csrfOriginProtection(req: Request, res: Response, next: NextFunction) {
 
   const realRoute = getRealRoute(req);
 
-  // OAuth 2.1 endpoints (RFC 7591 DCR + RFC 6749 token) are server-to-server —
-  // no browser Origin header by design. Security: PKCE S256 + admin password.
+  // OAuth 2.1 endpoints are server-to-server and use their own protections.
   if (realRoute.startsWith("/oauth")) {
     return next();
   }
 
-  // MCP endpoint uses Bearer token auth, not cookies — no CSRF risk.
+  // MCP endpoints use Bearer token auth, not cookies.
   if (realRoute.startsWith("/api/mcp") || realRoute.startsWith("/mcp")) {
     return next();
   }
@@ -93,41 +116,31 @@ async function buildApp() {
   const app = express();
   const httpServer = createServer(app);
 
-  // Trust proxy for Vercel/production deployments to correctly identify protocol (http vs https)
   app.set("trust proxy", 1);
 
-  // Security: Helmet for comprehensive HTTP security headers
   app.use(helmet({
-    contentSecurityPolicy: false, // Using custom CSP from securityHeaders middleware
-    crossOriginEmbedderPolicy: false, // Allow embedding resources
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
   }));
 
-  // Security: Custom security headers with CSP
   app.use(securityHeaders);
-
-  // Security: CORS configuration
   app.use(corsConfig);
 
   app.use(
     express.json({
-      limit: '10mb',
+      limit: "10mb",
       verify: (req: RawBodyRequest, _res: ServerResponse, buf: Buffer, _encoding: string) => {
         req.rawBody = buf;
       },
     }),
   );
 
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
-
-  // Security: Request body sanitization (must be AFTER parsing)
+  app.use(express.urlencoded({ limit: "10mb", extended: true }));
   app.use(sanitizeBody);
-
-  // Security: CSRF origin validation for the Vercel API entrypoint.
   app.use(csrfOriginProtection);
 
   console.log("📦 Creating session store...");
-  // Use persistent PostgreSQL session store in production
   const sessionStore = createSessionStore(process.env.NODE_ENV);
   console.log("✅ Session store created");
 
@@ -135,15 +148,15 @@ async function buildApp() {
     session({
       store: sessionStore,
       secret: buildSessionSecret(),
-      name: "sid", // Use generic cookie name for security
+      name: "sid",
       resave: false,
       saveUninitialized: false,
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        httpOnly: true, // Prevent JavaScript access (XSS protection)
-        secure: process.env.NODE_ENV === "production", // HTTPS only in production
-        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax", // Strict in production for CSRF protection
-        path: "/", // Cookie available for all paths
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "strict" : "lax",
+        path: "/",
       },
     }),
   );
@@ -155,8 +168,7 @@ async function buildApp() {
     res.on("finish", () => {
       const duration = Date.now() - start;
       if (req.path.startsWith("/api")) {
-        let logLine = `${req.method} ${req.path} ${res.statusCode} in ${duration}ms`;
-        console.log(logLine);
+        console.log(`${req.method} ${req.path} ${res.statusCode} in ${duration}ms`);
       }
     });
 
@@ -167,9 +179,6 @@ async function buildApp() {
   await registerRoutes(httpServer, app);
   console.log("✅ All routes registered successfully");
 
-  // Serverless startup must stay read-safe. Run schema migrations and data fixes
-  // through the documented migration process, never from request initialization.
-
   return app;
 }
 
@@ -177,6 +186,22 @@ let appPromise: Promise<express.Application> | null = null;
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    // Vercel rewrites the public sitemap URLs to /api/index. Intercept them
+    // before booting Express so the canonical generators remain lightweight,
+    // deterministic, and independent from stale route-local constants.
+    switch (getVercelRoute(req)) {
+      case "/sitemap.xml":
+        return sitemapIndexHandler(req, res);
+      case "/sitemap-pages.xml":
+        return sitemapPagesHandler(req, res);
+      case "/sitemap-products.xml":
+        return sitemapProductsHandler(req, res);
+      case "/sitemap-guides.xml":
+        return sitemapGuidesHandler(req, res);
+      default:
+        break;
+    }
+
     if (!appPromise) {
       appPromise = buildApp();
     }
@@ -184,11 +209,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return (app as any)(req, res);
   } catch (error: any) {
     console.error("Handler error:", error);
-    // Reset appPromise on error so next request tries again
     appPromise = null;
     res.status(500).json({
       message: "Server initialization error",
-      error: process.env.NODE_ENV === "development" ? error.message : undefined
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 }

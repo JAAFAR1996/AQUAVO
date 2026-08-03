@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
@@ -13,6 +14,32 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 // Production entry includes the merged immersive Journey and loading experience.
 initializeClientEnvSideEffects();
 
+// The server-rendered semantic document lives in #seo-root while the interactive
+// React app mounts into an intentionally empty #root. This prevents createRoot()
+// from destroying server HTML before the client has painted. No-JS users and
+// crawlers retain the full semantic document; JS users see it removed only after
+// the real application has committed and the browser has painted twice.
+function SemanticShellCleanup() {
+  useEffect(() => {
+    const semanticRoot = document.getElementById("seo-root");
+    const clientRoot = document.getElementById("root");
+    clientRoot?.setAttribute("data-aq-client-ready", "true");
+    if (!semanticRoot) return;
+
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => semanticRoot.remove());
+    });
+
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, []);
+
+  return null;
+}
+
 // The previous init screen blocked first paint for a fixed half-second. Keep its
 // legacy branch bypassed while FirstDiveIntro runs over an already rendered app.
 try {
@@ -24,6 +51,7 @@ try {
 createRoot(document.getElementById("root")!).render(
   <>
     <App />
+    <SemanticShellCleanup />
     <FirstDiveIntro />
     <DisplacementRuntime />
   </>,
@@ -91,7 +119,7 @@ if (typeof navigator !== "undefined" && "modelContext" in navigator) {
         ]
       });
     }
-  } catch (e) {
+  } catch {
     // WebMCP not supported — silently ignore
   }
 }

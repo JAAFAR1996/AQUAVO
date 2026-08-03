@@ -4,12 +4,27 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "api/_canonical-guides.ts"
+      - "api/_guides-content.ts"
       - "api/_seo-preview-shell.tsx"
       - "api/_seo-structured-data.ts"
+      - "api/index.ts"
+      - "api/robots.ts"
+      - "api/sitemap-index.ts"
+      - "api/sitemap-pages.ts"
+      - "api/sitemap-products.ts"
+      - "api/sitemap-guides.ts"
       - "api/ssr-preview.ts"
       - "api/ssr-preview-advanced.ts"
+      - "client/public/robots.txt"
+      - "client/src/components/seo/meta-tags.tsx"
+      - "client/src/main.tsx"
+      - "shared/seo-contract.ts"
+      - "shared/site-routes.ts"
+      - "reports/release-2026-07-12/seo-aeo-geo-query-map.md"
       - "test/seo-preview-shell.test.tsx"
       - "test/seo-runtime-entry.test.ts"
+      - "test/seo-production-safety.test.ts"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
       - ".lighthouserc.preview.cjs"
@@ -27,9 +42,9 @@ jobs:
   semantic-html:
     name: Semantic HTML Contract
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 15
     steps:
-      - name: Checkout preview branch
+      - name: Checkout correction branch
         uses: actions/checkout@v4
 
       - name: Setup pnpm
@@ -46,14 +61,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --prefer-offline
 
-      - name: Type-check preview files
+      - name: Type-check application and SEO functions
         run: pnpm run check
 
-      - name: Build generated SSR template
+      - name: Build generated SSR template and server bundle
         run: pnpm run build
 
-      - name: Run focused SSR HTML and structured-data tests
-        run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts --reporter=verbose
+      - name: Run focused SEO HTML, schema, route, and safety tests
+        run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts --reporter=verbose
 
       - name: Verify browser-audit script syntax
         run: node --check scripts/seo-preview-live-audit.mjs
