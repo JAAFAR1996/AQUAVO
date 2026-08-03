@@ -33,6 +33,7 @@
     "shared/cod-accounting.ts",
     "server/middleware/accounting-auth-v2.ts",
     "server/routes/accounting-v2.ts",
+    "server/routes/accounting-monthly-position-v2.ts",
     "server/routes/accounting-setup-v2.ts",
     "server/routes/accounting-carrier-correction-v2.ts",
     "server/routes/accounting-operations-v2.ts",
