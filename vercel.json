@@ -16,7 +16,8 @@
     },
     "api/ssr-preview.ts": {
       "memory": 512,
-      "maxDuration": 15
+      "maxDuration": 15,
+      "includeFiles": "{api/**,shared/**,server/suppress.ts}"
     },
     "api/pdf.ts": {
       "memory": 256,
