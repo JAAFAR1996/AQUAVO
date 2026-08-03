@@ -29,6 +29,24 @@ describe("accounting v2 production wiring", () => {
     expect(reports).toBeLessThan(legacy);
   });
 
+  it("uses a storage-independent admin guard for every V2 admin route", () => {
+    const guard = read("server/middleware/accounting-auth-v2.ts");
+    expect(guard).toContain("FROM").not;
+    expect(guard).toContain(".from(users)");
+    expect(guard).not.toContain('from "../storage/index.js"');
+    for (const file of [
+      "server/routes/admin-orders-v2.ts",
+      "server/routes/accounting-v2.ts",
+      "server/routes/accounting-operations-v2.ts",
+      "server/routes/accounting-evidence-upload-v2.ts",
+    ]) {
+      const source = read(file);
+      expect(source).toContain("requireAccountingAdmin");
+      expect(source).not.toContain('from "../middleware/auth.js"');
+      expect(source).not.toContain('from "../storage/index.js"');
+    }
+  });
+
   it("keeps state, packaging and financial recognition inside one transaction", () => {
     const source = read("server/routes/admin-orders-v2.ts");
     expect(source).toContain("db.transaction(async (tx)");
@@ -36,7 +54,6 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain("applyPackagingLifecycle(tx as never");
     expect(source).toContain("tx.update(orders)");
     expect(source).not.toContain("applyPackagingLifecycle(getDb()");
-    expect(source).not.toContain('from "../storage/index.js"');
     expect(source).toContain("recordFinancialChange(tx as never");
   });
 
@@ -59,12 +76,19 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain("SET status='reconciled'");
   });
 
-  it("uploads evidence with server-computed SHA-256 and verifies expenses atomically", () => {
-    const upload = read("server/routes/upload.ts");
-    const operations = read("server/routes/accounting-operations-v2.ts");
+  it("mounts isolated evidence upload first and computes SHA-256 on original bytes", () => {
+    const routes = read("server/routes.ts");
+    const upload = read("server/routes/accounting-evidence-upload-v2.ts");
+    expect(routes.indexOf('app.use("/api/upload", createAccountingEvidenceUploadV2Router())'))
+      .toBeLessThan(routes.indexOf('app.use("/api/upload", createUploadRouter())'));
     expect(upload).toContain('createHash("sha256")');
     expect(upload).toContain('"/accounting-evidence"');
     expect(upload).toContain('file.mimetype === "application/pdf"');
+    expect(upload).toContain("req.file.buffer");
+  });
+
+  it("verifies expense evidence atomically and posts owner-paid costs to capital", () => {
+    const operations = read("server/routes/accounting-operations-v2.ts");
     expect(operations).toContain("db.transaction(async (tx)");
     expect(operations).toContain("INSERT INTO public.evidence_files");
     expect(operations).toContain("accounting_status='verified'");
