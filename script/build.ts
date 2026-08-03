@@ -68,12 +68,13 @@ async function buildAll() {
   // Package dependencies remain external and are provided by node_modules.
   console.log("bundling semantic SSR runtime...");
   await mkdir("generated", { recursive: true });
+  const generatedRuntimePath = "generated/ssr-preview-runtime.ts";
   await esbuild({
     entryPoints: ["api/ssr-preview.ts"],
     platform: "node",
     bundle: true,
     format: "esm",
-    outfile: "generated/ssr-preview-runtime.ts",
+    outfile: generatedRuntimePath,
     define: {
       "process.env.NODE_ENV": '"production"',
     },
@@ -83,6 +84,16 @@ async function buildAll() {
       js: "import { createRequire } from 'module';const require = createRequire(import.meta.url);",
     },
   });
+
+  const bundledRuntime = await readFile(generatedRuntimePath, "utf-8");
+  const unresolvedLocalImport = /(?:from\s*["']\.{1,2}\/(?!node_modules)|import\(\s*["']\.{1,2}\/(?!node_modules))/;
+  if (unresolvedLocalImport.test(bundledRuntime)) {
+    throw new Error("Semantic SSR bundle still contains a relative runtime import");
+  }
+  if (!bundledRuntime.includes("semantic-v3") || !bundledRuntime.includes("noindex, follow")) {
+    throw new Error("Semantic SSR bundle is missing required SEO safety contracts");
+  }
+
   await writeFile(
     "api/ssr-preview.ts",
     "// AUTO-GENERATED production entry — source is bundled by script/build.ts\nexport { default } from \"../generated/ssr-preview-runtime.js\";\n",
