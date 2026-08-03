@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { addCsrfHeader } from "@/lib/csrf";
+import { FinanceAccountingOperationsV2 } from "@/components/admin/finance-accounting-operations-v2";
 
 const money = z.coerce.number().default(0);
 const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number() });
@@ -47,8 +48,6 @@ const readinessResponseSchema = z.object({
   readiness: readinessSchema,
   close: z.record(z.string(), z.unknown()).nullable(),
 });
-
-type Register = z.infer<typeof registerSchema>;
 
 function baghdadMonth(now = new Date()): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -235,6 +234,8 @@ export function FinanceAccountingRegisterV2() {
           </tbody>
         </table>
       </section>
+
+      <FinanceAccountingOperationsV2 periodKey={periodKey} />
     </div>
   );
 }
