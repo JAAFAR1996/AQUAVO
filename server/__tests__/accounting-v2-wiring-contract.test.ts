@@ -19,10 +19,14 @@ describe("accounting v2 production wiring", () => {
       .toBeLessThan(routes.indexOf('app.use("/api/invoice", createInvoiceRouter())'));
   });
 
-  it("mounts the canonical accounting API before the legacy accounting API", () => {
+  it("mounts accounting operations and canonical reports before the legacy API", () => {
     const routes = read("server/routes.ts");
-    expect(routes.indexOf('app.use("/api/admin/accounting", createAccountingV2Router())'))
-      .toBeLessThan(routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())'));
+    const operations = routes.indexOf('app.use("/api/admin/accounting", createAccountingOperationsV2Router())');
+    const reports = routes.indexOf('app.use("/api/admin/accounting", createAccountingV2Router())');
+    const legacy = routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())');
+    expect(operations).toBeGreaterThan(-1);
+    expect(operations).toBeLessThan(reports);
+    expect(reports).toBeLessThan(legacy);
   });
 
   it("keeps state, packaging and financial recognition inside one transaction", () => {
@@ -43,6 +47,26 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain("tx.insert(orderItems)");
     expect(source).toContain("tx.update(manualInvoices)");
   });
+
+  it("derives settlements from immutable order facts and reconciles by status transition", () => {
+    const source = read("server/routes/accounting-operations-v2.ts");
+    expect(source).toContain("FROM public.order_accounting_facts f");
+    expect(source).toContain("FOR UPDATE OF f");
+    expect(source).toContain("net !== gross - fees");
+    expect(source).toContain("INSERT INTO public.cash_settlement_items");
+    expect(source).toContain("SET status='reconciled'");
+  });
+
+  it("uploads evidence with server-computed SHA-256 and verifies expenses atomically", () => {
+    const upload = read("server/routes/upload.ts");
+    const operations = read("server/routes/accounting-operations-v2.ts");
+    expect(upload).toContain('createHash("sha256")');
+    expect(upload).toContain('"/accounting-evidence"');
+    expect(upload).toContain('file.mimetype === "application/pdf"');
+    expect(operations).toContain("db.transaction(async (tx)");
+    expect(operations).toContain("INSERT INTO public.evidence_files");
+    expect(operations).toContain("accounting_status='verified'");
+  });
 });
 
 describe("accounting v2 operator workspace", () => {
@@ -60,6 +84,15 @@ describe("accounting v2 operator workspace", () => {
     ]) expect(component).toContain(field);
     expect(component).toContain("/api/admin/accounting/v2/accountant-package");
     expect(component).toContain("/api/admin/accounting/v2/periods/close");
+    expect(component).toContain("<FinanceAccountingOperationsV2 periodKey={periodKey} />");
+  });
+
+  it("provides operator forms for carrier statements and expense receipts", () => {
+    const component = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
+    expect(component).toContain("/api/admin/accounting/v2/settlements");
+    expect(component).toContain("/api/admin/accounting/v2/expenses/${expenseId}/verify");
+    expect(component).toContain("/api/upload/accounting-evidence");
+    expect(component).toContain('accept="image/*,application/pdf"');
   });
 });
 
@@ -75,18 +108,16 @@ describe("accounting v2 migration governance", () => {
   });
 
   it("ships forward and rollback files for every accounting migration", () => {
-    for (let n = 51; n <= 55; n += 1) {
-      const prefix = `00${n}_accounting_`;
-      const files = [
-        "0051_accounting_august_foundation",
-        "0052_accounting_cod_delivery_settlements",
-        "0053_accounting_expenses_returns",
-        "0054_accounting_fulfillment_readiness",
-        "0055_accounting_checksum_manifest",
-      ].filter((name) => name.startsWith(prefix));
-      expect(files).toHaveLength(1);
-      expect(existsSync(join(root, "migrations", `${files[0]}.sql`))).toBe(true);
-      expect(existsSync(join(root, "migrations", `${files[0]}_rollback.sql`))).toBe(true);
+    const files = [
+      "0051_accounting_august_foundation",
+      "0052_accounting_cod_delivery_settlements",
+      "0053_accounting_expenses_returns",
+      "0054_accounting_fulfillment_readiness",
+      "0055_accounting_checksum_manifest",
+    ];
+    for (const file of files) {
+      expect(existsSync(join(root, "migrations", `${file}.sql`))).toBe(true);
+      expect(existsSync(join(root, "migrations", `${file}_rollback.sql`))).toBe(true);
     }
   });
 
@@ -96,5 +127,12 @@ describe("accounting v2 migration governance", () => {
     expect(manifest).toContain("8469d31ee908c682295d5631d8c46e61b28df98b6bfb5caab3df1cbc138fcfa6");
     expect(manifest).toContain("78ae41fdbcbf51a67e2b2ac4228f2f19ec8fe1bd1110aff389f315a7b0d886c4");
     expect(manifest).toContain("a21a6853eba521cac327d78a0b34a0c0bfeae313bf4940744d02859f4f35782e");
+  });
+
+  it("restores the previous tax-finalization guard on rollback", () => {
+    const rollback = read("migrations/0054_accounting_fulfillment_readiness_rollback.sql");
+    expect(rollback).toContain("CREATE OR REPLACE FUNCTION public.guard_accounting_period_tax_finalization()");
+    expect(rollback).toContain("CREATE TRIGGER trg_guard_accounting_period_tax_finalization");
+    expect(rollback).toContain("cost_snapshot_status IS DISTINCT FROM 'exact'");
   });
 });
