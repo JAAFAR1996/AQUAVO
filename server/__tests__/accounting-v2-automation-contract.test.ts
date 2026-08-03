@@ -18,6 +18,8 @@ describe("Accounting V2 automation", () => {
     expect(migration).toContain("interval '1 month'");
     expect(migration).toContain("journal_entries_closed_period_guard");
     expect(migration).toContain("journal_lines_immutable_guard");
+    expect(migration).toContain("Typical rejected order");
+    expect(migration).toContain("IF v_total=0 THEN");
   });
 
   it("does not restore rejected stock before physical receipt", () => {
@@ -26,15 +28,31 @@ describe("Accounting V2 automation", () => {
     expect(migration).not.toContain("NEW.status NOT IN ('cancelled','rejected','rejected_returned','rejected_carrier','returned')");
   });
 
-  it("creates and receives return events from the atomic order transition", () => {
+  it("creates and completes returns from the atomic order transition", () => {
     const orderRoute = read("server/routes/admin-orders-v2.ts");
     const service = read("server/services/order-return-automation-v2.ts");
     expect(orderRoute).toContain("syncAutomaticReturnLifecycle(tx");
     expect(orderRoute).toContain("automaticReturn");
     expect(service).toContain("AUTO_ORDER_STATUS_REJECTED");
     expect(service).toContain("restocked=true");
+    expect(service).toContain("status='verified'");
+    expect(service).toContain("material_kind='carton'");
+    expect(service).toContain("order_return_packaging_losses");
+    expect(service).toContain("is_reclassification_only,true");
     expect(service).toContain("أي أجرة أو اقتطاع تعتمد من كشف شركة التوصيل فقط");
-    expect(service).not.toContain("status='verified'");
+    expect(service).not.toContain("SUM(e.actual_cost)");
+  });
+
+  it("mounts a read-only automatic returns API before legacy accounting", () => {
+    const routes = read("server/routes.ts");
+    const automatic = routes.indexOf('app.use("/api/admin/accounting", createAccountingAutomaticReturnsV2Router())');
+    const legacy = routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())');
+    const api = read("server/routes/accounting-automatic-returns-v2.ts");
+    expect(automatic).toBeGreaterThan(-1);
+    expect(automatic).toBeLessThan(legacy);
+    expect(api).toContain("requireAccountingAdmin");
+    expect(api).toContain("packaging_classification_loss");
+    expect(api).not.toContain("router.post");
   });
 
   it("removes manual return creation from the finance workspace", () => {
@@ -43,6 +61,7 @@ describe("Accounting V2 automation", () => {
     expect(page).toContain("FinanceAutomaticReturnsV2");
     expect(page).not.toContain("FinanceReturnEvents");
     expect(component).toContain("ماكو إنشاء راجع من صفحة المالية");
+    expect(component).toContain("كارت الشكر ما ينحسبن خسارة ثانية");
     expect(component).not.toContain('method: "POST"');
     expect(component).not.toContain("تسجيل خسارة / راجع");
   });
