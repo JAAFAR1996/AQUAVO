@@ -25,6 +25,7 @@ on:
       - "client/src/components/admin/finance-carrier-position-v2.tsx"
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
+      - "migrations/006*.sql"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
 
