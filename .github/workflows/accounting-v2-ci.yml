@@ -8,7 +8,9 @@ on:
     paths:
       - "server/middleware/accounting-auth-v2.ts"
       - "server/routes/accounting-v2.ts"
+      - "server/routes/accounting-monthly-position-v2.ts"
       - "server/routes/accounting-setup-v2.ts"
+      - "server/routes/accounting-carrier-correction-v2.ts"
       - "server/routes/accounting-operations-v2.ts"
       - "server/routes/accounting-evidence-upload-v2.ts"
       - "server/routes/admin-orders-v2.ts"
@@ -19,6 +21,7 @@ on:
       - "shared/accounting-schema-v2.ts"
       - "shared/cod-accounting.ts"
       - "client/src/components/admin/finance-accounting-*.tsx"
+      - "client/src/components/admin/finance-carrier-position-v2.tsx"
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
       - "tsconfig.accounting.json"
