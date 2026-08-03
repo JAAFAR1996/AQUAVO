@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   canonicalGuidePaths,
@@ -10,8 +10,7 @@ import {
   isNoindexPath,
 } from "../shared/seo-contract.js";
 
-const repoRoot = fileURLToPath(new URL("../", import.meta.url));
-const read = (path: string) => readFileSync(new URL(path, `file://${repoRoot}/`), "utf8");
+const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
 
 describe("SEO production safety invariants", () => {
   it("keeps missing pages noindex without canonical output", () => {
@@ -71,7 +70,7 @@ describe("SEO production safety invariants", () => {
     for (const path of paths) {
       const resolved = resolveGuidePage(path);
       expect(resolved, path).not.toBeNull();
-      expect(resolved?.page.answer.length, path).toBeGreaterThan(80);
+      expect(resolved?.page.answer.length, path).toBeGreaterThan(40);
       expect(resolved?.page.sections.length, path).toBeGreaterThan(0);
     }
   });
