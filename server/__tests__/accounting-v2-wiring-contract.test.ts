@@ -123,6 +123,7 @@ describe("accounting v2 migration governance", () => {
       "0053_accounting_expenses_returns",
       "0054_accounting_fulfillment_readiness",
       "0055_accounting_checksum_manifest",
+      "0056_accounting_delivery_timestamp",
     ];
     for (const file of files) {
       expect(existsSync(join(root, "migrations", `${file}.sql`))).toBe(true);
@@ -138,10 +139,27 @@ describe("accounting v2 migration governance", () => {
     expect(manifest).toContain("a21a6853eba521cac327d78a0b34a0c0bfeae313bf4940744d02859f4f35782e");
   });
 
+  it("persists one immutable delivery timestamp across payment, fact and journal", () => {
+    const migration = read("migrations/0056_accounting_delivery_timestamp.sql");
+    expect(migration).toContain("ADD COLUMN IF NOT EXISTS delivered_at timestamptz");
+    expect(migration).toContain("CREATE TRIGGER orders_stamp_delivered_at");
+    expect(migration).toContain("DELIVERED_AT_IMMUTABLE");
+    expect(migration).toContain("v_recognized_at:=COALESCE(NEW.delivered_at,clock_timestamp())");
+    expect(migration).toContain("'0056_accounting_delivery_timestamp'");
+    expect(migration).toContain("a5b2ea02880466220f8a02398310024a2c80ffc66cda25542c2a0f1b56b09236");
+  });
+
   it("restores the previous tax-finalization guard on rollback", () => {
     const rollback = read("migrations/0054_accounting_fulfillment_readiness_rollback.sql");
     expect(rollback).toContain("CREATE OR REPLACE FUNCTION public.guard_accounting_period_tax_finalization()");
     expect(rollback).toContain("CREATE TRIGGER trg_guard_accounting_period_tax_finalization");
     expect(rollback).toContain("cost_snapshot_status IS DISTINCT FROM 'exact'");
+  });
+
+  it("retains delivered_at evidence on rollback when accounting facts exist", () => {
+    const rollback = read("migrations/0056_accounting_delivery_timestamp_rollback.sql");
+    expect(rollback).toContain("IF NOT EXISTS(SELECT 1 FROM public.order_accounting_facts)");
+    expect(rollback).toContain("ALTER TABLE public.orders DROP COLUMN IF EXISTS delivered_at");
+    expect(rollback).toContain("UPDATE public.schema_migrations");
   });
 });
