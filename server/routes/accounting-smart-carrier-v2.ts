@@ -206,9 +206,12 @@ export function createAccountingSmartCarrierV2Router() {
         `);
         const order = rowsOf(orderResult)[0];
         if (!order) throw Object.assign(new Error("الطلب غير موجود"), { statusCode: 404 });
+        const factCheck = await tx.execute(sql`
+          SELECT 1 FROM public.order_accounting_facts WHERE order_id=${req.params.id} LIMIT 1
+        `);
         if (order.financially_counted === true
           || ["delivered", "returned", "rejected_returned"].includes(String(order.status).toLowerCase())
-          || (await tx.execute(sql`SELECT 1 FROM public.order_accounting_facts WHERE order_id=${req.params.id} LIMIT 1`)).rows?.length) {
+          || rowsOf(factCheck).length > 0) {
           throw Object.assign(new Error("لا يمكن تغيير شركة التوصيل بعد تحقق البيع؛ استخدم تصحيحاً محاسبياً موثقاً"), { statusCode: 409 });
         }
 
