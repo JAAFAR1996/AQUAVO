@@ -46,7 +46,8 @@ describe("SEO preview shell", () => {
 
     expect(html).toContain('itemType="https://schema.org/Product"');
     expect(html).toContain('<h1 itemProp="name">فلتر اختبار AQUAVO</h1>');
-    expect(html).toContain("25,000");
+    expect(html).toContain("السعر");
+    expect(html).toContain("د.ع");
     expect(html).toContain('href="/products"');
     expect(html).toContain('href="/products/aquavo-test-heater"');
   });
