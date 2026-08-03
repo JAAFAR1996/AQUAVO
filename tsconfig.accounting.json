@@ -42,6 +42,7 @@
     "server/routes/accounting-evidence-upload-v2.ts",
     "server/utils/cloudinary.ts",
     "client/src/components/admin/finance-accounting-register-v2.tsx",
-    "client/src/components/admin/finance-accounting-operations-v2.tsx"
+    "client/src/components/admin/finance-accounting-operations-v2.tsx",
+    "client/src/components/admin/finance-carrier-position-v2.tsx"
   ]
 }
