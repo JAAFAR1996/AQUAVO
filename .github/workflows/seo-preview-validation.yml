@@ -49,6 +49,9 @@ jobs:
       - name: Type-check preview files
         run: pnpm run check
 
+      - name: Build generated SSR template
+        run: pnpm run build
+
       - name: Run focused SSR HTML and structured-data tests
         run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts --reporter=verbose
 
