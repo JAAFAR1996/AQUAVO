@@ -36,6 +36,8 @@ describe("accounting v2 production wiring", () => {
     expect(source).toContain("applyPackagingLifecycle(tx as never");
     expect(source).toContain("tx.update(orders)");
     expect(source).not.toContain("applyPackagingLifecycle(getDb()");
+    expect(source).not.toContain('from "../storage/index.js"');
+    expect(source).toContain("recordFinancialChange(tx as never");
   });
 
   it("confirms WhatsApp invoices atomically and idempotently", () => {
@@ -66,6 +68,8 @@ describe("accounting v2 production wiring", () => {
     expect(operations).toContain("db.transaction(async (tx)");
     expect(operations).toContain("INSERT INTO public.evidence_files");
     expect(operations).toContain("accounting_status='verified'");
+    expect(operations).toContain(': "3100"');
+    expect(operations).not.toContain('paidFromAccountCode: z.enum');
   });
 });
 
@@ -93,18 +97,23 @@ describe("accounting v2 operator workspace", () => {
     expect(component).toContain("/api/admin/accounting/v2/expenses/${expenseId}/verify");
     expect(component).toContain("/api/upload/accounting-evidence");
     expect(component).toContain('accept="image/*,application/pdf"');
+    expect(component).not.toContain("paidFromAccountCode");
   });
 });
 
 describe("accounting v2 migration governance", () => {
-  it("declares new tables in Drizzle and includes them in db governance", () => {
+  it("keeps accounting schema available for types but outside partial db:push governance", () => {
     const config = read("drizzle.config.ts");
     expect(config).toContain('"./shared/accounting-schema-v2.ts"');
+    expect(config).toContain("migration SQL is");
     for (const table of [
-      "accounting_cutovers", "order_accounting_facts", "order_accounting_settlements",
-      "chart_of_accounts", "journal_entries", "journal_lines", "evidence_files",
-      "tax_profiles", "opening_inventory_snapshot",
-    ]) expect(config).toContain(`"${table}"`);
+      "orders", "expenses", "accounting_period_closes", "accounting_cutovers",
+      "order_accounting_facts", "order_accounting_settlements", "chart_of_accounts",
+      "journal_entries", "journal_lines", "evidence_files", "tax_profiles",
+      "opening_inventory_snapshot",
+    ]) {
+      expect(config).not.toMatch(new RegExp(`^\\s*"${table}",?$`, "m"));
+    }
   });
 
   it("ships forward and rollback files for every accounting migration", () => {
