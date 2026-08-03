@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
@@ -11,10 +11,14 @@ import {
 } from "../shared/seo-contract.js";
 
 const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8");
+const runtimeSource = () => {
+  const generated = resolve(process.cwd(), "generated/ssr-preview-runtime.ts");
+  return existsSync(generated) ? readFileSync(generated, "utf8") : read("api/ssr-preview.ts");
+};
 
 describe("SEO production safety invariants", () => {
   it("keeps missing pages noindex without canonical output", () => {
-    const source = read("api/ssr-preview.ts");
+    const source = runtimeSource();
 
     expect(source).toContain('if (status === 404) return "noindex, follow"');
     expect(source).toContain("if (!canonical || meta.notFound)");
@@ -23,7 +27,7 @@ describe("SEO production safety invariants", () => {
   });
 
   it("mounts the client separately from server semantic HTML", () => {
-    const serverSource = read("api/ssr-preview.ts");
+    const serverSource = runtimeSource();
     const clientSource = read("client/src/main.tsx");
 
     expect(serverSource).toContain('<div id="seo-root"');
