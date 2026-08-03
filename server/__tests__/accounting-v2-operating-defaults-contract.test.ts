@@ -64,15 +64,17 @@ describe("Accounting V2 operating defaults", () => {
     expect(setup).not.toContain("UPDATE public.order_fulfillment_events SET");
   });
 
-  it("mounts statement validation before setup, operations and legacy accounting", () => {
+  it("mounts statement validation and smart carriers before operations and legacy accounting", () => {
     const routes = read("server/routes.ts");
     const position = routes.indexOf('app.use("/api/admin/accounting", createAccountingMonthlyPositionV2Router())');
     const setup = routes.indexOf('app.use("/api/admin/accounting", createAccountingSetupV2Router())');
+    const smart = routes.indexOf('app.use("/api/admin/accounting", createAccountingSmartCarrierV2Router())');
     const operations = routes.indexOf('app.use("/api/admin/accounting", createAccountingOperationsV2Router())');
     const legacy = routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())');
     expect(position).toBeGreaterThan(-1);
     expect(position).toBeLessThan(setup);
-    expect(setup).toBeLessThan(operations);
+    expect(setup).toBeLessThan(smart);
+    expect(smart).toBeLessThan(operations);
     expect(operations).toBeLessThan(legacy);
   });
 
@@ -84,18 +86,28 @@ describe("Accounting V2 operating defaults", () => {
     expect(orders).toContain("carrierFee = Number(company.default_fee)");
   });
 
-  it("exposes all controls in the finance operator workspace", () => {
-    const operations = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
-    const carrier = read("client/src/components/admin/finance-carrier-position-v2.tsx");
+  it("exposes automatic carrier accounting and only physical manual reconciliations", () => {
+    const smart = read("client/src/components/admin/finance-smart-carrier-center-v2.tsx");
+    const lite = read("client/src/components/admin/finance-accounting-operations-lite-v2.tsx");
     const register = read("client/src/components/admin/finance-accounting-register-v2.tsx");
-    expect(operations).toContain("تأكيد داخلي — بدون ملف");
-    expect(operations).toContain("/api/admin/accounting/v2/delivery-companies");
-    expect(operations).toContain("/api/admin/accounting/v2/fixed-preparation-items");
-    expect(operations).toContain("رصيد الصندوق هو النقد الموجود فعلياً، مو ربح الشهر");
-    expect(carrier).toContain("أجور التوصيل فقط");
-    expect(carrier).toContain("اقتطاع آخر");
-    expect(carrier).toContain("otherDeductionAmount");
-    expect(register).toContain("<FinanceCarrierPositionV2 periodKey={periodKey} />");
+
+    expect(register).toContain("<FinanceSmartCarrierCenterV2 periodKey={periodKey} />");
+    expect(register).toContain("<FinanceAccountingOperationsLiteV2 periodKey={periodKey} />");
+    expect(register).not.toContain("<FinanceCarrierPositionV2 periodKey={periodKey} />");
+
+    expect(smart).toContain("لا يوجد إدخال يدوي للمبالغ");
+    expect(smart).toContain("company.outstanding.gross");
+    expect(smart).toContain("company.outstanding.fees");
+    expect(smart).toContain("company.outstanding.net");
+    expect(smart).toContain("company.outstandingOrders.map((order) => order.orderId)");
+    expect(smart).toContain("/api/admin/accounting/v2/orders/${orderId}/delivery-company");
+
+    expect(lite).toContain("تأكيد داخلي — بدون ملف");
+    expect(lite).toContain("/api/admin/accounting/v2/fixed-preparation-items");
+    expect(lite).toContain("عدّ الصندوق");
+    expect(lite).not.toContain('value="carrier_receivable"');
+    expect(lite).not.toContain("positionGross");
+    expect(lite).not.toContain("positionFee");
   });
 
   it("includes operating context in the accountant package", () => {

@@ -36,6 +36,7 @@
     "server/routes/accounting-v2.ts",
     "server/routes/accounting-monthly-position-v2.ts",
     "server/routes/accounting-setup-v2.ts",
+    "server/routes/accounting-smart-carrier-v2.ts",
     "server/routes/accounting-carrier-correction-v2.ts",
     "server/routes/accounting-operations-v2.ts",
     "server/routes/admin-orders-v2.ts",
@@ -44,6 +45,8 @@
     "server/utils/cloudinary.ts",
     "script/apply-accounting-v2-migrations.ts",
     "client/src/components/admin/finance-accounting-register-v2.tsx",
+    "client/src/components/admin/finance-smart-carrier-center-v2.tsx",
+    "client/src/components/admin/finance-accounting-operations-lite-v2.tsx",
     "client/src/components/admin/finance-accounting-operations-v2.tsx",
     "client/src/components/admin/finance-carrier-position-v2.tsx"
   ]

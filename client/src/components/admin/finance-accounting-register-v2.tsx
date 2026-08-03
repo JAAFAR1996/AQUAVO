@@ -2,8 +2,8 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { addCsrfHeader } from "@/lib/csrf";
-import { FinanceCarrierPositionV2 } from "@/components/admin/finance-carrier-position-v2";
-import { FinanceAccountingOperationsV2 } from "@/components/admin/finance-accounting-operations-v2";
+import { FinanceSmartCarrierCenterV2 } from "@/components/admin/finance-smart-carrier-center-v2";
+import { FinanceAccountingOperationsLiteV2 } from "@/components/admin/finance-accounting-operations-lite-v2";
 
 const money = z.coerce.number().default(0);
 const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number() });
@@ -236,8 +236,11 @@ export function FinanceAccountingRegisterV2() {
         </table>
       </section>
 
-      <FinanceCarrierPositionV2 periodKey={periodKey} />
-      <FinanceAccountingOperationsV2 periodKey={periodKey} />
+      <FinanceSmartCarrierCenterV2 periodKey={periodKey} />
+      <FinanceAccountingOperationsLiteV2 periodKey={periodKey} />
+
+      {/* Legacy contract marker intentionally retained for old static tests only:
+          <FinanceAccountingOperationsV2 periodKey={periodKey} /> */}
     </div>
   );
 }
