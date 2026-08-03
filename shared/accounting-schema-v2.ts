@@ -1,9 +1,9 @@
 import { sql } from "drizzle-orm";
-import { boolean, integer, jsonb, numeric, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { bigint, boolean, date, integer, jsonb, numeric, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 /**
  * Canonical accounting schema introduced at the 2026-08-01 Baghdad cutover.
- * Database constraints and triggers remain governed by migrations/0051..0054;
+ * Database constraints and triggers remain governed by migrations/0051..0055;
  * this module prevents Drizzle schema drift and gives application code typed rows.
  */
 export const accountingCutovers = pgTable("accounting_cutovers", {
@@ -36,9 +36,7 @@ export const orderAccountingFacts = pgTable("order_accounting_facts", {
   policyVersion: text("policy_version").notNull(),
   evidence: jsonb("evidence").notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => ({
-  periodRecognizedIdx: uniqueIndex("order_accounting_facts_order_unique").on(table.orderId),
-}));
+});
 
 export const orderAccountingSettlements = pgTable("order_accounting_settlements", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
@@ -66,7 +64,7 @@ export const chartOfAccounts = pgTable("chart_of_accounts", {
 
 export const journalEntries = pgTable("journal_entries", {
   id: text("id").primaryKey().default(sql`gen_random_uuid()::text`),
-  entryNumber: numeric("entry_number"),
+  entryNumber: bigint("entry_number", { mode: "number" }),
   entryDate: timestamp("entry_date", { withTimezone: true }).notNull(),
   periodKey: text("period_key").notNull(),
   sourceType: text("source_type").notNull(),
@@ -101,7 +99,7 @@ export const evidenceFiles = pgTable("evidence_files", {
   entityId: text("entity_id").notNull(),
   documentType: text("document_type").notNull(),
   documentNumber: text("document_number"),
-  documentDate: timestamp("document_date", { mode: "date" }),
+  documentDate: date("document_date"),
   issuer: text("issuer"),
   amount: numeric("amount"),
   currency: text("currency").notNull().default("IQD"),
