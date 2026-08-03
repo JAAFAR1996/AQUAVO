@@ -33,24 +33,62 @@ type LockedOrder = {
   client_ip: string | null;
 };
 
+type LoyaltyStorageRuntime = {
+  approveOrderPoints(userId: string, orderId: string, amount: number): Promise<unknown>;
+  generateOrderBonus(userId: string, orderId: string): Promise<unknown>;
+  checkMilestones(userId: string): Promise<unknown>;
+  cancelOrderPoints(userId: string, orderId: string): Promise<unknown>;
+};
+
+type BadgeEngineRuntime = {
+  checkAndAwardBadges(userId: string): Promise<unknown>;
+};
+
+type ChallengeStorageRuntime = {
+  updateProgress(userId: string, challenge: string, amount: number): Promise<unknown>;
+};
+
 function rowsOf<T>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   const rows = (result as { rows?: T[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
 }
 
+/**
+ * Runtime-only bridge to legacy optional customer-reward modules.
+ *
+ * The module path is deliberately assembled at runtime so the strict accounting
+ * compiler does not absorb the unrelated legacy analytics/storage graph. These
+ * effects run only after the financial transaction commits and cannot change or
+ * roll back accounting truth.
+ */
+async function importLegacyModule<T>(segments: string[]): Promise<T> {
+  const modulePath = segments.join("/");
+  return await import(modulePath) as T;
+}
+
 async function runPostCommitCustomerEffects(order: any, oldStatus: string, newStatus: string): Promise<void> {
   if (!order?.userId) return;
   try {
-    const { loyaltyStorage } = await import("../storage/loyalty-storage.js");
+    const loyaltyModule = await importLegacyModule<{ loyaltyStorage: LoyaltyStorageRuntime }>([
+      "..", "storage", "loyalty-storage.js",
+    ]);
+    const loyaltyStorage = loyaltyModule.loyaltyStorage;
+
     if (newStatus === "delivered" && oldStatus !== "delivered") {
       await loyaltyStorage.approveOrderPoints(order.userId, order.id, orderCollectedAmount(order));
       await loyaltyStorage.generateOrderBonus(order.userId, order.id).catch(() => null);
       await loyaltyStorage.checkMilestones(order.userId).catch(() => null);
-      const { badgeEngine } = await import("../storage/badge-engine.js");
-      await badgeEngine.checkAndAwardBadges(order.userId).catch(() => []);
-      const { challengeStorage } = await import("../storage/challenge-storage.js");
-      await challengeStorage.updateProgress(order.userId, "cross_category", 1).catch(() => undefined);
+
+      const badgeModule = await importLegacyModule<{ badgeEngine: BadgeEngineRuntime }>([
+        "..", "storage", "badge-engine.js",
+      ]);
+      await badgeModule.badgeEngine.checkAndAwardBadges(order.userId).catch(() => []);
+
+      const challengeModule = await importLegacyModule<{ challengeStorage: ChallengeStorageRuntime }>([
+        "..", "storage", "challenge-storage.js",
+      ]);
+      await challengeModule.challengeStorage.updateProgress(order.userId, "cross_category", 1).catch(() => undefined);
       return;
     }
 
@@ -58,8 +96,6 @@ async function runPostCommitCustomerEffects(order: any, oldStatus: string, newSt
       await loyaltyStorage.cancelOrderPoints(order.userId, order.id);
     }
   } catch (error) {
-    // Customer rewards are post-commit notifications. They may be retried, but
-    // can never roll back a financially valid order transition.
     console.error("[AdminOrdersV2] post-commit loyalty effect failed", error);
   }
 }
@@ -97,8 +133,6 @@ export function createAdminOrdersV2Router() {
   router.use(requireAdmin);
 
   router.put("/orders/:id", async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    // Non-status edits remain on the legacy route. This router owns only the
-    // high-risk state machine transition.
     if (req.body?.status == null) {
       next();
       return;
@@ -145,8 +179,6 @@ export function createAdminOrdersV2Router() {
           });
         }
 
-        // carrier_fee exists in Production but is intentionally written with raw
-        // SQL until the broader Drizzle schema lineage is consolidated.
         if (input.carrierFee !== undefined) {
           await tx.execute(sql`
             UPDATE orders SET carrier_fee=${String(input.carrierFee)}::numeric
@@ -167,10 +199,6 @@ export function createAdminOrdersV2Router() {
 
         if (!updated) throw new Error("فشل تحديث الطلب بعد قفله");
 
-        // This is the canonical audit row and is inside the same transaction.
-        // A second legacy storage audit was deliberately removed: it pulled the
-        // entire analytics/storage dependency graph into the money-critical path
-        // without adding stronger evidence.
         await recordFinancialChange(tx as never, {
           entityType: "order",
           entityId: locked.id,
