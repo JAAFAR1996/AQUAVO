@@ -38,7 +38,8 @@ describe("Accounting V2 automation", () => {
     expect(service).toContain("status='verified'");
     expect(service).toContain("material_kind='carton'");
     expect(service).toContain("order_return_packaging_losses");
-    expect(service).toContain("is_reclassification_only,true");
+    expect(service).toContain("is_reclassification_only");
+    expect(service).toContain("'damaged_carton','automatic',true");
     expect(service).toContain("أي أجرة أو اقتطاع تعتمد من كشف شركة التوصيل فقط");
     expect(service).not.toContain("SUM(e.actual_cost)");
   });
