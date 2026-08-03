@@ -84,8 +84,13 @@ describe("production SEO/AEO/GEO contract", () => {
   it("canonicalizes legacy guide URLs and their internal category links", () => {
     expect(canonicalGuidePath("/guides/aquarium-filter-guide")).toBe("/guides/filter-choice");
     const resolved = resolveGuidePage("/guides/filter-choice");
+    const productLink = resolved?.page.links.find((link) => link.href.startsWith("/products?category="));
+    const normalizedCategory = productLink
+      ? new URL(productLink.href, "https://www.aquavoiq.com").searchParams.get("category")
+      : null;
+
     expect(resolved?.canonicalPath).toBe("/guides/filter-choice");
     expect(JSON.stringify(resolved?.page)).not.toContain("category=filters");
-    expect(JSON.stringify(resolved?.page)).toContain(encodeURIComponent("الفلترة والتنقية"));
+    expect(normalizedCategory).toBe("الفلترة والتنقية");
   });
 });
