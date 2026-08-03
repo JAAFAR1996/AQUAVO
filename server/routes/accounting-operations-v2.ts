@@ -2,7 +2,7 @@ import { Router, type NextFunction, type Request, type Response } from "express"
 import { sql } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "../db.js";
-import { requireAdmin } from "../middleware/auth.js";
+import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest } from "../services/accountingAuditTrail.js";
 
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
@@ -63,7 +63,7 @@ async function requireSchema(): Promise<NonNullable<ReturnType<typeof getDb>>> {
 
 export function createAccountingOperationsV2Router() {
   const router = Router();
-  router.use(requireAdmin);
+  router.use(requireAccountingAdmin);
 
   router.get("/v2/settlements/candidates", async (req: Request, res: Response, next: NextFunction) => {
     try {
