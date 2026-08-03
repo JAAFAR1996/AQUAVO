@@ -5,10 +5,16 @@ on:
     branches: [main]
     paths:
       - "api/_seo-preview-shell.tsx"
+      - "api/_seo-structured-data.ts"
       - "api/ssr-preview.ts"
+      - "api/ssr-preview-advanced.ts"
       - "test/seo-preview-shell.test.tsx"
+      - "scripts/seo-preview-live-audit.mjs"
+      - ".lighthouserc.preview.cjs"
+      - "docs/seo/SSR_MIGRATION_DECISION.md"
       - "vercel.json"
       - ".github/workflows/seo-preview-validation.yml"
+      - ".github/workflows/seo-preview-live-validation.yml"
   workflow_dispatch:
 
 concurrency:
@@ -19,7 +25,7 @@ jobs:
   semantic-html:
     name: Semantic HTML Contract
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout preview branch
         uses: actions/checkout@v4
@@ -41,5 +47,13 @@ jobs:
       - name: Type-check preview files
         run: pnpm run check
 
-      - name: Run focused SSR HTML tests
+      - name: Run focused SSR HTML and structured-data tests
         run: pnpm exec vitest run test/seo-preview-shell.test.tsx --reporter=verbose
+
+      - name: Verify live-audit script syntax
+        run: node --check scripts/seo-preview-live-audit.mjs
+
+      - name: Verify Lighthouse config syntax
+        env:
+          PREVIEW_URL: https://preview.invalid
+        run: node -e "require('./.lighthouserc.preview.cjs')"
