@@ -1,0 +1,60 @@
+name: SEO Preview Live Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: "Full Vercel Preview URL"
+        required: true
+        type: string
+
+concurrency:
+  group: seo-preview-live-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live-preview-audit:
+    name: Playwright + Lighthouse Preview Audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      PREVIEW_URL: ${{ inputs.preview_url }}
+    steps:
+      - name: Checkout preview branch
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run semantic and browser audit
+        run: node scripts/seo-preview-live-audit.mjs
+
+      - name: Run Lighthouse CI budgets
+        run: pnpm dlx @lhci/cli@0.15.1 autorun --config=.lighthouserc.preview.cjs
+
+      - name: Upload SEO preview evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: seo-preview-evidence-${{ github.run_number }}
+          path: |
+            artifacts/seo-preview
+            artifacts/lighthouse
+          if-no-files-found: warn
+          retention-days: 14
