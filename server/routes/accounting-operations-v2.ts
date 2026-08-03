@@ -1,3 +1,4 @@
+import { createHash, randomUUID } from "node:crypto";
 import { Router, type NextFunction, type Request, type Response } from "express";
 import { sql } from "drizzle-orm";
 import { z } from "zod";
@@ -6,7 +7,7 @@ import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest } from "../services/accountingAuditTrail.js";
 
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
-const evidenceSchema = z.object({
+const uploadedEvidenceSchema = z.object({
   url: z.string().url(),
   objectKey: z.string().min(1),
   storageProvider: z.string().min(1).default("cloudinary"),
@@ -14,28 +15,41 @@ const evidenceSchema = z.object({
   originalName: z.string().min(1),
   mimeType: z.string().min(1),
   size: z.coerce.number().int().positive(),
+}).strict().transform((value) => ({ mode: "electronic_attachment" as const, ...value }));
+const ownerConfirmationSchema = z.object({
+  mode: z.literal("owner_confirmation"),
+  note: z.string().trim().min(5).max(1000),
 }).strict();
+const evidenceInputSchema = z.union([uploadedEvidenceSchema, ownerConfirmationSchema]);
+
 const settlementSchema = z.object({
-  settlementNumber: z.string().trim().min(2).max(100),
-  carrier: z.string().trim().min(2).max(150),
+  settlementNumber: z.string().trim().min(2).max(100).optional(),
+  deliveryCompanyId: z.string().min(1).optional(),
+  carrier: z.string().trim().min(2).max(150).optional(),
   receivedAt: z.string().datetime({ offset: true }),
   bankReference: z.string().trim().max(150).optional(),
   notes: z.string().trim().max(500).optional(),
   orderIds: z.array(z.string().min(1)).min(1).max(200),
-  evidence: evidenceSchema,
-}).strict();
+  evidence: evidenceInputSchema,
+}).strict().refine((value) => Boolean(value.deliveryCompanyId || value.carrier), {
+  message: "اختر شركة التوصيل",
+  path: ["deliveryCompanyId"],
+});
 const verifyExpenseSchema = z.object({
   vendorName: z.string().trim().min(2).max(200),
-  documentNumber: z.string().trim().min(1).max(100),
-  documentDate: z.string().date(),
+  documentNumber: z.string().trim().min(1).max(100).optional(),
+  documentDate: z.string().date().optional(),
   paymentMethod: z.enum(["cash", "bank", "owner_personal"]),
   businessPurpose: z.string().trim().min(5).max(500),
-  taxTreatment: z.enum(["deductible", "nondeductible"]),
+  taxTreatment: z.enum(["pending", "deductible", "nondeductible"]),
   reviewNote: z.string().trim().max(500).optional(),
-  evidence: evidenceSchema,
+  evidence: evidenceInputSchema,
 }).strict();
 
 type Row = Record<string, unknown>;
+type EvidenceInput = z.infer<typeof evidenceInputSchema>;
+type Actor = { id: string | null; name: string | null };
+
 function rowsOf<T extends Row = Row>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   const rows = (result as { rows?: T[] } | null)?.rows;
@@ -48,6 +62,63 @@ function amount(value: unknown): number {
 function normalize(row: Row): Row {
   const numeric = new Set(["gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue", "merchant_net", "delivery_subsidy", "delivery_surplus", "amount", "gross_amount", "fee_amount", "net_amount", "fees_amount"]);
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, numeric.has(key) ? amount(value) : value]));
+}
+function internalEvidence(input: Extract<EvidenceInput, { mode: "owner_confirmation" }>, actor: Actor, entityType: string, entityId: string) {
+  const confirmedAt = new Date().toISOString();
+  const canonical = JSON.stringify({ entityType, entityId, note: input.note, confirmedBy: actor.id, confirmedAt });
+  return {
+    mode: input.mode,
+    note: input.note,
+    confirmedAt,
+    confirmedBy: actor.id,
+    confirmedByName: actor.name,
+    storageProvider: "internal_owner_confirmation",
+    objectKey: `owner-confirmation/${entityType}/${entityId}`,
+    sha256: createHash("sha256").update(canonical).digest("hex"),
+    originalName: "تأكيد داخلي من مالك المشروع",
+    mimeType: "application/vnd.aquavo.owner-confirmation+json",
+    size: Buffer.byteLength(canonical),
+  };
+}
+function normalizedEvidence(input: EvidenceInput, actor: Actor, entityType: string, entityId: string) {
+  return input.mode === "owner_confirmation" ? internalEvidence(input, actor, entityType, entityId) : input;
+}
+async function insertEvidenceFile(tx: any, params: {
+  entityType: string;
+  entityId: string;
+  documentType: string;
+  documentNumber: string;
+  documentDate: string;
+  issuer: string;
+  amount: number;
+  evidence: ReturnType<typeof normalizedEvidence>;
+  actor: Actor;
+}) {
+  const metadata = JSON.stringify({
+    mode: params.evidence.mode,
+    url: "url" in params.evidence ? params.evidence.url : null,
+    originalName: params.evidence.originalName,
+    mimeType: params.evidence.mimeType,
+    size: params.evidence.size,
+    note: "note" in params.evidence ? params.evidence.note : null,
+    confirmedAt: "confirmedAt" in params.evidence ? params.evidence.confirmedAt : null,
+    confirmedByName: "confirmedByName" in params.evidence ? params.evidence.confirmedByName : null,
+  });
+  const result = await tx.execute(sql`
+    INSERT INTO public.evidence_files(
+      entity_type,entity_id,document_type,document_number,document_date,issuer,amount,currency,
+      storage_provider,object_key,sha256,metadata,uploaded_by
+    ) VALUES(
+      ${params.entityType},${params.entityId},${params.documentType},${params.documentNumber},${params.documentDate}::date,
+      ${params.issuer},${params.amount},'IQD',${params.evidence.storageProvider},
+      ${params.evidence.objectKey},${params.evidence.sha256},${metadata}::jsonb,${params.actor.id}
+    )
+    ON CONFLICT(sha256,entity_type,entity_id) DO UPDATE SET metadata=EXCLUDED.metadata
+    RETURNING id
+  `);
+  const row = rowsOf(result)[0];
+  if (!row) throw new Error("فشل حفظ دليل العملية");
+  return { id: String(row.id), metadata, evidence: params.evidence };
 }
 async function requireSchema(): Promise<NonNullable<ReturnType<typeof getDb>>> {
   const db = getDb();
@@ -92,9 +163,22 @@ export function createAccountingOperationsV2Router() {
         return;
       }
       const db = await requireSchema();
-      const actor = actorFromRequest(req);
+      const actor = actorFromRequest(req) as Actor;
       const idList = sql.join(orderIds.map((id) => sql`${id}`), sql`, `);
       const result = await db.transaction(async (tx) => {
+        let carrierName = input.carrier ?? null;
+        if (input.deliveryCompanyId) {
+          const companyResult = await tx.execute(sql`
+            SELECT id,name FROM public.delivery_companies
+            WHERE id=${input.deliveryCompanyId} AND active=true
+            FOR SHARE
+          `);
+          const company = rowsOf(companyResult)[0];
+          if (!company) throw Object.assign(new Error("شركة التوصيل غير موجودة أو غير فعالة"), { statusCode: 409 });
+          carrierName = String(company.name);
+        }
+        if (!carrierName) throw Object.assign(new Error("اختر شركة التوصيل"), { statusCode: 400 });
+
         const factsResult = await tx.execute(sql`
           SELECT f.*,o.order_number,o.carrier
           FROM public.order_accounting_facts f
@@ -107,21 +191,35 @@ export function createAccountingOperationsV2Router() {
         if (facts.length !== orderIds.length) throw Object.assign(new Error("بعض الطلبات غير موجودة في سجل COD المحاسبي"), { statusCode: 409 });
         for (const fact of facts) {
           if (fact.cash_custody !== "carrier") throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} ليس بعهدة شركة التوصيل`), { statusCode: 409 });
+          if (fact.carrier && String(fact.carrier) !== carrierName) throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} تابع لشركة ${String(fact.carrier)}`), { statusCode: 409 });
           const existing = await tx.execute(sql`SELECT 1 FROM public.order_accounting_settlements WHERE order_fact_id=${String(fact.id)} LIMIT 1`);
           if (rowsOf(existing).length) throw Object.assign(new Error(`الطلب ${String(fact.order_number ?? fact.order_id)} مسوّى سابقاً`), { statusCode: 409 });
         }
         const gross = facts.reduce((sum, row) => sum + amount(row.gross_collected), 0);
         const fees = facts.reduce((sum, row) => sum + amount(row.carrier_fee), 0);
         const net = facts.reduce((sum, row) => sum + amount(row.merchant_net), 0);
-        if (net !== gross - fees) throw Object.assign(new Error("هوية التسوية غير متوازنة"), { statusCode: 409 });
+        if (Math.abs(net - (gross - fees)) > 0.001) throw Object.assign(new Error("هوية التسوية غير متوازنة"), { statusCode: 409 });
 
-        const evidenceJson = JSON.stringify({ ...input.evidence, policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee" });
+        const settlementId = randomUUID();
+        const settlementNumber = input.settlementNumber ?? `INT-${new Date(input.receivedAt).toISOString().slice(0,10).replaceAll("-","")}-${settlementId.slice(0,8)}`;
+        const documentDate = new Date(input.receivedAt).toISOString().slice(0,10);
+        const evidence = normalizedEvidence(input.evidence, actor, "settlement", settlementId);
+        const savedEvidence = await insertEvidenceFile(tx, {
+          entityType: "settlement", entityId: settlementId, documentType: "carrier_settlement",
+          documentNumber: settlementNumber, documentDate, issuer: carrierName, amount: gross,
+          evidence, actor,
+        });
+        const evidenceJson = JSON.stringify({
+          ...evidence,
+          evidenceFileId: savedEvidence.id,
+          policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee",
+        });
         const inserted = await tx.execute(sql`
           INSERT INTO public.cash_settlements(
-            settlement_number,carrier,status,gross_amount,fees_amount,net_amount,currency,
+            id,settlement_number,carrier,status,gross_amount,fees_amount,net_amount,currency,
             received_at,bank_reference,evidence,notes,created_by,created_at,updated_at
           ) VALUES(
-            ${input.settlementNumber},${input.carrier},'draft',${gross},${fees},${net},'IQD',
+            ${settlementId},${settlementNumber},${carrierName},'draft',${gross},${fees},${net},'IQD',
             ${input.receivedAt}::timestamptz,${input.bankReference ?? null},${evidenceJson}::jsonb,
             ${input.notes ?? null},${actor.id},clock_timestamp(),clock_timestamp()
           ) RETURNING *
@@ -137,7 +235,7 @@ export function createAccountingOperationsV2Router() {
               settlement_id,order_id,payment_event_id,gross_amount,fee_amount,net_amount,
               reconciliation_status,notes,metadata
             ) VALUES(
-              ${String(settlement.id)},${String(fact.order_id)},${String(fact.payment_event_id)},
+              ${settlementId},${String(fact.order_id)},${String(fact.payment_event_id)},
               ${amount(fact.gross_collected)},${amount(fact.carrier_fee)},${amount(fact.merchant_net)},
               'matched',${`سطر ${line} مطابق لحقيقة البيع`},
               ${JSON.stringify({ orderAccountingFactId: fact.id, orderNumber: fact.order_number })}::jsonb
@@ -147,7 +245,7 @@ export function createAccountingOperationsV2Router() {
         const reconciled = await tx.execute(sql`
           UPDATE public.cash_settlements
           SET status='reconciled',updated_at=clock_timestamp()
-          WHERE id=${String(settlement.id)}
+          WHERE id=${settlementId}
           RETURNING *
         `);
         return rowsOf(reconciled)[0];
@@ -179,7 +277,7 @@ export function createAccountingOperationsV2Router() {
       const paidFromAccountCode = input.paymentMethod === "cash" ? "1000"
         : input.paymentMethod === "bank" ? "1010" : "3100";
       const db = await requireSchema();
-      const actor = actorFromRequest(req);
+      const actor = actorFromRequest(req) as Actor;
       const result = await db.transaction(async (tx) => {
         const locked = await tx.execute(sql`SELECT * FROM public.expenses WHERE id=${req.params.id} AND deleted_at IS NULL FOR UPDATE`);
         const expense = rowsOf(locked)[0];
@@ -187,28 +285,25 @@ export function createAccountingOperationsV2Router() {
         if (expense.accounting_status === "verified") return expense;
         if (expense.accounting_status === "rejected") throw Object.assign(new Error("المصروف مستبعد ولا يمكن إعادة اعتماده"), { statusCode: 409 });
 
-        const metadataJson = JSON.stringify({ url: input.evidence.url, originalName: input.evidence.originalName, mimeType: input.evidence.mimeType, size: input.evidence.size });
-        const evidenceResult = await tx.execute(sql`
-          INSERT INTO public.evidence_files(
-            entity_type,entity_id,document_type,document_number,document_date,issuer,amount,currency,
-            storage_provider,object_key,sha256,metadata,uploaded_by
-          ) VALUES(
-            'expense',${req.params.id},'expense_receipt',${input.documentNumber},${input.documentDate}::date,
-            ${input.vendorName},${amount(expense.amount)},'IQD',${input.evidence.storageProvider},
-            ${input.evidence.objectKey},${input.evidence.sha256},${metadataJson}::jsonb,${actor.id}
-          )
-          ON CONFLICT(sha256,entity_type,entity_id) DO UPDATE SET metadata=EXCLUDED.metadata
-          RETURNING id
-        `);
-        const evidence = rowsOf(evidenceResult)[0];
-        if (!evidence) throw new Error("فشل ربط مستند المصروف");
-
+        const documentDate = input.documentDate ?? String(expense.expense_date).slice(0,10);
+        const documentNumber = input.documentNumber ?? `INT-EXP-${req.params.id.slice(0,8)}`;
+        const evidence = normalizedEvidence(input.evidence, actor, "expense", req.params.id);
+        const savedEvidence = await insertEvidenceFile(tx, {
+          entityType: "expense", entityId: req.params.id, documentType: "expense_receipt",
+          documentNumber, documentDate, issuer: input.vendorName, amount: amount(expense.amount),
+          evidence, actor,
+        });
+        const metadataJson = JSON.stringify({
+          ...evidence,
+          evidenceFileId: savedEvidence.id,
+          evidenceLevel: evidence.mode === "owner_confirmation" ? "internal_only" : "external_electronic",
+        });
         const updated = await tx.execute(sql`
           UPDATE public.expenses SET
-            vendor_name=${input.vendorName},document_number=${input.documentNumber},document_date=${input.documentDate}::date,
+            vendor_name=${input.vendorName},document_number=${documentNumber},document_date=${documentDate}::date,
             payment_method=${input.paymentMethod},paid_from_account_code=${paidFromAccountCode},
-            business_purpose=${input.businessPurpose},evidence=${metadataJson}::jsonb,evidence_hash=${input.evidence.sha256},
-            evidence_file_id=${String(evidence.id)},accounting_status='verified',tax_treatment=${input.taxTreatment},
+            business_purpose=${input.businessPurpose},evidence=${metadataJson}::jsonb,evidence_hash=${evidence.sha256},
+            evidence_file_id=${savedEvidence.id},accounting_status='verified',tax_treatment=${input.taxTreatment},
             reviewed_by=${actor.id},review_note=${input.reviewNote ?? null},updated_at=clock_timestamp()
           WHERE id=${req.params.id}
           RETURNING *
