@@ -5,19 +5,17 @@ import {
   logResolvedDatabaseTarget,
 } from "./server/db-target.js";
 
-// Env files may not override an explicitly inherited DATABASE_URL.
 const envLoad = loadEnvFilesPreservingDatabaseTargets();
 
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL, ensure the database is provisioned");
 }
 
-// Fails closed if the target cannot be identified; logs redacted identity only.
 logResolvedDatabaseTarget(resolveDatabaseTarget("primary", { inherited: envLoad.inherited }));
 
 export default defineConfig({
   out: "./migrations",
-  schema: "./shared/schema.ts",
+  schema: ["./shared/schema.ts", "./shared/accounting-schema-v2.ts"],
   dialect: "postgresql",
   dbCredentials: {
     url: process.env.DATABASE_URL,
@@ -27,10 +25,6 @@ export default defineConfig({
     "password_reset_tokens",
     "products",
     "orders",
-    // `shipping_settlements` is deliberately ABSENT (2026-07-28). It is archived
-    // to `archive.shipping_settlements` by
-    // migrations/isolate_legacy_shipping_settlements.sql; listing it here would
-    // let `db:push` recreate it in `public` and silently undo the isolation.
     "product_cost_history",
     "expenses",
     "reviews",
@@ -79,6 +73,15 @@ export default defineConfig({
     "accounting_review_flags",
     "accounting_audit_trail",
     "accounting_period_closes",
+    "accounting_cutovers",
+    "order_accounting_facts",
+    "order_accounting_settlements",
+    "chart_of_accounts",
+    "journal_entries",
+    "journal_lines",
+    "evidence_files",
+    "tax_profiles",
+    "opening_inventory_snapshot",
     "ai_agent_settings",
     "store_social_interactions",
     "settings"
