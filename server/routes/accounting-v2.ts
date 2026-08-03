@@ -10,19 +10,16 @@ const closeBodySchema = z.object({ periodKey: periodKeySchema }).strict();
 const reopenBodySchema = z.object({ reason: z.string().trim().min(5).max(500) }).strict();
 
 type DbRow = Record<string, unknown>;
-
 function rowsOf<T extends DbRow = DbRow>(result: unknown): T[] {
   if (Array.isArray(result)) return result as T[];
   const rows = (result as { rows?: T[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
 }
-
 function numeric(value: unknown): number {
   if (value == null || value === "") return 0;
   const number = Number(value);
   return Number.isFinite(number) ? number : 0;
 }
-
 function normalize(row: DbRow): DbRow {
   const moneyFields = new Set([
     "gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue",
@@ -32,6 +29,7 @@ function normalize(row: DbRow): DbRow {
     "expenses_total", "sales_return_deduction", "final_net_profit",
     "delivery_subsidy_total", "delivery_surplus_total", "fulfillment_cost_total",
     "debit", "credit", "total_debit", "total_credit", "amount", "unit_cost", "total_cost",
+    "default_fee", "gross_amount", "fee_amount", "current_unit_cost", "quantity", "line_cost", "expected_cost",
   ]);
   return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, moneyFields.has(key) ? numeric(value) : value]));
 }
@@ -42,11 +40,15 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
     SELECT
       to_regclass('public.order_accounting_facts') IS NOT NULL AS facts,
       to_regclass('public.journal_entries') IS NOT NULL AS journal,
-      to_regclass('public.v_accounting_period_readiness') IS NOT NULL AS readiness
+      to_regclass('public.v_accounting_period_readiness') IS NOT NULL AS readiness,
+      to_regclass('public.delivery_companies') IS NOT NULL AS companies,
+      to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions
   `);
-  const state = rowsOf(result)[0] as { facts?: boolean; journal?: boolean; readiness?: boolean } | undefined;
-  if (!state?.facts || !state.journal || !state.readiness) {
-    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATION_REQUIRED"), { statusCode: 503 });
+  const state = rowsOf(result)[0] as {
+    facts?: boolean; journal?: boolean; readiness?: boolean; companies?: boolean; positions?: boolean;
+  } | undefined;
+  if (!state?.facts || !state.journal || !state.readiness || !state.companies || !state.positions) {
+    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0057_REQUIRED"), { statusCode: 503 });
   }
 }
 
@@ -63,17 +65,12 @@ const blockerLabels: Record<string, string> = {
   open_review_flags: "إشارات مراجعة مفتوحة",
   journal_difference: "فرق في ميزان اليومية",
 };
-
 function readinessPayload(row: DbRow | undefined) {
   const normalized = normalize(row ?? {});
   const blockers = Object.entries(blockerLabels)
     .map(([key, label]) => ({ key, label, count: numeric(normalized[key]) }))
     .filter((item) => item.count !== 0);
-  return {
-    ...normalized,
-    blockers,
-    administrativeCloseReady: blockers.length === 0,
-  };
+  return { ...normalized, blockers, administrativeCloseReady: blockers.length === 0 };
 }
 
 export function createAccountingV2Router() {
@@ -84,10 +81,8 @@ export function createAccountingV2Router() {
     try {
       const db = getDb();
       await assertV2Schema(db);
-      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD" });
-    } catch (error) {
-      next(error);
-    }
+      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0057" });
+    } catch (error) { next(error); }
   });
 
   router.get("/v2/readiness", async (req: Request, res: Response, next: NextFunction) => {
@@ -95,20 +90,10 @@ export function createAccountingV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = getDb();
       await assertV2Schema(db);
-      const readinessResult = await db!.execute(sql`
-        SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}
-      `);
-      const closeResult = await db!.execute(sql`
-        SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1
-      `);
-      res.json({
-        periodKey,
-        readiness: readinessPayload(rowsOf(readinessResult)[0]),
-        close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null,
-      });
-    } catch (error) {
-      next(error);
-    }
+      const readinessResult = await db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
+      const closeResult = await db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`);
+      res.json({ periodKey, readiness: readinessPayload(rowsOf(readinessResult)[0]), close: rowsOf(closeResult)[0] ? normalize(rowsOf(closeResult)[0]) : null });
+    } catch (error) { next(error); }
   });
 
   router.get("/v2/register", async (req: Request, res: Response, next: NextFunction) => {
@@ -117,26 +102,15 @@ export function createAccountingV2Router() {
       const db = getDb();
       await assertV2Schema(db);
       const [ordersResult, readinessResult] = await Promise.all([
-        db!.execute(sql`
-          SELECT * FROM public.v_order_accounting
-          WHERE period_key=${periodKey}
-          ORDER BY recognized_at, order_number
-        `),
+        db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
         db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
       ]);
-      const orders = rowsOf(ordersResult).map(normalize);
-      const readiness = readinessPayload(rowsOf(readinessResult)[0]);
       res.json({
-        periodKey,
-        policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee",
-        timezone: "Asia/Baghdad",
-        currency: "IQD",
-        summary: readiness,
-        orders,
+        periodKey, policyVersion: "v2_gross_includes_delivery_carrier_keeps_fee",
+        timezone: "Asia/Baghdad", currency: "IQD",
+        summary: readinessPayload(rowsOf(readinessResult)[0]), orders: rowsOf(ordersResult).map(normalize),
       });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.get("/v2/ledger", async (req: Request, res: Response, next: NextFunction) => {
@@ -156,13 +130,10 @@ export function createAccountingV2Router() {
         LEFT JOIN public.journal_lines l ON l.entry_id=j.id
         LEFT JOIN public.chart_of_accounts a ON a.code=l.account_code
         WHERE j.period_key=${periodKey}
-        GROUP BY j.id
-        ORDER BY j.entry_date,j.entry_number
+        GROUP BY j.id ORDER BY j.entry_date,j.entry_number
       `);
       res.json({ periodKey, entries: rowsOf(result).map(normalize) });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.get("/v2/accountant-package", async (req: Request, res: Response, next: NextFunction) => {
@@ -170,7 +141,10 @@ export function createAccountingV2Router() {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
       const db = getDb();
       await assertV2Schema(db);
-      const [profile, readiness, sales, ledger, expenses, returns, settlements, opening, evidence, close] = await Promise.all([
+      const [
+        profile, readiness, sales, ledger, expenses, returns, settlements, opening,
+        evidence, close, deliveryCompanies, monthlyPositions, fixedPreparationItems,
+      ] = await Promise.all([
         db!.execute(sql`SELECT * FROM public.tax_profiles WHERE id='al-manba-aquavo'`),
         db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`),
         db!.execute(sql`SELECT * FROM public.v_order_accounting WHERE period_key=${periodKey} ORDER BY recognized_at,order_number`),
@@ -181,32 +155,44 @@ export function createAccountingV2Router() {
         db!.execute(sql`SELECT * FROM public.opening_inventory_snapshot WHERE cutover_id='aquavo-2026-08-01' ORDER BY product_id,variant_id`),
         db!.execute(sql`SELECT * FROM public.evidence_files WHERE to_char(created_at AT TIME ZONE 'Asia/Baghdad','YYYY-MM')<=${periodKey} ORDER BY created_at,id`),
         db!.execute(sql`SELECT * FROM public.accounting_period_closes WHERE period_key=${periodKey} LIMIT 1`),
+        db!.execute(sql`SELECT id,company_key,name,default_fee,active,is_default,notes FROM public.delivery_companies ORDER BY is_default DESC,active DESC,name`),
+        db!.execute(sql`
+          SELECT p.*,c.name AS delivery_company_name
+          FROM public.accounting_monthly_positions p
+          LEFT JOIN public.delivery_companies c ON c.id=p.delivery_company_id
+          WHERE p.period_key=${periodKey} AND p.status='confirmed'
+          ORDER BY p.position_type,c.name
+        `),
+        db!.execute(sql`
+          SELECT m.id,m.name,m.current_unit_cost,pi.quantity,
+                 (m.current_unit_cost*pi.quantity)::numeric AS line_cost,p.version,p.expected_cost
+          FROM public.packaging_profile_families f
+          JOIN public.packaging_profiles p ON p.profile_family_id=f.id AND p.active=true
+          JOIN public.packaging_profile_items pi ON pi.profile_id=p.id
+          JOIN public.fulfillment_materials m ON m.id=pi.material_id
+          WHERE f.active=true AND COALESCE((f.applies_to->>'default')::boolean,false)=true
+          ORDER BY m.name
+        `),
       ]);
       res.json({
         manifest: {
-          packageVersion: "2026-08-v2",
-          periodKey,
-          generatedAt: new Date().toISOString(),
-          legalName: "محل المنبع",
-          brand: "AQUAVO",
-          timezone: "Asia/Baghdad",
-          currency: "IQD",
+          packageVersion: "2026-08-v2.1", periodKey, generatedAt: new Date().toISOString(),
+          legalName: "محل المنبع", brand: "AQUAVO", timezone: "Asia/Baghdad", currency: "IQD",
           taxFinal: String((rowsOf(close)[0] as any)?.status ?? "") === "tax_final",
+          positionNotice: "Monthly positions are owner-confirmed reconciliation snapshots and do not replace profit calculation.",
         },
         profile: rowsOf(profile)[0] ?? null,
         readiness: readinessPayload(rowsOf(readiness)[0]),
         close: rowsOf(close)[0] ? normalize(rowsOf(close)[0]) : null,
-        sales: rowsOf(sales).map(normalize),
-        journal: rowsOf(ledger).map(normalize),
-        expenses: rowsOf(expenses).map(normalize),
-        returns: rowsOf(returns).map(normalize),
-        settlements: rowsOf(settlements).map(normalize),
-        openingInventory: rowsOf(opening).map(normalize),
+        sales: rowsOf(sales).map(normalize), journal: rowsOf(ledger).map(normalize),
+        expenses: rowsOf(expenses).map(normalize), returns: rowsOf(returns).map(normalize),
+        settlements: rowsOf(settlements).map(normalize), openingInventory: rowsOf(opening).map(normalize),
+        deliveryCompanies: rowsOf(deliveryCompanies).map(normalize),
+        monthlyPositions: rowsOf(monthlyPositions).map(normalize),
+        fixedPreparationItems: rowsOf(fixedPreparationItems).map(normalize),
         evidenceIndex: rowsOf(evidence).map(normalize),
       });
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post("/v2/periods/close", async (req: Request, res: Response, next: NextFunction) => {
@@ -216,22 +202,13 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
-        INSERT INTO public.accounting_period_closes(
-          period_key,period_start,period_end,status,closed_by,closed_by_name,snapshot_json,closed_at
-        ) VALUES(
-          ${periodKey},to_date(${periodKey}||'-01','YYYY-MM-DD'),
-          (to_date(${periodKey}||'-01','YYYY-MM-DD')+interval '1 month'),
-          'closed',${actor.id},${actor.name},'{}'::jsonb,clock_timestamp()
-        )
-        ON CONFLICT(period_key) DO UPDATE SET
-          status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,
-          closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
+        INSERT INTO public.accounting_period_closes(period_key,period_start,period_end,status,closed_by,closed_by_name,snapshot_json,closed_at)
+        VALUES(${periodKey},to_date(${periodKey}||'-01','YYYY-MM-DD'),(to_date(${periodKey}||'-01','YYYY-MM-DD')+interval '1 month'),'closed',${actor.id},${actor.name},'{}'::jsonb,clock_timestamp())
+        ON CONFLICT(period_key) DO UPDATE SET status='closed',closed_by=EXCLUDED.closed_by,closed_by_name=EXCLUDED.closed_by_name,closed_at=clock_timestamp(),reopened_by=NULL,reopened_reason=NULL,reopened_at=NULL
         RETURNING *
       `);
       res.status(201).json(normalize(rowsOf(result)[0] ?? {}));
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post("/v2/periods/:periodKey/reopen", async (req: Request, res: Response, next: NextFunction) => {
@@ -242,20 +219,13 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
-        UPDATE public.accounting_period_closes SET
-          status='reopened',reopened_by=${actor.id},reopened_reason=${reason},reopened_at=clock_timestamp()
-        WHERE period_key=${periodKey}
-        RETURNING *
+        UPDATE public.accounting_period_closes SET status='reopened',reopened_by=${actor.id},reopened_reason=${reason},reopened_at=clock_timestamp()
+        WHERE period_key=${periodKey} RETURNING *
       `);
       const row = rowsOf(result)[0];
-      if (!row) {
-        res.status(404).json({ message: "الفترة غير موجودة" });
-        return;
-      }
+      if (!row) { res.status(404).json({ message: "الفترة غير موجودة" }); return; }
       res.json(normalize(row));
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   router.post("/v2/periods/:periodKey/tax-final", async (req: Request, res: Response, next: NextFunction) => {
@@ -265,20 +235,13 @@ export function createAccountingV2Router() {
       await assertV2Schema(db);
       const actor = actorFromRequest(req);
       const result = await db!.execute(sql`
-        UPDATE public.accounting_period_closes SET
-          status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
-        WHERE period_key=${periodKey}
-        RETURNING *
+        UPDATE public.accounting_period_closes SET status='tax_final',closed_by=${actor.id},closed_by_name=${actor.name},closed_at=clock_timestamp()
+        WHERE period_key=${periodKey} RETURNING *
       `);
       const row = rowsOf(result)[0];
-      if (!row) {
-        res.status(404).json({ message: "أغلق الفترة إدارياً أولاً" });
-        return;
-      }
+      if (!row) { res.status(404).json({ message: "أغلق الفترة إدارياً أولاً" }); return; }
       res.json(normalize(row));
-    } catch (error) {
-      next(error);
-    }
+    } catch (error) { next(error); }
   });
 
   return router;
