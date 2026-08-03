@@ -24,13 +24,17 @@ CREATE UNIQUE INDEX IF NOT EXISTS delivery_companies_one_default_idx
 CREATE INDEX IF NOT EXISTS delivery_companies_active_name_idx
   ON public.delivery_companies(active,name);
 
+-- Al-Waseet is the first default only when no active default exists. Re-running
+-- this migration must never overwrite a company the owner selected later.
 INSERT INTO public.delivery_companies(company_key,name,default_fee,active,is_default,notes,created_by)
-VALUES('alwaseet','الوسيط',5000,true,true,'شركة التوصيل الافتراضية الحالية لـ AQUAVO','migration_0057')
+SELECT
+  'alwaseet','الوسيط',5000,true,
+  NOT EXISTS(SELECT 1 FROM public.delivery_companies WHERE active=true AND is_default=true),
+  'شركة التوصيل الافتراضية الحالية لـ AQUAVO','migration_0057'
 ON CONFLICT(company_key) DO UPDATE SET
   name=EXCLUDED.name,
   default_fee=EXCLUDED.default_fee,
   active=true,
-  is_default=true,
   updated_at=clock_timestamp();
 
 CREATE OR REPLACE FUNCTION public.apply_default_delivery_company_to_order()
@@ -106,8 +110,8 @@ CREATE INDEX IF NOT EXISTS accounting_monthly_positions_period_idx
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0057_accounting_operating_defaults',
-  '5f1de7532dd120185d2810906c04476b7cac2d5510cba74a2d9b50fb37603610',
-  'Multiple delivery companies with Al-Waseet default and optional monthly position snapshots'
+  '74a21cb654e3aea76af7a10bb6f1e95c88a3e7db41df0c5373245ffd3cf15b8e',
+  'Multiple delivery companies with Al-Waseet first-default and optional monthly position snapshots'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
