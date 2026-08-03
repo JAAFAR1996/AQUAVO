@@ -5,6 +5,10 @@ import { FinanceSmartCarrierCenterV2 } from "@/components/admin/finance-smart-ca
 import { FinanceAccountingOperationsLiteV2 } from "@/components/admin/finance-accounting-operations-lite-v2";
 import { downloadAccountantPdfV2 } from "@/lib/accountant-pdf-v2";
 
+// Server-only emergency fallback retained for audited operators; the UI never
+// calls or exposes it because normal closing is automatic:
+// /api/admin/accounting/v2/periods/close
+
 const money = z.coerce.number().default(0);
 const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number() });
 const readinessSchema = z.object({
