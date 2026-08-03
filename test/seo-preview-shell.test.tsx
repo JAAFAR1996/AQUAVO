@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { renderSeoPreviewShell, type SeoPreviewProduct } from "../api/_seo-preview-shell.js";
+import {
+  deriveProductCategories,
+  renderSeoPreviewShell,
+  type SeoPreviewProduct,
+} from "../api/_seo-preview-shell.js";
+import {
+  buildCollectionStructuredData,
+  buildProductStructuredData,
+} from "../api/_seo-structured-data.js";
 
 const products: SeoPreviewProduct[] = [
   {
@@ -9,7 +17,7 @@ const products: SeoPreviewProduct[] = [
     description: "فلتر تجريبي لحوض 60 لتر.",
     price: 25000,
     currency: "IQD",
-    category: "filters",
+    category: "الفلترة والتنقية",
     brand: "AQUAVO",
     stock: 4,
   },
@@ -20,36 +28,91 @@ const products: SeoPreviewProduct[] = [
     description: "سخان تجريبي.",
     price: 18000,
     currency: "IQD",
-    category: "heaters",
+    category: "التحكم بالحرارة",
     stock: 0,
+  },
+  {
+    id: "p3",
+    slug: "aquavo-variant-light",
+    name: "إضاءة متعددة القياسات",
+    description: "إضاءة تحتوي خيارات متعددة.",
+    price: 20000,
+    currency: "IQD",
+    category: "الإضاءة",
+    brand: "YEE",
+    stock: 5,
+    hasVariants: true,
+    variants: [
+      { id: "30cm", label: "30 سم", price: 20000, stock: 3, sku: "LIGHT-30" },
+      { id: "60cm", label: "60 سم", price: 35000, stock: 2, sku: "LIGHT-60" },
+    ],
   },
 ];
 
 describe("SEO preview shell", () => {
-  it("renders a crawlable product collection with real anchors", () => {
+  it("renders a crawlable product collection with database-shaped Arabic categories", () => {
     const html = renderSeoPreviewShell({ kind: "products", products });
 
     expect(html).toContain("<h1>جميع مستلزمات أحواض الزينة في العراق</h1>");
     expect(html).toContain('href="/products/aquavo-test-filter"');
     expect(html).toContain('href="/products/aquavo-test-heater"');
-    expect(html).toContain('href="/products?category=filters"');
+    expect(html).toContain('category=%D8%A7%D9%84%D9%81%D9%84%D8%AA%D8%B1%D8%A9%20%D9%88%D8%A7%D9%84%D8%AA%D9%86%D9%82%D9%8A%D8%A9');
+    expect(html).not.toContain("category=filters");
     expect(html).toContain("متوفر");
     expect(html).toContain("غير متوفر حالياً");
   });
 
-  it("renders semantic product facts, breadcrumbs, and related links", () => {
+  it("derives categories from the product source of truth", () => {
+    const categories = deriveProductCategories([
+      ...products,
+      { ...products[0], id: "p4", slug: "filter-two" },
+    ]);
+
+    expect(categories[0]).toEqual({ name: "الفلترة والتنقية", count: 2 });
+    expect(categories.map((category) => category.name)).toEqual([
+      "الفلترة والتنقية",
+      "الإضاءة",
+      "التحكم بالحرارة",
+    ]);
+  });
+
+  it("renders semantic product facts, breadcrumbs, related links, and visible variants", () => {
     const html = renderSeoPreviewShell({
       kind: "product",
-      product: products[0],
+      product: products[2],
       related: [products[1]],
     });
 
     expect(html).toContain('itemType="https://schema.org/Product"');
-    expect(html).toContain('<h1 itemProp="name">فلتر اختبار AQUAVO</h1>');
-    expect(html).toContain("السعر");
-    expect(html).toContain("د.ع");
+    expect(html).toContain('<h1 itemProp="name">إضاءة متعددة القياسات</h1>');
+    expect(html).toContain("من");
+    expect(html).toContain("30 سم");
+    expect(html).toContain("60 سم");
     expect(html).toContain('href="/products"');
     expect(html).toContain('href="/products/aquavo-test-heater"');
+  });
+
+  it("builds merchant Product and Offer markup from the initially selected option", () => {
+    const schemas = buildProductStructuredData(products[2]) as Array<Record<string, unknown>>;
+    const product = schemas[0] as Record<string, any>;
+
+    expect(product["@type"]).toBe("Product");
+    expect(product.offers["@type"]).toBe("Offer");
+    expect(product.offers.price).toBe("20000");
+    expect(product.offers.priceCurrency).toBe("IQD");
+    expect(product.sku).toBe("LIGHT-30");
+    expect(JSON.stringify(product.additionalProperty)).toContain("60 سم");
+    expect(JSON.stringify(schemas)).not.toContain("ProductGroup");
+  });
+
+  it("builds a collection ItemList containing every product and real categories", () => {
+    const schemas = buildCollectionStructuredData(products) as Array<Record<string, any>>;
+    const collection = schemas[0];
+
+    expect(collection.mainEntity.numberOfItems).toBe(3);
+    expect(collection.mainEntity.itemListElement).toHaveLength(3);
+    expect(JSON.stringify(collection.about)).toContain("الفلترة والتنقية");
+    expect(JSON.stringify(collection.about)).not.toContain("filters");
   });
 
   it("renders answer-first FAQ content in the initial HTML", () => {
