@@ -50,7 +50,12 @@ BEGIN
  IF v_line_count=0 THEN v_cost_status:='unknown';v_cogs:=NULL;ELSIF v_bad_cost_count>0 THEN v_cost_status:='incomplete';v_cogs:=NULL;ELSIF v_cogs=0 THEN v_cost_status:='verified_zero';ELSE v_cost_status:='exact';END IF;
  INSERT INTO public.order_accounting_facts(order_id,payment_event_id,recognized_at,period_key,gross_collected,customer_delivery_fee,carrier_fee,product_revenue,merchant_net,delivery_subsidy,delivery_surplus,cash_custody,cogs_amount,cost_status,currency,policy_version,evidence) VALUES(NEW.id,v_event_id,v_recognized_at,v_period_key,v_gross,v_customer_fee,v_carrier_fee,v_product_revenue,v_merchant_net,v_delivery_subsidy,v_delivery_surplus,'carrier',v_cogs,v_cost_status,'IQD','v2_gross_includes_delivery_carrier_keeps_fee',jsonb_build_object('created_by','database_trigger','order_number',NEW.order_number,'order_total_source',CASE WHEN NEW.rounded_total IS NOT NULL THEN 'rounded_total' ELSE 'total' END)) ON CONFLICT(order_id) DO NOTHING RETURNING id INTO v_fact_id;
  IF v_fact_id IS NULL THEN SELECT id INTO v_fact_id FROM public.order_accounting_facts WHERE order_id=NEW.id;END IF;
- PERFORM public.post_order_delivery_journal(v_fact_id);PERFORM public.post_order_cogs_journal(v_fact_id);PERFORM public.post_order_fulfillment_journal(NEW.id);RETURN NEW;
+ PERFORM public.post_order_delivery_journal(v_fact_id);
+ PERFORM public.post_order_cogs_journal(v_fact_id);
+ IF to_regprocedure('public.post_order_fulfillment_journal(text)') IS NOT NULL THEN
+   PERFORM public.post_order_fulfillment_journal(NEW.id);
+ END IF;
+ RETURN NEW;
 END $$;
 DROP TRIGGER IF EXISTS orders_record_delivery_accounting ON public.orders;
 CREATE TRIGGER orders_record_delivery_accounting AFTER UPDATE OF status ON public.orders FOR EACH ROW EXECUTE FUNCTION public.record_order_delivery_accounting();
