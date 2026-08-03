@@ -1,0 +1,277 @@
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+
+export type SeoPreviewProduct = {
+  id?: string;
+  slug: string;
+  name: string;
+  description?: string | null;
+  price?: string | number | null;
+  currency?: string | null;
+  brand?: string | null;
+  category?: string | null;
+  stock?: string | number | null;
+  thumbnail?: string | null;
+  images?: unknown;
+};
+
+export type SeoPreviewPage =
+  | { kind: "home"; products: SeoPreviewProduct[] }
+  | { kind: "products"; products: SeoPreviewProduct[] }
+  | { kind: "product"; product: SeoPreviewProduct; related: SeoPreviewProduct[] }
+  | { kind: "faq" }
+  | { kind: "about" }
+  | { kind: "static"; heading: string; summary: string; path: string }
+  | { kind: "not-found"; path: string };
+
+const categoryLinks = [
+  ["أحواض زجاجية", "tanks"],
+  ["فلاتر", "filters"],
+  ["سخانات", "heaters"],
+  ["إضاءة LED", "lighting"],
+  ["أغذية أسماك", "food"],
+  ["علاجات مياه", "treatments"],
+  ["ديكورات", "decorations"],
+  ["ركائز ورمل", "substrates"],
+  ["مضخات هواء", "air-pumps"],
+  ["مستلزمات الصيانة", "maintenance"],
+] as const;
+
+const faqs = [
+  ["هل AQUAVO يوصّل لكل العراق؟", "نعم، AQUAVO متجر إلكتروني عراقي ويقدّم التوصيل إلى المحافظات المتاحة وفق سياسة الشحن الحالية."],
+  ["هل الدفع عند الاستلام متوفر؟", "الدفع عند الاستلام متوفر للطلبات المؤهلة، وتظهر تفاصيل الطلب والتوصيل قبل التأكيد."],
+  ["شلون أختار الفلتر المناسب؟", "ابدأ بحجم الحوض وعدد الأسماك ونوع وسائط الفلترة، ثم قارن التدفق الفعلي وقدرة الفلتر على حمل الوسائط."],
+  ["شلون أختار السخان؟", "يعتمد اختيار السخان على حجم الحوض وفرق الحرارة بين ماء الحوض والغرفة، مع استخدام ميزان حرارة مستقل للمراقبة."],
+  ["هل المنتجات غير المتوفرة تبقى ظاهرة؟", "قد تبقى صفحة المنتج ظاهرة إذا كان النفاد مؤقتاً، لكن يجب أن توضّح حالة المخزون بوضوح وتعرض بدائل مناسبة."],
+  ["هل يوجد دعم قبل الشراء؟", "يمكن التواصل مع AQUAVO قبل الطلب للمساعدة في اختيار المعدات المتوافقة مع حجم الحوض واحتياجه."],
+] as const;
+
+function formatPrice(product: SeoPreviewProduct): string {
+  const raw = product.price;
+  if (raw === null || raw === undefined || raw === "") return "السعر متوفر داخل صفحة المنتج";
+  const numeric = Number(raw);
+  if (!Number.isFinite(numeric)) return `${String(raw)} ${product.currency || "IQD"}`;
+  return `${new Intl.NumberFormat("ar-IQ").format(numeric)} د.ع`;
+}
+
+function isInStock(product: SeoPreviewProduct): boolean {
+  const stock = Number(product.stock ?? 0);
+  return Number.isFinite(stock) && stock > 0;
+}
+
+function cleanText(value: string | null | undefined, fallback: string): string {
+  const text = (value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return text || fallback;
+}
+
+function ProductLinks({ products, limit }: { products: SeoPreviewProduct[]; limit?: number }) {
+  const visible = typeof limit === "number" ? products.slice(0, limit) : products;
+  return (
+    <ul className="aq-ssr-products" aria-label="روابط المنتجات">
+      {visible.map((product) => (
+        <li key={product.slug}>
+          <a href={`/products/${encodeURIComponent(product.slug)}`}>
+            <strong>{product.name}</strong>
+            <span>{formatPrice(product)}</span>
+            <small>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</small>
+          </a>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SiteHeader() {
+  return (
+    <header className="aq-ssr-header">
+      <a className="aq-ssr-brand" href="/" aria-label="AQUAVO الرئيسية">AQUAVO</a>
+      <nav aria-label="التنقل الرئيسي">
+        <a href="/products">المنتجات</a>
+        <a href="/guides">الأدلة</a>
+        <a href="/faq">الأسئلة الشائعة</a>
+        <a href="/about">عن AQUAVO</a>
+        <a href="/contact">تواصل معنا</a>
+      </nav>
+    </header>
+  );
+}
+
+function SiteFooter() {
+  return (
+    <footer className="aq-ssr-footer">
+      <p>AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.</p>
+      <nav aria-label="روابط مهمة">
+        <a href="/shipping">الشحن</a>
+        <a href="/return-policy">الاسترجاع</a>
+        <a href="/privacy-policy">الخصوصية</a>
+        <a href="/terms">الشروط</a>
+      </nav>
+    </footer>
+  );
+}
+
+function Categories() {
+  return (
+    <ul className="aq-ssr-categories" aria-label="فئات المنتجات">
+      {categoryLinks.map(([name, slug]) => (
+        <li key={slug}><a href={`/products?category=${slug}`}>{name}</a></li>
+      ))}
+    </ul>
+  );
+}
+
+function HomePage({ products }: { products: SeoPreviewProduct[] }) {
+  return (
+    <main id="main-content">
+      <section className="aq-ssr-hero">
+        <p className="aq-ssr-kicker">معدات أحواض الزينة في العراق</p>
+        <h1>مستلزمات أحواض الزينة مع اختيار أوضح ودعم محلي</h1>
+        <p>فلاتر، سخانات، أغذية، إضاءة، ديكورات ومعالجات مياه، مع توصيل داخل العراق ودفع عند الاستلام للطلبات المؤهلة.</p>
+        <div className="aq-ssr-actions"><a href="/products">تصفح المنتجات</a><a href="/guides">اقرأ الأدلة</a></div>
+      </section>
+      <section aria-labelledby="aq-categories-title">
+        <h2 id="aq-categories-title">تصفح حسب الفئة</h2>
+        <Categories />
+      </section>
+      <section aria-labelledby="aq-featured-title">
+        <h2 id="aq-featured-title">منتجات من المتجر</h2>
+        <ProductLinks products={products} limit={18} />
+        <p><a href="/products">عرض جميع المنتجات</a></p>
+      </section>
+      <section aria-labelledby="aq-answer-title" className="aq-ssr-answer">
+        <h2 id="aq-answer-title">شنو تختار لحوضك؟</h2>
+        <p>اختيار المعدات يبدأ من حجم الحوض ونوع الأسماك والحمل الحيوي، مو من السعر وحده. استخدم أدلة AQUAVO للمقارنة بين الفلاتر والسخانات ووسائط الفلترة قبل الطلب.</p>
+        <a href="/guides/new-aquarium-setup-iraq">دليل تجهيز حوض جديد في العراق</a>
+      </section>
+    </main>
+  );
+}
+
+function ProductsPage({ products }: { products: SeoPreviewProduct[] }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>المنتجات</span></nav>
+      <h1>جميع مستلزمات أحواض الزينة في العراق</h1>
+      <p>تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة.</p>
+      <Categories />
+      <section aria-labelledby="aq-all-products-title">
+        <h2 id="aq-all-products-title">قائمة المنتجات</h2>
+        <ProductLinks products={products} />
+      </section>
+    </main>
+  );
+}
+
+function ProductPage({ product, related }: { product: SeoPreviewProduct; related: SeoPreviewProduct[] }) {
+  const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
+        <a href="/">الرئيسية</a><span>/</span><a href="/products">المنتجات</a><span>/</span><span>{product.name}</span>
+      </nav>
+      <article itemScope itemType="https://schema.org/Product">
+        <p className="aq-ssr-kicker">{product.brand || "AQUAVO"}</p>
+        <h1 itemProp="name">{product.name}</h1>
+        <p itemProp="description">{description}</p>
+        <dl className="aq-ssr-facts">
+          <div><dt>السعر</dt><dd>{formatPrice(product)}</dd></div>
+          <div><dt>حالة المخزون</dt><dd>{isInStock(product) ? "متوفر" : "غير متوفر حالياً"}</dd></div>
+          {product.category && <div><dt>الفئة</dt><dd><a href={`/products?category=${encodeURIComponent(product.category)}`}>{product.category}</a></dd></div>}
+          {product.brand && <div><dt>العلامة</dt><dd itemProp="brand">{product.brand}</dd></div>}
+        </dl>
+        <section aria-labelledby="aq-product-answer">
+          <h2 id="aq-product-answer">لمن يناسب هذا المنتج؟</h2>
+          <p>{description}</p>
+        </section>
+      </article>
+      <section aria-labelledby="aq-related-title">
+        <h2 id="aq-related-title">منتجات مرتبطة</h2>
+        <ProductLinks products={related} limit={8} />
+      </section>
+      <p><a href="/products">الرجوع إلى جميع المنتجات</a></p>
+    </main>
+  );
+}
+
+function FaqPage() {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>الأسئلة الشائعة</span></nav>
+      <h1>الأسئلة الشائعة عن AQUAVO وأحواض الزينة</h1>
+      <p>إجابات مختصرة عن الطلب والتوصيل واختيار معدات الحوض.</p>
+      <section className="aq-ssr-faq" aria-label="الأسئلة والأجوبة">
+        {faqs.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}
+      </section>
+    </main>
+  );
+}
+
+function AboutPage() {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>عن AQUAVO</span></nav>
+      <h1>عن AQUAVO</h1>
+      <p>AQUAVO علامة عراقية ومتجر إلكتروني متخصص في معدات ومستلزمات أحواض الزينة، تابع إلى محل المنبع / AL NABEA SHOP ومقر النشاط في بغداد، العراق.</p>
+      <section aria-labelledby="aq-about-specialty"><h2 id="aq-about-specialty">مجال التخصص</h2><p>الفلاتر، السخانات، الأغذية، الإضاءة، الديكورات، الركائز، مضخات الهواء، معالجات المياه ومستلزمات الصيانة.</p></section>
+      <section aria-labelledby="aq-about-service"><h2 id="aq-about-service">طريقة الخدمة</h2><p>العمل عبر الموقع ووسائل التواصل، مع توفير معلومات تساعد الزبون على اختيار المنتج المناسب قبل الطلب.</p></section>
+      <p><a href="/contact">بيانات التواصل</a> · <a href="/products">تصفح المنتجات</a> · <a href="/guides">الأدلة التعليمية</a></p>
+    </main>
+  );
+}
+
+function StaticPage({ heading, summary, path }: { heading: string; summary: string; path: string }) {
+  return (
+    <main id="main-content">
+      <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>{heading}</span></nav>
+      <h1>{heading}</h1>
+      <p>{summary}</p>
+      <p><a href="/products">تصفح المنتجات</a> · <a href="/faq">الأسئلة الشائعة</a> · <a href="/contact">تواصل معنا</a></p>
+      <small>المسار: {path}</small>
+    </main>
+  );
+}
+
+function NotFoundPage({ path }: { path: string }) {
+  return (
+    <main id="main-content">
+      <h1>الصفحة غير موجودة</h1>
+      <p>الرابط المطلوب غير متوفر أو تم نقله.</p>
+      <p><a href="/">العودة إلى الرئيسية</a> · <a href="/products">تصفح المنتجات</a></p>
+      <small>{path}</small>
+    </main>
+  );
+}
+
+function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
+  return (
+    <div className="aq-ssr-shell" data-aq-ssr-preview="true">
+      <style>{`
+        .aq-ssr-shell{min-height:100vh;background:#0B1E28;color:#f7fbfc;font-family:Cairo,Tahoma,sans-serif;line-height:1.75;padding:0 5vw 3rem}
+        .aq-ssr-shell *{box-sizing:border-box}.aq-ssr-shell a{color:#67d7e5;text-decoration:none}.aq-ssr-shell a:hover{text-decoration:underline}
+        .aq-ssr-header,.aq-ssr-footer{display:flex;gap:1.25rem;align-items:center;justify-content:space-between;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,.14)}
+        .aq-ssr-header nav,.aq-ssr-footer nav{display:flex;gap:1rem;flex-wrap:wrap}.aq-ssr-brand{font:700 1.25rem Inter,sans-serif;letter-spacing:.08em}
+        .aq-ssr-shell main{max-width:1180px;width:100%;margin:0 auto;padding:3rem 0}.aq-ssr-shell h1{font-size:clamp(2rem,5vw,4.25rem);line-height:1.18;max-width:900px}.aq-ssr-shell h2{margin-top:3rem;font-size:clamp(1.35rem,3vw,2rem)}
+        .aq-ssr-hero{padding:2.5rem 0 1rem}.aq-ssr-kicker{color:#67d7e5;font-weight:700}.aq-ssr-actions{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.5rem}.aq-ssr-actions a{border:1px solid #0B93A6;padding:.7rem 1rem;border-radius:.45rem}
+        .aq-ssr-categories{display:flex;gap:.65rem;flex-wrap:wrap;list-style:none;padding:0}.aq-ssr-categories a{display:block;border:1px solid rgba(255,255,255,.18);padding:.55rem .85rem;border-radius:999px}
+        .aq-ssr-products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;list-style:none;padding:0}.aq-ssr-products a{display:grid;gap:.35rem;height:100%;padding:1rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;background:rgba(255,255,255,.035)}
+        .aq-ssr-products span,.aq-ssr-products small{color:#d9e6e9}.aq-ssr-answer,.aq-ssr-facts,.aq-ssr-faq details{border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:1rem;background:rgba(255,255,255,.035)}
+        .aq-ssr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}.aq-ssr-facts div{display:grid;gap:.2rem}.aq-ssr-facts dt{color:#9fc5cc}.aq-ssr-facts dd{margin:0;font-weight:700}
+        .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
+        @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
+      `}</style>
+      <SiteHeader />
+      {page.kind === "home" && <HomePage products={page.products} />}
+      {page.kind === "products" && <ProductsPage products={page.products} />}
+      {page.kind === "product" && <ProductPage product={page.product} related={page.related} />}
+      {page.kind === "faq" && <FaqPage />}
+      {page.kind === "about" && <AboutPage />}
+      {page.kind === "static" && <StaticPage heading={page.heading} summary={page.summary} path={page.path} />}
+      {page.kind === "not-found" && <NotFoundPage path={page.path} />}
+      <SiteFooter />
+    </div>
+  );
+}
+
+export function renderSeoPreviewShell(page: SeoPreviewPage): string {
+  return renderToStaticMarkup(<SeoPreviewShell page={page} />);
+}
