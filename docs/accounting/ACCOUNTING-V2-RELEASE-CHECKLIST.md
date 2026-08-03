@@ -20,7 +20,8 @@
 - [x] Forward catalog checked against expected tables, columns, triggers and views.
 - [x] `delivered_at`, payment occurrence, immutable fact recognition and order journal entry date are identical.
 - [x] Exact-cost smoke order posts 25,000 product revenue, 48 COGS and 150 fulfillment cost with journal difference zero.
-- [ ] Rollbacks exercised on a disposable branch.
+- [x] 0056 rollback retains historical delivery evidence when facts exist, restores the old function, and reapplies cleanly.
+- [ ] Full reverse-order rollback of 0055–0051 exercised on a disposable no-business-data branch.
 
 ## Business evidence gate
 
