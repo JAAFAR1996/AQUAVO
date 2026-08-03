@@ -7,6 +7,7 @@ import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
+import { createAccountingCarrierCorrectionV2Router } from "./routes/accounting-carrier-correction-v2.js";
 import { createAccountingOperationsV2Router } from "./routes/accounting-operations-v2.js";
 import { createAccountingV2Router } from "./routes/accounting-v2.js";
 import { createInvoiceV2Router } from "./routes/invoice-v2.js";
@@ -63,10 +64,7 @@ declare module "express-session" {
   }
 }
 
-export async function registerRoutes(
-  httpServer: Server,
-  app: express.Application,
-): Promise<Server> {
+export async function registerRoutes(httpServer: Server, app: express.Application): Promise<Server> {
   app.get("/api/settings/shipping", async (_req, res) => {
     try {
       const shippingFee = await storage.getSetting("shipping_fee");
@@ -87,30 +85,18 @@ export async function registerRoutes(
 
   app.use("/api/analytics", async (req, res, next) => {
     const trackingEndpoints = new Set(["/track-visit", "/presence", "/heartbeat", "/presence/leave"]);
-    if (!trackingEndpoints.has(req.path)) {
-      next();
-      return;
-    }
-
+    if (!trackingEndpoints.has(req.path)) { next(); return; }
     const pagePath = typeof req.body?.pagePath === "string" ? req.body.pagePath : "";
-    if (pagePath.startsWith("/admin")) {
-      res.json({ ok: true, skipped: "admin" });
-      return;
-    }
-
+    if (pagePath.startsWith("/admin")) { res.json({ ok: true, skipped: "admin" }); return; }
     const userId = req.session?.userId;
     if (userId) {
       try {
         const user = await storage.getUser(userId);
-        if (user?.role === "admin") {
-          res.json({ ok: true, skipped: "admin" });
-          return;
-        }
+        if (user?.role === "admin") { res.json({ ok: true, skipped: "admin" }); return; }
       } catch {
         // Tracking must not break navigation.
       }
     }
-
     next();
   });
   app.use("/api/analytics", createAnalyticsRouter());
@@ -121,7 +107,6 @@ export async function registerRoutes(
 
   app.use("/", createOAuthRouter());
   app.use("/api/mcp", createMcpRouter());
-
   const systemRouter = createSystemRouter();
   app.use("/api/system", systemRouter);
   app.use("/", systemRouter);
@@ -142,11 +127,9 @@ export async function registerRoutes(
   app.use("/api/ai-advanced", aiAdvancedRoutes);
   app.use("/api/admin/ai-monitor", aiMonitorRouter);
   app.use("/api/admin/ai-learnings", aiLearningsRouter);
-
   app.use("/api/pricing", pricingSafetyRoutes);
   app.use("/api/pricing", pricingTruthOverrideRoutes);
   app.use("/api/pricing", pricingRoutes);
-
   app.use("/api/metadata", metadataRoutes);
   app.use("/api/early-access", earlyAccessRoutes);
   app.use("/api/partners", partnersRoutes);
@@ -160,6 +143,7 @@ export async function registerRoutes(
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
   app.use("/api/admin/accounting", createAccountingSetupV2Router());
+  app.use("/api/admin/accounting", createAccountingCarrierCorrectionV2Router());
   app.use("/api/admin/accounting", createAccountingOperationsV2Router());
   app.use("/api/admin/accounting", createAccountingV2Router());
   app.use("/api/admin/accounting", createAccountingRouter());
@@ -176,18 +160,11 @@ export async function registerRoutes(
     console.error("API Error:", err);
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
-
-    if (err.name === "ZodError") {
-      res.status(400).json({ message: "Validation error", errors: err.errors });
-      return;
-    }
-
+    if (err.name === "ZodError") { res.status(400).json({ message: "Validation error", errors: err.errors }); return; }
     res.status(status).json({ message });
   });
-
   app.use("/api", (_req: express.Request, res: express.Response) => {
     res.status(404).json({ message: "Not Found" });
   });
-
   return httpServer;
 }
