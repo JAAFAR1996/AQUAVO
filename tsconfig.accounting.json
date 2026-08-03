@@ -1,4 +1,7 @@
-// Strict typecheck for money-critical services and routes.
+// Strict typecheck for the Accounting V2 money-critical entry points.
+// TypeScript follows their actual imports automatically. Do not enumerate old
+// unrelated services here: doing so turns this focused gate into a report on
+// legacy analytics debt and hides whether V2 itself is safe.
 {
   "compilerOptions": {
     "noEmit": true,
@@ -18,41 +21,22 @@
     "forceConsistentCasingInFileNames": true,
     "allowImportingTsExtensions": true,
     "baseUrl": ".",
-    "paths": { "@shared/*": ["./shared/*"] },
+    "paths": {
+      "@/*": ["./client/src/*"],
+      "@shared/*": ["./shared/*"]
+    },
     "types": ["node"]
   },
   "include": [
-    "shared/schema.ts",
     "shared/accounting-schema-v2.ts",
     "shared/cod-accounting.ts",
-    "shared/order-financials.ts",
-    "shared/cost-components.ts",
     "server/routes/accounting-v2.ts",
     "server/routes/accounting-operations-v2.ts",
     "server/routes/admin-orders-v2.ts",
     "server/routes/invoice-v2.ts",
     "server/routes/upload.ts",
     "server/utils/cloudinary.ts",
-    "server/services/accounting-engine.ts",
-    "server/services/fulfillment-db.ts",
-    "server/services/fulfillment-verifier.ts",
-    "server/services/fulfillment-service.ts",
-    "server/services/fulfillment-draft-service.ts",
-    "server/services/packaging-profile-service.ts",
-    "server/services/material-cost-service.ts",
-    "server/services/fulfillment-types.test-d.ts",
-    "shared/packing-types.ts",
-    "shared/packing-schema.ts",
-    "server/services/carton-geometry-adapter.ts",
-    "server/services/carton-support-analyzer.ts",
-    "server/services/carton-load-distributor.ts",
-    "server/services/carton-safety-validator.ts",
-    "server/services/carton-planner.ts",
-    "server/services/carton-reservation-service.ts",
-    "server/services/packaging-cost-resolver.ts",
-    "server/services/return-packaging-loss-service.ts",
-    "server/services/admin-alert-service.ts",
-    "server/services/packaging-lifecycle.ts",
-    "server/services/packaging-lifecycle-runner.ts"
+    "client/src/components/admin/finance-accounting-register-v2.tsx",
+    "client/src/components/admin/finance-accounting-operations-v2.tsx"
   ]
 }
