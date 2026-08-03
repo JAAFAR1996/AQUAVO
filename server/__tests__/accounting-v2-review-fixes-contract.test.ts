@@ -67,4 +67,19 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(health).toContain("migrationsThrough: \"0060\"");
     expect(health).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0060_REQUIRED");
   });
+
+  it("runs exact migration files before production deploy and skips previews", () => {
+    const runner = read("script/apply-accounting-v2-migrations.ts");
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0060"');
+    expect(runner).toContain("pg_advisory_lock");
+    expect(runner).toContain("await client.query(body)");
+    expect(runner).toContain("createHash(\"sha256\")");
+    expect(runner).toContain("runner-verified file sha256");
+    expect(runner).toContain('"0060_accounting_close_state_machine.sql"');
+
+    const vercel = read("vercel.json");
+    expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
+    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0060");
+    expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
+  });
 });
