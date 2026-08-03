@@ -77,8 +77,7 @@ export function createAccountingSetupV2Router() {
       const db = await requireSetupSchema();
       const result = await db.execute(sql`
         SELECT id,company_key,name,default_fee,active,is_default,notes,created_at,updated_at
-        FROM public.delivery_companies
-        ORDER BY is_default DESC,active DESC,name
+        FROM public.delivery_companies ORDER BY is_default DESC,active DESC,name
       `);
       res.json({ items: rowsOf(result).map(normalize) });
     } catch (error) { next(error); }
@@ -112,10 +111,8 @@ export function createAccountingSetupV2Router() {
           name=COALESCE(${input.name ?? null},name),
           default_fee=COALESCE(${input.defaultFee ?? null},default_fee),
           notes=CASE WHEN ${input.notes !== undefined} THEN ${input.notes ?? null} ELSE notes END,
-          active=COALESCE(${input.active ?? null},active),
-          updated_at=clock_timestamp()
-        WHERE id=${req.params.id}
-        RETURNING *
+          active=COALESCE(${input.active ?? null},active),updated_at=clock_timestamp()
+        WHERE id=${req.params.id} RETURNING *
       `);
       const row = rowsOf(result)[0];
       if (!row) { res.status(404).json({ message: "شركة التوصيل غير موجودة" }); return; }
@@ -156,18 +153,10 @@ export function createAccountingSetupV2Router() {
     try {
       const input = positionSchema.parse(req.body);
       const isCarrier = input.positionType === "carrier_receivable";
-      if (isCarrier && !input.deliveryCompanyId) {
-        res.status(400).json({ message: "اختر شركة التوصيل لرصيد الشركة" }); return;
-      }
-      if (!isCarrier && input.deliveryCompanyId) {
-        res.status(400).json({ message: "شركة التوصيل تستخدم فقط مع مستحقات التوصيل" }); return;
-      }
-      if (isCarrier && Math.abs(input.amount - (input.grossAmount - input.feeAmount)) > 0.001) {
-        res.status(400).json({ message: "الصافي يجب أن يساوي الإجمالي ناقص أجور الشركة" }); return;
-      }
-      if (!isCarrier && (input.grossAmount !== 0 || input.feeAmount !== 0)) {
-        res.status(400).json({ message: "الإجمالي والأجور تخص رصيد شركة التوصيل فقط" }); return;
-      }
+      if (isCarrier && !input.deliveryCompanyId) { res.status(400).json({ message: "اختر شركة التوصيل لرصيد الشركة" }); return; }
+      if (!isCarrier && input.deliveryCompanyId) { res.status(400).json({ message: "شركة التوصيل تستخدم فقط مع مستحقات التوصيل" }); return; }
+      if (isCarrier && Math.abs(input.amount - (input.grossAmount - input.feeAmount)) > 0.001) { res.status(400).json({ message: "الصافي يجب أن يساوي الإجمالي ناقص أجور الشركة" }); return; }
+      if (!isCarrier && (input.grossAmount !== 0 || input.feeAmount !== 0)) { res.status(400).json({ message: "الإجمالي والأجور تخص رصيد شركة التوصيل فقط" }); return; }
       const db = await requireSetupSchema();
       const actor = actorFromRequest(req);
       const result = await db.transaction(async (tx) => {
@@ -179,8 +168,7 @@ export function createAccountingSetupV2Router() {
           SELECT id FROM public.accounting_monthly_positions
           WHERE period_key=${input.periodKey} AND position_type=${input.positionType}
             AND delivery_company_id IS NOT DISTINCT FROM ${input.deliveryCompanyId ?? null}
-            AND status='confirmed'
-          FOR UPDATE
+            AND status='confirmed' FOR UPDATE
         `);
         const row = rowsOf(existing)[0];
         if (row) {
@@ -189,8 +177,7 @@ export function createAccountingSetupV2Router() {
               amount=${input.amount},gross_amount=${isCarrier ? input.grossAmount : 0},fee_amount=${isCarrier ? input.feeAmount : 0},
               evidence_mode='owner_confirmation',evidence_file_id=NULL,note=${input.note},
               confirmed_by=${actor.id},confirmed_at=clock_timestamp(),updated_at=clock_timestamp()
-            WHERE id=${String(row.id)}
-            RETURNING *
+            WHERE id=${String(row.id)} RETURNING *
           `);
           return rowsOf(updated)[0];
         }
@@ -242,9 +229,7 @@ export function createAccountingSetupV2Router() {
           FROM public.packaging_profile_families f
           JOIN public.packaging_profiles p ON p.profile_family_id=f.id AND p.active=true
           WHERE f.active=true AND COALESCE((f.applies_to->>'default')::boolean,false)=true
-          ORDER BY p.version DESC
-          LIMIT 1
-          FOR UPDATE OF p
+          ORDER BY p.version DESC LIMIT 1 FOR UPDATE OF p
         `);
         const current = rowsOf(profileResult)[0];
         if (!current) throw Object.assign(new Error("بروفايل التجهيز الافتراضي غير موجود"), { statusCode: 409 });
@@ -252,10 +237,10 @@ export function createAccountingSetupV2Router() {
         await tx.execute(sql`
           INSERT INTO public.fulfillment_materials(
             id,name,category,cost_component_type,unit,current_unit_cost,currency,cost_confidence,
-            accounting_code,active,notes,current_cost_record_id,material_kind,calculation_basis,stock_tracked
+            accounting_code,active,notes,material_kind,calculation_basis,stock_tracked
           ) VALUES(
             ${materialId},${input.name},'extra','aquavo_fulfillment_material','order',${input.unitCost},'IQD',
-            'owner_confirmed','5100',true,${input.note},${costRecordId},'consumable','per_order',false
+            'owner_confirmed','5100',true,${input.note},'consumable','per_order',false
           )
         `);
         await tx.execute(sql`
@@ -263,9 +248,13 @@ export function createAccountingSetupV2Router() {
             id,material_id,cost_basis,unit_cost,currency,approval_status,approved_by,approved_at,
             effective_date,reason,created_by
           ) VALUES(
-            ${costRecordId},${materialId},'owner_confirmed_fixed',${input.unitCost},'IQD','approved',
+            ${costRecordId},${materialId},'verified_manual_standard',${input.unitCost},'IQD','approved',
             ${actor.id},clock_timestamp(),clock_timestamp(),${input.note},${actor.id}
           )
+        `);
+        await tx.execute(sql`
+          UPDATE public.fulfillment_materials SET current_cost_record_id=${costRecordId},updated_at=clock_timestamp()
+          WHERE id=${materialId}
         `);
 
         const nextVersion = Number(current.version)+1;
@@ -277,7 +266,7 @@ export function createAccountingSetupV2Router() {
             previous_version_id,creation_reason,locked,created_by
           ) VALUES(
             ${newProfileId},${String(current.name)},${JSON.stringify(current.applies_to ?? { default: true })}::jsonb,
-            ${nextExpected},clock_timestamp(),${nextVersion},true,${String(current.notes ?? "")},${String(current.family_id)},
+            ${nextExpected},clock_timestamp(),${nextVersion},true,${current.notes == null ? null : String(current.notes)},${String(current.family_id)},
             ${String(current.id)},${input.note},false,${actor.id}
           )
         `);
