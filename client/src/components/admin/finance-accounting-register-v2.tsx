@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { addCsrfHeader } from "@/lib/csrf";
+import { FinanceCarrierPositionV2 } from "@/components/admin/finance-carrier-position-v2";
 import { FinanceAccountingOperationsV2 } from "@/components/admin/finance-accounting-operations-v2";
 
 const money = z.coerce.number().default(0);
@@ -235,6 +236,7 @@ export function FinanceAccountingRegisterV2() {
         </table>
       </section>
 
+      <FinanceCarrierPositionV2 periodKey={periodKey} />
       <FinanceAccountingOperationsV2 periodKey={periodKey} />
     </div>
   );
