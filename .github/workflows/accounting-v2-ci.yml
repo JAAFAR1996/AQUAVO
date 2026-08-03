@@ -11,6 +11,7 @@ on:
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
       - "server/routes/accounting-setup-v2.ts"
+      - "server/routes/accounting-smart-carrier-v2.ts"
       - "server/routes/accounting-carrier-correction-v2.ts"
       - "server/routes/accounting-operations-v2.ts"
       - "server/routes/accounting-evidence-upload-v2.ts"
@@ -22,6 +23,7 @@ on:
       - "shared/accounting-schema-v2.ts"
       - "shared/cod-accounting.ts"
       - "client/src/components/admin/finance-accounting-*.tsx"
+      - "client/src/components/admin/finance-smart-carrier-center-v2.tsx"
       - "client/src/components/admin/finance-carrier-position-v2.tsx"
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
@@ -72,6 +74,7 @@ jobs:
           server/__tests__/accounting-v2-wiring-contract.test.ts
           server/__tests__/accounting-v2-operating-defaults-contract.test.ts
           server/__tests__/accounting-v2-review-fixes-contract.test.ts
+          server/__tests__/accounting-smart-carrier-v2-contract.test.ts
 
       - name: Migration ledger governance
         run: pnpm check:migrations
