@@ -6,6 +6,7 @@ import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
 import { createAccountingOperationsV2Router } from "./routes/accounting-operations-v2.js";
 import { createAccountingV2Router } from "./routes/accounting-v2.js";
 import { createInvoiceV2Router } from "./routes/invoice-v2.js";
@@ -158,6 +159,7 @@ export async function registerRoutes(
   app.use("/api/capi", capiRouter);
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", createAccountingSetupV2Router());
   app.use("/api/admin/accounting", createAccountingOperationsV2Router());
   app.use("/api/admin/accounting", createAccountingV2Router());
   app.use("/api/admin/accounting", createAccountingRouter());
