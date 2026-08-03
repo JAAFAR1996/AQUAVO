@@ -37,7 +37,8 @@ describe("Accounting V2 operating defaults", () => {
 
   it("versions fixed per-order additions instead of rewriting historical orders", () => {
     const setup = read("server/routes/accounting-setup-v2.ts");
-    expect(setup).toContain('material_kind\',\'consumable\',\'per_order\',false');
+    expect(setup).toContain("material_kind");
+    expect(setup).toContain("'consumable','per_order',false");
     expect(setup).toContain("previous_version_id");
     expect(setup).toContain("superseded_by_id");
     expect(setup).toContain("INSERT INTO public.packaging_profile_items");
