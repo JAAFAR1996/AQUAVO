@@ -17,6 +17,7 @@ const MIGRATIONS = [
   "0058_accounting_confirm_global_addons_zero.sql",
   "0059_accounting_carrier_other_deductions.sql",
   "0060_accounting_close_state_machine.sql",
+  "0061_accounting_default_carrier_status_guard.sql",
 ] as const;
 
 function versionOf(file: string): string {
@@ -32,8 +33,8 @@ function sha256(body: string): string {
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0060") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0060 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0061") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -75,8 +76,6 @@ async function main(): Promise<void> {
       }
     }
 
-    // 0055 intentionally updates earlier manifest rows. Normalize every governed
-    // V2 row after the whole sequence so the ledger records the exact deployed bytes.
     for (const file of MIGRATIONS) {
       const version = versionOf(file);
       const checksum = sha256(fileBody(file));
@@ -99,8 +98,13 @@ async function main(): Promise<void> {
         to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
-        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0060_accounting_close_state_machine' AND rolled_back_at IS NULL) AS migration_0060,
-        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0061_accounting_default_carrier_status_guard' AND rolled_back_at IS NULL) AS migration_0061,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
+        EXISTS(
+          SELECT 1 FROM pg_trigger t
+          WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
+            AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
+        ) AS carrier_status_guard
     `);
     const checks = health.rows[0] as Record<string, boolean> | undefined;
     if (!checks || Object.values(checks).some((value) => value !== true)) {
