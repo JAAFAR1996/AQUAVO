@@ -31,11 +31,12 @@
   "include": [
     "shared/accounting-schema-v2.ts",
     "shared/cod-accounting.ts",
+    "server/middleware/accounting-auth-v2.ts",
     "server/routes/accounting-v2.ts",
     "server/routes/accounting-operations-v2.ts",
     "server/routes/admin-orders-v2.ts",
     "server/routes/invoice-v2.ts",
-    "server/routes/upload.ts",
+    "server/routes/accounting-evidence-upload-v2.ts",
     "server/utils/cloudinary.ts",
     "client/src/components/admin/finance-accounting-register-v2.tsx",
     "client/src/components/admin/finance-accounting-operations-v2.tsx"
