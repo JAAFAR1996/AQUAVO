@@ -20,6 +20,7 @@ import { createNewsletterRouter } from "./routes/newsletter.js";
 import { createReferralRouter } from "./routes/referral.js";
 import { createSecurityRouter } from "./routes/security.js";
 import { createLoyaltyRouter } from "./routes/loyalty.js";
+import { createAccountingEvidenceUploadV2Router } from "./routes/accounting-evidence-upload-v2.js";
 import { createUploadRouter } from "./routes/upload.js";
 import { createAnalyticsRouter } from "./routes/analytics.js";
 import { createAccurateAdminAnalyticsRouter } from "./routes/admin-analytics-accurate.js";
@@ -131,6 +132,7 @@ export async function registerRoutes(
   app.use("/api/coupons", createCouponRouter());
   app.use("/api/birthday", createBirthdayRouter());
   app.use("/api/newsletter", createNewsletterRouter(storage));
+  app.use("/api/upload", createAccountingEvidenceUploadV2Router());
   app.use("/api/upload", createUploadRouter());
 
   app.use(journeyRoutes);
