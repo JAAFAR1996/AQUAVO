@@ -1,18 +1,33 @@
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
+export type SeoPreviewVariant = {
+  id?: string;
+  label?: string;
+  price?: string | number | null;
+  originalPrice?: string | number | null;
+  stock?: string | number | null;
+  sku?: string | null;
+  image?: string | null;
+};
+
 export type SeoPreviewProduct = {
   id?: string;
   slug: string;
   name: string;
   description?: string | null;
   price?: string | number | null;
+  originalPrice?: string | number | null;
   currency?: string | null;
   brand?: string | null;
   category?: string | null;
   stock?: string | number | null;
   thumbnail?: string | null;
   images?: unknown;
+  hasVariants?: boolean | null;
+  variants?: SeoPreviewVariant[] | null;
+  rating?: string | number | null;
+  reviewCount?: string | number | null;
 };
 
 export type SeoPreviewPage =
@@ -24,19 +39,6 @@ export type SeoPreviewPage =
   | { kind: "static"; heading: string; summary: string; path: string }
   | { kind: "not-found"; path: string };
 
-const categoryLinks = [
-  ["أحواض زجاجية", "tanks"],
-  ["فلاتر", "filters"],
-  ["سخانات", "heaters"],
-  ["إضاءة LED", "lighting"],
-  ["أغذية أسماك", "food"],
-  ["علاجات مياه", "treatments"],
-  ["ديكورات", "decorations"],
-  ["ركائز ورمل", "substrates"],
-  ["مضخات هواء", "air-pumps"],
-  ["مستلزمات الصيانة", "maintenance"],
-] as const;
-
 const faqs = [
   ["هل AQUAVO يوصّل لكل العراق؟", "نعم، AQUAVO متجر إلكتروني عراقي ويقدّم التوصيل إلى المحافظات المتاحة وفق سياسة الشحن الحالية."],
   ["هل الدفع عند الاستلام متوفر؟", "الدفع عند الاستلام متوفر للطلبات المؤهلة، وتظهر تفاصيل الطلب والتوصيل قبل التأكيد."],
@@ -46,22 +48,65 @@ const faqs = [
   ["هل يوجد دعم قبل الشراء؟", "يمكن التواصل مع AQUAVO قبل الطلب للمساعدة في اختيار المعدات المتوافقة مع حجم الحوض واحتياجه."],
 ] as const;
 
+function numberValue(value: string | number | null | undefined): number | null {
+  if (value === null || value === undefined || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
+export function getActiveVariants(product: SeoPreviewProduct): SeoPreviewVariant[] {
+  if (!product.hasVariants || !Array.isArray(product.variants)) return [];
+  return product.variants.filter((variant) => {
+    const price = numberValue(variant.price);
+    return Boolean(variant.label) && price !== null && price > 0;
+  });
+}
+
+function priceRange(product: SeoPreviewProduct): { min: number; max: number } | null {
+  const variantPrices = getActiveVariants(product)
+    .map((variant) => numberValue(variant.price))
+    .filter((value): value is number => value !== null);
+  const basePrice = numberValue(product.price);
+  const prices = variantPrices.length > 0 ? variantPrices : basePrice !== null ? [basePrice] : [];
+  if (prices.length === 0) return null;
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+function formatMoney(value: number, currency = "IQD"): string {
+  if (currency === "IQD") return `${new Intl.NumberFormat("ar-IQ").format(value)} د.ع`;
+  return `${new Intl.NumberFormat("ar-IQ").format(value)} ${currency}`;
+}
+
 function formatPrice(product: SeoPreviewProduct): string {
-  const raw = product.price;
-  if (raw === null || raw === undefined || raw === "") return "السعر متوفر داخل صفحة المنتج";
-  const numeric = Number(raw);
-  if (!Number.isFinite(numeric)) return `${String(raw)} ${product.currency || "IQD"}`;
-  return `${new Intl.NumberFormat("ar-IQ").format(numeric)} د.ع`;
+  const range = priceRange(product);
+  if (!range) return "السعر متوفر داخل صفحة المنتج";
+  if (range.min !== range.max) {
+    return `من ${formatMoney(range.min, product.currency || "IQD")} إلى ${formatMoney(range.max, product.currency || "IQD")}`;
+  }
+  return formatMoney(range.min, product.currency || "IQD");
 }
 
 function isInStock(product: SeoPreviewProduct): boolean {
-  const stock = Number(product.stock ?? 0);
-  return Number.isFinite(stock) && stock > 0;
+  const variants = getActiveVariants(product);
+  if (variants.length > 0) return variants.some((variant) => (numberValue(variant.stock) ?? 0) > 0);
+  return (numberValue(product.stock) ?? 0) > 0;
 }
 
 function cleanText(value: string | null | undefined, fallback: string): string {
   const text = (value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return text || fallback;
+}
+
+export function deriveProductCategories(products: SeoPreviewProduct[]): Array<{ name: string; count: number }> {
+  const counts = new Map<string, number>();
+  for (const product of products) {
+    const name = product.category?.trim();
+    if (!name) continue;
+    counts.set(name, (counts.get(name) || 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ar"));
 }
 
 function ProductLinks({ products, limit }: { products: SeoPreviewProduct[]; limit?: number }) {
@@ -110,11 +155,15 @@ function SiteFooter() {
   );
 }
 
-function Categories() {
+function Categories({ products }: { products: SeoPreviewProduct[] }) {
+  const categories = deriveProductCategories(products);
+  if (categories.length === 0) return null;
   return (
     <ul className="aq-ssr-categories" aria-label="فئات المنتجات">
-      {categoryLinks.map(([name, slug]) => (
-        <li key={slug}><a href={`/products?category=${slug}`}>{name}</a></li>
+      {categories.map(({ name, count }) => (
+        <li key={name}>
+          <a href={`/products?category=${encodeURIComponent(name)}`}>{name} <span aria-label={`${count} منتج`}>({count})</span></a>
+        </li>
       ))}
     </ul>
   );
@@ -131,7 +180,7 @@ function HomePage({ products }: { products: SeoPreviewProduct[] }) {
       </section>
       <section aria-labelledby="aq-categories-title">
         <h2 id="aq-categories-title">تصفح حسب الفئة</h2>
-        <Categories />
+        <Categories products={products} />
       </section>
       <section aria-labelledby="aq-featured-title">
         <h2 id="aq-featured-title">منتجات من المتجر</h2>
@@ -153,7 +202,7 @@ function ProductsPage({ products }: { products: SeoPreviewProduct[] }) {
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة"><a href="/">الرئيسية</a><span>/</span><span>المنتجات</span></nav>
       <h1>جميع مستلزمات أحواض الزينة في العراق</h1>
       <p>تصفح منتجات AQUAVO حسب الفئة، ثم افتح صفحة المنتج للاطلاع على السعر والمخزون والمواصفات المتوفرة.</p>
-      <Categories />
+      <Categories products={products} />
       <section aria-labelledby="aq-all-products-title">
         <h2 id="aq-all-products-title">قائمة المنتجات</h2>
         <ProductLinks products={products} />
@@ -164,6 +213,7 @@ function ProductsPage({ products }: { products: SeoPreviewProduct[] }) {
 
 function ProductPage({ product, related }: { product: SeoPreviewProduct; related: SeoPreviewProduct[] }) {
   const description = cleanText(product.description, `معلومات ومواصفات ${product.name} من AQUAVO.`);
+  const variants = getActiveVariants(product);
   return (
     <main id="main-content">
       <nav className="aq-ssr-breadcrumb" aria-label="مسار الصفحة">
@@ -179,6 +229,20 @@ function ProductPage({ product, related }: { product: SeoPreviewProduct; related
           {product.category && <div><dt>الفئة</dt><dd><a href={`/products?category=${encodeURIComponent(product.category)}`}>{product.category}</a></dd></div>}
           {product.brand && <div><dt>العلامة</dt><dd itemProp="brand">{product.brand}</dd></div>}
         </dl>
+        {variants.length > 0 && (
+          <section aria-labelledby="aq-variant-title">
+            <h2 id="aq-variant-title">الخيارات المتوفرة</h2>
+            <ul className="aq-ssr-variants">
+              {variants.map((variant, index) => (
+                <li key={variant.id || `${variant.label}-${index}`}>
+                  <strong>{variant.label}</strong>
+                  <span>{formatMoney(numberValue(variant.price) || 0, product.currency || "IQD")}</span>
+                  <small>{(numberValue(variant.stock) ?? 0) > 0 ? "متوفر" : "غير متوفر حالياً"}</small>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <section aria-labelledby="aq-product-answer">
           <h2 id="aq-product-answer">لمن يناسب هذا المنتج؟</h2>
           <p>{description}</p>
@@ -256,6 +320,7 @@ function SeoPreviewShell({ page }: { page: SeoPreviewPage }) {
         .aq-ssr-products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.85rem;list-style:none;padding:0}.aq-ssr-products a{display:grid;gap:.35rem;height:100%;padding:1rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;background:rgba(255,255,255,.035)}
         .aq-ssr-products span,.aq-ssr-products small{color:#d9e6e9}.aq-ssr-answer,.aq-ssr-facts,.aq-ssr-faq details{border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:1rem;background:rgba(255,255,255,.035)}
         .aq-ssr-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem}.aq-ssr-facts div{display:grid;gap:.2rem}.aq-ssr-facts dt{color:#9fc5cc}.aq-ssr-facts dd{margin:0;font-weight:700}
+        .aq-ssr-variants{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;list-style:none;padding:0}.aq-ssr-variants li{display:grid;gap:.25rem;border:1px solid rgba(255,255,255,.14);border-radius:.6rem;padding:.8rem;background:rgba(255,255,255,.035)}
         .aq-ssr-faq{display:grid;gap:.8rem}.aq-ssr-faq summary{cursor:pointer;font-weight:700}.aq-ssr-breadcrumb{display:flex;gap:.5rem;flex-wrap:wrap;color:#b9ccd1;margin-bottom:1.5rem}.aq-ssr-footer{border-top:1px solid rgba(255,255,255,.14);border-bottom:0;max-width:1180px;margin:0 auto}
         @media(max-width:720px){.aq-ssr-header,.aq-ssr-footer{align-items:flex-start;flex-direction:column}.aq-ssr-shell{padding-inline:1.1rem}.aq-ssr-shell main{padding-top:2rem}}
       `}</style>
