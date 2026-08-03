@@ -74,7 +74,7 @@ jobs:
       - name: Strict accounting typecheck
         run: pnpm check:accounting
 
-      - name: Accounting contract tests
+      - name: Accounting contract and migration tests
         run: >-
           pnpm exec vitest run
           server/__tests__/accounting-cod-v2-contract.test.ts
@@ -83,6 +83,7 @@ jobs:
           server/__tests__/accounting-v2-review-fixes-contract.test.ts
           server/__tests__/accounting-smart-carrier-v2-contract.test.ts
           server/__tests__/accounting-v2-automation-contract.test.ts
+          server/__tests__/accounting-v2-migration-0062-execution.test.ts
 
       - name: Migration ledger governance
         run: pnpm check:migrations
