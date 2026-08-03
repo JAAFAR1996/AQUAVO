@@ -5,6 +5,9 @@ import { createOrderRouter } from "./routes/orders.js";
 import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
+import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
+import { createAccountingV2Router } from "./routes/accounting-v2.js";
+import { createInvoiceV2Router } from "./routes/invoice-v2.js";
 import { createSystemRouter } from "./routes/system.js";
 import { createFishRouter } from "./routes/fish.js";
 import { createReviewsRouter } from "./routes/reviews.js";
@@ -73,6 +76,10 @@ export async function registerRoutes(
   app.use("/api/fish", createFishRouter(storage));
   app.use("/api/products", createProductRouter());
   app.use("/api/orders", createOrderRouter());
+
+  // High-risk financial transitions must intercept the legacy admin router.
+  // Non-status edits call next() and continue to the legacy route.
+  app.use("/api/admin", createAdminOrdersV2Router());
   app.use("/api/admin", createAdminRouter());
   app.use("/api/admin/security", createSecurityRouter());
   app.use("/api/admin/analytics", createAccurateAdminAnalyticsRouter());
@@ -150,8 +157,12 @@ export async function registerRoutes(
   app.use("/api/capi", capiRouter);
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
+  app.use("/api/admin/accounting", createAccountingV2Router());
   app.use("/api/admin/accounting", createAccountingRouter());
   app.use("/api/admin/expenses", createExpensesRouter());
+
+  // Atomic WhatsApp confirmation intercepts the legacy public invoice router.
+  app.use("/api/invoice", createInvoiceV2Router());
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
@@ -160,7 +171,7 @@ export async function registerRoutes(
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     console.error("API Error:", err);
-    const status = err.status || 500;
+    const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal server error";
 
     if (err.name === "ZodError") {
