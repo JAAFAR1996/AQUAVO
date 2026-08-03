@@ -1,14 +1,11 @@
-// Strict typecheck for the MONEY-CRITICAL services only.
-// The repo-wide server config sets "noCheck": true (legacy debt), so these files
-// would otherwise never be verified. This config actually checks them — `type Db = any`
-// cannot come back without failing `npm run check:accounting`.
+// Strict typecheck for money-critical services and routes.
 {
   "compilerOptions": {
     "noEmit": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "DOM"],
     "strict": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
@@ -26,8 +23,13 @@
   },
   "include": [
     "shared/schema.ts",
+    "shared/accounting-schema-v2.ts",
+    "shared/cod-accounting.ts",
     "shared/order-financials.ts",
     "shared/cost-components.ts",
+    "server/routes/accounting-v2.ts",
+    "server/routes/admin-orders-v2.ts",
+    "server/routes/invoice-v2.ts",
     "server/services/accounting-engine.ts",
     "server/services/fulfillment-db.ts",
     "server/services/fulfillment-verifier.ts",
@@ -47,6 +49,7 @@
     "server/services/packaging-cost-resolver.ts",
     "server/services/return-packaging-loss-service.ts",
     "server/services/admin-alert-service.ts",
-    "server/services/packaging-lifecycle.ts"
+    "server/services/packaging-lifecycle.ts",
+    "server/services/packaging-lifecycle-runner.ts"
   ]
 }
