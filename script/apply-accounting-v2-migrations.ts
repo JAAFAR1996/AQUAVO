@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { Pool, neonConfig } from "@neondatabase/serverless";
@@ -21,6 +22,12 @@ const MIGRATIONS = [
 function versionOf(file: string): string {
   return file.replace(/\.sql$/, "");
 }
+function fileBody(file: string): string {
+  return readFileSync(join(process.cwd(), "migrations", file), "utf8");
+}
+function sha256(body: string): string {
+  return createHash("sha256").update(body).digest("hex");
+}
 
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
@@ -31,10 +38,12 @@ async function main(): Promise<void> {
 
   const pool = new Pool({ connectionString, max: 1 });
   const client = await pool.connect();
+  let advisoryLocked = false;
   try {
     await client.query("SET lock_timeout='10s'");
     await client.query("SET statement_timeout='120s'");
     await client.query("SELECT pg_advisory_lock(hashtext('aquavo-accounting-v2-migrations'))");
+    advisoryLocked = true;
 
     for (const file of MIGRATIONS) {
       const version = versionOf(file);
@@ -50,7 +59,7 @@ async function main(): Promise<void> {
         continue;
       }
 
-      const body = readFileSync(join(process.cwd(), "migrations", file), "utf8");
+      const body = fileBody(file);
       console.log(`[accounting-migrate] apply ${version}`);
       await client.query(body);
 
@@ -64,6 +73,21 @@ async function main(): Promise<void> {
       if (!verify.rows[0]?.applied) {
         throw new Error(`${version} did not register itself in schema_migrations`);
       }
+    }
+
+    // 0055 intentionally updates earlier manifest rows. Normalize every governed
+    // V2 row after the whole sequence so the ledger records the exact deployed bytes.
+    for (const file of MIGRATIONS) {
+      const version = versionOf(file);
+      const checksum = sha256(fileBody(file));
+      const updated = await client.query(
+        `UPDATE public.schema_migrations
+         SET checksum=$2,notes=COALESCE(notes,'')||' [runner-verified file sha256]'
+         WHERE version=$1 AND rolled_back_at IS NULL
+         RETURNING version`,
+        [version, checksum],
+      );
+      if (updated.rowCount !== 1) throw new Error(`Cannot normalize ledger checksum for ${version}`);
     }
 
     const health = await client.query(`
@@ -84,7 +108,9 @@ async function main(): Promise<void> {
     }
     console.log(`[accounting-migrate] health OK ${JSON.stringify(checks)}`);
   } finally {
-    await client.query("SELECT pg_advisory_unlock(hashtext('aquavo-accounting-v2-migrations'))").catch(() => undefined);
+    if (advisoryLocked) {
+      await client.query("SELECT pg_advisory_unlock(hashtext('aquavo-accounting-v2-migrations'))").catch(() => undefined);
+    }
     client.release();
     await pool.end();
   }
