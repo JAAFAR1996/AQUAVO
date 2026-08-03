@@ -71,6 +71,7 @@ jobs:
           server/__tests__/accounting-cod-v2-contract.test.ts
           server/__tests__/accounting-v2-wiring-contract.test.ts
           server/__tests__/accounting-v2-operating-defaults-contract.test.ts
+          server/__tests__/accounting-v2-review-fixes-contract.test.ts
 
       - name: Migration ledger governance
         run: pnpm check:migrations
