@@ -20,13 +20,27 @@ describe("Accounting V2 operating defaults", () => {
     expect(migration).toContain("74a21cb654e3aea76af7a10bb6f1e95c88a3e7db41df0c5373245ffd3cf15b8e");
   });
 
+  it("separates fixed delivery fees from explained statement deductions", () => {
+    expect(existsSync(join(root, "migrations/0059_accounting_carrier_other_deductions.sql"))).toBe(true);
+    expect(existsSync(join(root, "migrations/0059_accounting_carrier_other_deductions_rollback.sql"))).toBe(true);
+    const migration = read("migrations/0059_accounting_carrier_other_deductions.sql");
+    expect(migration).toContain("other_deduction_amount");
+    expect(migration).toContain("amount=gross_amount-fee_amount-other_deduction_amount");
+    expect(migration).toContain("mod(NEW.fee_amount,v_default_fee)<>0");
+    expect(migration).toContain("CARRIER_FEE_NOT_MULTIPLE");
+    const route = read("server/routes/accounting-monthly-position-v2.ts");
+    expect(route).toContain("otherDeductionAmount");
+    expect(route).toContain("أجور التوصيل لازم تكون مضاعفات");
+    expect(route).toContain("ضع الفرق بخانة «اقتطاع آخر»");
+  });
+
   it("keeps monthly positions separate from profit", () => {
     const migration = read("migrations/0057_accounting_operating_defaults.sql");
     expect(migration).not.toContain("journal_entries(");
     expect(migration).not.toContain("product_revenue=");
-    const api = read("server/routes/accounting-setup-v2.ts");
+    const api = read("server/routes/accounting-monthly-position-v2.ts");
     expect(api).toContain('positionType: z.enum(["cash", "bank", "carrier_receivable", "supplier_payable", "other_receivable"])');
-    expect(api).toContain("الصافي يجب أن يساوي الإجمالي ناقص أجور الشركة");
+    expect(api).toContain("الصافي يجب أن يساوي الإجمالي ناقص أجور التوصيل وناقص الاقتطاعات الأخرى");
   });
 
   it("accepts electronic evidence or an explicit owner confirmation", () => {
@@ -50,12 +64,14 @@ describe("Accounting V2 operating defaults", () => {
     expect(setup).not.toContain("UPDATE public.order_fulfillment_events SET");
   });
 
-  it("mounts setup routes before accounting operations and legacy accounting", () => {
+  it("mounts statement validation before setup, operations and legacy accounting", () => {
     const routes = read("server/routes.ts");
+    const position = routes.indexOf('app.use("/api/admin/accounting", createAccountingMonthlyPositionV2Router())');
     const setup = routes.indexOf('app.use("/api/admin/accounting", createAccountingSetupV2Router())');
     const operations = routes.indexOf('app.use("/api/admin/accounting", createAccountingOperationsV2Router())');
     const legacy = routes.indexOf('app.use("/api/admin/accounting", createAccountingRouter())');
-    expect(setup).toBeGreaterThan(-1);
+    expect(position).toBeGreaterThan(-1);
+    expect(position).toBeLessThan(setup);
     expect(setup).toBeLessThan(operations);
     expect(operations).toBeLessThan(legacy);
   });
@@ -69,12 +85,17 @@ describe("Accounting V2 operating defaults", () => {
   });
 
   it("exposes all controls in the finance operator workspace", () => {
-    const component = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
-    expect(component).toContain("تأكيد داخلي — بدون ملف");
-    expect(component).toContain("/api/admin/accounting/v2/delivery-companies");
-    expect(component).toContain("/api/admin/accounting/v2/monthly-positions");
-    expect(component).toContain("/api/admin/accounting/v2/fixed-preparation-items");
-    expect(component).toContain("رصيد الصندوق هو النقد الموجود فعلياً، مو ربح الشهر");
+    const operations = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
+    const carrier = read("client/src/components/admin/finance-carrier-position-v2.tsx");
+    const register = read("client/src/components/admin/finance-accounting-register-v2.tsx");
+    expect(operations).toContain("تأكيد داخلي — بدون ملف");
+    expect(operations).toContain("/api/admin/accounting/v2/delivery-companies");
+    expect(operations).toContain("/api/admin/accounting/v2/fixed-preparation-items");
+    expect(operations).toContain("رصيد الصندوق هو النقد الموجود فعلياً، مو ربح الشهر");
+    expect(carrier).toContain("أجور التوصيل فقط");
+    expect(carrier).toContain("اقتطاع آخر");
+    expect(carrier).toContain("otherDeductionAmount");
+    expect(register).toContain("<FinanceCarrierPositionV2 periodKey={periodKey} />");
   });
 
   it("includes operating context in the accountant package", () => {
