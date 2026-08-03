@@ -14,6 +14,10 @@
       "memory": 256,
       "maxDuration": 10
     },
+    "api/ssr-preview.ts": {
+      "memory": 512,
+      "maxDuration": 15
+    },
     "api/pdf.ts": {
       "memory": 256,
       "maxDuration": 30
@@ -112,6 +116,6 @@
     { "source": "/privacy-policy/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt", "destination": "/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt" },
     { "source": "/terms/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt", "destination": "/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt" },
     { "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt", "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt" },
-    { "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)", "destination": "/api/ssr-meta" }
+    { "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)", "destination": "/api/ssr-preview" }
   ]
 }
