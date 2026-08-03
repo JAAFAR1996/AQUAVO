@@ -1,1 +1,1 @@
-export { default } from "./ssr-preview-advanced.js";
+export { default } from "./ssr-meta.js";
