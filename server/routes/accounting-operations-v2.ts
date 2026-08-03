@@ -29,7 +29,6 @@ const verifyExpenseSchema = z.object({
   documentNumber: z.string().trim().min(1).max(100),
   documentDate: z.string().date(),
   paymentMethod: z.enum(["cash", "bank", "owner_personal"]),
-  paidFromAccountCode: z.enum(["1000", "1010", "3200"]),
   businessPurpose: z.string().trim().min(5).max(500),
   taxTreatment: z.enum(["deductible", "nondeductible"]),
   reviewNote: z.string().trim().max(500).optional(),
@@ -177,6 +176,8 @@ export function createAccountingOperationsV2Router() {
   router.post("/v2/expenses/:id/verify", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const input = verifyExpenseSchema.parse(req.body);
+      const paidFromAccountCode = input.paymentMethod === "cash" ? "1000"
+        : input.paymentMethod === "bank" ? "1010" : "3100";
       const db = await requireSchema();
       const actor = actorFromRequest(req);
       const result = await db.transaction(async (tx) => {
@@ -205,7 +206,7 @@ export function createAccountingOperationsV2Router() {
         const updated = await tx.execute(sql`
           UPDATE public.expenses SET
             vendor_name=${input.vendorName},document_number=${input.documentNumber},document_date=${input.documentDate}::date,
-            payment_method=${input.paymentMethod},paid_from_account_code=${input.paidFromAccountCode},
+            payment_method=${input.paymentMethod},paid_from_account_code=${paidFromAccountCode},
             business_purpose=${input.businessPurpose},evidence=${metadataJson}::jsonb,evidence_hash=${input.evidence.sha256},
             evidence_file_id=${String(evidence.id)},accounting_status='verified',tax_treatment=${input.taxTreatment},
             reviewed_by=${actor.id},review_note=${input.reviewNote ?? null},updated_at=clock_timestamp()
