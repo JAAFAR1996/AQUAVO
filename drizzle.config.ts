@@ -13,6 +13,18 @@ if (!process.env.DATABASE_URL) {
 
 logResolvedDatabaseTarget(resolveDatabaseTarget("primary", { inherited: envLoad.inherited }));
 
+/**
+ * Accounting V2 is governed exclusively by migrations/0051..0055.
+ *
+ * `orders`, `expenses`, `accounting_period_closes`, and all V2 tables are
+ * deliberately excluded from drizzle-kit push until the legacy monolithic
+ * schema is consolidated byte-for-byte with the live database. Including a
+ * partial declaration would let db:push propose dropping delivered_at,
+ * carrier_fee, evidence columns, triggers, checks, or foreign keys.
+ *
+ * The V2 schema file remains available for application typing; migration SQL is
+ * the sole DDL authority for this protected zone.
+ */
 export default defineConfig({
   out: "./migrations",
   schema: ["./shared/schema.ts", "./shared/accounting-schema-v2.ts"],
@@ -24,9 +36,7 @@ export default defineConfig({
     "users",
     "password_reset_tokens",
     "products",
-    "orders",
     "product_cost_history",
-    "expenses",
     "reviews",
     "review_ratings",
     "express_sessions",
@@ -72,16 +82,6 @@ export default defineConfig({
     "accounting_manual_adjustments",
     "accounting_review_flags",
     "accounting_audit_trail",
-    "accounting_period_closes",
-    "accounting_cutovers",
-    "order_accounting_facts",
-    "order_accounting_settlements",
-    "chart_of_accounts",
-    "journal_entries",
-    "journal_lines",
-    "evidence_files",
-    "tax_profiles",
-    "opening_inventory_snapshot",
     "ai_agent_settings",
     "store_social_interactions",
     "settings"
