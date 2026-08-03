@@ -9,6 +9,7 @@
     "moduleResolution": "bundler",
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
+    "jsx": "react-jsx",
     "strict": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
@@ -25,7 +26,7 @@
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["node"]
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "shared/accounting-schema-v2.ts",
