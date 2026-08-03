@@ -16,8 +16,10 @@
 - [x] Return verification and reversal keep inventory and journal aligned.
 - [x] Expense verification and reversal remain balanced.
 - [x] Fulfillment cost recognition and reversal remain balanced.
-- [ ] Final split migrations 0051–0055 applied in order on a fresh Production child branch.
-- [ ] Forward catalog checked against expected tables, columns, triggers and views.
+- [x] Final split migrations 0051–0056 applied in order on fresh Production child branch `br-young-paper-a4ffxuk2`.
+- [x] Forward catalog checked against expected tables, columns, triggers and views.
+- [x] `delivered_at`, payment occurrence, immutable fact recognition and order journal entry date are identical.
+- [x] Exact-cost smoke order posts 25,000 product revenue, 48 COGS and 150 fulfillment cost with journal difference zero.
 - [ ] Rollbacks exercised on a disposable branch.
 
 ## Business evidence gate
