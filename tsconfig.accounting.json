@@ -26,7 +26,7 @@
       "@/*": ["./client/src/*"],
       "@shared/*": ["./shared/*"]
     },
-    "types": ["node", "react", "react-dom"]
+    "types": ["node", "react", "react-dom", "express-session"]
   },
   "include": [
     "shared/accounting-schema-v2.ts",
