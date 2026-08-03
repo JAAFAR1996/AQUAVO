@@ -11,10 +11,13 @@ describe("Accounting V2 operating defaults", () => {
     expect(existsSync(join(root, "migrations/0057_accounting_operating_defaults_rollback.sql"))).toBe(true);
     const migration = read("migrations/0057_accounting_operating_defaults.sql");
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.delivery_companies");
-    expect(migration).toContain("VALUES('alwaseet','الوسيط',5000,true,true");
+    expect(migration).toContain("'alwaseet','الوسيط',5000,true");
+    expect(migration).toContain("NOT EXISTS(SELECT 1 FROM public.delivery_companies WHERE active=true AND is_default=true)");
+    expect(migration).not.toContain("is_default=true,\n  updated_at=clock_timestamp()");
     expect(migration).toContain("CREATE TABLE IF NOT EXISTS public.accounting_monthly_positions");
     expect(migration).toContain("amount=gross_amount-fee_amount");
     expect(migration).toContain("owner_confirmation");
+    expect(migration).toContain("74a21cb654e3aea76af7a10bb6f1e95c88a3e7db41df0c5373245ffd3cf15b8e");
   });
 
   it("keeps monthly positions separate from profit", () => {
@@ -39,6 +42,8 @@ describe("Accounting V2 operating defaults", () => {
     const setup = read("server/routes/accounting-setup-v2.ts");
     expect(setup).toContain("material_kind");
     expect(setup).toContain("'consumable','per_order',false");
+    expect(setup).toContain("'verified_manual_standard'");
+    expect(setup).toContain("current_cost_record_id=${costRecordId},current_unit_cost=${input.unitCost}");
     expect(setup).toContain("previous_version_id");
     expect(setup).toContain("superseded_by_id");
     expect(setup).toContain("INSERT INTO public.packaging_profile_items");
