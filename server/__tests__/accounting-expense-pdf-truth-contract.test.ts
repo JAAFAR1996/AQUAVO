@@ -19,6 +19,7 @@ describe("accounting expense and PDF truth contract", () => {
     expect(source).toContain("تسجيل المصروف بانتظار الاعتماد");
     expect(source).toContain("disabled={!hasPendingExpense}");
     expect(source).toContain("disabled={approvalDisabled}");
+    expect(source).toContain("setNewDate(periodStart(periodKey))");
   });
 
   it("does not replace missing live balances with hardcoded zeroes", () => {
@@ -27,6 +28,17 @@ describe("accounting expense and PDF truth contract", () => {
     expect(source).toContain('return "غير متوفر"');
     expect(source).not.toContain('balances.get("1000") ?? 0');
     expect(source).not.toContain("z.coerce.number().default(0)");
+  });
+
+  it("fails closed in server accounting routes instead of fabricating numeric zero", () => {
+    const registerRoute = read("server/routes/accounting-v2.ts");
+    const setupRoute = read("server/routes/accounting-setup-v2.ts");
+    for (const source of [registerRoute, setupRoute]) {
+      expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_MISSING");
+      expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_INVALID");
+      expect(source).not.toContain("Number.isFinite(number) ? number : 0");
+    }
+    expect(registerRoute).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED");
   });
 
   it("uses the AQUAVO light document identity and rejects incomplete PDF figures", () => {
