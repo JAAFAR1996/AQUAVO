@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { addCsrfHeader } from "@/lib/csrf";
@@ -91,6 +91,11 @@ export function FinanceAccountingOperationsLiteV2({ periodKey }: { periodKey: st
   const [fixedItemCost, setFixedItemCost] = useState("");
   const [fixedItemQuantity, setFixedItemQuantity] = useState("1");
   const [fixedItemNote, setFixedItemNote] = useState("");
+
+  useEffect(() => {
+    setNewDate(periodStart(periodKey));
+    setExpenseId("");
+  }, [periodKey]);
 
   const expenses = useQuery({
     queryKey: ["accounting-v2-pending-expenses", periodKey],
