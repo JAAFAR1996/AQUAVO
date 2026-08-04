@@ -6,6 +6,8 @@ import {
   isCodRefusalStatus,
   normalizeFullCodRefusalFinancials,
 } from "../../shared/cod-refusal-policy.js";
+import { isFinanciallyRealizedOrder } from "../../shared/order-financials.js";
+import { decideLifecycleAction } from "../services/packaging-lifecycle.js";
 
 describe("AQUAVO COD refusal policy", () => {
   it("treats every pre-delivery rejection status as a COD refusal", () => {
@@ -14,6 +16,21 @@ describe("AQUAVO COD refusal policy", () => {
     expect(isCodRefusalStatus("rejected_returned")).toBe(true);
     expect(isCodRefusalStatus("returned")).toBe(false);
     expect(isCodRefusalStatus("delivered")).toBe(false);
+  });
+
+  it("never realizes revenue for a COD refusal", () => {
+    expect(isFinanciallyRealizedOrder({ status: "rejected" })).toBe(false);
+    expect(isFinanciallyRealizedOrder({ status: "rejected_carrier" })).toBe(false);
+    expect(isFinanciallyRealizedOrder({ status: "rejected_returned" })).toBe(false);
+    expect(isFinanciallyRealizedOrder({ status: "delivered" })).toBe(true);
+    expect(isFinanciallyRealizedOrder({ status: "returned" })).toBe(true);
+  });
+
+  it("classifies the carton when the carrier reports refusal, not on later receipt", () => {
+    expect(decideLifecycleAction("rejected", "shipped", true).action).toBe("classify_return_loss");
+    expect(decideLifecycleAction("rejected_carrier", "shipped", true).action).toBe("classify_return_loss");
+    expect(decideLifecycleAction("rejected_returned", "rejected", true).action).toBe("classify_return_loss");
+    expect(decideLifecycleAction("rejected", "processing", false).action).toBe("release");
   });
 
   it("forces full refusal financial impact to zero and restores sellable quantity", () => {
