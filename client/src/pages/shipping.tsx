@@ -2,10 +2,11 @@ import { Banknote, Clock3, MapPinned, PackageCheck, Truck } from "lucide-react";
 import { Link } from "wouter";
 
 import { MetaTags } from "@/components/seo/meta-tags";
+import { DELIVERY_DAYS, DELIVERY_FEE } from "@/lib/constants/shipping";
 
 const facts = [
-  { icon: Clock3, title: "مدة متوقعة", detail: "تُحدّد حسب الوجهة والطلب" },
-  { icon: Truck, title: "أجرة واضحة", detail: "تظهر قبل تأكيد الطلب" },
+  { icon: Clock3, title: `خلال ${DELIVERY_DAYS}`, detail: "المدة المعتمدة لكل العراق" },
+  { icon: Truck, title: `${DELIVERY_FEE.toLocaleString()} د.ع`, detail: "أجرة توصيل ثابتة" },
   { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
   { icon: MapPinned, title: "كل العراق", detail: "بغداد وباقي المحافظات" },
 ];
@@ -13,12 +14,12 @@ const facts = [
 export default function Shipping() {
   return (
     <div className="flex-1 bg-background text-foreground" dir="rtl">
-      <MetaTags title="التوصيل لكل العراق" description="توصيل AQUAVO متاح لكل العراق مع عرض أجرة ومدة التوصيل المتوقعة قبل تأكيد الطلب والدفع نقداً عند الاستلام." />
+      <MetaTags title="التوصيل لكل العراق" description="توصيل AQUAVO لكل العراق خلال 24 ساعة بأجرة ثابتة 5,000 د.ع والدفع نقداً عند الاستلام." />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-3xl">
-          <p className="text-sm font-bold text-primary">تفاصيل توصيل واضحة</p>
-          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">توصيل لكل العراق</h1>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">تظهر أجرة ومدة التوصيل المتوقعة حسب الوجهة والطلب قبل التأكيد، والدفع نقداً عند الاستلام.</p>
+          <p className="text-sm font-bold text-primary">وعد توصيل واضح</p>
+          <h1 className="mt-3 text-4xl font-bold sm:text-5xl">توصيل لكل العراق خلال 24 ساعة</h1>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">أجرة التوصيل 5,000 د.ع، والدفع نقداً عند الاستلام. تشوف المبلغ كاملاً قبل تأكيد الطلب.</p>
         </header>
         <div className="mt-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
           {facts.map(({ icon: Icon, title, detail }) => (

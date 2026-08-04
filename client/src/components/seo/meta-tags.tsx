@@ -192,6 +192,23 @@ export function ProductSchema({
       itemCondition: "https://schema.org/NewCondition",
       seller: { "@id": `${AQUAVO_BASE_URL}/#organization` },
       eligibleRegion: { "@type": "Country", name: AQUAVO_ENTITY.countryName },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: AQUAVO_ENTITY.deliveryFee,
+          currency: AQUAVO_ENTITY.currency,
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: AQUAVO_ENTITY.countryCode,
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: 0, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 0, maxValue: AQUAVO_ENTITY.deliveryMaxDays, unitCode: "DAY" },
+        },
+      },
     },
     aggregateRating:
       typeof rating === "number" && rating > 0 && typeof reviewCount === "number" && reviewCount > 0
@@ -253,6 +270,12 @@ function onlineStoreSchema() {
       contactType: "customer support",
       availableLanguage: ["Arabic"],
       areaServed: AQUAVO_ENTITY.countryCode,
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "00:00",
+        closes: "23:59",
+      },
     },
     sameAs: [...AQUAVO_ENTITY.socialProfiles],
     knowsAbout: [

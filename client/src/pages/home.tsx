@@ -33,10 +33,10 @@ import { formatPrice } from "@/lib/format";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
 const serviceFacts = [
-  { icon: Truck, title: "توصيل لكل العراق", detail: "المدة حسب الوجهة والطلب" },
+  { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
   { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
-  { icon: PackageCheck, title: "تفاصيل واضحة", detail: "أجرة التوصيل تظهر قبل التأكيد" },
-  { icon: Headphones, title: "دعم عبر القنوات الرسمية", detail: "حسب أوقات الخدمة" },
+  { icon: PackageCheck, title: "أجرة توصيل ثابتة", detail: "5,000 د.ع" },
+  { icon: Headphones, title: "دعم 24/7", detail: "نساعدك تختار المناسب" },
 ];
 
 const categories = [
@@ -229,32 +229,32 @@ export default function Home() {
 
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold text-primary">اختيار أسرع، زحمة أقل</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">ابدأ من احتياج الحوض</h2>
-              <p className="mt-4 leading-7 text-muted-foreground">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
-            </div>
+          <div className="max-w-2xl">
+            <p className="text-sm font-bold text-primary">اختيار أسرع، زحمة أقل</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">ابدأ من احتياج الحوض</h2>
+            <p className="mt-4 leading-7 text-muted-foreground">روح مباشرة للقسم اللي يحل مشكلتك، وبعدها قارن الخيارات بهدوء.</p>
+          </div>
 
-            <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {categories.map(({ title, description, href, icon: Icon }) => (
-                <Link
-                  key={title}
-                  href={href}
-                  className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
+          <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {categories.map(({ title, description, href, icon: Icon }) => (
+              <Link
+                key={title}
+                href={href}
+                className="aq-interactive-card group flex min-h-40 items-start gap-4 rounded-2xl border border-border bg-card p-5 hover:border-[#0B93A6]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span>
+                  <span className="flex items-center gap-2 text-lg font-bold text-foreground">
+                    {title}
+                    <ArrowLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
                   </span>
-                  <span>
-                    <span className="flex items-center gap-2 text-lg font-bold text-foreground">
-                      {title}
-                      <ArrowLeft className="h-4 w-4 text-muted-foreground transition-transform group-hover:-translate-x-1 group-hover:text-[#0B93A6]" aria-hidden="true" />
-                    </span>
-                    <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
-                  </span>
-                </Link>
-              ))}
-            </div>
+                  <span className="mt-2 block text-sm leading-6 text-muted-foreground">{description}</span>
+                </span>
+              </Link>
+            ))}
+          </div>
           </PrecisionReveal>
         </section>
 
