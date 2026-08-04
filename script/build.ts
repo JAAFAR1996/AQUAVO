@@ -64,8 +64,9 @@ async function buildAll() {
   // helper imports as runtime files. Those helpers were not present in the
   // deployed function and caused FUNCTION_INVOCATION_FAILED. Bundle every
   // relative SEO/AEO/GEO module into one generated TypeScript runtime, then
-  // replace the public function entry with a tiny import of that one file.
-  // Package dependencies remain external and are provided by node_modules.
+  // replace the public function entry with a small canonical-host guard that
+  // delegates to that one bundled file. Package dependencies remain external
+  // and are provided by node_modules.
   console.log("bundling semantic SSR runtime...");
   await mkdir("generated", { recursive: true });
   const generatedRuntimePath = "generated/ssr-preview-runtime.ts";
@@ -96,7 +97,38 @@ async function buildAll() {
 
   await writeFile(
     "api/ssr-preview.ts",
-    "// AUTO-GENERATED production entry — source is bundled by script/build.ts\nexport { default } from \"../generated/ssr-preview-runtime.js\";\n",
+    `// AUTO-GENERATED production entry — source is bundled by script/build.ts
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+import semanticRuntime from "../generated/ssr-preview-runtime.js";
+
+const CANONICAL_ORIGIN = "https://www.aquavoiq.com";
+const SEO_RELEASE_LAST_MODIFIED = "Tue, 04 Aug 2026 00:00:00 GMT";
+
+function requestHost(req: VercelRequest): string {
+  const forwarded = req.headers["x-forwarded-host"];
+  const raw = Array.isArray(forwarded)
+    ? forwarded[0]
+    : forwarded || (Array.isArray(req.headers.host) ? req.headers.host[0] : req.headers.host) || "";
+  return raw.split(",", 1)[0].trim().split(":", 1)[0].toLowerCase();
+}
+
+export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {
+  const host = requestHost(req);
+  if (process.env.VERCEL_ENV === "production" && host && host !== "www.aquavoiq.com") {
+    const destination = new URL(req.url || "/", CANONICAL_ORIGIN);
+    res.setHeader("Location", destination.toString());
+    res.setHeader("Cache-Control", "public, max-age=86400");
+    res.setHeader("X-Robots-Tag", "noindex, follow");
+    res.status(308).end();
+    return;
+  }
+
+  if (process.env.VERCEL_ENV === "production") {
+    res.setHeader("Last-Modified", SEO_RELEASE_LAST_MODIFIED);
+  }
+  await semanticRuntime(req, res);
+}
+`,
   );
 
   await esbuild({

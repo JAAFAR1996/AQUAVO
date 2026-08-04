@@ -17,6 +17,8 @@ on:
       - "api/ssr-preview.ts"
       - "api/ssr-preview-advanced.ts"
       - "client/public/robots.txt"
+      - "client/public/sitemap-recovery.xml"
+      - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
       - "client/src/components/seo/meta-tags.tsx"
       - "client/src/main.tsx"
       - "shared/seo-contract.ts"
@@ -26,11 +28,14 @@ on:
       - "test/seo-runtime-entry.test.ts"
       - "test/seo-production-safety.test.ts"
       - "scripts/verify-generated-ssr-runtime.ts"
+      - "scripts/submit-indexnow.mjs"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
       - ".lighthouserc.preview.cjs"
       - "docs/seo/SSR_MIGRATION_DECISION.md"
+      - "docs/seo/SEARCH_INDEX_RECOVERY_2026-08-04.md"
       - "vercel.json"
+      - ".github/workflows/indexnow-search-refresh.yml"
       - ".github/workflows/seo-preview-validation.yml"
       - ".github/workflows/seo-preview-live-validation.yml"
   workflow_dispatch:
@@ -73,6 +78,9 @@ jobs:
 
       - name: Run focused SEO HTML, schema, route, and safety tests
         run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts --reporter=verbose
+
+      - name: Verify IndexNow submission syntax
+        run: node --check scripts/submit-indexnow.mjs
 
       - name: Verify browser-audit script syntax
         run: node --check scripts/seo-preview-live-audit.mjs
