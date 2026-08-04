@@ -3,7 +3,7 @@
 -- months automatically, and make rejected-order returns operationally automatic.
 BEGIN;
 
--- ── 1. Immutable opening balances from owner-confirmed cutover evidence ──────
+-- 1. Immutable opening balances from owner-confirmed cutover evidence
 DO $opening$
 DECLARE
   v_entry_id text;
@@ -13,22 +13,15 @@ DECLARE
   v_total numeric:=0;
   v_line integer:=0;
 BEGIN
-  SELECT COALESCE(MAX(amount),0)
-    INTO v_cash
+  SELECT COALESCE(MAX(amount),0) INTO v_cash
   FROM public.accounting_monthly_positions
-  WHERE period_key='2026-08'
-    AND position_type='cash'
-    AND status='confirmed';
+  WHERE period_key='2026-08' AND position_type='cash' AND status='confirmed';
 
-  SELECT COALESCE(SUM(amount),0)
-    INTO v_carrier
+  SELECT COALESCE(SUM(amount),0) INTO v_carrier
   FROM public.accounting_monthly_positions
-  WHERE period_key='2026-08'
-    AND position_type='carrier_receivable'
-    AND status='confirmed';
+  WHERE period_key='2026-08' AND position_type='carrier_receivable' AND status='confirmed';
 
-  SELECT COALESCE(SUM(total_cost),0)
-    INTO v_inventory
+  SELECT COALESCE(SUM(total_cost),0) INTO v_inventory
   FROM public.opening_inventory_snapshot
   WHERE cutover_id='aquavo-2026-08-01'
     AND cost_status IN ('exact','known','owner_confirmed')
@@ -85,7 +78,7 @@ BEGIN
   END IF;
 END $opening$;
 
--- ── 2. One canonical live-balance view; no monthly retyping ─────────────────
+-- 2. Canonical live balances; no monthly retyping
 CREATE OR REPLACE VIEW public.v_accounting_live_balances AS
 SELECT
   a.code,
@@ -103,9 +96,7 @@ LEFT JOIN public.journal_lines l ON l.account_code=a.code
 WHERE a.active=true
 GROUP BY a.code,a.name_ar,a.account_type,a.normal_side;
 
--- ── 3. Automatic zero-cash returns may verify without a delivered-sale fact ─
--- Carton return classifications are display/audit reclassifications. They are
--- not a second expense and therefore remain outside the monetary journal.
+-- 3. Zero-cash rejected returns may verify without a delivered-sale fact
 CREATE OR REPLACE FUNCTION public.post_verified_return_journal()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -134,9 +125,6 @@ BEGIN
       +CASE WHEN NEW.restocked=true THEN 0 ELSE COALESCE(NEW.cogs_loss,0) END;
     v_total:=COALESCE(NEW.refund_amount,0)+v_cash_loss+v_inventory_loss;
 
-    -- Typical rejected order: product returned, no customer refund, no carrier
-    -- deduction yet, carton classification is non-additive. It is fully verified
-    -- operationally and needs no money journal or delivered-sale fact.
     IF v_total=0 THEN
       RETURN NEW;
     END IF;
@@ -241,7 +229,7 @@ BEGIN
   RETURN NEW;
 END $return_journal$;
 
--- ── 4. Closed periods are immutable at both header and line level ───────────
+-- 4. Closed periods and posted lines are immutable
 CREATE OR REPLACE FUNCTION public.guard_closed_period_journal_insert()
 RETURNS trigger LANGUAGE plpgsql AS $entry_guard$
 BEGIN
@@ -289,7 +277,7 @@ CREATE TRIGGER journal_lines_immutable_guard
 BEFORE INSERT OR UPDATE OR DELETE ON public.journal_lines
 FOR EACH ROW EXECUTE FUNCTION public.guard_journal_line_mutation();
 
--- ── 5. Calendar-correct automatic close using Baghdad time ──────────────────
+-- 5. Calendar-correct automatic close using Baghdad time
 CREATE OR REPLACE FUNCTION public.auto_close_ended_accounting_periods(
   p_actor_id text DEFAULT 'system',
   p_actor_name text DEFAULT 'AQUAVO automatic monthly close'
@@ -379,7 +367,7 @@ BEGIN
   END LOOP;
 END $auto_close$;
 
--- ── 6. Rejected stock stays out until the parcel is actually received ───────
+-- 6. Rejected stock stays out until the parcel is actually received
 CREATE OR REPLACE FUNCTION public.reverse_order_inventory_on_terminal_status()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -426,7 +414,7 @@ END $inventory_return$;
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0062_accounting_automation_opening_balances',
-  'runner-normalizes-file-sha256',
+  '4d00c45522ee550c153451148d6b74b57b2d98698d9c56d9089b139628d315ea',
   'Opening journal, live balances, automatic Baghdad close, closed-period guards, zero-cash automatic returns, and actual-receipt inventory restoration'
 )
 ON CONFLICT(version) DO UPDATE SET
