@@ -59,6 +59,38 @@ export function sanitizeCustomerSpecifications<T>(specifications: T): T {
   return cleaned as T;
 }
 
+export function sanitizeCustomerSpecsText(specs: string): string {
+  const trimmed = specs.trim();
+  if (!trimmed) return specs;
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return JSON.stringify(sanitizeCustomerSpecifications(parsed));
+    }
+  } catch {
+    // Legacy specs can be normal text instead of JSON.
+  }
+
+  const withoutModelLines = specs
+    .split(/\r?\n/)
+    .filter((line) => {
+      const separatorIndex = line.search(/[:：]/);
+      if (separatorIndex < 0) return true;
+      return !isHiddenModelSpecificationKey(line.slice(0, separatorIndex));
+    })
+    .join("\n");
+
+  return withoutModelLines
+    .replace(
+      /(?:^|[;|،,]\s*)(?:الموديل|موديل|رقم\s+(?:الموديل|موديل)|model(?:\s+(?:no|number|name))?)\s*[:：]\s*[^;|،,\n]+/gi,
+      "",
+    )
+    .replace(/^\s*[;|،,]\s*|\s*[;|،,]\s*$/g, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function getModelValues(specifications: ProductVariant["specifications"]): string[] {
   if (!specifications || typeof specifications !== "object" || Array.isArray(specifications)) {
     return [];
@@ -116,6 +148,10 @@ export function getCustomerFacingVariantLabel(
 
 export function sanitizeProductForCustomer(product: Product): Product {
   const sanitizedProduct: Product = { ...product };
+
+  if (product.specs !== undefined) {
+    sanitizedProduct.specs = sanitizeCustomerSpecsText(product.specs);
+  }
 
   if (product.specifications !== undefined) {
     sanitizedProduct.specifications = sanitizeCustomerSpecifications(product.specifications);
