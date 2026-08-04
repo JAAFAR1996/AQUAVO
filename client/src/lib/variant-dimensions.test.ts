@@ -61,8 +61,6 @@ describe("linked product variant dimensions", () => {
     expect(
       isDimensionValueAvailable({
         variants,
-        dimensions,
-        selection: currentSelection,
         dimensionKey: "السعة",
         value: "64 لتر",
       }),
@@ -71,8 +69,6 @@ describe("linked product variant dimensions", () => {
     expect(
       isDimensionValueAvailable({
         variants,
-        dimensions,
-        selection: currentSelection,
         dimensionKey: "الموديل",
         value: "YKK-50",
       }),
@@ -83,8 +79,6 @@ describe("linked product variant dimensions", () => {
     expect(
       isDimensionValueAvailable({
         variants,
-        dimensions,
-        selection: currentSelection,
         dimensionKey: "الموديل",
         value: "YXL-003",
       }),
