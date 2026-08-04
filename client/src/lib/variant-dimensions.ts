@@ -38,6 +38,28 @@ function cleanValue(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function matchesDimensionValue(
+  variant: ProductVariant,
+  dimensionKey: string,
+  value: string,
+): boolean {
+  return cleanValue(variant.specifications?.[dimensionKey]) === value;
+}
+
+function countPreservedSelections(
+  variant: ProductVariant,
+  selection: Record<string, string>,
+  dimensions: VariantDimension[],
+  ignoredDimensionKey: string,
+): number {
+  return dimensions.reduce((score, dimension) => {
+    if (dimension.key === ignoredDimensionKey) return score;
+    const selectedValue = selection[dimension.key];
+    if (!selectedValue) return score;
+    return matchesDimensionValue(variant, dimension.key, selectedValue) ? score + 1 : score;
+  }, 0);
+}
+
 export function extractVariantDimensions(variants: ProductVariant[]): VariantDimension[] {
   if (!Array.isArray(variants) || variants.length < 2) return [];
 
@@ -79,7 +101,7 @@ export function variantMatchesSelection(
   return dimensions.every((dimension) => {
     const selectedValue = selection[dimension.key];
     if (!selectedValue) return true;
-    return cleanValue(variant.specifications?.[dimension.key]) === selectedValue;
+    return matchesDimensionValue(variant, dimension.key, selectedValue);
   });
 }
 
@@ -87,11 +109,47 @@ export function chooseVariantForSelection(
   variants: ProductVariant[],
   selection: Record<string, string>,
   dimensions: VariantDimension[],
+  preferredDimensionKey?: string,
 ): ProductVariant | undefined {
   const exactAvailable = variants.find(
     (variant) => variant.stock > 0 && variantMatchesSelection(variant, selection, dimensions),
   );
   if (exactAvailable) return exactAvailable;
+
+  // Some product dimensions describe the same physical variant rather than a
+  // Cartesian combination (for example aquarium capacity + model). In that
+  // case, changing one value must switch to the variant that owns that value
+  // and synchronize the remaining dimensions instead of rejecting the click.
+  if (preferredDimensionKey) {
+    const preferredValue = selection[preferredDimensionKey];
+    if (preferredValue) {
+      const matchingVariants = variants.filter((variant) =>
+        matchesDimensionValue(variant, preferredDimensionKey, preferredValue),
+      );
+      const availableMatches = matchingVariants.filter((variant) => variant.stock > 0);
+      const candidates = availableMatches.length > 0 ? availableMatches : matchingVariants;
+
+      let bestCandidate = candidates[0];
+      let bestScore = bestCandidate
+        ? countPreservedSelections(bestCandidate, selection, dimensions, preferredDimensionKey)
+        : -1;
+
+      for (const candidate of candidates.slice(1)) {
+        const score = countPreservedSelections(
+          candidate,
+          selection,
+          dimensions,
+          preferredDimensionKey,
+        );
+        if (score > bestScore) {
+          bestCandidate = candidate;
+          bestScore = score;
+        }
+      }
+
+      if (bestCandidate) return bestCandidate;
+    }
+  }
 
   const exact = variants.find((variant) => variantMatchesSelection(variant, selection, dimensions));
   if (exact) return exact;
@@ -101,19 +159,16 @@ export function chooseVariantForSelection(
 
 export function isDimensionValueAvailable({
   variants,
-  dimensions,
-  selection,
   dimensionKey,
   value,
 }: {
   variants: ProductVariant[];
-  dimensions: VariantDimension[];
-  selection: Record<string, string>;
   dimensionKey: string;
   value: string;
 }): boolean {
-  const candidateSelection = { ...selection, [dimensionKey]: value };
+  // A value is selectable when any stocked variant owns it. The selector will
+  // then synchronize the other displayed dimensions to that concrete variant.
   return variants.some(
-    (variant) => variant.stock > 0 && variantMatchesSelection(variant, candidateSelection, dimensions),
+    (variant) => variant.stock > 0 && matchesDimensionValue(variant, dimensionKey, value),
   );
 }
