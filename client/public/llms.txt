@@ -1,6 +1,6 @@
 # AQUAVO — llms.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-07-12
+# Last updated: 2026-08-04
 # Full version: https://www.aquavoiq.com/llms-full.txt
 
 > AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم. لا يبيع أسماكاً أو كائنات حية أو نباتات مائية حية.
@@ -32,7 +32,7 @@ Educational pages may discuss fish care, health and compatibility. They are info
 - Return and limited warranty policy: https://www.aquavoiq.com/return-policy
 - Terms: https://www.aquavoiq.com/terms
 - Privacy: https://www.aquavoiq.com/privacy-policy
-- Guides: https://www.aquavoiq.com/blog
+- Guides: https://www.aquavoiq.com/guides
 
 ## Accuracy rules
 
