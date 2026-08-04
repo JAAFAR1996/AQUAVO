@@ -3,6 +3,10 @@
 -- completed later through a separate, validated, immutable journal link.
 BEGIN;
 
+-- The 0063 balance view depends on the inline posting columns. Remove the view
+-- first so PostgreSQL can safely drop those columns, then recreate it below.
+DROP VIEW IF EXISTS public.v_customer_credit_balances;
+
 -- 0063's inline posting state cannot be advanced after insert because credit
 -- entries are intentionally immutable. Remove that conflicting design.
 ALTER TABLE public.customer_credit_entries
@@ -133,7 +137,7 @@ FOR EACH ROW EXECUTE FUNCTION public.guard_customer_credit_period_close();
 INSERT INTO public.schema_migrations(version,checksum,applied_by,notes)
 SELECT
   '0064_accounting_customer_credit_posting_links',
-  'pending',
+  'e64276349bab412a81753e0b88e42eb76161327b241d9f578b6ce04414dc3fe7',
   current_user,
   'Separate immutable credit events from validated account-2300 journal links; block month close while links are missing'
 WHERE NOT EXISTS (
