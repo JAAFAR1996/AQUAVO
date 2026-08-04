@@ -22,6 +22,7 @@ const MIGRATIONS = [
   "0063_accounting_cod_refusal_and_store_credit.sql",
   "0064_accounting_customer_credit_posting_links.sql",
   "0065_accounting_separate_warranty_from_cod_refusal.sql",
+  "0066_accounting_reassert_refusal_inventory_after_0062.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -31,8 +32,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0065") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0065 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0066") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0066 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -101,6 +102,7 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0063_accounting_cod_refusal_and_store_credit' AND rolled_back_at IS NULL) AS migration_0063,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0064_accounting_customer_credit_posting_links' AND rolled_back_at IS NULL) AS migration_0064,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0065_accounting_separate_warranty_from_cod_refusal' AND rolled_back_at IS NULL) AS migration_0065,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL) AS migration_0066,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_customer_credit_period_close' AND NOT tgisinternal) AS credit_close_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
