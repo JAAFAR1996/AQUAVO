@@ -14,26 +14,66 @@ import { initializeClientEnvSideEffects } from "./lib/config/env";
 // Production entry includes the merged immersive Journey and loading experience.
 initializeClientEnvSideEffects();
 
-// The server-rendered semantic document lives in #seo-root while the interactive
-// React app mounts into an intentionally empty #root. This prevents createRoot()
-// from destroying server HTML before the client has painted. No-JS users and
-// crawlers retain the full semantic document; JS users see it removed only after
-// the real application has committed and the browser has painted twice.
+// Arm the semantic-to-client handoff before React starts. The previous cleanup
+// depended only on a React effect, so a delayed/suspended first commit could leave
+// the crawlable #seo-root visible above an otherwise working application. This
+// observer removes it as soon as React inserts a real element into #root.
+function armSemanticShellHandoff(): () => void {
+  const semanticRoot = document.getElementById("seo-root");
+  const clientRoot = document.getElementById("root");
+  if (!semanticRoot || !clientRoot || typeof MutationObserver === "undefined") {
+    return () => undefined;
+  }
+
+  let observer: MutationObserver | null = null;
+  const completeHandoff = (): boolean => {
+    if (clientRoot.childElementCount === 0) return false;
+    clientRoot.setAttribute("data-aq-client-ready", "true");
+    semanticRoot.setAttribute("aria-hidden", "true");
+    semanticRoot.remove();
+    observer?.disconnect();
+    observer = null;
+    return true;
+  };
+
+  observer = new MutationObserver(() => {
+    completeHandoff();
+  });
+  observer.observe(clientRoot, { childList: true });
+  completeHandoff();
+
+  return () => {
+    observer?.disconnect();
+    observer = null;
+  };
+}
+
+const stopSemanticShellHandoff = armSemanticShellHandoff();
+
+// Keep an effect-level fallback as a second guard. No-JS users and crawlers retain
+// the semantic document; JS users lose it only after the real app has committed.
 function SemanticShellCleanup() {
   useEffect(() => {
     const semanticRoot = document.getElementById("seo-root");
     const clientRoot = document.getElementById("root");
     clientRoot?.setAttribute("data-aq-client-ready", "true");
-    if (!semanticRoot) return;
+    if (!semanticRoot) {
+      stopSemanticShellHandoff();
+      return;
+    }
 
     let secondFrame = 0;
     const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => semanticRoot.remove());
+      secondFrame = window.requestAnimationFrame(() => {
+        semanticRoot.remove();
+        stopSemanticShellHandoff();
+      });
     });
 
     return () => {
       window.cancelAnimationFrame(firstFrame);
       if (secondFrame) window.cancelAnimationFrame(secondFrame);
+      stopSemanticShellHandoff();
     };
   }, []);
 
