@@ -92,7 +92,7 @@ export function MultiDimensionVariantSelector({
                     onClick={() => selectValue(dimension.key, value)}
                     disabled={!available}
                     aria-pressed={selected}
-                    aria-label={!available ? `${dimension.label} ${value}، غير متوفر حالياً` : `${dimension.label} ${value}`}
+                    aria-label={!available ? `${dimension.label} ${value}، مو متوفر هسه` : `${dimension.label} ${value}`}
                     className={cn(
                       "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                       selected
