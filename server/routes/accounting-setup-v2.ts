@@ -41,13 +41,19 @@ function rowsOf<T extends Row = Row>(result: unknown): T[] {
   const rows = (result as { rows?: T[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
 }
-function money(value: unknown): number {
+function money(value: unknown, field: string): number {
+  if (value == null || value === "") throw new Error(`ACCOUNTING_NUMERIC_VALUE_MISSING:${field}`);
   const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
+  if (!Number.isFinite(number)) throw new Error(`ACCOUNTING_NUMERIC_VALUE_INVALID:${field}`);
+  return number;
 }
 function normalize(row: Row): Row {
   const numeric = new Set(["default_fee", "amount", "gross_amount", "fee_amount", "current_unit_cost", "quantity", "line_cost", "expected_cost"]);
-  return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, numeric.has(key) ? money(value) : value]));
+  return Object.fromEntries(Object.entries(row).map(([key, value]) => {
+    if (!numeric.has(key)) return [key, value];
+    if (key === "expected_cost" && (value == null || value === "")) return [key, null];
+    return [key, money(value, key)];
+  }));
 }
 async function requireSetupSchema(): Promise<NonNullable<ReturnType<typeof getDb>>> {
   const db = getDb();
@@ -259,7 +265,7 @@ export function createAccountingSetupV2Router() {
         `);
 
         const nextVersion = Number(current.version)+1;
-        const oldExpected = current.expected_cost == null ? null : money(current.expected_cost);
+        const oldExpected = current.expected_cost == null ? null : money(current.expected_cost, "expected_cost");
         const nextExpected = oldExpected == null ? null : oldExpected+(input.unitCost*input.quantity);
         await tx.execute(sql`
           INSERT INTO public.packaging_profiles(
