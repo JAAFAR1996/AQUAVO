@@ -83,10 +83,13 @@ async function main(): Promise<void> {
         to_regclass('public.delivery_companies') IS NOT NULL AS companies,
         to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
         to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
+        to_regclass('public.order_inventory_custody_events') IS NOT NULL AS custody_events,
+        to_regclass('public.v_order_inventory_custody_latest') IS NOT NULL AS custody_latest,
         to_regclass('public.customer_credit_accounts') IS NOT NULL AS credit_accounts,
         to_regclass('public.customer_credit_entries') IS NOT NULL AS credit_entries,
         to_regclass('public.v_customer_credit_balances') IS NOT NULL AS credit_balances,
         to_regclass('public.v_cod_refusal_policy_exceptions') IS NOT NULL AS refusal_exceptions,
+        to_regclass('public.v_cod_refusal_inventory_exceptions') IS NOT NULL AS refusal_inventory_exceptions,
         to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
@@ -96,7 +99,11 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_lines_immutable_guard' AND NOT tgisinternal) AS journal_line_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_return_events_enforce_cod_refusal' AND NOT tgisinternal) AS refusal_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_inventory_custody_no_update' AND NOT tgisinternal) AS custody_update_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_inventory_custody_no_delete' AND NOT tgisinternal) AS custody_delete_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_entries_guard' AND NOT tgisinternal) AS credit_guard,
+        pg_get_functiondef('public.apply_verified_return_inventory()'::regprocedure) ILIKE '%NEW.type=''rejected_delivery''%' AS refusal_double_restock_guard,
+        pg_get_functiondef('public.reverse_order_inventory_on_terminal_status()'::regprocedure) ILIKE '%carrier_return_pending%' AS refusal_immediate_availability,
         EXISTS(
           SELECT 1 FROM pg_trigger t
           WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
