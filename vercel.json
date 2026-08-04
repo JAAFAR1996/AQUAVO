@@ -116,7 +116,17 @@
     { "source": "/tiktok:path*.txt", "destination": "/tiktok:path*.txt" },
     { "source": "/privacy-policy/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt", "destination": "/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt" },
     { "source": "/terms/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt", "destination": "/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt" },
-    { "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt", "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt" },
-    { "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)", "destination": "/api/ssr-preview" }
+    { "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt", "destination": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt" },
+    {
+      "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)",
+      "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
+      "destination": "/api/ssr-preview"
+    },
+    {
+      "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)",
+      "has": [{ "type": "header", "key": "user-agent", "value": ".*(Googlebot|bingbot|BingPreview|DuckDuckBot|YandexBot|Baiduspider|Applebot|Twitterbot|facebookexternalhit|LinkedInBot|Slackbot|Discordbot|WhatsApp|TelegramBot|GPTBot|ChatGPT-User|OAI-SearchBot|ClaudeBot|Claude-User|PerplexityBot|Amazonbot|Bytespider|PetalBot|CCBot).*" }],
+      "destination": "/api/ssr-preview"
+    },
+    { "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)", "destination": "/api/ssr-meta" }
   ]
 }
