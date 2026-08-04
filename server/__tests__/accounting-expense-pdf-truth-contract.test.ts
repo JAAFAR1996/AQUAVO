@@ -41,6 +41,15 @@ describe("accounting expense and PDF truth contract", () => {
     expect(registerRoute).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED");
   });
 
+  it("requires the carrier fee explicitly instead of inventing 5,000 IQD", () => {
+    const client = read("client/src/components/admin/finance-smart-carrier-center-v2.tsx");
+    const server = read("server/routes/accounting-setup-v2.ts");
+    expect(client).toContain("أدخل أجرة الشركة صراحةً");
+    expect(client).not.toContain('useState("5000")');
+    expect(client).not.toContain('setNewCompanyFee("5000")');
+    expect(server).not.toContain("default(5000)");
+  });
+
   it("uses the AQUAVO light document identity and rejects incomplete PDF figures", () => {
     const source = read("client/src/lib/accountant-pdf-v2.ts");
     expect(source).toContain('light: "#F6F4EF"');
