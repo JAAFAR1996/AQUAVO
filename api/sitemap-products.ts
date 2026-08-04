@@ -38,6 +38,15 @@ function primaryImage(images: unknown, thumbnail: unknown): string | undefined {
   return typeof candidate === "string" ? absoluteUrl(candidate.trim()) : undefined;
 }
 
+function effectiveLastmod(updatedAtValue: unknown): string {
+  const releaseDate = new Date(`${AQUAVO_SEO_RELEASE_LASTMOD}T00:00:00.000Z`);
+  const updatedAt = updatedAtValue ? new Date(String(updatedAtValue)) : null;
+  const effective = updatedAt && !Number.isNaN(updatedAt.valueOf()) && updatedAt > releaseDate
+    ? updatedAt
+    : releaseDate;
+  return effective.toISOString().slice(0, 10);
+}
+
 export default async function handler(_req: VercelRequest, res: VercelResponse): Promise<void> {
   try {
     const { rows } = await getPool().query(
@@ -53,10 +62,11 @@ export default async function handler(_req: VercelRequest, res: VercelResponse):
     const entries = rows
       .filter((product) => typeof product.slug === "string" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/i.test(product.slug))
       .map((product) => {
-        const updatedAt = product.updatedAt ? new Date(product.updatedAt) : null;
-        const lastmod = updatedAt && !Number.isNaN(updatedAt.valueOf())
-          ? updatedAt.toISOString().slice(0, 10)
-          : AQUAVO_SEO_RELEASE_LASTMOD;
+        // The semantic product template changed for every product on the SEO
+        // release date. Use the newer of the product record and that release so
+        // crawlers are truthfully told to revisit pages that previously exposed
+        // client-side error text or incomplete HTML.
+        const lastmod = effectiveLastmod(product.updatedAt);
         const imageUrl = primaryImage(product.images, product.thumbnail);
         const image = imageUrl
           ? `\n    <image:image><image:loc>${escapeXml(imageUrl)}</image:loc><image:title>${escapeXml(String(product.name || "AQUAVO product"))}</image:title></image:image>`
@@ -73,6 +83,7 @@ ${entries}
 
     res.setHeader("Content-Type", "application/xml; charset=utf-8");
     res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
+    res.setHeader("Last-Modified", "Tue, 04 Aug 2026 00:00:00 GMT");
     res.status(200).send(xml);
   } catch (error) {
     console.error("[sitemap-products] generation failed", error);
