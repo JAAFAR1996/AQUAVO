@@ -22,9 +22,14 @@ describe("finance route contract", () => {
     expect((dashboard.match(/>مركز المالية</g) ?? []).length).toBe(1);
   });
 
-  it("labels the automated reviewer as read-only", () => {
-    expect(finance).toContain("المراجع الآلي");
-    expect(finance).toContain("قراءة فقط — يفحص الأرقام ولا يعدّلها");
+  it("keeps only the four operational finance sections", () => {
+    expect(finance).toContain("السجل المحاسبي والإغلاق الشهري");
+    expect(finance).toContain("التغليف والكراتين");
+    expect(finance).toContain("الراجعات والخسائر");
+    expect(finance).toContain("سجل التدقيق");
+    expect(finance).toContain("FinanceAutomaticReturnsV2");
+    expect(finance).not.toContain("المراجع الآلي");
+    expect(finance).not.toContain("FinanceAutomatedReviewer");
     expect(finance).not.toContain(">تدقيق محاسبي<");
   });
 });
