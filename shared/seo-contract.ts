@@ -1,5 +1,5 @@
 export const AQUAVO_BASE_URL = "https://www.aquavoiq.com";
-export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-03";
+export const AQUAVO_SEO_RELEASE_LASTMOD = "2026-08-04";
 
 export const AQUAVO_ENTITY = Object.freeze({
   brandName: "AQUAVO",
@@ -10,10 +10,10 @@ export const AQUAVO_ENTITY = Object.freeze({
   countryCode: "IQ",
   countryName: "Iraq",
   currency: "IQD",
-  deliveryFee: 5000,
-  deliveryMaxDays: 1,
   paymentMethod: "Cash on Delivery",
-  supportAvailability: "24/7",
+  deliveryCoverage: "جميع محافظات العراق",
+  deliveryPolicyNote: "تُعرض أجرة ومدة التوصيل المتوقعة قبل تأكيد الطلب.",
+  supportPolicyNote: "الدعم متاح عبر قنوات التواصل الرسمية حسب أوقات الخدمة.",
   onlineOnly: true,
   logoUrl: `${AQUAVO_BASE_URL}/brand/aquavo-v2-horizontal.png`,
   socialProfiles: [
