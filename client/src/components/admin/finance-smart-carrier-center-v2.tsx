@@ -3,7 +3,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { addCsrfHeader } from "@/lib/csrf";
 
-const money = z.coerce.number();
+const strictNumber = z.preprocess(
+  (value) => typeof value === "string" && value.trim() !== "" ? Number(value) : value,
+  z.number().finite(),
+);
+const money = strictNumber;
 const uploadedEvidenceSchema = z.object({
   url: z.string().url(), objectKey: z.string(), storageProvider: z.string(),
   sha256: z.string(), originalName: z.string(), mimeType: z.string(), size: z.number(),
@@ -28,7 +32,7 @@ const companySchema = z.object({
   isDefault: z.boolean(), notes: z.string().nullable(),
   openOrders: z.array(openOrderSchema), outstandingOrders: z.array(outstandingOrderSchema),
   confirmedPosition: positionSchema.nullable(),
-  outstanding: z.object({ count: z.coerce.number(), gross: money, fees: money, net: money }),
+  outstanding: z.object({ count: strictNumber, gross: money, fees: money, net: money }),
 });
 const smartSchema = z.object({
   periodKey: z.string(), generatedAt: z.string(), items: z.array(companySchema),
@@ -82,7 +86,7 @@ export function FinanceSmartCarrierCenterV2({ periodKey }: { periodKey: string }
   const [evidenceFile, setEvidenceFile] = useState<File | null>(null);
   const [settlementNote, setSettlementNote] = useState("");
   const [newCompanyName, setNewCompanyName] = useState("");
-  const [newCompanyFee, setNewCompanyFee] = useState("5000");
+  const [newCompanyFee, setNewCompanyFee] = useState("");
   const [newCompanyDefault, setNewCompanyDefault] = useState(false);
 
   const smart = useQuery({
@@ -165,6 +169,7 @@ export function FinanceSmartCarrierCenterV2({ periodKey }: { periodKey: string }
   const addCompany = useMutation({
     mutationFn: async () => {
       if (newCompanyName.trim().length < 2) throw new Error("اكتب اسم شركة التوصيل");
+      if (newCompanyFee.trim() === "") throw new Error("أدخل أجرة الشركة صراحةً");
       const fee = Number(newCompanyFee);
       if (!Number.isFinite(fee) || fee < 0) throw new Error("أدخل أجرة صحيحة");
       return parseResponse(await fetch("/api/admin/accounting/v2/delivery-companies", {
@@ -173,7 +178,7 @@ export function FinanceSmartCarrierCenterV2({ periodKey }: { periodKey: string }
       }));
     },
     onSuccess: async () => {
-      setNewCompanyName(""); setNewCompanyFee("5000"); setNewCompanyDefault(false);
+      setNewCompanyName(""); setNewCompanyFee(""); setNewCompanyDefault(false);
       await qc.invalidateQueries({ queryKey: ["accounting-v2-smart-carriers", periodKey] });
     },
   });
@@ -277,9 +282,9 @@ export function FinanceSmartCarrierCenterV2({ periodKey }: { periodKey: string }
         </Panel>
 
         <Panel title="إدارة شركات التوصيل">
-          <p style={hintStyle}>أضف الشركة مرة واحدة فقط، وحدد أجرتها الافتراضية. بعدها تظهر في الطلبات والتسويات تلقائياً.</p>
+          <p style={hintStyle}>أضف الشركة مرة واحدة فقط، وأدخل أجرتها المتفق عليها صراحةً. بعدها تظهر في الطلبات والتسويات تلقائياً.</p>
           <Field label="اسم الشركة"><input style={inputStyle} value={newCompanyName} onChange={(event) => setNewCompanyName(event.target.value)} /></Field>
-          <Field label="أجرتها الافتراضية"><input type="number" min="0" style={inputStyle} value={newCompanyFee} onChange={(event) => setNewCompanyFee(event.target.value)} /></Field>
+          <Field label="أجرتها الافتراضية"><input type="number" min="0" style={inputStyle} value={newCompanyFee} onChange={(event) => setNewCompanyFee(event.target.value)} placeholder="أدخل الأجرة حسب اتفاق الشركة" /></Field>
           <label style={{ color: "#cbd5e1", fontSize: 12, display: "flex", gap: 7 }}><input type="checkbox" checked={newCompanyDefault} onChange={(event) => setNewCompanyDefault(event.target.checked)} /> اجعلها الشركة الافتراضية</label>
           <button style={buttonStyle} disabled={addCompany.isPending} onClick={() => addCompany.mutate()}>إضافة الشركة</button>
         </Panel>
