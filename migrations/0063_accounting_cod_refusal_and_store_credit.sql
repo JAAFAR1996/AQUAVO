@@ -363,7 +363,9 @@ WHERE o.status IN ('rejected','rejected_carrier','rejected_returned')
 
 INSERT INTO public.schema_migrations(version,checksum,applied_by,notes)
 SELECT
-  '0063_accounting_cod_refusal_and_store_credit','pending',current_user,
+  '0063_accounting_cod_refusal_and_store_credit',
+  '8b0ebbd46e74685a2b43b962d44a4dbc33b189239d2db520a6ae360e65c19912',
+  current_user,
   'Immediate sellable restoration at COD refusal; immutable custody trail; double-restock guard; zero-loss refusal policy; gift sticker rename; customer-credit liability ledger foundation'
 WHERE NOT EXISTS(
   SELECT 1 FROM public.schema_migrations
