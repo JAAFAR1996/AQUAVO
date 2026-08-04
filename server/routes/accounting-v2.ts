@@ -16,10 +16,11 @@ function rowsOf<T extends DbRow = DbRow>(result: unknown): T[] {
   const rows = (result as { rows?: T[] } | null)?.rows;
   return Array.isArray(rows) ? rows : [];
 }
-function numeric(value: unknown): number {
-  if (value == null || value === "") return 0;
+function numeric(value: unknown, field: string): number {
+  if (value == null || value === "") throw new Error(`ACCOUNTING_NUMERIC_VALUE_MISSING:${field}`);
   const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
+  if (!Number.isFinite(number)) throw new Error(`ACCOUNTING_NUMERIC_VALUE_INVALID:${field}`);
+  return number;
 }
 function normalize(row: DbRow): DbRow {
   const moneyFields = new Set([
@@ -32,7 +33,12 @@ function normalize(row: DbRow): DbRow {
     "debit", "credit", "balance", "total_debit", "total_credit", "amount", "unit_cost", "total_cost",
     "default_fee", "gross_amount", "fee_amount", "current_unit_cost", "quantity", "line_cost", "expected_cost",
   ]);
-  return Object.fromEntries(Object.entries(row).map(([key, value]) => [key, moneyFields.has(key) ? numeric(value) : value]));
+  const nullableMoneyFields = new Set(["cogs_amount", "expected_cost"]);
+  return Object.fromEntries(Object.entries(row).map(([key, value]) => {
+    if (!moneyFields.has(key)) return [key, value];
+    if (nullableMoneyFields.has(key) && (value == null || value === "")) return [key, null];
+    return [key, numeric(value, key)];
+  }));
 }
 
 async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
@@ -48,12 +54,12 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
       to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
       EXISTS(
         SELECT 1 FROM public.schema_migrations
-        WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL
-      ) AS migration_0062
+        WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL
+      ) AS migration_0066
   `);
   const state = rowsOf(result)[0] as Record<string, boolean> | undefined;
   if (!state || Object.values(state).some((value) => value !== true)) {
-    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED"), { statusCode: 503 });
+    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED"), { statusCode: 503 });
   }
 }
 
@@ -71,9 +77,10 @@ const blockerLabels: Record<string, string> = {
   journal_difference: "فرق في ميزان اليومية",
 };
 function readinessPayload(row: DbRow | undefined) {
-  const normalized = normalize(row ?? {});
+  if (!row) throw Object.assign(new Error("لا توجد بيانات جاهزية محاسبية لهذه الفترة"), { statusCode: 409 });
+  const normalized = normalize(row);
   const blockers = Object.entries(blockerLabels)
-    .map(([key, label]) => ({ key, label, count: numeric(normalized[key]) }))
+    .map(([key, label]) => ({ key, label, count: numeric(normalized[key], key) }))
     .filter((item) => item.count !== 0);
   return { ...normalized, blockers, administrativeCloseReady: blockers.length === 0 };
 }
@@ -86,7 +93,7 @@ export function createAccountingV2Router() {
     try {
       const db = getDb();
       await assertV2Schema(db);
-      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0062", automaticClose: true });
+      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0066", automaticClose: true });
     } catch (error) { next(error); }
   });
 
@@ -203,7 +210,7 @@ export function createAccountingV2Router() {
       const closeRow = rowsOf(close)[0];
       res.json({
         manifest: {
-          packageVersion: "2026-08-v2.2",
+          packageVersion: "2026-08-v2.3",
           periodKey,
           generatedAt: new Date().toISOString(),
           legalName: "محل المنبع",
@@ -214,7 +221,7 @@ export function createAccountingV2Router() {
           taxFinal: String((closeRow as any)?.status ?? "") === "tax_final",
           cutover: "2026-08-01",
           archiveNotice: "Records before 1 August 2026 are a frozen archive and are not posted into Accounting V2.",
-          balanceNotice: "Live balances are derived from the immutable double-entry ledger; no monthly balance retyping.",
+          balanceNotice: "Live balances are derived from the immutable double-entry ledger; missing values are never replaced with zero.",
         },
         profile: rowsOf(profile)[0] ?? null,
         readiness: readinessPayload(rowsOf(readiness)[0]),
@@ -235,17 +242,13 @@ export function createAccountingV2Router() {
     } catch (error) { next(error); }
   });
 
-  // Kept as an authenticated operational fallback. The normal workflow is
-  // automatic and the finance UI does not expose a manual close button.
   router.post("/v2/periods/close", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { periodKey } = closeBodySchema.parse(req.body);
       const db = getDb();
       await assertV2Schema(db);
       const readinessResult = await db!.execute(sql`SELECT * FROM public.v_accounting_period_readiness WHERE period_key=${periodKey}`);
-      const readinessRow = rowsOf(readinessResult)[0];
-      if (!readinessRow) { res.status(409).json({ message: "لا توجد بيانات جاهزية لهذه الفترة" }); return; }
-      const readiness = readinessPayload(readinessRow);
+      const readiness = readinessPayload(rowsOf(readinessResult)[0]);
       if (!readiness.administrativeCloseReady) {
         res.status(409).json({ message: "لا يمكن إغلاق الشهر قبل معالجة الموانع", blockers: readiness.blockers });
         return;
