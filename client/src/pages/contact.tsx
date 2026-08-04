@@ -9,11 +9,12 @@ const actionClass = "mt-auto inline-flex min-h-11 w-full items-center justify-ce
 export default function Contact() {
   return (
     <div className="flex-1 bg-background text-foreground" dir="rtl">
-      <MetaTags title="تواصل ويانه" description="تواصل مع دعم AQUAVO عبر واتساب أو الهاتف أو info@aquavoiq.com. الدعم متوفر 24/7." />      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
+      <MetaTags title="تواصل ويانه" description="تواصل مع AQUAVO عبر واتساب أو الهاتف أو info@aquavoiq.com للاستفسار عن الطلبات واختيار المعدات." />
+      <main id="main-content" className="mx-auto max-w-5xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
         <header className="max-w-2xl">
           <p className="text-sm font-bold text-primary">دعم AQUAVO</p>
           <h1 className="mt-3 text-4xl font-bold">تواصل ويانه</h1>
-          <p className="mt-5 text-lg leading-8 text-muted-foreground">الدعم متوفر 24/7. دز حجم حوضك أو صورة الحالة، ونرتبلك الجواب العملي.</p>
+          <p className="mt-5 text-lg leading-8 text-muted-foreground">الدعم متاح عبر قنوات التواصل الرسمية حسب أوقات الخدمة. دز حجم حوضك أو صورة الحالة حتى نرتبلك الجواب العملي.</p>
         </header>
 
         <div className="mt-10 grid gap-4 md:grid-cols-3">
@@ -43,6 +44,7 @@ export default function Contact() {
           <Link href="/order-tracking" className="text-sm font-bold text-primary hover:underline">تتبع طلبك</Link>
           <Link href="/faq" className="text-sm font-bold text-primary hover:underline">الأسئلة الشائعة</Link>
         </div>
-      </main>    </div>
+      </main>
+    </div>
   );
 }
