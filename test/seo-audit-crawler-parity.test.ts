@@ -6,7 +6,25 @@ const read = (path: string) => readFileSync(resolve(process.cwd(), path), "utf8"
 
 describe("SEO audit crawler parity", () => {
   it("routes major search-audit crawlers to the semantic SSR runtime", () => {
-    const vercel = read("vercel.json");
+    const vercel = JSON.parse(read("vercel.json")) as {
+      rewrites: Array<{
+        destination?: string;
+        has?: Array<{ type?: string; key?: string; value?: string }>;
+      }>;
+    };
+    const userAgentRule = vercel.rewrites.find(
+      (rewrite) =>
+        rewrite.destination === "/api/ssr-preview" &&
+        rewrite.has?.some(
+          (condition) =>
+            condition.type === "header" && condition.key === "user-agent",
+        ),
+    );
+    const userAgentValue =
+      userAgentRule?.has?.find(
+        (condition) =>
+          condition.type === "header" && condition.key === "user-agent",
+      )?.value ?? "";
 
     for (const crawler of [
       "SiteAuditBot",
@@ -15,10 +33,10 @@ describe("SEO audit crawler parity", () => {
       "AhrefsSiteAudit",
       "Screaming Frog SEO Spider",
     ]) {
-      expect(vercel, crawler).toContain(crawler);
+      expect(userAgentValue, crawler).toContain(crawler);
     }
 
-    expect(vercel).toContain('"destination": "/api/ssr-preview"');
+    expect(userAgentRule).toBeDefined();
   });
 
   it("publishes recovery URLs through the static sitemap index", () => {
