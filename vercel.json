@@ -116,7 +116,7 @@
     { "source": "/tiktok:path*.txt", "destination": "/tiktok:path*.txt" },
     { "source": "/privacy-policy/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt", "destination": "/tiktokhuP99SJNhAK32MXVdFftxsGmm4hSjQ1H.txt" },
     { "source": "/terms/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt", "destination": "/tiktokPsQMuQ80LSh9pf1oPxdl5GoE3pgSzeGK.txt" },
-    { "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt", "destination": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt" },
+    { "source": "/terms/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt", "destination": "/tiktokmBA2KBN0mV5KF3hc5riHIlPHDY5yesht.txt" },
     {
       "source": "/((?!api|_next|assets|chunks|entries|.*\\..{2,5}$).*)",
       "has": [{ "type": "header", "key": "accept", "value": ".*text/markdown.*" }],
