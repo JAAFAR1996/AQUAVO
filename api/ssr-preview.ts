@@ -59,13 +59,13 @@ const STATIC_COPY: Record<string, { heading: string; summary: string; paragraphs
   "/contact": {
     heading: "تواصل مع AQUAVO",
     summary: "تواصل للاستفسار عن الطلبات أو اختيار معدات متوافقة مع حجم الحوض.",
-    paragraphs: [`البريد الرسمي: ${AQUAVO_ENTITY.email}. ${AQUAVO_ENTITY.supportPolicyNote}`],
+    paragraphs: [`البريد الرسمي: ${AQUAVO_ENTITY.email}. الدعم متوفر ${AQUAVO_ENTITY.supportAvailability}.`],
   },
   "/shipping": {
     heading: "الشحن والتوصيل",
-    summary: "AQUAVO يوصّل الطلبات إلى جميع محافظات العراق.",
+    summary: "AQUAVO يوصّل الطلبات إلى جميع محافظات العراق خلال 24 ساعة.",
     paragraphs: [
-      AQUAVO_ENTITY.deliveryPolicyNote,
+      `أجور التوصيل الثابتة ${new Intl.NumberFormat("ar-IQ").format(AQUAVO_ENTITY.deliveryFee)} د.ع لكل العراق.`,
       "الدفع نقداً عند الاستلام، وتظهر تفاصيل الطلب قبل التأكيد.",
     ],
   },

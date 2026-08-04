@@ -1,19 +1,21 @@
 import { MetaTags, OrganizationSchema, BreadcrumbSchema } from "@/components/seo/meta-tags";
 import { motion } from "framer-motion";
 import { BackToTop } from "@/components/back-to-top";
-import {
-  Fish, Truck, ShieldCheck, Phone, Award, Users, MapPin,
-  Clock, Star, Heart, Leaf, Package, Sparkles,
+import { 
+  Fish, Truck, ShieldCheck, Phone, Award, Users, MapPin, 
+  Clock, Star, Heart, Droplets, Leaf, Package, Sparkles,
   Globe, Target, CheckCircle
 } from "lucide-react";
 
+// Company stats
 const STATS = [
   { value: "بريميوم", label: "معدات مختارة بعناية", icon: Package },
   { value: "18", label: "محافظة عراقية", icon: MapPin },
-  { value: "مباشر", label: "دعم عبر القنوات الرسمية", icon: Phone },
+  { value: "24/7", label: "دعم فني", icon: Phone },
   { value: "2024", label: "سنة التأسيس", icon: Star },
 ];
 
+// Core values
 const VALUES = [
   {
     icon: ShieldCheck,
@@ -23,7 +25,7 @@ const VALUES = [
   {
     icon: Truck,
     title: "توصيل لكل العراق",
-    description: "نوصل إلى جميع المحافظات العراقية الـ 18، وتظهر أجرة ومدة التوصيل المتوقعة قبل تأكيد الطلب.",
+    description: "نوصل إلى جميع المحافظات العراقية الـ 18. توصيل خلال 24 ساعة فقط — 5,000 د.ع لكل العراق.",
   },
   {
     icon: Heart,
@@ -47,6 +49,7 @@ const VALUES = [
   },
 ];
 
+// Product categories
 const CATEGORIES = [
   "أحواض زجاجية بجميع الأحجام",
   "فلاتر داخلية وخارجية",
@@ -76,6 +79,7 @@ export default function About() {
         ]}
       />
       <main id="main-content" className="flex-grow">
+        {/* Hero Section */}
         <section className="relative py-24 overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
           <div className="container mx-auto px-4 text-center">
             <motion.div
@@ -87,12 +91,13 @@ export default function About() {
                 <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-bold text-primary">براند عراقي لمعدات أحواض الزينة</span>
               </div>
-
+              
               <h1 className="text-4xl md:text-6xl font-extrabold mb-6 leading-tight" data-speakable>
                 <span className="text-primary">AQUAVO</span> —{" "}
                 <span className="text-accent">مستلزمات أحواض الزينة</span> في العراق
               </h1>
 
+              {/* Answer-First paragraph for AI */}
               <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed" data-speakable>
                 AQUAVO (اكوافو) متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.
                 نشتغل من بغداد ونخدم هواة الأحواض بتوصيل لكل العراق ودفع نقداً عند الاستلام.
@@ -103,6 +108,7 @@ export default function About() {
           </div>
         </section>
 
+        {/* Stats */}
         <section className="py-12 border-y border-border/50">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -124,6 +130,7 @@ export default function About() {
           </div>
         </section>
 
+        {/* Our Story */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="text-3xl font-bold text-center mb-8">
@@ -132,24 +139,25 @@ export default function About() {
             </h2>
             <div className="prose prose-lg dark:prose-invert max-w-none text-right space-y-4">
               <p data-speakable>
-                بدأت قصة AQUAVO من شغف حقيقي بعالم أحواض الزينة في العراق. لاحظنا أن هواة الأحواض في بغداد والمحافظات
-                الأخرى يواجهون صعوبة كبيرة في إيجاد مستلزمات أحواض عالية الجودة بأسعار مناسبة. المتاجر المحلية محدودة
+                بدأت قصة AQUAVO من شغف حقيقي بعالم أحواض الزينة في العراق. لاحظنا أن هواة الأحواض في بغداد والمحافظات 
+                الأخرى يواجهون صعوبة كبيرة في إيجاد مستلزمات أحواض عالية الجودة بأسعار مناسبة. المتاجر المحلية محدودة 
                 في خياراتها، والشراء من الخارج مكلف ومعقد.
               </p>
               <p>
-                من هنا ولدت فكرة AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة.
-                أطلقنا المتجر في بغداد عام 2024 برؤية واضحة: جعل تجهيز أحواض الزينة أسهل وأكثر وضوحاً للهواة في العراق،
+                من هنا ولدت فكرة AQUAVO — متجر إلكتروني عراقي متخصص في معدات ومستلزمات أحواض الزينة. 
+                أطلقنا المتجر في بغداد عام 2024 برؤية واضحة: جعل تجهيز أحواض الزينة أسهل وأكثر وضوحاً للهواة في العراق، 
                 من المبتدئ الذي يجهز حوضه الأول إلى الهاوي الذي يبني أكواسكيب مرتب.
               </p>
               <p>
-                اليوم، AQUAVO يخدم هواة أحواض الزينة في كل محافظات العراق الـ 18، مع تشكيلة متخصصة من منتجات بريميوم
-                من علامات موثوقة حسب المتوفر. نركز على المنتجات والمعرفة معاً — من خلال
+                اليوم، AQUAVO يخدم هواة أحواض الزينة في كل محافظات العراق الـ 18، مع تشكيلة متخصصة من منتجات بريميوم 
+                من علامات موثوقة حسب المتوفر. نركز على المنتجات والمعرفة معاً — من خلال 
                 المدونة التعليمية، أدلة التجهيز والصيانة، أدوات الحاسبات، والدعم العملي.
               </p>
             </div>
           </div>
         </section>
 
+        {/* Values */}
         <section className="py-16 bg-muted/30">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">
@@ -175,6 +183,7 @@ export default function About() {
           </div>
         </section>
 
+        {/* Product Categories */}
         <section className="py-16">
           <div className="container mx-auto px-4 max-w-4xl">
             <h2 className="text-3xl font-bold text-center mb-8">
@@ -195,6 +204,7 @@ export default function About() {
           </div>
         </section>
 
+        {/* Mission */}
         <section className="py-16 bg-gradient-to-b from-primary/5 to-background">
           <div className="container mx-auto px-4 max-w-3xl text-center">
             <h2 className="text-3xl font-bold mb-6">
@@ -202,11 +212,11 @@ export default function About() {
               رسالتنا
             </h2>
             <p className="text-lg text-muted-foreground leading-relaxed" data-speakable>
-              رسالة AQUAVO هي جعل هواية أسماك الزينة متاحة ومستدامة لكل شخص في العراق.
-              نؤمن أن حوض الأسماك ليس مجرد ديكور — بل هو نافذة إلى عالم مائي ساحر يجلب الهدوء والجمال
+              رسالة AQUAVO هي جعل هواية أسماك الزينة متاحة ومستدامة لكل شخص في العراق. 
+              نؤمن أن حوض الأسماك ليس مجرد ديكور — بل هو نافذة إلى عالم مائي ساحر يجلب الهدوء والجمال 
               إلى حياتك اليومية. نسعى أن نكون الشريك الموثوق لكل هاوٍ عراقي في رحلته مع أسماك الزينة.
             </p>
-
+            
             <div className="mt-8 p-6 bg-card rounded-2xl border border-border">
               <h3 className="font-bold text-lg mb-4">تواصل معنا</h3>
               <div className="flex flex-col md:flex-row gap-4 justify-center items-center text-muted-foreground">
@@ -220,7 +230,7 @@ export default function About() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-primary" />
-                  <span>الدعم متاح عبر واتساب والهاتف حسب أوقات الخدمة</span>
+                  <span>الدعم متوفر 24/7 عبر واتساب والهاتف</span>
                 </div>
               </div>
             </div>
@@ -228,7 +238,6 @@ export default function About() {
         </section>
       </main>
 
-      <BackToTop />
-    </div>
+      <BackToTop />    </div>
   );
 }
