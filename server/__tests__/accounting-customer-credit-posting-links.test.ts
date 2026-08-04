@@ -9,12 +9,32 @@ const rollback = readFileSync(
   new URL("../../migrations/0064_accounting_customer_credit_posting_links_rollback.sql", import.meta.url),
   "utf8",
 );
+const refusalSql = readFileSync(
+  new URL("../../migrations/0063_accounting_cod_refusal_and_store_credit.sql", import.meta.url),
+  "utf8",
+);
+const warrantySql = readFileSync(
+  new URL("../../migrations/0065_accounting_separate_warranty_from_cod_refusal.sql", import.meta.url),
+  "utf8",
+);
 
 describe("migration 0064 customer-credit posting links", () => {
   it("removes mutable posting state from immutable business events", () => {
     expect(sql).toContain("DROP COLUMN IF EXISTS accounting_status");
     expect(sql).toContain("DROP COLUMN IF EXISTS journal_entry_id");
     expect(sql).toContain("CREATE TABLE IF NOT EXISTS public.customer_credit_accounting_links");
+  });
+
+  it("drops dependent balance views before columns or link tables", () => {
+    const migrationDropView = sql.indexOf("DROP VIEW IF EXISTS public.v_customer_credit_balances");
+    const migrationAlterTable = sql.indexOf("ALTER TABLE public.customer_credit_entries");
+    expect(migrationDropView).toBeGreaterThanOrEqual(0);
+    expect(migrationDropView).toBeLessThan(migrationAlterTable);
+
+    const rollbackDropView = rollback.indexOf("DROP VIEW IF EXISTS public.v_customer_credit_balances");
+    const rollbackDropLinks = rollback.indexOf("DROP TABLE IF EXISTS public.customer_credit_accounting_links");
+    expect(rollbackDropView).toBeGreaterThanOrEqual(0);
+    expect(rollbackDropView).toBeLessThan(rollbackDropLinks);
   });
 
   it("accepts a posting link only when account 2300 has the exact amount and side", () => {
@@ -37,6 +57,14 @@ describe("migration 0064 customer-credit posting links", () => {
     expect(sql).toContain("trg_guard_customer_credit_period_close");
     expect(sql).toContain("PERIOD_CLOSE_BLOCKED: unposted customer-credit entries");
     expect(sql).toContain("AT TIME ZONE 'Asia/Baghdad'");
+  });
+
+  it("uses strict 64-character hexadecimal migration checksums", () => {
+    const migrationFiles = [refusalSql, sql, warrantySql];
+    for (const body of migrationFiles) {
+      expect(body).not.toMatch(/'pending'\s*,\s*current_user/);
+      expect(body).toMatch(/'[0-9a-f]{64}'\s*,\s*current_user/);
+    }
   });
 
   it("has a structural rollback to the 0063 inline shape", () => {
