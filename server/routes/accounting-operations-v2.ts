@@ -35,6 +35,24 @@ const settlementSchema = z.object({
   message: "اختر شركة التوصيل",
   path: ["deliveryCompanyId"],
 });
+const recordExpenseSchema = z.object({
+  category: z.enum([
+    "operating", "marketing", "utilities", "office_supplies",
+    "bank_fees", "shipping_cost", "other",
+  ]),
+  amount: z.coerce.number().positive().max(1_000_000_000_000),
+  description: z.string().trim().min(3).max(500),
+  expenseDate: z.string().date(),
+  isRecurring: z.boolean().default(false),
+  recurringPeriod: z.string().trim().min(2).max(50).optional(),
+}).strict().superRefine((value, ctx) => {
+  if (value.expenseDate < "2026-08-01") {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["expenseDate"], message: "Accounting V2 يبدأ من 1 آب 2026" });
+  }
+  if (value.isRecurring && !value.recurringPeriod) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["recurringPeriod"], message: "حدد دورة المصروف المتكرر" });
+  }
+});
 const verifyExpenseSchema = z.object({
   vendorName: z.string().trim().min(2).max(200),
   documentNumber: z.string().trim().min(1).max(100).optional(),
@@ -56,8 +74,10 @@ function rowsOf<T extends Row = Row>(result: unknown): T[] {
   return Array.isArray(rows) ? rows : [];
 }
 function amount(value: unknown): number {
+  if (value == null || value === "") throw new Error("ACCOUNTING_NUMERIC_VALUE_MISSING");
   const number = Number(value);
-  return Number.isFinite(number) ? number : 0;
+  if (!Number.isFinite(number)) throw new Error("ACCOUNTING_NUMERIC_VALUE_INVALID");
+  return number;
 }
 function normalize(row: Row): Row {
   const numeric = new Set(["gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue", "merchant_net", "delivery_subsidy", "delivery_surplus", "amount", "gross_amount", "fee_amount", "net_amount", "fees_amount"]);
@@ -261,6 +281,28 @@ export function createAccountingOperationsV2Router() {
     } catch (error) { next(error); }
   });
 
+  router.post("/v2/expenses", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const input = recordExpenseSchema.parse(req.body);
+      const db = await requireSchema();
+      const expenseId = randomUUID();
+      const result = await db.execute(sql`
+        INSERT INTO public.expenses(
+          id,category,amount,description,expense_date,expense_occurred_at,
+          is_recurring,recurring_period,accounting_status,tax_treatment,currency,created_at,updated_at
+        ) VALUES(
+          ${expenseId},${input.category},${input.amount},${input.description},${input.expenseDate}::date,
+          ((${input.expenseDate}::date + time '12:00') AT TIME ZONE 'Asia/Baghdad'),
+          ${input.isRecurring},${input.recurringPeriod ?? null},'recorded','pending','IQD',clock_timestamp(),clock_timestamp()
+        )
+        RETURNING id,category,amount,description,expense_date,accounting_status,tax_treatment
+      `);
+      const row = rowsOf(result)[0];
+      if (!row) throw new Error("فشل تسجيل المصروف");
+      res.status(201).json(normalize(row));
+    } catch (error) { next(error); }
+  });
+
   router.get("/v2/expenses/pending", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const periodKey = periodKeySchema.parse(req.query.periodKey);
@@ -311,7 +353,7 @@ export function createAccountingOperationsV2Router() {
             payment_method=${input.paymentMethod},paid_from_account_code=${paidFromAccountCode},
             business_purpose=${input.businessPurpose},evidence=${metadataJson}::jsonb,evidence_hash=${evidence.sha256},
             evidence_file_id=${savedEvidence.id},accounting_status='verified',tax_treatment=${input.taxTreatment},
-            reviewed_by=${actor.id},review_note=${input.reviewNote ?? null},updated_at=clock_timestamp()
+            reviewed_by=${actor.id},reviewed_at=clock_timestamp(),review_note=${input.reviewNote ?? null},updated_at=clock_timestamp()
           WHERE id=${req.params.id}
           RETURNING *
         `);
