@@ -18,6 +18,7 @@ const MIGRATIONS = [
   "0059_accounting_carrier_other_deductions.sql",
   "0060_accounting_close_state_machine.sql",
   "0061_accounting_default_carrier_status_guard.sql",
+  "0062_accounting_cod_refusal_and_store_credit.sql",
 ] as const;
 
 function versionOf(file: string): string {
@@ -33,8 +34,8 @@ function sha256(body: string): string {
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0061") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -96,10 +97,16 @@ async function main(): Promise<void> {
         to_regclass('public.v_accounting_period_readiness') IS NOT NULL AS readiness,
         to_regclass('public.delivery_companies') IS NOT NULL AS companies,
         to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
+        to_regclass('public.customer_credit_accounts') IS NOT NULL AS credit_accounts,
+        to_regclass('public.customer_credit_entries') IS NOT NULL AS credit_entries,
+        to_regclass('public.v_customer_credit_balances') IS NOT NULL AS credit_balances,
+        to_regclass('public.v_cod_refusal_policy_exceptions') IS NOT NULL AS refusal_exceptions,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
-        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0061_accounting_default_carrier_status_guard' AND rolled_back_at IS NULL) AS migration_0061,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0062_accounting_cod_refusal_and_store_credit' AND rolled_back_at IS NULL) AS migration_0062,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_return_events_enforce_cod_refusal' AND NOT tgisinternal) AS refusal_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_entries_guard' AND NOT tgisinternal) AS credit_guard,
         EXISTS(
           SELECT 1 FROM pg_trigger t
           WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
