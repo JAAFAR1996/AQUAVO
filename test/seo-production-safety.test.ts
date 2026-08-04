@@ -47,6 +47,34 @@ describe("SEO production safety invariants", () => {
     expect(source).not.toContain("longitude:");
   });
 
+  it("does not publish unverified fixed shipping or support promises", () => {
+    const sources = [
+      read("shared/seo-contract.ts"),
+      read("api/_seo-preview-shell.tsx"),
+      read("api/_seo-structured-data.ts"),
+      read("api/ssr-preview.ts"),
+      read("client/src/components/seo/meta-tags.tsx"),
+      read("client/src/pages/home.tsx"),
+      read("client/src/pages/about.tsx"),
+      read("client/src/pages/contact.tsx"),
+      read("client/src/pages/faq.tsx"),
+      read("client/src/pages/shipping.tsx"),
+      read("client/src/pages/why-aquavo.tsx"),
+      read("client/src/components/footer.tsx"),
+      read("client/public/llms.txt"),
+      read("client/public/llms-full.txt"),
+    ].join("\n");
+
+    expect(sources).not.toContain("توصيل خلال 24 ساعة");
+    expect(sources).not.toContain("خلال 24 ساعة فقط");
+    expect(sources).not.toContain("الدعم متوفر 24/7");
+    expect(sources).not.toContain("Customer support is available 24/7");
+    expect(read("api/_seo-structured-data.ts")).not.toContain("shippingDetails");
+    expect(read("api/_seo-structured-data.ts")).not.toContain("hoursAvailable");
+    expect(read("client/src/components/seo/meta-tags.tsx")).not.toContain("shippingDetails");
+    expect(read("client/src/components/seo/meta-tags.tsx")).not.toContain("hoursAvailable");
+  });
+
   it("marks private and transactional routes as noindex", () => {
     for (const path of [
       "/search",
