@@ -9,7 +9,7 @@ import { actorFromRequest } from "../services/accountingAuditTrail.js";
 const periodKeySchema = z.string().regex(/^20\d{2}-(0[1-9]|1[0-2])$/);
 const companySchema = z.object({
   name: z.string().trim().min(2).max(150),
-  defaultFee: z.coerce.number().finite().min(0).max(1_000_000).default(5000),
+  defaultFee: z.coerce.number().finite().min(0).max(1_000_000),
   notes: z.string().trim().max(500).optional(),
   makeDefault: z.boolean().default(false),
 }).strict();
