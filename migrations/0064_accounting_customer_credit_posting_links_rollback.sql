@@ -5,6 +5,10 @@ DROP TRIGGER IF EXISTS trg_guard_customer_credit_period_close
   ON public.accounting_period_closes;
 DROP FUNCTION IF EXISTS public.guard_customer_credit_period_close();
 
+-- The balance view depends on the accounting-link table. Remove it before the
+-- link table, then recreate the 0063 inline view after restoring the columns.
+DROP VIEW IF EXISTS public.v_customer_credit_balances;
+
 DROP TRIGGER IF EXISTS customer_credit_links_no_delete
   ON public.customer_credit_accounting_links;
 DROP TRIGGER IF EXISTS customer_credit_links_no_update
