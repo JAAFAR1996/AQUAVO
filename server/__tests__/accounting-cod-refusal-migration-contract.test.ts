@@ -2,11 +2,11 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  new URL("../../migrations/0062_accounting_cod_refusal_and_store_credit.sql", import.meta.url),
+  new URL("../../migrations/0063_accounting_cod_refusal_and_store_credit.sql", import.meta.url),
   "utf8",
 );
 
-describe("migration 0062 COD refusal contract", () => {
+describe("migration 0063 COD refusal contract", () => {
   it("forces every financial loss field to zero for rejected delivery", () => {
     expect(sql).toContain("IF NEW.type = 'rejected_delivery'");
     for (const assignment of [
