@@ -17,6 +17,11 @@ const variants: ProductVariant[] = [
     { id: "v-large", label: "كبير", price: 30000, stock: 0 } as ProductVariant,
 ];
 
+const modelVariants: ProductVariant[] = [
+    { id: "m-small", label: "صغير", price: 20000, stock: 5, specifications: { "الحجم": "صغير", "الموديل": "C4-1123" } } as unknown as ProductVariant,
+    { id: "m-large", label: "كبير", price: 30000, stock: 2, specifications: { "الحجم": "كبير", "الموديل": "C4-1123" } } as unknown as ProductVariant,
+];
+
 describe("EmbeddedVariantSelector", () => {
     it("marks the selected variant as pressed and others as not pressed", () => {
         render(
@@ -52,8 +57,6 @@ describe("EmbeddedVariantSelector", () => {
                 onVariantSelect={onVariantSelect}
             />
         );
-        // The in-stock variant is already selected; re-render with a second
-        // in-stock option to confirm the click handler fires with the variant.
         await user.click(screen.getByRole("button", { name: "صغير" }));
         expect(onVariantSelect).toHaveBeenCalledWith(variants[0]);
     });
@@ -68,5 +71,18 @@ describe("EmbeddedVariantSelector", () => {
             />
         );
         expect(screen.getByRole("group", { name: "اختر الحجم" })).toBeInTheDocument();
+    });
+
+    it("shows the selected model on non-aquarium products", () => {
+        render(
+            <EmbeddedVariantSelector
+                variants={modelVariants}
+                selectedVariantId="m-small"
+                onVariantSelect={vi.fn()}
+            />
+        );
+
+        expect(screen.getByText("الموديل:")).toBeInTheDocument();
+        expect(screen.getByText("C4-1123")).toBeInTheDocument();
     });
 });

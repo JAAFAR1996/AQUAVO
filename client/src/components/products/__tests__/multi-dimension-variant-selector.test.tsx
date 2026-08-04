@@ -18,13 +18,18 @@ const variants: ProductVariant[] = [
     { id: "v3", label: "أحمر - كبير", price: 25000, stock: 3, specifications: { "اللون": "أحمر", "الحجم": "كبير" } } as unknown as ProductVariant,
 ];
 
+const modelledVariants: ProductVariant[] = [
+    { id: "m1", label: "ناعم - صغير", price: 20000, stock: 5, specifications: { "النوع": "ناعم", "الحجم": "صغير", "اللون": "أسود", "الموديل": "YFF-049" } } as unknown as ProductVariant,
+    { id: "m2", label: "خشن - كبير", price: 25000, stock: 3, specifications: { "النوع": "خشن", "الحجم": "كبير", "اللون": "بني", "الموديل": "YFF-049" } } as unknown as ProductVariant,
+];
+
 const aquariumVariants: ProductVariant[] = [
-    { id: "YXL-003", label: "YXL-003", price: 25990, stock: 0, specifications: { "السعة": "23 لتر", "الموديل": "YXL-003" } } as unknown as ProductVariant,
-    { id: "YKK-50", label: "YKK-50", price: 38990, stock: 1, specifications: { "السعة": "40 لتر", "الموديل": "YKK-50" } } as unknown as ProductVariant,
-    { id: "YKK-60", label: "YKK-60", price: 51990, stock: 1, specifications: { "السعة": "63 لتر", "الموديل": "YKK-60" } } as unknown as ProductVariant,
-    { id: "YEE-1090", label: "YEE-1090", price: 48400, stock: 2, specifications: { "السعة": "43 لتر", "الموديل": "YEE-1090" } } as unknown as ProductVariant,
-    { id: "YCG-40", label: "YCG-40", price: 58990, stock: 2, specifications: { "السعة": "64 لتر", "الموديل": "YCG-40" } } as unknown as ProductVariant,
-    { id: "C5-1062", label: "C5-1062", price: 82990, stock: 2, specifications: { "السعة": "96 لتر", "الموديل": "C5-1062" } } as unknown as ProductVariant,
+    { id: "YXL-003", label: "YXL-003", price: 25990, stock: 0, specifications: { "الأبعاد": "40×23×25 سم", "السعة": "23 لتر", "الموديل": "YXL-003" } } as unknown as ProductVariant,
+    { id: "YKK-50", label: "YKK-50", price: 38990, stock: 1, specifications: { "الأبعاد": "50×27×30 سم", "السعة": "40 لتر", "الموديل": "YKK-50" } } as unknown as ProductVariant,
+    { id: "YKK-60", label: "YKK-60", price: 51990, stock: 1, specifications: { "الأبعاد": "60×30×35 سم", "السعة": "63 لتر", "الموديل": "YKK-60" } } as unknown as ProductVariant,
+    { id: "YEE-1090", label: "YEE-1090", price: 48400, stock: 2, specifications: { "الأبعاد": "35×35×35 سم", "السعة": "43 لتر", "الموديل": "YEE-1090" } } as unknown as ProductVariant,
+    { id: "YCG-40", label: "YCG-40", price: 58990, stock: 2, specifications: { "الأبعاد": "40×40×40 سم", "السعة": "64 لتر", "الموديل": "YCG-40" } } as unknown as ProductVariant,
+    { id: "C5-1062", label: "C5-1062", price: 82990, stock: 2, specifications: { "الأبعاد": "60×40×40 سم", "السعة": "96 لتر", "الموديل": "C5-1062" } } as unknown as ProductVariant,
 ];
 
 describe("MultiDimensionVariantSelector", () => {
@@ -79,6 +84,19 @@ describe("MultiDimensionVariantSelector", () => {
         expect(onVariantSelect).toHaveBeenCalledWith(variants[2]);
     });
 
+    it("shows a fixed model on non-aquarium multi-dimension products", () => {
+        render(
+            <MultiDimensionVariantSelector
+                variants={modelledVariants}
+                selectedVariantId="m1"
+                onVariantSelect={vi.fn()}
+            />
+        );
+
+        expect(screen.getByText("الموديل")).toBeInTheDocument();
+        expect(screen.getByText("YFF-049")).toBeInTheDocument();
+    });
+
     it("shows aquarium measurements as the only selector and capacity underneath", () => {
         render(
             <MultiDimensionVariantSelector
@@ -91,7 +109,8 @@ describe("MultiDimensionVariantSelector", () => {
         expect(screen.getByRole("group", { name: /القياسات/ })).toBeInTheDocument();
         expect(screen.queryByRole("group", { name: /الموديل/ })).not.toBeInTheDocument();
         expect(screen.queryByRole("group", { name: /السعة/ })).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "القياسات 35 × 35 × 35 سم" })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.queryByText("الموديل")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "القياسات 35×35×35 سم" })).toHaveAttribute("aria-pressed", "true");
         expect(screen.getByText("السعة")).toBeInTheDocument();
         expect(screen.getByText("43 لتر")).toBeInTheDocument();
     });
@@ -107,8 +126,8 @@ describe("MultiDimensionVariantSelector", () => {
             />
         );
 
-        expect(screen.getByRole("button", { name: /القياسات 40 × 23 × 25 سم/ })).toBeDisabled();
-        await user.click(screen.getByRole("button", { name: "القياسات 40 × 40 × 40 سم" }));
+        expect(screen.getByRole("button", { name: /القياسات 40×23×25 سم/ })).toBeDisabled();
+        await user.click(screen.getByRole("button", { name: "القياسات 40×40×40 سم" }));
         expect(onVariantSelect).toHaveBeenCalledWith(aquariumVariants[4]);
     });
 });

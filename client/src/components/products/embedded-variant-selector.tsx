@@ -14,6 +14,12 @@ interface EmbeddedVariantSelectorProps {
   productCategory?: string;
 }
 
+function cleanSpecificationValue(value: unknown): string | null {
+  if (typeof value !== "string" && typeof value !== "number") return null;
+  const normalized = String(value).trim();
+  return normalized.length > 0 ? normalized : null;
+}
+
 export function EmbeddedVariantSelector({
   variants,
   selectedVariantId,
@@ -29,6 +35,7 @@ export function EmbeddedVariantSelector({
   if (!variants || variants.length <= 1 || isMultiDimensionVariantSet(variants)) return null;
 
   const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
+  const selectedModel = cleanSpecificationValue(selectedVariant.specifications?.الموديل);
   const detectedTitle = dimensions[0]?.label ? `اختار ${dimensions[0].label}` : "اختار الخيار";
 
   return (
@@ -67,6 +74,13 @@ export function EmbeddedVariantSelector({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border pt-3 text-sm" aria-live="polite">
+        {selectedModel && (
+          <span className="inline-flex items-center gap-2">
+            <span className="text-muted-foreground">الموديل:</span>
+            <span className="font-bold text-foreground">{selectedModel}</span>
+          </span>
+        )}
+
         <span className="inline-flex items-center gap-2">
           <Tag className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           <span className="text-muted-foreground">السعر:</span>
