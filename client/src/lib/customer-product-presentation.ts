@@ -115,15 +115,26 @@ export function getCustomerFacingVariantLabel(
 }
 
 export function sanitizeProductForCustomer(product: Product): Product {
-  const variants = product.variants?.map((variant, index) => ({
-    ...variant,
-    label: getCustomerFacingVariantLabel(variant, undefined, index),
-    specifications: sanitizeCustomerSpecifications(variant.specifications),
-  }));
+  const sanitizedProduct: Product = { ...product };
 
-  return {
-    ...product,
-    specifications: sanitizeCustomerSpecifications(product.specifications),
-    variants,
-  };
+  if (product.specifications !== undefined) {
+    sanitizedProduct.specifications = sanitizeCustomerSpecifications(product.specifications);
+  }
+
+  if (product.variants !== undefined) {
+    sanitizedProduct.variants = product.variants?.map((variant, index) => {
+      const sanitizedVariant: ProductVariant = {
+        ...variant,
+        label: getCustomerFacingVariantLabel(variant, undefined, index),
+      };
+
+      if (variant.specifications !== undefined) {
+        sanitizedVariant.specifications = sanitizeCustomerSpecifications(variant.specifications);
+      }
+
+      return sanitizedVariant;
+    });
+  }
+
+  return sanitizedProduct;
 }
