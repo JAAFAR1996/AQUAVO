@@ -41,6 +41,7 @@ function getAquariumModel(variant: ProductVariant): string | null {
 
 function getAquariumMeasurement(variant: ProductVariant): string | null {
   const directMeasurement =
+    cleanSpecificationValue(variant.specifications?.الأبعاد) ??
     cleanSpecificationValue(variant.specifications?.القياسات) ??
     cleanSpecificationValue(variant.specifications?.المقاس);
   if (directMeasurement) return directMeasurement;
@@ -95,6 +96,10 @@ export function MultiDimensionVariantSelector({
     : null;
   const selectedCapacity = aquariumMeasurementSet
     ? getAquariumCapacity(selectedVariant)
+    : null;
+  const modelIsSelectableDimension = dimensions.some((dimension) => dimension.key === "الموديل");
+  const selectedModel = !aquariumMeasurementSet && !modelIsSelectableDimension
+    ? cleanSpecificationValue(selectedVariant?.specifications?.الموديل)
     : null;
   const [selection, setSelection] = useState<Record<string, string>>({});
 
@@ -176,52 +181,61 @@ export function MultiDimensionVariantSelector({
           )}
         </>
       ) : (
-        dimensions.map((dimension) => {
-          const selectedValue = selection[dimension.key];
-          const labelId = `variant-dimension-${dimension.key}`;
+        <>
+          {dimensions.map((dimension) => {
+            const selectedValue = selection[dimension.key];
+            const labelId = `variant-dimension-${dimension.key}`;
 
-          return (
-            <fieldset key={dimension.key} className="space-y-2.5">
-              <legend id={labelId} className="flex items-center gap-2 text-sm font-medium">
-                <DimensionIcon dimensionKey={dimension.key} />
-                <span>{dimension.label}</span>
-                {selectedValue && <span className="font-bold text-primary">: {selectedValue}</span>}
-              </legend>
+            return (
+              <fieldset key={dimension.key} className="space-y-2.5">
+                <legend id={labelId} className="flex items-center gap-2 text-sm font-medium">
+                  <DimensionIcon dimensionKey={dimension.key} />
+                  <span>{dimension.label}</span>
+                  {selectedValue && <span className="font-bold text-primary">: {selectedValue}</span>}
+                </legend>
 
-              <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelId}>
-                {dimension.values.map((value) => {
-                  const selected = selectedValue === value;
-                  const available = isDimensionValueAvailable({
-                    variants,
-                    dimensionKey: dimension.key,
-                    value,
-                  });
+                <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelId}>
+                  {dimension.values.map((value) => {
+                    const selected = selectedValue === value;
+                    const available = isDimensionValueAvailable({
+                      variants,
+                      dimensionKey: dimension.key,
+                      value,
+                    });
 
-                  return (
-                    <button
-                      key={value}
-                      type="button"
-                      onClick={() => selectValue(dimension.key, value)}
-                      disabled={!available}
-                      aria-pressed={selected}
-                      aria-label={!available ? `${dimension.label} ${value}، مو متوفر هسه` : `${dimension.label} ${value}`}
-                      className={cn(
-                        "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
-                        selected
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border bg-background text-foreground hover:border-primary/50",
-                        !available && "cursor-not-allowed opacity-40 line-through",
-                      )}
-                    >
-                      {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-                      {value}
-                    </button>
-                  );
-                })}
-              </div>
-            </fieldset>
-          );
-        })
+                    return (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => selectValue(dimension.key, value)}
+                        disabled={!available}
+                        aria-pressed={selected}
+                        aria-label={!available ? `${dimension.label} ${value}، مو متوفر هسه` : `${dimension.label} ${value}`}
+                        className={cn(
+                          "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-foreground hover:border-primary/50",
+                          !available && "cursor-not-allowed opacity-40 line-through",
+                        )}
+                      >
+                        {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
+                        {value}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
+            );
+          })}
+
+          {selectedModel && (
+            <div className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3 text-sm" aria-live="polite">
+              <span className="text-muted-foreground">الموديل</span>
+              <span className="font-bold text-foreground">{selectedModel}</span>
+            </div>
+          )}
+        </>
       )}
 
       {selectedVariant && (
