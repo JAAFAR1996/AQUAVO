@@ -18,6 +18,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { isHiddenModelSpecificationKey } from "@/lib/customer-product-presentation";
 
 interface Specification {
     label: string;
@@ -80,7 +81,7 @@ function getIcon(label: string): React.ElementType {
 // Convert various spec formats to unified format
 function normalizeSpecifications(specs: Specification[] | Record<string, any>): Specification[] {
     if (Array.isArray(specs)) {
-        return specs;
+        return specs.filter((spec) => !isHiddenModelSpecificationKey(spec.label));
     }
 
     // Keys to exclude from technical specifications (shown elsewhere)
@@ -89,6 +90,8 @@ function normalizeSpecifications(specs: Specification[] | Record<string, any>): 
     // Convert object to array, filtering out excluded keys and arrays
     return Object.entries(specs)
         .filter(([key, value]) => {
+            // Model/SKU metadata is internal and must never be customer-facing.
+            if (isHiddenModelSpecificationKey(key)) return false;
             // Internal product presentation metadata, such as 3D model paths.
             if (key.startsWith('__')) return false;
             // Exclude specific keys
