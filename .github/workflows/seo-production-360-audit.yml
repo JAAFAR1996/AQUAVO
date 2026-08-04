@@ -1,0 +1,54 @@
+name: SEO Production 360 Audit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/seo-production-360-audit.mjs"
+      - ".github/workflows/seo-production-360-audit.yml"
+
+concurrency:
+  group: seo-production-360-audit
+  cancel-in-progress: true
+
+jobs:
+  production-crawl-audit:
+    name: Crawl all indexable production URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+    env:
+      AUDIT_BASE_URL: https://www.aquavoiq.com
+      AUDIT_MAX_URLS: 500
+      AUDIT_CONCURRENCY: 8
+      AUDIT_WAIT_ATTEMPTS: 30
+      AUDIT_WAIT_DELAY_MS: 20000
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+
+      - name: Run independent SEO production audit
+        run: node scripts/seo-production-360-audit.mjs
+
+      - name: Upload audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: aquavo-seo-production-360-${{ github.run_number }}
+          path: artifacts/seo-production-360
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Add audit summary
+        if: always()
+        run: |
+          if [ -f artifacts/seo-production-360/report.md ]; then
+            cat artifacts/seo-production-360/report.md >> "$GITHUB_STEP_SUMMARY"
+          fi
