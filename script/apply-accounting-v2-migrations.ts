@@ -21,6 +21,7 @@ const MIGRATIONS = [
   "0062_accounting_automation_opening_balances.sql",
   "0063_accounting_cod_refusal_and_store_credit.sql",
   "0064_accounting_customer_credit_posting_links.sql",
+  "0065_accounting_separate_warranty_from_cod_refusal.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -30,8 +31,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0064") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0064 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0065") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0065 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -99,6 +100,7 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL) AS migration_0062,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0063_accounting_cod_refusal_and_store_credit' AND rolled_back_at IS NULL) AS migration_0063,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0064_accounting_customer_credit_posting_links' AND rolled_back_at IS NULL) AS migration_0064,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0065_accounting_separate_warranty_from_cod_refusal' AND rolled_back_at IS NULL) AS migration_0065,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_customer_credit_period_close' AND NOT tgisinternal) AS credit_close_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
@@ -110,6 +112,7 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_accounting_link_validate' AND NOT tgisinternal) AS credit_link_guard,
         pg_get_functiondef('public.apply_verified_return_inventory()'::regprocedure) ILIKE '%NEW.type=''rejected_delivery''%' AS refusal_double_restock_guard,
         pg_get_functiondef('public.reverse_order_inventory_on_terminal_status()'::regprocedure) ILIKE '%carrier_return_pending%' AS refusal_immediate_availability,
+        pg_get_functiondef('public.reverse_order_inventory_on_terminal_status()'::regprocedure) ILIKE '%v_restore_inventory%' AS warranty_item_level_guard,
         EXISTS(
           SELECT 1 FROM pg_trigger t
           WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
