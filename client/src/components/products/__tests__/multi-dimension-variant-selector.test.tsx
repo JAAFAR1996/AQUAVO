@@ -20,7 +20,7 @@ const variants: ProductVariant[] = [
 
 const modelledVariants: ProductVariant[] = [
     { id: "m1", label: "ناعم - صغير", price: 20000, stock: 5, specifications: { "النوع": "ناعم", "الحجم": "صغير", "اللون": "أسود", "الموديل": "YFF-049" } } as unknown as ProductVariant,
-    { id: "m2", label: "خشن - كبير", price: 25000, stock: 3, specifications: { "النوع": "خشن", "الحجم": "كبير", "اللون": "بني", "الموديل": "YFF-049" } } as unknown as ProductVariant,
+    { id: "m2", label: "خشن - كبير", price: 25000, stock: 3, specifications: { "النوع": "خشن", "الحجم": "كبير", "اللون": "بني", "الموديل": "YFF-052" } } as unknown as ProductVariant,
 ];
 
 const aquariumVariants: ProductVariant[] = [
@@ -84,7 +84,7 @@ describe("MultiDimensionVariantSelector", () => {
         expect(onVariantSelect).toHaveBeenCalledWith(variants[2]);
     });
 
-    it("shows a fixed model on non-aquarium multi-dimension products", () => {
+    it("shows the selected model as information, never as an option group", () => {
         render(
             <MultiDimensionVariantSelector
                 variants={modelledVariants}
@@ -93,8 +93,11 @@ describe("MultiDimensionVariantSelector", () => {
             />
         );
 
+        expect(screen.queryByRole("group", { name: /الموديل/ })).not.toBeInTheDocument();
         expect(screen.getByText("الموديل")).toBeInTheDocument();
         expect(screen.getByText("YFF-049")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /YFF-049/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /YFF-052/ })).not.toBeInTheDocument();
     });
 
     it("shows aquarium measurements as the only selector and capacity underneath", () => {
