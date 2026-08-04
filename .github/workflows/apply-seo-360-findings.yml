@@ -1,0 +1,66 @@
+name: Apply SEO 360 Findings
+
+on:
+  push:
+    branches: [fix/seo-360-findings-20260804]
+    paths:
+      - "scripts/apply-seo-360-findings.mjs"
+      - ".github/workflows/apply-seo-360-findings.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-seo-360-findings
+  cancel-in-progress: false
+
+jobs:
+  apply-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/seo-360-findings-20260804
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --prefer-offline
+
+      - name: Apply exact remediation
+        run: node scripts/apply-seo-360-findings.mjs
+
+      - name: Type-check
+        run: pnpm run check
+
+      - name: Build packaged runtime
+        run: pnpm run build
+
+      - name: Execute packaged runtime checks
+        run: pnpm exec tsx scripts/verify-generated-ssr-runtime.ts
+
+      - name: Run focused SEO safety tests
+        run: pnpm exec vitest run test/seo-preview-shell.test.tsx test/seo-runtime-entry.test.ts test/seo-production-safety.test.ts test/seo-audit-crawler-parity.test.ts --reporter=verbose
+
+      - name: Remove one-time transport files
+        run: rm scripts/apply-seo-360-findings.mjs .github/workflows/apply-seo-360-findings.yml
+
+      - name: Commit verified remediation
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add api/ssr-preview.ts api/_seo-content.ts scripts/seo-production-360-audit.mjs scripts/verify-generated-ssr-runtime.ts scripts/apply-seo-360-findings.mjs .github/workflows/apply-seo-360-findings.yml
+          git commit -m "fix(seo): apply production 360 audit findings"
+          git push origin HEAD:fix/seo-360-findings-20260804
