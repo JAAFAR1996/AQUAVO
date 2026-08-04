@@ -6,7 +6,7 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 describe("Accounting V2 automation", () => {
-  it("ships migration 0062 with an explicit rollback", () => {
+  it("ships migration 0062 with an explicit rollback and valid ledger registration", () => {
     expect(existsSync(join(root, "migrations/0062_accounting_automation_opening_balances.sql"))).toBe(true);
     expect(existsSync(join(root, "migrations/0062_accounting_automation_opening_balances_rollback.sql"))).toBe(true);
     const migration = read("migrations/0062_accounting_automation_opening_balances.sql");
@@ -18,8 +18,10 @@ describe("Accounting V2 automation", () => {
     expect(migration).toContain("interval '1 month'");
     expect(migration).toContain("journal_entries_closed_period_guard");
     expect(migration).toContain("journal_lines_immutable_guard");
-    expect(migration).toContain("Typical rejected order");
     expect(migration).toContain("IF v_total=0 THEN");
+    expect(migration).toContain("monetary return requires accounting fact");
+    const checksum = migration.match(/'0062_accounting_automation_opening_balances',\s*'([0-9a-f]{64})'/)?.[1];
+    expect(checksum).toMatch(/^[0-9a-f]{64}$/);
   });
 
   it("does not restore rejected stock before physical receipt", () => {
