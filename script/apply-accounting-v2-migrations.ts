@@ -19,6 +19,7 @@ const MIGRATIONS = [
   "0060_accounting_close_state_machine.sql",
   "0061_accounting_default_carrier_status_guard.sql",
   "0062_accounting_automation_opening_balances.sql",
+  "0063_accounting_cod_refusal_and_store_credit.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -28,8 +29,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0063") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0063 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -82,16 +83,23 @@ async function main(): Promise<void> {
         to_regclass('public.delivery_companies') IS NOT NULL AS companies,
         to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
         to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
+        to_regclass('public.customer_credit_accounts') IS NOT NULL AS credit_accounts,
+        to_regclass('public.customer_credit_entries') IS NOT NULL AS credit_entries,
+        to_regclass('public.v_customer_credit_balances') IS NOT NULL AS credit_balances,
+        to_regclass('public.v_cod_refusal_policy_exceptions') IS NOT NULL AS refusal_exceptions,
         to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL) AS migration_0062,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0063_accounting_cod_refusal_and_store_credit' AND rolled_back_at IS NULL) AS migration_0063,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_lines_immutable_guard' AND NOT tgisinternal) AS journal_line_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_return_events_enforce_cod_refusal' AND NOT tgisinternal) AS refusal_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_entries_guard' AND NOT tgisinternal) AS credit_guard,
         EXISTS(
           SELECT 1 FROM pg_trigger t
-          WHERE t.tgname='orders_apply_default_delivery_company' AND NOT tgisinternal
+          WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
             AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
         ) AS carrier_status_guard
     `);
