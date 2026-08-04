@@ -6,10 +6,11 @@ const root = process.cwd();
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 describe("Accounting V2 automation", () => {
-  it("ships migration 0062 with an explicit rollback and valid ledger registration", () => {
+  it("ships migration 0062 with a complete explicit rollback and valid ledger registration", () => {
     expect(existsSync(join(root, "migrations/0062_accounting_automation_opening_balances.sql"))).toBe(true);
     expect(existsSync(join(root, "migrations/0062_accounting_automation_opening_balances_rollback.sql"))).toBe(true);
     const migration = read("migrations/0062_accounting_automation_opening_balances.sql");
+    const rollback = read("migrations/0062_accounting_automation_opening_balances_rollback.sql");
     expect(migration).toContain("'accounting_cutover'");
     expect(migration).toContain("'opening_balances'");
     expect(migration).toContain("public.v_accounting_live_balances");
@@ -22,6 +23,9 @@ describe("Accounting V2 automation", () => {
     expect(migration).toContain("monetary return requires accounting fact");
     const checksum = migration.match(/'0062_accounting_automation_opening_balances',\s*'([0-9a-f]{64})'/)?.[1];
     expect(checksum).toMatch(/^[0-9a-f]{64}$/);
+    expect(rollback).toContain("CREATE OR REPLACE FUNCTION public.post_verified_return_journal()");
+    expect(rollback).toContain("accounting fact missing for order");
+    expect(rollback).toContain("structural rollback; immutable opening entry retained");
   });
 
   it("does not restore rejected stock before physical receipt", () => {
