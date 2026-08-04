@@ -18,23 +18,18 @@ const MIGRATIONS = [
   "0059_accounting_carrier_other_deductions.sql",
   "0060_accounting_close_state_machine.sql",
   "0061_accounting_default_carrier_status_guard.sql",
+  "0062_accounting_automation_opening_balances.sql",
 ] as const;
 
-function versionOf(file: string): string {
-  return file.replace(/\.sql$/, "");
-}
-function fileBody(file: string): string {
-  return readFileSync(join(process.cwd(), "migrations", file), "utf8");
-}
-function sha256(body: string): string {
-  return createHash("sha256").update(body).digest("hex");
-}
+function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
+function fileBody(file: string): string { return readFileSync(join(process.cwd(), "migrations", file), "utf8"); }
+function sha256(body: string): string { return createHash("sha256").update(body).digest("hex"); }
 
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0061") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -49,31 +44,21 @@ async function main(): Promise<void> {
     for (const file of MIGRATIONS) {
       const version = versionOf(file);
       const ledger = await client.query<{ applied: boolean }>(
-        `SELECT EXISTS(
-           SELECT 1 FROM public.schema_migrations
-           WHERE version=$1 AND rolled_back_at IS NULL
-         ) AS applied`,
+        `SELECT EXISTS(SELECT 1 FROM public.schema_migrations WHERE version=$1 AND rolled_back_at IS NULL) AS applied`,
         [version],
       );
       if (ledger.rows[0]?.applied) {
         console.log(`[accounting-migrate] skip ${version}: already applied`);
         continue;
       }
-
       const body = fileBody(file);
       console.log(`[accounting-migrate] apply ${version}`);
       await client.query(body);
-
       const verify = await client.query<{ applied: boolean }>(
-        `SELECT EXISTS(
-           SELECT 1 FROM public.schema_migrations
-           WHERE version=$1 AND rolled_back_at IS NULL
-         ) AS applied`,
+        `SELECT EXISTS(SELECT 1 FROM public.schema_migrations WHERE version=$1 AND rolled_back_at IS NULL) AS applied`,
         [version],
       );
-      if (!verify.rows[0]?.applied) {
-        throw new Error(`${version} did not register itself in schema_migrations`);
-      }
+      if (!verify.rows[0]?.applied) throw new Error(`${version} did not register itself in schema_migrations`);
     }
 
     for (const file of MIGRATIONS) {
@@ -81,9 +66,9 @@ async function main(): Promise<void> {
       const checksum = sha256(fileBody(file));
       const updated = await client.query(
         `UPDATE public.schema_migrations
-         SET checksum=$2,notes=COALESCE(notes,'')||' [runner-verified file sha256]'
-         WHERE version=$1 AND rolled_back_at IS NULL
-         RETURNING version`,
+         SET checksum=$2,
+             notes=CASE WHEN COALESCE(notes,'') LIKE '%[runner-verified file sha256]%' THEN notes ELSE COALESCE(notes,'')||' [runner-verified file sha256]' END
+         WHERE version=$1 AND rolled_back_at IS NULL RETURNING version`,
         [version, checksum],
       );
       if (updated.rowCount !== 1) throw new Error(`Cannot normalize ledger checksum for ${version}`);
@@ -96,13 +81,17 @@ async function main(): Promise<void> {
         to_regclass('public.v_accounting_period_readiness') IS NOT NULL AS readiness,
         to_regclass('public.delivery_companies') IS NOT NULL AS companies,
         to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
+        to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
+        to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
-        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0061_accounting_default_carrier_status_guard' AND rolled_back_at IS NULL) AS migration_0061,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL) AS migration_0062,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_lines_immutable_guard' AND NOT tgisinternal) AS journal_line_guard,
         EXISTS(
           SELECT 1 FROM pg_trigger t
-          WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
+          WHERE t.tgname='orders_apply_default_delivery_company' AND NOT tgisinternal
             AND pg_get_triggerdef(t.oid,true) ILIKE '%UPDATE OF carrier, status%'
         ) AS carrier_status_guard
     `);
@@ -112,9 +101,7 @@ async function main(): Promise<void> {
     }
     console.log(`[accounting-migrate] health OK ${JSON.stringify(checks)}`);
   } finally {
-    if (advisoryLocked) {
-      await client.query("SELECT pg_advisory_unlock(hashtext('aquavo-accounting-v2-migrations'))").catch(() => undefined);
-    }
+    if (advisoryLocked) await client.query("SELECT pg_advisory_unlock(hashtext('aquavo-accounting-v2-migrations'))").catch(() => undefined);
     client.release();
     await pool.end();
   }

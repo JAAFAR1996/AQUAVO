@@ -9,6 +9,7 @@ on:
       - "server/middleware/accounting-auth-v2.ts"
       - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
+      - "server/routes/accounting-automatic-returns-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
       - "server/routes/accounting-setup-v2.ts"
       - "server/routes/accounting-smart-carrier-v2.ts"
@@ -17,17 +18,23 @@ on:
       - "server/routes/accounting-evidence-upload-v2.ts"
       - "server/routes/admin-orders-v2.ts"
       - "server/routes/invoice-v2.ts"
+      - "server/routes/cron.ts"
       - "server/routes/upload.ts"
+      - "server/services/accounting-auto-close-v2.ts"
+      - "server/services/order-return-automation-v2.ts"
       - "server/utils/cloudinary.ts"
       - "server/__tests__/accounting-*.test.ts"
       - "shared/accounting-schema-v2.ts"
       - "shared/cod-accounting.ts"
+      - "client/src/lib/accountant-pdf-v2.ts"
       - "client/src/components/admin/finance-accounting-*.tsx"
       - "client/src/components/admin/finance-smart-carrier-center-v2.tsx"
+      - "client/src/components/admin/finance-automatic-returns-v2.tsx"
       - "client/src/components/admin/finance-carrier-position-v2.tsx"
       - "client/src/pages/admin/finance.tsx"
       - "migrations/005*.sql"
       - "migrations/006*.sql"
+      - "script/apply-accounting-v2-migrations.ts"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
 
@@ -67,7 +74,7 @@ jobs:
       - name: Strict accounting typecheck
         run: pnpm check:accounting
 
-      - name: Accounting contract tests
+      - name: Accounting contract and migration tests
         run: >-
           pnpm exec vitest run
           server/__tests__/accounting-cod-v2-contract.test.ts
@@ -75,6 +82,8 @@ jobs:
           server/__tests__/accounting-v2-operating-defaults-contract.test.ts
           server/__tests__/accounting-v2-review-fixes-contract.test.ts
           server/__tests__/accounting-smart-carrier-v2-contract.test.ts
+          server/__tests__/accounting-v2-automation-contract.test.ts
+          server/__tests__/accounting-v2-migration-0062-execution.test.ts
 
       - name: Migration ledger governance
         run: pnpm check:migrations

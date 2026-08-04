@@ -7,6 +7,7 @@ import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
 import { createAccountingHealthV2Router } from "./routes/accounting-health-v2.js";
+import { createAccountingAutomaticReturnsV2Router } from "./routes/accounting-automatic-returns-v2.js";
 import { createAccountingMonthlyPositionV2Router } from "./routes/accounting-monthly-position-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
 import { createAccountingSmartCarrierV2Router } from "./routes/accounting-smart-carrier-v2.js";
@@ -146,6 +147,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
   app.use("/api/admin/accounting", createAccountingHealthV2Router());
+  app.use("/api/admin/accounting", createAccountingAutomaticReturnsV2Router());
   app.use("/api/admin/accounting", createAccountingMonthlyPositionV2Router());
   app.use("/api/admin/accounting", createAccountingSetupV2Router());
   app.use("/api/admin/accounting", createAccountingSmartCarrierV2Router());

@@ -34,7 +34,7 @@ describe("Accounting V2 operating defaults", () => {
     expect(route).toContain("ضع الفرق بخانة «اقتطاع آخر»");
   });
 
-  it("keeps monthly positions separate from profit", () => {
+  it("keeps legacy monthly snapshots separate from profit", () => {
     const migration = read("migrations/0057_accounting_operating_defaults.sql");
     expect(migration).not.toContain("journal_entries(");
     expect(migration).not.toContain("product_revenue=");
@@ -86,7 +86,7 @@ describe("Accounting V2 operating defaults", () => {
     expect(orders).toContain("carrierFee = Number(company.default_fee)");
   });
 
-  it("exposes automatic carrier accounting and only physical manual reconciliations", () => {
+  it("exposes automatic carrier accounting and no owner-entered balances or tax decision", () => {
     const smart = read("client/src/components/admin/finance-smart-carrier-center-v2.tsx");
     const lite = read("client/src/components/admin/finance-accounting-operations-lite-v2.tsx");
     const register = read("client/src/components/admin/finance-accounting-register-v2.tsx");
@@ -100,21 +100,21 @@ describe("Accounting V2 operating defaults", () => {
     expect(smart).toContain("company.outstanding.fees");
     expect(smart).toContain("company.outstanding.net");
     expect(smart).toContain("company.outstandingOrders.map((order) => order.orderId)");
-    expect(smart).toContain("/api/admin/accounting/v2/orders/${orderId}/delivery-company");
 
     expect(lite).toContain("تأكيد داخلي — بدون ملف");
     expect(lite).toContain("/api/admin/accounting/v2/fixed-preparation-items");
-    expect(lite).toContain("عدّ الصندوق");
-    expect(lite).not.toContain('value="carrier_receivable"');
-    expect(lite).not.toContain("positionGross");
-    expect(lite).not.toContain("positionFee");
+    expect(lite).toContain('taxTreatment: "pending"');
+    expect(lite).not.toContain("المعاملة الضريبية");
+    expect(lite).not.toContain("/api/admin/accounting/v2/monthly-positions");
+    expect(lite).not.toContain("positionAmount");
   });
 
-  it("includes operating context in the accountant package", () => {
+  it("includes automatic balances and close context in the accountant package", () => {
     const reports = read("server/routes/accounting-v2.ts");
     expect(reports).toContain("deliveryCompanies");
-    expect(reports).toContain("monthlyPositions");
     expect(reports).toContain("fixedPreparationItems");
-    expect(reports).toContain("Monthly positions are owner-confirmed reconciliation snapshots");
+    expect(reports).toContain("liveBalances");
+    expect(reports).toContain("automaticClose");
+    expect(reports).toContain("Live balances are derived from the immutable double-entry ledger");
   });
 });

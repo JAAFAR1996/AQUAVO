@@ -6,6 +6,7 @@ import { getDb } from "../db.js";
 import { requireAccountingAdmin } from "../middleware/accounting-auth-v2.js";
 import { actorFromRequest, recordFinancialChange } from "../services/accountingAuditTrail.js";
 import { applyPackagingLifecycle, type LifecycleOutcome } from "../services/packaging-lifecycle-runner.js";
+import { syncAutomaticReturnLifecycle } from "../services/order-return-automation-v2.js";
 import { orderCollectedAmount } from "../../shared/order-financials.js";
 
 const numericInput = z.union([z.string(), z.number()])
@@ -29,6 +30,7 @@ const statusTransitionSchema = z.object({
 
 type LockedOrder = {
   id: string;
+  order_number: string | null;
   status: string;
   user_id: string | null;
   client_ip: string | null;
@@ -116,7 +118,7 @@ export function createAdminOrdersV2Router() {
     try {
       const result = await db.transaction(async (tx) => {
         const lockedResult = await tx.execute(sql`
-          SELECT id,status,user_id,client_ip,carrier,carrier_fee
+          SELECT id,order_number,status,user_id,client_ip,carrier,carrier_fee
           FROM orders WHERE id=${req.params.id} FOR UPDATE
         `);
         const locked = rowsOf<LockedOrder>(lockedResult)[0];
@@ -172,6 +174,17 @@ export function createAdminOrdersV2Router() {
         } as any).where(sql`${orders.id}=${locked.id}`).returning();
         if (!updated) throw new Error("فشل تحديث الطلب بعد قفله");
 
+        const automaticReturn = input.status !== oldStatus
+          ? await syncAutomaticReturnLifecycle(tx, {
+              orderId: locked.id,
+              orderNumber: locked.order_number,
+              oldStatus,
+              newStatus: input.status,
+              actorId: actor.id,
+              actorName: actor.name,
+            })
+          : { eventId: null, action: "none" as const };
+
         await recordFinancialChange(tx as never, {
           entityType: "order",entityId: locked.id,action: "status_change",fieldName: "status",
           oldValue: oldStatus,newValue: input.status,
@@ -186,12 +199,12 @@ export function createAdminOrdersV2Router() {
             performedBy: actor.id,performedByName: actor.name ?? undefined,
           });
         }
-        return { order: updated, oldStatus, lifecycle, clientIp: locked.client_ip };
+        return { order: updated, oldStatus, lifecycle, automaticReturn, clientIp: locked.client_ip };
       });
 
       await runPostCommitCustomerEffects(result.order, result.oldStatus, parsed.data.status);
       if (parsed.data.status === "rejected" && result.oldStatus !== "rejected") await recordRejectedIp(result.clientIp);
-      res.json({ ...result.order, packagingLifecycle: result.lifecycle });
+      res.json({ ...result.order, packagingLifecycle: result.lifecycle, automaticReturn: result.automaticReturn });
     } catch (error: any) {
       if (error?.statusCode === 404) { res.status(404).json({ message: error.message }); return; }
       next(error);

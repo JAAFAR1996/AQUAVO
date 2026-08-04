@@ -22,19 +22,25 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(source).not.toContain("LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id\n          WHERE f.order_id IN");
   });
 
-  it("prevents close-state regressions at both API and database layers", () => {
+  it("prevents close-state regressions at API and database layers", () => {
     const api = read("server/routes/accounting-v2.ts");
-    expect(api).toContain("WHERE public.accounting_period_closes.status <> 'tax_final'");
+    expect(api).toContain("WHERE public.accounting_period_closes.status='reopened'");
     expect(api).toContain("WHERE period_key=${periodKey} AND status='closed'");
     expect(api).toContain("لا توجد بيانات جاهزية لهذه الفترة");
     expect(api).toContain("لا يمكن إغلاق الشهر قبل معالجة الموانع");
+    expect(api).toContain("runAutomaticPeriodClose");
 
-    const migration = read("migrations/0060_accounting_close_state_machine.sql");
-    expect(migration).toContain("IF NOT FOUND THEN");
-    expect(migration).toContain("CLOSE_BLOCKED: readiness row missing");
-    expect(migration).toContain("TAX_FINALIZATION_BLOCKED: tax profile missing");
-    expect(migration).toContain("tax-final period % is immutable");
-    expect(migration).toContain("only a closed period can be reopened");
+    const migration60 = read("migrations/0060_accounting_close_state_machine.sql");
+    expect(migration60).toContain("IF NOT FOUND THEN");
+    expect(migration60).toContain("CLOSE_BLOCKED: readiness row missing");
+    expect(migration60).toContain("TAX_FINALIZATION_BLOCKED: tax profile missing");
+    expect(migration60).toContain("tax-final period % is immutable");
+    expect(migration60).toContain("only a closed period can be reopened");
+
+    const migration62 = read("migrations/0062_accounting_automation_opening_balances.sql");
+    expect(migration62).toContain("journal_entries_closed_period_guard");
+    expect(migration62).toContain("journal_lines_immutable_guard");
+    expect(migration62).toContain("CLOSED_PERIOD_JOURNAL_BLOCKED");
   });
 
   it("ships migration 0060 with a safety-preserving rollback", () => {
@@ -60,12 +66,13 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("requires health through migration 0061", () => {
+  it("retains the 0061 carrier guard while the main V2 router requires 0062", () => {
     const health = read("server/routes/accounting-health-v2.ts");
     expect(health).toContain("migration_0061");
     expect(health).toContain("carrier_status_guard");
-    expect(health).toContain("migrationsThrough: \"0061\"");
-    expect(health).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0061_REQUIRED");
+    const reports = read("server/routes/accounting-v2.ts");
+    expect(reports).toContain("migration_0062");
+    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED");
   });
 
   it("keeps the default carrier active during status-only updates", () => {
@@ -77,16 +84,16 @@ describe("Accounting V2 reviewed fixes", () => {
 
   it("runs exact migration files before production deploy and skips previews", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0061"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
-    expect(runner).toContain('"0061_accounting_default_carrier_status_guard.sql"');
+    expect(runner).toContain('"0062_accounting_automation_opening_balances.sql"');
 
     const vercel = read("vercel.json");
     expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061");
+    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062");
     expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
   });
 });

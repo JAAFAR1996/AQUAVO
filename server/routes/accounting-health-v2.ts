@@ -27,6 +27,8 @@ export function createAccountingHealthV2Router() {
           to_regclass('public.v_accounting_period_readiness') IS NOT NULL AS readiness,
           to_regclass('public.delivery_companies') IS NOT NULL AS companies,
           to_regclass('public.accounting_monthly_positions') IS NOT NULL AS positions,
+          to_regclass('public.v_accounting_live_balances') IS NOT NULL AS live_balances,
+          to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
           EXISTS(
             SELECT 1 FROM information_schema.columns
             WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at'
@@ -45,9 +47,21 @@ export function createAccountingHealthV2Router() {
             WHERE version='0061_accounting_default_carrier_status_guard' AND rolled_back_at IS NULL
           ) AS migration_0061,
           EXISTS(
+            SELECT 1 FROM public.schema_migrations
+            WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL
+          ) AS migration_0062,
+          EXISTS(
             SELECT 1 FROM pg_trigger
             WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal
           ) AS close_state_guard,
+          EXISTS(
+            SELECT 1 FROM pg_trigger
+            WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal
+          ) AS closed_period_guard,
+          EXISTS(
+            SELECT 1 FROM pg_trigger
+            WHERE tgname='journal_lines_immutable_guard' AND NOT tgisinternal
+          ) AS journal_line_guard,
           EXISTS(
             SELECT 1 FROM pg_trigger t
             WHERE t.tgname='orders_apply_default_delivery_company' AND NOT t.tgisinternal
@@ -57,7 +71,7 @@ export function createAccountingHealthV2Router() {
       const state = rowsOf(result)[0] ?? {};
       const ready = Object.values(state).every(Boolean);
       if (!ready) {
-        res.status(503).json({ message: "ACCOUNTING_V2_MIGRATIONS_0051_TO_0061_REQUIRED", ready: false, checks: state });
+        res.status(503).json({ message: "ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED", ready: false, checks: state });
         return;
       }
       res.json({
@@ -65,7 +79,8 @@ export function createAccountingHealthV2Router() {
         cutover: "2026-08-01",
         timezone: "Asia/Baghdad",
         currency: "IQD",
-        migrationsThrough: "0061",
+        migrationsThrough: "0062",
+        automaticClose: true,
         checks: state,
       });
     } catch (error) {

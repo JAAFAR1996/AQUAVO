@@ -1,5 +1,5 @@
 {
-  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0061 pnpm exec tsx script/apply-accounting-v2-migrations.ts; fi && pnpm run build",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062 pnpm exec tsx script/apply-accounting-v2-migrations.ts; fi && pnpm run build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,
@@ -28,7 +28,7 @@
     { "path": "/api/cron/nightly", "schedule": "30 22 * * *" },
     { "path": "/api/cron/weekly-blog", "schedule": "0 2 * * 0" },
     { "path": "/api/cron/email-campaigns", "schedule": "0 7 * * 1" },
-    { "path": "/api/cron/finance-audit", "schedule": "0 3 * * *" }
+    { "path": "/api/cron/finance-audit", "schedule": "0 21 * * *" }
   ],
   "headers": [
     {
