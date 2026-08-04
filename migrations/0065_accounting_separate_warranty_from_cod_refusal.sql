@@ -97,7 +97,7 @@ END $inventory_workflow_0065$;
 INSERT INTO public.schema_migrations(version,checksum,applied_by,notes)
 SELECT
   '0065_accounting_separate_warranty_from_cod_refusal',
-  'pending',
+  '4199f16ab542820fb11a779d5a29ed873b2a98e911d96756f3cbcb0cc27ae8c8',
   current_user,
   'Only rejected-to-returned confirms COD custody; delivered-to-returned requires item-level warranty/return events and never restores the full order automatically'
 WHERE NOT EXISTS (
