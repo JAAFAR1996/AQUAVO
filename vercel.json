@@ -16,7 +16,8 @@
     },
     "api/ssr-preview.ts": {
       "memory": 512,
-      "maxDuration": 15
+      "maxDuration": 15,
+      "includeFiles": "{api/**,shared/**,generated/**,server/suppress.ts}"
     },
     "api/pdf.ts": {
       "memory": 256,
@@ -27,7 +28,7 @@
     { "path": "/api/cron/nightly", "schedule": "30 22 * * *" },
     { "path": "/api/cron/weekly-blog", "schedule": "0 2 * * 0" },
     { "path": "/api/cron/email-campaigns", "schedule": "0 7 * * 1" },
-    { "path": "/api/cron/finance-audit", "schedule": "0 3 * * *" }
+    { "path": "/api/cron/finance-audit", "schedule": "10 21 * * *" }
   ],
   "headers": [
     {
