@@ -1,6 +1,6 @@
 # AQUAVO — llms-full.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-07-12
+# Last updated: 2026-08-04
 
 ## Identity and operator
 
@@ -52,7 +52,7 @@ Product pages are the only source of truth for current product names, brands, pr
 | Return and limited warranty policy | https://www.aquavoiq.com/return-policy |
 | Terms | https://www.aquavoiq.com/terms |
 | Privacy | https://www.aquavoiq.com/privacy-policy |
-| Blog and education | https://www.aquavoiq.com/blog |
+| Guides and education | https://www.aquavoiq.com/guides |
 | Setup journey | https://www.aquavoiq.com/journey |
 | Calculators | https://www.aquavoiq.com/calculators |
 
