@@ -2,8 +2,8 @@
  * MultiDimensionVariantSelector accessibility tests (Phase E).
  *
  * Each dimension (color, size, ...) is its own group of toggle buttons;
- * options must expose aria-pressed and disable combinations that are out
- * of stock, with a discernible reason for assistive tech.
+ * options must expose aria-pressed and disable values that have no in-stock
+ * variant, with a discernible reason for assistive tech.
  */
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
@@ -43,7 +43,7 @@ describe("MultiDimensionVariantSelector", () => {
         expect(screen.getByRole("button", { name: /اللون أزرق/ })).toHaveAttribute("aria-pressed", "false");
     });
 
-    it("disables a combination that has no matching in-stock variant", () => {
+    it("disables a dimension value that has no in-stock variant", () => {
         render(
             <MultiDimensionVariantSelector
                 variants={variants}
@@ -51,10 +51,10 @@ describe("MultiDimensionVariantSelector", () => {
                 onVariantSelect={vi.fn()}
             />
         );
-        // v2 (أزرق - صغير) is out of stock, so "أزرق" is unavailable while "صغير" stays selected.
+        // The only blue variant is out of stock, so the blue value stays unavailable.
         const blue = screen.getByRole("button", { name: /اللون أزرق/ });
         expect(blue).toBeDisabled();
-        expect(blue).toHaveAccessibleName("اللون أزرق، غير متوفر");
+        expect(blue).toHaveAccessibleName("اللون أزرق، مو متوفر هسه");
     });
 
     it("calls onVariantSelect with the matching variant when a dimension value is chosen", async () => {
