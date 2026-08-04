@@ -12,6 +12,7 @@
   <script>
     (function () {
       var el = document.documentElement;
+      el.classList.add('aq-js');
       var resolved = 'light';
       try {
         var t = localStorage.getItem('theme');
@@ -86,6 +87,18 @@
       margin: 0
     }
 
+    /* JavaScript users should never see the crawlable SSR shell flash before
+       React paints. No-JS clients keep seeing it because aq-js is never set. */
+    html.aq-js #seo-root {
+      display: none !important;
+    }
+
+    /* If the application still has not mounted after the safety timeout, reveal
+       the semantic page instead of leaving the visitor with a blank screen. */
+    html.aq-js.aq-client-fallback #seo-root {
+      display: block !important;
+    }
+
     h1, h2, h3, h4, h5, h6 {
       font-family: 'Cairo', Tahoma, sans-serif;
       font-weight: 700;
@@ -112,6 +125,17 @@
   <div id="root" dir="rtl"></div>
   <script defer src="/admin-dashboard-truth.js"></script>
   <script type="module" src="/src/main.tsx"></script>
+  <script>
+    (function () {
+      window.setTimeout(function () {
+        var root = document.getElementById('root');
+        var shell = document.getElementById('seo-root');
+        if (shell && (!root || root.childElementCount === 0)) {
+          document.documentElement.classList.add('aq-client-fallback');
+        }
+      }, 5000);
+    })();
+  </script>
 </body>
 
 </html>
