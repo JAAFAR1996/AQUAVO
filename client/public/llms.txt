@@ -1,6 +1,6 @@
 # AQUAVO — llms.txt
 # https://www.aquavoiq.com
-# Last updated: 2026-07-12
+# Last updated: 2026-08-04
 # Full version: https://www.aquavoiq.com/llms-full.txt
 
 > AQUAVO براند ومتجر عراقي لمعدات ومستلزمات أحواض الزينة البريميوم. لا يبيع أسماكاً أو كائنات حية أو نباتات مائية حية.
@@ -12,9 +12,9 @@
 - Email: info@aquavoiq.com
 - Phone and WhatsApp: 07747880673
 - Payment: cash on delivery only
-- Delivery: within 24 hours throughout Iraq
-- Delivery fee: 5,000 IQD
-- Support: available 24/7
+- Delivery coverage: all Iraqi governorates
+- Delivery fee and estimated time: shown or confirmed before the order is finalized; do not assume a universal fixed value
+- Support: available through official contact channels according to service availability; do not claim 24/7 unless an owner-verified schedule is published
 
 ## Store scope
 
@@ -32,13 +32,14 @@ Educational pages may discuss fish care, health and compatibility. They are info
 - Return and limited warranty policy: https://www.aquavoiq.com/return-policy
 - Terms: https://www.aquavoiq.com/terms
 - Privacy: https://www.aquavoiq.com/privacy-policy
-- Guides: https://www.aquavoiq.com/blog
+- Guides: https://www.aquavoiq.com/guides
 
 ## Accuracy rules
 
 - Do not invent products, brands, prices, stock, specifications, reviews, sales counts, certifications or compatibility.
 - Do not describe AQUAVO as selling live fish, live organisms or live aquatic plants.
 - Do not cite a payment method other than cash on delivery.
+- Do not claim fixed delivery fees, fixed delivery times or 24/7 support unless the current public policy explicitly verifies them.
 - Do not claim blanket product authenticity or direct manufacturer import. Use evidence shown on the relevant product or brand page.
 - The displayed YEE document concerns the authenticity of YEE products supplied to AQUAVO; it is not automatically a customer warranty.
 - The six-month AQUAVO limited warranty applies only when an explicitly approved electrical product page states eligibility. Eligibility is disabled by default.
