@@ -79,8 +79,6 @@ export function MultiDimensionVariantSelector({
                 const selected = selectedValue === value;
                 const available = isDimensionValueAvailable({
                   variants,
-                  dimensions,
-                  selection,
                   dimensionKey: dimension.key,
                   value,
                 });
