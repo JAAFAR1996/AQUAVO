@@ -1,0 +1,35 @@
+name: IndexNow Search Refresh
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "api/**"
+      - "client/public/sitemap*.xml"
+      - "client/public/67d3eed08e869c3cd18bdf563d183fcc.txt"
+      - "shared/seo-contract.ts"
+      - "script/build.ts"
+      - "scripts/submit-indexnow.mjs"
+      - ".github/workflows/indexnow-search-refresh.yml"
+
+concurrency:
+  group: indexnow-production-refresh
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    name: Submit changed AQUAVO URLs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+
+      - name: Wait for production and submit IndexNow
+        run: node scripts/submit-indexnow.mjs
