@@ -2,6 +2,7 @@ import type { SeoPreviewProduct, SeoPreviewVariant } from "./_seo-preview-shell.
 import {
   AQUAVO_BASE_URL,
   AQUAVO_ENTITY,
+  AQUAVO_SEO_RELEASE_LASTMOD,
   canonicalProductCategory,
 } from "../shared/seo-contract.js";
 
@@ -119,6 +120,18 @@ export function buildProductStructuredData(product: SeoPreviewProduct): object[]
     productSchema,
     {
       "@context": "https://schema.org",
+      "@type": "WebPage",
+      "@id": url,
+      url,
+      name: product.name,
+      description,
+      inLanguage: "ar-IQ",
+      dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
+      isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
+      mainEntity: { "@id": `${url}#product` },
+    },
+    {
+      "@context": "https://schema.org",
       "@type": "BreadcrumbList",
       itemListElement: [
         { "@type": "ListItem", position: 1, name: "الرئيسية", item: AQUAVO_BASE_URL },
@@ -145,6 +158,7 @@ export function buildCollectionStructuredData(
       name,
       url,
       inLanguage: "ar-IQ",
+      dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       isPartOf: { "@id": `${AQUAVO_BASE_URL}/#website` },
       mainEntity: {
         "@type": "ItemList",
@@ -203,6 +217,7 @@ export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[]
       alternateName: AQUAVO_ENTITY.arabicName,
       url: AQUAVO_BASE_URL,
       inLanguage: "ar-IQ",
+      dateModified: AQUAVO_SEO_RELEASE_LASTMOD,
       publisher: { "@id": `${AQUAVO_BASE_URL}/#organization` },
       potentialAction: {
         "@type": "SearchAction",
