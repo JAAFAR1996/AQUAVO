@@ -53,11 +53,35 @@ const variants: ProductVariant[] = [
   },
 ];
 
-describe("linked product variant dimensions", () => {
+const spongeFilterVariants: ProductVariant[] = [
+  {
+    id: "xy-180",
+    label: "XY-180 — صغير",
+    price: 3_000,
+    stock: 6,
+    specifications: { الحجم: "صغير", الموديل: "XY-180" },
+  },
+  {
+    id: "xy-2835",
+    label: "XY-2835 — كبير",
+    price: 4_000,
+    stock: 2,
+    specifications: { الحجم: "كبير", الموديل: "XY-2835" },
+  },
+];
+
+describe("customer-facing product variant dimensions", () => {
   const dimensions = extractVariantDimensions(variants);
   const currentSelection = selectionFromVariant(variants[3], dimensions);
 
-  it("keeps every stocked capacity and model selectable", () => {
+  it("never exposes model as a selectable dimension", () => {
+    expect(dimensions.map((dimension) => dimension.key)).toEqual(["السعة"]);
+    expect(extractVariantDimensions(spongeFilterVariants)).toEqual([
+      { key: "الحجم", label: "الحجم", values: ["صغير", "كبير"] },
+    ]);
+  });
+
+  it("keeps every stocked customer-facing value selectable", () => {
     expect(
       isDimensionValueAvailable({
         variants,
@@ -65,22 +89,14 @@ describe("linked product variant dimensions", () => {
         value: "64 لتر",
       }),
     ).toBe(true);
-
-    expect(
-      isDimensionValueAvailable({
-        variants,
-        dimensionKey: "الموديل",
-        value: "YKK-50",
-      }),
-    ).toBe(true);
   });
 
-  it("keeps the zero-stock variant disabled", () => {
+  it("keeps the zero-stock customer-facing value disabled", () => {
     expect(
       isDimensionValueAvailable({
         variants,
-        dimensionKey: "الموديل",
-        value: "YXL-003",
+        dimensionKey: "السعة",
+        value: "23 لتر",
       }),
     ).toBe(false);
   });
@@ -96,22 +112,6 @@ describe("linked product variant dimensions", () => {
     expect(selected?.id).toBe("YCG-40");
     expect(selectionFromVariant(selected, dimensions)).toEqual({
       السعة: "64 لتر",
-      الموديل: "YCG-40",
-    });
-  });
-
-  it("switches the whole variant when a linked model is selected", () => {
-    const selected = chooseVariantForSelection(
-      variants,
-      { ...currentSelection, الموديل: "YKK-60" },
-      dimensions,
-      "الموديل",
-    );
-
-    expect(selected?.id).toBe("YKK-60");
-    expect(selectionFromVariant(selected, dimensions)).toEqual({
-      السعة: "63 لتر",
-      الموديل: "YKK-60",
     });
   });
 });
