@@ -36,14 +36,19 @@ function createResponse(): MockResponse {
   };
 }
 
-async function invoke(handler: (req: any, res: any) => Promise<void>, url: string) {
+async function invoke(
+  handler: (req: any, res: any) => Promise<void>,
+  url: string,
+  host = "seo-runtime-smoke.vercel.app",
+) {
   const response = createResponse();
   await handler(
     {
       url,
       method: "GET",
       headers: {
-        host: "seo-runtime-smoke.vercel.app",
+        host,
+        "x-forwarded-host": host,
         accept: "text/html",
       },
       query: {},
@@ -84,4 +89,38 @@ const legacyGuide = await invoke(runtime.default, "/guides/aquarium-filter-guide
 assert(legacyGuide.statusCode === 308, `Legacy guide returned ${legacyGuide.statusCode}, expected 308`);
 assert(legacyGuide.headers.location === "/guides/filter-choice", "Legacy guide redirect target is incorrect");
 
-console.log("Generated semantic SSR runtime smoke checks passed.");
+const productionEntryPath = resolve(process.cwd(), "api/ssr-preview.ts");
+assert(existsSync(productionEntryPath), "Generated production SSR entry does not exist");
+const entryUrl = `${pathToFileURL(productionEntryPath).href}?entry-smoke=${Date.now()}`;
+const productionEntry = await import(entryUrl);
+assert(typeof productionEntry.default === "function", "Generated production entry has no default handler");
+
+const previousVercelEnv = process.env.VERCEL_ENV;
+process.env.VERCEL_ENV = "production";
+try {
+  const duplicateHost = await invoke(
+    productionEntry.default,
+    "/products/houyi-stainless-shunt?variant=4-port",
+    "aquavo.vercel.app",
+  );
+  assert(duplicateHost.statusCode === 308, `Duplicate production host returned ${duplicateHost.statusCode}`);
+  assert(
+    duplicateHost.headers.location === "https://www.aquavoiq.com/products/houyi-stainless-shunt?variant=4-port",
+    "Duplicate production host did not preserve the canonical path and query",
+  );
+  assert(duplicateHost.headers["x-robots-tag"] === "noindex, follow", "Duplicate host redirect robots header is incorrect");
+
+  const canonicalHost = await invoke(
+    productionEntry.default,
+    "/guides/filter-choice",
+    "www.aquavoiq.com",
+  );
+  assert(canonicalHost.statusCode === 200, `Canonical production host returned ${canonicalHost.statusCode}`);
+  assert(canonicalHost.headers["x-robots-tag"]?.startsWith("index"), "Canonical production host is not indexable");
+  assert(canonicalHost.headers["last-modified"] === "Tue, 04 Aug 2026 00:00:00 GMT", "Canonical response has no release freshness header");
+} finally {
+  if (previousVercelEnv === undefined) delete process.env.VERCEL_ENV;
+  else process.env.VERCEL_ENV = previousVercelEnv;
+}
+
+console.log("Generated semantic SSR runtime and canonical-host smoke checks passed.");
