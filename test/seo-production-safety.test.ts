@@ -47,13 +47,16 @@ describe("SEO production safety invariants", () => {
     expect(source).not.toContain("longitude:");
   });
 
-  it("does not publish unverified fixed shipping or support promises", () => {
+  it("publishes owner-verified fixed shipping and 24/7 support facts", () => {
+    const contract = read("shared/seo-contract.ts");
+    const structuredData = read("api/_seo-structured-data.ts");
+    const clientSchemas = read("client/src/components/seo/meta-tags.tsx");
     const sources = [
-      read("shared/seo-contract.ts"),
+      contract,
       read("api/_seo-preview-shell.tsx"),
-      read("api/_seo-structured-data.ts"),
+      structuredData,
       read("api/ssr-preview.ts"),
-      read("client/src/components/seo/meta-tags.tsx"),
+      clientSchemas,
       read("client/src/pages/home.tsx"),
       read("client/src/pages/about.tsx"),
       read("client/src/pages/contact.tsx"),
@@ -65,14 +68,16 @@ describe("SEO production safety invariants", () => {
       read("client/public/llms-full.txt"),
     ].join("\n");
 
-    expect(sources).not.toContain("توصيل خلال 24 ساعة");
-    expect(sources).not.toContain("خلال 24 ساعة فقط");
-    expect(sources).not.toContain("الدعم متوفر 24/7");
-    expect(sources).not.toContain("Customer support is available 24/7");
-    expect(read("api/_seo-structured-data.ts")).not.toContain("shippingDetails");
-    expect(read("api/_seo-structured-data.ts")).not.toContain("hoursAvailable");
-    expect(read("client/src/components/seo/meta-tags.tsx")).not.toContain("shippingDetails");
-    expect(read("client/src/components/seo/meta-tags.tsx")).not.toContain("hoursAvailable");
+    expect(contract).toContain("deliveryFee: 5000");
+    expect(contract).toContain("deliveryMaxDays: 1");
+    expect(contract).toContain('supportAvailability: "24/7"');
+    expect(sources).toContain("توصيل خلال 24 ساعة");
+    expect(sources).toContain("5,000");
+    expect(sources).toContain("24/7");
+    expect(structuredData).toContain("shippingDetails");
+    expect(structuredData).toContain("hoursAvailable");
+    expect(clientSchemas).toContain("shippingDetails");
+    expect(clientSchemas).toContain("hoursAvailable");
   });
 
   it("consolidates production aliases and advertises stale-result recovery", () => {
