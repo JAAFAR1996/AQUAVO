@@ -34,36 +34,6 @@ function availability(stock: string | number | null | undefined): string {
     : "https://schema.org/OutOfStock";
 }
 
-function shippingDetails() {
-  return {
-    "@type": "OfferShippingDetails",
-    shippingRate: {
-      "@type": "MonetaryAmount",
-      value: AQUAVO_ENTITY.deliveryFee,
-      currency: AQUAVO_ENTITY.currency,
-    },
-    shippingDestination: {
-      "@type": "DefinedRegion",
-      addressCountry: AQUAVO_ENTITY.countryCode,
-    },
-    deliveryTime: {
-      "@type": "ShippingDeliveryTime",
-      handlingTime: {
-        "@type": "QuantitativeValue",
-        minValue: 0,
-        maxValue: 0,
-        unitCode: "DAY",
-      },
-      transitTime: {
-        "@type": "QuantitativeValue",
-        minValue: 0,
-        maxValue: AQUAVO_ENTITY.deliveryMaxDays,
-        unitCode: "DAY",
-      },
-    },
-  };
-}
-
 function activeVariants(product: SeoPreviewProduct): SeoPreviewVariant[] {
   if (!product.hasVariants || !Array.isArray(product.variants)) return [];
   return product.variants.filter((variant) => {
@@ -93,7 +63,6 @@ function buildOffer(
     availability: availability(stock),
     itemCondition: "https://schema.org/NewCondition",
     seller: { "@id": `${AQUAVO_BASE_URL}/#organization` },
-    shippingDetails: shippingDetails(),
     eligibleRegion: {
       "@type": "Country",
       name: AQUAVO_ENTITY.countryName,
@@ -224,12 +193,6 @@ export function buildHomeStructuredData(products: SeoPreviewProduct[]): object[]
         contactType: "customer support",
         availableLanguage: ["Arabic"],
         areaServed: AQUAVO_ENTITY.countryCode,
-        hoursAvailable: {
-          "@type": "OpeningHoursSpecification",
-          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-          opens: "00:00",
-          closes: "23:59",
-        },
       },
     },
     {
