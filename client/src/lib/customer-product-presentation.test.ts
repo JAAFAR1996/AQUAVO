@@ -5,6 +5,7 @@ import {
   getCustomerFacingVariantLabel,
   isHiddenModelSpecificationKey,
   sanitizeCustomerSpecifications,
+  sanitizeCustomerSpecsText,
   sanitizeProductForCustomer,
 } from "./customer-product-presentation";
 
@@ -29,6 +30,24 @@ describe("customer product presentation", () => {
       "الحجم": "صغير",
       __model3d: { src: "/models/filter.glb" },
     });
+  });
+
+  it("removes model metadata from JSON specs text", () => {
+    expect(
+      sanitizeCustomerSpecsText(
+        JSON.stringify({ "الحجم": "صغير", "الموديل": "XY-180" }),
+      ),
+    ).toBe(JSON.stringify({ "الحجم": "صغير" }));
+  });
+
+  it("removes model metadata from plain legacy specs text", () => {
+    expect(
+      sanitizeCustomerSpecsText("الحجم: صغير\nالموديل: XY-180\nالاستخدام: حوض صغير"),
+    ).toBe("الحجم: صغير\nالاستخدام: حوض صغير");
+
+    expect(
+      sanitizeCustomerSpecsText("الحجم: كبير؛ Model No: C4-1123; القدرة: 5 واط"),
+    ).not.toMatch(/model|C4-1123/i);
   });
 
   it("uses the customer-facing dimension instead of the model code", () => {
@@ -64,6 +83,7 @@ describe("customer product presentation", () => {
       id: "filter",
       name: "فلتر إسفنجي",
       price: 3000,
+      specs: JSON.stringify({ "الموديل": "BASE-1", "الاستخدام": "أحواض صغيرة" }),
       specifications: {
         "الموديل": "BASE-1",
         "الاستخدام": "أحواض صغيرة",
@@ -84,6 +104,7 @@ describe("customer product presentation", () => {
 
     const sanitized = sanitizeProductForCustomer(product);
 
+    expect(sanitized.specs).toBe(JSON.stringify({ "الاستخدام": "أحواض صغيرة" }));
     expect(sanitized.specifications).toEqual({ "الاستخدام": "أحواض صغيرة" });
     expect(sanitized.variants?.[0].label).toBe("صغير");
     expect(sanitized.variants?.[0].specifications).toEqual({ "الحجم": "صغير" });
