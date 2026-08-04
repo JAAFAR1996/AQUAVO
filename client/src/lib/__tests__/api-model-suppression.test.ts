@@ -34,7 +34,7 @@ describe("public product API model suppression", () => {
   });
 
   it("sanitizes a product details response", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => rawProduct,
     });
@@ -49,7 +49,7 @@ describe("public product API model suppression", () => {
   });
 
   it("sanitizes product listing responses too", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+    (global.fetch as any).mockResolvedValueOnce({
       ok: true,
       json: async () => ({ products: [rawProduct] }),
     });
