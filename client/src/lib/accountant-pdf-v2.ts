@@ -3,6 +3,7 @@ type PageSpec = { title: string; subtitle: string; body: string };
 
 const BRAND = {
   primary: "#0B93A6",
+  primaryDark: "#075F6B",
   flow: "#0B64A6",
   light: "#F6F4EF",
   text: "#232323",
@@ -11,6 +12,11 @@ const BRAND = {
   warning: "#C97A2E",
   white: "#FFFFFF",
 };
+const REQUIRED_BALANCE_CODES = ["1000", "1010", "1100", "1200", "3100"] as const;
+const REQUIRED_SUMMARY_FIELDS = [
+  "product_revenue", "merchant_net", "cogs", "fulfillment_cost",
+  "verified_expenses", "journal_difference", "realized_orders",
+] as const;
 
 function esc(value: unknown): string {
   return String(value ?? "—")
@@ -20,9 +26,18 @@ function esc(value: unknown): string {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+function finiteNumber(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
 function iqd(value: unknown): string {
-  const n = Number(value ?? 0);
-  return `${Math.round(Number.isFinite(n) ? n : 0).toLocaleString("en-US")} د.ع`;
+  const n = finiteNumber(value);
+  return n == null ? "غير متوفر" : `${Math.round(n).toLocaleString("en-US")} د.ع`;
+}
+function countValue(value: unknown): string {
+  const n = finiteNumber(value);
+  return n == null ? "غير متوفر" : Math.round(n).toLocaleString("en-US");
 }
 function dateBaghdad(value: unknown): string {
   if (!value) return "—";
@@ -43,15 +58,15 @@ function table(headers: string[], rows: string[][]): string {
 }
 function cards(items: Array<[string, string, string?]>): string {
   return `<div class="cards">${items.map(([label, value, note]) => (
-    `<div class="card"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`
+    `<div class="card${value === "غير متوفر" ? " missing" : ""}"><div class="label">${esc(label)}</div><div class="value">${esc(value)}</div>${note ? `<div class="note">${esc(note)}</div>` : ""}</div>`
   )).join("")}</div>`;
 }
-function pageHtml(title: string, subtitle: string, body: string, meta: { period: string; status: string; page: number; pages: number }): string {
+function pageHtml(title: string, subtitle: string, body: string, meta: { period: string; status: string; page: number; pages: number; legalName: string; legalNameEn: string }): string {
   const draft = meta.status !== "tax_final";
   return `<section class="aqv-page" dir="rtl">
-    ${draft ? `<div class="watermark">DRAFT</div>` : ""}
+    ${draft ? `<div class="watermark">مسودة</div>` : ""}
     <header>
-      <div class="brand"><img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO"><div class="issuer">تقرير صادر عن محل المنبع <span>— AL NABEA SHOP</span></div></div>
+      <div class="brand"><img src="/brand/aquavo-v2-horizontal.svg" alt="AQUAVO"><div class="issuer">تقرير صادر عن ${esc(meta.legalName)} <span>— ${esc(meta.legalNameEn)}</span></div></div>
       <div class="meta"><strong>${esc(meta.period)}</strong><span>${draft ? "مسودة إدارية" : "معتمد ضريبياً"}</span><small>صفحة ${meta.page} من ${meta.pages}</small></div>
     </header>
     <div class="rule"></div>
@@ -59,20 +74,21 @@ function pageHtml(title: string, subtitle: string, body: string, meta: { period:
     <main>${body}</main>
     <footer>
       <strong>${draft ? "غير صالح للتقديم الضريبي النهائي" : "TAX FINAL — معتمد وفق بيانات المحاسب"}</strong>
-      <span>تقرير محاسبي صادر عن محل المنبع — العلامة التجارية: AQUAVO</span>
+      <span>مصدر الأرقام: دفتر الأستاذ وحقائق الطلبات المحاسبية في AQUAVO؛ لا تُستبدل القيم المفقودة بأصفار.</span>
+      <span>تقرير محاسبي صادر عن ${esc(meta.legalName)} — العلامة التجارية: AQUAVO</span>
       <small>aquavoiq.com · 07747880673 · info@aquavoiq.com · instagram.com/aquavo_iq</small>
     </footer>
   </section>`;
 }
 
 const STYLE = `
-  *{box-sizing:border-box}.aqv-page{position:relative;width:794px;height:1123px;overflow:hidden;background:${BRAND.light};color:${BRAND.text};padding:34px 38px 30px;font-family:Cairo,Arial,sans-serif}
+  *{box-sizing:border-box}.aqv-page{position:relative;width:794px;height:1123px;overflow:hidden;background:${BRAND.light};color:${BRAND.text};padding:34px 38px 34px;font-family:Cairo,Arial,sans-serif}
   header{display:flex;justify-content:space-between;align-items:flex-start;gap:24px}.brand img{width:205px;height:57px;object-fit:contain;object-position:right center}.issuer{font-size:11px;color:${BRAND.muted};margin-top:7px}.issuer span{font-family:Inter,Arial,sans-serif;direction:ltr;display:inline-block}.meta{text-align:left;display:grid;gap:5px;color:${BRAND.muted};font-family:Inter,Cairo,Arial,sans-serif}.meta strong{font-size:15px;color:${BRAND.text}}.meta span{font-size:11px}.meta small{font-size:9px}
-  .rule{height:2px;background:${BRAND.text};margin:16px 0 18px}.heading h1{margin:0;font-size:21px}.heading p{margin:5px 0 18px;color:${BRAND.muted};font-size:11px;line-height:1.7}main{font-size:11px}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.card{background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:7px;padding:11px;min-height:74px}.label{font-size:10px;color:${BRAND.muted}}.value{font-size:17px;font-weight:800;margin-top:5px;color:${BRAND.text}}.note{font-size:8.5px;color:${BRAND.muted};margin-top:4px;line-height:1.5}
+  .rule{height:3px;background:linear-gradient(90deg,${BRAND.primary} 0 28%,${BRAND.text} 28% 100%);margin:16px 0 18px}.heading h1{margin:0;font-size:21px}.heading p{margin:5px 0 18px;color:${BRAND.muted};font-size:11px;line-height:1.7}main{font-size:11px}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.card{background:${BRAND.white};border:1px solid ${BRAND.border};border-radius:7px;padding:11px;min-height:74px}.card.missing{border-color:${BRAND.warning}}.label{font-size:10px;color:${BRAND.muted}}.value{font-size:17px;font-weight:800;margin-top:5px;color:${BRAND.text}}.missing .value{color:${BRAND.warning};font-size:13px}.note{font-size:8.5px;color:${BRAND.muted};margin-top:4px;line-height:1.5}
   h2{font-size:14px;margin:14px 0 8px;border-right:4px solid ${BRAND.primary};padding-right:8px}table{width:100%;border-collapse:collapse;background:${BRAND.white};font-size:9px}th{background:#EFECE5;text-align:right;padding:7px;border:1px solid ${BRAND.border};font-weight:700}td{padding:7px;border:1px solid ${BRAND.border};vertical-align:top}.empty{text-align:center;color:${BRAND.muted};padding:24px}
-  .notice{border:1px solid ${BRAND.border};border-radius:7px;background:${BRAND.white};padding:11px;line-height:1.8;margin-bottom:13px}.warning{border-color:${BRAND.warning};color:#7a4618}.ok{border-color:${BRAND.primary};color:#075F6B}.watermark{position:absolute;left:110px;top:450px;transform:rotate(-25deg);font:900 110px Inter,Arial,sans-serif;color:rgba(201,122,46,.08);letter-spacing:12px;z-index:0;pointer-events:none}.aqv-page>*{position:relative;z-index:1}
-  footer{position:absolute;right:38px;left:38px;bottom:24px;border-top:1px dashed ${BRAND.border};padding-top:10px;display:grid;gap:3px;text-align:center;color:${BRAND.muted};font-size:8.5px}footer strong{color:${BRAND.warning};font-size:9.5px}footer small{font-family:Inter,Arial,sans-serif;direction:ltr}
+  .notice{border:1px solid ${BRAND.border};border-radius:7px;background:${BRAND.white};padding:11px;line-height:1.8;margin-bottom:13px}.warning{border-color:${BRAND.warning};color:#7a4618}.ok{border-color:${BRAND.primary};color:${BRAND.primaryDark}}.watermark{position:absolute;left:145px;top:450px;transform:rotate(-25deg);font:900 96px Cairo,Arial,sans-serif;color:rgba(201,122,46,.08);z-index:0;pointer-events:none}.aqv-page>*{position:relative;z-index:1}
+  footer{position:absolute;right:38px;left:38px;bottom:22px;border-top:1px dashed ${BRAND.border};padding-top:8px;display:grid;gap:2px;text-align:center;color:${BRAND.muted};font-size:8px}footer strong{color:${BRAND.warning};font-size:9px}footer small{font-family:Inter,Arial,sans-serif;direction:ltr}
 `;
 
 function appendChunkPages(
@@ -88,28 +104,45 @@ function appendChunkPages(
   });
 }
 
+function validateAccountantPayload(payload: AnyRow): void {
+  if (!payload?.manifest?.periodKey) throw new Error("حزمة المحاسب لا تحتوي الفترة المحاسبية");
+  const archive = payload.manifest?.archive === true || String(payload.manifest?.packageVersion ?? "").startsWith("historical-");
+  if (archive) return;
+  if (!payload.readiness || typeof payload.readiness !== "object") throw new Error("حزمة المحاسب لا تحتوي ملخص الجاهزية");
+  const missingSummary = REQUIRED_SUMMARY_FIELDS.filter((field) => finiteNumber(payload.readiness[field]) == null);
+  if (missingSummary.length) throw new Error(`لا يمكن إنشاء PDF: أرقام الملخص ناقصة (${missingSummary.join(", ")})`);
+  if (!Array.isArray(payload.liveBalances)) throw new Error("حزمة المحاسب لا تحتوي أرصدة دفتر الأستاذ");
+  const balanceCodes = new Set(payload.liveBalances.filter((row: AnyRow) => finiteNumber(row?.balance) != null).map((row: AnyRow) => String(row.code)));
+  const missingBalances = REQUIRED_BALANCE_CODES.filter((code) => !balanceCodes.has(code));
+  if (missingBalances.length) throw new Error(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalances.join(", ")})`);
+}
+
 function buildPages(payload: AnyRow): PageSpec[] {
   const summary: AnyRow = payload.readiness ?? {};
-  const balances: AnyRow[] = payload.liveBalances ?? [];
-  const sales: AnyRow[] = payload.sales ?? [];
-  const journal: AnyRow[] = payload.journal ?? [];
-  const expenses: AnyRow[] = payload.expenses ?? [];
-  const returns: AnyRow[] = payload.returns ?? [];
-  const settlements: AnyRow[] = payload.settlements ?? [];
-  const blockers: AnyRow[] = summary.blockers ?? [];
+  const balances: AnyRow[] = Array.isArray(payload.liveBalances) ? payload.liveBalances : [];
+  const sales: AnyRow[] = Array.isArray(payload.sales) ? payload.sales : [];
+  const journal: AnyRow[] = Array.isArray(payload.journal) ? payload.journal : [];
+  const expenses: AnyRow[] = Array.isArray(payload.expenses) ? payload.expenses : [];
+  const returns: AnyRow[] = Array.isArray(payload.returns) ? payload.returns : [];
+  const settlements: AnyRow[] = Array.isArray(payload.settlements) ? payload.settlements : [];
+  const blockers: AnyRow[] = Array.isArray(summary.blockers) ? summary.blockers : [];
   const pages: PageSpec[] = [];
-  const balanceMap = new Map<string, number>(balances.map((row: AnyRow) => [String(row.code), Number(row.balance ?? 0)]));
+  const balanceMap = new Map<string, number>();
+  for (const row of balances) {
+    const value = finiteNumber(row?.balance);
+    if (value != null) balanceMap.set(String(row.code), value);
+  }
 
   pages.push({
     title: "الملف المحاسبي الشهري",
-    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد آلي ${dateBaghdad(payload.manifest?.generatedAt)}`,
+    subtitle: `الفترة ${payload.manifest?.periodKey ?? "—"} · توليد آلي ${dateBaghdad(payload.manifest?.generatedAt)} · العملة IQD`,
     body: `${cards([
       ["مبيعات المنتجات", iqd(summary.product_revenue)],
       ["صافي حق AQUAVO", iqd(summary.merchant_net)],
       ["كلفة المنتجات", iqd(summary.cogs)],
       ["كلفة التجهيز", iqd(summary.fulfillment_cost)],
       ["المصاريف المعتمدة", iqd(summary.verified_expenses)],
-      ["الطلبات المتحققة", String(summary.realized_orders ?? 0)],
+      ["الطلبات المتحققة", countValue(summary.realized_orders)],
     ])}
     <h2>الأرصدة الحية من دفتر الأستاذ</h2>
     ${cards([
@@ -164,6 +197,7 @@ function buildPages(payload: AnyRow): PageSpec[] {
 }
 
 export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
+  validateAccountantPayload(payload);
   const [{ jsPDF }, { toPng }] = await Promise.all([import("jspdf"), import("html-to-image")]);
   await document.fonts?.ready;
   const pages = buildPages(payload);
@@ -180,6 +214,8 @@ export async function downloadAccountantPdfV2(payload: AnyRow): Promise<void> {
         status: payload.manifest?.taxFinal ? "tax_final" : "draft",
         page: index + 1,
         pages: pages.length,
+        legalName: String(payload.manifest?.legalName ?? "محل المنبع"),
+        legalNameEn: String(payload.manifest?.legalNameEn ?? "AL NABEA SHOP"),
       })}`;
       const page = host.querySelector<HTMLElement>(".aqv-page");
       if (!page) throw new Error("تعذر تجهيز صفحة PDF");
