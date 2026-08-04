@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
+      issues: write
     env:
       AUDIT_BASE_URL: https://www.aquavoiq.com
       AUDIT_MAX_URLS: 500
@@ -52,3 +53,88 @@ jobs:
           if [ -f artifacts/seo-production-360/report.md ]; then
             cat artifacts/seo-production-360/report.md >> "$GITHUB_STEP_SUMMARY"
           fi
+
+      - name: Publish latest audit to GitHub issue
+        if: always()
+        uses: actions/github-script@v7
+        env:
+          REPORT_PATH: artifacts/seo-production-360/report.json
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const fs = require('node:fs');
+            const reportPath = process.env.REPORT_PATH;
+            if (!fs.existsSync(reportPath)) {
+              core.warning(`Audit report not found at ${reportPath}`);
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
+            const marker = '<!-- aquavo-seo-production-360-latest -->';
+            const title = 'SEO Production 360 — Latest Audit';
+            const limit = 40;
+            const format = (items) => items
+              .slice(0, limit)
+              .map((item) => `- **${item.code}** — ${item.url} — ${item.detail}`)
+              .join('\n') || 'None.';
+            const extraCritical = Math.max(0, report.critical.length - limit);
+            const extraWarnings = Math.max(0, report.warnings.length - limit);
+            const verdict = report.critical.length === 0
+              ? '✅ No critical technical SEO failures were detected.'
+              : '❌ Critical technical SEO failures require correction.';
+
+            const body = `${marker}
+            # AQUAVO SEO Production 360 Audit
+
+            ${verdict}
+
+            - Checked: ${report.checkedAt}
+            - Base URL: ${report.base}
+            - Sitemap URLs discovered: ${report.discoveredCount}
+            - Pages completed: ${report.completedCount}
+            - Critical findings: ${report.critical.length}
+            - Warnings: ${report.warnings.length}
+            - Full evidence and page inventory: [GitHub Actions run](${process.env.RUN_URL})
+
+            ## Critical findings
+
+            ${format(report.critical)}
+            ${extraCritical ? `\n- …and ${extraCritical} more critical findings in the artifact.` : ''}
+
+            ## Warnings
+
+            ${format(report.warnings)}
+            ${extraWarnings ? `\n- …and ${extraWarnings} more warnings in the artifact.` : ''}
+
+            _This issue is updated automatically by the production crawler. It does not use SEMrush estimates._
+            `;
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all',
+              per_page: 100,
+            });
+            const existing = issues.find(
+              (issue) => !issue.pull_request && (issue.title === title || issue.body?.includes(marker)),
+            );
+
+            if (existing) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                title,
+                body,
+                state: 'open',
+              });
+              core.notice(`Updated audit issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+              });
+              core.notice(`Created audit issue #${created.data.number}`);
+            }
