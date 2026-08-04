@@ -6,30 +6,36 @@ export interface VariantDimension {
   values: string[];
 }
 
+// الموديل هو معلومة فنية مرتبطة بالقطعة المحددة، وليس قرار شراء مستقل.
+// لذلك لا يدخل أبداً ضمن أزرار اختيار الـvariant.
 const DIMENSION_PRIORITY = [
   "اللون",
+  "النوع",
   "الحجم",
   "المقاس",
+  "الأبعاد",
   "القدرة",
   "القوة",
   "السعة",
   "الوزن",
+  "العدد",
   "الطول",
   "العرض",
-  "الموديل",
 ] as const;
 
 const DIMENSION_LABELS: Record<string, string> = {
   اللون: "اللون",
+  النوع: "النوع",
   الحجم: "الحجم",
   المقاس: "المقاس",
+  الأبعاد: "الأبعاد",
   القدرة: "القدرة",
   القوة: "القوة",
   السعة: "السعة",
   الوزن: "الوزن",
+  العدد: "العدد",
   الطول: "الطول",
   العرض: "العرض",
-  الموديل: "الموديل",
 };
 
 function cleanValue(value: unknown): string | null {
@@ -117,9 +123,9 @@ export function chooseVariantForSelection(
   if (exactAvailable) return exactAvailable;
 
   // Some product dimensions describe the same physical variant rather than a
-  // Cartesian combination (for example aquarium capacity + model). In that
-  // case, changing one value must switch to the variant that owns that value
-  // and synchronize the remaining dimensions instead of rejecting the click.
+  // Cartesian combination (for example aquarium capacity + measurements). In
+  // that case, changing one value switches to the variant that owns that value
+  // and synchronizes the remaining customer-facing dimensions.
   if (preferredDimensionKey) {
     const preferredValue = selection[preferredDimensionKey];
     if (preferredValue) {
