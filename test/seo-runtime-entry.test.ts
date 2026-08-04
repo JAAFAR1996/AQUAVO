@@ -38,18 +38,18 @@ describe("production SEO/AEO/GEO contract", () => {
       price: "15000",
       priceCurrency: "IQD",
       availability: "https://schema.org/InStock",
+      eligibleRegion: {
+        "@type": "Country",
+        name: "Iraq",
+      },
     });
-    expect(product.offers.shippingDetails.shippingRate).toMatchObject({
-      value: 5000,
-      currency: "IQD",
-    });
-    expect(product.offers.shippingDetails.deliveryTime.transitTime.maxValue).toBe(1);
+    expect(product.offers.shippingDetails).toBeUndefined();
     expect(JSON.stringify(product)).not.toContain("AggregateOffer");
     expect(JSON.stringify(product)).not.toContain("ProductGroup");
     expect(JSON.stringify(product.additionalProperty)).toContain("كبير");
   });
 
-  it("describes an online store without fake physical geo or map data", () => {
+  it("describes an online store without fake physical geo, map, or support-hour data", () => {
     const schemas = buildHomeStructuredData([variantProduct]) as Array<Record<string, any>>;
     const store = schemas[0];
     const serialized = JSON.stringify(store);
@@ -57,7 +57,8 @@ describe("production SEO/AEO/GEO contract", () => {
     expect(store["@type"]).toBe("OnlineStore");
     expect(store.legalName).toContain("AL NABEA SHOP");
     expect(store.paymentAccepted).toBe("Cash on Delivery");
-    expect(store.contactPoint.hoursAvailable.opens).toBe("00:00");
+    expect(store.contactPoint.contactType).toBe("customer support");
+    expect(store.contactPoint.hoursAvailable).toBeUndefined();
     expect(serialized).not.toContain("GeoCoordinates");
     expect(serialized).not.toContain("hasMap");
     expect(serialized).not.toContain("LocalBusiness");

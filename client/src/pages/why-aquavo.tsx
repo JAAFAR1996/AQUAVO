@@ -7,15 +7,15 @@ import { BreadcrumbSchema, MetaTags, OrganizationSchema } from "@/components/seo
 const reasons = [
   { icon: PackageCheck, title: "اختيار على أساس واضح", text: "مواصفات وصور وحالة توفر تساعدك تقارن قبل القرار." },
   { icon: BookOpen, title: "المعلومة قبل القطعة", text: "أدلة عملية حتى تعرف شتحتاج وليش تحتاجه." },
-  { icon: Truck, title: "توصيل لكل العراق", text: "خلال 24 ساعة بأجرة ثابتة 5,000 د.ع." },
+  { icon: Truck, title: "توصيل لكل العراق", text: "تظهر أجرة ومدة التوصيل المتوقعة قبل تأكيد الطلب." },
   { icon: Banknote, title: "دفع بسيط", text: "نقداً عند الاستلام فقط." },
-  { icon: Headphones, title: "دعم 24/7", text: "دز حجم الحوض أو تفاصيل المشكلة ونرتبلك الجواب." },
+  { icon: Headphones, title: "دعم عبر القنوات الرسمية", text: "دز حجم الحوض أو تفاصيل المشكلة ونرتبلك الجواب حسب أوقات الخدمة." },
 ];
 
 export default function WhyAquavo() {
   return (
     <div className="flex-1 bg-background text-foreground" dir="rtl">
-      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض البريميوم: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام، ودعم 24/7." />
+      <MetaTags title="ليش AQUAVO؟" description="AQUAVO براند عراقي لمعدات الأحواض: معلومات واضحة، توصيل لكل العراق، دفع عند الاستلام، ودعم عبر القنوات الرسمية." />
       <OrganizationSchema />
       <BreadcrumbSchema items={[{ name: "الرئيسية", url: "https://www.aquavoiq.com" }, { name: "ليش AQUAVO؟", url: "https://www.aquavoiq.com/why-aquavo" }]} />
       <main id="main-content" className="mx-auto max-w-6xl px-4 pb-20 pt-28 sm:px-6 sm:pt-32">
