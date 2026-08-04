@@ -163,8 +163,6 @@ export function isDimensionValueAvailable({
   value,
 }: {
   variants: ProductVariant[];
-  dimensions: VariantDimension[];
-  selection: Record<string, string>;
   dimensionKey: string;
   value: string;
 }): boolean {
