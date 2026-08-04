@@ -75,6 +75,31 @@ describe("SEO production safety invariants", () => {
     expect(read("client/src/components/seo/meta-tags.tsx")).not.toContain("hoursAvailable");
   });
 
+  it("consolidates production aliases and advertises stale-result recovery", () => {
+    const build = read("script/build.ts");
+    const productSitemap = read("api/sitemap-products.ts");
+    const sitemapIndex = read("api/sitemap-index.ts");
+    const recoverySitemap = read("client/public/sitemap-recovery.xml");
+    const structuredData = read("api/_seo-structured-data.ts");
+
+    expect(build).toContain('host !== "www.aquavoiq.com"');
+    expect(build).toContain('res.status(308).end()');
+    expect(build).toContain('"X-Robots-Tag", "noindex, follow"');
+    expect(build).toContain('"Last-Modified", SEO_RELEASE_LAST_MODIFIED');
+
+    expect(productSitemap).toContain("effectiveLastmod");
+    expect(productSitemap).toContain("AQUAVO_SEO_RELEASE_LASTMOD");
+    expect(productSitemap).toContain('res.setHeader("Last-Modified"');
+
+    expect(sitemapIndex).toContain("/sitemap-recovery.xml");
+    expect(recoverySitemap).toContain("/products/houyi-stainless-shunt");
+    expect(recoverySitemap).toContain("/guides/aquarium-decor-stones-guide");
+    expect(recoverySitemap).not.toContain("fist-live.vercel.app");
+
+    expect(structuredData).toContain('"@type": "WebPage"');
+    expect(structuredData).toContain("dateModified: AQUAVO_SEO_RELEASE_LASTMOD");
+  });
+
   it("marks private and transactional routes as noindex", () => {
     for (const path of [
       "/search",
