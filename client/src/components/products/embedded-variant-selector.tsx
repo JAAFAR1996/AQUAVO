@@ -20,6 +20,20 @@ function cleanSpecificationValue(value: unknown): string | null {
   return normalized.length > 0 ? normalized : null;
 }
 
+function getVariantChoiceLabel(
+  variant: ProductVariant,
+  customerFacingDimensionKey: string | undefined,
+): string {
+  if (customerFacingDimensionKey) {
+    const dimensionValue = cleanSpecificationValue(
+      variant.specifications?.[customerFacingDimensionKey],
+    );
+    if (dimensionValue) return dimensionValue;
+  }
+
+  return variant.label;
+}
+
 export function EmbeddedVariantSelector({
   variants,
   selectedVariantId,
@@ -36,6 +50,7 @@ export function EmbeddedVariantSelector({
 
   const selectedVariant = sortedVariants.find((variant) => variant.id === selectedVariantId) ?? sortedVariants[0];
   const selectedModel = cleanSpecificationValue(selectedVariant.specifications?.الموديل);
+  const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
   const detectedTitle = dimensions[0]?.label ? `اختار ${dimensions[0].label}` : "اختار الخيار";
 
   return (
@@ -49,6 +64,7 @@ export function EmbeddedVariantSelector({
         {sortedVariants.map((variant) => {
           const selected = variant.id === selectedVariant.id;
           const inStock = variant.stock > 0;
+          const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
 
           return (
             <button
@@ -57,7 +73,7 @@ export function EmbeddedVariantSelector({
               onClick={() => onVariantSelect(variant)}
               disabled={!inStock}
               aria-pressed={selected}
-              aria-label={!inStock ? `${variant.label}، غير متوفر` : variant.label}
+              aria-label={!inStock ? `${choiceLabel}، غير متوفر` : choiceLabel}
               className={cn(
                 "min-h-11 rounded-full border-2 px-4 py-2 text-sm font-medium transition-colors",
                 selected
@@ -67,7 +83,7 @@ export function EmbeddedVariantSelector({
               )}
             >
               {selected && <Check className="ml-1 inline h-3.5 w-3.5" aria-hidden="true" />}
-              {variant.label}
+              {choiceLabel}
             </button>
           );
         })}
@@ -118,12 +134,17 @@ export function EmbeddedVariantSelectorCompact({
   selectedVariantId,
   onVariantSelect,
 }: Omit<EmbeddedVariantSelectorProps, "title" | "productCategory">) {
+  const dimensions = useMemo(() => extractVariantDimensions(variants), [variants]);
+  const customerFacingDimensionKey = dimensions.length === 1 ? dimensions[0].key : undefined;
+
   if (!variants || variants.length <= 1) return null;
 
   return (
     <div className="flex flex-wrap gap-2" dir="rtl" role="group" aria-label="خيارات المنتج">
       {variants.map((variant) => {
         const selected = variant.id === selectedVariantId;
+        const choiceLabel = getVariantChoiceLabel(variant, customerFacingDimensionKey);
+
         return (
           <button
             key={variant.id}
@@ -131,7 +152,7 @@ export function EmbeddedVariantSelectorCompact({
             onClick={() => onVariantSelect(variant)}
             disabled={variant.stock <= 0}
             aria-pressed={selected}
-            aria-label={variant.stock <= 0 ? `${variant.label}، غير متوفر` : variant.label}
+            aria-label={variant.stock <= 0 ? `${choiceLabel}، غير متوفر` : choiceLabel}
             className={cn(
               "min-h-11 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
               selected
@@ -140,7 +161,7 @@ export function EmbeddedVariantSelectorCompact({
               variant.stock <= 0 && "cursor-not-allowed opacity-45",
             )}
           >
-            {variant.label}
+            {choiceLabel}
           </button>
         );
       })}
