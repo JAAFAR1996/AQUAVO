@@ -20,6 +20,7 @@ const MIGRATIONS = [
   "0061_accounting_default_carrier_status_guard.sql",
   "0062_accounting_automation_opening_balances.sql",
   "0063_accounting_cod_refusal_and_store_credit.sql",
+  "0064_accounting_customer_credit_posting_links.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -29,8 +30,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0063") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0063 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0064") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0064 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -87,21 +88,26 @@ async function main(): Promise<void> {
         to_regclass('public.v_order_inventory_custody_latest') IS NOT NULL AS custody_latest,
         to_regclass('public.customer_credit_accounts') IS NOT NULL AS credit_accounts,
         to_regclass('public.customer_credit_entries') IS NOT NULL AS credit_entries,
+        to_regclass('public.customer_credit_accounting_links') IS NOT NULL AS credit_links,
         to_regclass('public.v_customer_credit_balances') IS NOT NULL AS credit_balances,
         to_regclass('public.v_cod_refusal_policy_exceptions') IS NOT NULL AS refusal_exceptions,
         to_regclass('public.v_cod_refusal_inventory_exceptions') IS NOT NULL AS refusal_inventory_exceptions,
         to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='orders' AND column_name='delivered_at') AS delivered_at,
         EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='accounting_monthly_positions' AND column_name='other_deduction_amount') AS other_deductions,
+        NOT EXISTS(SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='customer_credit_entries' AND column_name IN ('accounting_status','journal_entry_id')) AS credit_events_immutable_shape,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0062_accounting_automation_opening_balances' AND rolled_back_at IS NULL) AS migration_0062,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0063_accounting_cod_refusal_and_store_credit' AND rolled_back_at IS NULL) AS migration_0063,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0064_accounting_customer_credit_posting_links' AND rolled_back_at IS NULL) AS migration_0064,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_customer_credit_period_close' AND NOT tgisinternal) AS credit_close_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_lines_immutable_guard' AND NOT tgisinternal) AS journal_line_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_return_events_enforce_cod_refusal' AND NOT tgisinternal) AS refusal_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_inventory_custody_no_update' AND NOT tgisinternal) AS custody_update_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='order_inventory_custody_no_delete' AND NOT tgisinternal) AS custody_delete_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_entries_guard' AND NOT tgisinternal) AS credit_guard,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='customer_credit_accounting_link_validate' AND NOT tgisinternal) AS credit_link_guard,
         pg_get_functiondef('public.apply_verified_return_inventory()'::regprocedure) ILIKE '%NEW.type=''rejected_delivery''%' AS refusal_double_restock_guard,
         pg_get_functiondef('public.reverse_order_inventory_on_terminal_status()'::regprocedure) ILIKE '%carrier_return_pending%' AS refusal_immediate_availability,
         EXISTS(
