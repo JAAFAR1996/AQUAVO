@@ -52,11 +52,12 @@ describe("accounting v2 production wiring", () => {
     }
   });
 
-  it("keeps state, packaging and financial recognition inside one transaction", () => {
+  it("keeps state, packaging, returns and financial recognition inside one transaction", () => {
     const source = read("server/routes/admin-orders-v2.ts");
     expect(source).toContain("db.transaction(async (tx)");
     expect(source).toContain("FOR UPDATE");
     expect(source).toContain("applyPackagingLifecycle(tx as never");
+    expect(source).toContain("syncAutomaticReturnLifecycle(tx");
     expect(source).toContain("tx.update(orders)");
     expect(source).not.toContain("applyPackagingLifecycle(getDb()");
     expect(source).toContain("recordFinancialChange(tx as never");
@@ -117,25 +118,29 @@ describe("accounting v2 operator workspace", () => {
     expect(finance).toContain("<FinanceAccountingRegisterV2 />");
   });
 
-  it("shows gross COD, carrier fee, merchant net and close blockers separately", () => {
+  it("shows the canonical money fields, automatic close state and PDF export", () => {
     const component = read("client/src/components/admin/finance-accounting-register-v2.tsx");
     for (const field of [
       "gross_collected", "customer_delivery_fee", "carrier_fee", "product_revenue",
       "merchant_net", "delivery_subsidy", "blockers", "administrativeCloseReady",
+      "liveBalances", "automaticClose",
     ]) expect(component).toContain(field);
     expect(component).toContain("/api/admin/accounting/v2/accountant-package");
-    expect(component).toContain("/api/admin/accounting/v2/periods/close");
-    expect(component).toContain("<FinanceAccountingOperationsV2 periodKey={periodKey} />");
+    expect(component).toContain("downloadAccountantPdfV2");
+    expect(component).toContain("<FinanceAccountingOperationsLiteV2 periodKey={periodKey} />");
+    expect(component).not.toContain("/api/admin/accounting/v2/periods/close");
+    expect(component).not.toContain("إغلاق إداري للشهر");
   });
 
-  it("provides optional electronic evidence and owner-confirmed operation forms", () => {
-    const component = read("client/src/components/admin/finance-accounting-operations-v2.tsx");
-    expect(component).toContain("/api/admin/accounting/v2/settlements");
+  it("keeps tax classification out of the owner UI and retains evidence capture", () => {
+    const component = read("client/src/components/admin/finance-accounting-operations-lite-v2.tsx");
     expect(component).toContain("/api/admin/accounting/v2/expenses/${expenseId}/verify");
     expect(component).toContain("/api/upload/accounting-evidence");
     expect(component).toContain('accept="image/*,application/pdf"');
     expect(component).toContain("تأكيد داخلي — بدون ملف");
-    expect(component).not.toContain("paidFromAccountCode");
+    expect(component).toContain('taxTreatment: "pending"');
+    expect(component).not.toContain("المعاملة الضريبية");
+    expect(component).not.toContain("savePosition");
   });
 });
 
@@ -164,6 +169,10 @@ describe("accounting v2 migration governance", () => {
       "0056_accounting_delivery_timestamp",
       "0057_accounting_operating_defaults",
       "0058_accounting_confirm_global_addons_zero",
+      "0059_accounting_carrier_other_deductions",
+      "0060_accounting_close_state_machine",
+      "0061_accounting_default_carrier_status_guard",
+      "0062_accounting_automation_opening_balances",
     ];
     for (const file of files) {
       expect(existsSync(join(root, "migrations", `${file}.sql`))).toBe(true);
