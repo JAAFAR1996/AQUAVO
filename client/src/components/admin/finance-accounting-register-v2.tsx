@@ -6,8 +6,9 @@ import { FinanceAccountingOperationsLiteV2 } from "@/components/admin/finance-ac
 import { downloadAccountantPdfV2 } from "@/lib/accountant-pdf-v2";
 
 const CUTOVER_MONTH = "2026-08";
-const money = z.coerce.number().default(0);
-const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number() });
+const REQUIRED_BALANCE_CODES = ["1000", "1010", "1100", "1200", "3100"] as const;
+const money = z.coerce.number().finite();
+const blockerSchema = z.object({ key: z.string(), label: z.string(), count: z.coerce.number().finite() });
 const readinessSchema = z.object({
   product_revenue: money,
   merchant_net: money,
@@ -19,7 +20,7 @@ const readinessSchema = z.object({
   actual_return_loss: money,
   verified_expenses: money,
   journal_difference: money,
-  realized_orders: z.coerce.number().default(0),
+  realized_orders: z.coerce.number().finite(),
   blockers: z.array(blockerSchema),
   administrativeCloseReady: z.boolean(),
 }).passthrough();
@@ -27,7 +28,7 @@ const orderSchema = z.object({
   order_id: z.string(), order_number: z.string().nullable().optional(), recognized_at: z.string(),
   gross_collected: money, customer_delivery_fee: money, carrier_fee: money,
   product_revenue: money, merchant_net: money, delivery_subsidy: money, delivery_surplus: money,
-  cogs_amount: z.coerce.number().nullable().optional(), settlement_status: z.string(), cost_status: z.string(),
+  cogs_amount: money.nullable().optional(), settlement_status: z.string(), cost_status: z.string(),
 }).passthrough();
 const balanceSchema = z.object({
   code: z.string(), name_ar: z.string(), account_type: z.string(), normal_side: z.string(),
@@ -47,8 +48,8 @@ const archiveSummarySchema = z.object({
     totalCogs: money,
     totalPackaging: money,
     netProfit: money,
-    deliveredCount: z.coerce.number().default(0),
-    totalOrders: z.coerce.number().default(0),
+    deliveredCount: z.coerce.number().finite(),
+    totalOrders: z.coerce.number().finite(),
     salesReturnDeduction: money.optional(),
     actualReturnLoss: money.optional(),
   }).passthrough(),
@@ -76,13 +77,17 @@ async function readJson(response: Response): Promise<unknown> {
   }
   return body;
 }
-const formatIqd = (value: number | null | undefined) => `${Math.round(Number(value ?? 0)).toLocaleString("en-US")} د.ع`;
+function formatIqd(value: number | null | undefined): string {
+  if (value == null || !Number.isFinite(value)) return "غير متوفر";
+  return `${Math.round(value).toLocaleString("en-US")} د.ع`;
+}
 
-function Card({ label, value, note }: { label: string; value: number; note?: string }) {
+function Card({ label, value, note }: { label: string; value: number | undefined; note?: string }) {
+  const missing = value == null || !Number.isFinite(value);
   return (
-    <div style={{ border: "1px solid #1e3a5f", borderRadius: 12, padding: 14, background: "#0d1f3c" }}>
+    <div style={{ border: `1px solid ${missing ? "#92400e" : "#1e3a5f"}`, borderRadius: 12, padding: 14, background: "#0d1f3c" }}>
       <div style={{ color: "#94a3b8", fontSize: 12 }}>{label}</div>
-      <div style={{ color: "#fff", fontSize: 21, fontWeight: 800, marginTop: 5 }}>{formatIqd(value)}</div>
+      <div style={{ color: missing ? "#fcd34d" : "#fff", fontSize: 21, fontWeight: 800, marginTop: 5 }}>{formatIqd(value)}</div>
       {note ? <div style={{ color: "#64748b", fontSize: 11, marginTop: 4 }}>{note}</div> : null}
     </div>
   );
@@ -141,14 +146,22 @@ export function FinanceAccountingRegisterV2() {
     : register.data?.summary;
   const closeRecord = isArchive ? null : register.data?.close;
   const balances = useMemo(() => new Map((register.data?.liveBalances ?? []).map((item) => [item.code, item.balance])), [register.data]);
+  const missingBalanceCodes = useMemo(() => isArchive
+    ? []
+    : REQUIRED_BALANCE_CODES.filter((code) => !balances.has(code)), [balances, isArchive]);
+  const balancesComplete = missingBalanceCodes.length === 0;
   const netProfit = useMemo(() => {
-    if (!summary) return 0;
+    if (!summary) return undefined;
     return summary.product_revenue - summary.cogs - summary.fulfillment_cost - summary.delivery_subsidy
       - summary.sales_returns - summary.actual_return_loss - summary.verified_expenses;
   }, [summary]);
 
   async function downloadPackagePdf() {
     if (!summary) return;
+    if (!isArchive && !balancesComplete) {
+      setPdfError(`لا يمكن إنشاء PDF: حسابات دفتر الأستاذ ناقصة (${missingBalanceCodes.join(", ")})`);
+      return;
+    }
     setPdfPending(true); setPdfError(null);
     try {
       if (isArchive) {
@@ -156,7 +169,7 @@ export function FinanceAccountingRegisterV2() {
           manifest: {
             packageVersion: "historical-archive-v1", periodKey, generatedAt: new Date().toISOString(),
             legalName: "محل المنبع", legalNameEn: "AL NABEA SHOP", brand: "AQUAVO",
-            timezone: "Asia/Baghdad", currency: "IQD", taxFinal: false,
+            timezone: "Asia/Baghdad", currency: "IQD", taxFinal: false, archive: true,
           },
           readiness: summary,
           liveBalances: [], sales: [], journal: [], expenses: [], returns: [], settlements: [],
@@ -196,15 +209,15 @@ export function FinanceAccountingRegisterV2() {
           <div>
             <h2 style={{ color: "#fff", fontSize: 18, margin: 0 }}>السجل المحاسبي — محل المنبع / AQUAVO</h2>
             <p style={{ color: "#94a3b8", fontSize: 12, margin: "5px 0 0", lineHeight: 1.7 }}>
-              من آب 2026 الأرصدة مشتقة من اليومية تلقائياً والإغلاق حسب تقويم بغداد. الأشهر الأقدم متاحة كأرشيف للرجوع فقط.
+              من آب 2026 الأرصدة مشتقة من اليومية تلقائياً. أي حساب مفقود يظهر «غير متوفر» ولا يتحول تلقائياً إلى صفر.
             </p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
             <input aria-label="الشهر المحاسبي" type="month" max={currentPeriod} value={periodKey}
               onChange={(event) => setPeriodKey(event.target.value)}
               style={{ background: "#0d1f3c", color: "#fff", border: "1px solid #1e3a5f", borderRadius: 8, padding: "8px 10px" }} />
-            <button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending}
-              style={{ background: "#0B64A6", color: "#fff", border: 0, borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontWeight: 700 }}>
+            <button onClick={() => void downloadPackagePdf()} disabled={!summary || pdfPending || (!isArchive && !balancesComplete)}
+              style={{ background: "#0B64A6", color: "#fff", border: 0, borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontWeight: 700, opacity: !summary || pdfPending || (!isArchive && !balancesComplete) ? 0.5 : 1 }}>
               {pdfPending ? "جاري بناء PDF..." : "تنزيل ملف المحاسب PDF"}
             </button>
           </div>
@@ -215,6 +228,12 @@ export function FinanceAccountingRegisterV2() {
       {error || pdfError ? (
         <div role="alert" aria-live="assertive" style={{ border: "1px solid #7f1d1d", background: "#450a0a", color: "#fecaca", borderRadius: 10, padding: 12 }}>
           {pdfError ?? (error instanceof Error ? error.message : "حدث خطأ")}
+        </div>
+      ) : null}
+
+      {!isArchive && register.data && !balancesComplete ? (
+        <div role="alert" style={{ border: "1px solid #92400e", background: "#2b160b", color: "#fde68a", borderRadius: 10, padding: 12 }}>
+          بيانات دفتر الأستاذ ناقصة للحسابات: {missingBalanceCodes.join("، ")}. تم إيقاف PDF ومنع عرض أصفار بديلة.
         </div>
       ) : null}
 
@@ -234,11 +253,11 @@ export function FinanceAccountingRegisterV2() {
               <section style={{ border: "1px solid #1e3a5f", borderRadius: 12, padding: 14, background: "#071720" }}>
                 <h3 style={{ color: "#fff", margin: "0 0 10px", fontSize: 15 }}>الأرصدة الحية — محسوبة من دفتر الأستاذ</h3>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 10 }}>
-                  <Card label="النقد في الصندوق" value={balances.get("1000") ?? 0} note="افتتاحي + تسويات − دفعات ومصاريف" />
-                  <Card label="الحساب البنكي" value={balances.get("1010") ?? 0} note="من الحركات البنكية المسجلة" />
-                  <Card label="COD عند شركات التوصيل" value={balances.get("1100") ?? 0} note="المسلّم غير المستلم نقداً" />
-                  <Card label="مخزون المنتجات" value={balances.get("1200") ?? 0} note="قيمة المخزون الدفترية" />
-                  <Card label="رأس مال المالك" value={balances.get("3100") ?? 0} />
+                  <Card label="النقد في الصندوق" value={balances.get("1000")} note="افتتاحي + تسويات − دفعات ومصاريف" />
+                  <Card label="الحساب البنكي" value={balances.get("1010")} note="من الحركات البنكية المسجلة" />
+                  <Card label="COD عند شركات التوصيل" value={balances.get("1100")} note="المسلّم غير المستلم نقداً" />
+                  <Card label="مخزون المنتجات" value={balances.get("1200")} note="قيمة المخزون الدفترية" />
+                  <Card label="رأس مال المالك" value={balances.get("3100")} />
                   <Card label="فرق اليومية" value={summary.journal_difference} note="يجب أن يبقى صفراً" />
                 </div>
               </section>
