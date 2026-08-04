@@ -22,6 +22,11 @@ const modelVariants: ProductVariant[] = [
     { id: "m-large", label: "كبير", price: 30000, stock: 2, specifications: { "الحجم": "كبير", "الموديل": "C4-1123" } } as unknown as ProductVariant,
 ];
 
+const spongeFilterVariants: ProductVariant[] = [
+    { id: "xy-180", label: "XY-180 — صغير", price: 3000, stock: 6, specifications: { "الحجم": "صغير", "الموديل": "XY-180" } } as unknown as ProductVariant,
+    { id: "xy-2835", label: "XY-2835 — كبير", price: 4000, stock: 2, specifications: { "الحجم": "كبير", "الموديل": "XY-2835" } } as unknown as ProductVariant,
+];
+
 describe("EmbeddedVariantSelector", () => {
     it("marks the selected variant as pressed and others as not pressed", () => {
         render(
@@ -84,5 +89,28 @@ describe("EmbeddedVariantSelector", () => {
 
         expect(screen.getByText("الموديل:")).toBeInTheDocument();
         expect(screen.getByText("C4-1123")).toBeInTheDocument();
+    });
+
+    it("uses size as the option and keeps differing models as information only", async () => {
+        const user = userEvent.setup();
+        const onVariantSelect = vi.fn();
+
+        render(
+            <EmbeddedVariantSelector
+                variants={spongeFilterVariants}
+                selectedVariantId="xy-180"
+                onVariantSelect={onVariantSelect}
+            />
+        );
+
+        expect(screen.getByRole("group", { name: "اختار الحجم" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "صغير" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "كبير" })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /XY-180/ })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /XY-2835/ })).not.toBeInTheDocument();
+        expect(screen.getByText("XY-180")).toBeInTheDocument();
+
+        await user.click(screen.getByRole("button", { name: "كبير" }));
+        expect(onVariantSelect).toHaveBeenCalledWith(spongeFilterVariants[1]);
     });
 });
