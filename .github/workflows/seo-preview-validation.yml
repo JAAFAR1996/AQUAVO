@@ -31,6 +31,7 @@ on:
       - "scripts/submit-indexnow.mjs"
       - "scripts/seo-preview-live-audit.mjs"
       - "scripts/seo-preview-visual-parity.mjs"
+      - "scripts/seo-production-360-audit.mjs"
       - ".lighthouserc.preview.cjs"
       - "docs/seo/SSR_MIGRATION_DECISION.md"
       - "docs/seo/SEARCH_INDEX_RECOVERY_2026-08-04.md"
@@ -38,6 +39,7 @@ on:
       - ".github/workflows/indexnow-search-refresh.yml"
       - ".github/workflows/seo-preview-validation.yml"
       - ".github/workflows/seo-preview-live-validation.yml"
+      - ".github/workflows/seo-production-360-audit.yml"
   workflow_dispatch:
 
 concurrency:
@@ -87,6 +89,9 @@ jobs:
 
       - name: Verify visual-parity script syntax
         run: node --check scripts/seo-preview-visual-parity.mjs
+
+      - name: Verify production 360 audit syntax
+        run: node --check scripts/seo-production-360-audit.mjs
 
       - name: Verify Lighthouse config syntax
         env:
