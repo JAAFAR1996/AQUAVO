@@ -108,7 +108,8 @@ describe("EmbeddedVariantSelector", () => {
         expect(screen.getByRole("button", { name: "كبير" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /XY-180/ })).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /XY-2835/ })).not.toBeInTheDocument();
-        expect(screen.getByText("XY-180")).toBeInTheDocument();
+        expect(screen.getByText("الموديل:")).toBeInTheDocument();
+        expect(screen.getAllByText("XY-180").length).toBeGreaterThan(0);
 
         await user.click(screen.getByRole("button", { name: "كبير" }));
         expect(onVariantSelect).toHaveBeenCalledWith(spongeFilterVariants[1]);
