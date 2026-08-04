@@ -6,15 +6,15 @@
 //   pending                -> suggestion only. No hold, no cost.
 //   confirmed | processing -> reserve cartons, freeze the preparation costs.
 //   shipped                -> reservation becomes physical consumption.
-//   cancelled              -> release the hold. Nothing was consumed.
-//   returned | rejected_*  -> classify the carton as damaged. No movement.
+//   cancelled pre-shipment -> release the hold. Nothing was consumed.
+//   COD refusal after ship -> classify the carton as damaged immediately.
+//   true post-delivery return -> classify the carton as damaged. No movement.
 //
 // Every transition is idempotent. Statuses get re-submitted — by a retried
 // request, a double click, a webhook replay — and none of those may consume a
 // carton twice or hold stock twice.
-import {
-  isFullReturnStatus,
-} from "./return-packaging-loss-service.js";
+import { isCodRefusalStatus } from "../../shared/cod-refusal-policy.js";
+import { isFullReturnStatus } from "./return-packaging-loss-service.js";
 
 export type PackagingAction =
   | "suggest_only"
@@ -32,16 +32,15 @@ export interface LifecycleDecision {
 
 const RESERVE_STATUSES = new Set(["confirmed", "processing"]);
 const SUGGEST_STATUSES = new Set(["pending"]);
-const RELEASE_STATUSES = new Set(["cancelled", "rejected", "rejected_carrier"]);
 
 /**
  * What should happen to packaging when an order moves to `newStatus`?
  *
  * Pure, so the mapping can be tested exhaustively without a database.
  *
- * `rejected_carrier` appears in two sets by design: it releases a hold when the
- * order never shipped, and damages the carton when it did. `wasShipped` is the
- * discriminator, because only a shipped carton can come back damaged.
+ * For AQUAVO, a shipped carton is considered damaged/lost as soon as the
+ * delivery agent confirms the customer refused the parcel. We do not wait for
+ * the later "استلمت من الشركة" click, and we never deduct the carton twice.
  */
 export function decideLifecycleAction(
   newStatus: string,
@@ -65,20 +64,19 @@ export function decideLifecycleAction(
     return { action: "consume", reasonAr: "شحن الطلب — تحويل الحجز إلى استهلاك فعلي" };
   }
 
-  if (isFullReturnStatus(s) && wasShipped) {
+  if (wasShipped && (isCodRefusalStatus(s) || isFullReturnStatus(s))) {
     return {
       action: "classify_return_loss",
-      reasonAr: "طلب راجع بعد الشحن — تصنيف الكارتونة تالفة بدون حركة مخزون",
+      reasonAr: isCodRefusalStatus(s)
+        ? "الزبون رفض الطلب قبل الاستلام — تصنيف الكارتونة تالفة بدون مصروف إضافي"
+        : "طلب راجع بعد الشحن — تصنيف الكارتونة تالفة بدون حركة مخزون",
     };
   }
 
-  if (RELEASE_STATUSES.has(s) && !wasShipped) {
-    return { action: "release", reasonAr: "إلغاء قبل الشحن — تحرير حجز الكراتين" };
+  if (!wasShipped && (s === "cancelled" || isCodRefusalStatus(s))) {
+    return { action: "release", reasonAr: "إلغاء/رفض قبل الشحن — تحرير حجز الكراتين" };
   }
 
-  // Delivered, or a status with no packaging meaning. Notably `delivered`
-  // changes nothing: consumption already happened at `shipped`, and doing it
-  // again here is precisely the double-consumption this design avoids.
   return { action: "none", reasonAr: "لا أثر على التغليف بهذه الحالة" };
 }
 
@@ -86,8 +84,9 @@ export function decideLifecycleAction(
  * Did this order ever ship? Drives the return/cancel split above.
  *
  * Derived from fulfillment evidence rather than the status string, because an
- * order can be moved straight to `returned` by an admin, and what matters is
- * whether a carton was physically consumed — not what the status column says.
+ * order can be moved straight to a refusal/return status by an admin, and what
+ * matters is whether a carton was physically consumed — not what the status
+ * column says.
  */
 export function wasOrderShipped(confirmedOriginalEventCount: number): boolean {
   return confirmedOriginalEventCount > 0;
