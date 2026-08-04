@@ -1,3 +1,5 @@
+import { COD_REFUSAL_STATUSES } from "./cod-refusal-policy.js";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Canonical order-financial definitions — SINGLE SOURCE OF TRUTH.
 //
@@ -16,9 +18,7 @@ export const REALIZED_STATUSES = ["delivered"] as const;
 /** Order statuses that must NEVER count toward revenue or profit. */
 export const CANCELLED_STATUSES = [
   "cancelled",
-  "rejected",
-  "rejected_returned",
-  "rejected_carrier",
+  ...COD_REFUSAL_STATUSES,
   "returned",
 ] as const;
 
@@ -51,10 +51,10 @@ export function isInProgressStatus(status: string | null | undefined): boolean {
 /**
  * Statuses an order can only reach AFTER it was delivered. A return does not
  * un-deliver the sale: the original revenue and cost happened, and the return
- * is a separate, later event. Listing them here is what makes the freeze
- * STICKY — an order cannot be edited again by transitioning it to `returned`.
+ * is a separate, later event. COD refusal statuses are deliberately absent —
+ * they happen before customer acceptance and never realise a sale.
  */
-export const POST_DELIVERY_STATUSES = ["returned", "rejected_returned"] as const;
+export const POST_DELIVERY_STATUSES = ["returned"] as const;
 const POST_DELIVERY_SET = new Set<string>(POST_DELIVERY_STATUSES);
 
 /**
@@ -70,13 +70,13 @@ const POST_DELIVERY_SET = new Set<string>(POST_DELIVERY_STATUSES);
  *
  * Frozen when ANY of:
  *   - the order is delivered (revenue realized), or
- *   - it has moved to a post-delivery state (returned / rejected_returned), or
+ *   - it has moved to a true post-delivery state (`returned`), or
  *   - an operator explicitly forced it into the financial set
  *     (`financiallyCounted === true`).
  *
- * NOT frozen: pending / confirmed / processing / shipped / cancelled /
- * rejected / rejected_carrier — none of which has produced realized revenue,
- * so ordinary order editing must keep working.
+ * NOT frozen: pending / confirmed / processing / shipped / cancelled and every
+ * COD refusal status. None has produced realized revenue, so ordinary order
+ * correction must remain possible and no sale may be fabricated.
  *
  * `financiallyCounted === false` does NOT unfreeze a delivered order. Excluding
  * an order from revenue is a reporting decision; it does not un-happen the sale,
