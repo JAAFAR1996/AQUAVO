@@ -83,10 +83,10 @@ export function sanitizeCustomerSpecsText(specs: string): string {
 
   return withoutModelLines
     .replace(
-      /(?:^|[;|،,]\s*)(?:الموديل|موديل|رقم\s+(?:الموديل|موديل)|model(?:\s+(?:no|number|name))?)\s*[:：]\s*[^;|،,\n]+/gi,
+      /(?:^|[;؛،,|]\s*)(?:الموديل|موديل|رقم\s+(?:الموديل|موديل)|model(?:\s+(?:no|number|name))?)\s*[:：]\s*[^;؛،,|\n]+/gi,
       "",
     )
-    .replace(/^\s*[;|،,]\s*|\s*[;|،,]\s*$/g, "")
+    .replace(/^\s*[;؛،,|]\s*|\s*[;؛،,|]\s*$/g, "")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
@@ -116,8 +116,8 @@ function cleanVariantLabel(label: string, modelValues: string[]): string | null 
   cleaned = cleaned
     .replace(/\bmodel\b/gi, " ")
     .replace(/الموديل|موديل/g, " ")
-    .replace(/^[\s—–\-:|/،,]+|[\s—–\-:|/،,]+$/g, "")
-    .replace(/[\s—–\-:|/،,]{2,}/g, " ")
+    .replace(/^[\s—–\-:|/؛،,]+|[\s—–\-:|/؛،,]+$/g, "")
+    .replace(/[\s—–\-:|/؛،,]{2,}/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
