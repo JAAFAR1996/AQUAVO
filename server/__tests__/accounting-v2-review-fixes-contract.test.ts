@@ -66,13 +66,19 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("retains the carrier guard while the main V2 router requires the P0 chain through 0070", () => {
-    const health = read("server/routes/accounting-health-v2.ts");
-    expect(health).toContain("migration_0061");
-    expect(health).toContain("carrier_status_guard");
+  it("keeps exactly one canonical health responder through the complete P0 chain", () => {
+    const compatibility = read("server/routes/accounting-health-v2.ts");
+    expect(compatibility).not.toContain('router.get("/v2/health"');
+    expect(compatibility).toContain("canonical Accounting V2 router owns `/v2/health` exclusively");
+
     const reports = read("server/routes/accounting-v2.ts");
+    expect((reports.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
     expect(reports).toContain("migration_0070");
     expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED");
+
+    const migration70 = read("migrations/0070_accounting_ledger_backed_views.sql");
+    expect(migration70).toContain("order_returns_00_lock_verification");
+    expect(migration70).toContain("pg_advisory_xact_lock");
   });
 
   it("keeps the default carrier active during status-only updates", () => {
@@ -82,7 +88,7 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(migration).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
   });
 
-  it("runs exact migration files before production deploy and skips previews", () => {
+  it("builds successfully before production migrations and skips previews", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
     expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0070"');
     expect(runner).toContain("pg_advisory_lock");
@@ -95,5 +101,7 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
     expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070");
     expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
+    expect(vercel.indexOf("pnpm run build"))
+      .toBeLessThan(vercel.indexOf("script/apply-accounting-v2-migrations.ts"));
   });
 });
