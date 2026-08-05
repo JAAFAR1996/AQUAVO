@@ -11,26 +11,44 @@
 
 import type { Transition, Variants } from "framer-motion";
 
-// --- Springs ---------------------------------------------------------------
+// --- Transitions -----------------------------------------------------------
+//
+// IDENTITY CONSTRAINT (06_Visual_DNA §17): the only approved motion device is
+// the icon's infinity loop drawing itself, 600–800ms ease-in-out, for
+// loading/intro states. "No bounce, no spring physics, no particle effects —
+// those read as playful-consumer-app, which conflicts with the 'precise' DNA
+// trait."
+//
+// `springSnappy` and `springSoft` were literal spring physics (stiffness 500 /
+// 320). They are kept as EXPORTED NAMES so existing imports keep compiling, but
+// are now compliant duration+easing tweens. Their names are retained rather than
+// deleted deliberately: renaming them would break call sites in the same commit
+// that changes their behaviour, making a regression harder to attribute.
+// Prefer `tweenQuick` / `tweenSettle` in new code.
 
-/** Crisp, responsive spring for interactions (buttons, toggles, dock). */
-export const springSnappy: Transition = {
-  type: "spring",
-  stiffness: 500,
-  damping: 30,
-  mass: 0.8,
+/** Quick interaction feedback (buttons, toggles). Ease-out, no overshoot. */
+export const tweenQuick: Transition = {
+  type: "tween",
+  duration: 0.18,
+  ease: [0.2, 0.8, 0.2, 1],
 };
 
-/** Slightly looser spring for larger elements entering (sheets, cards). */
-export const springSoft: Transition = {
-  type: "spring",
-  stiffness: 320,
-  damping: 34,
+/** Entrance for larger elements (sheets, cards). Ease-out, no overshoot. */
+export const tweenSettle: Transition = {
+  type: "tween",
+  duration: 0.32,
+  ease: [0.2, 0.8, 0.2, 1],
 };
+
+/** @deprecated Spring physics is prohibited. Alias of `tweenQuick`. */
+export const springSnappy: Transition = tweenQuick;
+
+/** @deprecated Spring physics is prohibited. Alias of `tweenSettle`. */
+export const springSoft: Transition = tweenSettle;
 
 // --- Easings (for CSS / tween) --------------------------------------------
 
-/** Snappy ease-out — fast start, gentle settle. Matches the CSS token below. */
+/** Ease-out — fast start, gentle settle. No control point above 1 (no overshoot). */
 export const easeSnappy = [0.2, 0.8, 0.2, 1] as const;
 
 /** Standard duration for reveal-style tweens. */
@@ -54,7 +72,7 @@ export const fadeIn: Variants = {
 
 export const scaleIn: Variants = {
   hidden: { opacity: 0, scale: 0.92 },
-  show: { opacity: 1, scale: 1, transition: springSnappy },
+  show: { opacity: 1, scale: 1, transition: tweenSettle },
 };
 
 /** Parent that staggers its children's reveal — the agency "choreography" trick. */
@@ -78,5 +96,5 @@ export const tap = {
 };
 
 export const hover = {
-  lift: { y: -4, transition: springSnappy },
+  lift: { y: -4, transition: tweenQuick },
 };

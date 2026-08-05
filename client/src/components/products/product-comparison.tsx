@@ -220,9 +220,11 @@ export function ComparisonDrawer({ products }: ComparisonDrawerProps) {
         if (count === 0 && expanded) setExpanded(false);
     }, [count, expanded]);
 
+    // Ease-out tween, not spring physics (06_Visual_DNA §17 prohibits springs).
+    // Local name kept so the JSX below is untouched.
     const spring = reduceMotion
         ? { duration: 0 }
-        : { type: "spring" as const, stiffness: 420, damping: 32 };
+        : { type: "tween" as const, duration: 0.28, ease: [0.2, 0.8, 0.2, 1] as const };
 
     return (
         <AnimatePresence>

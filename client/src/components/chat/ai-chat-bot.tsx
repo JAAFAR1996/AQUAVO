@@ -86,7 +86,7 @@ const ChatMarkdown = memo(function ChatMarkdown({ text }: { text: string }) {
 
             if (isWarning) {
                 return (
-                    <div key={i} className="bg-red-500/15 border border-red-500/30 rounded-lg px-2.5 py-1.5 my-1 text-red-200">
+                    <div key={i} className="bg-[color:var(--aqv-warning)]/10 border border-[color:var(--aqv-warning)]/30 rounded-lg px-2.5 py-1.5 my-1 text-[color:var(--aqv-warning)]">
                         {processed}
                     </div>
                 );
@@ -150,12 +150,12 @@ const ChatProductCard = memo(function ChatProductCard({
                 </h4>
                 <div className="flex items-center gap-1.5">
                     {product.rating && (
-                        <span className="text-[10px] text-amber-400 flex items-center gap-0.5">
-                            <Star className="w-2.5 h-2.5 fill-amber-400" />
+                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                            <Star className="w-2.5 h-2.5" />
                             {product.rating}
                         </span>
                     )}
-                    <span className="text-[11px] font-bold text-purple-500">قريباً</span>
+                    <span className="text-[11px] font-bold text-muted-foreground">قريباً</span>
                 </div>
             </div>
             {/* 🛒 Add to Cart — 2026 Conversational Commerce */}
@@ -197,7 +197,7 @@ const FeedbackButtons = memo(function FeedbackButtons({
             <Button
                 size="icon"
                 variant="ghost"
-                className="h-5 w-5 hover:bg-green-500/20 hover:text-green-400"
+                className="h-5 w-5 hover:bg-primary/20 hover:text-primary"
                 onClick={() => onFeedback("up")}
                 aria-label="رد مفيد"
             >
@@ -206,7 +206,7 @@ const FeedbackButtons = memo(function FeedbackButtons({
             <Button
                 size="icon"
                 variant="ghost"
-                className="h-5 w-5 hover:bg-red-500/20 hover:text-red-400"
+                className="h-5 w-5 hover:bg-muted hover:text-foreground"
                 onClick={() => onFeedback("down")}
                 aria-label="رد غير مفيد"
             >
@@ -546,7 +546,7 @@ export function AIChatBot() {
                         >
                             <div className="relative">
                                 <MessageCircle className="w-6 h-6" aria-hidden="true" />
-                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
                             </div>
                         </Button>
                     </motion.div>
@@ -560,7 +560,7 @@ export function AIChatBot() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                        transition={{ type: "tween", duration: 0.28, ease: [0.2, 0.8, 0.2, 1] }}
                         className={cn(
                             "fixed z-50",
                             "inset-0 sm:inset-auto",
@@ -581,7 +581,7 @@ export function AIChatBot() {
                                         <div>
                                             <CardTitle className="text-sm font-bold">شريمب 🦐</CardTitle>
                                             <div className="flex items-center gap-1">
-                                                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                                                <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                                                 <span className="text-xs opacity-80">متصل الآن</span>
                                             </div>
                                         </div>
@@ -711,9 +711,9 @@ export function AIChatBot() {
                                                     <div className="bg-muted rounded-2xl rounded-tl-none px-3 py-2">
                                                         <div className="flex items-center gap-1.5">
                                                             <div className="flex gap-1">
-                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "0ms" }} />
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+                                                                <span className="w-1.5 h-1.5 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
                                                             </div>
                                                             <span className="text-[10px] text-muted-foreground">شريمب يكتب...</span>
                                                         </div>

@@ -14,7 +14,14 @@ describe("document shell", () => {
 
   it("uses the approved v2 colors, fonts and favicon in the document shell", () => {
     const html = readFileSync(resolve(process.cwd(), "client/index.html"), "utf8");
-    const css = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
+    // The --aqv-* brand tokens moved out of index.css into the v2 identity
+    // token layer, which index.css imports first. index.css now maps to those
+    // tokens by reference instead of restating brand hex values.
+    const identityCss = readFileSync(
+      resolve(process.cwd(), "client/src/styles/identity/aquavo-color-tokens-v2.css"),
+      "utf8",
+    );
+    const indexCss = readFileSync(resolve(process.cwd(), "client/src/index.css"), "utf8");
 
     expect(html).toContain('content="#0B93A6"');
     expect(html).toContain('/brand/aquavo-v2-favicon.png');
@@ -23,9 +30,11 @@ describe("document shell", () => {
     // First-time visitors and read failures default to Light (no dark flash).
     expect(html).toContain("var resolved = 'light'");
     expect(html).not.toContain("else resolved = 'dark'");
-    expect(css).toContain("--aqv-primary: #0B93A6");
-    expect(css).toContain("--aqv-bg-dark: #0B1E28");
-    expect(css).toContain("--aqv-bg-light: #F6F4EF");
+    expect(identityCss).toContain("--aqv-primary: #0B93A6");
+    expect(identityCss).toContain("--aqv-bg-dark: #0B1E28");
+    expect(identityCss).toContain("--aqv-bg-light: #F6F4EF");
+    // ...and index.css must actually load it, before anything else.
+    expect(indexCss).toContain("./styles/identity/aquavo-color-tokens-v2.css");
   });
 
   it("preloads the real hero LCP asset with sizes matching the runtime <img> on the home page", () => {

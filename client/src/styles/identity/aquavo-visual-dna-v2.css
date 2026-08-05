@@ -1,0 +1,248 @@
+/*
+  AQUAVO Visual DNA Tokens v2 -- working implementation of AQUAVO_Visual_DNA_System_v2.md
+  ============================================================
+  SOURCE OF TRUTH. Copied from the approved identity archive:
+    AQUAVO_Final_Master_Identity_System_v2.zip
+      -> 06_Visual_DNA/AQUAVO_Visual_DNA_Tokens_v2.css
+
+  Depends on: ./aquavo-color-tokens-v2.css
+              ./aquavo-typography-tokens-v2.css
+  Load both of those before this file. (Mandated load order:
+  color -> typography -> Visual DNA.)
+
+  Rebuilt from a separate exploratory pass's concept names (Dark Authority,
+  Proof Window, Waterline, Category Bands) but using ONLY the real approved
+  color tokens above -- not that pass's unapproved palette (#199BB8, coral,
+  amber). See the color token file's header comment for the full conflict
+  resolution.
+  ============================================================
+
+  TWO DOCUMENTED DEVIATIONS FROM THE ARCHIVE FILE, both deliberate:
+
+  1. `.aqv-waterline` is RENAMED here to `.aqv-waterline-rule`.
+     The class name `.aqv-waterline` is already in production use in this
+     codebase as a MOTION class (client/src/styles/motion-tokens.css:60,100,
+     applied by client/src/components/motion/displacement-runtime.tsx:73).
+     Defining the identity divider under the same name would silently collide
+     with a live animation. The identity spec is preserved exactly; only the
+     selector is namespaced. Reconcile the naming when the motion layer is
+     revisited (see identity audit IC-04/IC-12).
+
+  2. The non-photographic product visual system below is provided as an
+     AVAILABLE utility, not as the default product visual.
+     OWNER DECISION 2026-08-05 (recorded in CLAUDE.md "PRODUCT VISUAL POLICY"):
+     real product photography is KEPT on transactional pages. Technical
+     diagrams MAY support a product but must NOT replace the real product
+     image by default. This scopes -- it does not delete -- Visual DNA section 6.
+     Still prohibited either way: imagery that pretends to be photographic
+     evidence it is not (AI-generated fake product photos, generic stock).
+*/
+
+/* ---- 1. Dark Authority Mode ---- */
+.aqv-dark-authority {
+  background: var(--aqv-bg-dark);
+  color: var(--aqv-text-on-dark);
+}
+
+/* ---- 2. Clean Proof Mode ---- */
+.aqv-clean-proof {
+  background: var(--aqv-bg-light);
+  color: var(--aqv-text-dark);
+}
+
+/* ---- 3. Product Proof Window ---- */
+.aqv-proof-window {
+  border: 1px solid var(--aqv-border);
+  border-radius: 8px;
+  background: var(--aqv-white);
+  box-shadow: 0 16px 44px rgba(10, 22, 40, 0.10);
+  padding: 16px;
+}
+.aqv-dark-authority .aqv-proof-window {
+  border-color: rgba(11, 147, 166, 0.46);
+  background: linear-gradient(135deg, rgba(11, 147, 166, 0.10), rgba(255, 255, 255, 0.02));
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
+}
+
+/* ---- 4. Precision Waterline ----
+   NOTE: namespaced to -rule; see deviation 1 in the header. */
+.aqv-waterline-rule {
+  position: relative;
+  height: 2px;
+  background: var(--aqv-primary);
+  margin: 16px 0;
+}
+.aqv-waterline-rule::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: 0;
+  top: -5px;
+  width: 56px;
+  height: 12px;
+  background: repeating-linear-gradient(90deg, var(--aqv-primary) 0 2px, transparent 2px 8px);
+  opacity: 0.55;
+}
+
+/* ---- 5. Category Bands ---- */
+.aqv-category-band {
+  inline-size: 100%;
+  block-size: 8px;
+  background: var(--aqv-primary);
+}
+.aqv-category-band[data-family="substrate"] { background: var(--aqv-substrate); }
+.aqv-category-band[data-family="flowline"] { background: var(--aqv-flowline); }
+
+/* ---- 8. Technical Premium Layout (FlowLine spec callouts) ---- */
+.aqv-spec {
+  font-family: var(--aqv-font-en);
+  font-size: var(--aqv-type-caption);
+  text-transform: uppercase;
+  letter-spacing: var(--aqv-ls-en-caption);
+  color: var(--aqv-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Warning text ---- */
+.aqv-warning-text {
+  color: var(--aqv-warning);
+}
+
+/* ---- 10. Before/After Comparison Style ---- */
+.aqv-before-after {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.aqv-before-after > div {
+  border-inline-end: 1px solid var(--aqv-border);
+  padding: 16px;
+  text-align: center;
+}
+.aqv-before-after > div:last-child { border-inline-end: none; }
+.aqv-before-after .aqv-label {
+  font-family: var(--aqv-font-en);
+  font-size: var(--aqv-type-caption);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--aqv-text-muted);
+  margin-bottom: 8px;
+}
+
+/* ============================================================
+   NON-PHOTOGRAPHIC PRODUCT VISUAL SYSTEM (added per client decision
+   2026-07-08). Never realistic-looking, never AI-image-looking, never
+   stock photo -- flat vector/diagram/technical-drawing style only, built
+   from the locked color tokens and simple line strokes.
+
+   SCOPE, per owner decision 2026-08-05: these are SUPPORTING visuals.
+   Real product photography remains the default primary image on
+   transactional surfaces. See deviation 2 in the header.
+   ============================================================ */
+
+/* ---- Technical diagram area (FlowLine / general use) ---- */
+.aqv-product-diagram {
+  position: relative;
+  border: 1px solid var(--aqv-border);
+  border-radius: 8px;
+  background-color: var(--aqv-white);
+  background-image:
+    linear-gradient(var(--aqv-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--aqv-border) 1px, transparent 1px);
+  background-size: 16px 16px;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  overflow: hidden;
+}
+.aqv-dark-authority .aqv-product-diagram {
+  background-color: transparent;
+  background-image:
+    linear-gradient(rgba(11, 147, 166, 0.14) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 147, 166, 0.14) 1px, transparent 1px);
+  border-color: rgba(11, 147, 166, 0.35);
+}
+.aqv-product-diagram .diagram-icon {
+  width: 25%;
+  min-width: 48px;
+  max-width: 120px;
+}
+.aqv-product-diagram .diagram-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: var(--aqv-primary);
+  fill: none;
+  stroke-width: 1.1;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.aqv-dark-authority .aqv-product-diagram .diagram-icon svg { stroke: var(--aqv-primary); }
+.aqv-product-diagram .diagram-caption {
+  font-family: var(--aqv-font-en);
+  font-size: var(--aqv-type-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--aqv-text-muted);
+  text-align: center;
+  padding: 0 8px;
+}
+/* Corner dimension ticks -- reinforces "technical drawing," never decorative */
+.aqv-product-diagram::before, .aqv-product-diagram::after {
+  content: "";
+  position: absolute;
+  width: 14px; height: 14px;
+  border-color: var(--aqv-primary);
+  opacity: 0.5;
+}
+.aqv-product-diagram::before { top: 8px; left: 8px; border-top: 1.5px solid; border-left: 1.5px solid; }
+.aqv-product-diagram::after { bottom: 8px; right: 8px; border-bottom: 1.5px solid; border-right: 1.5px solid; }
+
+/* ---- Abstract macro-inspired texture (Substrate family only) ---- */
+.aqv-product-diagram.aqv-diagram-substrate {
+  background-color: var(--aqv-bg-light);
+  background-image: radial-gradient(var(--aqv-substrate) 1.4px, transparent 1.4px);
+  background-size: 14px 14px;
+}
+.aqv-product-diagram.aqv-diagram-substrate .diagram-icon svg { stroke: var(--aqv-substrate-dark); }
+
+/* ---- Icon-based feature proof row (real, checkable trust claims as line icons) ---- */
+.aqv-feature-proof {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.aqv-feature-proof .feature {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 90px;
+  text-align: center;
+}
+.aqv-feature-proof .feature svg {
+  width: 28px; height: 28px;
+  stroke: var(--aqv-primary); fill: none; stroke-width: 1.6;
+}
+.aqv-feature-proof .feature span {
+  font-family: var(--aqv-font-en);
+  font-size: 9.5px;
+  color: var(--aqv-text-muted);
+}
+
+/* ---- 12. Pattern Style (8-point star tessellation, texture only) ---- */
+.aqv-pattern-bg {
+  position: relative;
+}
+.aqv-pattern-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60'><g fill='none' stroke='%230B93A6' stroke-width='1'><path d='M30 4 L36 20 L52 14 L40 26 L56 30 L40 34 L52 46 L36 40 L30 56 L24 40 L8 46 L20 34 L4 30 L20 26 L8 14 L24 20 Z'/></g></svg>");
+  background-size: 60px 60px;
+}
+.aqv-pattern-bg > * { position: relative; z-index: 1; }

@@ -10,11 +10,17 @@ import {
   MessageCircle,
   PackageCheck,
   Phone,
+  RotateCcw,
   Truck,
   WalletCards,
 } from "lucide-react";
 import { addCsrfHeader } from "@/lib/csrf";
 import { WHATSAPP_NUMBER, WHATSAPP_URL } from "@/lib/constants/shipping";
+import {
+  OFFICIAL_CONTACT,
+  TRUST_STRIP_CLAIMS,
+  type BrandClaimId,
+} from "@/lib/brand-claims";
 
 const shopLinks = [
   { href: "/products", label: "كل المنتجات" },
@@ -38,12 +44,21 @@ const policyLinks = [
   { href: "/faq", label: "الأسئلة الشائعة" },
 ];
 
-const trustFacts = [
-  { icon: Truck, title: "توصيل خلال 24 ساعة", detail: "لكل العراق" },
-  { icon: WalletCards, title: "الدفع عند الاستلام", detail: "نقداً عند التوصيل" },
-  { icon: PackageCheck, title: "نفحص ونعبّي الطلب", detail: "بنفس معيار العناية" },
-  { icon: Clock3, title: "الدعم متوفر 24/7", detail: "للمساعدة قبل وبعد الطلب" },
-];
+/* Claim text comes from the single approved source (lib/brand-claims.ts).
+   Only the icon is chosen here — never the wording. */
+const TRUST_FACT_ICONS: Record<BrandClaimId, typeof Truck> = {
+  delivery: Truck,
+  cashOnDelivery: WalletCards,
+  checkedAndPacked: PackageCheck,
+  support: Clock3,
+  damagedResponse: RotateCcw,
+};
+
+const trustFacts = TRUST_STRIP_CLAIMS.map((claim) => ({
+  icon: TRUST_FACT_ICONS[claim.id],
+  title: claim.title,
+  detail: claim.detail,
+}));
 
 export default function Footer() {
   const [email, setEmail] = useState("");
@@ -94,7 +109,9 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-sm font-bold text-foreground">{fact.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{fact.detail}</p>
+                  {fact.detail ? (
+                    <p className="mt-1 text-xs text-muted-foreground">{fact.detail}</p>
+                  ) : null}
                 </div>
               </div>
             );
@@ -173,15 +190,15 @@ export default function Footer() {
             <h2 id="footer-contact-title" className="text-base font-bold">تواصل ويانا</h2>
             <ul className="mt-4 space-y-3 text-sm text-foreground/70">
               <li>
-                <a href={`tel:+${WHATSAPP_NUMBER}`} className="flex min-h-10 items-center gap-3 hover:text-foreground">
+                <a href={OFFICIAL_CONTACT.phoneHref} className="flex min-h-10 items-center gap-3 hover:text-foreground">
                   <Phone className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <span dir="ltr">+964 774 788 0673</span>
+                  <span dir="ltr">{OFFICIAL_CONTACT.phoneDisplay}</span>
                 </a>
               </li>
               <li>
-                <a href="mailto:info@aquavoiq.com" className="flex min-h-10 items-center gap-3 hover:text-foreground">
+                <a href={OFFICIAL_CONTACT.emailHref} className="flex min-h-10 items-center gap-3 hover:text-foreground">
                   <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
-                  <span className="font-interface">info@aquavoiq.com</span>
+                  <span className="font-interface" dir="ltr">{OFFICIAL_CONTACT.email}</span>
                 </a>
               </li>
               <li className="flex min-h-10 items-center gap-3">

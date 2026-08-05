@@ -245,7 +245,7 @@ export function LiveChatWidget() {
                 <div className="flex items-center gap-2">
                     <div className="relative">
                         <HeadsetIcon className="h-6 w-6" />
-                        <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isConnected ? "bg-green-400" : "bg-yellow-400"}`} />
+                        <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-white ${isConnected ? "bg-primary" : "bg-[color:var(--aqv-warning)]"}`} />
                     </div>
                     <div>
                         <CardTitle className="text-sm font-medium">الدعم المباشر</CardTitle>
@@ -307,9 +307,9 @@ export function LiveChatWidget() {
                                     </div>
                                     <div className="bg-muted rounded-2xl rounded-bl-sm px-4 py-3">
                                         <div className="flex gap-1">
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                                            <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                                            <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "0ms" }} />
+                                            <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "150ms" }} />
+                                            <span className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-pulse" style={{ animationDelay: "300ms" }} />
                                         </div>
                                     </div>
                                 </div>

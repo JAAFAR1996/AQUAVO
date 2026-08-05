@@ -424,7 +424,7 @@ export function ProductFilters({
               <SlidersHorizontal className="w-5 h-5 ml-2" />
               الفلاتر
               {activeFiltersCount > 0 && (
-                <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-card text-primary border-2 border-primary font-bold animate-bounce">
+                <Badge className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-card text-primary border-2 border-primary font-bold">
                   {activeFiltersCount}
                 </Badge>
               )}

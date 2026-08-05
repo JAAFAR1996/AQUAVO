@@ -1,6 +1,21 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* ============================================================
+   AQUAVO v2 IDENTITY TOKEN LAYER — load order is MANDATED:
+     1. color  2. typography  3. Visual DNA
+   Then this file's application mappings, then the component
+   stylesheets imported from main.tsx.
+
+   These three files are copied from the approved identity archive
+   (AQUAVO_Final_Master_Identity_System_v2.zip) and are the single
+   source of truth for brand colour, type and Visual DNA. Do NOT
+   restate brand values below — map to --aqv-* by reference instead.
+   ============================================================ */
+@import "./styles/identity/aquavo-color-tokens-v2.css";
+@import "./styles/identity/aquavo-typography-tokens-v2.css";
+@import "./styles/identity/aquavo-visual-dna-v2.css";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -50,9 +65,12 @@
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
 
-  --font-sans: "Cairo", Tahoma, sans-serif;
-  --font-display: "Changa", "Cairo", Tahoma, sans-serif;
-  --font-interface: "Inter", "Segoe UI", Arial, sans-serif;
+  /* Mapped to the identity typography tokens — do not restate families here.
+     Cairo = Arabic body/UI, Changa = display/campaign headings only (40px+),
+     Inter = English / Latin / technical-numeric. */
+  --font-sans: var(--aqv-font-ar-primary);
+  --font-display: var(--aqv-font-ar-display);
+  --font-interface: var(--aqv-font-en);
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
   /* Animations */
@@ -124,116 +142,138 @@
   }
 }
 
-/* AQUAVO Default Theme = Dark (applied on :root AND .dark) */
-:root {
-  --aqv-primary: #0B93A6;
-  --aqv-primary-dark-shade: #075F6B;
-  --aqv-flowline: #0B64A6;
-  --aqv-bg-dark: #0B1E28;
-  --aqv-bg-light: #F6F4EF;
-  --aqv-white: #FFFFFF;
-  --aqv-text-dark: #232323;
-  --aqv-text-muted: #6B6B6B;
-  --aqv-substrate: #C9AE8C;
-  --aqv-warning: #C97A2E;
-  --aqv-border: #DDD8CE;
+/* ============================================================
+   APPLICATION VARIABLE MAPPINGS
+   ============================================================
+   These are shadcn/Tailwind-v4 application variables. They must NOT
+   restate brand values — every brand colour, font and dimension below
+   resolves by reference to an --aqv-* token declared in
+   ./styles/identity/aquavo-color-tokens-v2.css (and the typography file).
 
-  --background: 201 57% 10%;
-  --foreground: 0 0% 100%;
+   The --aqv-*-hsl triplets exist because Tailwind's @theme layer consumes
+   colours as hsl(var(--token)), which needs a bare "H S% L%" value rather
+   than a hex. Each triplet round-trips to its hex exactly. See the
+   "WEB IMPLEMENTATION ADDENDUM" comment in the colour token file.
+
+   Restating a hex or an HSL literal here is how the light theme previously
+   drifted onto the FlowLine blue. Do not reintroduce literals.
+   ============================================================ */
+
+/* AQUAVO Default Theme = Dark Authority (applied on :root AND .dark) */
+:root {
+  --background: var(--aqv-bg-dark-hsl);
+  --foreground: var(--aqv-white-hsl);
 
   /* Glassmorphism Variables */
   --card-bg: 0 0% 100% / 0.05;
   --card-border: 0 0% 100% / 0.1;
 
-  --card: 201 57% 10%;
-  --card-foreground: 0 0% 100%;
+  --card: var(--aqv-bg-dark-hsl);
+  --card-foreground: var(--aqv-white-hsl);
 
-  --popover: 201 57% 10%;
-  --popover-foreground: 0 0% 100%;
+  --popover: var(--aqv-bg-dark-hsl);
+  --popover-foreground: var(--aqv-white-hsl);
 
-  /* HSL equivalent of --aqv-primary (#0B93A6 = hsl(187.35 87.57% 34.7%), rounded).
-     Kept as a separate bare H/S/L triplet because --color-primary consumes it
-     via hsl(var(--primary)); do not diverge this from --aqv-primary. */
-  --primary: 187 88% 35%;
-  --primary-foreground: 0 0% 100%;
+  /* Global primary = --aqv-primary (#0B93A6). Never the FlowLine blue. */
+  --primary: var(--aqv-primary-hsl);
+  --primary-foreground: var(--aqv-white-hsl);
 
-  --secondary: 187 88% 35% / 0.12;
-  --secondary-foreground: 0 0% 100%;
+  --secondary: var(--aqv-primary-hsl) / 0.12;
+  --secondary-foreground: var(--aqv-white-hsl);
 
   --muted: 0 0% 100% / 0.08;
   --muted-foreground: 0 0% 100% / 0.72;
 
-  --accent: 205 88% 35% / 0.18;
-  --accent-foreground: 0 0% 100%;
+  /* Accent is primary-derived. It was previously the FlowLine blue
+     (205 88% 35%), which is scoped to the FlowLine product family and
+     Category Bands only — see the colour token file, usage rule 3. */
+  --accent: var(--aqv-primary-hsl) / 0.18;
+  --accent-foreground: var(--aqv-white-hsl);
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
 
   --border: 0 0% 100% / 0.14;
   --input: 0 0% 100% / 0.08;
-  --ring: 187 88% 35%;
+  --ring: var(--aqv-primary-hsl);
 
-  --radius: 0.75rem;
+  /* Canonical shared radius — 8px, matching the Proof Window and product
+     diagram specs in the Visual DNA token file. */
+  --radius: 0.5rem;
 
-  --chart-1: 187 88% 35%;
-  --chart-2: 205 88% 35%;
-  --chart-3: 33 32% 67%;
-  --chart-4: 29 64% 48%;
-  --chart-5: 0 0% 100%;
+  /* Approved Proof Window elevation (Visual DNA §3). The only shadow token
+     introduced in this phase. */
+  --aqv-shadow-proof-window: 0 16px 44px rgba(10, 22, 40, 0.10);
 
-  --font-heading: 'Cairo', Tahoma, sans-serif;
-  --font-display: 'Changa', 'Cairo', Tahoma, sans-serif;
-  --font-sans: 'Cairo', Tahoma, sans-serif;
-  --font-interface: 'Inter', 'Segoe UI', Arial, sans-serif;
+  --chart-1: var(--aqv-primary-hsl);
+  --chart-2: var(--aqv-flowline-hsl);
+  --chart-3: var(--aqv-substrate-hsl);
+  --chart-4: var(--aqv-warning-hsl);
+  --chart-5: var(--aqv-white-hsl);
+
+  --font-heading: var(--aqv-font-ar-primary);
+  --font-display: var(--aqv-font-ar-display);
+  --font-sans: var(--aqv-font-ar-primary);
+  --font-interface: var(--aqv-font-en);
 }
 
 /* Dark class — same as :root */
 .dark {
-  --background: 201 57% 10%;
-  --foreground: 0 0% 100%;
-  --card: 201 57% 10%;
-  --card-foreground: 0 0% 100%;
-  --popover: 201 57% 10%;
-  --popover-foreground: 0 0% 100%;
-  --primary: 187 88% 35%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 187 88% 35% / 0.12;
-  --secondary-foreground: 0 0% 100%;
+  --background: var(--aqv-bg-dark-hsl);
+  --foreground: var(--aqv-white-hsl);
+  --card: var(--aqv-bg-dark-hsl);
+  --card-foreground: var(--aqv-white-hsl);
+  --popover: var(--aqv-bg-dark-hsl);
+  --popover-foreground: var(--aqv-white-hsl);
+  --primary: var(--aqv-primary-hsl);
+  --primary-foreground: var(--aqv-white-hsl);
+  --secondary: var(--aqv-primary-hsl) / 0.12;
+  --secondary-foreground: var(--aqv-white-hsl);
   --muted: 0 0% 100% / 0.08;
   --muted-foreground: 0 0% 100% / 0.72;
-  --accent: 205 88% 35% / 0.18;
-  --accent-foreground: 0 0% 100%;
+  --accent: var(--aqv-primary-hsl) / 0.18;
+  --accent-foreground: var(--aqv-white-hsl);
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 20% 98%;
   --border: 0 0% 100% / 0.14;
   --input: 0 0% 100% / 0.08;
-  --ring: 187 88% 35%;
+  --ring: var(--aqv-primary-hsl);
 }
 
-/* Light Theme — AQUAVO Clean White
-   Applied when theme-switcher adds .light to <html>
-   Uses !important-level specificity via html.light selector */
+/* Light Theme — AQUAVO Clean Proof (the transactional register)
+   Applied when theme-switcher adds .light to <html>.
+   Page background is --aqv-bg-light (#F6F4EF); --aqv-white is reserved for
+   card / Proof Window surfaces and is never a full page background. */
 html.light {
   color-scheme: light;
-  --background: 43 28% 95%;
-  --foreground: 0 0% 14%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 14%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 14%;
-  --primary: 205 88% 35%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 187 88% 35% / 0.10;
-  --secondary-foreground: 0 0% 14%;
-  --muted: 40 21% 84% / 0.42;
-  --muted-foreground: 0 0% 42%;
-  --accent: 187 88% 35% / 0.12;
-  --accent-foreground: 0 0% 14%;
+  --background: var(--aqv-bg-light-hsl);
+  --foreground: var(--aqv-text-dark-hsl);
+  --card: var(--aqv-white-hsl);
+  --card-foreground: var(--aqv-text-dark-hsl);
+  --popover: var(--aqv-white-hsl);
+  --popover-foreground: var(--aqv-text-dark-hsl);
+
+  /* CORRECTED (Phase B): was 205 88% 35% = #0B64A6, the FlowLine sub-brand
+     colour. FlowLine must never hold the global primary role. */
+  --primary: var(--aqv-primary-hsl);
+  --primary-foreground: var(--aqv-white-hsl);
+
+  /* Small / normal-weight teal TEXT on this background must use
+     --aqv-primary-dark-shade (#075F6B, 7.0:1) — #0B93A6 is 3.33:1 and fails
+     WCAG AA below 18pt/14pt-bold. Exposed as a token for component use. */
+  --primary-text-safe: var(--aqv-primary-dark-shade-hsl);
+
+  --secondary: var(--aqv-primary-hsl) / 0.10;
+  --secondary-foreground: var(--aqv-text-dark-hsl);
+  --muted: var(--aqv-border-hsl) / 0.42;
+  --muted-foreground: var(--aqv-text-muted-hsl);
+  --accent: var(--aqv-primary-hsl) / 0.12;
+  --accent-foreground: var(--aqv-text-dark-hsl);
   --destructive: 0 72% 51%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 40 21% 84%;
-  --input: 40 21% 84%;
-  --ring: 205 88% 35%;
+  --destructive-foreground: var(--aqv-white-hsl);
+  --border: var(--aqv-border-hsl);
+  --input: var(--aqv-border-hsl);
+  --ring: var(--aqv-primary-hsl);
 }
 
 html.dark {
@@ -424,9 +464,12 @@ html.dark {
     box-shadow: 0 20px 40px -12px hsla(var(--primary) / 0.15);
   }
 
-  /* Gen Z Micro-interactions */
+  /* Press feedback. Was cubic-bezier(0.34, 1.56, 0.64, 1) — an overshoot
+     (bounce) curve, prohibited by 06_Visual_DNA §17. Now ease-out with no
+     control point above 1. The class name is retained because call sites
+     reference it; only the curve changed. */
   .micro-bounce {
-    transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .micro-bounce:active {

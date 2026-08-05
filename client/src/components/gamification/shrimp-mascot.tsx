@@ -55,9 +55,9 @@ export function ShrimpMascot({
         switch (m) {
             case "sad": return "animate-pulse brightness-75";
             case "thinking": return "animate-float";
-            case "excited": return "animate-bounce";
+            case "excited": return "animate-pulse";
             case "working": return "animate-pulse";
-            case "drinking": return "animate-bounce";
+            case "drinking": return "animate-pulse";
             case "guardian": return "animate-pulse";
             case "relaxed": return "animate-float";
             default: return "animate-float";
@@ -120,12 +120,12 @@ export function ShrimpMascot({
 
                     {/* Decorative elements based on mood - kept as overlay */}
                     {mood === "thinking" && (
-                        <div className="absolute -top-4 -right-2 text-2xl font-bold animate-bounce text-black dark:text-white">
+                        <div className="absolute -top-4 -right-2 text-2xl font-bold animate-pulse text-foreground">
                             ?
                         </div>
                     )}
                     {mood === "happy" && (
-                        <div className="absolute -top-4 -right-2 text-2xl animate-bounce delay-100">
+                        <div className="absolute -top-4 -right-2 text-2xl animate-pulse delay-100">
                             ✨
                         </div>
                     )}

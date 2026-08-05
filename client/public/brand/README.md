@@ -17,11 +17,33 @@ Confirmed foundations:
 
 Use the transparent v2 SVG/PNG logo assets in this folder. Do not reconstruct or trace the logo from old raster files.
 
+Small or normal-weight teal text on a light background must use `#075F6B`, not
+`#0B93A6` — the primary teal is 3.33:1 on `#F6F4EF` and fails WCAG AA below
+18pt/14pt-bold. Clean Proof `#F6F4EF` is the default page background; `#FFFFFF`
+is a card surface only. Shared radius is 8px.
+
+`#0B64A6` is the **FlowLine product family** colour and Category Bands only. It
+must never stand in for the global primary.
+
 ## Retired material
 
-`AQUAVO_BRAND_GUIDELINES.md` and the older cyan `#199bb8` logo-package notes are legacy v1 material. Their cyan/coral/gold palette, dark-only rule, glassmorphism and glow treatments are retired and must not be used for the storefront, design-system generation or future UI work.
+The cyan `#199bb8` / coral `#ff7b5a` / amber `#ffd700` palette, the
+`#010611`/`#0a1628` backgrounds, the `#22c55e` success colour, the dark-only rule,
+and the glassmorphism and glow treatments are all **retired and prohibited**. They
+came from an unapproved parallel system and must not be used for the storefront,
+design-system generation, or future UI work. Note `#0a1628` is not `#0B1E28`.
 
-When legacy code or documentation conflicts with v2, v2 is authoritative. Record the conflict instead of silently copying the legacy rule.
+`AQUAVO_BRAND_GUIDELINES.md` previously carried that retired palette as if it
+were authoritative. It was **rewritten on 2026-08-05** to the v2 system and is now
+safe to read — the file is publicly served, so leaving the old guidance in place
+meant anyone reading it would rebuild the rejected system. Older cyan
+logo-package notes remain legacy material.
+
+There is no approved success/green colour. Never invent one; express stock and
+confirmation states with neutral text, or the warning token for low stock.
+
+When legacy code or documentation conflicts with v2, v2 is authoritative. Record
+the conflict instead of silently copying the legacy rule.
 
 ## Storefront principles
 

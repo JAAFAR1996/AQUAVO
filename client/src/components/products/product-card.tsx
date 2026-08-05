@@ -22,6 +22,9 @@ import {
 import { prefersReducedMotion } from "@/lib/motion/reduced-motion";
 import type { Product } from "@/types";
 
+/** At or below this many units the card shows the approved low-stock warning. */
+const LOW_STOCK_THRESHOLD = 3;
+
 interface ProductCardProps {
   product: Product;
   onCompare?: (product: Product) => void;
@@ -57,6 +60,27 @@ export const ProductCard = memo(function ProductCard({
   const isOutOfStock = requiresVariantChoice
     ? product.variants?.every((variant) => (variant.stock ?? 0) <= 0) ?? true
     : (product.stock ?? 0) <= 0;
+
+  /**
+   * Availability shown as TEXT, never colour alone (WCAG 1.4.1).
+   *
+   * No approved success colour exists in the v2 system — `--aqv-success` is
+   * explicitly NOT YET DEFINED and the owner reconfirmed on 2026-08-05 that it
+   * must not be invented. So "available" is neutral muted text and low stock
+   * uses the approved warning token; nothing here uses green/emerald.
+   */
+  const availableUnits = requiresVariantChoice
+    ? (product.variants ?? []).reduce((total, variant) => total + Math.max(0, variant.stock ?? 0), 0)
+    : Math.max(0, product.stock ?? 0);
+  const isLowStock = !isOutOfStock && availableUnits > 0 && availableUnits <= LOW_STOCK_THRESHOLD;
+
+  const stockLabel = !hasPrice
+    ? null
+    : isOutOfStock
+      ? "نفدت الكمية"
+      : isLowStock
+        ? `آخر ${availableUnits} قطع`
+        : "متوفر";
 
   const handlePrimaryAction = async (event: MouseEvent<HTMLButtonElement>) => {
     if (isOutOfStock) return;
@@ -120,32 +144,49 @@ export const ProductCard = memo(function ProductCard({
         : `أضف ${product.name} إلى سلة المشتريات`;
 
   return (
-    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/60 text-right transition-colors hover:border-primary/50">
+    <Card className="group relative flex h-full min-w-0 flex-col overflow-hidden rounded-lg border border-border/70 bg-card/60 text-right transition-colors hover:border-primary/50">
+      {/*
+        Overlay controls: previously three permanently-visible buttons sat on top
+        of every product image, which at 24–48 cards per page became the
+        dominant texture of the catalogue and obscured the thing the shopper is
+        evaluating.
+
+        Now: wishlist stays permanent (it is the one secondary action people
+        reach for on a grid, and hiding it behind hover would strand touch
+        users); compare and quick-view are revealed on pointer hover or keyboard
+        focus-within on sm+ only. On touch, `(hover: none)` keeps them visible
+        via `max-sm:opacity-100` so they are never unreachable.
+
+        Every control keeps h-11 w-11 (44px) per WCAG 2.5.8, and
+        `group-focus-within:opacity-100` keeps them reachable by Tab.
+      */}
       <div className="pointer-events-none absolute inset-x-2 top-2 z-20 flex items-start justify-between gap-2 sm:inset-x-3 sm:top-3">
         <div className="pointer-events-auto flex gap-1.5">
-          <CompareButton
-            productId={product.id}
-            variant="icon"
-            className="h-11 w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm md:h-11 md:w-11"
-          />
           <WishlistButton
             product={product}
             variant="icon"
             size="icon"
             className="h-11 w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm md:h-11 md:w-11"
           />
-          {onQuickView ? (
-            <Button
-              type="button"
-              size="icon"
-              variant="outline"
-              className="hidden h-11 w-11 border-border/70 bg-background/90 shadow-sm backdrop-blur-sm sm:inline-flex"
-              onClick={() => onQuickView(product)}
-              aria-label={`نظرة سريعة على ${product.name}`}
-            >
-              <Eye className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          ) : null}
+          <div className="flex gap-1.5 opacity-100 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100">
+            <CompareButton
+              productId={product.id}
+              variant="icon"
+              className="h-11 w-11 border border-border/70 bg-background/90 shadow-sm backdrop-blur-sm md:h-11 md:w-11"
+            />
+            {onQuickView ? (
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
+                className="hidden h-11 w-11 border-border/70 bg-background/90 shadow-sm backdrop-blur-sm sm:inline-flex"
+                onClick={() => onQuickView(product)}
+                aria-label={`نظرة سريعة على ${product.name}`}
+              >
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
         </div>
 
         <div className="flex flex-col items-end gap-1">
@@ -230,9 +271,25 @@ export const ProductCard = memo(function ProductCard({
             <span className="text-sm font-medium text-muted-foreground">قريباً</span>
           )}
 
+          {stockLabel ? (
+            <p
+              className={`mt-2 text-xs font-medium ${
+                isOutOfStock
+                  ? "text-muted-foreground"
+                  : isLowStock
+                    ? "text-[color:var(--aqv-warning)]"
+                    : "text-muted-foreground"
+              }`}
+            >
+              {stockLabel}
+            </p>
+          ) : null}
+
           {(product.reviewCount ?? 0) > 0 ? (
             <div className="mt-2 flex items-center gap-1 text-xs" aria-label={`التقييم: ${product.rating} من 5 نجوم`}>
-              <span className="text-amber-400" aria-hidden="true">★</span>
+              {/* Neutral star: no approved gold token exists, and --aqv-warning is
+                  reserved for real warnings ("never decorative or promotional"). */}
+              <span className="text-muted-foreground" aria-hidden="true">★</span>
               <span className="font-medium">{product.rating}</span>
               <span className="text-muted-foreground">({product.reviewCount})</span>
             </div>

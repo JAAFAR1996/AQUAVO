@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 
-import { mountCaustics } from "@/lib/motion/caustics";
 import {
   MOTION,
   clarify,
@@ -69,6 +68,18 @@ function setupHomepage() {
   main.dataset.aqvMotion = "descent";
   main.classList.add("aqv-runtime-home");
 
+  /*
+    `.aqv-waterline` — NAMING RECONCILIATION (Phase C).
+    Two different things wanted this name:
+      • this runtime element: the animated home hero line, styled in
+        styles/motion-tokens.css and driven by scroll velocity below;
+      • the identity's Precision Waterline: a static 2px teal section divider
+        (06_Visual_DNA §4), implemented in Phase B as `.aqv-waterline-rule`.
+    The live class is left as-is deliberately rather than renamed blind — it has
+    styling and behaviour attached. The identity divider carries the `-rule`
+    suffix. Both names are cross-referenced in motion-tokens.css so the overlap
+    is explicit instead of a trap for the next reader.
+  */
   const line = document.createElement("div");
   line.className = "aqv-waterline aqv-runtime-waterline";
   line.setAttribute("aria-hidden", "true");
@@ -79,20 +90,17 @@ function setupHomepage() {
   floor.setAttribute("aria-hidden", "true");
   main.appendChild(floor);
 
-  let stopCaustics = () => {};
-  let canvas: HTMLCanvasElement | null = null;
-  if (!prefersReducedMotion() && !isCompactViewport()) {
-    canvas = document.createElement("canvas");
-    canvas.className = "aqv-runtime-caustics";
-    canvas.dataset.aqvCaustics = "true";
-    canvas.setAttribute("aria-hidden", "true");
-    line.insertAdjacentElement("afterend", canvas);
-    let depth = 0;
-    stopCaustics = mountCaustics(canvas, { depth: () => depth });
-    canvas.dataset.depthRef = "runtime";
-    const setDepth = (value: number) => { depth = value; };
-    (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth = setDepth;
-  }
+  /*
+    CAUSTICS REMOVED (Phase C). `mountCaustics` painted an animated canvas
+    "aquarium light" across the homepage on every load via main.tsx.
+    06_Visual_DNA §17 prohibits particle effects, and §18 states the Precision
+    Waterline is "the only approved literal water reference in the entire system
+    outside the logo itself — do not add wave graphics elsewhere."
+    The effect is deleted, not hidden: no canvas is created and no animation
+    frame loop is started. The Waterline above is retained as the approved
+    reference. `lib/motion/caustics.ts` is left on disk but is now unreferenced
+    by the storefront bundle.
+  */
 
   let previous = 0;
   let velocity = 0;
@@ -109,10 +117,6 @@ function setupHomepage() {
     main.style.setProperty("--aqv-depth-muted", mixHex("#6B6B6B", "#A6C0C9", t));
     main.style.setProperty("--aqv-depth-border", mixHex("#DDD8CE", "#264C58", t));
     floor.style.opacity = String(Math.max(0, (t - 0.74) / 0.26));
-    if (canvas) {
-      (canvas as HTMLCanvasElement & { __aqvSetDepth?: (value: number) => void }).__aqvSetDepth?.(t);
-      canvas.style.opacity = String(0.58 - t * 0.44);
-    }
   };
 
   const offFrame = onFrame(() => {
@@ -129,11 +133,9 @@ function setupHomepage() {
   return () => {
     window.removeEventListener("scroll", update);
     window.removeEventListener("resize", update);
-    stopCaustics();
     offFrame();
     line.remove();
     floor.remove();
-    canvas?.remove();
     main.classList.remove("aqv-runtime-home");
     delete main.dataset.aqvRuntimeHome;
     main.removeAttribute("data-aqv-motion");
@@ -143,7 +145,6 @@ function setupHomepage() {
 
 function setupProductGlass() {
   let destroyed = false;
-  let stopCaustics = () => {};
   let cleanupPointer = () => {};
   let observer: MutationObserver | null = null;
 
@@ -162,12 +163,12 @@ function setupProductGlass() {
     const layer = document.createElement("div");
     layer.className = "aqv-runtime-glass-layer";
     layer.setAttribute("aria-hidden", "true");
-    const canvas = document.createElement("canvas");
     const sweep = document.createElement("div");
     sweep.className = "aqv-light-sweep aqv-runtime-glass-sweep";
-    layer.append(canvas, sweep);
+    layer.append(sweep);
     host.appendChild(layer);
-    stopCaustics = mountCaustics(canvas, { depth: () => 0.24 });
+    // Caustics canvas removed (Phase C) — see the note in setupHomepage.
+    // The light sweep is a single restrained pass, not a particle simulation.
 
     const fine = window.matchMedia?.("(pointer: fine)").matches && !prefersReducedMotion();
     if (fine) {
@@ -215,7 +216,6 @@ function setupProductGlass() {
   return () => {
     destroyed = true;
     observer?.disconnect();
-    stopCaustics();
     cleanupPointer();
     const host = document.querySelector<HTMLElement>('[data-aqv-glass="true"]');
     host?.querySelector(".aqv-runtime-glass-layer")?.remove();

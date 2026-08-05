@@ -13,10 +13,21 @@ html.light {
   --secondary-border: hsl(var(--border));
 }
 
-/* AQUAVO v2: teal is the primary action colour in both supported themes. */
+/* AQUAVO v2: teal is the primary action colour in both supported themes.
+ *
+ * This block previously restated the primary as the whole-number triplet
+ * `187 88% 35%`. hsl(187 88% 35%) renders #0B95A8, not the approved #0B93A6 --
+ * a two-channel drift that reached production. Because this file loads after
+ * index.css it also silently won over the correct value there.
+ *
+ * Now mapped by reference to the identity token, so there is one source of
+ * truth and no rounding. Redundant with index.css's html.light block as of
+ * Phase B; retained rather than deleted so the cascade order this file was
+ * written against is unchanged.
+ */
 html.light {
-  --primary: 187 88% 35%;
-  --ring: 187 88% 35%;
+  --primary: var(--aqv-primary-hsl);
+  --ring: var(--aqv-primary-hsl);
 }
 
 /* One consistent keyboard focus treatment: 2px teal, 2px offset. */

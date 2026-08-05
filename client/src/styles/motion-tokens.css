@@ -20,7 +20,11 @@
 
   --aqv-e-precision: cubic-bezier(.2, .72, .2, 1);
   --aqv-e-meniscus: cubic-bezier(.16, .84, .24, 1);
-  --aqv-e-settle: cubic-bezier(.34, 1.42, .4, 1);
+  /* Ease-out, no overshoot. Was cubic-bezier(.34, 1.42, .4, 1) — the 1.42
+     control point is an overshoot curve, i.e. bounce expressed as easing, which
+     06_Visual_DNA §17 prohibits ("No bounce, no spring physics"). No control
+     point in this file may exceed 1. */
+  --aqv-e-settle: cubic-bezier(.22, .84, .28, 1);
   --aqv-e-reverse: cubic-bezier(.32, 0, .67, 0);
 
   --aqv-t-lift: -2px;

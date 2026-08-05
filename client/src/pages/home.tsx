@@ -28,16 +28,27 @@ import { BackToTop } from "@/components/back-to-top";
 import { MetaTags } from "@/components/seo/meta-tags";
 import { PrecisionReveal } from "@/components/motion/precision-reveal";
 import { fetchTopSellingProducts } from "@/lib/api";
+import { TRUST_STRIP_CLAIMS, type BrandClaimId } from "@/lib/brand-claims";
 import { cardImage, cardImageSrcSet } from "@/lib/cloudinary";
 import { formatPrice } from "@/lib/format";
 import { SHOP_CATEGORY_LINKS } from "@/lib/product-category-links";
 
-const serviceFacts = [
-  { icon: Truck, title: "توصيل لكل العراق", detail: "خلال 24 ساعة" },
-  { icon: Banknote, title: "الدفع عند الاستلام", detail: "نقداً عند وصول الطلب" },
-  { icon: PackageCheck, title: "أجرة توصيل ثابتة", detail: "5,000 د.ع" },
-  { icon: Headphones, title: "دعم 24/7", detail: "نساعدك تختار المناسب" },
-];
+/* Claim text comes from the single approved source (lib/brand-claims.ts) so the
+   homepage strip and the footer strip can never drift apart again. Only the
+   icon is chosen here — never the wording. */
+const SERVICE_FACT_ICONS: Record<BrandClaimId, typeof Truck> = {
+  delivery: Truck,
+  cashOnDelivery: Banknote,
+  checkedAndPacked: PackageCheck,
+  support: Headphones,
+  damagedResponse: PackageCheck,
+};
+
+const serviceFacts = TRUST_STRIP_CLAIMS.map((claim) => ({
+  icon: SERVICE_FACT_ICONS[claim.id],
+  title: claim.title,
+  detail: claim.detail,
+}));
 
 const categories = [
   {
@@ -221,7 +232,9 @@ export default function Home() {
               <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
                 <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
                 <p className="text-sm font-bold text-foreground">{title}</p>
-                <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
+                {detail ? (
+                  <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
+                ) : null}
               </div>
             ))}
           </PrecisionReveal>

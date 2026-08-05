@@ -70,7 +70,7 @@ export function BundleRecommendation({ bundle, products, onAddToCart }: BundleRe
 
       <CardFooter>
         <Button className="w-full gap-2 group" onClick={onAddToCart}>
-          <ShoppingBag className="w-4 h-4 group-hover:animate-bounce" />
+          <ShoppingBag className="w-4 h-4" />
           Add Bundle to Cart
         </Button>
       </CardFooter>

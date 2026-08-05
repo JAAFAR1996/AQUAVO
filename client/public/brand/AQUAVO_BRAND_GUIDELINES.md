@@ -1,364 +1,205 @@
-# AQUAVO — دليل الهوية البصرية الرسمي 2026
-## Official Brand Identity Guidelines
+# AQUAVO — Brand Implementation Guidance
 
-> **الإصدار**: 1.0  
-> **التاريخ**: أبريل 2026  
-> **الحالة**: معتمد — مرجع لكل المحتوى والتصاميم
+**Status:** active · aligned to **AQUAVO Master Identity System v2**
+**Corrected:** 2026-08-05
 
----
-
-## 1. قصة البراند (Brand Story)
-
-### المهمة (Mission)
-نرفع مستوى هواية أحواض السمك في العراق من تجربة عشوائية إلى تجربة احترافية بأدوات موثوقة ومعرفة حقيقية.
-
-### الرؤية (Vision)
-أن يصبح AQUAVO المرجع الأول والأكثر ثقة لهواة أحواض السمك في العراق والمنطقة.
-
-### القيم (Values)
-| القيمة | التطبيق |
-|--------|---------|
-| **الخبرة** | نتكلم بعلم — مو بكلام فاضي |
-| **الأمان** | كل منتج نبيعه لازم يحمي أسماكك |
-| **الاحترافية** | من التغليف للمحتوى — كل شي premium |
-| **المجتمع** | نبني tribe عراقية من هواة الأحواض المحترفين |
-
-### الشخصية (Brand Archetype)
-**The Sage (الحكيم) + The Hero (البطل)**
-- نعلّم بثقة ← Sage
-- ننقذ أسماكك من الأدوات الرديئة ← Hero
-
-### Tagline الرسمي
-```
-AQUAVO — مستقبل أحواض العراق
-```
-
-### Positioning Statement
-```
-لهواة أحواض السمك في العراق اللي تعبوا من الغراض الرديئة والمعلومات الخاطئة،
-AQUAVO هو أول متجر عراقي متخصص يوفر أدوات احترافية ومحتوى موثوق
-— لأن سمكتك تستاهل الأفضل.
-```
+> **This file is implementation guidance, not the source of truth.**
+> The authority is the **AQUAVO Master Identity System v2** archive
+> (`AQUAVO_Final_Master_Identity_System_v2.zip`). Owner overrides and approved
+> commercial claims live in the repository's `CLAUDE.md`. If this file disagrees
+> with either, **they win** — then correct this file.
+>
+> **What changed and why.** Earlier versions of this document described a
+> different colour system: `#199bb8` cyan as "the primary identity colour",
+> coral `#ff7b5a`, amber gold `#ffd700`, `#010611`/`#0a1628` backgrounds, a
+> `#22c55e` success colour, cyan gradients, and a "dark brand — never use white
+> as a background" rule. **That system was never approved** and is archived.
+> Because this file is served publicly it was actively instructing readers to
+> rebuild the rejected palette, so its guidance has been replaced. Do not restore
+> the old values from memory, from an old branch, or from a cached copy.
 
 ---
 
-## 2. نظام الشعار (Logo System)
+## 1. Colour
 
-### النسخ المتوفرة
+Exactly these tokens. Nothing else.
 
-| النسخة | الملف | الاستخدام |
-|--------|-------|----------|
-| **رئيسي (طباعة)** | `logos/aquavo-logo-print.png` | مطبوعات، مستندات رسمية |
-| **أفقي** | `logos/aquavo-horizontal.png` | هيدر الموقع، إيميلات، بانرات |
-| **عمودي** | `logos/aquavo-vertical.png` | بطاقات عمل، مساحات ضيقة |
-| **أيقونة فقط** | `logos/aquavo-icon-only.png` | بروفايلات، favicons |
-| **أبيض** | `colors/aquavo-white.png` | خلفيات داكنة |
-| **أسود** | `colors/aquavo-black.png` | مستندات، طباعة أحادية |
+| Token | Hex | Use |
+|---|---|---|
+| **Primary teal** | `#0B93A6` | Global primary. CTA fills, large or bold headings, icons, borders, brand marks, decorative accents. |
+| **Primary dark** | `#075F6B` | **Small or normal-weight teal text on light backgrounds.** See §2. |
+| **Clean Proof background** | `#F6F4EF` | Default page background for every transactional surface. |
+| **Dark Authority background** | `#0B1E28` | Brand-voice, social and educational content (including guide pages). Never invoices, packaging, or legally-weighted documents. |
+| **White** | `#FFFFFF` | Card and Proof Window surfaces **only** — never a full page background. |
+| Text | `#232323` | Primary text on light. |
+| Text muted | `#6B6B6B` | Secondary text on light. |
+| Text on dark | `#FFFFFF` | Text on Dark Authority. |
+| Border | `#DDD8CE` | Structure and dividers. |
+| Warning | `#C97A2E` | Real warnings and low stock. Never decorative or promotional. 18pt+/bold or icon only. |
+| Substrate family | `#C9AE8C` | Substrate products (stones, sand). **Icon/accent only — never text.** |
+| FlowLine family | `#0B64A6` | **FlowLine products only** (air tubes, air stones, check valves) and Category Bands. See §3. |
 
-### قواعد الاستخدام
+### Prohibited — archived, never adopted
 
-**المسافة الآمنة (Clear Space):**
-- المسافة المينيمم = نصف ارتفاع حرف "A" من كلمة AQUAVO حول الشعار من كل الجهات
+`#199BB8` (cyan) · `#FF7B5A` (coral) · `#FFD700` (amber/gold) · `#0A1628` · `#010611`
 
-**الحجم الأدنى:**
-- الشعار الكامل: 150px عرض (رقمي) / 35mm (طباعة)
-- الأيقونة فقط: 32×32px (رقمي) / 10mm (طباعة)
+These came from an unapproved parallel exploration. They were never checked
+against the owner-approved brief, they introduce colours with no documented
+rationale, and they conflict with the real locked primary. Note that `#0a1628`
+is **not** `#0B1E28` — the approved dark background is `#0B1E28`.
 
-**ممنوع:**
-- تشويه أو تمديد الشعار
-- تغيير الألوان
-- إضافة ظلال أو تأثيرات
-- وضعه على خلفيات مشوشة
+Also retired with that system: dark-only layouts, glassmorphism, glow treatments,
+and gradient accents.
 
----
+### There is no success colour
 
-## 3. لوحة الألوان الكاملة (Color Palette)
+No approved green / success / in-stock colour exists, and none may be invented.
+Do not add `--aqv-success`. Do not use Tailwind `green-*` or `emerald-*`. There
+is no approved red either — use the warning token.
 
-### الألوان الأساسية (Primary)
-| الاسم | الدور | HEX | RGB | HSL |
-|-------|-------|-----|-----|-----|
-| **AQUAVO Cyan** | اللون الرئيسي — الهوية | `#199bb8` | 25, 155, 184 | 191°, 76%, 41% |
-| **Deep Cyan** | Hover + تدرجات | `#0d7a94` | 13, 122, 148 | 192°, 84%, 32% |
-
-### الألوان الثانوية (Secondary)
-| الاسم | الدور | HEX | RGB | HSL |
-|-------|-------|-----|-----|-----|
-| **Coral Accent** | CTA, تنبيهات، عروض | `#ff7b5a` | 255, 123, 90 | 12°, 100%, 68% |
-| **Amber Gold** | Premium، نجوم، badges | `#ffd700` | 255, 215, 0 | 51°, 100%, 50% |
-| **Aqua Bright** | Charts، رسوم تفاعلية | `#1dd3d3` | 29, 211, 211 | 180°, 76%, 47% |
-
-### ألوان الخلفيات (Backgrounds)
-| الاسم | الدور | HEX | RGB | HSL |
-|-------|-------|-----|-----|-----|
-| **Abyss** | خلفية رئيسية (الأغمق) | `#010611` | 1, 6, 17 | 221°, 89%, 4% |
-| **Deep Ocean** | خلفية الموقع الأساسية | `#0a1628` | 10, 22, 40 | 216°, 60%, 10% |
-| **Ocean Floor** | كاردات، أسطح مرتفعة | `#0f2035` | 15, 32, 53 | 213°, 56%, 13% |
-| **Surface** | حدود، dividers | `#1a3050` | 26, 48, 80 | 216°, 51%, 21% |
-
-### ألوان النصوص (Text)
-| الاسم | الدور | HEX | Opacity |
-|-------|-------|-----|---------|
-| **White Pure** | عناوين رئيسية | `#FFFFFF` | 100% |
-| **White Soft** | عناوين ثانوية | `#FFFFFF` | 90% |
-| **White Muted** | نصوص عادية | `#FFFFFF` | 70% |
-| **White Subtle** | نصوص مساعدة، timestamps | `#FFFFFF` | 40% |
-| **White Ghost** | عناصر زخرفية | `#FFFFFF` | 15% |
-
-### ألوان وظيفية (Functional)
-| الاسم | الدور | HEX |
-|-------|-------|-----|
-| **Success** | نجاح، متوفر، نشط | `#22c55e` |
-| **Warning** | تحذير، انتباه | `#eab308` |
-| **Error** | خطأ، نفد، حذف | `#ef4444` |
-| **Info** | معلومة، تلميح | `#3b82f6` |
-
-### قواعد استخدام الألوان
-
-```
-✅ AQUAVO Cyan = الهوية — يُستخدم للأزرار الرئيسية والعناوين المميزة
-✅ Coral = CTA ثانوي — يُستخدم للأسعار والعروض والأزرار العاجلة
-✅ Deep Ocean = الخلفية — دائماً dark mode
-❌ لا تستخدم أبيض كخلفية أساسية — AQUAVO = dark brand
-❌ لا تستخدم أكثر من 3 ألوان بتصميم واحد
-❌ لا تستخدم ألوان من خارج هذي اللوحة
-```
-
-### التدرجات المعتمدة (Gradients)
-```css
-/* التدرج الرئيسي — أزرار وعناصر مميزة */
-background: linear-gradient(135deg, #199bb8, #0d7a94);
-
-/* تدرج الخلفية — Hero sections */
-background: linear-gradient(180deg, #010611, #0a1628);
-
-/* تدرج Coral — عروض وCTA */
-background: linear-gradient(135deg, #ff7b5a, #e6654a);
-
-/* Glassmorphism — كاردات */
-background: rgba(255, 255, 255, 0.05);
-backdrop-filter: blur(24px) saturate(180%);
-border: 1px solid rgba(255, 255, 255, 0.1);
-```
+| State | Use |
+|---|---|
+| Available / in stock | `#232323` or `#6B6B6B`, as **text** |
+| Low stock | `#C97A2E` (18pt+/bold, or icon) |
+| Out of stock | explicit text **plus** a disabled control — never colour alone |
+| Order confirmed | `#0B93A6`, or neutral text |
 
 ---
 
-## 4. نظام الخطوط (Typography)
+## 2. Contrast rules
 
-### الخطوط الرسمية
-
-| الدور | الخط | الوزن | الاستخدام |
-|-------|------|-------|----------|
-| **عناوين عربية** | **Changa** | Bold (700) | H1, H2, عناوين الريلز والستوري |
-| **نصوص عربية** | **Cairo** | Regular (400), SemiBold (600) | فقرات، وصف منتجات، كابشنات |
-| **عناوين إنجليزية** | **Inter** | Bold (700), Black (900) | اسم البراند، عناوين EN |
-| **نصوص إنجليزية** | **Inter** | Regular (400), Medium (500) | محتوى تقني، أرقام |
-| **CapCut / الريلز** | **Changa Bold** | Bold (700) | كل نصوص الفيديو |
-
-### التدرج الطباعي (Type Scale)
-
-| المستوى | الحجم (Mobile) | الحجم (Desktop) | الوزن | Line Height |
-|---------|----------------|-----------------|-------|-------------|
-| **H1** | 28px | 40px | Changa Bold | 1.2 |
-| **H2** | 22px | 32px | Changa Bold | 1.25 |
-| **H3** | 18px | 24px | Changa Bold | 1.3 |
-| **Body** | 14px | 16px | Cairo Regular | 1.6 |
-| **Body Bold** | 14px | 16px | Cairo SemiBold | 1.6 |
-| **Caption** | 12px | 14px | Cairo Regular | 1.4 |
-| **Micro** | 10px | 12px | Cairo Regular | 1.3 |
-
-### قواعد الخطوط
-```
-✅ Changa Bold = كل عنوان كبير (عربي)
-✅ Cairo = كل نص عادي (عربي)
-✅ Inter = كل شي إنجليزي
-❌ لا تستخدم خط Arial أو Times — أبداً
-❌ لا تستخدم خطوط ديكورية أو مخطوطة — AQUAVO = نظيف وحديث
-❌ لا تخلط أكثر من 3 أوزان بتصميم واحد
-```
+- `#0B93A6` on `#F6F4EF` is **3.33:1** — it **fails WCAG AA for normal body
+  text**. Permitted for large text (18pt+, or 14pt+ bold), icons, borders, fills.
+- For **small or normal-weight teal text on light**, use `#075F6B` (7.0:1).
+- `#0B93A6` on `#0B1E28` passes at 4.66:1 at any size.
+- `#C9AE8C` is 1.93:1 on light — never text, at any size.
+- `#0B64A6` is safe as text on light (5.64:1) but fails on dark (2.75:1).
+- Re-verify any new pairing; the ratios above cover only the listed combinations.
 
 ---
 
-## 5. أسلوب التصوير (Photography Style)
+## 3. FlowLine is a product family, not the brand
 
-### قواعد التصوير العامة
+`#0B64A6` identifies the **FlowLine** product family, and Category Bands. Each
+family owns one colour and **no family ever borrows another's**.
 
-| العنصر | المعيار |
-|--------|---------|
-| **الخلفية** | Dark slate / dark walnut wood / `#0a1628` |
-| **الإضاءة** | Warm amber side light — جانبية دافئة |
-| **الزاوية** | 45° للمنتجات الفردية، flat lay للمجموعات |
-| **النسبة** | 4:5 للبوستات، 9:16 للستوري/ريلز |
-| **اللمسة** | Film grain خفيف — مو نظيف 100% |
-| **الكاميرا المرجعية** | Canon R5, 50-100mm, f/2.8-4.0 |
-
-### ممنوع بالتصوير
-```
-❌ خلفية بيضاء بلاستيكية (= بائع سوق مفتوح)
-❌ فلاش مباشر (= تصوير موبايل رخيص)
-❌ إضاءة باردة/فلورسنت (= مخزن)
-❌ زوايا عشوائية بدون تكوين (= هاوي)
-❌ فلاتر مشبعة جداً (= غير طبيعي)
-```
-
-### الفيلتر المعتمد
-```
-Moody Aquatic:
-- Shadows: عميقة (dark blues/teals)
-- Highlights: دافئة (warm amber)
-- Saturation: -10% عام + boost للأخضر والسيان
-- Contrast: +15%
-- Film Grain: 5-8%
-```
+**`#0B64A6` must never replace the global primary `#0B93A6`** — not as
+`--primary`, not as `--ring`, not as a site-wide accent. Using FlowLine as the
+light-theme primary makes the brand colour change by theme and brands the whole
+store as a single product family. That bug shipped once; do not repeat it.
 
 ---
 
-## 6. صوت البراند (Brand Voice) ✅
+## 4. Typography
 
-### اللهجة: بغدادية خالصة
-```
-✅ "بعدك"، "ديشوه"، "مديخليك"، "كلشي"، "هسه"، "هاي"، "مو بس"
-✅ "الغراض"، "القزاز"، "المي المغوش"، "يطق"
-❌ "هالشي" (خليجية)
-❌ "بتسوي" (شامية/خليجية)
-❌ "الحين" (خليجية — نستخدم "هسه" أو "الآن")
-❌ "لسة" (مصرية — نستخدم "بعد" أو "بعدك")
-❌ فصحى ثقيلة: "يرتكبه"، "مُجهَدة"، "ينبغي"
-```
+| Face | Role |
+|---|---|
+| **Cairo** | Arabic body, headings, labels and all interface text. The default. |
+| **Changa** | Display and campaign headings **only**, at 40px and above. Never body, labels or invoices. More than one Changa headline in one asset is already overuse. |
+| **Inter** | English, Latin, technical and numeric content — specs, captions, buttons. |
 
-### الإيموجي: ممنوع قطعاً
-```
-صفر إيموجي في كل النصوص.
-النص يتكلم لحاله — الإيموجي يبين بوت/مبتدئ.
-```
+- Arabic body line-height **1.8** — the cursive script needs the vertical room.
+- **Never** letter-space or justify-stretch Arabic; it breaks contextual
+  letterform connections. Ragged on the visually-left edge in RTL.
+- Arabic is always larger and visually dominant over adjacent English on any
+  consumer-facing surface.
+- Do not add a fourth family. An earlier build loaded **Outfit**; it was removed
+  and its absence is enforced by a test.
 
-### النبرة: خبير واثق
-```
-✅ يعلّم ولا يصرخ
-✅ فخامة هادئة — مو يائس
-✅ يقدم حقائق — مو وعود فارغة
-❌ "اطلبه هسه!" = بائع متجول
-❌ "أحسن سخان بالعالم!" = كذب واضح
-❌ "ما راح تندم!" = يائس
-```
-
-### بنية الـ CTA
-```
-❌ "اشتري الآن" — بائع متجول
-✅ "متوفر الآن — aquavoiq.com" — خبير واثق
-✅ "الرابط بالبايو" — طبيعي
-النهاية: AQUAVO فقط — بدون ضغط
-النبرة: "إحنا هنا لمن تكون جاهز"
-```
+Scale: 11 · 13 · 16 · 20 · 28 · 40 · 56 px. 11px is the smallest size permitted
+anywhere in the system.
 
 ---
 
-## 7. إرشادات الحركة (Motion Guidelines)
+## 5. Shape, elevation, spacing
 
-### السرعات المعتمدة
-| النوع | المدة | المنحنى |
-|-------|-------|---------|
-| **Hover** | 150-200ms | `ease` |
-| **انتقال عناصر** | 300-500ms | `cubic-bezier(0.16, 1, 0.3, 1)` |
-| **ظهور عناصر** | 500-800ms | `cubic-bezier(0.16, 1, 0.3, 1)` |
-| **Loading** | حلقة مستمرة | `ease-in-out` |
-
-### حركات الشعار
-```
-الظهور: fade-in + scale من 0.8 إلى 1.0 (600ms)
-الاختفاء: fade-out (300ms)
-الريلز: يظهر بالشاشة الأخيرة — أبيض على #0a1628
-```
-
-### حركات المحتوى
-```
-الكاردات: تظهر من الأسفل (y: 20→0) + fade
-الأزرار: scale 0.97 عند الضغط (active:scale-[0.97])
-الفقاعات: float مستمر — بطيء وهادئ (10-16 ثانية)
-التحميل: shimmer / skeleton screens
-```
+- **Shared radius: 8px** — canonical, including the Proof Window and product
+  diagrams.
+- **Proof Window elevation:** `0 16px 44px rgba(10, 22, 40, 0.10)` — the only
+  approved shadow. Prefer hairline borders over shadows elsewhere.
+- **Spacing base unit: 8px.** Every margin, gap and padding a multiple of it.
+- Do not nest cards inside cards without a structural reason — one radius level
+  per composition.
 
 ---
 
-## 8. قوالب السوشال ميديا (Social Templates)
+## 6. Motion
 
-### الأحجام المعتمدة
-| القالب | الحجم | المنصة |
-|--------|-------|--------|
-| ستوري/ريلز | 1080×1920 (9:16) | Instagram, TikTok |
-| بوست مربع | 1080×1080 (1:1) | Instagram |
-| كاروسيل | 1080×1350 (4:5) | Instagram |
-| بانر إعلاني | 1200×628 | Facebook, Meta Ads |
-| صورة بروفايل | 400×400 | الكل |
-| غلاف فيسبوك | 820×312 | Facebook |
+The only approved motion device is the logo's infinity loop drawing itself in a
+single continuous stroke, **600–800ms, ease-in-out**, for loading/intro states.
 
-### تصميم الستوري المعتمد
-```
-الخلفية: #0a1628 أو صورة مع overlay داكن 70%
-النص الرئيسي: Changa Bold, أبيض, 32-40px
-النص الثانوي: Cairo Regular, أبيض 70%, 16-20px
-CTA: لون البراند #199bb8 أو الكورال #ff7b5a
-الشعار: أسفل الستوري، أبيض، صغير
-```
+**Prohibited:** bounce, spring physics, overshoot easing (any cubic-bezier
+control point above 1), particle effects, continuous decorative loops, and
+water/caustic animation. The Precision Waterline is the **only** approved literal
+water reference outside the logo — do not add wave graphics elsewhere.
 
-### ألوان النصوص بالفيديو
-```
-الفيديو 1 (Hook): نص أبيض #FFFFFF على مشهد مظلم
-الفيديو 2 (Body): نص بلون البراند #199bb8
-الفيديو 3 (CTA): نص بلون الكورال #ff7b5a
-شاشة الإغلاق: خلفية #0a1628 + لوقو أبيض
-```
+Otherwise permitted: opacity, and small linear or ease-out translation. All
+motion must respect `prefers-reduced-motion`.
 
 ---
 
-## 9. دليل التغليف (Packaging Guide)
+## 7. Visual DNA components
 
-### عناصر التغليف
-| العنصر | المعيار |
-|--------|---------|
-| **الصندوق** | كرتون بني + ستيكر AQUAVO |
-| **الستيكر الرئيسي** | شعار أبيض على خلفية سيان |
-| **ورقة الشكر** | شكراً لثقتك — AQUAVO |
-| **QR Code** | يوصل لصفحة المنتج |
-| **ملصق الضمان** | "مضمون من AQUAVO" |
-
----
-
-## 10. ملخص سريع — Reference Card
-
-```
-╔══════════════════════════════════════════╗
-║           AQUAVO BRAND CARD              ║
-╠══════════════════════════════════════════╣
-║                                          ║
-║  🎨 ألوان:                              ║
-║     Primary:   #199bb8 (Cyan)            ║
-║     Dark:      #0d7a94 (Deep Cyan)       ║
-║     Accent:    #ff7b5a (Coral)           ║
-║     Gold:      #ffd700 (Amber)           ║
-║     BG Dark:   #0a1628 (Deep Ocean)      ║
-║     BG Abyss:  #010611 (Abyss)           ║
-║                                          ║
-║  📝 خطوط:                               ║
-║     عناوين:    Changa Bold               ║
-║     نصوص:     Cairo Regular/SemiBold     ║
-║     إنجليزي:   Inter                     ║
-║     فيديو:     Changa Bold               ║
-║                                          ║
-║  🗣️ صوت:                                ║
-║     لهجة بغدادية — صفر إيموجي            ║
-║     خبير واثق — مو بائع يائس             ║
-║                                          ║
-║  📐 التصوير:                             ║
-║     خلفية داكنة — إضاءة amber جانبية     ║
-║     Film grain 5-8% — Canon R5 style     ║
-║                                          ║
-║  🏷️ Tagline:                             ║
-║     AQUAVO — مستقبل أحواض العراق          ║
-║                                          ║
-╚══════════════════════════════════════════╝
-```
+- **Clean Proof** — the light transactional register.
+- **Dark Authority** — the dark brand-voice register.
+- **Product Proof Window** — bordered, elevated frame around the product visual.
+- **Precision Waterline** — 2px teal section divider with a small dashed accent.
+- **Category Bands** — 8px family-colour bar.
+- **Aquarium Clarity Principle** — water that is actually clean has nothing
+  floating in it. Any layout with unnecessary decoration, competing focal points
+  or clutter fails this test by its own logic.
 
 ---
 
-*Generated: April 29, 2026 — AQUAVO Brand Team*
-*Version: 1.0 — First Official Release*
+## 8. Voice
+
+- Iraqi Baghdadi Arabic, RTL-first. Confident expert, not a salesman.
+- **No emoji** in customer-facing interface copy.
+- State real function plainly; no borrowed premium, no invented urgency.
+
+---
+
+## 9. Claims and names
+
+Publish only claims approved in `CLAUDE.md` ("Owner-approved commercial claims")
+or `02_Legal_Brand_Usage` in the v2 archive. Current approved set:
+
+- التوصيل خلال 24 ساعة إلى جميع المحافظات العراقية
+- الدعم متوفر 24/7
+- الرد خلال 24 ساعة إذا وصل المنتج تالف
+- الدفع عند الاستلام
+- مختار ومفحوص ومعبأ بواسطة AQUAVO
+
+**Never** claim manufacturing, certification, laboratory testing, "safe for all
+fish", "100% natural", "chemical-free", the ® symbol, or any live-organism
+association — AQUAVO does not sell live fish or plants. A badge graphic implying
+certification is as much a false claim as the equivalent text. Cash on delivery
+is the only payment method; never imply cards or gateways.
+
+Names: **AQUAVO** is the consumer brand. **محل المنبع / AL NABEA SHOP** is the
+legal entity and leads on invoices, receipts and the footer legal line. The
+spelling "Al-Manbaa Store" does not exist.
+
+Official contact: `INFO@AQUAVOIQ.COM` · `07747880673` · `aquavoiq.com` · `aquavo_iq`
+
+---
+
+## 10. Logo
+
+Use the transparent v2 SVG/PNG assets in this folder. The website header uses the
+horizontal lockup. Never reconstruct or trace the wordmark from old raster files,
+never recolour outside the approved one-colour variants, never stretch, and never
+use the full lockup below 120px wide — switch to the icon-only version instead.
+
+---
+
+## 11. Where to look
+
+| Need | Source |
+|---|---|
+| Colour, type, Visual DNA tokens | v2 archive `04_`, `05_`, `06_` |
+| Logo versions, clear space, minimums | v2 archive `03_Logo_System` |
+| Names, approved and banned claims | v2 archive `02_Legal_Brand_Usage` |
+| E-commerce rules, hero order, badges | v2 archive `11_Ecommerce_System` |
+| Owner overrides and decisions | repository `CLAUDE.md` |
+| Live token implementation | `client/src/styles/identity/*.css` |
