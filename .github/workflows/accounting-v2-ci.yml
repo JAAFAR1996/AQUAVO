@@ -12,6 +12,7 @@ on:
       - "client/src/components/admin/order-return-adjustment-modal.tsx"
       - "script/apply-accounting-v2-migrations.ts"
       - "server/routes/accounting-v2.ts"
+      - "server/__tests__/accounting-*.test.ts"
       - "vercel.json"
 
 permissions:
@@ -27,11 +28,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Checkout exact PR branch
+      - name: Checkout accounting files from exact PR branch
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 1
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/accounting-v2-ci.yml
+            /.github/workflows/one-off-return-variant-patch.yml
+            /TOOLS/complete-accounting-p0.py
+            /client/src/components/admin/order-return-adjustment-modal.tsx
+            /migrations/*.sql
+            /script/apply-accounting-v2-migrations.ts
+            /server/routes/accounting-v2.ts
+            /server/__tests__/accounting-cod-refusal-migration-contract.test.ts
+            /server/__tests__/accounting-customer-credit-posting-links.test.ts
+            /server/__tests__/accounting-v2-review-fixes-contract.test.ts
+            /server/__tests__/accounting-warranty-refusal-separation.test.ts
+            /shared/accounting.ts
+            /vercel.json
           persist-credentials: true
 
       - name: Apply complete P0 patch
