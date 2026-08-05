@@ -56,6 +56,7 @@ jobs:
       - name: Commit completed implementation
         shell: bash
         run: |
+          git checkout -- .github/workflows/accounting-v2-ci.yml .github/workflows/one-off-return-variant-patch.yml
           rm TOOLS/complete-accounting-p0.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
