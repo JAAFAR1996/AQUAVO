@@ -226,20 +226,6 @@ export default function Home() {
           <div aria-hidden="true" className="h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent" />
         </section>
 
-        <section aria-label="ضمانات المتجر" className="border-b border-border bg-background">
-          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
-            {serviceFacts.map(({ icon: Icon, title, detail }) => (
-              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
-                <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
-                <p className="text-sm font-bold text-foreground">{title}</p>
-                {detail ? (
-                  <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
-                ) : null}
-              </div>
-            ))}
-          </PrecisionReveal>
-        </section>
-
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
           <div className="max-w-2xl">
@@ -350,6 +336,58 @@ export default function Home() {
           </PrecisionReveal>
         </section>
 
+        <section aria-label="ضمانات المتجر" className="border-b border-border bg-background">
+          <PrecisionReveal stagger className="mx-auto grid max-w-7xl grid-cols-2 gap-px bg-border sm:grid-cols-4">
+            {serviceFacts.map(({ icon: Icon, title, detail }) => (
+              <div key={title} className="aq-trust-seal flex min-h-28 flex-col justify-center bg-background px-4 py-5 text-center sm:min-h-32">
+                <Icon className="mx-auto mb-3 h-5 w-5 text-primary" aria-hidden="true" />
+                <p className="text-sm font-bold text-foreground">{title}</p>
+                {detail ? (
+                  <p className="mt-1 text-xs leading-5 text-foreground/60">{detail}</p>
+                ) : null}
+              </div>
+            ))}
+          </PrecisionReveal>
+        </section>
+
+        <section className="border-t border-border bg-muted text-foreground">
+          <PrecisionReveal className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+            <div>
+              <p className="text-sm font-bold text-foreground/80">بعدك مو متأكد؟</p>
+              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">دز حجم حوضك ونرتبلك المناسب</h2>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
+            </div>
+            <Link href="/contact" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
+              احچي ويانه
+              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </PrecisionReveal>
+        </section>
+
+        <section className="border-t border-border bg-card">
+          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+            <div className="max-w-2xl">
+              <p className="text-sm font-bold text-primary">ليش AQUAVO</p>
+              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
+            </div>
+
+            <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {valuePoints.map(({ icon: Icon, title, description }) => (
+                <div
+                  key={title}
+                  className="rounded-2xl border border-border bg-background p-5"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <h3 className="mt-4 text-base font-bold leading-6 text-foreground">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+                </div>
+              ))}
+            </div>
+          </PrecisionReveal>
+        </section>
+
         <section className="bg-background">
           <PrecisionReveal stagger className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[0.75fr_1.25fr] lg:items-end lg:px-8">
             <div>
@@ -384,44 +422,6 @@ export default function Home() {
                 </Link>
               ))}
             </div>
-          </PrecisionReveal>
-        </section>
-
-        <section className="border-t border-border bg-card">
-          <PrecisionReveal stagger className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-            <div className="max-w-2xl">
-              <p className="text-sm font-bold text-primary">ليش AQUAVO</p>
-              <h2 className="mt-3 text-3xl font-bold leading-tight text-foreground sm:text-4xl">تسوق واضح من أول قسم للسلة</h2>
-            </div>
-
-            <div className="mt-9 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {valuePoints.map(({ icon: Icon, title, description }) => (
-                <div
-                  key={title}
-                  className="rounded-2xl border border-border bg-background p-5"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                    <Icon className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <h3 className="mt-4 text-base font-bold leading-6 text-foreground">{title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-                </div>
-              ))}
-            </div>
-          </PrecisionReveal>
-        </section>
-
-        <section className="border-t border-border bg-muted text-foreground">
-          <PrecisionReveal className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-            <div>
-              <p className="text-sm font-bold text-foreground/80">بعدك مو متأكد؟</p>
-              <h2 className="mt-2 text-2xl font-bold sm:text-3xl">دز حجم حوضك ونرتبلك المناسب</h2>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">استشارة عملية قبل ما تشتري، حتى تبدأ من القطعة الصح.</p>
-            </div>
-            <Link href="/contact" className={`${linkButton} shrink-0 bg-primary text-white hover:bg-primary/90`}>
-              احچي ويانه
-              <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            </Link>
           </PrecisionReveal>
         </section>
       </main>

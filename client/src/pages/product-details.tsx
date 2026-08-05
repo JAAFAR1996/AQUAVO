@@ -10,6 +10,7 @@ import { formatNumber, formatPrice } from "@/lib/format";
 import { BRAND_CLAIMS } from "@/lib/brand-claims";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ShoppingCart, Star, Truck, RotateCcw, Shield, Info, Heart, Share2, Leaf, ShieldCheck, Check, Package, FileText, ExternalLink, Clock, Banknote, Loader2 } from "lucide-react";
 import { DifficultyBadge } from "@/components/ui/difficulty-badge";
@@ -22,7 +23,6 @@ import { ProductImageGallery } from "@/components/products/product-image-gallery
 import { productTransitionName } from "@/lib/motion/card-transition";
 import { Product3DViewer } from "@/components/products/product-3d-viewer";
 import { ExplodedProductView } from "@/components/products/exploded-product-view";
-import { FrequentlyBoughtTogether } from "@/components/products/frequently-bought-together";
 import { ProductVariantSelector } from "@/components/products/product-variant-selector";
 import { EmbeddedVariantSelector } from "@/components/products/embedded-variant-selector";
 import { MultiDimensionVariantSelector } from "@/components/products/multi-dimension-variant-selector";
@@ -39,6 +39,13 @@ import { metaTrackViewContent } from "@/lib/meta-pixel";
 import { trackViewItem } from "@/lib/analytics";
 import { phTrackViewContent, phTrackWhatsAppClick } from "@/lib/posthog";
 import { DELIVERY_FEE, DELIVERY_DAYS, WHATSAPP_URL } from "@/lib/constants/shipping";
+
+/**
+ * Maximum recommendation cards rendered initially on the PDP.
+ * Four is one full desktop row, so the cap is invisible there while bounding
+ * the mobile page height. Further browsing goes to /products.
+ */
+const MAX_VISIBLE_RECOMMENDATIONS = 4;
 
 interface Product3DMeta {
   src: string;
@@ -276,6 +283,273 @@ export default function ProductDetails() {
   const reviewCount = product.reviewCount || 0;
   const inStock = displayStock > 0;
 
+  /*
+    Secondary product content, declared once and rendered twice (Phase D):
+      • desktop  -> Tabs, expanded, one panel visible as before
+      • mobile   -> Accordion, ALL ITEMS CLOSED by default
+
+    Radix AccordionTrigger renders a real <button> carrying aria-expanded and
+    aria-controls, with native Enter/Space/arrow handling, so the mobile
+    disclosure is keyboard operable. Content is genuinely unmounted when
+    collapsed — it is not hidden with CSS — which is what actually removes the
+    height. Purchase-critical content (price, stock, variants, quantity, add to
+    cart) is deliberately NOT inside any of these panels.
+  */
+  const secondarySections = [
+    {
+      value: "benefits",
+      label: "لماذا هذا المنتج؟",
+      content: (
+        <>
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+          <h2 className="flex items-center gap-2 text-primary font-semibold leading-none tracking-tight">
+          <Leaf className="w-5 h-5" aria-hidden="true" />
+          لماذا تختار هذا المنتج؟
+          </h2>
+          </CardHeader>
+          <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+          <div className="flex items-start gap-3 p-3 bg-card rounded-lg border">
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+          <ShieldCheck className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+          <h3 className="font-bold text-sm">
+          {product3DMeta ? "قرار أوضح قبل الشراء" : "معلومات قبل الاختيار"}
+          </h3>
+          <p className="text-sm text-muted-foreground">
+          {product3DMeta
+          ? "تعاين نفس القطعة ثلاثي الأبعاد قبل ما تضيفها للسلة."
+          : "راجع الصور والمواصفات المتوفرة حتى تتأكد أن القطعة تناسب احتياج حوضك."}
+          </p>
+          </div>
+          </div>
+          {/* Only show rating if there are reviews */}
+          {product.reviewCount > 0 && (
+          <div className="flex items-start gap-3 p-3 bg-card rounded-lg border">
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+          <Star className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+          <h3 className="font-bold text-sm">تقييم عالي</h3>
+          <p className="text-sm text-muted-foreground">حصل على {product.rating} من 5 نجوم من {product.reviewCount} عميل</p>
+          </div>
+          </div>
+          )}
+          <div className="flex items-start gap-3 p-3 bg-card rounded-lg border">
+          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+          <Truck className="w-5 h-5 text-primary" aria-hidden="true" />
+          </div>
+          <div>
+          <h3 className="font-bold text-sm">{BRAND_CLAIMS.delivery.title}</h3>
+          <p className="text-sm text-muted-foreground">{BRAND_CLAIMS.checkedAndPacked.title}</p>
+          </div>
+          </div>
+          </div>
+
+          {/* Only show benefits if they exist in database */}
+          {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
+          <div className="space-y-4">
+          <h3 className="font-bold text-right">الفوائد الرئيسية:</h3>
+          <ul className="space-y-2 text-sm text-muted-foreground" dir="rtl">
+          {product.specifications.benefits.map((benefit: string, index: number) => (
+          <li key={index} className="flex items-start gap-2 text-right">
+          <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
+          <span>{benefit}</span>
+          </li>
+          ))}
+          </ul>
+          </div>
+          )}
+          </div>
+          </CardContent>
+          </Card>
+        </>
+      ),
+    },
+    {
+      value: "specs",
+      label: "المواصفات الفنية",
+      content: (
+        <>
+          <Card>
+          <CardHeader>
+          <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+          <Info className="w-5 h-5" aria-hidden="true" />
+          المواصفات التفصيلية
+          </h2>
+          </CardHeader>
+          <CardContent>
+          <div className="grid md:grid-cols-2 gap-6">
+          <div>
+          <h3 className="font-semibold mb-2">معلومات المنتج</h3>
+          <dl className="space-y-2">
+          <div className="flex justify-between">
+          <dt className="text-muted-foreground">العلامة التجارية:</dt>
+          <dd className="font-medium">{product.brand}</dd>
+          </div>
+          <div className="flex justify-between">
+          <dt className="text-muted-foreground">الفئة:</dt>
+          <dd className="font-medium">{product.category}</dd>
+          </div>
+          <div className="flex justify-between">
+          <dt className="text-muted-foreground">مستوى الخبرة:</dt>
+          <dd className="font-medium">{product.difficulty}</dd>
+          </div>
+          <div className="flex justify-between">
+          <dt className="text-muted-foreground">التقييم:</dt>
+          <dd className="font-medium">{product.rating}/5</dd>
+          </div>
+          </dl>
+          </div>
+          </div>
+
+          {/* Custom Specifications Table */}
+          {product.specifications && Object.keys(product.specifications).length > 0 && (
+          <div className="mt-6">
+          <ProductSpecificationsTable
+          specifications={product.specifications}
+          category={product.category}
+          />
+          </div>
+          )}
+          </CardContent>
+          </Card>
+        </>
+      ),
+    },
+    {
+      value: "reviews",
+      label: `التقييمات (${product.reviewCount ?? 0})`,
+      content: (
+        <>
+          <Card>
+          <CardHeader>
+          <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+          <Star className="w-5 h-5 text-muted-foreground" aria-hidden="true" />
+          تقييمات العملاء
+          </h2>
+          </CardHeader>
+          <CardContent className="space-y-6">
+
+
+          {/* Sample Reviews */}
+          <div className="space-y-4">
+          <ProductReviews
+          productId={product.id}
+          productName={product.name}
+          />
+          </div>
+
+          <Alert className="bg-primary/5 border-primary/20">
+          <Info className="h-4 w-4 text-primary" aria-hidden="true" />
+          <AlertDescription className="text-sm text-foreground">
+          اشتريت هذا المنتج؟ شاركنا تجربتك لمساعدة العملاء الآخرين!
+          </AlertDescription>
+          </Alert>
+          </CardContent>
+          </Card>
+        </>
+      ),
+    },
+    {
+      value: "shipping",
+      label: "الشحن والإرجاع",
+      content: (
+        <>
+          <Card>
+          <CardHeader>
+          <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+          <Truck className="w-5 h-5" aria-hidden="true" />
+          معلومات الشحن والإرجاع
+          </h2>
+          </CardHeader>
+          <CardContent className="space-y-4" dir="rtl">
+          <div>
+          <h3 className="font-semibold mb-2 text-right">سياسة الشحن</h3>
+          <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
+          <li>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</li>
+          <li>يوصل خلال {DELIVERY_DAYS}</li>
+          </ul>
+          </div>
+          <div>
+          <h3 className="font-semibold mb-2 text-right">سياسة الاستبدال</h3>
+          <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
+          <li>نستبدل المنتجات التالفة أو الخاطئة فقط</li>
+          <li>وثّق الحالة وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة</li>
+          <li>لا إرجاع لتغيير الرأي</li>
+          <li>تواصل معنا عبر واتساب للمطالبات</li>
+          </ul>
+          </div>
+          </CardContent>
+          </Card>
+        </>
+      ),
+    },
+    {
+      value: "usage",
+      label: "إرشادات الاستخدام",
+      content: (
+        <>
+          <Card>
+          <CardHeader>
+          <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
+          <Shield className="w-5 h-5" aria-hidden="true" />
+          إرشادات الاستخدام والأمان
+          </h2>
+          </CardHeader>
+          <CardContent className="space-y-4" dir="rtl">
+          <div>
+          <h3 className="font-semibold mb-2 text-right">طريقة الاستخدام</h3>
+          {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
+          <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
+          {product.specifications.usageInstructions.map((step: string, idx: number) => (
+          <li key={idx}>{step}</li>
+          ))}
+          </ul>
+          ) : product.specifications?.["طريقة الاستخدام"] ? (
+          <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
+          {product.specifications["طريقة الاستخدام"]}
+          </p>
+          ) : (
+          <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
+          <li>اقرأ التعليمات الموجودة على العبوة بعناية</li>
+          <li>استخدم المنتج حسب التوصيات المذكورة</li>
+          <li>احفظ المنتج في مكان بارد وجاف بعيداً عن أشعة الشمس</li>
+          <li>تأكد من صلاحية المنتج قبل الاستخدام</li>
+          </ul>
+          )}
+          </div>
+          <div>
+          <h3 className="font-semibold mb-2 text-right">تحذيرات الأمان</h3>
+          {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
+          {product.specifications.safetyWarnings.map((warning: string, idx: number) => (
+          <li key={idx}>{warning}</li>
+          ))}
+          </ul>
+          ) : product.specifications?.["تحذيرات"] ? (
+          <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
+          {product.specifications["تحذيرات"]}
+          </p>
+          ) : (
+          <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
+          <li>احفظ المنتج بعيداً عن متناول الأطفال</li>
+          <li>لا تستخدم المنتج بكميات أكبر من الموصى بها</li>
+          <li>في حالة ملامسة العينين، اغسلهما فوراً بالماء</li>
+          <li>استشر خبير أحواض السمك عند الشك</li>
+          </ul>
+          )}
+          </div>
+          </CardContent>
+          </Card>
+        </>
+      ),
+    },
+  ] as const;
+
   return (
     <div className="flex-1 flex flex-col bg-background">
       <MetaTags
@@ -326,10 +600,10 @@ export default function ProductDetails() {
               <div className="relative">
                 {/* Product Badges */}
                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
-                  {product.isNew && <Badge className="bg-blue-500 shadow-lg">جديد</Badge>}
-                  {product.isBestSeller && <Badge className="bg-amber-500 shadow-lg">الأكثر مبيعاً</Badge>}
+                  {product.isNew && <Badge className="bg-primary shadow-none">جديد</Badge>}
+                  {product.isBestSeller && <Badge variant="secondary" className="shadow-none">الأكثر مبيعاً</Badge>}
                   {product.ecoFriendly && (
-                    <Badge variant="secondary" className="bg-green-100 text-green-700 gap-1 shadow-lg">
+                    <Badge variant="outline" className="gap-1 shadow-none">
                       <Leaf className="w-3 h-3" aria-hidden="true" /> صديق للبيئة
                     </Badge>
                   )}
@@ -405,7 +679,7 @@ export default function ProductDetails() {
                 {/* Rating — hide if no reviews */}
                 {product.reviewCount > 0 && (
                 <div className="flex items-center gap-2 mb-6">
-                  <div className="flex text-amber-400" role="img" aria-label={`تقييم ${product.rating} من 5`}>
+                  <div className="flex text-muted-foreground" role="img" aria-label={`تقييم ${product.rating} من 5`}>
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
@@ -474,15 +748,15 @@ export default function ProductDetails() {
                 <div className="flex items-center gap-2 mb-4" role="status">
                   {displayStock > 0 ? (
                     <>
-                      <Check className="w-4 h-4 text-green-500" aria-hidden="true" />
-                      <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                      <Check className="w-4 h-4 text-primary" aria-hidden="true" />
+                      <span className="text-sm font-medium text-foreground">
                         متوفر ({formatNumber(displayStock)} قطعة)
                       </span>
                     </>
                   ) : (
                     <>
-                      <Package className="w-4 h-4 text-red-500" aria-hidden="true" />
-                      <span className="text-sm font-medium text-red-600 dark:text-red-400">
+                      <Package className="w-4 h-4 text-[color:var(--aqv-warning)]" aria-hidden="true" />
+                      <span className="text-sm font-medium text-[color:var(--aqv-warning)]">
                         غير متوفر حالياً
                       </span>
                     </>
@@ -586,7 +860,7 @@ export default function ProductDetails() {
                     <div className="flex flex-col sm:flex-row gap-3">
                       <Button
                         size="lg"
-                        className={`flex-1 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-green-500 hover:bg-green-600' : ''
+                        className={`flex-1 gap-2 text-lg h-12 transition-all duration-300 ${isAddedToCart ? 'bg-primary hover:bg-primary/90' : ''
                           }`}
                         onClick={handleAddToCart}
                         disabled={isAddingToCart}
@@ -695,281 +969,84 @@ export default function ProductDetails() {
 
                 {/* YEE Certificate of Authenticity - Trust Signal */}
                 {product?.brand?.toLowerCase() === 'yee' && (
-                  <Link href="/verify-certificate/yee" className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-l from-yellow-50 to-amber-50 dark:from-yellow-950/20 dark:to-amber-950/20 border border-yellow-200 dark:border-yellow-800/40 hover:border-yellow-400 dark:hover:border-yellow-600 transition-all group mt-4 cursor-pointer">
-                    <div className="w-10 h-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-5 h-5 text-yellow-600" aria-hidden="true" />
+                  <Link href="/verify-certificate/yee" className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border hover:border-primary/45 transition-colors group mt-4 cursor-pointer">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-primary" aria-hidden="true" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm font-bold text-yellow-800 dark:text-yellow-300 flex items-center gap-1">
+                      <p className="text-sm font-bold text-foreground flex items-center gap-1">
                         وثيقة أصالة منتجات YEE
                         <ExternalLink className="w-3 h-3" aria-hidden="true" />
                       </p>
-                      <p className="text-xs text-yellow-600/80 dark:text-yellow-400/60">صادرة من Weifang Yipin إلى AQUAVO العراق — شوف الوثيقة</p>
+                      <p className="text-xs text-muted-foreground">صادرة من Weifang Yipin إلى AQUAVO العراق — شوف الوثيقة</p>
                     </div>
-                    <Shield className="w-5 h-5 text-yellow-500 flex-shrink-0" aria-hidden="true" />
+                    <Shield className="w-5 h-5 text-primary flex-shrink-0" aria-hidden="true" />
                   </Link>
                 )}
               </div>
             </div>
 
             {/* Detailed Information Tabs */}
-            <Tabs defaultValue="benefits" className="mb-12">
-              <TabsList className="w-full justify-start gap-2 flex-wrap h-auto p-2">
-                <TabsTrigger value="benefits" className="rounded-full">لماذا هذا المنتج؟</TabsTrigger>
-                <TabsTrigger value="specs" className="rounded-full">المواصفات الفنية</TabsTrigger>
-                <TabsTrigger value="reviews" className="rounded-full">التقييمات ({product.reviewCount ?? 0})</TabsTrigger>
-                <TabsTrigger value="shipping" className="rounded-full">الشحن والإرجاع</TabsTrigger>
-                <TabsTrigger value="usage" className="rounded-full">إرشادات الاستخدام</TabsTrigger>
-              </TabsList>
+            {/* Desktop: tabs, as before. */}
+            <div className="hidden md:block">
+              <Tabs defaultValue="benefits" className="mb-12">
+                <TabsList className="w-full justify-start gap-2 flex-wrap h-auto p-2">
+                  {secondarySections.map((s) => (
+                    <TabsTrigger key={s.value} value={s.value} className="rounded-full">
+                      {s.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+                {secondarySections.map((s) => (
+                  <TabsContent key={s.value} value={s.value} className="mt-6">
+                    {s.content}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </div>
 
-              <TabsContent value="benefits" className="mt-6">
-                <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 text-primary font-semibold leading-none tracking-tight">
-                      <Leaf className="w-5 h-5" aria-hidden="true" />
-                      لماذا تختار هذا المنتج؟
-                    </h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div className="space-y-4">
-                        <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
-                          <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <ShieldCheck className="w-5 h-5 text-green-600" aria-hidden="true" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm">
-                              {product3DMeta ? "قرار أوضح قبل الشراء" : "معلومات قبل الاختيار"}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {product3DMeta
-                                ? "تعاين نفس القطعة ثلاثي الأبعاد قبل ما تضيفها للسلة."
-                                : "راجع الصور والمواصفات المتوفرة حتى تتأكد أن القطعة تناسب احتياج حوضك."}
-                            </p>
-                          </div>
-                        </div>
-                        {/* Only show rating if there are reviews */}
-                        {product.reviewCount > 0 && (
-                          <div className="flex items-start gap-3 p-3 bg-card dark:bg-slate-900 rounded-lg border">
-                            <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center flex-shrink-0">
-                              <Star className="w-5 h-5 text-blue-600" aria-hidden="true" />
-                            </div>
-                            <div>
-                              <h3 className="font-bold text-sm">تقييم عالي</h3>
-                              <p className="text-sm text-muted-foreground">حصل على {product.rating} من 5 نجوم من {product.reviewCount} عميل</p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="flex items-start gap-3 p-3 bg-card rounded-lg border">
-                          <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                            <Truck className="w-5 h-5 text-primary" aria-hidden="true" />
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-sm">{BRAND_CLAIMS.delivery.title}</h3>
-                            <p className="text-sm text-muted-foreground">{BRAND_CLAIMS.checkedAndPacked.title}</p>
-                          </div>
-                        </div>
-                      </div>
+            {/* Mobile: accessible disclosure, all sections closed by default. */}
+            <div className="md:hidden mb-12">
+              <Accordion type="multiple" className="w-full">
+                {secondarySections.map((s) => (
+                  <AccordionItem key={s.value} value={s.value}>
+                    <AccordionTrigger className="text-base font-bold min-h-11">
+                      {s.label}
+                    </AccordionTrigger>
+                    <AccordionContent>{s.content}</AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
 
-                      {/* Only show benefits if they exist in database */}
-                      {Array.isArray(product.specifications?.benefits) && product.specifications.benefits.length > 0 && (
-                        <div className="space-y-4">
-                          <h3 className="font-bold text-right">الفوائد الرئيسية:</h3>
-                          <ul className="space-y-2 text-sm text-muted-foreground" dir="rtl">
-                            {product.specifications.benefits.map((benefit: string, index: number) => (
-                              <li key={index} className="flex items-start gap-2 text-right">
-                                <div className="w-2 h-2 bg-primary rounded-full mt-1.5 flex-shrink-0"></div>
-                                <span>{benefit}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
+            {/*
+              ONE primary related-products section (Phase D).
 
-              <TabsContent value="specs" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Info className="w-5 h-5" aria-hidden="true" />
-                      المواصفات التفصيلية
-                    </h2>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="font-semibold mb-2">معلومات المنتج</h3>
-                        <dl className="space-y-2">
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">العلامة التجارية:</dt>
-                            <dd className="font-medium">{product.brand}</dd>
-                          </div>
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">الفئة:</dt>
-                            <dd className="font-medium">{product.category}</dd>
-                          </div>
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">مستوى الخبرة:</dt>
-                            <dd className="font-medium">{product.difficulty}</dd>
-                          </div>
-                          <div className="flex justify-between">
-                            <dt className="text-muted-foreground">التقييم:</dt>
-                            <dd className="font-medium">{product.rating}/5</dd>
-                          </div>
-                        </dl>
-                      </div>
-                    </div>
+              Three sections previously rendered here, all through the same
+              component and all uncapped. On a 390px viewport the grid collapses
+              to one column, so they produced ~9,900px of the 14,452px page —
+              roughly 68% of it — and they repeated each other's products.
 
-                    {/* Custom Specifications Table */}
-                    {product.specifications && Object.keys(product.specifications).length > 0 && (
-                      <div className="mt-6">
-                        <ProductSpecificationsTable
-                          specifications={product.specifications}
-                          category={product.category}
-                        />
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+              What was removed and why:
+              • "الأكثر رواجاً الآن" — sourced from /api/products/info/trending,
+                which is NOT product-specific, so every PDP rendered the same
+                list. The live capture showed it repeating items already shown
+                above. It also carried a red animate-pulse badge with no
+                approved token.
+              • "يتم شراؤها معاً عادةً" — /api/products/:id/frequently-bought-together.
+                Real co-purchase data, but rendered as an identical product grid
+                it was a duplicate related-products list. The dedicated
+                <FrequentlyBoughtTogether/> component remains available for real
+                bundle presentation if that is wanted later.
 
-              <TabsContent value="reviews" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Star className="w-5 h-5 fill-amber-400 text-amber-400" aria-hidden="true" />
-                      تقييمات العملاء
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-
-
-                    {/* Sample Reviews */}
-                    <div className="space-y-4">
-                      <ProductReviews
-                        productId={product.id}
-                        productName={product.name}
-                      />
-                    </div>
-
-                    <Alert className="bg-blue-50 border-blue-200">
-                      <Info className="h-4 w-4 text-blue-600" aria-hidden="true" />
-                      <AlertDescription className="text-sm text-blue-900">
-                        اشتريت هذا المنتج؟ شاركنا تجربتك لمساعدة العملاء الآخرين!
-                      </AlertDescription>
-                    </Alert>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="shipping" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Truck className="w-5 h-5" aria-hidden="true" />
-                      معلومات الشحن والإرجاع
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-4" dir="rtl">
-                    <div>
-                      <h3 className="font-semibold mb-2 text-right">سياسة الشحن</h3>
-                      <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
-                        <li>توصيل ثابت لكل العراق: {DELIVERY_FEE.toLocaleString()} د.ع</li>
-                        <li>يوصل خلال {DELIVERY_DAYS}</li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-right">سياسة الاستبدال</h3>
-                      <ul className="list-disc space-y-1 text-muted-foreground text-right pr-5">
-                        <li>نستبدل المنتجات التالفة أو الخاطئة فقط</li>
-                        <li>وثّق الحالة وتواصل ويانه بأسرع وقت مع رقم الطلب وصور واضحة</li>
-                        <li>لا إرجاع لتغيير الرأي</li>
-                        <li>تواصل معنا عبر واتساب للمطالبات</li>
-                      </ul>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="usage" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <h2 className="flex items-center gap-2 font-semibold leading-none tracking-tight">
-                      <Shield className="w-5 h-5" aria-hidden="true" />
-                      إرشادات الاستخدام والأمان
-                    </h2>
-                  </CardHeader>
-                  <CardContent className="space-y-4" dir="rtl">
-                    <div>
-                      <h3 className="font-semibold mb-2 text-right">طريقة الاستخدام</h3>
-                      {Array.isArray(product.specifications?.usageInstructions) && product.specifications.usageInstructions.length > 0 ? (
-                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
-                          {product.specifications.usageInstructions.map((step: string, idx: number) => (
-                            <li key={idx}>{step}</li>
-                          ))}
-                        </ul>
-                      ) : product.specifications?.["طريقة الاستخدام"] ? (
-                        <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
-                          {product.specifications["طريقة الاستخدام"]}
-                        </p>
-                      ) : (
-                        <ul className="list-decimal list-inside space-y-1 text-muted-foreground text-right">
-                          <li>اقرأ التعليمات الموجودة على العبوة بعناية</li>
-                          <li>استخدم المنتج حسب التوصيات المذكورة</li>
-                          <li>احفظ المنتج في مكان بارد وجاف بعيداً عن أشعة الشمس</li>
-                          <li>تأكد من صلاحية المنتج قبل الاستخدام</li>
-                        </ul>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-semibold mb-2 text-right">تحذيرات الأمان</h3>
-                      {Array.isArray(product.specifications?.safetyWarnings) && product.specifications.safetyWarnings.length > 0 ? (
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
-                          {product.specifications.safetyWarnings.map((warning: string, idx: number) => (
-                            <li key={idx}>{warning}</li>
-                          ))}
-                        </ul>
-                      ) : product.specifications?.["تحذيرات"] ? (
-                        <p className="text-muted-foreground text-sm leading-relaxed text-right" style={{ whiteSpace: 'pre-line' }}>
-                          {product.specifications["تحذيرات"]}
-                        </p>
-                      ) : (
-                        <ul className="list-disc list-inside space-y-1 text-muted-foreground text-right">
-                          <li>احفظ المنتج بعيداً عن متناول الأطفال</li>
-                          <li>لا تستخدم المنتج بكميات أكبر من الموصى بها</li>
-                          <li>في حالة ملامسة العينين، اغسلهما فوراً بالماء</li>
-                          <li>استشر خبير أحواض السمك عند الشك</li>
-                        </ul>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            {/* Frequently Bought Together (Real Data) */}
-            <RecommendationsSection
-              productId={product.id}
-              type="frequently-bought-together"
-              title="يتم شراؤها معاً عادةً"
-            />
-
-
-            {/* Similar Products (Real Data) */}
+              Kept: "منتجات مشابهة قد تعجبك" (/api/products/:id/similar) — the
+              only product-specific related list. No API or server contract
+              changed; no fallback products are fabricated.
+            */}
             <RecommendationsSection
               productId={product.id}
               type="similar"
               title="منتجات مشابهة قد تعجبك"
-            />
-
-            {/* Trending Products (Real Data) */}
-            <RecommendationsSection
-              productId={product.id}
-              type="trending"
-              title="الأكثر رواجاً الآن"
             />
           </>
         </div>
@@ -1014,20 +1091,35 @@ function RecommendationsSection({ productId, type, title }: { productId: string,
   if (isLoading) return <div className="mt-16"><Skeleton className="h-64 w-full" /></div>;
   if (!products || products.length === 0) return null;
 
+  /*
+    Cap the initially visible cards at 4 (Phase D).
+
+    Previously uncapped: the API returns as many rows as it has, and at 390px the
+    grid is one column, so every extra product added a full ~560px card to the
+    page. Four is the width of one desktop row, so the cap costs nothing on
+    desktop and bounds the mobile page. Anyone who wants more browses /products.
+  */
+  const visible = products.slice(0, MAX_VISIBLE_RECOMMENDATIONS);
+
   return (
-    <div className="mt-16">
-      <h2 className="text-3xl font-bold mb-8 flex items-center gap-2">
-        {title}
-        {type === 'trending' && <span className="text-sm font-normal text-red-500 bg-red-100 px-2 py-1 rounded-full animate-pulse">مباشر</span>}
-      </h2>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {products.map((product: Product) => (
+    <section className="mt-16" aria-labelledby="related-products-heading">
+      <div className="mb-8 flex flex-wrap items-baseline justify-between gap-3">
+        <h2 id="related-products-heading" className="text-3xl font-bold">{title}</h2>
+        <Link
+          href="/products"
+          className="text-sm font-bold text-primary hover:underline"
+        >
+          شوف كل المنتجات
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {visible.map((product: Product) => (
           <div key={product.id} className="h-full">
             <ProductCard product={product} />
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -50,7 +50,10 @@ function walk(dir: string, acc: string[] = []): string[] {
 function storefrontFiles(): { rel: string; content: string }[] {
   return walk(CLIENT_SRC)
     .map((full) => ({ rel: path.relative(CLIENT_SRC, full).replace(/\\/g, "/"), full }))
-    .filter(({ rel }) => !STOREFRONT_EXCLUDE.some((skip) => rel.startsWith(skip) || rel === skip))
+    // `includes` not `startsWith`: test files also live in nested __tests__
+    // directories (e.g. pages/__tests__/...), and those deliberately contain the
+    // very strings these guards forbid.
+    .filter(({ rel }) => !STOREFRONT_EXCLUDE.some((skip) => rel.includes(skip) || rel === skip))
     .map(({ rel, full }) => ({ rel, content: stripComments(readFileSync(full, "utf8")) }));
 }
 

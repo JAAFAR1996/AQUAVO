@@ -90,9 +90,12 @@ describe('Home Page', () => {
 
     it('shows only verified service facts', () => {
         render(<Home />, { wrapper: createWrapper() });
+        // Wording comes from the single approved source (lib/brand-claims.ts) as
+        // of Phase C; the flat shipping fee is a price, not a trust claim, so it
+        // is no longer rendered in this strip.
         expect(screen.getByText(/الدفع عند الاستلام/i)).toBeInTheDocument();
-        expect(screen.getByText(/5,000 د\.ع/i)).toBeInTheDocument();
-        expect(screen.getByText(/دعم 24\/7/i)).toBeInTheDocument();
+        expect(screen.getByText(/التوصيل خلال 24 ساعة إلى جميع المحافظات العراقية/i)).toBeInTheDocument();
+        expect(screen.getByText(/الدعم متوفر 24\/7/i)).toBeInTheDocument();
         expect(screen.queryByText(/أصلي 100%/i)).not.toBeInTheDocument();
         expect(screen.queryByText(/نستورد مباشرة/i)).not.toBeInTheDocument();
     });
