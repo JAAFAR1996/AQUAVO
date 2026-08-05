@@ -10,6 +10,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, useInView } from "framer-motion";
 import { Thermometer, Download, ChevronDown, Shield, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
+import { easeSnappy, tweenSettle } from "@/lib/motion";
 import { WHATSAPP_URL } from "@/lib/constants/shipping";
 
 // ─────────────────────────────────────────────────
@@ -41,40 +42,13 @@ const FISH_DATA: FishTemp[] = [
   { name: "جولد فيش", nameEn: "Goldfish", min: 18, max: 24, ideal: 21, difficulty: "سهل", color: "#ffa500", image: "/fish/goldfish.webp" },
 ];
 
-// ─────────────────────────────────────────────────
-// Floating Bubbles (CSS only)
-// ─────────────────────────────────────────────────
-const BUBBLES = [
-  { l: 8, s: 5, dur: 12, del: 0 }, { l: 22, s: 7, dur: 15, del: 3 },
-  { l: 45, s: 4, dur: 10, del: 6 }, { l: 67, s: 6, dur: 14, del: 1 },
-  { l: 82, s: 8, dur: 11, del: 5 }, { l: 35, s: 3, dur: 16, del: 8 },
-];
-
-function FloatingBubbles() {
-  return (
-    <>
-      <style>{`
-        @keyframes tempFloat {
-          0%   { transform: translateY(110vh) scale(0.8); opacity: 0; }
-          8%   { opacity: 0.4; }
-          92%  { opacity: 0.15; }
-          100% { transform: translateY(-8vh) scale(1.1); opacity: 0; }
-        }
-      `}</style>
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        {BUBBLES.map((b, i) => (
-          <div key={i} style={{
-            position: "absolute", left: `${b.l}%`, bottom: "-8%",
-            width: b.s, height: b.s, borderRadius: "50%",
-            background: "radial-gradient(circle at 35% 35%, rgba(11,147,166,0.45), rgba(11,147,166,0.06))",
-            border: "1px solid rgba(11,147,166,0.2)",
-            animation: `tempFloat ${b.dur}s ${b.del}s infinite linear`,
-          }} />
-        ))}
-      </div>
-    </>
-  );
-}
+/*
+ * A rising-bubble field (`BUBBLES` + the `tempFloat` keyframes + a
+ * `FloatingBubbles` component) used to render here. It was a particle effect on
+ * an endless decorative loop, prohibited on both counts by 06_Visual_DNA
+ * §17/§18, and carried no content, so it is removed rather than hidden. The
+ * page's own gradients and noise grain still supply the ambient depth.
+ */
 
 // ─────────────────────────────────────────────────
 // Temperature Bar Component
@@ -161,7 +135,7 @@ function FishCard({ fish, index }: { fish: FishTemp; index: number }) {
             <motion.div
               initial={{ scale: 0 }}
               animate={isInView ? { scale: 1 } : {}}
-              transition={{ delay: index * 0.06 + 0.5, type: "spring" }}
+              transition={{ ...tweenSettle, delay: index * 0.06 + 0.5 }}
               className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full z-10 border-2"
               style={{
                 left: `${((fish.ideal - 16) / 20) * 100}%`,
@@ -200,8 +174,6 @@ export default function TemperatureGuide() {
 
   return (
     <div className="relative bg-card dark:bg-[#0B1E28] text-foreground dark:text-white min-h-screen w-full" dir="rtl">
-      <FloatingBubbles />
-
       {/* Noise grain */}
       <div className="fixed inset-0 pointer-events-none z-[60] mix-blend-overlay" style={{
         opacity: 0.025,
@@ -226,9 +198,12 @@ export default function TemperatureGuide() {
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 mb-8"
             style={{ background: "rgba(11,147,166,0.1)", border: "1px solid rgba(11,147,166,0.25)", backdropFilter: "blur(12px)" }}
           >
+            {/* Was an endlessly pulsing dot (a decorative infinite loop, §18).
+                It now fades in once and stays lit — same visual accent, no loop. */}
             <motion.span
-              animate={{ scale: [1, 1.4, 1], opacity: [0.6, 1, 0.6] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4, ease: easeSnappy, delay: 0.3 }}
               className="w-1.5 h-1.5 rounded-full bg-cyan-400"
               style={{ boxShadow: "0 0 8px rgba(11,147,166,0.9)" }}
             />
@@ -238,9 +213,9 @@ export default function TemperatureGuide() {
 
           {/* Icon */}
           <motion.div
-            initial={{ scale: 0, rotate: -20 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.3 }}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ ...tweenSettle, delay: 0.3 }}
             className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
             style={{
               background: "linear-gradient(135deg, rgba(11,147,166,0.3), rgba(11,100,166,0.2))",
@@ -297,9 +272,9 @@ export default function TemperatureGuide() {
             className="mt-12 flex flex-col items-center gap-1 text-foreground dark:text-white/15"
           >
             <span className="text-[10px] tracking-widest uppercase font-semibold">نزّل لتشوف الجدول</span>
-            <motion.div animate={{ y: [0, 6, 0] }} transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}>
-              <ChevronDown size={18} />
-            </motion.div>
+            {/* The chevron used to bob forever. The scroll cue still reads from
+                the label plus the icon, so the loop is dropped (§18). */}
+            <ChevronDown size={18} />
           </motion.div>
         </section>
 

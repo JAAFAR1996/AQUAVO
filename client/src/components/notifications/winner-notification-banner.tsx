@@ -4,6 +4,7 @@ import { X, Copy, Check, Gift, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { tweenSettle } from "@/lib/motion";
 
 interface WinningSubmission {
     id: string;
@@ -70,7 +71,7 @@ export function WinnerNotificationBanner() {
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -100, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                transition={tweenSettle}
                 className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-500 text-white shadow-lg"
             >
                 <div className="container mx-auto px-4 py-3">

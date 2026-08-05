@@ -35,8 +35,34 @@ function SchemaScript({ value }: { value: object }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJson(value) }} />;
 }
 
+/**
+ * The one canonical global brand title.
+ *
+ * Used verbatim when a route supplies no title of its own, and its brand tail
+ * (`BRAND_TAIL`) is what gets appended to route-specific titles — so there is a
+ * single source for the brand portion of every document title.
+ *
+ * Deliberately scoped to the product domain rather than making a blanket
+ * authenticity or "largest store" positioning claim. Those are unverifiable and
+ * are forbidden by the claim rules in CLAUDE.md and 02_Legal_Brand_Usage — the
+ * SEO contract test asserts their exact wording never appears in this file, so
+ * they are described here rather than quoted. The title also carries no service
+ * claim (a document title is not the place for a delivery promise) and no
+ * keyword list.
+ *
+ * NOTE ON THE SERVER BOUNDARY: `api/ssr-meta.ts` holds its own `DEFAULT_TITLE`
+ * for server-rendered HTML. That file is serverless API code and is out of scope
+ * for this storefront phase, so the two are not yet unified. Aligning it is a
+ * follow-up; until then this constant governs client-side titles only.
+ */
+export const GLOBAL_BRAND_TITLE = "AQUAVO لمعدات الأحواض | العراق";
+
+/** Brand tail appended to route-specific titles. The tail of GLOBAL_BRAND_TITLE. */
+const BRAND_TAIL = "AQUAVO العراق";
+
 interface MetaTagsProps {
-  title: string;
+  /** Route-specific title. Omit to use the canonical global brand title. */
+  title?: string;
   description?: string;
   keywords?: string[];
   image?: string;
@@ -50,7 +76,7 @@ interface MetaTagsProps {
 }
 
 export function MetaTags({
-  title,
+  title = GLOBAL_BRAND_TITLE,
   description = "AQUAVO متجر إلكتروني عراقي لمعدات ومستلزمات أحواض الزينة، مع توصيل لكل العراق ودفع عند الاستلام.",
   keywords = [],
   image = LOGO_URL,
@@ -64,9 +90,13 @@ export function MetaTags({
 }: MetaTagsProps) {
   useEffect(() => {
     const isPreview = !isTrackingAllowed();
-    const fullTitle = /\|\s*AQUAVO(?:\s|$)/i.test(title)
-      ? title
-      : `${title} | AQUAVO العراق`;
+    // A title that already ends with the brand tail — or is the canonical global
+    // title — is used as-is; anything else gets the single shared tail appended.
+    // Matching on the tail (not merely "AQUAVO" anywhere) keeps product names
+    // that happen to contain the brand from losing their suffix.
+    const alreadyBranded =
+      title === GLOBAL_BRAND_TITLE || /\|\s*AQUAVO(?:\s|$)/i.test(title);
+    const fullTitle = alreadyBranded ? title : `${title} | ${BRAND_TAIL}`;
     document.title = fullTitle;
 
     const setMetaTag = (name: string, content: string, property = false) => {

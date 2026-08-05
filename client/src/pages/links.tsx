@@ -6,7 +6,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import {
   ShoppingBag,
   Instagram,
@@ -120,8 +120,9 @@ function LinkIcon({ icon, className }: { icon: string; className?: string }) {
 function InteractiveBackground() {
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
-  const springX = useSpring(cursorX, { stiffness: 50, damping: 20 });
-  const springY = useSpring(cursorY, { stiffness: 50, damping: 20 });
+  // The glow tracks the pointer directly. It previously ran through smoothing
+  // driven by physics, which the identity prohibits (06_Visual_DNA §17); a
+  // direct motion value gives the same reactive lighting with no physics.
 
   useEffect(() => {
     const moveCursor = (e: MouseEvent | TouchEvent) => {
@@ -157,46 +158,22 @@ function InteractiveBackground() {
         style={{
           width: 600,
           height: 600,
-          x: springX,
-          y: springY,
+          x: cursorX,
+          y: cursorY,
           translateX: '-50%',
           translateY: '-50%',
           background: 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, rgba(20,184,166,0.05) 40%, transparent 70%)',
           filter: 'blur(40px)',
         }}
       />
-      
-      {/* Subtle floating particles/bubbles */}
-      {Array.from({ length: 15 }).map((_, i) => {
-        const size = 3 + Math.random() * 5;
-        const left = Math.random() * 100;
-        const duration = 15 + Math.random() * 15;
-        const delay = Math.random() * 5;
-        return (
-          <div
-            key={`orb-${i}`}
-            className="absolute rounded-full bg-cyan-300/20"
-            style={{
-              width: size,
-              height: size,
-              left: `${left}%`,
-              bottom: -20,
-              filter: `blur(${Math.random() > 0.5 ? 1 : 0}px)`,
-              animation: `floatUp ${duration}s linear infinite`,
-              animationDelay: `${delay}s`,
-            }}
-          />
-        );
-      })}
 
-      <style>{`
-        @keyframes floatUp {
-          0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
-          10% { opacity: 0.8; }
-          90% { opacity: 0.5; }
-          100% { transform: translateY(-110vh) translateX(${Math.random() * 50 - 25}px) scale(0.5); opacity: 0; }
-        }
-      `}</style>
+      {/*
+        A field of 15 continuously rising bubbles used to sit here. It was a
+        particle effect on an endless decorative loop — prohibited on both
+        counts (06_Visual_DNA §17/§18) — and carried no content, so it is
+        removed outright rather than hidden. The static blurred orbs above still
+        provide the depth it was there for.
+      */}
     </div>
   );
 }

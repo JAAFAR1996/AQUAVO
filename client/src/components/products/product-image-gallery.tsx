@@ -205,27 +205,27 @@ export function ProductImageGallery({
                     role="group"
                     aria-label={`صور مصغرة لـ ${productName}`}
                 >
-                    {galleryImages.map((image) => (
+                    {galleryImages.map((image, imageIndex) => (
                         <button
-                            key={image}
+                            key={`${imageIndex}-${image}`}
                             type="button"
                             onClick={() => {
                                 setImageFailed(false);
-                                setSelectedIndex(galleryImages.indexOf(image));
+                                setSelectedIndex(imageIndex);
                             }}
-                            aria-pressed={selectedIndex === galleryImages.indexOf(image)}
-                            aria-label={`عرض الصورة ${galleryImages.indexOf(image) + 1}`}
+                            aria-pressed={selectedIndex === imageIndex}
+                            aria-label={`عرض الصورة ${imageIndex + 1}`}
                             className={cn(
                                 "relative flex-shrink-0 w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden border-2 transition-all",
                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                                selectedIndex === galleryImages.indexOf(image)
+                                selectedIndex === imageIndex
                                     ? "border-primary ring-2 ring-primary/30"
                                     : "border-transparent hover:border-muted-foreground/30"
                             )}
                         >
                             <img
                                 src={thumbImage(image)}
-                                alt={`${productName} - صورة مصغرة ${galleryImages.indexOf(image) + 1}`}
+                                alt={`${productName} - صورة مصغرة ${imageIndex + 1}`}
                                 className="w-full h-full object-contain bg-transparent p-1"
                                 loading="lazy"
                                 onError={(e) => {
@@ -238,7 +238,7 @@ export function ProductImageGallery({
                                     }
                                 }}
                             />
-                            {selectedIndex === galleryImages.indexOf(image) && (
+                            {selectedIndex === imageIndex && (
                                 <div className="absolute inset-0 bg-primary/10" />
                             )}
                         </button>
@@ -316,27 +316,27 @@ export function ProductImageGallery({
                                 role="group"
                                 aria-label={`صور مصغرة لـ ${productName}`}
                             >
-                                {galleryImages.map((image) => (
+                                {galleryImages.map((image, imageIndex) => (
                                     <button
-                                        key={image}
+                                        key={`${imageIndex}-${image}`}
                                         type="button"
                                         onClick={() => {
                                             setImageFailed(false);
-                                            setSelectedIndex(galleryImages.indexOf(image));
+                                            setSelectedIndex(imageIndex);
                                         }}
-                                        aria-pressed={selectedIndex === galleryImages.indexOf(image)}
-                                        aria-label={`عرض الصورة ${galleryImages.indexOf(image) + 1}`}
+                                        aria-pressed={selectedIndex === imageIndex}
+                                        aria-label={`عرض الصورة ${imageIndex + 1}`}
                                         className={cn(
                                             "w-12 h-12 rounded overflow-hidden border-2 transition-all",
                                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-                                            selectedIndex === galleryImages.indexOf(image)
+                                            selectedIndex === imageIndex
                                                 ? "border-white"
                                                 : "border-transparent opacity-60 hover:opacity-100"
                                         )}
                                     >
                                         <img
                                             src={thumbImage(image)}
-                                            alt={`صورة ${galleryImages.indexOf(image) + 1}`}
+                                            alt={`صورة ${imageIndex + 1}`}
                                             className="w-full h-full object-contain bg-transparent"
                                             onError={(e) => {
                                                 const target = e.target as HTMLImageElement;

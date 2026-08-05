@@ -126,4 +126,48 @@ describe("ProductImageGallery", () => {
             expect(icon).toHaveAttribute("aria-hidden", "true");
         });
     });
+
+    /**
+     * Repeated image URLs.
+     *
+     * The gallery previously used `key={image}` and derived every piece of
+     * thumbnail state from `galleryImages.indexOf(image)`. With a product whose
+     * `images` array repeats a URL that produced two real defects: React logged
+     * duplicate-key warnings, and `indexOf` always resolved to the FIRST match,
+     * so activating the third thumbnail selected the first image. Both are now
+     * positional. Order is preserved and duplicates are NOT removed — a product
+     * may legitimately list the same asset twice.
+     */
+    describe("repeated image URLs", () => {
+        const repeated = ["/images/a.jpg", "/images/a.jpg", "/images/b.jpg", "/images/a.jpg"];
+
+        it("renders one thumbnail per entry without deduplicating or reordering", () => {
+            render(<ProductImageGallery images={repeated} productName="فلتر اختبار" />);
+            for (let i = 1; i <= repeated.length; i += 1) {
+                expect(screen.getByRole("button", { name: `عرض الصورة ${i}` })).toBeInTheDocument();
+            }
+            expect(screen.getByText(`1 / ${repeated.length}`)).toBeInTheDocument();
+        });
+
+        it("logs no React duplicate-key warning", () => {
+            const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+            render(<ProductImageGallery images={repeated} productName="فلتر اختبار" />);
+            const duplicateKeyWarnings = errorSpy.mock.calls.filter((args) =>
+                args.some((a) => typeof a === "string" && /same key/i.test(a)),
+            );
+            expect(duplicateKeyWarnings).toEqual([]);
+            errorSpy.mockRestore();
+        });
+
+        it("selects the clicked position, not the first matching URL", async () => {
+            const user = userEvent.setup();
+            render(<ProductImageGallery images={repeated} productName="فلتر اختبار" />);
+            // Thumbnail 4 repeats thumbnail 1's URL; selecting it must land on 4.
+            await user.click(screen.getByRole("button", { name: "عرض الصورة 4" }));
+            expect(screen.getByText(`4 / ${repeated.length}`)).toBeInTheDocument();
+            expect(screen.getByRole("button", { name: "عرض الصورة 4" })).toHaveAttribute("aria-pressed", "true");
+            expect(screen.getByRole("button", { name: "عرض الصورة 1" })).toHaveAttribute("aria-pressed", "false");
+        });
+    });
+
 });
