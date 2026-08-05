@@ -1,5 +1,5 @@
 {
-  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0066 pnpm exec tsx script/apply-accounting-v2-migrations.ts; fi && pnpm run build",
+  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070 pnpm exec tsx script/apply-accounting-v2-migrations.ts; fi && pnpm run build",
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install --frozen-lockfile",
   "framework": null,

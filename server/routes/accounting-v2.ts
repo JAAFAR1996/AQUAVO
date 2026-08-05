@@ -54,12 +54,18 @@ async function assertV2Schema(db: ReturnType<typeof getDb>): Promise<void> {
       to_regprocedure('public.auto_close_ended_accounting_periods(text,text)') IS NOT NULL AS auto_close,
       EXISTS(
         SELECT 1 FROM public.schema_migrations
-        WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL
-      ) AS migration_0066
+        WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL
+      ) AS migration_0070,
+      to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
+      to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
+      EXISTS(
+        SELECT 1 FROM pg_trigger
+        WHERE tgname='orders_accounting_delivery_readiness_guard' AND NOT tgisinternal
+      ) AS delivery_readiness_guard
   `);
   const state = rowsOf(result)[0] as Record<string, boolean> | undefined;
   if (!state || Object.values(state).some((value) => value !== true)) {
-    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED"), { statusCode: 503 });
+    throw Object.assign(new Error("ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED"), { statusCode: 503 });
   }
 }
 
@@ -93,7 +99,7 @@ export function createAccountingV2Router() {
     try {
       const db = getDb();
       await assertV2Schema(db);
-      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0066", automaticClose: true });
+      res.json({ ready: true, cutover: "2026-08-01", timezone: "Asia/Baghdad", currency: "IQD", migrationsThrough: "0070", automaticClose: true });
     } catch (error) { next(error); }
   });
 

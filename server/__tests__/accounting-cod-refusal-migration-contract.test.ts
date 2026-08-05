@@ -1,12 +1,13 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  new URL("../../migrations/0063_accounting_cod_refusal_and_store_credit.sql", import.meta.url),
+  join(process.cwd(), "migrations", "0063_accounting_cod_refusal_and_store_credit.sql"),
   "utf8",
 );
 const rollback = readFileSync(
-  new URL("../../migrations/0063_accounting_cod_refusal_and_store_credit_rollback.sql", import.meta.url),
+  join(process.cwd(), "migrations", "0063_accounting_cod_refusal_and_store_credit_rollback.sql"),
   "utf8",
 );
 

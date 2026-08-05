@@ -23,6 +23,10 @@ const MIGRATIONS = [
   "0064_accounting_customer_credit_posting_links.sql",
   "0065_accounting_separate_warranty_from_cod_refusal.sql",
   "0066_accounting_reassert_refusal_inventory_after_0062.sql",
+  "0067_orders_client_ip_schema_drift.sql",
+  "0068_accounting_delivery_readiness_guard.sql",
+  "0069_accounting_return_integrity.sql",
+  "0070_accounting_ledger_backed_views.sql",
 ] as const;
 
 function versionOf(file: string): string { return file.replace(/\.sql$/, ""); }
@@ -32,8 +36,8 @@ function sha256(body: string): string { return createHash("sha256").update(body)
 async function main(): Promise<void> {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0066") {
-    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0066 is required");
+  if (process.env.CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0070") {
+    throw new Error("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070 is required");
   }
 
   const pool = new Pool({ connectionString, max: 1 });
@@ -103,6 +107,13 @@ async function main(): Promise<void> {
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0064_accounting_customer_credit_posting_links' AND rolled_back_at IS NULL) AS migration_0064,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0065_accounting_separate_warranty_from_cod_refusal' AND rolled_back_at IS NULL) AS migration_0065,
         EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL) AS migration_0066,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0067_orders_client_ip_schema_drift' AND rolled_back_at IS NULL) AS migration_0067,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0068_accounting_delivery_readiness_guard' AND rolled_back_at IS NULL) AS migration_0068,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0069_accounting_return_integrity' AND rolled_back_at IS NULL) AS migration_0069,
+        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL) AS migration_0070,
+        to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
+        to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
+        EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='orders_accounting_delivery_readiness_guard' AND NOT tgisinternal) AS delivery_readiness_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_customer_credit_period_close' AND NOT tgisinternal) AS credit_close_guard,
         EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='journal_entries_closed_period_guard' AND NOT tgisinternal) AS closed_period_guard,

@@ -26,7 +26,7 @@ describe("Accounting V2 reviewed fixes", () => {
     const api = read("server/routes/accounting-v2.ts");
     expect(api).toContain("WHERE public.accounting_period_closes.status='reopened'");
     expect(api).toContain("WHERE period_key=${periodKey} AND status='closed'");
-    expect(api).toContain("لا توجد بيانات جاهزية لهذه الفترة");
+    expect(api).toContain("لا توجد بيانات جاهزية محاسبية لهذه الفترة");
     expect(api).toContain("لا يمكن إغلاق الشهر قبل معالجة الموانع");
     expect(api).toContain("runAutomaticPeriodClose");
 
@@ -66,13 +66,13 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("retains the 0061 carrier guard while the main V2 router requires 0062", () => {
+  it("retains the carrier guard while the main V2 router requires the P0 chain through 0070", () => {
     const health = read("server/routes/accounting-health-v2.ts");
     expect(health).toContain("migration_0061");
     expect(health).toContain("carrier_status_guard");
     const reports = read("server/routes/accounting-v2.ts");
-    expect(reports).toContain("migration_0062");
-    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED");
+    expect(reports).toContain("migration_0070");
+    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED");
   });
 
   it("keeps the default carrier active during status-only updates", () => {
@@ -84,16 +84,16 @@ describe("Accounting V2 reviewed fixes", () => {
 
   it("runs exact migration files before production deploy and skips previews", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0070"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
-    expect(runner).toContain('"0062_accounting_automation_opening_balances.sql"');
+    expect(runner).toContain('"0070_accounting_ledger_backed_views.sql"');
 
     const vercel = read("vercel.json");
     expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062");
+    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070");
     expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
   });
 });

@@ -19,10 +19,14 @@ import {
 } from "@shared/accounting";
 
 interface OrderItem {
+  id?: string;
+  orderItemId?: string;
   productId: string;
   productName: string;
   quantity: number;
   price: number;
+  variantId?: string;
+  variantLabel?: string;
 }
 
 interface Order {
@@ -103,6 +107,14 @@ const fmt = (n: number) =>
 const errMsg = (e: unknown) =>
   e instanceof Error ? e.message : "خطأ غير معروف";
 
+const orderLineKey = (item: OrderItem): string =>
+  item.orderItemId ?? item.id ?? `${item.productId}::${item.variantId ?? "__none__"}`;
+
+const orderLineLabel = (item: OrderItem): string => {
+  const variant = item.variantLabel ?? item.variantId;
+  return variant ? `${item.productName} (${variant})` : item.productName;
+};
+
 export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   const { toast } = useToast();
   const qc = useQueryClient();
@@ -116,8 +128,6 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   const [deliveryCostLoss, setDeliveryCostLoss] = useState(0);
   const [returnShippingCost, setReturnShippingCost] = useState(0);
   const [packagingLoss, setPackagingLoss] = useState(0);
-  const [productWriteOffAmount, setProductWriteOffAmount] = useState(0);
-  const [cogsLoss, setCogsLoss] = useState(0);
   const [note, setNote] = useState("");
   const [voidConfirm, setVoidConfirm] = useState<{ id: string; fromStatus: string; note: string } | null>(null);
 
@@ -132,8 +142,6 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
       setDeliveryCostLoss(0);
       setReturnShippingCost(0);
       setPackagingLoss(0);
-      setProductWriteOffAmount(0);
-      setCogsLoss(0);
       setNote("");
       setVoidConfirm(null);
     }
@@ -153,58 +161,20 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   });
   const existingEvents = existingData?.data ?? [];
 
-  const productIds = order.items.map((i) => i.productId);
-  const { data: costMap = {} } = useQuery({
-    queryKey: ["cost-history-batch", productIds.join(",")],
-    queryFn: async () => {
-      const results: Record<string, { costPrice: number; packagingCost: number; insertCost: number }> = {};
-      await Promise.all(
-        productIds.map(async (pid) => {
-          try {
-            const r = await fetch(`/api/admin/accounting/cost-history/${pid}`, { credentials: "include" });
-            if (!r.ok) return;
-            const json = await r.json() as { data: Array<{ costPrice: number; packagingCost: number; insertCost: number }> };
-            const rows = json.data ?? [];
-            if (rows.length > 0) {
-              results[pid] = {
-                costPrice: Number(rows[0].costPrice),
-                packagingCost: Number(rows[0].packagingCost),
-                insertCost: Number(rows[0].insertCost),
-              };
-            }
-          } catch { /* ignore per-product failures */ }
-        })
-      );
-      return results;
-    },
-    enabled: open && productIds.length > 0,
-  });
-
   const computeSuggestions = (
     states: Record<string, ItemState>,
     eventType: OrderReturnEventType
   ) => {
     const scenario = SCENARIO_META[eventType];
-    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, totalWriteOff = 0;
+    let totalRevenue = 0;
 
     order.items.forEach((item) => {
-      const s = states[item.productId];
-      const qty = s?.qty ?? 0;
-      if (qty > 0) {
-        totalRevenue += qty * item.price;
-        const cost = costMap[item.productId];
-        if (cost) {
-          totalCogs += qty * (cost.costPrice + cost.insertCost);
-          totalPackaging += qty * cost.packagingCost;
-        }
-        if (s?.damaged) totalWriteOff += qty * item.price;
-      }
+      const state = states[orderLineKey(item)];
+      if ((state?.qty ?? 0) > 0) totalRevenue += state.qty * item.price;
     });
 
     setRefundAmount(Math.round(totalRevenue));
-    setCogsLoss(Math.round(totalCogs));
-    setPackagingLoss(Math.round(totalPackaging));
-    setProductWriteOffAmount(Math.round(totalWriteOff));
+    setPackagingLoss(0);
     setDeliveryCostLoss(scenario.deliveryCostLost ? (order.shippingCost ?? 5000) : 0);
     setReturnShippingCost(0);
   };
@@ -212,7 +182,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   const goToStep2 = () => {
     const initStates: Record<string, ItemState> = {};
     order.items.forEach((i) => {
-      initStates[i.productId] = {
+      initStates[orderLineKey(i)] = {
         qty: i.quantity,
         restocked: SCENARIO_META[type].suggestRestocked,
         damaged: type === "damaged_return",
@@ -224,14 +194,14 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
     setStep(2);
   };
 
-  const updateItemState = (productId: string, patch: Partial<ItemState>) => {
-    setItemStates((prev) => ({ ...prev, [productId]: { ...prev[productId], ...patch } }));
+  const updateItemState = (lineKey: string, patch: Partial<ItemState>) => {
+    setItemStates((prev) => ({ ...prev, [lineKey]: { ...prev[lineKey], ...patch } }));
   };
 
-  const resetItem = (productId: string) => {
+  const resetItem = (lineKey: string) => {
     setItemStates((prev) => ({
       ...prev,
-      [productId]: { qty: 0, restocked: false, damaged: false, reason: "" },
+      [lineKey]: { qty: 0, restocked: false, damaged: false, reason: "" },
     }));
   };
 
@@ -309,28 +279,48 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   });
 
   const handleConfirm = () => {
-    const affectedItems = order.items
-      .filter((item) => (itemStates[item.productId]?.qty ?? 0) > 0)
-      .map((item) => {
-        const s = itemStates[item.productId];
-        const cost = costMap[item.productId];
-        return {
-          productId: item.productId,
-          qty: s.qty,
-          priceAtPurchase: item.price,
-          cogsAtTime: cost ? cost.costPrice + cost.packagingCost + cost.insertCost : 0,
-        };
-      });
-
-    const anyRestocked = Object.values(itemStates).some(
-      (s) => s.restocked && (s.qty ?? 0) > 0
+    const selectedItems = order.items.filter(
+      (item) => (itemStates[orderLineKey(item)]?.qty ?? 0) > 0
+    );
+    const selectedStates = selectedItems.map(
+      (item) => itemStates[orderLineKey(item)]
     );
 
-    const itemReasons = order.items
-      .filter((item) => itemStates[item.productId]?.reason?.trim() && (itemStates[item.productId]?.qty ?? 0) > 0)
-      .map((item) => `${item.productName}: ${itemStates[item.productId].reason.trim()}`)
-      .join(" | ");
+    if (selectedStates.some((state) => state.restocked && state.damaged)) {
+      toast({
+        title: "حالة المنتج غير صالحة",
+        description: "المنتج التالف لا يمكن إرجاعه للمخزون",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    if (new Set(selectedStates.map((state) => state.restocked)).size > 1) {
+      toast({
+        title: "افصل حالات الراجع",
+        description: "سجل المنتجات الصالحة للبيع والتالفة كحدثين منفصلين حتى يبقى المخزون والحساب صحيحين",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const affectedItems = selectedItems.map((item) => {
+      const state = itemStates[orderLineKey(item)];
+      return {
+        productId: item.productId,
+        orderItemId: item.orderItemId ?? item.id,
+        variantId: item.variantId ?? null,
+        qty: state.qty,
+        priceAtPurchase: item.price,
+        cogsAtTime: 0,
+      };
+    });
+
+    const anyRestocked = selectedStates[0]?.restocked ?? false;
+    const itemReasons = selectedItems
+      .filter((item) => itemStates[orderLineKey(item)]?.reason?.trim())
+      .map((item) => `${orderLineLabel(item)}: ${itemStates[orderLineKey(item)].reason.trim()}`)
+      .join(" | ");
     const finalNote = [note.trim(), itemReasons].filter(Boolean).join(" — ") || undefined;
 
     createMutation.mutate({
@@ -341,8 +331,8 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
       deliveryCostLoss,
       returnShippingCost,
       packagingLoss,
-      productWriteOffAmount,
-      cogsLoss,
+      productWriteOffAmount: 0,
+      cogsLoss: 0,
       restocked: anyRestocked,
       affectedItems: affectedItems.length > 0 ? affectedItems : undefined,
       note: finalNote,
@@ -350,8 +340,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
   };
 
   const totalImpact =
-    refundAmount + deliveryCostLoss + returnShippingCost +
-    packagingLoss + productWriteOffAmount + cogsLoss;
+    refundAmount + deliveryCostLoss + returnShippingCost + packagingLoss;
 
   const orderTotal = Number(order.roundedTotal ?? order.totalAmount ?? order.total);
 
@@ -575,11 +564,18 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                   </thead>
                   <tbody>
                     {order.items.map((item) => {
-                      const s = itemStates[item.productId] ?? { qty: 0, restocked: false, damaged: false, reason: "" };
+                      const s = itemStates[orderLineKey(item)] ?? { qty: 0, restocked: false, damaged: false, reason: "" };
                       const refund = s.qty * item.price;
                       return (
-                        <tr key={item.productId} className="border-t">
-                          <td className="p-2 font-medium">{item.productName}</td>
+                        <tr key={orderLineKey(item)} className="border-t">
+                          <td className="p-2 font-medium">
+                            <span className="block">{item.productName}</span>
+                            {(item.variantLabel ?? item.variantId) && (
+                              <span className="block text-xs text-muted-foreground mt-0.5">
+                                {item.variantLabel ?? item.variantId}
+                              </span>
+                            )}
+                          </td>
                           <td className="text-center p-2">{item.quantity}</td>
                           <td className="text-center p-2">
                             <input
@@ -589,7 +585,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                               value={s.qty}
                               onChange={(e) => {
                                 const v = Math.min(item.quantity, Math.max(0, parseInt(e.target.value) || 0));
-                                updateItemState(item.productId, { qty: v });
+                                updateItemState(orderLineKey(item), { qty: v });
                               }}
                               className="w-16 text-center border rounded p-1 bg-background text-sm"
                             />
@@ -606,7 +602,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                             <input
                               type="checkbox"
                               checked={s.restocked}
-                              onChange={(e) => updateItemState(item.productId, { restocked: e.target.checked })}
+                              onChange={(e) => updateItemState(orderLineKey(item), { restocked: e.target.checked })}
                               className="w-4 h-4 cursor-pointer"
                             />
                           </td>
@@ -614,7 +610,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                             <input
                               type="checkbox"
                               checked={s.damaged}
-                              onChange={(e) => updateItemState(item.productId, { damaged: e.target.checked })}
+                              onChange={(e) => updateItemState(orderLineKey(item), { damaged: e.target.checked })}
                               className="w-4 h-4 cursor-pointer"
                             />
                           </td>
@@ -622,14 +618,14 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                             <input
                               type="text"
                               value={s.reason}
-                              onChange={(e) => updateItemState(item.productId, { reason: e.target.value })}
+                              onChange={(e) => updateItemState(orderLineKey(item), { reason: e.target.value })}
                               placeholder="اختياري..."
                               className="w-full border rounded p-1 bg-background text-xs"
                             />
                           </td>
                           <td className="p-2">
                             <button
-                              onClick={() => resetItem(item.productId)}
+                              onClick={() => resetItem(orderLineKey(item))}
                               title="مسح التعديل لهذا المنتج"
                               className="p-1 text-muted-foreground hover:text-red-500 transition-colors"
                             >
@@ -643,7 +639,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                 </table>
               </div>
               <p className="text-xs text-muted-foreground mt-1.5">
-                ملاحظة: التغييرات هنا لا تُحدّث المخزون تلقائياً — للتسجيل فقط
+                المخزون لا يتغير عند الحفظ ويتحدث تلقائيا فقط بعد اعتماد الحدث من Snapshot الطلب الاصلي
               </p>
             </div>
 
@@ -655,9 +651,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                     { label: "مبلغ الاسترداد للعميل", value: refundAmount, set: setRefundAmount, hint: "مجموع المنتجات المُرجعة" },
                     { label: "خسارة تكلفة التوصيل", value: deliveryCostLoss, set: setDeliveryCostLoss, hint: "رسوم الشحن المدفوعة" },
                     { label: "تكلفة إعادة الشحن", value: returnShippingCost, set: setReturnShippingCost, hint: "إذا وجدت" },
-                    { label: "خسارة التغليف", value: packagingLoss, set: setPackagingLoss, hint: "كلفة مواد التغليف" },
-                    { label: "شطب المنتج (تالف)", value: productWriteOffAmount, set: setProductWriteOffAmount, hint: "للمنتجات التالفة فقط" },
-                    { label: "خسارة COGS", value: cogsLoss, set: setCogsLoss, hint: "تكلفة البضاعة المباعة" },
+                    { label: "خسارة تغليف اضافية", value: packagingLoss, set: setPackagingLoss, hint: "ادخلها فقط اذا كانت كلفة جديدة غير تجهيز الطلب الاصلي" },
                   ] as Array<{ label: string; value: number; set: (v: number) => void; hint: string }>
                 ).map(({ label, value, set, hint }) => (
                   <div key={label}>
@@ -717,17 +711,17 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
 
               <div className="border-t pt-2 space-y-1">
                 <p className="text-xs font-semibold text-muted-foreground mb-1">المنتجات:</p>
-                {order.items.filter((i) => (itemStates[i.productId]?.qty ?? 0) > 0).length === 0 ? (
+                {order.items.filter((i) => (itemStates[orderLineKey(i)]?.qty ?? 0) > 0).length === 0 ? (
                   <p className="text-sm text-muted-foreground">لا توجد منتجات محددة</p>
                 ) : (
                   order.items
-                    .filter((i) => (itemStates[i.productId]?.qty ?? 0) > 0)
+                    .filter((i) => (itemStates[orderLineKey(i)]?.qty ?? 0) > 0)
                     .map((item) => {
-                      const s = itemStates[item.productId];
+                      const s = itemStates[orderLineKey(item)];
                       return (
-                        <div key={item.productId} className="flex justify-between text-sm">
+                        <div key={orderLineKey(item)} className="flex justify-between text-sm">
                           <span>
-                            {item.productName} × {s.qty}
+                            {orderLineLabel(item)} × {s.qty}
                             {s.damaged && <span className="text-red-400 mr-1 text-xs">(تالف)</span>}
                             {s.restocked && <span className="text-green-500 mr-1 text-xs">(للمخزن)</span>}
                           </span>
@@ -745,9 +739,7 @@ export function OrderReturnAdjustmentModal({ order, open, onClose }: Props) {
                     ["مبلغ الاسترداد", refundAmount],
                     ["خسارة التوصيل", deliveryCostLoss],
                     ["تكلفة إعادة الشحن", returnShippingCost],
-                    ["خسارة التغليف", packagingLoss],
-                    ["شطب المنتج", productWriteOffAmount],
-                    ["خسارة COGS", cogsLoss],
+                    ["خسارة تغليف اضافية", packagingLoss],
                   ] as Array<[string, number]>
                 )
                   .filter(([, val]) => val > 0)
