@@ -1,7 +1,7 @@
 -- 0070_accounting_ledger_backed_views.sql
 -- Make official Accounting V2 summaries read return-sensitive amounts from the
--- immutable double-entry ledger, and include AQUAVO fulfillment in per-order
--- contribution profit.
+-- immutable double-entry ledger, include AQUAVO fulfillment in per-order
+-- contribution profit, and serialize return verification per order.
 BEGIN;
 
 CREATE OR REPLACE FUNCTION public.accounting_period_account_balance(
@@ -155,11 +155,37 @@ FROM public.order_accounting_facts f
 JOIN public.orders o ON o.id=f.order_id
 LEFT JOIN public.order_accounting_settlements s ON s.order_fact_id=f.id;
 
+-- PostgreSQL executes triggers with the same timing/event in name order. This
+-- lock trigger therefore runs before order_returns_prepare_verification and
+-- serializes every return approval for one order. A second transaction waits,
+-- then re-reads already-verified quantities instead of approving an over-return.
+CREATE OR REPLACE FUNCTION public.lock_order_return_verification()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $function$
+BEGIN
+  IF NEW.status='verified' AND OLD.status IS DISTINCT FROM 'verified' THEN
+    PERFORM pg_advisory_xact_lock(
+      hashtextextended('accounting-return:'||NEW.order_id,0)
+    );
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS order_returns_00_lock_verification
+ON public.order_return_events;
+
+CREATE TRIGGER order_returns_00_lock_verification
+BEFORE UPDATE OF status ON public.order_return_events
+FOR EACH ROW
+EXECUTE FUNCTION public.lock_order_return_verification();
+
 INSERT INTO public.schema_migrations(version,checksum,notes)
 VALUES(
   '0070_accounting_ledger_backed_views',
-  '2f4a01930cf498390f4d9225f9dabdeb8d98731bdc24bcb88ea6308a5382eb8a',
-  'Read COGS, fulfillment, sales returns and return loss from the immutable ledger and include fulfillment in order contribution profit'
+  '7405ed5956e2d1e583a03c7f87565d342eee06aa0a3e65375dc23033468854b7',
+  'Read return-sensitive metrics from the ledger, include fulfillment in contribution profit, and serialize return verification per order'
 )
 ON CONFLICT(version) DO UPDATE SET
   checksum=EXCLUDED.checksum,
