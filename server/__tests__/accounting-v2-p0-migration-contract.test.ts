@@ -30,6 +30,22 @@ describe("Accounting V2 P0 migration contracts", () => {
     expect(sql).toContain("NEW.cogs_loss:=0");
   });
 
+  it("serializes concurrent return approvals before quantity validation", () => {
+    const sql = readMigration("0070_accounting_ledger_backed_views.sql");
+    const rollback = readMigration("0070_accounting_ledger_backed_views_rollback.sql");
+
+    expect(sql).toContain("lock_order_return_verification");
+    expect(sql).toContain("pg_advisory_xact_lock");
+    expect(sql).toContain("hashtextextended('accounting-return:'||NEW.order_id,0)");
+    expect(sql).toContain("CREATE TRIGGER order_returns_00_lock_verification");
+    expect(sql).toContain("BEFORE UPDATE OF status ON public.order_return_events");
+    expect(sql.indexOf("order_returns_00_lock_verification"))
+      .toBeLessThan(sql.indexOf("INSERT INTO public.schema_migrations"));
+
+    expect(rollback).toContain("DROP TRIGGER IF EXISTS order_returns_00_lock_verification");
+    expect(rollback).toContain("DROP FUNCTION IF EXISTS public.lock_order_return_verification()");
+  });
+
   it("restores inventory value only for sellable returns", () => {
     const sql = readMigration("0069_accounting_return_integrity.sql");
 
