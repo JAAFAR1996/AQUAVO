@@ -1,7 +1,11 @@
 -- 0070_accounting_ledger_backed_views_rollback.sql
 -- Restores the pre-0070 raw-table reporting formulas and per-order contribution
--- formula, then removes the period-account helper.
+-- formula, removes the return-verification lock, then removes the period helper.
 BEGIN;
+
+DROP TRIGGER IF EXISTS order_returns_00_lock_verification
+ON public.order_return_events;
+DROP FUNCTION IF EXISTS public.lock_order_return_verification();
 
 DO $do$
 DECLARE
