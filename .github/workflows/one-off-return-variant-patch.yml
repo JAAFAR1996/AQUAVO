@@ -1,0 +1,262 @@
+name: One-off return variant patch
+
+on:
+  push:
+    branches:
+      - fix/accounting-v2-p0-remediation
+    paths:
+      - .github/workflows/one-off-return-variant-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout remediation branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/accounting-v2-p0-remediation
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Apply exact variant identity patch
+        shell: bash
+        run: |
+          python3 <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: Path, old: str, new: str) -> None:
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one match, found {count}\n--- OLD ---\n{old}")
+              path.write_text(text.replace(old, new, 1), encoding="utf-8")
+
+          shared = Path("shared/accounting.ts")
+          replace_once(
+              shared,
+              '''const affectedItemSchema = z.object({
+            productId: z.string().min(1),
+            qty: z.number().int().positive(),
+            priceAtPurchase: z.number().min(0),
+            cogsAtTime: z.number().min(0),
+          });''',
+              '''const affectedItemSchema = z.object({
+            productId: z.string().min(1),
+            orderItemId: z.string().min(1).optional(),
+            variantId: z.string().min(1).nullable().optional(),
+            qty: z.number().int().positive(),
+            priceAtPurchase: z.number().min(0),
+            cogsAtTime: z.number().min(0),
+          });''',
+          )
+
+          modal = Path("client/src/components/admin/order-return-adjustment-modal.tsx")
+          text = modal.read_text(encoding="utf-8")
+
+          replacements = [
+              (
+                  '''interface OrderItem {
+            productId: string;
+            productName: string;
+            quantity: number;
+            price: number;
+          }''',
+                  '''interface OrderItem {
+            id?: string;
+            orderItemId?: string;
+            productId: string;
+            productName: string;
+            quantity: number;
+            price: number;
+            variantId?: string;
+            variantLabel?: string;
+          }''',
+              ),
+              (
+                  '''const errMsg = (e: unknown) =>
+            e instanceof Error ? e.message : "خطأ غير معروف";''',
+                  '''const errMsg = (e: unknown) =>
+            e instanceof Error ? e.message : "خطأ غير معروف";
+
+          const orderLineKey = (item: OrderItem): string =>
+            item.orderItemId ?? item.id ?? `${item.productId}::${item.variantId ?? "__none__"}`;
+
+          const orderLineLabel = (item: OrderItem): string => {
+            const variant = item.variantLabel ?? item.variantId;
+            return variant ? `${item.productName} (${variant})` : item.productName;
+          };''',
+              ),
+              (
+                  '''  const productIds = order.items.map((i) => i.productId);''',
+                  '''  const productIds = [...new Set(order.items.map((i) => i.productId))];''',
+              ),
+              (
+                  '''          productId: item.productId,
+                    qty: s.qty,
+                    priceAtPurchase: item.price,''',
+                  '''          productId: item.productId,
+                    orderItemId: item.orderItemId ?? item.id,
+                    variantId: item.variantId ?? null,
+                    qty: s.qty,
+                    priceAtPurchase: item.price,''',
+              ),
+              (
+                  '''      .map((item) => `${item.productName}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
+                  '''      .map((item) => `${orderLineLabel(item)}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
+              ),
+              (
+                  '''                          <td className="p-2 font-medium">{item.productName}</td>''',
+                  '''                          <td className="p-2 font-medium">
+                            <span className="block">{item.productName}</span>
+                            {(item.variantLabel ?? item.variantId) && (
+                              <span className="block text-xs text-muted-foreground mt-0.5">
+                                {item.variantLabel ?? item.variantId}
+                              </span>
+                            )}
+                          </td>''',
+              ),
+              (
+                  '''                            {item.productName} × {s.qty}''',
+                  '''                            {orderLineLabel(item)} × {s.qty}''',
+              ),
+          ]
+
+          for old, new in replacements:
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{modal}: expected one match, found {count}\n--- OLD ---\n{old}")
+              text = text.replace(old, new, 1)
+
+          global_replacements = {
+              "states[item.productId]": "states[orderLineKey(item)]",
+              "initStates[i.productId]": "initStates[orderLineKey(i)]",
+              "itemStates[item.productId]": "itemStates[orderLineKey(item)]",
+              "key={item.productId}": "key={orderLineKey(item)}",
+              "updateItemState(item.productId": "updateItemState(orderLineKey(item)",
+              "resetItem(item.productId)": "resetItem(orderLineKey(item))",
+          }
+          for old, new in global_replacements.items():
+              if old not in text:
+                  raise SystemExit(f"{modal}: missing global replacement token: {old}")
+              text = text.replace(old, new)
+
+          text = text.replace(
+              "const updateItemState = (productId: string, patch: Partial<ItemState>) => {\n    setItemStates((prev) => ({ ...prev, [productId]: { ...prev[productId], ...patch } }));\n  };",
+              "const updateItemState = (lineKey: string, patch: Partial<ItemState>) => {\n    setItemStates((prev) => ({ ...prev, [lineKey]: { ...prev[lineKey], ...patch } }));\n  };",
+          )
+          text = text.replace(
+              "const resetItem = (productId: string) => {\n    setItemStates((prev) => ({\n      ...prev,\n      [productId]: { qty: 0, restocked: false, damaged: false, reason: \"\" },\n    }));\n  };",
+              "const resetItem = (lineKey: string) => {\n    setItemStates((prev) => ({\n      ...prev,\n      [lineKey]: { qty: 0, restocked: false, damaged: false, reason: \"\" },\n    }));\n  };",
+          )
+
+          forbidden = [
+              "itemStates[item.productId]",
+              "states[item.productId]",
+              "initStates[i.productId]",
+              "key={item.productId}",
+              "updateItemState(item.productId",
+              "resetItem(item.productId)",
+          ]
+          for token in forbidden:
+              if token in text:
+                  raise SystemExit(f"{modal}: stale product-only identity remains: {token}")
+
+          required = [
+              "variantId: item.variantId ?? null",
+              "const orderLineKey = (item: OrderItem)",
+              "itemStates[orderLineKey(item)]",
+              "key={orderLineKey(item)}",
+          ]
+          for token in required:
+              if token not in text:
+                  raise SystemExit(f"{modal}: required variant identity token missing: {token}")
+
+          modal.write_text(text, encoding="utf-8")
+
+          test = Path("server/__tests__/return-variant-id-contract.test.ts")
+          test.write_text('''import { describe, expect, it } from "vitest";
+          import { readFileSync } from "node:fs";
+          import { join } from "node:path";
+          import { orderReturnEventInputSchema } from "../../shared/accounting";
+
+          const root = process.cwd();
+
+          describe("return line variant identity contract", () => {
+            it("preserves variantId and orderItemId through Zod validation", () => {
+              const parsed = orderReturnEventInputSchema.parse({
+                orderId: "order-1",
+                type: "partial_return",
+                affectedItems: [{
+                  productId: "product-1",
+                  orderItemId: "line-1",
+                  variantId: "variant-50",
+                  qty: 1,
+                  priceAtPurchase: 8600,
+                  cogsAtTime: 3578,
+                }],
+              });
+
+              expect(parsed.affectedItems?.[0]).toMatchObject({
+                productId: "product-1",
+                orderItemId: "line-1",
+                variantId: "variant-50",
+              });
+            });
+
+            it("keys UI state by order line identity and submits the variant", () => {
+              const source = readFileSync(
+                join(root, "client/src/components/admin/order-return-adjustment-modal.tsx"),
+                "utf8",
+              );
+
+              expect(source).toContain("const orderLineKey = (item: OrderItem)");
+              expect(source).toContain("itemStates[orderLineKey(item)]");
+              expect(source).toContain("key={orderLineKey(item)}");
+              expect(source).toContain("variantId: item.variantId ?? null");
+              expect(source).not.toContain("itemStates[item.productId]");
+              expect(source).not.toContain("key={item.productId}");
+            });
+          });
+          ''', encoding="utf-8")
+          PY
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run focused accounting tests
+        run: >-
+          pnpm exec vitest run
+          server/__tests__/return-variant-id-contract.test.ts
+          server/__tests__/accounting-v2-p0-migration-contract.test.ts
+
+      - name: Production build
+        run: pnpm build
+
+      - name: Commit verified patch and remove one-off workflow
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/one-off-return-variant-patch.yml
+          git add shared/accounting.ts client/src/components/admin/order-return-adjustment-modal.tsx server/__tests__/return-variant-id-contract.test.ts
+          git commit -m "fix(accounting): preserve return variant identity"
+          git push origin HEAD:fix/accounting-v2-p0-remediation
