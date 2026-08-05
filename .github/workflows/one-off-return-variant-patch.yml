@@ -1,4 +1,4 @@
-name: One-off return variant patch
+name: One-off accounting P0 completion
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
 jobs:
   patch-and-verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     steps:
       - name: Checkout remediation branch
         uses: actions/checkout@v4
@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: true
 
-      - name: Apply exact variant identity patch
+      - name: Apply exact accounting completion patch
         shell: bash
         run: |
           python3 <<'PY'
@@ -35,6 +35,14 @@ jobs:
                   raise SystemExit(f"{path}: expected one match, found {count}\n--- OLD ---\n{old}")
               path.write_text(text.replace(old, new, 1), encoding="utf-8")
 
+          def replace_count(path: Path, old: str, new: str, expected: int) -> None:
+              text = path.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f"{path}: expected {expected} matches, found {count}\n--- OLD ---\n{old}")
+              path.write_text(text.replace(old, new), encoding="utf-8")
+
+          # Zod must preserve exact order-line and variant identity.
           shared = Path("shared/accounting.ts")
           replace_once(
               shared,
@@ -54,18 +62,19 @@ jobs:
           });''',
           )
 
+          # Return UI must key by sale line, preserve variantId, avoid advisory
+          # COGS/write-off calculations, and forbid mixed inventory disposition
+          # inside one event because the database event has one restocked flag.
           modal = Path("client/src/components/admin/order-return-adjustment-modal.tsx")
-          text = modal.read_text(encoding="utf-8")
-
-          replacements = [
-              (
-                  '''interface OrderItem {
+          replace_once(
+              modal,
+              '''interface OrderItem {
             productId: string;
             productName: string;
             quantity: number;
             price: number;
           }''',
-                  '''interface OrderItem {
+              '''interface OrderItem {
             id?: string;
             orderItemId?: string;
             productId: string;
@@ -75,11 +84,12 @@ jobs:
             variantId?: string;
             variantLabel?: string;
           }''',
-              ),
-              (
-                  '''const errMsg = (e: unknown) =>
+          )
+          replace_once(
+              modal,
+              '''const errMsg = (e: unknown) =>
             e instanceof Error ? e.message : "خطأ غير معروف";''',
-                  '''const errMsg = (e: unknown) =>
+              '''const errMsg = (e: unknown) =>
             e instanceof Error ? e.message : "خطأ غير معروف";
 
           const orderLineKey = (item: OrderItem): string =>
@@ -89,28 +99,212 @@ jobs:
             const variant = item.variantLabel ?? item.variantId;
             return variant ? `${item.productName} (${variant})` : item.productName;
           };''',
-              ),
-              (
-                  '''  const productIds = order.items.map((i) => i.productId);''',
-                  '''  const productIds = [...new Set(order.items.map((i) => i.productId))];''',
-              ),
-              (
-                  '''          productId: item.productId,
-                    qty: s.qty,
-                    priceAtPurchase: item.price,''',
-                  '''          productId: item.productId,
+          )
+          replace_once(
+              modal,
+              '''  const [productWriteOffAmount, setProductWriteOffAmount] = useState(0);
+            const [cogsLoss, setCogsLoss] = useState(0);
+          ''',
+              '''''',
+          )
+          replace_once(
+              modal,
+              '''      setProductWriteOffAmount(0);
+                setCogsLoss(0);
+          ''',
+              '''''',
+          )
+          replace_once(
+              modal,
+              '''  const productIds = order.items.map((i) => i.productId);
+            const { data: costMap = {} } = useQuery({
+              queryKey: ["cost-history-batch", productIds.join(",")],
+              queryFn: async () => {
+                const results: Record<string, { costPrice: number; packagingCost: number; insertCost: number }> = {};
+                await Promise.all(
+                  productIds.map(async (pid) => {
+                    try {
+                      const r = await fetch(`/api/admin/accounting/cost-history/${pid}`, { credentials: "include" });
+                      if (!r.ok) return;
+                      const json = await r.json() as { data: Array<{ costPrice: number; packagingCost: number; insertCost: number }> };
+                      const rows = json.data ?? [];
+                      if (rows.length > 0) {
+                        results[pid] = {
+                          costPrice: Number(rows[0].costPrice),
+                          packagingCost: Number(rows[0].packagingCost),
+                          insertCost: Number(rows[0].insertCost),
+                        };
+                      }
+                    } catch { /* ignore per-product failures */ }
+                  })
+                );
+                return results;
+              },
+              enabled: open && productIds.length > 0,
+            });
+          ''',
+              '''''',
+          )
+          replace_once(
+              modal,
+              '''    let totalRevenue = 0, totalCogs = 0, totalPackaging = 0, totalWriteOff = 0;
+
+                order.items.forEach((item) => {
+                  const s = states[item.productId];
+                  const qty = s?.qty ?? 0;
+                  if (qty > 0) {
+                    totalRevenue += qty * item.price;
+                    const cost = costMap[item.productId];
+                    if (cost) {
+                      totalCogs += qty * (cost.costPrice + cost.insertCost);
+                      totalPackaging += qty * cost.packagingCost;
+                    }
+                    if (s?.damaged) totalWriteOff += qty * item.price;
+                  }
+                });
+
+                setRefundAmount(Math.round(totalRevenue));
+                setCogsLoss(Math.round(totalCogs));
+                setPackagingLoss(Math.round(totalPackaging));
+                setProductWriteOffAmount(Math.round(totalWriteOff));''',
+              '''    let totalRevenue = 0;
+
+                order.items.forEach((item) => {
+                  const s = states[orderLineKey(item)];
+                  const qty = s?.qty ?? 0;
+                  if (qty > 0) totalRevenue += qty * item.price;
+                });
+
+                setRefundAmount(Math.round(totalRevenue));
+                // Product COGS and inventory value are frozen by the database from
+                // the original order snapshot when the return is verified.
+                setPackagingLoss(0);''',
+          )
+          replace_count(modal, "initStates[i.productId]", "initStates[orderLineKey(i)]", 1)
+          replace_once(
+              modal,
+              '''  const updateItemState = (productId: string, patch: Partial<ItemState>) => {
+                setItemStates((prev) => ({ ...prev, [productId]: { ...prev[productId], ...patch } }));
+              };
+
+              const resetItem = (productId: string) => {
+                setItemStates((prev) => ({
+                  ...prev,
+                  [productId]: { qty: 0, restocked: false, damaged: false, reason: "" },
+                }));
+              };''',
+              '''  const updateItemState = (lineKey: string, patch: Partial<ItemState>) => {
+                setItemStates((prev) => ({ ...prev, [lineKey]: { ...prev[lineKey], ...patch } }));
+              };
+
+              const resetItem = (lineKey: string) => {
+                setItemStates((prev) => ({
+                  ...prev,
+                  [lineKey]: { qty: 0, restocked: false, damaged: false, reason: "" },
+                }));
+              };''',
+          )
+
+          # Product-only keys are unsafe when one product appears with two variants.
+          text = modal.read_text(encoding="utf-8")
+          substitutions = {
+              "itemStates[item.productId]": "itemStates[orderLineKey(item)]",
+              "itemStates[i.productId]": "itemStates[orderLineKey(i)]",
+              "key={item.productId}": "key={orderLineKey(item)}",
+              "updateItemState(item.productId": "updateItemState(orderLineKey(item)",
+              "resetItem(item.productId)": "resetItem(orderLineKey(item))",
+          }
+          for old, new in substitutions.items():
+              if old not in text:
+                  raise SystemExit(f"{modal}: missing identity token {old}")
+              text = text.replace(old, new)
+          modal.write_text(text, encoding="utf-8")
+
+          replace_once(
+              modal,
+              '''  const handleConfirm = () => {
+                const affectedItems = order.items
+                  .filter((item) => (itemStates[orderLineKey(item)]?.qty ?? 0) > 0)
+                  .map((item) => {
+                    const s = itemStates[orderLineKey(item)];
+                    const cost = costMap[item.productId];
+                    return {
+                      productId: item.productId,
+                      qty: s.qty,
+                      priceAtPurchase: item.price,
+                      cogsAtTime: cost ? cost.costPrice + cost.packagingCost + cost.insertCost : 0,
+                    };
+                  });
+
+                const anyRestocked = Object.values(itemStates).some(
+                  (s) => s.restocked && (s.qty ?? 0) > 0
+                );''',
+              '''  const handleConfirm = () => {
+                const selectedItems = order.items.filter(
+                  (item) => (itemStates[orderLineKey(item)]?.qty ?? 0) > 0
+                );
+                const selectedStates = selectedItems.map(
+                  (item) => itemStates[orderLineKey(item)]
+                );
+
+                if (selectedStates.some((state) => state.restocked && state.damaged)) {
+                  toast({
+                    title: "حالة المنتج غير صالحة",
+                    description: "المنتج التالف لا يمكن إرجاعه للمخزون",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                if (new Set(selectedStates.map((state) => state.restocked)).size > 1) {
+                  toast({
+                    title: "افصل حالات الراجع",
+                    description: "سجل المنتجات الصالحة للبيع والتالفة كحدثين منفصلين حتى يبقى المخزون والحساب صحيحين",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+
+                const affectedItems = selectedItems.map((item) => {
+                  const s = itemStates[orderLineKey(item)];
+                  return {
+                    productId: item.productId,
                     orderItemId: item.orderItemId ?? item.id,
                     variantId: item.variantId ?? null,
                     qty: s.qty,
-                    priceAtPurchase: item.price,''',
-              ),
-              (
-                  '''      .map((item) => `${item.productName}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
-                  '''      .map((item) => `${orderLineLabel(item)}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
-              ),
-              (
-                  '''                          <td className="p-2 font-medium">{item.productName}</td>''',
-                  '''                          <td className="p-2 font-medium">
+                    priceAtPurchase: item.price,
+                    // Advisory only. Migration 0069 replaces this with the immutable
+                    // sale-time snapshot before any journal or stock movement.
+                    cogsAtTime: 0,
+                  };
+                });
+
+                const anyRestocked = selectedStates[0]?.restocked ?? false;''',
+          )
+          replace_once(
+              modal,
+              '''      .map((item) => `${item.productName}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
+              '''      .map((item) => `${orderLineLabel(item)}: ${itemStates[orderLineKey(item)].reason.trim()}`)''',
+          )
+          replace_once(
+              modal,
+              '''      productWriteOffAmount,
+                cogsLoss,''',
+              '''      productWriteOffAmount: 0,
+                cogsLoss: 0,''',
+          )
+          replace_once(
+              modal,
+              '''  const totalImpact =
+                refundAmount + deliveryCostLoss + returnShippingCost +
+                packagingLoss + productWriteOffAmount + cogsLoss;''',
+              '''  const totalImpact =
+                refundAmount + deliveryCostLoss + returnShippingCost + packagingLoss;''',
+          )
+          replace_once(
+              modal,
+              '''                          <td className="p-2 font-medium">{item.productName}</td>''',
+              '''                          <td className="p-2 font-medium">
                             <span className="block">{item.productName}</span>
                             {(item.variantLabel ?? item.variantId) && (
                               <span className="block text-xs text-muted-foreground mt-0.5">
@@ -118,75 +312,183 @@ jobs:
                               </span>
                             )}
                           </td>''',
-              ),
-              (
-                  '''                            {item.productName} × {s.qty}''',
-                  '''                            {orderLineLabel(item)} × {s.qty}''',
-              ),
-          ]
-
-          for old, new in replacements:
-              count = text.count(old)
-              if count != 1:
-                  raise SystemExit(f"{modal}: expected one match, found {count}\n--- OLD ---\n{old}")
-              text = text.replace(old, new, 1)
-
-          global_replacements = {
-              "states[item.productId]": "states[orderLineKey(item)]",
-              "initStates[i.productId]": "initStates[orderLineKey(i)]",
-              "itemStates[item.productId]": "itemStates[orderLineKey(item)]",
-              "key={item.productId}": "key={orderLineKey(item)}",
-              "updateItemState(item.productId": "updateItemState(orderLineKey(item)",
-              "resetItem(item.productId)": "resetItem(orderLineKey(item))",
-          }
-          for old, new in global_replacements.items():
-              if old not in text:
-                  raise SystemExit(f"{modal}: missing global replacement token: {old}")
-              text = text.replace(old, new)
-
-          text = text.replace(
-              "const updateItemState = (productId: string, patch: Partial<ItemState>) => {\n    setItemStates((prev) => ({ ...prev, [productId]: { ...prev[productId], ...patch } }));\n  };",
-              "const updateItemState = (lineKey: string, patch: Partial<ItemState>) => {\n    setItemStates((prev) => ({ ...prev, [lineKey]: { ...prev[lineKey], ...patch } }));\n  };",
           )
-          text = text.replace(
-              "const resetItem = (productId: string) => {\n    setItemStates((prev) => ({\n      ...prev,\n      [productId]: { qty: 0, restocked: false, damaged: false, reason: \"\" },\n    }));\n  };",
-              "const resetItem = (lineKey: string) => {\n    setItemStates((prev) => ({\n      ...prev,\n      [lineKey]: { qty: 0, restocked: false, damaged: false, reason: \"\" },\n    }));\n  };",
+          replace_once(
+              modal,
+              '''              <p className="text-xs text-muted-foreground mt-1.5">
+                            ملاحظة: التغييرات هنا لا تُحدّث المخزون تلقائياً — للتسجيل فقط
+                          </p>''',
+              '''              <p className="text-xs text-muted-foreground mt-1.5">
+                            المخزون لا يتغير عند الحفظ ويتحدث تلقائيا فقط بعد اعتماد الحدث من Snapshot الطلب الاصلي
+                          </p>''',
+          )
+          replace_once(
+              modal,
+              '''                    { label: "خسارة التغليف", value: packagingLoss, set: setPackagingLoss, hint: "كلفة مواد التغليف" },
+                        { label: "شطب المنتج (تالف)", value: productWriteOffAmount, set: setProductWriteOffAmount, hint: "للمنتجات التالفة فقط" },
+                        { label: "خسارة COGS", value: cogsLoss, set: setCogsLoss, hint: "تكلفة البضاعة المباعة" },''',
+              '''                    { label: "خسارة تغليف اضافية", value: packagingLoss, set: setPackagingLoss, hint: "ادخلها فقط اذا كانت كلفة جديدة غير تجهيز الطلب الاصلي" },''',
+          )
+          replace_once(
+              modal,
+              '''                            {item.productName} × {s.qty}''',
+              '''                            {orderLineLabel(item)} × {s.qty}''',
+          )
+          replace_once(
+              modal,
+              '''                    ["خسارة التغليف", packagingLoss],
+                        ["شطب المنتج", productWriteOffAmount],
+                        ["خسارة COGS", cogsLoss],''',
+              '''                    ["خسارة تغليف اضافية", packagingLoss],''',
           )
 
+          modal_text = modal.read_text(encoding="utf-8")
           forbidden = [
               "itemStates[item.productId]",
-              "states[item.productId]",
-              "initStates[i.productId]",
+              "itemStates[i.productId]",
               "key={item.productId}",
-              "updateItemState(item.productId",
-              "resetItem(item.productId)",
+              "costMap[",
+              "productWriteOffAmount, setProductWriteOffAmount",
+              "cogsLoss, setCogsLoss",
           ]
           for token in forbidden:
-              if token in text:
-                  raise SystemExit(f"{modal}: stale product-only identity remains: {token}")
-
+              if token in modal_text:
+                  raise SystemExit(f"{modal}: stale unsafe token remains: {token}")
           required = [
               "variantId: item.variantId ?? null",
+              "orderItemId: item.orderItemId ?? item.id",
               "const orderLineKey = (item: OrderItem)",
-              "itemStates[orderLineKey(item)]",
-              "key={orderLineKey(item)}",
+              "new Set(selectedStates.map((state) => state.restocked)).size > 1",
+              "cogsAtTime: 0",
           ]
           for token in required:
-              if token not in text:
-                  raise SystemExit(f"{modal}: required variant identity token missing: {token}")
+              if token not in modal_text:
+                  raise SystemExit(f"{modal}: required token missing: {token}")
 
-          modal.write_text(text, encoding="utf-8")
+          # Deploy runner and API health must require the full P0 migration chain.
+          runner = Path("script/apply-accounting-v2-migrations.ts")
+          replace_once(
+              runner,
+              '''  "0066_accounting_reassert_refusal_inventory_after_0062.sql",
+            ] as const;''',
+              '''  "0066_accounting_reassert_refusal_inventory_after_0062.sql",
+              "0067_orders_client_ip_schema_drift.sql",
+              "0068_accounting_delivery_readiness_guard.sql",
+              "0069_accounting_return_integrity.sql",
+              "0070_accounting_ledger_backed_views.sql",
+            ] as const;''',
+          )
+          replace_count(runner, "APPLY_0051_TO_0066", "APPLY_0051_TO_0070", 2)
+          replace_once(
+              runner,
+              '''        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL) AS migration_0066,
+                    EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,''',
+              '''        EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL) AS migration_0066,
+                    EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0067_orders_client_ip_schema_drift' AND rolled_back_at IS NULL) AS migration_0067,
+                    EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0068_accounting_delivery_readiness_guard' AND rolled_back_at IS NULL) AS migration_0068,
+                    EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0069_accounting_return_integrity' AND rolled_back_at IS NULL) AS migration_0069,
+                    EXISTS(SELECT 1 FROM public.schema_migrations WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL) AS migration_0070,
+                    to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
+                    to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
+                    EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='orders_accounting_delivery_readiness_guard' AND NOT tgisinternal) AS delivery_readiness_guard,
+                    EXISTS(SELECT 1 FROM pg_trigger WHERE tgname='trg_guard_accounting_period_tax_finalization' AND NOT tgisinternal) AS close_state_guard,''',
+          )
 
-          test = Path("server/__tests__/return-variant-id-contract.test.ts")
-          test.write_text('''import { describe, expect, it } from "vitest";
-          import { readFileSync } from "node:fs";
+          route = Path("server/routes/accounting-v2.ts")
+          replace_once(
+              route,
+              '''      EXISTS(
+                    SELECT 1 FROM public.schema_migrations
+                    WHERE version='0066_accounting_reassert_refusal_inventory_after_0062' AND rolled_back_at IS NULL
+                  ) AS migration_0066''',
+              '''      EXISTS(
+                    SELECT 1 FROM public.schema_migrations
+                    WHERE version='0070_accounting_ledger_backed_views' AND rolled_back_at IS NULL
+                  ) AS migration_0070,
+                  to_regprocedure('public.assert_order_ready_for_accounting_delivery(text)') IS NOT NULL AS delivery_readiness_function,
+                  to_regprocedure('public.accounting_period_account_balance(text,text)') IS NOT NULL AS ledger_balance_function,
+                  EXISTS(
+                    SELECT 1 FROM pg_trigger
+                    WHERE tgname='orders_accounting_delivery_readiness_guard'
+                      AND NOT tgisinternal
+                  ) AS delivery_readiness_guard''',
+          )
+          replace_count(route, "ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED", "ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED", 1)
+          replace_count(route, 'migrationsThrough: "0066"', 'migrationsThrough: "0070"', 1)
+
+          vercel = Path("vercel.json")
+          replace_count(vercel, "APPLY_0051_TO_0066", "APPLY_0051_TO_0070", 1)
+
+          # Fix stale CI contracts and Node 24-safe migration path reads.
+          for name in [
+              "accounting-cod-refusal-migration-contract.test.ts",
+              "accounting-customer-credit-posting-links.test.ts",
+              "accounting-warranty-refusal-separation.test.ts",
+          ]:
+              path = Path("server/__tests__") / name
+              text = path.read_text(encoding="utf-8")
+              if 'import { join } from "node:path";' not in text:
+                  text = text.replace(
+                      'import { readFileSync } from "node:fs";\n',
+                      'import { readFileSync } from "node:fs";\nimport { join } from "node:path";\n',
+                      1,
+                  )
+              import re
+              text, count = re.subn(
+                  r'new URL\("\.\./\.\./migrations/([^\"]+)", import\.meta\.url\)',
+                  r'join(process.cwd(), "migrations", "\1")',
+                  text,
+              )
+              if count == 0:
+                  raise SystemExit(f"{path}: no import.meta.url migration path found")
+              path.write_text(text, encoding="utf-8")
+
+          review = Path("server/__tests__/accounting-v2-review-fixes-contract.test.ts")
+          replace_count(review, "لا توجد بيانات جاهزية لهذه الفترة", "لا توجد بيانات جاهزية محاسبية لهذه الفترة", 1)
+          replace_count(review, "retains the 0061 carrier guard while the main V2 router requires 0062", "retains the carrier guard while the main V2 router requires the P0 chain through 0070", 1)
+          replace_count(review, 'expect(reports).toContain("migration_0062");', 'expect(reports).toContain("migration_0070");', 1)
+          replace_count(review, "ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED", "ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED", 1)
+          replace_count(review, 'CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062"', 'CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0070"', 1)
+          replace_count(review, '"0062_accounting_automation_opening_balances.sql"', '"0070_accounting_ledger_backed_views.sql"', 1)
+          replace_count(review, "CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062", "CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070", 1)
+
+          ci = Path(".github/workflows/accounting-v2-ci.yml")
+          replace_count(
+              ci,
+              '''      - "migrations/006*.sql"
+          ''',
+              '''      - "migrations/006*.sql"
+                - "migrations/007*.sql"
+                - "shared/accounting.ts"
+                - "client/src/components/admin/order-return-adjustment-modal.tsx"
+                - "server/__tests__/return-variant-id-contract.test.ts"
+          ''',
+              2,
+          )
+          replace_once(
+              ci,
+              '''          server/__tests__/accounting-v2-migration-0062-execution.test.ts
+                    server/__tests__/accounting-cod-refusal-migration-contract.test.ts''',
+              '''          server/__tests__/accounting-v2-migration-0062-execution.test.ts
+                    server/__tests__/accounting-v2-p0-migration-contract.test.ts
+                    server/__tests__/return-variant-id-contract.test.ts
+                    server/__tests__/accounting-cod-refusal-migration-contract.test.ts''',
+          )
+
+          variant_test = Path("server/__tests__/return-variant-id-contract.test.ts")
+          variant_test.write_text('''import { readFileSync } from "node:fs";
           import { join } from "node:path";
+          import { describe, expect, it } from "vitest";
           import { orderReturnEventInputSchema } from "../../shared/accounting";
 
           const root = process.cwd();
+          const modal = () => readFileSync(
+            join(root, "client/src/components/admin/order-return-adjustment-modal.tsx"),
+            "utf8",
+          );
 
-          describe("return line variant identity contract", () => {
-            it("preserves variantId and orderItemId through Zod validation", () => {
+          describe("return variant and disposition contract", () => {
+            it("preserves orderItemId and variantId through Zod validation", () => {
               const parsed = orderReturnEventInputSchema.parse({
                 orderId: "order-1",
                 type: "partial_return",
@@ -196,7 +498,7 @@ jobs:
                   variantId: "variant-50",
                   qty: 1,
                   priceAtPurchase: 8600,
-                  cogsAtTime: 3578,
+                  cogsAtTime: 0,
                 }],
               });
 
@@ -207,18 +509,23 @@ jobs:
               });
             });
 
-            it("keys UI state by order line identity and submits the variant", () => {
-              const source = readFileSync(
-                join(root, "client/src/components/admin/order-return-adjustment-modal.tsx"),
-                "utf8",
-              );
-
+            it("keys UI state by order line and submits exact variant identity", () => {
+              const source = modal();
               expect(source).toContain("const orderLineKey = (item: OrderItem)");
               expect(source).toContain("itemStates[orderLineKey(item)]");
               expect(source).toContain("key={orderLineKey(item)}");
+              expect(source).toContain("orderItemId: item.orderItemId ?? item.id");
               expect(source).toContain("variantId: item.variantId ?? null");
               expect(source).not.toContain("itemStates[item.productId]");
               expect(source).not.toContain("key={item.productId}");
+            });
+
+            it("does not trust current product cost and blocks mixed disposition", () => {
+              const source = modal();
+              expect(source).toContain("cogsAtTime: 0");
+              expect(source).not.toContain("costMap[");
+              expect(source).toContain("new Set(selectedStates.map((state) => state.restocked)).size > 1");
+              expect(source).toContain("المنتجات الصالحة للبيع والتالفة كحدثين منفصلين");
             });
           });
           ''', encoding="utf-8")
@@ -242,11 +549,28 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run focused accounting tests
+      - name: Strict accounting typecheck
+        run: pnpm check:accounting
+
+      - name: Accounting contract and migration tests
         run: >-
           pnpm exec vitest run
-          server/__tests__/return-variant-id-contract.test.ts
+          server/__tests__/accounting-cod-v2-contract.test.ts
+          server/__tests__/accounting-v2-wiring-contract.test.ts
+          server/__tests__/accounting-v2-operating-defaults-contract.test.ts
+          server/__tests__/accounting-v2-review-fixes-contract.test.ts
+          server/__tests__/accounting-smart-carrier-v2-contract.test.ts
+          server/__tests__/accounting-v2-automation-contract.test.ts
+          server/__tests__/accounting-v2-migration-0062-execution.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
+          server/__tests__/return-variant-id-contract.test.ts
+          server/__tests__/accounting-cod-refusal-migration-contract.test.ts
+          server/__tests__/accounting-customer-credit-posting-links.test.ts
+          server/__tests__/accounting-warranty-refusal-separation.test.ts
+          server/__tests__/cod-refusal-policy.test.ts
+
+      - name: Migration ledger governance
+        run: pnpm check:migrations
 
       - name: Production build
         run: pnpm build
@@ -257,6 +581,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/one-off-return-variant-patch.yml
-          git add shared/accounting.ts client/src/components/admin/order-return-adjustment-modal.tsx server/__tests__/return-variant-id-contract.test.ts
-          git commit -m "fix(accounting): preserve return variant identity"
+          git add -A
+          git commit -m "fix(accounting): complete P0 return and deployment integrity"
           git push origin HEAD:fix/accounting-v2-p0-remediation
