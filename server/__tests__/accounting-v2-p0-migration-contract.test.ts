@@ -46,6 +46,21 @@ describe("Accounting V2 P0 migration contracts", () => {
     expect(rollback).toContain("DROP FUNCTION IF EXISTS public.lock_order_return_verification()");
   });
 
+  it("rolls ledger-backed views back across PostgreSQL normalization forms", () => {
+    const rollback = readMigration("0070_accounting_ledger_backed_views_rollback.sql");
+
+    for (const account of ["4000", "5100", "4100", "4200"]) {
+      expect(rollback).toContain(
+        `public.accounting_period_account_balance(m.period_key, ''${account}''::text)`,
+      );
+      expect(rollback).toContain(
+        `accounting_period_account_balance(period_key, ''${account}''::text)`,
+      );
+    }
+    expect(rollback).toContain("pg_get_viewdef");
+    expect(rollback).toContain("rollback is based on semantics");
+  });
+
   it("restores inventory value only for sellable returns", () => {
     const sql = readMigration("0069_accounting_return_integrity.sql");
 
