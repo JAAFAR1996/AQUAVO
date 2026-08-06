@@ -24,7 +24,12 @@ describe("AQUAVO discoverability contract", () => {
 
   it("uses a scoped global brand title instead of blanket authenticity", () => {
     const meta = read("client/src/components/seo/meta-tags.tsx");
-    expect(meta).toContain("AQUAVO لمعدات الأحواض | العراق");
+    // The global suffix was shortened to `| AQUAVO العراق` in df0cf112 ("replace
+    // client schemas with truthful online-store contract"). What this contract
+    // protects is the *scoping*: a brand + country suffix, never a blanket
+    // authenticity or superlative claim applied to every page in the store.
+    expect(meta).toContain("| AQUAVO العراق");
+    expect(meta).not.toContain("أصلية");
     expect(meta).not.toContain("معدات أحواض أصلية | العراق");
     expect(meta).not.toContain("أكبر متجر إلكتروني");
   });

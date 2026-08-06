@@ -117,16 +117,27 @@ describe('FilterBar mobile touch targets (WCAG 2.5.8 target size, min 44px)', ()
         expect(screen.getByRole('button', { name: /السعر/ })).not.toHaveClass('h-auto');
     });
 
-    it('keeps the trigger buttons at >=44px min-height at tablet width too (md:min-h-11 counters the shared Button size default shrinking to md:min-h-9)', () => {
+    // The shared Button used to shrink to md:min-h-9 / md:min-h-8 at tablet width,
+    // so these controls carried an explicit `md:min-h-11` to counter it. 681f54eb
+    // removed the shrinking variants outright, which makes the unprefixed
+    // `min-h-11` apply at EVERY breakpoint — a stronger guarantee than the old
+    // counter-class. What must never come back is a breakpoint-scoped override
+    // that drops any of these controls back under 44px.
+    it('keeps the trigger buttons at >=44px min-height at tablet width too', () => {
         renderBar(baseFilters());
-        expect(screen.getByRole('button', { name: /الفلاتر/ })).toHaveClass('md:min-h-11');
-        expect(screen.getByRole('button', { name: /السعر/ })).toHaveClass('md:min-h-11');
+        for (const name of [/الفلاتر/, /السعر/]) {
+            const button = screen.getByRole('button', { name });
+            expect(button).toHaveClass('min-h-11');
+            expect(button.className).not.toMatch(/\b(sm|md|lg|xl):min-h-(?!11\b|12\b)/);
+        }
     });
 
     it('keeps every quick-filter chip at >=44px min-height at tablet width too', () => {
         renderBar(baseFilters());
         for (const name of ['جديد', 'الأكثر مبيعاً', 'صديق للبيئة']) {
-            expect(screen.getByRole('button', { name })).toHaveClass('md:min-h-11');
+            const chip = screen.getByRole('button', { name });
+            expect(chip).toHaveClass('min-h-11');
+            expect(chip.className).not.toMatch(/\b(sm|md|lg|xl):min-h-(?!11\b|12\b)/);
         }
     });
 });

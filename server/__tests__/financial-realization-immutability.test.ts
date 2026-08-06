@@ -17,7 +17,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
-import { isFinanciallyRealizedOrder } from "../../shared/order-financials";
+import { isFinanciallyRealizedOrder, POST_DELIVERY_STATUSES } from "../../shared/order-financials";
+import { COD_REFUSAL_STATUSES } from "../../shared/cod-refusal-policy";
 
 const migrationSql = readFileSync(
   join(process.cwd(), "migrations/add_order_item_snapshot_immutability.sql"), "utf8");
@@ -100,7 +101,17 @@ describe("the realization rule itself (shared/order-financials.ts)", () => {
 
   it("stays frozen after a return — a return does not un-deliver a sale", () => {
     expect(isFinanciallyRealizedOrder({ status: "returned" })).toBe(true);
-    expect(isFinanciallyRealizedOrder({ status: "rejected_returned" })).toBe(true);
+  });
+
+  // Owner-approved policy, 2026-08-04 (docs/accounting/COD-REFUSAL-AND-EXCHANGE-POLICY-20260804.md,
+  // shipped in #43): a COD refusal happens BEFORE the customer accepts the parcel, so it never
+  // realises a sale. `rejected_returned` is a refusal, not a post-delivery return, and must stay
+  // correctable — freezing it would fabricate realised revenue out of a sale that never happened.
+  it("never freezes a COD refusal — a refusal is not a post-delivery return", () => {
+    for (const s of COD_REFUSAL_STATUSES) {
+      expect(isFinanciallyRealizedOrder({ status: s }), s).toBe(false);
+    }
+    expect(POST_DELIVERY_STATUSES).not.toContain("rejected_returned");
   });
 
   it("leaves open and never-delivered orders editable", () => {
