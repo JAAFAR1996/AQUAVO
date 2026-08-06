@@ -66,15 +66,25 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("keeps exactly one canonical health responder through the complete P0 chain", () => {
-    const compatibility = read("server/routes/accounting-health-v2.ts");
-    expect(compatibility).not.toContain('router.get("/v2/health"');
-    expect(compatibility).toContain("canonical Accounting V2 router owns `/v2/health` exclusively");
+  it("mounts one effective fail-closed health gate through the complete P0 chain", () => {
+    const routes = read("server/routes.ts");
+    const healthMount = routes.indexOf(
+      'app.use("/api/admin/accounting", createAccountingHealthV2Router())',
+    );
+    const reportsMount = routes.indexOf(
+      'app.use("/api/admin/accounting", createAccountingV2Router())',
+    );
+    expect(healthMount).toBeGreaterThan(-1);
+    expect(healthMount).toBeLessThan(reportsMount);
 
-    const reports = read("server/routes/accounting-v2.ts");
-    expect((reports.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
-    expect(reports).toContain("migration_0070");
-    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0070_REQUIRED");
+    const health = read("server/routes/accounting-health-v2.ts");
+    expect((health.match(/router\.get\("\/v2\/health"/g) ?? [])).toHaveLength(1);
+    expect(health).toContain("migration_0071");
+    expect(health).toContain("order_returns_00_lock_verification");
+    expect(health).toContain("RETURN_ORDER_ITEM_ID_REQUIRED");
+    expect(health).toContain("return_refund_snapshot_guard");
+    expect(health).toContain('router.use("/v2"');
+    expect(health).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
 
     const migration70 = read("migrations/0070_accounting_ledger_backed_views.sql");
     expect(migration70).toContain("order_returns_00_lock_verification");
@@ -88,20 +98,25 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(migration).toContain("BEFORE INSERT OR UPDATE OF carrier,status ON public.orders");
   });
 
-  it("builds successfully before production migrations and skips previews", () => {
+  it("separates production migrations from Vercel builds", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0070"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0071"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
-    expect(runner).toContain('"0070_accounting_ledger_backed_views.sql"');
+    expect(runner).toContain('"0071_accounting_return_line_identity_and_refund_guard.sql"');
 
-    const vercel = read("vercel.json");
-    expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0070");
-    expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
-    expect(vercel.indexOf("pnpm run build"))
-      .toBeLessThan(vercel.indexOf("script/apply-accounting-v2-migrations.ts"));
+    const vercel = JSON.parse(read("vercel.json")) as { buildCommand?: string };
+    expect(vercel.buildCommand).toBe("pnpm run build");
+
+    const productionWorkflow = read(".github/workflows/accounting-v2-production-migrate.yml");
+    expect(productionWorkflow).toContain("workflow_dispatch:");
+    expect(productionWorkflow).toContain("environment: production");
+    expect(productionWorkflow).toContain("cancel-in-progress: false");
+    expect(productionWorkflow).toContain("APPLY_0051_TO_0071");
+    expect(productionWorkflow).toContain("pnpm run build");
+    expect(productionWorkflow.indexOf("pnpm run build"))
+      .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
   });
 });
