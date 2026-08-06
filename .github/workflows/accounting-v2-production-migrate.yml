@@ -24,8 +24,18 @@ jobs:
   migrate:
     if: ${{ inputs.confirm == 'APPLY_0051_TO_0071' }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     environment: production
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - name: Checkout exact release ref
         uses: actions/checkout@v4
@@ -64,6 +74,9 @@ jobs:
           server/__tests__/accounting-v2-migration-0071-execution.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
           server/__tests__/return-variant-id-contract.test.ts
+
+      - name: Verify concurrent return serialization on PostgreSQL 16
+        run: bash script/test-accounting-return-concurrency.sh
 
       - name: Verify migration ledger governance
         run: pnpm check:migrations
