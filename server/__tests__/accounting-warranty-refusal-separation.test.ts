@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  new URL("../../migrations/0065_accounting_separate_warranty_from_cod_refusal.sql", import.meta.url),
+  path.resolve(process.cwd(), "migrations/0065_accounting_separate_warranty_from_cod_refusal.sql"),
   "utf8",
 );
 
