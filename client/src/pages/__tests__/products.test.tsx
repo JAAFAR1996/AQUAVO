@@ -4,6 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React from 'react';
 
@@ -151,5 +152,93 @@ describe('Products Page', () => {
         const sortTrigger = await screen.findByLabelText('ترتيب المنتجات');
         expect(sortTrigger.className).toContain('h-11');
         expect(sortTrigger.className).not.toMatch(/\bh-10\b/);
+    });
+});
+
+/**
+ * Regression coverage for the 2026-08-06 outage.
+ *
+ * The backend could not boot (a Router instance was invoked as a factory in
+ * server/routes.ts), so /api/products returned HTTP 500 and the page showed
+ * "ما كدرنا نحمّل المنتجات". These tests pin that the page reacts *correctly* to
+ * each backend outcome — proving the page itself was never the defect, so it
+ * needs no change beyond the server fix.
+ */
+describe('Products page — backend outcome states', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    const ERROR_HEADING = 'ما كدرنا نحمّل المنتجات';
+    const EMPTY_HEADING = 'ما لكينا منتجات بهذي الفلاتر';
+
+    it('queries the products endpoint through the api layer', async () => {
+        vi.mocked(fetchProducts).mockResolvedValue({ products: [] });
+        render(<Products />, { wrapper: createWrapper() });
+        await waitFor(() => expect(fetchProducts).toHaveBeenCalled());
+    });
+
+    it('renders the returned products on a successful response', async () => {
+        vi.mocked(fetchProducts).mockResolvedValue({
+            products: [
+                { id: '1', name: 'فلتر خارجي', price: 50000, category: 'فلاتر', slug: 'external-filter', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 3 },
+            ],
+        });
+        render(<Products />, { wrapper: createWrapper() });
+
+        expect(await screen.findByText('فلتر خارجي')).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: ERROR_HEADING })).not.toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: EMPTY_HEADING })).not.toBeInTheDocument();
+    });
+
+    it('shows the empty state — not the error state — when the response is a valid empty list', async () => {
+        vi.mocked(fetchProducts).mockResolvedValue({ products: [] });
+        render(<Products />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { name: EMPTY_HEADING })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: ERROR_HEADING })).not.toBeInTheDocument();
+    });
+
+    it('shows the error state when the endpoint fails with HTTP 500', async () => {
+        vi.mocked(fetchProducts).mockRejectedValue(new Error('HTTP 500: Server initialization error'));
+        render(<Products />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { name: ERROR_HEADING }, { timeout: 5000 })).toBeInTheDocument();
+        expect(screen.queryByRole('heading', { name: EMPTY_HEADING })).not.toBeInTheDocument();
+    });
+
+    it('retry re-issues the request and leaves the error state once the backend recovers', async () => {
+        const user = userEvent.setup();
+        // The page's own query sets `retry: 1`, so the initial load makes two
+        // attempts. Both must fail before the error state is reachable.
+        vi.mocked(fetchProducts)
+            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
+            .mockRejectedValueOnce(new Error('HTTP 500: Server initialization error'))
+            .mockResolvedValue({
+                products: [
+                    { id: '9', name: 'سخان زجاجي', price: 25000, category: 'سخانات', slug: 'glass-heater', brand: 'YEE', rating: 0, reviewCount: 0, thumbnail: '', images: [], stock: 5 },
+                ],
+            });
+
+        render(<Products />, { wrapper: createWrapper() });
+
+        expect(await screen.findByRole('heading', { name: ERROR_HEADING })).toBeInTheDocument();
+        const callsBeforeRetry = vi.mocked(fetchProducts).mock.calls.length;
+
+        await user.click(screen.getByRole('button', { name: 'حاول مرة ثانية' }));
+
+        // The retry actually re-issues the request…
+        await waitFor(() =>
+            expect(vi.mocked(fetchProducts).mock.calls.length).toBeGreaterThan(callsBeforeRetry),
+        );
+        // …and the page leaves the error state instead of staying stuck on a cached failure.
+        expect(await screen.findByText('سخان زجاجي')).toBeInTheDocument();
+        await waitFor(() =>
+            expect(screen.queryByRole('heading', { name: ERROR_HEADING })).not.toBeInTheDocument(),
+        );
     });
 });
