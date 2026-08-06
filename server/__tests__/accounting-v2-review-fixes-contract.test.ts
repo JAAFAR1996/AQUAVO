@@ -26,7 +26,7 @@ describe("Accounting V2 reviewed fixes", () => {
     const api = read("server/routes/accounting-v2.ts");
     expect(api).toContain("WHERE public.accounting_period_closes.status='reopened'");
     expect(api).toContain("WHERE period_key=${periodKey} AND status='closed'");
-    expect(api).toContain("لا توجد بيانات جاهزية لهذه الفترة");
+    expect(api).toContain("لا توجد بيانات جاهزية محاسبية لهذه الفترة");
     expect(api).toContain("لا يمكن إغلاق الشهر قبل معالجة الموانع");
     expect(api).toContain("runAutomaticPeriodClose");
 
@@ -66,13 +66,18 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(codRollback).toContain("trg_guard_accounting_period_tax_finalization");
   });
 
-  it("retains the 0061 carrier guard while the main V2 router requires 0062", () => {
-    const health = read("server/routes/accounting-health-v2.ts");
-    expect(health).toContain("migration_0061");
-    expect(health).toContain("carrier_status_guard");
+  it("registers one fail-closed V2 health router through migration 0066", () => {
+    const routes = read("server/routes.ts");
+    expect(routes).not.toContain("accounting-health-v2.js");
+    expect(routes).not.toContain("createAccountingHealthV2Router");
+    expect(routes.match(/createAccountingV2Router\(\)/g) ?? []).toHaveLength(1);
+    expect(existsSync(join(root, "server/routes/accounting-health-v2.ts"))).toBe(false);
+
     const reports = read("server/routes/accounting-v2.ts");
-    expect(reports).toContain("migration_0062");
-    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0062_REQUIRED");
+    expect(reports).toContain('router.get("/v2/health"');
+    expect(reports).toContain("migration_0066");
+    expect(reports).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED");
+    expect(reports).toContain('migrationsThrough: "0066"');
   });
 
   it("keeps the default carrier active during status-only updates", () => {
@@ -84,16 +89,17 @@ describe("Accounting V2 reviewed fixes", () => {
 
   it("runs exact migration files before production deploy and skips previews", () => {
     const runner = read("script/apply-accounting-v2-migrations.ts");
-    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0062"');
+    expect(runner).toContain('CONFIRM_ACCOUNTING_PRODUCTION !== "APPLY_0051_TO_0066"');
     expect(runner).toContain("pg_advisory_lock");
     expect(runner).toContain("await client.query(body)");
     expect(runner).toContain("createHash(\"sha256\")");
     expect(runner).toContain("runner-verified file sha256");
     expect(runner).toContain('"0062_accounting_automation_opening_balances.sql"');
+    expect(runner).toContain('"0066_accounting_reassert_refusal_inventory_after_0062.sql"');
 
     const vercel = read("vercel.json");
     expect(vercel).toContain('if [ \\"$VERCEL_ENV\\" = \\"production\\" ]');
-    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0062");
+    expect(vercel).toContain("CONFIRM_ACCOUNTING_PRODUCTION=APPLY_0051_TO_0066");
     expect(vercel).toContain("script/apply-accounting-v2-migrations.ts");
   });
 });

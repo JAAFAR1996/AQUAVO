@@ -52,9 +52,14 @@ describe('Order confirmation — inherits the global theme (no hard-coded dark)'
     expect(src).toContain('text-primary');
   });
 
-  it('keeps RTL and the intentional WhatsApp green CTA', () => {
+  it('keeps RTL and keeps WhatsApp as a themed secondary action, not a forced green surface', () => {
     expect(src).toContain('dir="rtl"');
-    expect(src).toContain('bg-green-600');
+    // 25a38eaa ("make order success definitive and WhatsApp optional") demoted
+    // the CTA from a hard-coded green block to a theme-token secondary link, so
+    // the confirmation itself stays the definitive outcome. A raw green surface
+    // here would also contradict the theme-token contract asserted above.
+    expect(src).toContain('whatsappHref');
+    expect(src).not.toMatch(/bg-green-\d{3}/);
   });
 });
 

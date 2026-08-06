@@ -41,8 +41,12 @@ describe("MultiDimensionVariantSelector", () => {
                 onVariantSelect={vi.fn()}
             />
         );
-        expect(screen.getByRole("group", { name: "اللون:" })).toBeInTheDocument();
-        expect(screen.getByRole("group", { name: "الحجم:" })).toBeInTheDocument();
+        // Each dimension is exactly one group — the <fieldset>, named by its
+        // <legend>. The legend deliberately carries the current selection too
+        // ("اللون : أحمر", 3c60eea5), so match on the dimension label.
+        expect(screen.getByRole("group", { name: /اللون/ })).toBeInTheDocument();
+        expect(screen.getByRole("group", { name: /الحجم/ })).toBeInTheDocument();
+        expect(screen.getAllByRole("group")).toHaveLength(2);
     });
 
     it("marks the selected value as pressed within its dimension", () => {

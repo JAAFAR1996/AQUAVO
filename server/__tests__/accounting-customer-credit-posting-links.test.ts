@@ -1,20 +1,21 @@
 import { readFileSync } from "node:fs";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  new URL("../../migrations/0064_accounting_customer_credit_posting_links.sql", import.meta.url),
+  path.resolve(process.cwd(), "migrations/0064_accounting_customer_credit_posting_links.sql"),
   "utf8",
 );
 const rollback = readFileSync(
-  new URL("../../migrations/0064_accounting_customer_credit_posting_links_rollback.sql", import.meta.url),
+  path.resolve(process.cwd(), "migrations/0064_accounting_customer_credit_posting_links_rollback.sql"),
   "utf8",
 );
 const refusalSql = readFileSync(
-  new URL("../../migrations/0063_accounting_cod_refusal_and_store_credit.sql", import.meta.url),
+  path.resolve(process.cwd(), "migrations/0063_accounting_cod_refusal_and_store_credit.sql"),
   "utf8",
 );
 const warrantySql = readFileSync(
-  new URL("../../migrations/0065_accounting_separate_warranty_from_cod_refusal.sql", import.meta.url),
+  path.resolve(process.cwd(), "migrations/0065_accounting_separate_warranty_from_cod_refusal.sql"),
   "utf8",
 );
 
