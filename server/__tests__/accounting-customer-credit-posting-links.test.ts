@@ -1,21 +1,21 @@
 import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
-  join(process.cwd(), "migrations", "0064_accounting_customer_credit_posting_links.sql"),
+  path.resolve(process.cwd(), "migrations/0064_accounting_customer_credit_posting_links.sql"),
   "utf8",
 );
 const rollback = readFileSync(
-  join(process.cwd(), "migrations", "0064_accounting_customer_credit_posting_links_rollback.sql"),
+  path.resolve(process.cwd(), "migrations/0064_accounting_customer_credit_posting_links_rollback.sql"),
   "utf8",
 );
 const refusalSql = readFileSync(
-  join(process.cwd(), "migrations", "0063_accounting_cod_refusal_and_store_credit.sql"),
+  path.resolve(process.cwd(), "migrations/0063_accounting_cod_refusal_and_store_credit.sql"),
   "utf8",
 );
 const warrantySql = readFileSync(
-  join(process.cwd(), "migrations", "0065_accounting_separate_warranty_from_cod_refusal.sql"),
+  path.resolve(process.cwd(), "migrations/0065_accounting_separate_warranty_from_cod_refusal.sql"),
   "utf8",
 );
 

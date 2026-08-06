@@ -807,7 +807,23 @@ export function injectMeta(html: string, meta: PageMeta & { url: string; image: 
     imagePreload = `<link rel="preload" fetchpriority="high" as="image" type="image/webp" href="/images/aquascape-styles/iwagumi_aquascape_1765676307763.webp" imagesrcset="/images/aquascape-styles/iwagumi_aquascape_1765676307763-640.webp 640w, /images/aquascape-styles/iwagumi_aquascape_1765676307763.webp 1024w" imagesizes="(max-width: 1024px) 100vw, 48vw">`;
   }
   if (imagePreload) {
-    result = result.replace("<!-- Open Graph / Facebook -->", `${imagePreload}\n\n  <!-- Open Graph / Facebook -->`);
+    // The preload above is stripped unconditionally, so re-inserting it is not
+    // optional: a missed anchor ships the LCP image with no preload at all.
+    // Anchoring on a single HTML comment silently did exactly that once the
+    // comment was dropped from client/index.html, so try structural anchors in
+    // descending order of how early they place the tag in <head>.
+    const anchors: Array<[string | RegExp, (match: string) => string]> = [
+      ["<!-- Open Graph / Facebook -->", (m) => `${imagePreload}\n\n  ${m}`],
+      [/<meta\s+property=["']og:title["'][^>]*>/i, (m) => `${imagePreload}\n\n  ${m}`],
+      [/<\/head>/i, (m) => `  ${imagePreload}\n${m}`],
+    ];
+    for (const [anchor, build] of anchors) {
+      const next = result.replace(anchor as never, (m: string) => build(m));
+      if (next !== result) {
+        result = next;
+        break;
+      }
+    }
   }
 
   // Inject JSON-LD

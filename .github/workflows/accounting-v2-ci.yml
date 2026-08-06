@@ -7,7 +7,6 @@ on:
       - agent/accounting-cod-august-fix-20260802
     paths:
       - "server/middleware/accounting-auth-v2.ts"
-      - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-automatic-returns-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"
@@ -50,7 +49,6 @@ on:
   pull_request:
     paths:
       - "server/middleware/accounting-auth-v2.ts"
-      - "server/routes/accounting-health-v2.ts"
       - "server/routes/accounting-v2.ts"
       - "server/routes/accounting-automatic-returns-v2.ts"
       - "server/routes/accounting-monthly-position-v2.ts"

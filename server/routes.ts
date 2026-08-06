@@ -6,7 +6,6 @@ import { createUserRouter } from "./routes/users.js";
 import { createGalleryRouter } from "./routes/gallery.js";
 import { createAdminRouter } from "./routes/admin.js";
 import { createAdminOrdersV2Router } from "./routes/admin-orders-v2.js";
-import { createAccountingHealthV2Router } from "./routes/accounting-health-v2.js";
 import { createAccountingAutomaticReturnsV2Router } from "./routes/accounting-automatic-returns-v2.js";
 import { createAccountingMonthlyPositionV2Router } from "./routes/accounting-monthly-position-v2.js";
 import { createAccountingSetupV2Router } from "./routes/accounting-setup-v2.js";
@@ -146,7 +145,6 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/capi", capiRouter);
 
   app.use("/api/admin/invoices", createAdminInvoicesRouter());
-  app.use("/api/admin/accounting", createAccountingHealthV2Router());
   app.use("/api/admin/accounting", createAccountingAutomaticReturnsV2Router());
   app.use("/api/admin/accounting", createAccountingMonthlyPositionV2Router());
   app.use("/api/admin/accounting", createAccountingSetupV2Router());
@@ -161,7 +159,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
-  app.use("/api/admin/packaging", cartonOnboardingRouter);
+  app.use("/api/admin/packaging", cartonOnboardingRouter());
   app.use("/api/admin/packaging", packagingAdminRouter);
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {

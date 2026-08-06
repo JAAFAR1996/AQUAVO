@@ -23,9 +23,9 @@ describe("finance route contract", () => {
   });
 
   it("keeps only the four operational finance sections", () => {
-    expect(finance).toContain("السجل المحاسبي والإغلاق الشهري");
+    expect(finance).toContain("السجل المحاسبي والإغلاق التلقائي");
     expect(finance).toContain("التغليف والكراتين");
-    expect(finance).toContain("الراجعات والخسائر");
+    expect(finance).toContain("الراجعات التلقائية");
     expect(finance).toContain("سجل التدقيق");
     expect(finance).toContain("FinanceAutomaticReturnsV2");
     expect(finance).not.toContain("المراجع الآلي");

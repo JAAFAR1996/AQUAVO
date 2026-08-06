@@ -150,7 +150,9 @@ describe('JourneyPage', () => {
         });
 
         render(<JourneyPage />, { wrapper: createWrapper() });
-        expect(screen.getByText(/جاري تحميل رحلتك/i)).toBeInTheDocument();
+        // The bespoke "جاري تحميل رحلتك" text was replaced by the shared
+        // <PageLoader />, which announces the wait through role="status".
+        expect(screen.getByRole('status', { name: /جارٍ تحميل الصفحة/ })).toBeInTheDocument();
     });
 
     it('renders Step 1 initially', () => {

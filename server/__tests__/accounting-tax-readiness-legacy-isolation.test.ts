@@ -339,8 +339,16 @@ describe("legacy shipping_settlements isolation", () => {
     expect(managed).not.toContain('"shipping_settlements"');
     // The rest of the filter is untouched — this is a removal of one entry, not
     // a disabling of the filter.
-    expect(managed).toContain('"orders"');
     expect(managed).toContain('"product_cost_history"');
+    expect(managed).toContain('"products"');
+    expect(managed).toContain('"users"');
+    // `orders` and the V2 accounting tables were later pulled out of the filter
+    // on purpose (ed18c0ac): migration SQL is their sole DDL authority, so
+    // db:push must never be able to propose dropping delivered_at, carrier_fee,
+    // evidence columns, triggers, checks or foreign keys on them.
+    for (const migrationOwned of ['"orders"', '"journal_lines"', '"order_accounting_facts"']) {
+      expect(managed, migrationOwned).not.toContain(migrationOwned);
+    }
   });
 });
 

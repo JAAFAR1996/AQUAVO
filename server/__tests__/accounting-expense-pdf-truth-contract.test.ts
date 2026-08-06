@@ -38,7 +38,9 @@ describe("accounting expense and PDF truth contract", () => {
       expect(source).toContain("ACCOUNTING_NUMERIC_VALUE_INVALID");
       expect(source).not.toContain("Number.isFinite(number) ? number : 0");
     }
-    expect(registerRoute).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0066_REQUIRED");
+    // The schema gate must name the full chain it actually verifies; it now
+    // fails closed through 0071 (delivery readiness + return integrity guards).
+    expect(registerRoute).toContain("ACCOUNTING_V2_MIGRATIONS_0051_TO_0071_REQUIRED");
   });
 
   it("requires the carrier fee explicitly instead of inventing 5,000 IQD", () => {

@@ -130,7 +130,8 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "تم استلام طلبك بنجاح" })).toBeInTheDocument();
+    // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
+    expect(await screen.findByRole("heading", { level: 1, name: "طلبك مسجّل" })).toBeInTheDocument();
     expect(mockFetch).toHaveBeenCalledWith("/api/orders", expect.objectContaining({ method: "POST" }));
     const request = mockFetch.mock.calls[0]?.[1] as RequestInit;
     const body = JSON.parse(String(request.body));
@@ -171,7 +172,8 @@ describe("checkout page", () => {
       ok: true,
       json: async () => ({ id: "order-busy-test", orderNumber: "FH-BUSY", roundedTotal: 30000, shippingCost: 5000, discountTotal: 0, status: "pending" }),
     });
-    expect(await screen.findByRole("heading", { level: 1, name: "تم استلام طلبك بنجاح" })).toBeInTheDocument();
+    // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
+    expect(await screen.findByRole("heading", { level: 1, name: "طلبك مسجّل" })).toBeInTheDocument();
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
@@ -238,7 +240,8 @@ describe("checkout page", () => {
     await user.click(screen.getByRole("checkbox"));
     await user.click(screen.getByRole("button", { name: "تأكيد الطلب" }));
 
-    expect(await screen.findByRole("heading", { level: 1, name: "تم استلام طلبك بنجاح" })).toBeInTheDocument();
+    // Heading moved into <CheckoutSuccessFallback /> and was reworded in 32de533c.
+    expect(await screen.findByRole("heading", { level: 1, name: "طلبك مسجّل" })).toBeInTheDocument();
     const orderCall = mockFetch.mock.calls.find(([url]) => url === "/api/orders");
     expect(orderCall).toBeDefined();
     const body = JSON.parse(String((orderCall![1] as RequestInit).body));

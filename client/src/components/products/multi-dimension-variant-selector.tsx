@@ -141,7 +141,9 @@ export function MultiDimensionVariantSelector({
               )}
             </legend>
 
-            <div className="flex flex-wrap gap-2" role="group" aria-labelledby="aquarium-measurements">
+            {/* The wrapping <fieldset> already exposes role="group" named by its
+                <legend>; repeating it here would announce the dimension twice. */}
+            <div className="flex flex-wrap gap-2">
               {variants.map((variant) => {
                 const measurement = getAquariumMeasurement(variant);
                 if (!measurement) return null;
@@ -194,7 +196,8 @@ export function MultiDimensionVariantSelector({
                   {selectedValue && <span className="font-bold text-primary">: {selectedValue}</span>}
                 </legend>
 
-                <div className="flex flex-wrap gap-2" role="group" aria-labelledby={labelId}>
+                {/* See above: the <fieldset>/<legend> pair is the group. */}
+                <div className="flex flex-wrap gap-2">
                   {dimension.values.map((value) => {
                     const selected = selectedValue === value;
                     const available = isDimensionValueAvailable({
