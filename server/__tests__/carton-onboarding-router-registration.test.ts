@@ -9,15 +9,15 @@ describe("carton onboarding router registration", () => {
     const routes = read("server/routes.ts");
     const cartonOnboarding = read("server/routes/carton-onboarding.ts");
 
-    expect(cartonOnboarding).toContain("export default router;");
-    expect(routes).toContain(
-      'import cartonOnboardingRouter from "./routes/carton-onboarding.js"',
+    expect(cartonOnboarding).toMatch(/export\s+default\s+router\s*;?/);
+    expect(routes).toMatch(
+      /import\s+cartonOnboardingRouter\s+from\s+["']\.\/routes\/carton-onboarding\.js["']\s*;?/,
     );
-    expect(routes).toContain(
-      'app.use("/api/admin/packaging", cartonOnboardingRouter);',
+    expect(routes).toMatch(
+      /app\.use\(\s*["']\/api\/admin\/packaging["']\s*,\s*cartonOnboardingRouter\s*\)\s*;?/,
     );
-    expect(routes).not.toContain(
-      'app.use("/api/admin/packaging", cartonOnboardingRouter());',
+    expect(routes).not.toMatch(
+      /app\.use\(\s*["']\/api\/admin\/packaging["']\s*,\s*cartonOnboardingRouter\s*\(\s*\)\s*\)\s*;?/,
     );
   });
 });
