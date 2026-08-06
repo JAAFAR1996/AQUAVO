@@ -1,0 +1,81 @@
+name: Accounting V2 Production Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Exact commit SHA or branch to migrate from"
+        required: true
+        default: "main"
+        type: string
+      confirm:
+        description: "Type APPLY_0051_TO_0071 exactly"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: accounting-v2-production-migration
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    if: ${{ inputs.confirm == 'APPLY_0051_TO_0071' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 1
+
+      - name: Record release commit
+        run: git rev-parse HEAD
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.0.0
+          run_install: false
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify accounting types
+        run: pnpm check:accounting
+
+      - name: Execute migration safety tests
+        run: >-
+          pnpm exec vitest run
+          server/__tests__/accounting-v2-migration-0062-execution.test.ts
+          server/__tests__/accounting-v2-migration-0071-execution.test.ts
+          server/__tests__/accounting-v2-p0-migration-contract.test.ts
+          server/__tests__/return-variant-id-contract.test.ts
+
+      - name: Verify migration ledger governance
+        run: pnpm check:migrations
+
+      - name: Verify production build
+        run: pnpm build
+
+      - name: Apply Accounting V2 migrations
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          CONFIRM_ACCOUNTING_PRODUCTION: APPLY_0051_TO_0071
+        run: |
+          set -euo pipefail
+          test -n "$DATABASE_URL"
+          pnpm exec tsx script/apply-accounting-v2-migrations.ts
