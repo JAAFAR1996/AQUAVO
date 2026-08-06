@@ -124,7 +124,7 @@ export function createAdminOrdersV2Router() {
           oi.product_id,
           COALESCE(p.name,oi.product_id) AS product_name,
           oi.quantity,
-          oi.price_at_purchase AS price,
+          COALESCE(oi.final_unit_sale_price_snapshot,oi.price_at_purchase) AS price,
           NULLIF(COALESCE(oi.metadata->>'variantId',oi.metadata->>'variant_id'),'') AS variant_id,
           NULLIF(COALESCE(oi.metadata->>'variantLabel',oi.metadata->>'variant_label'),'') AS variant_label
         FROM public.order_items_relational oi
