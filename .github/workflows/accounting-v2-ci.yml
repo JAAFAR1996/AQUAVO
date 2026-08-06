@@ -44,6 +44,7 @@ on:
       - "script/apply-accounting-v2-migrations.ts"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
+      - ".github/workflows/accounting-v2-production-migrate.yml"
       - ".github/workflows/one-off-return-variant-patch.yml"
   pull_request:
     paths:
@@ -85,6 +86,7 @@ on:
       - "script/apply-accounting-v2-migrations.ts"
       - "tsconfig.accounting.json"
       - ".github/workflows/accounting-v2-ci.yml"
+      - ".github/workflows/accounting-v2-production-migrate.yml"
       - ".github/workflows/one-off-return-variant-patch.yml"
 
 permissions:
@@ -97,7 +99,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -133,6 +135,7 @@ jobs:
           server/__tests__/accounting-smart-carrier-v2-contract.test.ts
           server/__tests__/accounting-v2-automation-contract.test.ts
           server/__tests__/accounting-v2-migration-0062-execution.test.ts
+          server/__tests__/accounting-v2-migration-0071-execution.test.ts
           server/__tests__/accounting-v2-p0-migration-contract.test.ts
           server/__tests__/return-variant-id-contract.test.ts
           server/__tests__/accounting-cod-refusal-migration-contract.test.ts
