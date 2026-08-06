@@ -159,7 +159,7 @@ export async function registerRoutes(httpServer: Server, app: express.Applicatio
   app.use("/api/invoice", createInvoiceRouter());
   app.use("/api/admin/finance", createFinanceAuditRouter());
   app.use("/api/admin/fulfillment", fulfillmentAdminRouter);
-  app.use("/api/admin/packaging", cartonOnboardingRouter());
+  app.use("/api/admin/packaging", cartonOnboardingRouter);
   app.use("/api/admin/packaging", packagingAdminRouter);
 
   app.use("/api", (err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
