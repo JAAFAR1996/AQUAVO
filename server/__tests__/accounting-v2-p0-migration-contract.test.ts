@@ -30,6 +30,24 @@ describe("Accounting V2 P0 migration contracts", () => {
     expect(sql).toContain("NEW.cogs_loss:=0");
   });
 
+  it("requires exact order-line identity and derives the refund from sale snapshots", () => {
+    const sql = readMigration("0071_accounting_return_line_identity_and_refund_guard.sql");
+    const rollback = readMigration("0071_accounting_return_line_identity_and_refund_guard_rollback.sql");
+
+    expect(sql).toContain("RETURN_ORDER_ITEM_ID_REQUIRED");
+    expect(sql).toContain("WHERE oi.id=v_order_item_id");
+    expect(sql).toContain("AND oi.order_id=NEW.order_id");
+    expect(sql).toContain("RETURN_PRODUCT_MISMATCH");
+    expect(sql).toContain("RETURN_VARIANT_MISMATCH");
+    expect(sql).toContain("v_refund_total:=v_refund_total+(v_qty*v_unit_sale)");
+    expect(sql).toContain("NEW.refund_amount:=v_refund_total");
+    expect(sql).toContain("'priceAtPurchase',v_unit_sale");
+    expect(sql).toContain("'cogsAtTime',v_unit_cogs");
+
+    expect(rollback).toContain("0071_ROLLBACK_BLOCKED");
+    expect(rollback).toContain("CREATE OR REPLACE FUNCTION public.prepare_verified_return_inventory()");
+  });
+
   it("serializes concurrent return approvals before quantity validation", () => {
     const sql = readMigration("0070_accounting_ledger_backed_views.sql");
     const rollback = readMigration("0070_accounting_ledger_backed_views_rollback.sql");
