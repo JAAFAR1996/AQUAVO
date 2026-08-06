@@ -115,8 +115,8 @@ describe("Accounting V2 reviewed fixes", () => {
     expect(productionWorkflow).toContain("environment: production");
     expect(productionWorkflow).toContain("cancel-in-progress: false");
     expect(productionWorkflow).toContain("APPLY_0051_TO_0071");
-    expect(productionWorkflow).toContain("pnpm run build");
-    expect(productionWorkflow.indexOf("pnpm run build"))
+    expect(productionWorkflow).toContain("pnpm build");
+    expect(productionWorkflow.indexOf("pnpm build"))
       .toBeLessThan(productionWorkflow.indexOf("script/apply-accounting-v2-migrations.ts"));
   });
 });
